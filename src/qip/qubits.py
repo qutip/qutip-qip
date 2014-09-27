@@ -31,42 +31,33 @@
 #    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ###############################################################################
 
-import numpy as np
-from numpy.testing import assert_, run_module_suite
-from qutip import fsesolve, sigmax, sigmaz, rand_ket, num, mesolve
+__all__ = ['qubit_states']
+
+from qutip.tensor import tensor
 
 
-class TestFloquet:
+def qubit_states(N=1, states=[0]):
     """
-    A test class for the QuTiP functions for Floquet formalism.
+    Function to define initial state of the qubits.
+
+    Parameters
+    ----------
+    N: Integer
+        Number of qubits in the register.
+    states: List
+        Initial state of each qubit.
+
+    Returns
+    ----------
+    qstates: Qobj
+        List of qubits.
     """
+    state_list = []
+    for i in range(N):
+        if N > len(states) and i >= len(states):
+            state_list.append(0)
+        else:
+            state_list.append(states[i])
 
-    def testFloquetUnitary(self):
-        """
-        Floquet: test unitary evolution of time-dependent two-level system
-        """
-
-        delta = 1.0 * 2 * np.pi
-        eps0 = 1.0 * 2 * np.pi
-        A = 0.5 * 2 * np.pi
-        omega = np.sqrt(delta ** 2 + eps0 ** 2)
-        T = (2 * np.pi) / omega
-        tlist = np.linspace(0.0, 2 * T, 101)
-        psi0 = rand_ket(2)
-        H0 = - eps0 / 2.0 * sigmaz() - delta / 2.0 * sigmax()
-        H1 = A / 2.0 * sigmax()
-        args = {'w': omega}
-        H = [H0, [H1, lambda t, args: np.sin(args['w'] * t)]]
-        e_ops = [num(2)]
-
-        # solve schrodinger equation with floquet solver
-        sol = fsesolve(H, psi0, tlist, e_ops, T, args)
-
-        # compare with results from standard schrodinger equation
-        sol_ref = mesolve(H, psi0, tlist, [], e_ops, args)
-
-        assert_(max(abs(sol.expect[0] - sol_ref.expect[0])) < 1e-4)
-
-
-if __name__ == "__main__":
-    run_module_suite()
+    return tensor(alpha * basis(2, 0) + sqrt(1 - alpha**2) * basis(2, 1)
+                  for alpha in state_list)
