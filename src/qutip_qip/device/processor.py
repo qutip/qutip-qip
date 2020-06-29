@@ -321,15 +321,19 @@ class Processor(object):
             full_tlist = self.get_full_tlist()
         coeffs_list = []
         for pulse in self.pulses:
+            if pulse.tlist is None and pulse.coeff is None:
+                coeffs_list.append(np.zeros(len(full_tlist)))
+                continue
             if not isinstance(pulse.coeff, (bool, np.ndarray)):
                 raise ValueError(
                     "get_full_coeffs only works for "
                     "NumPy array or bool coeff.")
             if isinstance(pulse.coeff, bool):
                 if pulse.coeff:
-                    coeffs_list.append(np.ones(full_tlist))
+                    coeffs_list.append(np.ones(len(full_tlist)))
                 else:
-                    coeffs_list.append(np.zeros(full_tlist))
+                    coeffs_list.append(np.zeros(len(full_tlist)))
+                continue
             if self.spline_kind == "step_func":
                 arg = {"_step_func_coeff": True}
                 coeffs_list.append(
@@ -351,8 +355,12 @@ class Processor(object):
             A list of time at which the time-dependent coefficients are
             applied. See :class:`qutip_qip.Pulse` for detailed information`
         """
-        for pulse in self.pulses:
-            pulse.tlist = tlist
+        if isinstance(tlist, list) and len(tlist) == len(self.pulses):
+            for i, pulse in enumerate(self.pulses):
+                pulse.tlist = tlist[i]
+        else:
+            for pulse in self.pulses:
+                pulse.tlist = tlist
 
     def add_pulse(self, pulse):
         """
@@ -841,10 +849,11 @@ class Processor(object):
                     ax.set_ylim((-ymax, ymax))
 
                 # disable frame and ticks
-                ax.set_xticks([])
+                if not show_axis:
+                    ax.set_xticks([])
+                    ax.spines['bottom'].set_visible(False)
                 ax.spines['top'].set_visible(False)
                 ax.spines['right'].set_visible(False)
-                ax.spines['bottom'].set_visible(False)
                 ax.spines['left'].set_visible(False)
                 ax.set_yticks([])
                 ax.set_ylabel(label, rotation=0)
