@@ -3,7 +3,7 @@ from scipy.interpolate import CubicSpline
 
 from qutip.qobjevo import QobjEvo
 from qutip.qobj import Qobj
-from qutip.qip.operations import expand_operator
+from .operations import expand_operator
 from qutip.operators import identity
 
 

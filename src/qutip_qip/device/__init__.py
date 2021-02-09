@@ -30,9 +30,9 @@
 #    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 #    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ###############################################################################
-from qutip.qip.device.processor import Processor
-from qutip.qip.device.spinchain import (
+from .device.processor import Processor
+from .device.spinchain import (
     SpinChain, LinearSpinChain, CircularSpinChain)
-from qutip.qip.device.cavityqed import DispersiveCavityQED
-from qutip.qip.device.optpulseprocessor import OptPulseProcessor
-from qutip.qip.device.modelprocessor import ModelProcessor
+from .device.cavityqed import DispersiveCavityQED
+from .device.optpulseprocessor import OptPulseProcessor
+from .device.modelprocessor import ModelProcessor

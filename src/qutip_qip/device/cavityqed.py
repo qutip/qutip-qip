@@ -36,15 +36,15 @@ import numpy as np
 
 from qutip.operators import tensor, identity, destroy, sigmax, sigmaz
 from qutip.states import basis
-from qutip.qip.circuit import QubitCircuit, Gate
-from qutip.qip.device.processor import Processor
-from qutip.qip.device.modelprocessor import ModelProcessor
-from qutip.qip.operations import expand_operator
+from .circuit import QubitCircuit, Gate
+from .device.processor import Processor
+from .device.modelprocessor import ModelProcessor
+from .operations import expand_operator
 from qutip.qobj import Qobj
 from qutip.qobjevo import QobjEvo
-from qutip.qip.pulse import Pulse
-from qutip.qip.compiler.gatecompiler import GateCompiler
-from qutip.qip.compiler import CavityQEDCompiler
+from .pulse import Pulse
+from .compiler.gatecompiler import GateCompiler
+from .compiler import CavityQEDCompiler
 
 
 __all__ = ['DispersiveCavityQED']
