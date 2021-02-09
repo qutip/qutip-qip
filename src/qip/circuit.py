@@ -41,8 +41,8 @@ import inspect
 import numpy as np
 from copy import deepcopy
 
-from qutip.qip import circuit_latex as _latex
-from qutip.qip.operations.gates import (rx, ry, rz, sqrtnot, snot, phasegate,
+from . import circuit_latex as _latex
+from .operations.gates import (rx, ry, rz, sqrtnot, snot, phasegate,
                                         x_gate, y_gate, z_gate, cy_gate,
                                         cz_gate, s_gate, t_gate, cs_gate,
                                         qasmu_gate, ct_gate, cphase, cnot,

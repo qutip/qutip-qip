@@ -32,8 +32,8 @@
 ###############################################################################
 import numpy as np
 
-from qutip.qip.circuit import QubitCircuit, Gate
-from qutip.qip.compiler.gatecompiler import GateCompiler
+from .circuit import QubitCircuit, Gate
+from .compiler.gatecompiler import GateCompiler
 
 
 __all__ = ['CavityQEDCompiler']

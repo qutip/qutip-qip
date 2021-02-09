@@ -36,8 +36,8 @@ This module provides the circuit implementation for Quantum Fourier Transform.
 
 
 import numpy as np
-from qutip.qip.operations.gates import snot, cphase, swap
-from qutip.qip.circuit import QubitCircuit
+from .operations.gates import snot, cphase, swap
+from .circuit import QubitCircuit
 from qutip.qobj import Qobj
 
 
