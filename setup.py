@@ -31,6 +31,8 @@ Operating System :: Microsoft :: Windows
 # import statements
 import os
 import sys
+from setuptools import find_packages
+
 # The following is required to get unit tests up and running.
 # If the user doesn't have, then that's OK, we'll just skip unit tests.
 try:
@@ -61,8 +63,7 @@ VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 REQUIRES = ['numpy (>=1.12)', 'scipy (>=1.0)', 'qutip (>=4.5)']
 EXTRAS_REQUIRE = {'graphics': ['matplotlib(>=1.2.1)']}
 INSTALL_REQUIRES = ['numpy>=1.12', 'scipy>=1.0', 'qutip>=4.5']
-PACKAGES = ['src/qip', 'src/qip/device', 'src/qip/operations', 'src/qip/compiler',
-            'src/qip/algorithms']
+PACKAGES = find_packages(where="src")
 PACKAGE_DATA = {}
 
 # If we're missing numpy, exclude import directories until we can
@@ -121,15 +122,6 @@ release = %(isrelease)s
                 FULLVERSION, 'isrelease': str(ISRELEASED)})
     finally:
         a.close()
-
-local_path = os.path.dirname(os.path.abspath(sys.argv[0]))
-print(local_path)
-os.chdir(local_path)
-sys.path.insert(0, local_path)
-print(local_path)
-sys.path.insert(0, os.path.join(local_path, 'src/qip'))  # to retrive _version
-print(local_path)
-
 
 # always rewrite _version
 if os.path.exists('src/qip/version.py'):
