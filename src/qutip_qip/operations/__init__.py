@@ -30,7 +30,7 @@
 #    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 #    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ###############################################################################
-from .operations.gates import (
+from .gates import (
     rx, ry, rz, x_gate, y_gate, z_gate, s_gate, t_gate,
     cy_gate, cz_gate, cs_gate, ct_gate, sqrtnot, snot,
     phasegate, qrot, cphase, cnot,

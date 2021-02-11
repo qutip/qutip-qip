@@ -64,6 +64,7 @@ REQUIRES = ['numpy (>=1.12)', 'scipy (>=1.0)', 'qutip (>=4.5)']
 EXTRAS_REQUIRE = {'graphics': ['matplotlib(>=1.2.1)']}
 INSTALL_REQUIRES = ['numpy>=1.12', 'scipy>=1.0', 'qutip>=4.5']
 PACKAGES = find_packages(where="src")
+PACKAGE_DIR = {'': 'src'}
 PACKAGE_DATA = {}
 
 # If we're missing numpy, exclude import directories until we can
@@ -109,7 +110,7 @@ if np is None:
     EXTRA_KWARGS['version'] = FULLVERSION
 
 
-def write_version_py(filename='src/qip/version.py'):
+def write_version_py(filename='src/qutip_qip/version.py'):
     cnt = """\
 # THIS FILE IS GENERATED FROM QUTIP SETUP.PY
 short_version = '%(version)s'
@@ -124,8 +125,8 @@ release = %(isrelease)s
         a.close()
 
 # always rewrite _version
-if os.path.exists('src/qip/version.py'):
-    os.remove('src/qip/version.py')
+if os.path.exists('src/qutip_qip/version.py'):
+    os.remove('src/qutip_qip/version.py')
 
 write_version_py()
 
@@ -153,6 +154,7 @@ else:
 setup(name = NAME,
       version = FULLVERSION,
       packages = PACKAGES,
+      package_dir = PACKAGE_DIR,
       include_package_data=True,
       include_dirs = INCLUDE_DIRS,
       # headers = HEADERS,
