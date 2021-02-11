@@ -26,9 +26,7 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
-
-
-src/qip/version.py
+src/qutip_qip/version.py
 
 
 # PyInstaller
