@@ -50,8 +50,8 @@ def _qip_importation_warning():
         "Importing functions/classes of the qip submodule directly from "
         "the namespace qutip is deprecated. "
         "Please import them from the submodule instead, e.g.\n"
-        "from qutip.qip.operations import cnot\n"
-        "from qutip.qip.circuit import QubitCircuit\n",
+        "from qutip_qip.operations import cnot\n"
+        "from qutip_qip.circuit import QubitCircuit\n",
         DeprecationWarning, stacklevel=3)
 
 

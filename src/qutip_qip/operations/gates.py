@@ -971,8 +971,8 @@ def _mult_sublists(tensor_list, overall_inds, U, inds):
 
     First, we get some imports out of the way,
 
-    >>> from qutip.qip.operations.gates import _mult_sublists
-    >>> from qutip.qip.operations.gates import x_gate, y_gate, toffoli, z_gate
+    >>> from qutip_qip.operations.gates import _mult_sublists
+    >>> from qutip_qip.operations.gates import x_gate, y_gate, toffoli, z_gate
 
     Suppose we have a unitary list of already processed gates,
     X, Y, Z applied on qubit indices 0, 1, 2 respectively and
@@ -1070,8 +1070,8 @@ def _gate_sequence_product(U_list, ind_list):
 
     First, we get some imports out of the way,
 
-    >>> from qutip.qip.operations.gates import _gate_sequence_product
-    >>> from qutip.qip.operations.gates import x_gate, y_gate, toffoli, z_gate
+    >>> from qutip_qip.operations.gates import _gate_sequence_product
+    >>> from qutip_qip.operations.gates import x_gate, y_gate, toffoli, z_gate
 
     Suppose we have a circuit with gates X, Y, Z, TOFFOLI
     applied on qubit indices 0, 1, 2 and [0, 1, 3] respectively.
@@ -1623,7 +1623,7 @@ def expand_operator(oper, N, targets, dims=None, cyclic_permutation=False):
     Notes
     -----
     This is equivalent to gate_expand_1toN, gate_expand_2toN,
-    gate_expand_3toN in ``qutip.qip.gate.py``, but works for any dimension.
+    gate_expand_3toN in ``qutip_qip.gate.py``, but works for any dimension.
     """
     if dims is None:
         dims = [2] * N

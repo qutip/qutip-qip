@@ -59,7 +59,7 @@ class DispersiveCavityQED(ModelProcessor):
     calculate the state evolution under the given control pulse,
     either analytically or numerically.
     (Only additional attributes are documented here, for others please
-    refer to the parent class :class:`qutip.qip.device.ModelProcessor`)
+    refer to the parent class :class:`qutip_qip.device.ModelProcessor`)
 
     Parameters
     ----------

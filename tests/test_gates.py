@@ -36,7 +36,7 @@ import functools
 import itertools
 import numpy as np
 import qutip
-from qutip.qip.operations import gates
+from qutip_qip.operations import gates
 
 
 def _permutation_id(permutation):
@@ -292,7 +292,7 @@ class TestGateExpansion:
 class Test_expand_operator:
     # Conceptually, a lot of these tests are complete duplicates of
     # `TestGateExpansion`, except that they explicitly target an underlying
-    # function in `qutip.qip.operations.gates` which (as of 2020-03-01) is not
+    # function in `qutip_qip.operations.gates` which (as of 2020-03-01) is not
     # called in the majority of cases---it appears to be newer than the
     # surrounding code, but the surrounding code wasn't updated.
     @pytest.mark.parametrize(

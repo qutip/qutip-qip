@@ -35,10 +35,10 @@ import warnings
 import numpy as np
 import pytest
 import qutip
-from qutip.qip.circuit import Gate
-from qutip.qip.operations.gates import gate_sequence_product
-from qutip.qip.device.cavityqed import DispersiveCavityQED
-from qutip.qip.device.spinchain import LinearSpinChain, CircularSpinChain
+from qutip_qip.circuit import Gate
+from qutip_qip.operations.gates import gate_sequence_product
+from qutip_qip.device.cavityqed import DispersiveCavityQED
+from qutip_qip.device.spinchain import LinearSpinChain, CircularSpinChain
 
 
 _tol = 1e-2
@@ -79,7 +79,7 @@ device_lists = [
 @pytest.mark.parametrize(("device_class", "kwargs"), device_lists)
 def test_device_against_gate_sequence(
     num_qubits, gates, device_class, kwargs):
-    circuit = qutip.qip.circuit.QubitCircuit(num_qubits)
+    circuit = qutip_qip.circuit.QubitCircuit(num_qubits)
     for gate in gates:
         circuit.add_gate(gate)
     U_ideal = gate_sequence_product(circuit.propagators())
@@ -92,7 +92,7 @@ def test_device_against_gate_sequence(
 @pytest.mark.parametrize(("num_qubits", "gates"), single_gate_tests)
 @pytest.mark.parametrize(("device_class", "kwargs"), device_lists)
 def test_analytical_evolution(num_qubits, gates, device_class, kwargs):
-    circuit = qutip.qip.circuit.QubitCircuit(num_qubits)
+    circuit = qutip_qip.circuit.QubitCircuit(num_qubits)
     for gate in gates:
         circuit.add_gate(gate)
     state = qutip.rand_ket(2**num_qubits)
@@ -109,7 +109,7 @@ def test_analytical_evolution(num_qubits, gates, device_class, kwargs):
 def test_numerical_evolution(
     num_qubits, gates, device_class, kwargs):
     num_qubits = 3
-    circuit = qutip.qip.circuit.QubitCircuit(num_qubits)
+    circuit = qutip_qip.circuit.QubitCircuit(num_qubits)
     for gate in gates:
         circuit.add_gate(gate)
     with warnings.catch_warnings(record=True):
@@ -135,7 +135,7 @@ def test_numerical_evolution(
     assert _tol > abs(1 - qutip.metrics.fidelity(result.final_state, target))
 
 
-circuit = qutip.qip.circuit.QubitCircuit(3)
+circuit = qutip_qip.circuit.QubitCircuit(3)
 circuit.add_gate("RX", targets=[0], arg_value=np.pi/2)
 circuit.add_gate("RZ", targets=[2], arg_value=np.pi)
 circuit.add_gate("CNOT", targets=[0], controls=[1])

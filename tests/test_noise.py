@@ -1,8 +1,8 @@
 from numpy.testing import assert_, run_module_suite, assert_allclose
 import numpy as np
 
-from qutip.qip.device.processor import Processor
-from qutip.qip.noise import (
+from qutip_qip.device.processor import Processor
+from qutip_qip.noise import (
     RelaxationNoise, DecoherenceNoise, ControlAmpNoise, RandomNoise, UserNoise)
 from qutip.operators import qeye, sigmaz, sigmax, sigmay, destroy, identity
 from qutip.tensor import tensor
@@ -10,7 +10,7 @@ from qutip.qobjevo import QobjEvo
 from qutip.states import basis
 from qutip.metrics import fidelity
 from qutip.tensor import tensor
-from qutip.qip.pulse import Pulse
+from qutip_qip.pulse import Pulse
 
 
 class DriftNoise(UserNoise):

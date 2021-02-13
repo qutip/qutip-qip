@@ -32,8 +32,8 @@
 ###############################################################################
 
 from numpy.testing import assert_, assert_equal, assert_string_equal, run_module_suite
-from qutip.qip.algorithms.qft import qft, qft_steps, qft_gate_sequence
-from qutip.qip.operations.gates import gate_sequence_product
+from qutip_qip.algorithms.qft import qft, qft_steps, qft_gate_sequence
+from qutip_qip.operations.gates import gate_sequence_product
 
 
 class TestQFT:
