@@ -41,9 +41,9 @@ import qutip.control.pulseoptim as cpo
 from qutip.operators import identity
 from qutip.tensor import tensor
 from qutip.mesolve import mesolve
-from .circuit import QubitCircuit
-from .device.processor import Processor
-from .operations.gates import gate_sequence_product
+from ..circuit import QubitCircuit
+from .processor import Processor
+from ..operations.gates import gate_sequence_product
 
 
 __all__ = ['OptPulseProcessor']

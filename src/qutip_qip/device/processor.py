@@ -40,15 +40,15 @@ from scipy.interpolate import CubicSpline
 from qutip.qobj import Qobj
 from qutip.qobjevo import QobjEvo
 from qutip.operators import identity
-from .operations.gates import expand_operator, globalphase
+from ..operations.gates import expand_operator, globalphase
 from qutip.tensor import tensor
 from qutip.mesolve import mesolve
 from qutip.mcsolve import mcsolve
-from .circuit import QubitCircuit
-from .noise import (
+from ..circuit import QubitCircuit
+from ..noise import (
     Noise, RelaxationNoise, DecoherenceNoise,
     ControlAmpNoise, RandomNoise, UserNoise, process_noise)
-from .pulse import Pulse, Drift, _merge_qobjevo, _fill_coeff
+from ..pulse import Pulse, Drift, _merge_qobjevo, _fill_coeff
 
 
 __all__ = ['Processor']

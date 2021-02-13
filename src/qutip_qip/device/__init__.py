@@ -30,9 +30,9 @@
 #    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 #    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ###############################################################################
-from .device.processor import Processor
-from .device.spinchain import (
+from .processor import Processor
+from .spinchain import (
     SpinChain, LinearSpinChain, CircularSpinChain)
-from .device.cavityqed import DispersiveCavityQED
-from .device.optpulseprocessor import OptPulseProcessor
-from .device.modelprocessor import ModelProcessor
+from .cavityqed import DispersiveCavityQED
+from .optpulseprocessor import OptPulseProcessor
+from .modelprocessor import ModelProcessor

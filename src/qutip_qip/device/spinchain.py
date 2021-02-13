@@ -34,10 +34,10 @@ import numpy as np
 
 from qutip.operators import sigmax, sigmay, sigmaz
 from qutip.tensor import tensor
-from .circuit import QubitCircuit
-from .device.modelprocessor import ModelProcessor
-from .pulse import Pulse
-from .compiler.spinchaincompiler import SpinChainCompiler
+from ..circuit import QubitCircuit
+from .modelprocessor import ModelProcessor
+from ..pulse import Pulse
+from ..compiler.spinchaincompiler import SpinChainCompiler
 
 
 __all__ = ['SpinChain', 'LinearSpinChain', 'CircularSpinChain']
