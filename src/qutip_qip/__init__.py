@@ -30,8 +30,3 @@
 #    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 #    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ###############################################################################
-# This is used for the deprecation.
-# To remove the warning, and finalize the deprecation
-# simply delete the file qutip_qip.qip_deprecation.py
-# and the line bellow.
-from .qip_deprecation import *
