@@ -33,11 +33,11 @@
 import pytest
 from copy import deepcopy
 
-from qutip.qip.circuit import QubitCircuit
-from qutip.qip.scheduler import Instruction, Scheduler
-from qutip.qip.operations.gates import gate_sequence_product
+from qutip_qip.circuit import QubitCircuit
+from qutip_qip.scheduler import Instruction, Scheduler
+from qutip_qip.operations.gates import gate_sequence_product
 from qutip import process_fidelity, qeye, tracedist
-from qutip.qip.circuit import Gate
+from qutip_qip.circuit import Gate
 
 
 def _circuit1():

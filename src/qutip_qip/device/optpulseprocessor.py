@@ -41,9 +41,9 @@ import qutip.control.pulseoptim as cpo
 from qutip.operators import identity
 from qutip.tensor import tensor
 from qutip.mesolve import mesolve
-from .circuit import QubitCircuit
-from .device.processor import Processor
-from .operations.gates import gate_sequence_product
+from ..circuit import QubitCircuit
+from .processor import Processor
+from ..operations.gates import gate_sequence_product
 
 
 __all__ = ['OptPulseProcessor']
@@ -58,7 +58,7 @@ class OptPulseProcessor(Processor):
     The processor can simulate the evolution under the given
     control pulses using :func:`qutip.mesolve`.
     (For attributes documentation, please
-    refer to the parent class :class:`qutip.qip.device.Processor`)
+    refer to the parent class :class:`qutip_qip.device.Processor`)
 
     Parameters
     ----------
@@ -91,7 +91,7 @@ class OptPulseProcessor(Processor):
     def load_circuit(self, qc, min_fid_err=np.inf, merge_gates=True,
                      setting_args=None, verbose=False, **kwargs):
         """
-        Find the pulses realizing a given :class:`qutip.qip.Circuit` using
+        Find the pulses realizing a given :class:`qutip_qip.Circuit` using
         `qutip.control.optimize_pulse_unitary`. Further parameter for
         for `qutip.control.optimize_pulse_unitary` needs to be given as
         keyword arguments. By default, it first merge all the gates

@@ -35,10 +35,10 @@ import pytest
 import numpy as np
 from pathlib import Path
 
-from qutip.qip.qasm import read_qasm, circuit_to_qasm_str
-from qutip.qip.circuit import Measurement, QubitCircuit
+from qutip_qip.qasm import read_qasm, circuit_to_qasm_str
+from qutip_qip.circuit import Measurement, QubitCircuit
 from qutip import tensor, rand_ket, basis, rand_dm, identity
-from qutip.qip.operations.gates import cnot, ry
+from qutip_qip.operations.gates import cnot, ry
 
 
 @pytest.mark.parametrize(["filename", "error", "error_message"], [

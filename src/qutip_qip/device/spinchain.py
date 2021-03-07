@@ -34,10 +34,10 @@ import numpy as np
 
 from qutip.operators import sigmax, sigmay, sigmaz
 from qutip.tensor import tensor
-from .circuit import QubitCircuit
-from .device.modelprocessor import ModelProcessor
-from .pulse import Pulse
-from .compiler.spinchaincompiler import SpinChainCompiler
+from ..circuit import QubitCircuit
+from .modelprocessor import ModelProcessor
+from ..pulse import Pulse
+from ..compiler.spinchaincompiler import SpinChainCompiler
 
 
 __all__ = ['SpinChain', 'LinearSpinChain', 'CircularSpinChain']
@@ -51,10 +51,10 @@ class SpinChain(ModelProcessor):
     The processor can simulate the evolution under the given
     control pulses either numerically or analytically.
     It is a base class and should not be used directly, please
-    refer the the subclasses :class:`qutip.qip.LinearSpinChain` and
-    :class:`qutip.qip.CircularSpinChain`.
+    refer the the subclasses :class:`qutip_qip.LinearSpinChain` and
+    :class:`qutip_qip.CircularSpinChain`.
     (Only additional attributes are documented here, for others please
-    refer to the parent class :class:`qutip.qip.device.ModelProcessor`)
+    refer to the parent class :class:`qutip_qip.device.ModelProcessor`)
 
     Parameters
     ----------

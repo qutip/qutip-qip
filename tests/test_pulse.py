@@ -35,7 +35,7 @@ import numpy as np
 from numpy.testing import assert_, run_module_suite, assert_allclose
 
 from qutip.qobj import Qobj
-from qutip.qip.pulse import Pulse, Drift
+from qutip_qip.pulse import Pulse, Drift
 from qutip.operators import sigmax, sigmay, sigmaz, identity
 from qutip.tensor import tensor
 

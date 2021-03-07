@@ -37,11 +37,11 @@ import numpy as np
 
 from qutip.qobj import Qobj
 from qutip.qobjevo import QobjEvo
-from .operations.gates import globalphase
+from ..operations.gates import globalphase
 from qutip.tensor import tensor
 from qutip.mesolve import mesolve
-from .circuit import QubitCircuit
-from .device.processor import Processor
+from ..circuit import QubitCircuit
+from .processor import Processor
 
 
 __all__ = ['ModelProcessor']
@@ -56,7 +56,7 @@ class ModelProcessor(Processor):
     control pulses either numerically or analytically.
     It cannot be used alone, please refer to the sub-classes.
     (Only additional attributes are documented here, for others please
-    refer to the parent class :class:`qutip.qip.device.Processor`)
+    refer to the parent class :class:`qutip_qip.device.Processor`)
 
     Parameters
     ----------
@@ -138,7 +138,7 @@ class ModelProcessor(Processor):
         analytical: boolean
             If True, calculate the evolution with matrices exponentiation.
 
-        qc: :class:`qutip.qip.QubitCircuit`, optional
+        qc: :class:`qutip_qip.QubitCircuit`, optional
             A quantum circuit. If given, it first calls the ``load_circuit``
             and then calculate the evolution.
 
