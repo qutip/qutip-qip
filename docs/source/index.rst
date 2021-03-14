@@ -1,25 +1,21 @@
-.. qutip_qip documentation master file, created by
-   sphinx-quickstart on Mon Feb 15 00:14:15 2021.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+.. qutip_qip
 
-Welcome to qutip_qip's documentation!
-=====================================
+.. figure:: figures/logo.png
+    :align: center
+    :width: 5in
+
+qutip-qip: QuTiP quantum information processing
+===============================================
+
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+    :maxdepth: 2
 
-   installation.rst
-   guide/guide.rst
-   apidoc/apidoc.rst
-
-   :maxdepth: 1
-
-   changelog.rst
-   contributors.rst
-   biblio.rst
-
-
+    introduction.rst
+    qip-basics.rst
+    qip-processor.rst
+    qip-simulator.rst
+    contribution-docs.rst
+    apidoc.rst
 
 Indices and tables
 ==================
