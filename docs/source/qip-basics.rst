@@ -7,10 +7,6 @@
 Quantum Information Processing
 ******************************
 
-Introduction
-============
-
-The Quantum Information Processing (QIP) module aims at providing basic tools for quantum computing simulation both for simple quantum algorithm design and for experimental realization. It offers two different approaches, one with :class:`~qutip_qip.QubitCircuit` calculating unitary evolution under quantum gates by matrix product, another called :class:`~qutip_qip.device.Processor` using open system solvers in QuTiP to simulate noisy quantum device.
 
 .. _quantum_circuits:
 
