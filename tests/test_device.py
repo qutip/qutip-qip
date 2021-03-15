@@ -104,6 +104,7 @@ def test_analytical_evolution(num_qubits, gates, device_class, kwargs):
     assert abs(qutip.metrics.fidelity(result, ideal) - 1) < _tol
 
 
+@pytest.mark.filterwarnings("ignore:Not in the dispersive regime")
 @pytest.mark.parametrize(("num_qubits", "gates"), single_gate_tests)
 @pytest.mark.parametrize(("device_class", "kwargs"), device_lists)
 def test_numerical_evolution(
@@ -112,8 +113,7 @@ def test_numerical_evolution(
     circuit = QubitCircuit(num_qubits)
     for gate in gates:
         circuit.add_gate(gate)
-    with warnings.catch_warnings(record=True):
-        device = device_class(num_qubits, **kwargs)
+    device = device_class(num_qubits, **kwargs)
     device.load_circuit(circuit)
 
     state = qutip.rand_ket(2**num_qubits)
@@ -151,6 +151,7 @@ circuit2 = deepcopy(circuit)
 circuit2.add_gate("SQRTISWAP", targets=[0, 2])  # supported only by SpinChain
 
 
+@pytest.mark.filterwarnings("ignore:Not in the dispersive regime")
 @pytest.mark.parametrize(("circuit", "device_class", "kwargs"), [
     pytest.param(circuit, DispersiveCavityQED, {"g":0.1}, id = "DispersiveCavityQED"),
     pytest.param(circuit2, LinearSpinChain, {}, id = "LinearSpinChain"),

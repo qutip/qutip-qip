@@ -70,6 +70,9 @@ def check_measurement_defn(gate, gate_name, targets, classical_store):
     assert gate.classical_store == classical_store
 
 
+@pytest.mark.filterwarnings(
+    "ignore:Information about individual registers"+
+    " is not preserved in QubitCircuit")
 def test_qasm_addcircuit():
     filename = "test_add.qasm"
     filepath = Path(__file__).parent / 'qasm_files' / filename
@@ -97,6 +100,9 @@ def test_custom_gates():
     assert (unitaries[2] - ry_cx).norm() < 1e-12
 
 
+@pytest.mark.filterwarnings(
+    "ignore:Information about individual registers"+
+    " is not preserved in QubitCircuit")
 def test_qasm_teleportation():
     filename = "teleportation.qasm"
     filepath = Path(__file__).parent / 'qasm_files' / filename
