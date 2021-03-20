@@ -6,7 +6,7 @@ Hence a few modules are separated from the core QuTiP and will become QuTiP fami
 They are still maintained by the QuTiP team but hosted under different repositories in the [QuTiP organization](https://github.com/qutip).
 
 The qutip-qip package, QuTiP quantum information processing, aims at providing basic tools for quantum computing simulation both for simple quantum algorithm design and for experimental realization.
-Compared to other libraries for quantum information processing, qutip-qip put additional emphasis on the physics layer and the interaction with the QuTiP package.
+Compared to other libraries for quantum information processing, qutip-qip puts additional emphasis on the physics layer and the interaction with the QuTiP package.
 The package offers two different approaches for simulating quantum circuits, one with `QubitCircuit` calculating unitary evolution under quantum gates by matrix product, another called `Processor` using open system solvers in QuTiP to simulate noisy quantum device.
 
 Installation
