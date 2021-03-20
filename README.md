@@ -24,7 +24,7 @@ If you want to edit the code, use instead
 
 Support
 -------
-This package is supported and maintained by the same group as QuTiP.
+This package is supported and maintained by the same developers group as QuTiP.
 
 [![Powered by NumFOCUS](https://img.shields.io/badge/powered%20by-NumFOCUS-orange.svg?style=flat&colorA=E1523D&colorB=007D8A)](https://numfocus.org)
 [![Unitary Fund](https://img.shields.io/badge/Supported%20By-UNITARY%20FUND-brightgreen.svg?style=for-the-badge)](http://unitary.fund)
