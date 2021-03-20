@@ -31,7 +31,7 @@ This package is supported and maintained by the same developers group as QuTiP.
 
 
 QuTiP development is supported by [Nori's lab](http://dml.riken.jp/)
-at RIKEN, by the University of Sherbrooke, and by Aberystwyth University,
+at RIKEN, by the University of Sherbrooke, by Chalmers University of Technology, by Macquarie University and by Aberystwyth University,
 [among other supporting organizations](http://qutip.org/#supporting-organizations).
 
 License
