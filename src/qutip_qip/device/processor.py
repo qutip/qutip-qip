@@ -235,7 +235,7 @@ class Processor(object):
         if isinstance(pulse_name, str):
             try:
                 return self.pulses[self.pulse_dict[pulse_name]]
-            except (AttributeError, KeyError):
+            except (KeyError):
                 raise KeyError(
                     "Pulse name {} undefined. "
                     "Please define it in the attribute "
@@ -548,7 +548,7 @@ class Processor(object):
 
         Returns
         -------
-        noisy_pulses: list of :class"`.Pulse`/:class:`.Drift`
+        noisy_pulses: list of :class`.Drift`
             A list of noisy pulses.
         """
         pulses = deepcopy(self.pulses)
@@ -612,7 +612,7 @@ class Processor(object):
         # bring all c_ops to the same tlist, won't need it in QuTiP 5
         full_tlist = self.get_full_tlist()
         temp = []
-        for _, c_op in enumerate(c_ops):
+        for c_op in c_ops:
             temp.append(_merge_qobjevo([c_op], full_tlist))
         c_ops = temp
 
@@ -766,7 +766,6 @@ class Processor(object):
 
         # choose solver:
         if solver == "mesolve":
-            solver = mesolve
             evo_result = mesolve(
                 H=noisy_qobjevo, rho0=init_state,
                 tlist=noisy_qobjevo.tlist, **kwargs)
