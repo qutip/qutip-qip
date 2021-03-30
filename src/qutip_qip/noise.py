@@ -7,6 +7,7 @@ from qutip.qobjevo import QobjEvo
 from .operations import expand_operator
 from qutip.qobj import Qobj
 from qutip.operators import sigmaz, destroy
+from qutip import num
 from .pulse import Pulse
 
 
