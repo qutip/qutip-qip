@@ -33,7 +33,7 @@
 import numpy as np
 
 from ..circuit import QubitCircuit, Gate
-from ..compiler.gatecompiler import GateCompiler, Instruction
+from ..compiler import GateCompiler, Instruction
 
 
 __all__ = ['SpinChainCompiler']
