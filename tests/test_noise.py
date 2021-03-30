@@ -3,7 +3,7 @@ import numpy as np
 
 from qutip_qip.device.processor import Processor
 from qutip_qip.noise import (
-    RelaxationNoise, DecoherenceNoise, ControlAmpNoise, RandomNoise, UserNoise)
+    RelaxationNoise, DecoherenceNoise, ControlAmpNoise, RandomNoise, Noise)
 from qutip.operators import qeye, sigmaz, sigmax, sigmay, destroy, identity
 from qutip.tensor import tensor
 from qutip.qobjevo import QobjEvo
