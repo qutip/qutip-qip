@@ -23,9 +23,9 @@ def process_noise(pulses, noise_list, dims, t1=None, t2=None,
 
     Parameters
     ----------
-    pulses: list of :class:`qutip_qip.Pulse`
+    pulses: list of :class:`.Pulse`
         The input pulses, on which the noise object will be applied.
-    noise_list: list of :class:`qutip_qip.noise`
+    noise_list: list of :class:`.Noise`
         A list of noise objects.
     dims: int or list
         Dimension of the system.
@@ -70,7 +70,7 @@ def process_noise(pulses, noise_list, dims, t1=None, t2=None,
 class Noise(object):
     """
     The base class representing noise in a processor.
-    The noise object can be added to :class:`qutip_qip.device.Processor` and
+    The noise object can be added to :class:`.device.Processor` and
     contributes to evolution.
     """
     def __init__(self):
