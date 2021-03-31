@@ -344,5 +344,11 @@ class TestCircuitProcessor:
             fidelity(result.states[-1], qubit_states(2, [0, 1, 0, 0])),
             1, rtol=1.e-7) 
 
-if __name__ == "__main__":
-    run_module_suite()
+    def test_no_saving_intermidiate_state(self):
+        processor = Processor(1)
+        processor.add_pulse(pulse=
+            Pulse(sigmax(), coeff=np.ones(10),
+            tlist=np.linspace(0,1,10), targets=0)
+            )
+        result = processor.run_state(basis(2,0), tlist=[0,1])
+        assert(len(result.states) == 2)
