@@ -721,10 +721,17 @@ class Processor(object):
             Old API, same as init_state.
 
         solver: str
-            "mesolve" or "mcsolve"
+            "mesolve" or "mcsolve",
+            for :func:`~qutip.mesolve` and :func:`~qutip.mcsolve`.
+        
+        noisy: bool
+            Include noise or not.
 
         **kwargs
             Keyword arguments for the qutip solver.
+            E.g `tlist` for time points for recording
+            intermediate states and expectation values;
+            `args` for the solvers and `qutip.QobjEvo`.
 
         Returns
         -------
@@ -753,10 +760,10 @@ class Processor(object):
                     "any keyword arguments.")
             return self.run_analytically(init_state=init_state)
 
-        # kwargs can not contain H or tlist
-        if "H" in kwargs or "tlist" in kwargs:
+        # kwargs can not contain H
+        if "H" in kwargs:
             raise ValueError(
-                "`H` and `tlist` are already specified by the processor "
+                "`H` is already specified by the processor "
                 "and can not be given as a keyword argument")
 
         # construct qobjevo for unitary evolution
@@ -776,14 +783,19 @@ class Processor(object):
             kwargs["c_ops"] = sys_c_ops
 
         # choose solver:
+        if "tlist" in kwargs:
+            tlist = kwargs["tlist"]
+            del kwargs["tlist"]
+        else:
+            tlist=noisy_qobjevo.tlist
         if solver == "mesolve":
             evo_result = mesolve(
                 H=noisy_qobjevo, rho0=init_state,
-                tlist=noisy_qobjevo.tlist, **kwargs)
+                tlist=tlist, **kwargs)
         elif solver == "mcsolve":
             evo_result = mcsolve(
                 H=noisy_qobjevo, psi0=init_state,
-                tlist=noisy_qobjevo.tlist, **kwargs)
+                tlist=tlist, **kwargs)
 
         return evo_result
 
