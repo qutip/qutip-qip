@@ -92,8 +92,8 @@ class OptPulseProcessor(Processor):
                      setting_args=None, verbose=False, **kwargs):
         """
         Find the pulses realizing a given :class:`.Circuit` using
-        `qutip.control.optimize_pulse_unitary`. Further parameter for
-        for `qutip.control.optimize_pulse_unitary` needs to be given as
+        :func:`qutip.control.optimize_pulse_unitary`. Further parameter for
+        for :func:`qutip.control.optimize_pulse_unitary` needs to be given as
         keyword arguments. By default, it first merge all the gates
         into one unitary and then find the control pulses for it.
         It can be turned off and one can set different parameters
@@ -101,36 +101,42 @@ class OptPulseProcessor(Processor):
 
         Examples
         --------
-        # Same parameter for all the gates
-        qc = QubitCircuit(N=1)
-        qc.add_gate("SNOT", 0)
+        Same parameter for all the gates
 
-        num_tslots = 10
-        evo_time = 10
-        processor = OptPulseProcessor(N=1, drift=sigmaz(), ctrls=[sigmax()])
-        # num_tslots and evo_time are two keyword arguments
-        tlist, coeffs = processor.load_circuit(
-            qc, num_tslots=num_tslots, evo_time=evo_time)
+        >>> from qutip_qip.circuit import QubitCircuit
+        >>> from qutip_qip.device import OptPulseProcessor
+        >>> qc = QubitCircuit(N=1)
+        >>> qc.add_gate("SNOT", 0)
+        >>> num_tslots = 10
+        >>> evo_time = 10
+        >>> processor = OptPulseProcessor(N=1, drift=sigmaz())
+        >>> processor.add_control(sigmax())
+        >>> # num_tslots and evo_time are two keyword arguments
+        >>> tlist, coeffs = processor.load_circuit(\
+                qc, num_tslots=num_tslots, evo_time=evo_time)
 
-        # Different parameters for different gates
-        qc = QubitCircuit(N=2)
-        qc.add_gate("SNOT", 0)
-        qc.add_gate("SWAP", targets=[0, 1])
-        qc.add_gate('CNOT', controls=1, targets=[0])
+        Different parameters for different gates
 
-        processor = OptPulseProcessor(N=2, drift=tensor([sigmaz()]*2))
-        processor.add_control(sigmax(), cyclic_permutation=True)
-        processor.add_control(sigmay(), cyclic_permutation=True)
-        processor.add_control(tensor([sigmay(), sigmay()]))
-        setting_args = {"SNOT": {"num_tslots": 10, "evo_time": 1},
-                        "SWAP": {"num_tslots": 30, "evo_time": 3},
+        >>> from qutip_qip.circuit import QubitCircuit
+        >>> from qutip_qip.device import OptPulseProcessor
+        >>> qc = QubitCircuit(N=2)
+        >>> qc.add_gate("SNOT", 0)
+        >>> qc.add_gate("SWAP", targets=[0, 1])
+        >>> qc.add_gate('CNOT', controls=1, targets=[0])
+        >>> processor = OptPulseProcessor(\
+                N=2, drift=tensor([sigmaz()]*2))
+        >>> processor.add_control(sigmax(), cyclic_permutation=True)
+        >>> processor.add_control(sigmay(), cyclic_permutation=True)
+        >>> processor.add_control(tensor([sigmay(), sigmay()]))
+        >>> setting_args = {"SNOT": {"num_tslots": 10, "evo_time": 1},\
+                        "SWAP": {"num_tslots": 30, "evo_time": 3},\
                         "CNOT": {"num_tslots": 30, "evo_time": 3}}
-        tlist, coeffs = processor.load_circuit(qc, setting_args=setting_args,
-                                               merge_gates=False)
+        >>> tlist, coeffs = processor.load_circuit(\
+                qc, setting_args=setting_args, merge_gates=False)
 
         Parameters
         ----------
-        qc: :class:`.QubitCircuit` or list of Qobj
+        qc : :class:`.QubitCircuit` or list of Qobj
             The quantum circuit to be translated.
 
         min_fid_err: float, optional
@@ -148,17 +154,13 @@ class OptPulseProcessor(Processor):
             It is a dictionary containing keyword arguments
             for different gates.
 
-            E.g:
-            setting_args = {"SNOT": {"num_tslots": 10, "evo_time": 1},
-                            "SWAP": {"num_tslots": 30, "evo_time": 3},
-                            "CNOT": {"num_tslots": 30, "evo_time": 3}}
-
         verbose: boolean, optional
             If true, the information for each decomposed gate
             will be shown. Default is False.
 
         **kwargs
-            keyword arguments for `qutip.control.optimize_pulse_unitary`
+            keyword arguments for
+            :func:``qutip.control.optimize_pulse_unitary``
 
         Returns
         -------
@@ -166,14 +168,14 @@ class OptPulseProcessor(Processor):
             A NumPy array specifies the time of each coefficient
 
         coeffs: array_like
-            A 2d NumPy array of the shape (len(ctrls), len(tlist)-1). Each
+            A 2d NumPy array of the shape ``(len(ctrls), len(tlist)-1)``. Each
             row corresponds to the control pulse sequence for
             one Hamiltonian.
 
         Notes
         -----
-        len(tlist)-1=coeffs.shape[1] since tlist gives the beginning and the
-        end of the pulses
+        ``len(tlist)-1=coeffs.shape[1]`` since tlist gives
+        the beginning and the end of the pulses
         """
         if setting_args is None:
             setting_args = {}

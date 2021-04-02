@@ -103,25 +103,6 @@ class DispersiveCavityQED(ModelProcessor):
 
     Attributes
     ----------
-    sx_ops: list
-        A list of sigmax Hamiltonians for each qubit.
-
-    sz_ops: list
-        A list of sigmaz Hamiltonians for each qubit.
-
-    cavityqubit_ops: list
-        A list of interacting Hamiltonians between cavity and each qubit.
-
-    sx_u: array_like
-        Pulse matrix for sigmax Hamiltonians.
-
-    sz_u: array_like
-        Pulse matrix for sigmaz Hamiltonians.
-
-    g_u: array_like
-        Pulse matrix for interacting Hamiltonians
-        between cavity and each qubit.
-
     wq: list of float
         The frequency of the qubits calculated from
         eps and delta for each qubit.
@@ -196,6 +177,7 @@ class DispersiveCavityQED(ModelProcessor):
         mapped to a list for parameters corresponding to each qubits.
         For coupling strength "g", list element i is the interaction
         between qubits i and i+1.
+        All parameters will be multiplied by 2*pi for simplicity.
 
         Parameters
         ----------
@@ -225,10 +207,6 @@ class DispersiveCavityQED(ModelProcessor):
 
         g: list
             The interaction strength for each of the qubit with the resonator.
-
-        Notes
-        -----
-        All parameters will be multiplied by 2*pi for simplicity
         """
         sx_para = 2 * np.pi * self.to_array(deltamax, N)
         self._params["sx"] = sx_para
@@ -257,32 +235,47 @@ class DispersiveCavityQED(ModelProcessor):
 
     @property
     def sx_ops(self):
+        """
+        list: A list of sigmax Hamiltonians for each qubit.
+        """
         return self.ctrls[0: self.N]
 
     @property
     def sz_ops(self):
+        """
+        list: A list of sigmaz Hamiltonians for each qubit.
+        """
         return self.ctrls[self.N: 2*self.N]
 
     @property
     def cavityqubit_ops(self):
+        """
+        list: A list of interacting Hamiltonians between cavity and each qubit.
+        """
         return self.ctrls[2*self.N: 3*self.N]
 
     @property
     def sx_u(self):
+        """array-like: Pulse matrix for sigmax Hamiltonians."""
         return self.coeffs[: self.N]
 
     @property
     def sz_u(self):
+        """array-like: Pulse matrix for sigmaz Hamiltonians."""
         return self.coeffs[self.N: 2*self.N]
 
     @property
     def g_u(self):
+        """
+        array-like: Pulse matrix for interacting Hamiltonians
+        between cavity and each qubit.
+        """
         return self.coeffs[2*self.N: 3*self.N]
 
     def get_operators_labels(self):
         """
         Get the labels for each Hamiltonian.
-        It is used in the method``plot_pulses``.
+        It is used in the method method :meth:`.Processor.plot_pulses`lses`sor.plot_pulses``.
         It is a 2-d nested list, in the plot,
         a different color will be used for each sublist.
         """
@@ -297,12 +290,12 @@ class DispersiveCavityQED(ModelProcessor):
 
         Parameters
         ----------
-        qc: :class:`.QubitCircuit`
+        qc : :class:`.QubitCircuit`
             Takes the quantum circuit to be implemented.
 
         Returns
         -------
-        qc: :class:`.QubitCircuit`
+        qc : :class:`.QubitCircuit`
             The circuit representation with elementary gates
             that can be implemented in this model.
         """
@@ -328,7 +321,7 @@ class DispersiveCavityQED(ModelProcessor):
 
         Parameters
         ----------
-        qc: :class:`.QubitCircuit`
+        qc : :class:`.QubitCircuit`
             Takes the quantum circuit to be implemented.
 
         Returns

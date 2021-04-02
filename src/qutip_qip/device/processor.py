@@ -84,14 +84,14 @@ class Processor(object):
 
     spline_kind: str, optional
         Type of the coefficient interpolation. Default is "step_func"
-        Note that they have different requirement for the length of `coeff'.
+        Note that they have different requirement for the length of ``coeff``.
 
         -"step_func":
         The coefficient will be treated as a step function.
         E.g. ``tlist=[0,1,2]`` and ``coeff=[3,2]``, means that the coefficient
         is 3 in t=[0,1) and 2 in t=[2,3). It requires
         ``len(coeff)=len(tlist)-1`` or ``len(coeff)=len(tlist)``, but
-        in the second case the last element of `coeff` has no effect.
+        in the second case the last element of ``coeff`` has no effect.
 
         -"cubic": Use cubic interpolation for the coefficient. It requires
         ``len(coeff)=len(tlist)``
@@ -101,7 +101,7 @@ class Processor(object):
     N: int
         The number of component systems.
 
-    pulses: list of :class:`.Pulse`
+    pulses : list of :class:`.Pulse`
         A list of control pulses of this device
 
     t1: float or list
@@ -112,11 +112,11 @@ class Processor(object):
         Characterize the decoherence of dephasing for
         each qubit.
 
-    noise: :class:`.Noise`, optional
+    noise : :class:`.Noise`, optional
         A list of noise objects. They will be processed when creating the
         noisy :class:`qutip.QobjEvo` from the processor or run the simulation.
 
-    drift: :class:`.Drift`
+    drift : :class:`.Drift`
         A `Drift` object representing the drift Hamiltonians.
 
     dims: list
@@ -145,6 +145,11 @@ class Processor(object):
 
     @property
     def num_qubits(self):
+        """
+        Number of qubits (or subsystems).
+
+        :type: int
+        """
         return self.N
 
     @num_qubits.setter
@@ -158,7 +163,7 @@ class Processor(object):
 
         Parameters
         ----------
-        qobj: :class:`qutip.Qobj`
+        qobj : :class:`qutip.Qobj`
             The drift Hamiltonian.
         targets: list
             The indices of the target qubits
@@ -192,7 +197,7 @@ class Processor(object):
 
         Parameters
         ----------
-        qobj: :class:`qutip.Qobj`
+        qobj : :obj:`qutip.Qobj`
             The Hamiltonian for the control pulse..
 
         targets: list, optional
@@ -275,6 +280,11 @@ class Processor(object):
 
     @property
     def pulse_mode(self):
+        """
+        If the given pulse is going to be interpreted as "continuous" or "discrete".
+
+        :type: str
+        """
         if self.spline_kind == "step_func":
             return "discrete"
         elif self.spline_kind == "cubic":
@@ -387,7 +397,7 @@ class Processor(object):
 
         Parameters
         ----------
-        pulse: :class:`.Pulse`
+        pulse : :class:`.Pulse`
             `Pulse` object to be added.
         """
         if isinstance(pulse, Pulse):
@@ -461,12 +471,12 @@ class Processor(object):
         return True
 
     def add_noise(self, noise):
-        """
+        """get_noisy_pulses
         Add a noise object to the processor
 
         Parameters
         ----------
-        noise: :class:`.Noise`
+        noise : :class:`.Noise`
             The noise object defined outside the processor
         """
         if isinstance(noise, Noise):
@@ -548,7 +558,7 @@ class Processor(object):
 
         Returns
         -------
-        noisy_pulses: list of :class`.Drift`
+        noisy_pulses : list of :class:`.Drift`
             A list of noisy pulses.
         """
         pulses = deepcopy(self.pulses)
@@ -562,8 +572,8 @@ class Processor(object):
     def get_qobjevo(self, args=None, noisy=False):
         """
         Create a :class:`qutip.QobjEvo` representation of the evolution.
-        It calls the method `get_noisy_pulses` and create the `QobjEvo`
-        from it.
+        It calls the method :meth:`.Processor.get_noisy_pulses` and create
+        the `QobjEvo` from it.
 
         Parameters
         ----------
@@ -574,10 +584,11 @@ class Processor(object):
 
         Returns
         -------
-        qobjevo: :class:`qutip.QobjEvo`
+        qobjevo : :class:`qutip.QobjEvo`
             The :class:`qutip.QobjEvo` representation of the unitary evolution.
         c_ops: list of :class:`qutip.QobjEvo`
-            A list of lindblad operators is also returned. if ``noisy==Flase``,
+            A list of lindblad operators is also returned.
+            if ``noisy==False``,
             it is always an empty list.
         """
         # TODO test it for non array-like coeff
@@ -630,16 +641,16 @@ class Processor(object):
 
         Parameters
         ----------
-        qc: :class:`.QubitCircuit`, optional
+        qc : :class:`.QubitCircuit`, optional
             Takes the quantum circuit to be implemented. If not given, use
             the quantum circuit saved in the processor by ``load_circuit``.
 
-        init_state: :class:`qutip.Qobj`, optional
+        init_state : :class:`qutip.Qobj`, optional
             The initial state of the qubits in the register.
 
         Returns
         -------
-        evo_result: :class:`qutip.Result`
+        evo_result : :class:`qutip.Result`
             An instance of the class
             :class:`qutip.Result` will be returned.
         """
@@ -673,7 +684,7 @@ class Processor(object):
 
         Parameters
         ----------
-        qc: :class:`.QubitCircuit`, optional
+        qc : :class:`.QubitCircuit`, optional
             Takes the quantum circuit to be implemented. If not given, use
             the quantum circuit saved in the processor by `load_circuit`.
 
@@ -700,13 +711,13 @@ class Processor(object):
 
         Parameters
         ----------
-        init_state: Qobj
+        init_state : :class:`qutip.Qobj`
             Initial density matrix or state vector (ket).
 
         analytical: bool
             If True, calculate the evolution with matrices exponentiation.
 
-        states: :class:`qutip.Qobj`, optional
+        states : :class:`qutip.Qobj`, optional
             Old API, same as init_state.
 
         solver: str
@@ -717,7 +728,7 @@ class Processor(object):
 
         Returns
         -------
-        evo_result: :class:`qutip.Result`
+        evo_result : :class:`qutip.Result`
             If ``analytical`` is False,  an instance of the class
             :class:`qutip.Result` will be returned.
 
@@ -793,7 +804,7 @@ class Processor(object):
     def get_operators_labels(self):
         """
         Get the labels for each Hamiltonian.
-        It is used in the method``plot_pulses``.
+        It is used in the method method :meth:`.Processor.plot_pulses`.
         It is a 2-d nested list, in the plot,
         a different color will be used for each sublist.
         """
@@ -839,7 +850,7 @@ class Processor(object):
 
         Notes
         -----
-        ``plot_pulses`` only works for array_like coefficients
+        :meth:.Processor.plot_pulses` only works for array_like coefficients.
         """
         import matplotlib.pyplot as plt
         import matplotlib.gridspec as gridspec

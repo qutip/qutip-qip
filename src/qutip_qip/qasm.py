@@ -604,7 +604,7 @@ class QasmProcessor:
 
         Parameters
         ----------
-        qc: :class:`.QubitCircuit`
+        qc : :class:`.QubitCircuit`
             circuit object to which gate is added
         command: list of str
             list of tokens corresponding to gate application
@@ -962,7 +962,7 @@ class QasmOutput():
 
         Parameters
         ----------
-        qc: :class:`.QubitCircuit`
+        qc : :class:`.QubitCircuit`
             circuit object to produce QASM output for.
         '''
 
@@ -989,7 +989,7 @@ def print_qasm(qc):
 
     Parameters
     ----------
-    qc: :class:`.QubitCircuit`
+    qc : :class:`.QubitCircuit`
         circuit object to produce QASM output for.
     '''
 
@@ -1005,7 +1005,7 @@ def circuit_to_qasm_str(qc):
 
     Parameters
     ----------
-    qc: :class:`.QubitCircuit`
+    qc : :class:`.QubitCircuit`
         circuit object to produce QASM output for.
 
     Returns
@@ -1028,7 +1028,7 @@ def save_qasm(qc, file_loc):
 
     Parameters
     ----------
-    qc: :class:`.QubitCircuit`
+    qc : :class:`.QubitCircuit`
         circuit object to produce QASM output for.
     '''
 

@@ -1764,6 +1764,9 @@ class QubitCircuit:
 
     @property
     def png(self):
+        """
+        Return the png file
+        """
         return DisplayImage(self._raw_png(), embed=True)
 
     def _raw_svg(self):
@@ -1774,6 +1777,9 @@ class QubitCircuit:
 
     @property
     def svg(self):
+        """
+        Return the svg file
+        """
         return DisplaySVG(self._raw_svg())
 
     def _to_qasm(self, qasm_out):
@@ -1899,7 +1905,7 @@ class CircuitSimulator:
 
         Parameters
         ----------
-        qc: :class:`.QubitCircuit`
+        qc : :class:`.QubitCircuit`
             Quantum Circuit to be simulated.
 
         state: ket or oper
