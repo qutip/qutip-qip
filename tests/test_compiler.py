@@ -33,13 +33,12 @@
 import pytest
 import numpy as np
 
-from qutip.qip.device import DispersiveCavityQED, CircularSpinChain
-from qutip.qip.compiler import (
+from qutip_qip.device import DispersiveCavityQED, CircularSpinChain
+from qutip_qip.compiler import (
     SpinChainCompiler, CavityQEDCompiler, Instruction, GateCompiler
     )
-from qutip.qip.circuit import QubitCircuit
+from qutip_qip.circuit import QubitCircuit
 from qutip import basis, fidelity
-from qutip.qip.circuit import QubitCircuit
 
 
 def test_compiling_with_scheduler():
@@ -86,7 +85,7 @@ def gauss_rx_compiler(gate, args):
     return [Instruction(gate, tlist, pulse_info)]
 
 
-from qutip.qip.compiler import GateCompiler
+from qutip_qip.compiler import GateCompiler
 class MyCompiler(GateCompiler):  # compiler class
     def __init__(self, num_qubits, params, pulse_dict):
         super(MyCompiler, self).__init__(

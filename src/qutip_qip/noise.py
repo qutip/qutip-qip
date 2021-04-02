@@ -43,7 +43,7 @@ def process_noise(pulses, noise_list, dims, t1=None, t2=None,
 
     Returns
     -------
-    noisy_pulses: list of :class:`qutip.qip.Pulse`
+    noisy_pulses: list of :class:`.Pulse`
         The noisy pulses, including the system noise.
     """
     noisy_pulses = deepcopy(pulses)
@@ -87,18 +87,18 @@ class Noise(object):
             The dimension of the components system, the default value is
             [2,2...,2] for qubits system.
 
-        pulses: list of :class:`~qutip.qip.pulse.Pulse`
+        pulses: list of :class:`.Pulse`
             The input pulses, on which the noise object is to be applied.
 
-        systematic_noise: :class:`~qutip.qip.pulse.Pulse`
+        systematic_noise: :class:`.Pulse`
             The dummy pulse with no ideal control element.
 
         Returns
         -------
-        noisy_pulses: list of :class:`~qutip.qip.pulse.Pulse`
+        noisy_pulses: list of :class:`.Pulse`
             Noisy pulses.
 
-        systematic_noise: :class:`~qutip.qip.pulse.Pulse`
+        systematic_noise: :class:`.Pulse`
             The dummy pulse representing pulse independent noise.
         """
         raise NotImplementedError(
