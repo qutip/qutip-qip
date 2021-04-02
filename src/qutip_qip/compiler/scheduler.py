@@ -472,7 +472,7 @@ class Scheduler():
         Examples
         --------
         >>> from qutip_qip.circuit import QubitCircuit
-        >>> from qutip_qip.scheduler import Scheduler
+        >>> from qutip_qip.compiler import Scheduler
         >>> circuit = QubitCircuit(7)
         >>> circuit.add_gate("SNOT", 3)  # gate0
         >>> circuit.add_gate("CZ", 5, 3)  # gate1

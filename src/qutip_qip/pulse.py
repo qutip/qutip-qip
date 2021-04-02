@@ -14,7 +14,7 @@ class _EvoElement():
     """
     The class object saving the information of one evolution element.
     Each dynamic element is characterized by four variables:
-    `qobj`, `targets`, `tlist` and `coeff`.
+    ``qobj``, ``targets``, ``tlist`` and ``coeff``.
 
     For documentation and use instruction of the attributes, please
     refer to :class:`.Pulse`.
@@ -40,7 +40,7 @@ class _EvoElement():
 
         Returns
         -------
-        qobj: :class:`qutip.Qobj`
+        qobj : :class:`qutip.Qobj`
             The operator of this element.
         """
         if isinstance(dims, (int, np.integer)):
@@ -86,7 +86,7 @@ class _EvoElement():
     def get_qobjevo(self, spline_kind, dims):
         """
         Get the `QobjEvo` representation of the evolution element.
-        If both `tlist` and `coeff` are None, treated as zero matrix.
+        If both `tlist` and ``coeff`` are None, treated as zero matrix.
         If ``coeff=True`` and ``tlist=None``,
         treated as time-independent operator.
 
@@ -101,7 +101,7 @@ class _EvoElement():
             E.g. ``tlist=[0,1,2]`` and ``coeff=[3,2]``, means that the
             coefficient is 3 in t=[0,1) and 2 in t=[2,3). It requires
             ``len(coeff)=len(tlist)-1`` or ``len(coeff)=len(tlist)``, but
-            in the second case the last element of `coeff` has no effect.
+            in the second case the last element of ``tlist`` has no effect.
 
             -"cubic": Use cubic interpolation for the coefficient. It requires
             ``len(coeff)=len(tlist)``
@@ -137,28 +137,28 @@ class Pulse():
     noise and the lindblad noise. The later two are lists of
     noisy evolution dynamics.
     Each dynamic element is characterized by four variables:
-    `qobj`, `targets`, `tlist` and `coeff`.
+    ``1`qobj``, ``targets``, ``tlist`` and ``coeff``.
 
     See examples for different construction behavior.
 
     Parameters
     ----------
-    qobj: :class:'qutip.Qobj'
+    qobj : :class:'qutip.Qobj'
         The Hamiltonian of the ideal pulse.
     targets: list
         target qubits of the ideal pulse
         (or subquantum system of other dimensions).
     tlist: array-like, optional
-        `tlist` of the ideal pulse.
+        Time sequence of the ideal pulse.
         A list of time at which the time-dependent coefficients are applied.
-        `tlist` does not have to be equidistant, but must have the same length
-        or one element shorter compared to `coeff`. See documentation for
-        the parameter `spline_kind`.
+        ``tlist`` does not have to be equidistant, but must have the same length
+        or one element shorter compared to ``coeff``. See documentation for
+        the parameter ``spline_kind``.
     coeff: array-like or bool, optional
         Time-dependent coefficients of the ideal control pulse.
         If an array, the length
-        must be the same or one element longer compared to `tlist`.
-        See documentation for the parameter `spline_kind`.
+        must be the same or one element longer compared to ``tlist``.
+        See documentation for the parameter ``spline_kind``.
         If a bool, the coefficient is a constant 1 or 0.
     spline_kind: str, optional
         Type of the coefficient interpolation:
@@ -169,7 +169,7 @@ class Pulse():
         E.g. ``tlist=[0,1,2]`` and ``coeff=[3,2]``, means that the coefficient
         is 3 in t=[0,1) and 2 in t=[2,3). It requires
         ``len(coeff)=len(tlist)-1`` or ``len(coeff)=len(tlist)``, but
-        in the second case the last element of `coeff` has no effect.
+        in the second case the last element of ``coeff`` has no effect.
 
         -"cubic":
         Use cubic interpolation for the coefficient. It requires
@@ -189,9 +189,9 @@ class Pulse():
         will be treated as a (time-dependent) lindblad operator in the
         master equation.
     spline_kind: str
-        See parameter `spline_kind`.
+        See parameter ``spline_kind``.
     label: str
-        See parameter `label`.
+        See parameter ``label``.
 
     Examples
     --------
@@ -264,7 +264,7 @@ class Pulse():
     @property
     def coeff(self):
         """
-        See parameter `coeff`.
+        See parameter ``coeff``.
         """
         return self.ideal_pulse.coeff
 
@@ -286,16 +286,16 @@ class Pulse():
         tlist: array-like, optional
             A list of time at which the time-dependent coefficients are
             applied.
-            `tlist` does not have to be equidistant, but must have the same
+            ``tlist`` does not have to be equidistant, but must have the same
             length
-            or one element shorter compared to `coeff`. See documentation for
-            the parameter `spline_kind` of :class:`.Pulse`.
+            or one element shorter compared to ``coeff``. See documentation for
+            the parameter ``spline_kind`` of :class:`.Pulse`.
         coeff: array-like or bool, optional
             Time-dependent coefficients of the pulse noise.
             If an array, the length
-            must be the same or one element longer compared to `tlist`.
+            must be the same or one element longer compared to ``tlist``.
             See documentation for
-            the parameter `spline_kind` of :class:`.Pulse`.
+            the parameter ``spline_kind`` of :class:`.Pulse`.
             If a bool, the coefficient is a constant 1 or 0.
         """
         self.coherent_noise.append(_EvoElement(qobj, targets, tlist, coeff))
@@ -317,17 +317,17 @@ class Pulse():
         tlist: array-like, optional
             A list of time at which the time-dependent coefficients are
             applied.
-            `tlist` does not have to be equidistant, but must have the same
+            ``tlist`` does not have to be equidistant, but must have the same
             length
-            or one element shorter compared to `coeff`.
+            or one element shorter compared to ``coeff``.
             See documentation for
-            the parameter `spline_kind` of :class:`.Pulse`.
+            the parameter ``spline_kind`` of :class:`.Pulse`.
         coeff: array-like or bool, optional
             Time-dependent coefficients of the pulse noise.
             If an array, the length
-            must be the same or one element longer compared to `tlist`.
+            must be the same or one element longer compared to ``tlist``.
             See documentation for
-            the parameter `spline_kind` of :class:`.Pulse`.
+            the parameter ``spline_kind`` of :class:`.Pulse`.
             If a bool, the coefficient is a constant 1 or 0.
         """
         self.lindblad_noise.append(_EvoElement(qobj, targets, tlist, coeff))
@@ -345,7 +345,7 @@ class Pulse():
 
         Returns
         -------
-        qobj: :class:`qutip.Qobj`
+        qobj : :class:`qutip.Qobj`
             The Hamiltonian of the ideal pulse.
         """
         return self.ideal_pulse.get_qobj(dims)
@@ -402,13 +402,14 @@ class Pulse():
     def get_full_tlist(self, tol=1.0e-10):
         """
         Return the full tlist of the pulses and noise.
-        It means that if different `tlist`s are present, they will be merged
+        It means that if different ``tlist`` are present,
+        they will be merged
         to one with all time points stored in a sorted array.
 
         Returns
         -------
         full_tlist: array-like 1d
-            The full time sequence for the nosiy evolution.
+            The full time sequence for the noisy evolution.
         """
         # TODO add test
         all_tlists = []
@@ -461,7 +462,7 @@ class Drift():
 
     Parameters
     ----------
-    qobj: :class:`qutip.Qobj` or list of :class:`qutip.Qobj`, optional
+    qobj : :class:`qutip.Qobj` or list of :class:`qutip.Qobj`, optional
         The drift Hamiltonians.
 
     Attributes
@@ -529,7 +530,7 @@ class Drift():
 
 def _find_common_tlist(qobjevo_list, tol=1.0e-10):
     """
-    Find the common `tlist` of a list of :class:`qutip.QobjEvo`.
+    Find the common ``tlist`` of a list of :class:`qutip.QobjEvo`.
     """
     all_tlists = [qu.tlist for qu in qobjevo_list
                   if isinstance(qu, QobjEvo) and qu.tlist is not None]
@@ -588,10 +589,10 @@ def _merge_qobjevo(qobjevo_list, full_tlist=None):
 
 def _fill_coeff(old_coeffs, old_tlist, full_tlist, args=None, tol=1.0e-10):
     """
-    Make a step function coefficients compatible with a longer `tlist` by
+    Make a step function coefficients compatible with a longer ``tlist`` by
     filling the empty slot with the nearest left value.
 
-    The returned `coeff` always have the same size as the `tlist`.
+    The returned ``coeff`` always have the same size as the ``tlist``.
     If `step_func`, the last element is 0.
     """
     if args is None:

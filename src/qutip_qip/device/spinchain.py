@@ -84,36 +84,6 @@ class SpinChain(ModelProcessor):
     t2: list of float
         Characterize the decoherence of dephasing for
         each qubit. A list of size `N` or a float for all qubits.
-
-    Attributes
-    ----------
-    sx: list
-        The delta for each of the qubits in the system.
-
-    sz: list
-        The epsilon for each of the qubits in the system.
-
-    sxsy: list
-        The interaction strength for each of the qubit pair in the system.
-
-    sx_ops: list
-        A list of sigmax Hamiltonians for each qubit.
-
-    sz_ops: list
-        A list of sigmaz Hamiltonians for each qubit.
-
-    sxsy_ops: list
-        A list of tensor(sigmax, sigmay)
-        interacting Hamiltonians for each qubit.
-
-    sx_u: array_like
-        Pulse matrix for sigmax Hamiltonians.
-
-    sz_u: array_like
-        Pulse matrix for sigmaz Hamiltonians.
-
-    sxsy_u: array_like
-        Pulse matrix for tensor(sigmax, sigmay) interacting Hamiltonians.
     """
     def __init__(self, N, correct_global_phase,
                  sx, sz, sxsy, t1, t2):
@@ -162,6 +132,7 @@ class SpinChain(ModelProcessor):
         mapped to a list for parameters corresponding to each qubits.
         For coupling strength "sxsy", list element i is the interaction
         between qubits i and i+1.
+        All parameters will be multiplied by 2*pi for simplicity
 
         Parameters
         ----------
@@ -174,7 +145,6 @@ class SpinChain(ModelProcessor):
         Notes
         -----
         The coefficient of sxsy is defined in the submethods.
-        All parameters will be multiplied by 2*pi for simplicity
         """
         sx_para = 2 * np.pi * self.to_array(sx, self.N)
         self._params["sx"] = sx_para
@@ -183,26 +153,38 @@ class SpinChain(ModelProcessor):
 
     @property
     def sx_ops(self):
+        """list: A list of sigmax Hamiltonians for each qubit."""
         return self.ctrls[: self.N]
 
     @property
     def sz_ops(self):
+        """list: A list of sigmaz Hamiltonians for each qubit."""
         return self.ctrls[self.N: 2*self.N]
 
     @property
     def sxsy_ops(self):
+        """
+        list: A list of tensor(sigmax, sigmay)
+        interacting Hamiltonians for each qubit.
+        """
         return self.ctrls[2*self.N:]
 
     @property
     def sx_u(self):
+        """array-like: Pulse coefficients for sigmax Hamiltonians."""
         return self.coeffs[: self.N]
 
     @property
     def sz_u(self):
+        """array-like: Pulse coefficients for sigmaz Hamiltonians."""
         return self.coeffs[self.N: 2*self.N]
 
     @property
     def sxsy_u(self):
+        """
+        array-like: Pulse coefficients for tensor(sigmax, sigmay)
+        interacting Hamiltonians.
+        """
         return self.coeffs[2*self.N:]
 
     def load_circuit(
@@ -213,7 +195,7 @@ class SpinChain(ModelProcessor):
 
         Parameters
         ----------
-        qc: :class:`.QubitCircuit`
+        qc : :class:`.QubitCircuit`
             Takes the quantum circuit to be implemented.
 
         setup: string
@@ -250,7 +232,7 @@ class SpinChain(ModelProcessor):
 
         Parameters
         ----------
-        qc: :class:`.QubitCircuit`
+        qc : :class:`.QubitCircuit`
             The circular spin chain circuit to be resolved
 
         setup: Boolean
@@ -258,7 +240,7 @@ class SpinChain(ModelProcessor):
 
         Returns
         -------
-        qc: :class:`.QubitCircuit`
+        qc : :class:`.QubitCircuit`
             Returns QubitCircuit of resolved gates for the qubit circuit in the
             desired basis.
         """
@@ -462,12 +444,12 @@ class SpinChain(ModelProcessor):
 
         Parameters
         ----------
-        qc: :class:`.QubitCircuit`
+        qc : :class:`.QubitCircuit`
             Takes the quantum circuit to be implemented.
 
         Returns
         -------
-        qc: :class:`.QubitCircuit`
+        qc : :class:`.QubitCircuit`
             The circuit representation with elementary gates
             that can be implemented in this model.
         """
@@ -533,10 +515,18 @@ class LinearSpinChain(SpinChain):
 
     @property
     def sxsy_ops(self):
+        """
+        list: A list of tensor(sigmax, sigmay)
+        interacting Hamiltonians for each qubit.
+        """
         return self.ctrls[2*self.N: 3*self.N-1]
 
     @property
     def sxsy_u(self):
+        """
+        array-like: Pulse coefficients for tensor(sigmax, sigmay)
+        interacting Hamiltonians.
+        """
         return self.coeffs[2*self.N: 3*self.N-1]
 
     def load_circuit(
@@ -547,7 +537,7 @@ class LinearSpinChain(SpinChain):
     def get_operators_labels(self):
         """
         Get the labels for each Hamiltonian.
-        It is used in the method``plot_pulses``.
+        It is used in the method method :meth:`.Processor.plot_pulses`.
         It is a 2-d nested list, in the plot,
         a different color will be used for each sublist.
         """
@@ -623,10 +613,18 @@ class CircularSpinChain(SpinChain):
 
     @property
     def sxsy_ops(self):
+        """
+        list: A list of tensor(sigmax, sigmay)
+        interacting Hamiltonians for each qubit.
+        """
         return self.ctrls[2*self.N: 3*self.N]
 
     @property
     def sxsy_u(self):
+        """
+        array-like: Pulse coefficients for tensor(sigmax, sigmay)
+        interacting Hamiltonians.
+        """
         return self.coeffs[2*self.N: 3*self.N]
 
     def load_circuit(
@@ -637,7 +635,7 @@ class CircularSpinChain(SpinChain):
     def get_operators_labels(self):
         """
         Get the labels for each Hamiltonian.
-        It is used in the method``plot_pulses``.
+        It is used in the method method :meth:`.Processor.plot_pulses`.
         It is a 2-d nested list, in the plot,
         a different color will be used for each sublist.
         """

@@ -78,7 +78,7 @@ class Noise(object):
 
     def get_noisy_dynamics(self, dims, pulses, systematic_noise):
         """
-        Return a pulses list added with noise and
+        Return the input pulses list with noise added and
         the pulse independent noise in a dummy Pulse object.
 
         Parameters
@@ -87,10 +87,10 @@ class Noise(object):
             The dimension of the components system, the default value is
             [2,2...,2] for qubits system.
 
-        pulses: list of :class:`.Pulse`
+        pulses : list of :class:`.Pulse`
             The input pulses, on which the noise object is to be applied.
 
-        systematic_noise: :class:`.Pulse`
+        systematic_noise : :class:`.Pulse`
             The dummy pulse with no ideal control element.
 
         Returns
@@ -98,7 +98,7 @@ class Noise(object):
         noisy_pulses: list of :class:`.Pulse`
             Noisy pulses.
 
-        systematic_noise: :class:`.Pulse`
+        systematic_noise : :class:`.Pulse`
             The dummy pulse representing pulse independent noise.
         """
         raise NotImplementedError(
@@ -132,7 +132,7 @@ class DecoherenceNoise(Noise):
 
     Parameters
     ----------
-    c_ops: :class:`qutip.Qobj` or list
+    c_ops : :class:`qutip.Qobj` or list
         The Hamiltonian representing the dynamics of the noise.
     targets: int or list, optional
         The indices of qubits that are acted on. Default is on all
@@ -147,7 +147,7 @@ class DecoherenceNoise(Noise):
 
     Attributes
     ----------
-    c_ops: :class:`qutip.Qobj` or list
+    c_ops : :class:`qutip.Qobj` or list
         The Hamiltonian representing the dynamics of the noise.
     targets: int or list
         The indices of qubits that are acted on.
@@ -305,6 +305,7 @@ class ControlAmpNoise(Noise):
         A NumPy array specifies the time of each coefficient.
     indices: list of int, optional
         The indices of target pulse in the list of pulses.
+
     Attributes
     ----------
     coeff: list

@@ -77,10 +77,6 @@ class ModelProcessor(Processor):
 
     Attributes
     ----------
-    params: dict
-        A Python dictionary contains the name and the value of the parameters
-        in the physical realization, such as laser frequency, detuning etc.
-
     correct_global_phase: float
         Save the global phase, the analytical solution
         will track the global phase.
@@ -114,6 +110,11 @@ class ModelProcessor(Processor):
 
     @property
     def params(self):
+        """
+        dict: A Python dictionary contains the name
+        and the value of the parameters
+        in the physical realization, such as laser frequency, detuning etc.
+        """
         return self._params
 
     @params.setter
@@ -123,11 +124,12 @@ class ModelProcessor(Processor):
     def run_state(self, init_state=None, analytical=False, qc=None,
                   states=None, **kwargs):
         """
-        If `analytical` is False, use :func:`qutip.mesolve` to
+        If ``analytical`` is False, use :func:`qutip.mesolve` to
         calculate the time of the state evolution
-        and return the result. Other arguments of mesolve can be
+        and return the result.
+        Other arguments of :func:`qutip.mesolve` can be
         given as keyword arguments.
-        If `analytical` is True, calculate the propagator
+        If ``analytical`` is True, calculate the propagator
         with matrix exponentiation and return a list of matrices.
 
         Parameters
@@ -138,11 +140,11 @@ class ModelProcessor(Processor):
         analytical: boolean
             If True, calculate the evolution with matrices exponentiation.
 
-        qc: :class:`.QubitCircuit`, optional
+        qc : :class:`.QubitCircuit`, optional
             A quantum circuit. If given, it first calls the ``load_circuit``
             and then calculate the evolution.
 
-        states: :class:`qutip.Qobj`, optional
+        states : :class:`qutip.Qobj`, optional
          Old API, same as init_state.
 
         **kwargs

@@ -91,12 +91,25 @@ class Instruction():
 
     @property
     def name(self):
+        """
+        Corresponding gate name
+        """
         return self.gate.name
 
     @property
     def targets(self):
+        """
+        Target qubits
+
+        :type: list
+        """
         return self.gate.targets
 
     @property
     def controls(self):
+        """
+        Control qubits
+
+        :type: list
+        """
         return self.gate.controls

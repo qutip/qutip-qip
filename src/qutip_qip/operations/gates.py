@@ -712,7 +712,7 @@ def molmer_sorensen(theta, N=None, targets=[0, 1]):
 
     Returns
     -------
-    molmer_sorensen_gate: :class:`qutip.Qobj`
+    molmer_sorensen_gate : :class:`qutip.Qobj`
         Quantum object representation of the Mølmer–Sørensen gate.
     """
     if targets != [0, 1] and N is None:
