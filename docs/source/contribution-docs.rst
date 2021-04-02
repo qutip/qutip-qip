@@ -1,4 +1,4 @@
-.. _user_guide:
+.. _contribute_doc:
 
 *********************************
 Contributing to the documentation
@@ -20,6 +20,33 @@ including but not limited to
 `sphinx gallery <https://sphinx-gallery.github.io/stable/index.html>`_ and
 `plot <https://matplotlib.org/3.1.1/devel/plot_directive.html>`_.
 Additional extensions can be configured in the `conf.py <https://github.com/qutip/qutip-doc/blob/master/conf.py>`_ file.
+
+.. _build_doc:
+
+Building the documentation
+==========================
+
+To build and test the documentation, the following packages are required:
+
+.. code-block:: bash
+
+    sphinx numpydoc sphinx_rtd_theme doctest
+
+Under the ``docs`` directory, use
+
+.. code-block:: bash
+
+    make html
+
+to build the documentation in html format. The build is saved under the directory ``docs/build/html``
+
+Use the command
+
+.. code-block:: bash
+
+    make doctest
+
+to run a test for the documentation.
 
 .. _directives.rst:
 
