@@ -17,10 +17,22 @@ To install the package, download to source code and run
 ```
 under the directory containing the ``setup.py`` file.
 
-If you want to edit the code, use instead
+If you want to edit the source code, use instead
 ```
     pip install -e .
 ```
+
+To build and test the documentation, the following packages are required:
+
+```
+    sphinx numpydoc sphinx_rtd_theme doctest
+```
+
+Under the docs directory, use
+```
+    make html
+```
+to build the documentation.
 
 Support
 -------
