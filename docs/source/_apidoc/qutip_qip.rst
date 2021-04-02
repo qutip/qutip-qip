@@ -71,14 +71,6 @@ qutip\_qip.qubits module
    :undoc-members:
    :show-inheritance:
 
-qutip\_qip.scheduler module
----------------------------
-
-.. automodule:: qutip_qip.scheduler
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 Module contents
 ---------------
 

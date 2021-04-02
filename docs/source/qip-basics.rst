@@ -1,6 +1,3 @@
-.. QuTiP
-   Copyright (C) 2011-2012, Paul D. Nation & Robert J. Johansson
-
 .. _qip_intro:
 
 ******************************
@@ -14,20 +11,20 @@ Quantum Circuit
 ===============
 
 The most common model for quantum computing is the quantum circuit model.
-In QuTiP, we use :class:`~qutip_qip.QubitCircuit` to represent a quantum circuit.
+In QuTiP, we use :class:`.QubitCircuit` to represent a quantum circuit.
 The circuit is characterized by registers and gates:
 
 - **Registers**: The argument ``N`` specifies the number of qubit registers in the circuit
   and the argument ``num_cbits`` (optional) specifies the number of classical bits available for measurement
   and control.
 
-- **Gates**: Each quantum gate is saved as a class object :class:`~qutip_qip.Gate`
+- **Gates**: Each quantum gate is saved as a class object :class:`.Gate`
   with information such as gate name, target qubits and arguments.
   Gates can also be controlled on a classical bit by specifying the register number
   with the argument ``classical_controls``.
 
 - **Measurements**: We can also carry out measurements on individual qubit (both in the middle and at the end of the circuit).
-  Each measurement is saved as a class object :class:`~qutip_qip.Measurement` with parameters such as `targets`,
+  Each measurement is saved as a class object :class:`.Measurement` with parameters such as `targets`,
   the target qubit on which the measurement will be carried out, and `classical_store`,
   the index of the classical register which stores the result of the measurement.
 
@@ -64,7 +61,7 @@ Unitaries
 =========
 
 There are a few useful functions associated with the circuit object. For example,
-the :meth:`~qutip_qip.circuit.QubitCircuit.propagators` method returns a list of the unitaries associated
+the :meth:`.QubitCircuit.propagators` method returns a list of the unitaries associated
 with the sequence of gates in the circuit. By default, the unitaries are expanded to the
 full dimension of the circuit:
 
@@ -101,7 +98,7 @@ full dimension of the circuit:
 
 Another option is to only return the unitaries in their original dimension. This
 can be achieved with the argument ``expand=False`` specified to the
-:meth:`~qutip_qip.circuit.QubitCircuit.propagators`.
+:meth:`.QubitCircuit.propagators`.
 
 .. testcode::
 
@@ -137,7 +134,7 @@ can be achieved with the argument ``expand=False`` specified to the
 Gates
 =====
 
-The pre-defined gates for the class :class:`qutip_qip.Gate` are shown in the table below:
+The pre-defined gates for the class :class:`.Gate` are shown in the table below:
 
 ====================  ========================================
 Gate name                           Description
@@ -176,7 +173,7 @@ Gate name                           Description
 "GLOBALPHASE"         Global phase
 ====================  ========================================
 
-For some of the gates listed above, :class:`~qutip_qip.QubitCircuit` also has a primitive :func:`~qutip_qip.QubitCircuit.resolve_gates()` method that decomposes them into elementary gate sets such as CNOT or SWAP with single-qubit gates (RX, RY and RZ). However, this method is not fully optimized. It is very likely that the depth of the circuit can be further reduced by merging quantum gates. It is required that the gate resolution be carried out before the measurements to the circuit are added.
+For some of the gates listed above, :class:`.QubitCircuit` also has a primitive :func:`.QubitCircuit.resolve_gates()` method that decomposes them into elementary gate sets such as CNOT or SWAP with single-qubit gates (RX, RY and RZ). However, this method is not fully optimized. It is very likely that the depth of the circuit can be further reduced by merging quantum gates. It is required that the gate resolution be carried out before the measurements to the circuit are added.
 
 **Custom Gates**
 
@@ -329,9 +326,9 @@ There are two different ways to simulate the action of quantum circuits using Qu
 
 - The first method utilizes unitary application through matrix products on the input states.
   This method simulates circuits exactly in a deterministic manner. This is achieved through
-  :class:`~qutip_qip.CircuitSimulator`. A short guide to exact simulation can be
+  :class:`.CircuitSimulator`. A short guide to exact simulation can be
   found at :ref:`qip_simulator`. The teleportation notebook is also useful as an example.
 
 - A different method of circuit simulation employs driving Hamiltonians with the ability to
   simulate circuits in the presence of noise. This can be achieved through the various classes
-  in :class:`~qutip_qip.device`.A short guide to processors for QIP simulation can be found at :ref:`qip_processor`.
+  in :class:`.device`.A short guide to processors for QIP simulation can be found at :ref:`qip_processor`.

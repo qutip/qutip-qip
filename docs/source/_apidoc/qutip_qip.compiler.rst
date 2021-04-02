@@ -20,6 +20,22 @@ qutip\_qip.compiler.gatecompiler module
    :undoc-members:
    :show-inheritance:
 
+qutip\_qip.compiler.instruction module
+--------------------------------------
+
+.. automodule:: qutip_qip.compiler.instruction
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+qutip\_qip.compiler.scheduler module
+------------------------------------
+
+.. automodule:: qutip_qip.compiler.scheduler
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 qutip\_qip.compiler.spinchaincompiler module
 --------------------------------------------
 
