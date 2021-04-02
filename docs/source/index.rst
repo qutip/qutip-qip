@@ -4,18 +4,36 @@
     :align: center
     :width: 5in
 
+***********************************************
 qutip-qip: QuTiP quantum information processing
-===============================================
+***********************************************
 
 .. toctree::
     :maxdepth: 2
+    :caption: Introduction and installation
 
     introduction.rst
+    installation.rst
+
+.. toctree::
+    :maxdepth: 2
+    :caption: User guide
+
     qip-basics.rst
-    qip-processor.rst
     qip-simulator.rst
+    qip-processor.rst
+
+.. toctree::
+    :maxdepth: 2
+    :caption: Contribute to qutip-qip
+
     contribution-docs.rst
-    apidoc.rst
+
+.. toctree::
+    :maxdepth: 2
+    :caption: API documentation
+
+    _apidoc/qutip_qip.rst
 
 Indices and tables
 ==================

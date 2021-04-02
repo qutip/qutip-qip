@@ -1,14 +1,11 @@
-.. QuTiP
-   Copyright (C) 2011 and later, Paul D. Nation & Robert J. Johansson
-
-.. _user_guide.rst:
+.. _user_guide:
 
 *********************************
 Contributing to the documentation
 *********************************
 
 
-The user guide provides an overview of QuTiP's functionality.
+The user guide provides an overview of the package's functionality.
 The guide is composed of individual reStructuredText (**.rst**)
 files which each get rendered as a webpage.
 Each page typically tackles one area of functionality.
@@ -19,7 +16,7 @@ The documentation build also utilizes a number of
 `Sphinx Extensions <https://www.sphinx-doc.org/en/master/usage/extensions/index.html>`_
 including but not limited to
 `doctest <https://www.sphinx-doc.org/en/master/usage/extensions/doctest.html>`_,
-`autodoc <https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html>`_,
+`apidoc <https://www.sphinx-doc.org/en/master/man/sphinx-apidoc.html>`_,
 `sphinx gallery <https://sphinx-gallery.github.io/stable/index.html>`_ and
 `plot <https://matplotlib.org/3.1.1/devel/plot_directive.html>`_.
 Additional extensions can be configured in the `conf.py <https://github.com/qutip/qutip-doc/blob/master/conf.py>`_ file.
@@ -209,6 +206,7 @@ One can use the following code to generate API documentation:
 
 .. code-block::
 
-    sphinx-apidoc -f -o source/_apidoc/ ../src/qutip_qip    
+    cd docs
+    sphinx-apidoc -f -o source/_apidoc/ ../src/qutip_qip -T
 
 It scan the source code of qutip_qip and save the automatically generated API documentation under the path ``source/_apidoc/``.
