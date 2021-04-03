@@ -1,0 +1,9 @@
+numpy==1.19
+scipy==1.5.3
+qutip==4.5.3
+cython==0.29.21
+sphinx==3.5.2
+sphinx_rtd_theme==0.5.1
+readthedocs-sphinx-search==0.1.0rc3
+numpydoc==1.1.0
+matplotlib==3.3.4
