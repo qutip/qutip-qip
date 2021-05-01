@@ -66,16 +66,17 @@ class Processor(object):
 
     Parameters
     ----------
-    N: int
+    num_qubits: int
         The number of component systems.
+        It replaces the old API is ``N``.
 
     t1: list or float, optional
         Characterize the decoherence of amplitude damping for
-        each qubit. A list of size `N` or a float for all qubits.
+        each qubit. A list of size `num_qubits` or a float for all qubits.
 
     t2: list of float, optional
         Characterize the decoherence of dephasing for
-        each qubit. A list of size `N` or a float for all qubits.
+        each qubit. A list of size `num_qubits` or a float for all qubits.
 
     dims: list, optional
         The dimension of each component system.
@@ -98,7 +99,7 @@ class Processor(object):
 
     Attributes
     ----------
-    N: int
+    num_qubits: int
         The number of component systems.
 
     pulses : list of :class:`.Pulse`
@@ -128,33 +129,32 @@ class Processor(object):
         Type of the coefficient interpolation.
         See parameters of :class:`.Processor` for details.
     """
-    def __init__(self, N, t1=None, t2=None,
-                 dims=None, spline_kind="step_func"):
-        self.N = N
+    def __init__(self, num_qubits=None, t1=None, t2=None,
+                 dims=None, spline_kind="step_func", N=None):
+        self.num_qubits = num_qubits if (num_qubits is not None) else N
         self.pulses = []
         self.t1 = t1
         self.t2 = t2
         self.noise = []
         self.drift = Drift()
         if dims is None:
-            self.dims = [2] * N
+            self.dims = [2] * self.num_qubits
         else:
             self.dims = dims
         self.pulse_mode = "discrete"
         self.spline_kind = spline_kind
 
     @property
-    def num_qubits(self):
+    def N(self):
         """
-        Number of qubits (or subsystems).
-
+        Number of qubits (or subsystems). For backward compatibility.
         :type: int
         """
-        return self.N
+        return self.num_qubits
 
-    @num_qubits.setter
-    def num_qubits(self, value):
-        self.N = value
+    @N.setter
+    def N(self, value):
+        self.num_qubits = value
 
     def add_drift(self, qobj, targets, cyclic_permutation=False):
         """
@@ -180,8 +180,8 @@ class Processor(object):
         if not isinstance(targets, list):
             targets = [targets]
         if cyclic_permutation:
-            for i in range(self.N):
-                temp_targets = [(t + i) % self.N for t in targets]
+            for i in range(self.num_qubits):
+                temp_targets = [(t + i) % self.num_qubits for t in targets]
                 self.drift.add_drift(qobj, temp_targets)
         else:
             self.drift.add_drift(qobj, targets)
@@ -223,8 +223,8 @@ class Processor(object):
         if not isinstance(targets, list):
             targets = [targets]
         if cyclic_permutation:
-            for i in range(self.N):
-                temp_targets = [(t + i) % self.N for t in targets]
+            for i in range(self.num_qubits):
+                temp_targets = [(t + i) % self.num_qubits for t in targets]
                 if label is not None:
                     temp_label = label + "_" + str(temp_targets)
                 temp_label = label
@@ -235,6 +235,13 @@ class Processor(object):
             self.pulses.append(
                 Pulse(qobj, targets, spline_kind=self.spline_kind, label=label)
                 )
+
+    def get_pulse_dict(self):
+        label_list = {}
+        for i, pulse in enumerate(self.pulses):
+            if pulse.label:
+                label_list[pulse.label] = i
+        return label_list
 
     def find_pulse(self, pulse_name):
         if isinstance(pulse_name, str):
@@ -274,14 +281,42 @@ class Processor(object):
         return coeffs_list
 
     @coeffs.setter
-    def coeffs(self, coeffs_list):
-        for i, coeff in enumerate(coeffs_list):
-            self.pulses[i].coeff = coeff
+    def coeffs(self, coeffs):
+        self.set_all_coeffs(coeffs)
+
+    def set_all_coeffs(self, coeffs):
+        """
+        Save the coeffs in the processor.
+
+        Parameters
+        ----------
+        coeffs: dict or list of NumPy arraries.
+            If it is a dict, it should be a map between pulse label and
+            the corresponding coefficients.
+            If it is a list of arrays or a 2D NumPy array,
+            each array will be associated
+            to a pulse, following the order in the pulse list.
+        """
+        if isinstance(coeffs, dict):
+            pulse_dict = self.get_pulse_dict()
+            for pulse_name, value in coeffs.items():
+                if pulse_name in pulse_dict:
+                    self.pulses[pulse_dict[pulse_name]].coeff = value
+                elif isinstance(pulse_name, int):
+                    self.pulses[pulse_name].coeff = value
+                else:
+                    raise ValueError("Pulse {} not found".format(pulse_name))
+        elif isinstance(coeffs, (list, np.ndarray)):
+            for i, coeff in enumerate(coeffs):
+                self.pulses[i].coeff = coeff
+        else:
+            raise TypeError("Unknown coeffs type.")
 
     @property
     def pulse_mode(self):
         """
-        If the given pulse is going to be interpreted as "continuous" or "discrete".
+        If the given pulse is going to be interpreted as
+        "continuous" or "discrete".
 
         :type: str
         """
@@ -380,16 +415,28 @@ class Processor(object):
 
         Parameters
         ----------
-        tlist: array-like, optional
-            A list of time at which the time-dependent coefficients are
-            applied. See :class:`.Pulse` for detailed information`
+        tlist: dict or list of NumPy arraries.
+            If it is a dict, it should be a map between pulse label and
+            the time sequences.
+            If it is a list of arrays or a 2D NumPy array,
+            each array will be associated
+            to a pulse, following the order in the pulse list.
         """
-        if isinstance(tlist, list) and len(tlist) == len(self.pulses):
-            for i, pulse in enumerate(self.pulses):
-                pulse.tlist = tlist[i]
-        else:
+        if isinstance(tlist, (np.ndarray)) and len(tlist.shape) == 1:
             for pulse in self.pulses:
                 pulse.tlist = tlist
+        elif isinstance(tlist, dict):
+            pulse_dict = self.get_pulse_dict()
+            for pulse_name, value in tlist.items():
+                if pulse_name in pulse_dict:
+                    self.pulses[pulse_dict[pulse_name]].tlist = value
+                elif isinstance(pulse_name, int):
+                    self.pulses[pulse_name].tlist = value
+                else:
+                    raise ValueError("Pulse {} not found".format(pulse_name))
+        else:
+            for i in range(len(tlist)):
+                self.pulses[i].tlist = tlist[i]
 
     def add_pulse(self, pulse):
         """
@@ -671,7 +718,9 @@ class Processor(object):
 
         try:  # correct_global_phase are defined for ModelProcessor
             if self.correct_global_phase and self.global_phase != 0:
-                U_list.append(globalphase(self.global_phase, N=self.N))
+                U_list.append(globalphase(
+                    self.global_phase, N=self.num_qubits)
+                )
         except AttributeError:
             pass
 

@@ -46,7 +46,7 @@ class SpinChainCompiler(GateCompiler):
 
     Parameters
     ----------
-    N: int
+    num_qubits: int
         The number of qubits in the system.
 
     params: dict
@@ -70,15 +70,12 @@ class SpinChainCompiler(GateCompiler):
 
     Attributes
     ----------
-    N: int
+    num_qubits: int
         The number of the component systems.
 
     params: dict
         A Python dictionary contains the name and the value of the parameters,
         such as laser frequency, detuning etc.
-
-    pulse_dict: dict
-        A map between the pulse label and its index in the pulse list.
 
     gate_compiler: dict
         The Python dictionary in the form of {gate_name: decompose_function}.
@@ -90,9 +87,11 @@ class SpinChainCompiler(GateCompiler):
     global_phase: bool
         Record of the global phase change and will be returned.
     """
-    def __init__(self, N, params, pulse_dict, setup="linear", global_phase=0.):
+    def __init__(
+            self, num_qubits, params, setup="linear",
+            global_phase=0., pulse_dict=None, N=None):
         super(SpinChainCompiler, self).__init__(
-            N=N, params=params, pulse_dict=pulse_dict)
+            num_qubits, params=params, pulse_dict=pulse_dict, N=N)
         self.gate_compiler.update({
             "ISWAP": self.iswap_compiler,
             "SQRTISWAP": self.sqrtiswap_compiler,

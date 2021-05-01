@@ -82,7 +82,7 @@ class TestCircuitProcessor:
         proc2 = Processor(N=2)
         proc2.add_control(sigmaz(), cyclic_permutation=True)
         # TODO generalize to different tlist
-        tlist = [0., 0.1, 0.2, 0.3, 0.4, 0.5]
+        tlist = np.array([0., 0.1, 0.2, 0.3, 0.4, 0.5])
         amp1 = np.arange(0, 5, 1)
         amp2 = np.arange(5, 0, -1)
 

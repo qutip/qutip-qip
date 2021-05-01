@@ -42,6 +42,7 @@ from qutip.tensor import tensor
 from qutip.mesolve import mesolve
 from ..circuit import QubitCircuit
 from .processor import Processor
+from ..compiler import GateCompiler
 
 
 __all__ = ['ModelProcessor']
@@ -60,7 +61,7 @@ class ModelProcessor(Processor):
 
     Parameters
     ----------
-    N: int
+    num_qubits: int
         The number of component systems.
 
     correct_global_phase: boolean, optional
@@ -69,11 +70,11 @@ class ModelProcessor(Processor):
 
     t1: list or float
         Characterize the decoherence of amplitude damping for
-        each qubit. A list of size `N` or a float for all qubits.
+        each qubit. A list of size `num_qubits` or a float for all qubits.
 
     t2: list of float
         Characterize the decoherence of dephasing for
-        each qubit. A list of size `N` or a float for all qubits.
+        each qubit. A list of size `num_qubits` or a float for all qubits.
 
     Attributes
     ----------
@@ -82,18 +83,23 @@ class ModelProcessor(Processor):
         will track the global phase.
         It has no effect on the numerical solution.
     """
-    def __init__(self, N, correct_global_phase=True, t1=None, t2=None):
-        super(ModelProcessor, self).__init__(N, t1=t1, t2=t2)
+    def __init__(
+            self, num_qubits, correct_global_phase=True,
+            t1=None, t2=None, N=None):
+        super(ModelProcessor, self).__init__(num_qubits, t1=t1, t2=t2, N=None)
         self.correct_global_phase = correct_global_phase
         self.global_phase = 0.
         self._params = {}
+        self.native_gates = None
+        self.transpile_functions = []
+        self._default_compiler = None
 
-    def to_array(self, params, N):
+    def to_array(self, params, num_qubits):
         """
         Transfer a parameter to an array.
         """
         if isinstance(params, numbers.Real):
-            return np.asarray([params] * N)
+            return np.asarray([params] * num_qubits)
         elif isinstance(params, Iterable):
             return np.asarray(params)
 
@@ -211,3 +217,74 @@ class ModelProcessor(Processor):
             t_start += t_idx_len
 
         return t, u, self.get_operators_labels()
+
+    def topology_map(self, qc):
+        """
+        Map the circuit to the hardware topology.
+        """
+        raise NotImplementedError
+
+    def transpile(self, qc):
+        """
+        Convert the circuit to one that can be executed on given hardware.
+        If there is a method ``topology_map`` defined,
+        it will use it to map the circuit to the hardware topology.
+        If the processor has a set of native gates defined, it will decompose
+        the given circuit to the native gates.
+
+        Parameters
+        ----------
+        qc: :class:`.QubitCircuit`
+            The input quantum circuit.
+
+        Returns
+        -------
+        qc: :class:`.QubitCircuit`
+            The transpiled quantum circuit.
+        """
+        try:
+            qc = self.topology_map(qc)
+        except NotImplementedError:
+            pass
+        if self.native_gates is not None:
+            qc = qc.resolve_gates(basis=self.native_gates)
+        return qc
+
+    def load_circuit(
+            self, qc, schedule_mode="ASAP", compiler=None):
+        """
+        The default routine of compilation.
+        It first calls the :meth:`.transpile` to convert the circuit to
+        a suitable format for the hardware model.
+        Then it calls the compiler and save the compiled pulses.
+
+        Parameters
+        ----------
+        qc : :class:`.QubitCircuit`
+            Takes the quantum circuit to be implemented.
+
+        schedule_mode: string
+            "ASAP" or "ALAP" or None.
+
+        compiler: subclass of :class:`.GateCompiler`
+            The used compiler.
+
+        Returns
+        -------
+        tlist, coeffs: dict of 1D NumPy array
+            A dictionary of pulse label and the time sequence and
+            compiled pulse coefficients.
+        """
+        qc = self.transpile(qc)
+        # Choose a compiler and compile the circuit
+        if compiler is None and self._default_compiler is not None:
+            compiler = self._default_compiler(num_qubits, self.params)
+        if compiler is not None:
+            tlist, coeffs = compiler.compile(
+                qc.gates, schedule_mode=schedule_mode)
+        else:
+            raise ValueError("No compiler defined.")
+        # Save compiler pulses
+        self.set_all_coeffs(coeffs)
+        self.set_all_tlist(tlist)
+        return tlist, coeffs
