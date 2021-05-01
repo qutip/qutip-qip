@@ -34,6 +34,7 @@ import numpy as np
 from .instruction import Instruction
 from .scheduler import Scheduler
 from ..circuit import QubitCircuit, Gate
+import warnings
 
 
 __all__ = ['GateCompiler']
@@ -48,7 +49,7 @@ class GateCompiler(object):
 
     Parameters
     ----------
-    N: int
+    num_qubits: int
         The number of the component systems.
 
     params: dict, optional
@@ -56,15 +57,6 @@ class GateCompiler(object):
         such as laser frequency, detuning etc.
         It will be saved in the class attributes and can be used to calculate
         the control pulses.
-
-    pulse_dict: dict, optional
-        A map between the pulse label and its index in the pulse list.
-        If given, the compiled pulse can be identified with
-        ``(pulse_label, coeff)``, instead of ``(pulse_index, coeff)``.
-        The number of key-value pairs should match the number of pulses
-        in the processor.
-        If it is empty, an integer ``pulse_index`` needs to be used
-        in the compiling routine saved under the attributes ``gate_compiler``.
 
     Attributes
     ----------
@@ -78,14 +70,27 @@ class GateCompiler(object):
         Arguments for individual compiling routines.
         It adds more flexibility in customizing compiler.
     """
-    def __init__(self, N, params=None, pulse_dict=None):
+    def __init__(self, num_qubits=None, params=None, pulse_dict=None, N=None):
         self.gate_compiler = {}
-        self.N = N
+        self.num_qubits = num_qubits or N
+        self.N = num_qubits  # backward compatibility
         self.params = params if params is not None else {}
-        self.pulse_dict = pulse_dict if pulse_dict is not None else {}
         self.gate_compiler = {"GLOBALPHASE": self.globalphase_compiler}
-        self.args = {"params": self.params}
+        self.args = {}
+        self.args.update({"params": self.params})
         self.global_phase = 0.
+        if pulse_dict is not None:
+            warnings.warn(
+                """
+                Giving pulse_dict to compiler is deprecated.
+                The compiler now returns the compiled pulses as a dictionary
+                between the pulse's label and the coefficients/tlist.
+                It can be given to the processor directly.
+                The parameter pulse_dict has no effect now,
+                you can simply remove it.
+                """,
+                DeprecationWarning
+            )
 
     def globalphase_compiler(self, gate, args):
         """
@@ -93,7 +98,8 @@ class GateCompiler(object):
         """
         pass
 
-    def compile(self, circuit, schedule_mode=None, args=None):
+    def compile(
+            self, circuit, schedule_mode=None, args=None):
         """
         Compile the the native gates into control pulse sequence.
         It calls each compiling method and concatenates
@@ -119,13 +125,13 @@ class GateCompiler(object):
 
         Returns
         -------
-        tlist: array_like
-            A NumPy array specifies the time of each coefficient
-
-        coeffs: array_like
-            A 2d NumPy array of the shape ``(len(ctrls), len(tlist))``. Each
-            row corresponds to the control pulse sequence for
+        tlist, coeffs: array_like or dict
+            Compiled ime sequence and pulse coefficients.
+            if ``return_array`` is true, return
+            A 2d NumPy array of the shape ``(len(ctrls), len(tlist))``.
+            Each row corresponds to the control pulse sequence for
             one Hamiltonian.
+            if ``return_array`` is false
         """
         if isinstance(circuit, QubitCircuit):
             gates = circuit.gates
@@ -145,14 +151,6 @@ class GateCompiler(object):
             instruction_list += instruction
         if not instruction_list:
             return None, None
-        if self.pulse_dict:
-            num_controls = len(self.pulse_dict)
-        else:  # if pulse_dict is not given, compute the number of pulses
-            num_controls = 0
-            for instruction in instruction_list:
-                for pulse_index, _ in instruction.pulse_info:
-                    num_controls = max(num_controls, pulse_index)
-            num_controls += 1
 
         # schedule
         # scheduled_start_time:
@@ -164,31 +162,33 @@ class GateCompiler(object):
 
         # An instruction can be composed from several different pulse elements.
         # We separate them an assign them to each pulse index.
-        pulse_instructions = [[] for tmp in range(num_controls)]
+        pulse_ind_map = {}
+        next_pulse_ind = 0
+        pulse_instructions = []
         for instruction, start_time in \
                 zip(instruction_list, scheduled_start_time):
             for pulse_name, coeff in instruction.pulse_info:
-                if self.pulse_dict:
-                    try:
-                        pulse_ind = self.pulse_dict[pulse_name]
-                    except KeyError:
-                        raise ValueError(
-                            f"Pulse name {pulse_name} not found"
-                            " in pulse_dict.")
-                else:
-                    pulse_ind = pulse_name
-                pulse_instructions[pulse_ind].append(
+                if pulse_name not in pulse_ind_map:
+                    pulse_instructions.append([])
+                    pulse_ind_map[pulse_name] = next_pulse_ind
+                    next_pulse_ind += 1
+                pulse_instructions[pulse_ind_map[pulse_name]].append(
                     (start_time, instruction.tlist, coeff))
 
         # concatenate pulses
         compiled_tlist, compiled_coeffs = \
             self._concatenate_pulses(
-                pulse_instructions, scheduled_start_time, num_controls)
-        return compiled_tlist, compiled_coeffs
+                pulse_instructions, scheduled_start_time,
+                len(pulse_instructions))
+        compiled_tlist_map, compiled_coeffs_map = {}, {}
+        for key, index in pulse_ind_map.items():
+            compiled_tlist_map[key] = compiled_tlist[index]
+            compiled_coeffs_map[key] = compiled_coeffs[index]
+        return compiled_tlist_map, compiled_coeffs_map
 
     def _schedule(self, instruction_list, schedule_mode):
         """
-        Schedule the instructions if required and 
+        Schedule the instructions if required and
         reorder instruction_list accordingly
         """
         if schedule_mode:
@@ -222,7 +222,7 @@ class GateCompiler(object):
                     self._process_gate_pulse(start_time, tlist, coeff)
 
                 if abs(last_pulse_time) < step_size * 1.0e-6:  # if first pulse
-                    compiled_tlist[pulse_ind].append([0.])  
+                    compiled_tlist[pulse_ind].append([0.])
                     if pulse_mode == "continuous":
                         compiled_coeffs[pulse_ind].append([0.])
                     # for discrete pulse len(coeffs) = len(tlist) - 1
@@ -233,7 +233,8 @@ class GateCompiler(object):
                     idling_tlist = self._process_idling_tlist(
                         pulse_mode, start_time, last_pulse_time, step_size)
                     compiled_tlist[pulse_ind].append(idling_tlist)
-                    compiled_coeffs[pulse_ind].append(np.zeros(len(idling_tlist)))
+                    compiled_coeffs[pulse_ind].append(
+                        np.zeros(len(idling_tlist)))
 
                 # Add the gate time and coeffs to the list.
                 execution_time = gate_tlist + start_time
@@ -266,7 +267,7 @@ class GateCompiler(object):
             pulse_mode = "discrete"
             step_size = tlist[1] - tlist[0]
             coeff = np.asarray(coeff)
-            gate_tlist = np.asarray(tlist)[1:]  #  first t always 0 by def
+            gate_tlist = np.asarray(tlist)[1:]  # first t always 0 by def
         elif len(tlist) == len(coeff):
             # continuos pulse
             pulse_mode = "continuous"

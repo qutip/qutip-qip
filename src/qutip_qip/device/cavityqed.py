@@ -64,7 +64,7 @@ class DispersiveCavityQED(ModelProcessor):
 
     Parameters
     ----------
-    N: int
+    num_qubits: int
         The number of qubits in the system.
 
     correct_global_phase: float, optional
@@ -95,11 +95,11 @@ class DispersiveCavityQED(ModelProcessor):
 
     t1: list or float
         Characterize the decoherence of amplitude damping for
-        each qubit. A list of size `N` or a float for all qubits.
+        each qubit. A list of size `num_qubits` or a float for all qubits.
 
     t2: list of float
         Characterize the decoherence of dephasing for
-        each qubit. A list of size `N` or a float for all qubits.
+        each qubit. A list of size `num_qubits` or a float for all qubits.
 
     Attributes
     ----------
@@ -112,63 +112,56 @@ class DispersiveCavityQED(ModelProcessor):
         from wq and w0 for each qubit.
     """
 
-    def __init__(self, N, correct_global_phase=True,
+    def __init__(self, num_qubits, correct_global_phase=True,
                  num_levels=10, deltamax=1.0,
                  epsmax=9.5, w0=10., wq=None, eps=9.5,
                  delta=0.0, g=0.01, t1=None, t2=None):
         super(DispersiveCavityQED, self).__init__(
-            N, correct_global_phase=correct_global_phase,
+            num_qubits, correct_global_phase=correct_global_phase,
             t1=t1, t2=t2)
         self.correct_global_phase = correct_global_phase
         self.spline_kind = "step_func"
         self.num_levels = num_levels
         self._params = {}
         self.set_up_params(
-            N=N, num_levels=num_levels, deltamax=deltamax,
+            num_qubits=num_qubits, num_levels=num_levels, deltamax=deltamax,
             epsmax=epsmax, w0=w0, wq=wq, eps=eps,
             delta=delta, g=g)
-        self.set_up_ops(N)
-        self.dims = [num_levels] + [2] * N
+        self.set_up_ops(num_qubits)
+        self.dims = [num_levels] + [2] * num_qubits
+        self.pulse_dict = self.get_pulse_dict()
+        self.native_gates = ["SQRTISWAP", "ISWAP", "RX", "RZ"]
 
-    def set_up_ops(self, N):
+    def set_up_ops(self, num_qubits):
         """
         Generate the Hamiltonians for the spinchain model and save them in the
         attribute `ctrls`.
 
         Parameters
         ----------
-        N: int
+        num_qubits: int
             The number of qubits in the system.
         """
-        self.pulse_dict = {}
-        index = 0
         # single qubit terms
-        for m in range(N):
-            self.pulses.append(
-                Pulse(sigmax(), [m+1], spline_kind=self.spline_kind))
-            self.pulse_dict["sx" + str(m)] = index
-            index += 1
-        for m in range(N):
-            self.pulses.append(
-                Pulse(sigmaz(), [m+1], spline_kind=self.spline_kind))
-            self.pulse_dict["sz" + str(m)] = index
-            index += 1
+        for m in range(num_qubits):
+            self.add_control(sigmax(), [m+1], label="sx" + str(m))
+        for m in range(num_qubits):
+            self.add_control(sigmaz(), [m+1], label="sz" + str(m))
         # coupling terms
         a = tensor(
             [destroy(self.num_levels)] +
-            [identity(2) for n in range(N)])
-        for n in range(N):
+            [identity(2) for n in range(num_qubits)])
+        for n in range(num_qubits):
             sm = tensor([identity(self.num_levels)] +
                         [destroy(2) if m == n else identity(2)
-                         for m in range(N)])
-            self.pulses.append(
-                Pulse(a.dag() * sm + a * sm.dag(),
-                      list(range(N+1)), spline_kind=self.spline_kind))
-            self.pulse_dict["g" + str(n)] = index
-            index += 1
+                         for m in range(num_qubits)])
+            self.add_control(
+                a.dag() * sm + a * sm.dag(),
+                list(range(num_qubits+1)), label="g" + str(n)
+            )
 
     def set_up_params(
-            self, N, num_levels, deltamax,
+            self, num_qubits, num_levels, deltamax,
             epsmax, w0, wq, eps, delta, g):
         """
         Save the parameters in the attribute `params` and check the validity.
@@ -181,7 +174,7 @@ class DispersiveCavityQED(ModelProcessor):
 
         Parameters
         ----------
-        N: int
+        num_qubits: int
             The number of qubits in the system.
 
         num_levels: int
@@ -208,17 +201,17 @@ class DispersiveCavityQED(ModelProcessor):
         g: list
             The interaction strength for each of the qubit with the resonator.
         """
-        sx_para = 2 * np.pi * self.to_array(deltamax, N)
+        sx_para = 2 * np.pi * self.to_array(deltamax, num_qubits)
         self._params["sx"] = sx_para
-        sz_para = 2 * np.pi * self.to_array(epsmax, N)
+        sz_para = 2 * np.pi * self.to_array(epsmax, num_qubits)
         self._params["sz"] = sz_para
         w0 = 2 * np.pi * w0
         self._params["w0"] = w0
-        eps = 2 * np.pi * self.to_array(eps, N)
+        eps = 2 * np.pi * self.to_array(eps, num_qubits)
         self._params["eps"] = eps
-        delta = 2 * np.pi * self.to_array(delta, N)
+        delta = 2 * np.pi * self.to_array(delta, num_qubits)
         self._params["delta"] = delta
-        g = 2 * np.pi * self.to_array(g, N)
+        g = 2 * np.pi * self.to_array(g, num_qubits)
         self._params["g"] = g
 
         # computed
@@ -238,31 +231,31 @@ class DispersiveCavityQED(ModelProcessor):
         """
         list: A list of sigmax Hamiltonians for each qubit.
         """
-        return self.ctrls[0: self.N]
+        return self.ctrls[0: self.num_qubits]
 
     @property
     def sz_ops(self):
         """
         list: A list of sigmaz Hamiltonians for each qubit.
         """
-        return self.ctrls[self.N: 2*self.N]
+        return self.ctrls[self.num_qubits: 2*self.num_qubits]
 
     @property
     def cavityqubit_ops(self):
         """
         list: A list of interacting Hamiltonians between cavity and each qubit.
         """
-        return self.ctrls[2*self.N: 3*self.N]
+        return self.ctrls[2*self.num_qubits: 3*self.num_qubits]
 
     @property
     def sx_u(self):
         """array-like: Pulse matrix for sigmax Hamiltonians."""
-        return self.coeffs[: self.N]
+        return self.coeffs[: self.num_qubits]
 
     @property
     def sz_u(self):
         """array-like: Pulse matrix for sigmaz Hamiltonians."""
-        return self.coeffs[self.N: 2*self.N]
+        return self.coeffs[self.num_qubits: 2*self.num_qubits]
 
     @property
     def g_u(self):
@@ -270,39 +263,18 @@ class DispersiveCavityQED(ModelProcessor):
         array-like: Pulse matrix for interacting Hamiltonians
         between cavity and each qubit.
         """
-        return self.coeffs[2*self.N: 3*self.N]
+        return self.coeffs[2*self.num_qubits: 3*self.num_qubits]
 
     def get_operators_labels(self):
         """
         Get the labels for each Hamiltonian.
-        It is used in the method method :meth:`.Processor.plot_pulses`lses`sor.plot_pulses``.
+        It is used in the method method :meth:`.Processor.plot_pulses`.
         It is a 2-d nested list, in the plot,
         a different color will be used for each sublist.
         """
-        return ([[r"$\sigma_x^%d$" % n for n in range(self.N)],
-                 [r"$\sigma_z^%d$" % n for n in range(self.N)],
-                 [r"$g_{%d}$" % (n) for n in range(self.N)]])
-
-    def optimize_circuit(self, qc):
-        """
-        Take a quantum circuit/algorithm and convert it into the
-        optimal form/basis for the desired physical system.
-
-        Parameters
-        ----------
-        qc : :class:`.QubitCircuit`
-            Takes the quantum circuit to be implemented.
-
-        Returns
-        -------
-        qc : :class:`.QubitCircuit`
-            The circuit representation with elementary gates
-            that can be implemented in this model.
-        """
-        self.qc0 = qc
-        self.qc1 = self.qc0.resolve_gates(
-            basis=["SQRTISWAP", "ISWAP", "RX", "RZ"])
-        return self.qc1
+        return ([[r"$\sigma_x^%d$" % n for n in range(self.num_qubits)],
+                 [r"$\sigma_z^%d$" % n for n in range(self.num_qubits)],
+                 [r"$g_{%d}$" % (n) for n in range(self.num_qubits)]])
 
     def eliminate_auxillary_modes(self, U):
         """
@@ -310,40 +282,15 @@ class DispersiveCavityQED(ModelProcessor):
         """
         psi_proj = tensor(
             [basis(self.num_levels, 0)] +
-            [identity(2) for n in range(self.N)])
+            [identity(2) for n in range(self.num_qubits)])
         return psi_proj.dag() * U * psi_proj
 
     def load_circuit(
             self, qc, schedule_mode="ASAP", compiler=None):
-        """
-        Decompose a :class:`.QubitCircuit` in to the control
-        amplitude generating the corresponding evolution.
-
-        Parameters
-        ----------
-        qc : :class:`.QubitCircuit`
-            Takes the quantum circuit to be implemented.
-
-        Returns
-        -------
-        tlist: array_like
-            A NumPy array specifies the time of each coefficient
-
-        coeffs: array_like
-            A 2d NumPy array of the shape (len(ctrls), len(tlist)). Each
-            row corresponds to the control pulse sequence for
-            one Hamiltonian.
-        """
-        gates = self.optimize_circuit(qc).gates
         if compiler is None:
             compiler = CavityQEDCompiler(
-                self.N, self._params,
-                pulse_dict=deepcopy(self.pulse_dict),
-                global_phase=0.)
-        tlist, coeffs = compiler.compile(
-            gates, schedule_mode=schedule_mode)
+                self.num_qubits, self.params, global_phase=0.)
+        tlist, coeff = super().load_circuit(
+            qc, schedule_mode=schedule_mode, compiler=compiler)
         self.global_phase = compiler.global_phase
-        self.coeffs = coeffs
-        for i in range(len(coeffs)):
-            self.pulses[i].tlist = tlist[i]
-        return tlist, self.coeffs
+        return tlist, coeff

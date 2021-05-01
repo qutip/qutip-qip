@@ -32,8 +32,10 @@
 ###############################################################################
 import pytest
 import numpy as np
+from numpy.testing import assert_array_equal
 
-from qutip_qip.device import DispersiveCavityQED, CircularSpinChain
+from qutip_qip.device import (
+    DispersiveCavityQED, CircularSpinChain, LinearSpinChain)
 from qutip_qip.compiler import (
     SpinChainCompiler, CavityQEDCompiler, Instruction, GateCompiler
     )
@@ -87,9 +89,8 @@ def gauss_rx_compiler(gate, args):
 
 from qutip_qip.compiler import GateCompiler
 class MyCompiler(GateCompiler):  # compiler class
-    def __init__(self, num_qubits, params, pulse_dict):
-        super(MyCompiler, self).__init__(
-            num_qubits, params=params, pulse_dict=pulse_dict)
+    def __init__(self, num_qubits, params):
+        super(MyCompiler, self).__init__(num_qubits, params=params)
         # pass our compiler function as a compiler for RX (rotation around X) gate.
         self.gate_compiler["RX"] = gauss_rx_compiler
         self.args.update({"params": params})
@@ -114,8 +115,7 @@ def test_compiler_with_continous_pulse(spline_kind, schedule_mode):
     circuit.add_gate("X", targets=0)
 
     processor = CircularSpinChain(num_qubits)
-    gauss_compiler = MyCompiler(
-        processor.N, processor.params, processor.pulse_dict)
+    gauss_compiler = MyCompiler(num_qubits, processor.params)
     processor.load_circuit(
         circuit, schedule_mode = schedule_mode, compiler=gauss_compiler)
     result = processor.run_state(init_state = basis([2,2], [0,0]))
@@ -144,10 +144,42 @@ def test_compiler_without_pulse_dict():
     circuit.add_gate("X", targets=[0])
     circuit.add_gate("X", targets=[1])
     processor = CircularSpinChain(num_qubits)
-    compiler = SpinChainCompiler(
-        num_qubits, params=processor.params, pulse_dict=None, setup="circular")
+    compiler = SpinChainCompiler(num_qubits, params=processor.params, setup="circular")
     compiler.gate_compiler["RX"] = rx_compiler_without_pulse_dict
     compiler.args = {"params": processor.params}
     processor.load_circuit(circuit, compiler=compiler)
     result = processor.run_state(basis([2,2], [0,0]))
     assert(abs(fidelity(result.states[-1], basis([2,2], [1,1])) - 1.) < 1.e-6 )
+
+
+def test_compiler_result_format():
+    """
+    Test if compiler return correctly different kind of compiler result
+    and if processor can successfully read them.
+    """
+    num_qubits = 1
+    circuit = QubitCircuit(num_qubits)
+    circuit.add_gate("RX", targets=[0], arg_value=np.pi/2)
+    processor = LinearSpinChain(num_qubits)
+    compiler = SpinChainCompiler(num_qubits, params=processor.params, setup="circular")
+
+    tlist, coeffs = compiler.compile(circuit)
+    assert(isinstance(tlist, dict))
+    assert("sx0" in tlist)
+    assert(isinstance(coeffs, dict))
+    assert("sx0" in coeffs)
+    processor.coeffs = coeffs
+    processor.set_all_tlist(tlist)
+    assert_array_equal(processor.pulses[0].coeff, coeffs["sx0"])
+    assert_array_equal(processor.pulses[0].tlist, tlist["sx0"])
+
+    compiler.gate_compiler["RX"] = rx_compiler_without_pulse_dict
+    tlist, coeffs = compiler.compile(circuit)
+    assert(isinstance(tlist, dict))
+    assert(0 in tlist)
+    assert(isinstance(coeffs, dict))
+    assert(0 in coeffs)
+    processor.coeffs = coeffs
+    processor.set_all_tlist(tlist)
+    assert_array_equal(processor.pulses[0].coeff, coeffs[0])
+    assert_array_equal(processor.pulses[0].tlist, tlist[0])

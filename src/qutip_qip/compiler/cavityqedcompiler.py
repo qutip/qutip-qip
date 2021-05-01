@@ -46,7 +46,7 @@ class CavityQEDCompiler(GateCompiler):
 
     Parameters
     ----------
-    N: int
+    num_qubits: int
         The number of qubits in the system.
 
     params: dict
@@ -56,34 +56,17 @@ class CavityQEDCompiler(GateCompiler):
     global_phase: float, optional
         Record of the global phase change and will be returned.
 
-    pulse_dict: dict, optional
-        A map between the pulse label and its index in the pulse list.
-        If given, the compiled pulse can be identified with
-        ``(pulse_label, coeff)``, instead of ``(pulse_index, coeff)``.
-        The number of key-value pairs should match the number of pulses
-        in the processor.
-        If it is empty, an integer ``pulse_index`` needs to be used
-        in the compiling routine saved under the attributes ``gate_compiler``.
-
     Attributes
     ----------
-    N: int
-        The number of the component systems.
-
-    params: dict
-        A Python dictionary contains the name and the value of the parameters,
-        such as laser frequency, detuning etc.
-
-    pulse_dict: dict
-        A map between the pulse label and its index in the pulse list.
-
     gate_compiler: dict
         The Python dictionary in the form of {gate_name: decompose_function}.
         It saves the decomposition scheme for each gate.
     """
-    def __init__(self, N, params, pulse_dict, global_phase=0.):
+    def __init__(
+            self, num_qubits, params, global_phase=0.,
+            pulse_dict=None, N=None):
         super(CavityQEDCompiler, self).__init__(
-            N=N, params=params, pulse_dict=pulse_dict)
+            num_qubits, params=params, pulse_dict=pulse_dict, N=N)
         self.gate_compiler.update({
             "ISWAP": self.iswap_compiler,
             "SQRTISWAP": self.sqrtiswap_compiler,
