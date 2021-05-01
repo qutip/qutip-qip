@@ -244,9 +244,10 @@ class Processor(object):
         return label_list
 
     def find_pulse(self, pulse_name):
+        pulse_dict = self.get_pulse_dict()
         if isinstance(pulse_name, str):
             try:
-                return self.pulses[self.pulse_dict[pulse_name]]
+                return self.pulses[pulse_dict[pulse_name]]
             except (KeyError):
                 raise KeyError(
                     "Pulse name {} undefined. "

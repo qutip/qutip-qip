@@ -342,7 +342,7 @@ class TestCircuitProcessor:
         result = proc.run_state(init_state=init_state, solver="mcsolve")
         assert_allclose(
             fidelity(result.states[-1], qubit_states(2, [0, 1, 0, 0])),
-            1, rtol=1.e-7) 
+            1, rtol=1.e-7)
 
     def test_no_saving_intermidiate_state(self):
         processor = Processor(1)
@@ -352,3 +352,8 @@ class TestCircuitProcessor:
             )
         result = processor.run_state(basis(2,0), tlist=[0,1])
         assert(len(result.states) == 2)
+
+    def test_pulse_dict(self):
+        processor = Processor(1)
+        processor.add_control(sigmax(), 0, label="test")
+        assert("test" in processor.get_pulse_dict())
