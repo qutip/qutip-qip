@@ -1,0 +1,194 @@
+import numpy as np
+
+from qutip import qeye, tensor, destroy, basis
+from .modelprocessor import ModelProcessor
+from ..transpiler import to_chain_structure
+from ..compiler import TransmonChainCompiler
+
+
+__all__ = ['TransmonChain']
+
+
+class TransmonChain(ModelProcessor):
+    """
+    A chain of transmon qubits with fixed frequency.
+    Single-qubit control is realized by rotation around the X and Y axis
+    while two-qubit gates are implemented with Cross Resonance gates.
+    A 3-level system is used to simulate the transmon system,
+    in order to simulation leakage.
+    For simplicity, we only use a ZX Hamiltonian for two-qubit interaction.
+    For details see https://arxiv.org/abs/2005.12667 and
+    https://journals.aps.org/pra/abstract/10.1103/PhysRevA.101.052308.
+
+    Parameters
+    ----------
+    num_qubits: int
+        Number of qubits
+    t1, t2: float or list
+        Coherence time for all qubit or each qubit
+    **params:
+        Keyword argument for hardware parameters, in the unit of GHz.
+        Each can should be given as list:
+
+        - ``wq``: transmon bare frequency, default 5.15 and 5.09
+          for each pair of transmon
+        - ``wr``: resonator bare frequency, default ``[5.96]*num_qubits``
+        - ``alpha``: anharmonicity for each transmon,
+          default ``[-0.3]*num_qubits``
+        - ``omega_single``: control strength for single-qubit gate,
+          default ``[-0.01]*num_qubits``
+        - ``omega_cr``: control strength for cross resonance gate,
+          default ``[-0.01]*num_qubits``
+
+    Attributes
+    ----------
+    dims: list
+        Dimension of the subsystem, e.g. ``[3,3,3]``.
+    pulse_mode: "discrete" or "continuous"
+        Given pulse is treated as continuous pulses or discrete step functions.
+    native_gates: list of str
+        The native gate sets
+    """
+    def __init__(
+            self, num_qubits, t1=None, t2=None, **params):
+        super(TransmonChain, self).__init__(
+            num_qubits, t1=t1, t2=t2)
+        self.num_qubits = num_qubits
+        self.dims = [3,] * num_qubits
+        self.pulse_mode = "continuous"
+        self.params = {
+            "wq" : np.array(
+                (
+                    (5.15, 5.09) * int(np.ceil(self.num_qubits / 2))
+                )[: self.num_qubits]
+            ),
+            "wr" : self.to_array(5.96, num_qubits - 1),
+            "alpha" : self.to_array(-1, num_qubits),
+            "g" : self.to_array(0.1, 2 * (num_qubits - 1)),
+            "omega_single" : self.to_array(0.01, num_qubits),
+            "omega_cr" : self.to_array(0.01, num_qubits)
+        }
+        if params is not None:
+            self.params.update(params)
+        self.set_up_ops()
+        self.set_up_params()
+        self.native_gates = ["RX", "RY", "CNOT"]
+        self._default_compiler = TransmonChainCompiler
+
+    def set_up_ops(self):
+        """
+        Setup the operators.
+        We use 2π σ/2 as the single-qubit control Hamiltonian and 
+        -2πZX/4 as the two-qubit Hamiltonian.
+        """
+        for m in range(self.num_qubits):
+            destroy_op = destroy(self.dims[m])
+            coeff = 2 * np.pi * self.params["alpha"][m] / 2.
+            self.add_drift(
+                coeff * destroy_op.dag() ** 2 * destroy_op ** 2, targets=[m])
+
+        for m in range(self.num_qubits):
+            destroy_op = destroy(self.dims[m])
+            op = destroy_op + destroy_op.dag()
+            self.add_control(2 * np.pi / 2 * op, [m], label="sx" + str(m))
+
+        for m in range(self.num_qubits):
+            destroy_op = destroy(self.dims[m])
+            op = destroy_op * (-1.j) + destroy_op.dag() * 1.j
+            self.add_control(2 * np.pi / 2 * op, [m], label="sy" + str(m))
+
+        for m in range(self.num_qubits - 1):
+            # For simplicity, we neglect leakage in two-qubit gates.
+            d1 = self.dims[m]
+            d2 = self.dims[m+1]
+            # projector to the 0 and 1 subspace
+            projector1 = basis(d1, 0) * basis(d1, 0).dag() + \
+                basis(d1, 1) * basis(d2, 1).dag()
+            projector2 = basis(d2, 0) * basis(d2, 0).dag() + \
+                basis(d2, 1) * basis(d2, 1).dag()
+            destroy_op1 = destroy(d1)
+            # Notice that this is actually -2πZX/4
+            z = projector1 * \
+                ( - destroy_op1.dag()*destroy_op1 * 2 + qeye(d1)) / 2  \
+                * projector1
+            destroy_op2 = destroy(d2)
+            x = projector2 * (destroy_op2.dag() + destroy_op2) / 2 * projector2
+            self.add_control(
+                2 * np.pi * tensor([z, x]), [m, m+1],
+                label="zx" + str(m) + str(m + 1)
+            )
+            xz_op = tensor([x, z])
+            self.add_control(
+                2 * np.pi * tensor([x, z]), [m, m+1],
+                label="zx" + str(m + 1) + str(m)
+            )
+
+    def set_up_params(self):
+        """
+        Compute the dressed frequency and the interaction strength.
+        """
+        g = self.params["g"]
+        wq = self.params["wq"]
+        wr = self.params["wr"]
+        alpha = self.params["alpha"]
+        # Dressed qubit frequency
+        wq_dr = []
+        for i in range(self.num_qubits):
+            tmp = wq[i]
+            if i != 0:
+                tmp += g[2*i - 1]**2/(wq[i] - wr[i - 1])
+            if i != (self.num_qubits - 1):
+                tmp += g[2*i]**2/(wq[i] - wr[i])
+            wq_dr.append(tmp)
+        self.params["wq_dressed"] = wq_dr
+        # Dressed resonator frequency
+        wr_dr = []
+        for i in range(self.num_qubits - 1):
+            tmp = wr[i]
+            tmp -= g[2*i]**2/(wq[i] - wr[i] + alpha[i])
+            tmp -= g[2*i + 1]**2/(wq[i+1] - wr[i] + alpha[i])
+            wr_dr.append(tmp)
+        self.params["wr_dressed"] = wr_dr
+        # Effective qubit coupling strength
+        J = []
+        for i in range(self.num_qubits - 1):
+            tmp = g[2*i] * g[2*i+1] * \
+                (wq_dr[i] + wq_dr[i+1] - 2*wr_dr[i]) / \
+                2 / (wq_dr[i] - wr_dr[i]) / (wq_dr[i+1] - wr_dr[i])
+            J.append(tmp)
+        self.params["J"] = J
+        # Effective ZX strength
+        zx_coeff = []
+        omega_cr = self.params["omega_cr"]
+        for i in range(self.num_qubits - 1):
+            tmp = J[i] * omega_cr[i] * (
+                1/(wq_dr[i] - wq_dr[i+1] + alpha[i]) - 
+                1/(wq_dr[i] - wq_dr[i+1])
+                )
+            zx_coeff.append(tmp)
+        for i in range(self.num_qubits - 1, 0, -1):
+            tmp = J[i-1] * omega_cr[i] * (
+                1/(wq_dr[i] - wq_dr[i-1] + alpha[i]) -
+                1/(wq_dr[i] - wq_dr[i-1])
+                )
+            zx_coeff.append(tmp)
+        # Times 2 and the minus sign because we use -2πZX/4 as operators
+        self.params["zx_coeff"] = - np.asarray(zx_coeff) * 2.
+
+    def get_operators_labels(self):
+        """
+        Get the labels for each Hamiltonian.
+        It is used in the method method :meth:`.Processor.plot_pulses`.
+        It is a 2-d nested list, in the plot,
+        a different color will be used for each sublist.
+        """
+        return ([[r"$\sigma_x^%d$" % n for n in range(self.num_qubits)],
+                [r"$\sigma_y^%d$" % n for n in range(self.num_qubits)],
+                [r"$ZX^{%d%d}$"
+                 % (n, n + 1) for n in range(self.num_qubits - 1)] +\
+                [r"$ZX^{%d%d}$"
+                 % (n + 1, n) for n in range(self.num_qubits - 1)],
+                 ])
+    
+    def topology_map(self, qc):
+        return to_chain_structure(qc)
