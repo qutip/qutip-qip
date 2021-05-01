@@ -207,8 +207,8 @@ It is called implicitly when calling the method
 .. testoutput::
     :options: +NORMALIZE_WHITESPACE
 
-    [array([0., 1.]), array([0., 1., 2.]), None, None, None]
-    [array([1.57079633]), array([0.        , 1.57079633]), None, None, None]
+    {'sx0': array([0., 1.]), 'sx1': array([0., 1., 2.])}
+    {'sx0': array([1.57079633]), 'sx1': array([0.        , 1.57079633])}
 
 Here we first use :meth:`.QubitCircuit.resolve_gates`
 to decompose the X gate to its natural gate on Spin Chain model,
