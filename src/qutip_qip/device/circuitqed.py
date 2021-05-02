@@ -4,6 +4,7 @@ from qutip import qeye, tensor, destroy, basis
 from .modelprocessor import ModelProcessor
 from ..transpiler import to_chain_structure
 from ..compiler import TransmonChainCompiler
+from ..noise import ZZCrossTalk
 
 
 __all__ = ['TransmonChain']
@@ -24,8 +25,10 @@ class TransmonChain(ModelProcessor):
     ----------
     num_qubits: int
         Number of qubits
-    t1, t2: float or list
+    t1, t2: float or list, optional
         Coherence time for all qubit or each qubit
+    zz_crosstalk: bool, optional
+        if zz cross talk is included.
     **params:
         Keyword argument for hardware parameters, in the unit of GHz.
         Each can should be given as list:
@@ -50,23 +53,23 @@ class TransmonChain(ModelProcessor):
         The native gate sets
     """
     def __init__(
-            self, num_qubits, t1=None, t2=None, **params):
+            self, num_qubits, t1=None, t2=None, zz_crosstalk=False, **params):
         super(TransmonChain, self).__init__(
             num_qubits, t1=t1, t2=t2)
         self.num_qubits = num_qubits
-        self.dims = [3,] * num_qubits
+        self.dims = [3] * num_qubits
         self.pulse_mode = "continuous"
         self.params = {
-            "wq" : np.array(
+            "wq": np.array(
                 (
                     (5.15, 5.09) * int(np.ceil(self.num_qubits / 2))
                 )[: self.num_qubits]
             ),
-            "wr" : self.to_array(5.96, num_qubits - 1),
-            "alpha" : self.to_array(-1, num_qubits),
-            "g" : self.to_array(0.1, 2 * (num_qubits - 1)),
-            "omega_single" : self.to_array(0.01, num_qubits),
-            "omega_cr" : self.to_array(0.01, num_qubits)
+            "wr": self.to_array(5.96, num_qubits - 1),
+            "alpha": self.to_array(-1, num_qubits),
+            "g": self.to_array(0.1, 2 * (num_qubits - 1)),
+            "omega_single": self.to_array(0.01, num_qubits),
+            "omega_cr": self.to_array(0.01, num_qubits)
         }
         if params is not None:
             self.params.update(params)
@@ -74,11 +77,13 @@ class TransmonChain(ModelProcessor):
         self.set_up_params()
         self.native_gates = ["RX", "RY", "CNOT"]
         self._default_compiler = TransmonChainCompiler
+        # if zz_crosstalk:
+        #     self.add_noise(ZZCrossTalk(self.params))
 
     def set_up_ops(self):
         """
         Setup the operators.
-        We use 2π σ/2 as the single-qubit control Hamiltonian and 
+        We use 2π σ/2 as the single-qubit control Hamiltonian and
         -2πZX/4 as the two-qubit Hamiltonian.
         """
         for m in range(self.num_qubits):
@@ -109,7 +114,7 @@ class TransmonChain(ModelProcessor):
             destroy_op1 = destroy(d1)
             # Notice that this is actually -2πZX/4
             z = projector1 * \
-                ( - destroy_op1.dag()*destroy_op1 * 2 + qeye(d1)) / 2  \
+                (- destroy_op1.dag()*destroy_op1 * 2 + qeye(d1)) / 2  \
                 * projector1
             destroy_op2 = destroy(d2)
             x = projector2 * (destroy_op2.dag() + destroy_op2) / 2 * projector2
@@ -117,7 +122,6 @@ class TransmonChain(ModelProcessor):
                 2 * np.pi * tensor([z, x]), [m, m+1],
                 label="zx" + str(m) + str(m + 1)
             )
-            xz_op = tensor([x, z])
             self.add_control(
                 2 * np.pi * tensor([x, z]), [m, m+1],
                 label="zx" + str(m + 1) + str(m)
@@ -153,8 +157,8 @@ class TransmonChain(ModelProcessor):
         J = []
         for i in range(self.num_qubits - 1):
             tmp = g[2*i] * g[2*i+1] * \
-                (wq_dr[i] + wq_dr[i+1] - 2*wr_dr[i]) / \
-                2 / (wq_dr[i] - wr_dr[i]) / (wq_dr[i+1] - wr_dr[i])
+                (wq[i] + wq[i+1] - 2*wr[i]) / \
+                2 / (wq[i] - wr[i]) / (wq[i+1] - wr[i])
             J.append(tmp)
         self.params["J"] = J
         # Effective ZX strength
@@ -162,18 +166,18 @@ class TransmonChain(ModelProcessor):
         omega_cr = self.params["omega_cr"]
         for i in range(self.num_qubits - 1):
             tmp = J[i] * omega_cr[i] * (
-                1/(wq_dr[i] - wq_dr[i+1] + alpha[i]) - 
-                1/(wq_dr[i] - wq_dr[i+1])
+                1/(wq[i] - wq[i+1] + alpha[i]) -
+                1/(wq[i] - wq[i+1])
                 )
             zx_coeff.append(tmp)
         for i in range(self.num_qubits - 1, 0, -1):
             tmp = J[i-1] * omega_cr[i] * (
-                1/(wq_dr[i] - wq_dr[i-1] + alpha[i]) -
-                1/(wq_dr[i] - wq_dr[i-1])
+                1/(wq[i] - wq[i-1] + alpha[i]) -
+                1/(wq[i] - wq[i-1])
                 )
             zx_coeff.append(tmp)
-        # Times 2 and the minus sign because we use -2πZX/4 as operators
-        self.params["zx_coeff"] = - np.asarray(zx_coeff) * 2.
+        # The minus sign and times 2 because we use -2πZX/4 as operators
+        self.params["zx_coeff"] = - np.asarray(zx_coeff) * 2
 
     def get_operators_labels(self):
         """
@@ -185,10 +189,10 @@ class TransmonChain(ModelProcessor):
         return ([[r"$\sigma_x^%d$" % n for n in range(self.num_qubits)],
                 [r"$\sigma_y^%d$" % n for n in range(self.num_qubits)],
                 [r"$ZX^{%d%d}$"
-                 % (n, n + 1) for n in range(self.num_qubits - 1)] +\
+                 % (n, n + 1) for n in range(self.num_qubits - 1)] +
                 [r"$ZX^{%d%d}$"
                  % (n + 1, n) for n in range(self.num_qubits - 1)],
                  ])
-    
+
     def topology_map(self, qc):
         return to_chain_structure(qc)
