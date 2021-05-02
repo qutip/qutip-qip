@@ -1,16 +1,16 @@
 from numpy.testing import assert_, run_module_suite, assert_allclose
 import numpy as np
 
-from qutip_qip.device.processor import Processor
+from qutip import (
+    tensor, qeye, sigmaz, sigmax, sigmay, destroy, identity, QobjEvo,
+    fidelity, basis
+    )
+from qutip_qip.device import Processor, TransmonChain
 from qutip_qip.noise import (
-    RelaxationNoise, DecoherenceNoise, ControlAmpNoise, RandomNoise, Noise)
-from qutip.operators import qeye, sigmaz, sigmax, sigmay, destroy, identity
-from qutip.tensor import tensor
-from qutip.qobjevo import QobjEvo
-from qutip.states import basis
-from qutip.metrics import fidelity
-from qutip.tensor import tensor
-from qutip_qip.pulse import Pulse
+    RelaxationNoise, DecoherenceNoise, ControlAmpNoise, RandomNoise,
+    ZZCrossTalk, Noise)
+from qutip_qip.pulse import Pulse, Drift
+from qutip_qip.circuit import QubitCircuit
 
 
 class DriftNoise(Noise):
@@ -166,3 +166,14 @@ class TestNoise:
         result = proc.run_state(init_state=basis(2, 0))
         assert_allclose(
             fidelity(result.states[-1], basis(2, 1)), 1, rtol=1.0e-6)
+
+    def test_zz_cross_talk(self):
+        circuit = QubitCircuit(2)
+        circuit.add_gate("X", 0)
+        processor = TransmonChain(2)
+        processor.add_noise(ZZCrossTalk(processor.params))
+        processor.load_circuit(circuit)
+        pulses = processor.get_noisy_pulses(device_noise=True, drift=True)
+        for pulse in pulses:
+            if not isinstance(pulse, Drift) and pulse.label=="systematic_noise":
+                assert(len(pulse.coherent_noise) == 1)
