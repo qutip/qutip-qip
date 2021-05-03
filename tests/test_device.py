@@ -42,7 +42,7 @@ import qutip
 from qutip_qip.circuit import Gate, QubitCircuit
 from qutip_qip.operations.gates import gate_sequence_product
 from qutip_qip.device import (
-    DispersiveCavityQED, LinearSpinChain, CircularSpinChain, TransmonChain
+    DispersiveCavityQED, LinearSpinChain, CircularSpinChain, SCQubits
 )
 
 _tol = 2.e-2
@@ -95,7 +95,7 @@ device_lists_analytic = [
 
 device_lists_numeric = device_lists_analytic + [
     # Does not support global phase
-    pytest.param(TransmonChain, {}, id = "TransmonChain"),
+    pytest.param(SCQubits, {}, id = "SCQubits"),
 ]
 
 
@@ -148,7 +148,7 @@ def test_numerical_evolution(
         ancilla_indices = slice(0, num_ancilla)
         extra = qutip.basis(device.dims[ancilla_indices], [0]*num_ancilla)
         init_state = qutip.tensor(extra, state)
-    elif isinstance(device, TransmonChain):
+    elif isinstance(device, SCQubits):
         # expand to 3-level represetnation
         init_state = _ket_expaned_dims(state, device.dims)
     else:
@@ -160,7 +160,7 @@ def test_numerical_evolution(
     numerical_result = result.final_state
     if isinstance(device, DispersiveCavityQED):
         target = qutip.tensor(extra, target)
-    elif isinstance(device, TransmonChain):
+    elif isinstance(device, SCQubits):
         target = _ket_expaned_dims(target, device.dims)
     assert _tol > abs(1 - qutip.metrics.fidelity(numerical_result, target))
 
@@ -186,8 +186,8 @@ circuit2.add_gate("SQRTISWAP", targets=[0, 2])  # supported only by SpinChain
     pytest.param(circuit, DispersiveCavityQED, {"g":0.1}, id = "DispersiveCavityQED"),
     pytest.param(circuit2, LinearSpinChain, {}, id = "LinearSpinChain"),
     pytest.param(circuit2, CircularSpinChain, {}, id = "CircularSpinChain"),
-    # The length of circuit is limited for TransmonChain due to leakage
-    pytest.param(circuit, TransmonChain, {"omega_single":[0.003]*3}, id = "TransmonChain"),
+    # The length of circuit is limited for SCQubits due to leakage
+    pytest.param(circuit, SCQubits, {"omega_single":[0.003]*3}, id = "SCQubits"),
 ])
 @pytest.mark.parametrize(("schedule_mode"), ["ASAP", "ALAP", None])
 def test_numerical_circuit(circuit, device_class, kwargs, schedule_mode):
@@ -204,7 +204,7 @@ def test_numerical_circuit(circuit, device_class, kwargs, schedule_mode):
         ancilla_indices = slice(0, num_ancilla)
         extra = qutip.basis(device.dims[ancilla_indices], [0]*num_ancilla)
         init_state = qutip.tensor(extra, state)
-    elif isinstance(device, TransmonChain):
+    elif isinstance(device, SCQubits):
         # expand to 3-level represetnation
         init_state = _ket_expaned_dims(state, device.dims)
     else:
@@ -215,6 +215,6 @@ def test_numerical_circuit(circuit, device_class, kwargs, schedule_mode):
                               options=options)
     if isinstance(device, DispersiveCavityQED):
         target = qutip.tensor(extra, target)
-    elif isinstance(device, TransmonChain):
+    elif isinstance(device, SCQubits):
         target = _ket_expaned_dims(target, device.dims)
     assert _tol > abs(1 - qutip.metrics.fidelity(result.final_state, target))
