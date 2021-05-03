@@ -5,7 +5,7 @@ from qutip import (
     tensor, qeye, sigmaz, sigmax, sigmay, destroy, identity, QobjEvo,
     fidelity, basis
     )
-from qutip_qip.device import Processor, TransmonChain
+from qutip_qip.device import Processor, SCQubits
 from qutip_qip.noise import (
     RelaxationNoise, DecoherenceNoise, ControlAmpNoise, RandomNoise,
     ZZCrossTalk, Noise)
@@ -170,7 +170,7 @@ class TestNoise:
     def test_zz_cross_talk(self):
         circuit = QubitCircuit(2)
         circuit.add_gate("X", 0)
-        processor = TransmonChain(2)
+        processor = SCQubits(2)
         processor.add_noise(ZZCrossTalk(processor.params))
         processor.load_circuit(circuit)
         pulses = processor.get_noisy_pulses(device_noise=True, drift=True)

@@ -3,21 +3,24 @@ import numpy as np
 from qutip import qeye, tensor, destroy, basis
 from .modelprocessor import ModelProcessor
 from ..transpiler import to_chain_structure
-from ..compiler import TransmonChainCompiler
+from ..compiler import SCQubitsCompiler
 from ..noise import ZZCrossTalk
 
 
-__all__ = ['TransmonChain']
+__all__ = ['SCQubits']
 
 
-class TransmonChain(ModelProcessor):
+class SCQubits(ModelProcessor):
     """
-    A chain of transmon qubits with fixed frequency.
+    A chain of SCQubits qubits with fixed frequency.
     Single-qubit control is realized by rotation around the X and Y axis
     while two-qubit gates are implemented with Cross Resonance gates.
-    A 3-level system is used to simulate the transmon system,
+    A 3-level system is used to simulate the superconducting qubit system,
     in order to simulation leakage.
-    For simplicity, we only use a ZX Hamiltonian for two-qubit interaction.
+    Various types of interaction can be realized on a superconducting
+    system, as a demonstration and
+    for simplicity, we only use a ZX Hamiltonian for
+    the two-qubit interaction.
     For details see https://arxiv.org/abs/2005.12667 and
     https://journals.aps.org/pra/abstract/10.1103/PhysRevA.101.052308.
 
@@ -33,10 +36,10 @@ class TransmonChain(ModelProcessor):
         Keyword argument for hardware parameters, in the unit of GHz.
         Each can should be given as list:
 
-        - ``wq``: transmon bare frequency, default 5.15 and 5.09
-          for each pair of transmon
+        - ``wq``: qubit bare frequency, default 5.15 and 5.09
+          for each pair of superconducting qubits
         - ``wr``: resonator bare frequency, default ``[5.96]*num_qubits``
-        - ``alpha``: anharmonicity for each transmon,
+        - ``alpha``: anharmonicity for each superconducting qubit,
           default ``[-0.3]*num_qubits``
         - ``omega_single``: control strength for single-qubit gate,
           default ``[-0.01]*num_qubits``
@@ -54,7 +57,7 @@ class TransmonChain(ModelProcessor):
     """
     def __init__(
             self, num_qubits, t1=None, t2=None, zz_crosstalk=False, **params):
-        super(TransmonChain, self).__init__(
+        super(SCQubits, self).__init__(
             num_qubits, t1=t1, t2=t2)
         self.num_qubits = num_qubits
         self.dims = [3] * num_qubits
@@ -76,7 +79,7 @@ class TransmonChain(ModelProcessor):
         self.set_up_ops()
         self.set_up_params()
         self.native_gates = ["RX", "RY", "CNOT"]
-        self._default_compiler = TransmonChainCompiler
+        self._default_compiler = SCQubitsCompiler
         # if zz_crosstalk:
         #     self.add_noise(ZZCrossTalk(self.params))
 

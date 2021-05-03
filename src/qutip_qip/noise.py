@@ -426,7 +426,7 @@ class ZZCrossTalk(Noise):
     Parameters
     ----------
     params:
-        Parameters computed from a :class:`.TransmonChain`.
+        Parameters computed from a :class:`.SCQubits`.
     """
     def __init__(
             self, params):

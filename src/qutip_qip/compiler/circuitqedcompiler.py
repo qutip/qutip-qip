@@ -4,16 +4,16 @@ from ..circuit import Gate
 from ..compiler import GateCompiler, Instruction
 
 
-__all__ = ['TransmonChainCompiler']
+__all__ = ['SCQubitsCompiler']
 
 
-class TransmonChainCompiler(GateCompiler):
+class SCQubitsCompiler(GateCompiler):
     """
-    Compiler for :class:`.TransmonChain`.
+    Compiler for :class:`.SCQubits`.
     Compiled pulse strength is in the unit of GHz.
     """
     def __init__(self, num_qubits, params):
-        super(TransmonChainCompiler, self).__init__(num_qubits, params=params)
+        super(SCQubitsCompiler, self).__init__(num_qubits, params=params)
         self.gate_compiler.update({
             "RX": self.single_qubit_compiler,
             "RY": self.single_qubit_compiler,
