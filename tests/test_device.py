@@ -35,7 +35,8 @@ import warnings
 import numpy as np
 import pytest
 import qutip
-from qutip_qip.circuit import Gate, QubitCircuit
+from qutip_qip.circuit import QubitCircuit
+from qutip_qip.operations.gates import Gate
 from qutip_qip.operations.gates import gate_sequence_product
 from qutip_qip.device.cavityqed import DispersiveCavityQED
 from qutip_qip.device.spinchain import LinearSpinChain, CircularSpinChain
