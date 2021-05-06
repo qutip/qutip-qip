@@ -37,7 +37,8 @@ import numpy as np
 
 from qutip.operators import tensor, identity, destroy, sigmax, sigmaz
 from qutip.states import basis
-from ..circuit import QubitCircuit, Gate
+from ..circuit import QubitCircuit
+from ..operations.gates import Gate
 from .processor import Processor
 from .modelprocessor import ModelProcessor
 from ..operations import expand_operator
