@@ -49,8 +49,7 @@ from .operations.gates import (Gate, rx, ry, rz, sqrtnot, snot, phasegate,
                                         iswap, sqrtswap, sqrtiswap, fredkin,
                                         toffoli, controlled_gate, globalphase,
                                         expand_operator, gate_sequence_product)
-from qutip import tensor, basis, identity, ket2dm
-from qutip.qobj import Qobj
+from qutip import tensor, basis, identity, ket2dm, Qobj
 from qutip.measurement import measurement_statistics
 
 

@@ -3,11 +3,8 @@ from collections.abc import Iterable
 from copy import deepcopy
 import numpy as np
 
-from qutip.qobjevo import QobjEvo
+from qutip import (QobjEvo, Qobj, sigmaz, destroy, num)
 from .operations import expand_operator
-from qutip.qobj import Qobj
-from qutip.operators import sigmaz, destroy
-from qutip import num
 from .pulse import Pulse
 
 
