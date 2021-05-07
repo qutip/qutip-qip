@@ -32,7 +32,8 @@ A circuit with the various gates and registers available is demonstrated below:
 
 .. testcode::
 
-  from qutip_qip.circuit import QubitCircuit, Gate
+  from qutip_qip.circuit import QubitCircuit
+  from qutip_qip.operations.gates import Gate
   from qutip import tensor, basis
 
   qc = QubitCircuit(N=2, num_cbits=1)
@@ -188,8 +189,7 @@ gate function returning a :class:`qutip.Qobj` and save it in the attribute ``use
 
 .. testcode::
 
-      from qutip_qip.circuit import Gate
-      from qutip_qip.operations import rx
+      from qutip_qip.operations.gates import Gate, rx
 
       def user_gate1(arg_value):
            # controlled rotation X
@@ -303,7 +303,8 @@ An example code for plotting the example quantum circuit from above is given:
 
 .. code-block:: python
 
-    from qutip_qip.circuit import QubitCircuit, Gate
+    from qutip_qip.circuit import QubitCircuit
+    from qutip_qip.operations.gates import Gate
     # create the quantum circuit
     qc = QubitCircuit(2, num_cbits=1)
     qc.add_gate("CNOT", controls=0, targets=1)
