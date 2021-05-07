@@ -31,7 +31,7 @@
 #    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ###############################################################################
 from .gates import (
-    rx, ry, rz, x_gate, y_gate, z_gate, s_gate, t_gate,
+    Gate, rx, ry, rz, x_gate, y_gate, z_gate, s_gate, t_gate,
     cy_gate, cz_gate, cs_gate, ct_gate, sqrtnot, snot,
     phasegate, qrot, cphase, cnot,
     csign, berkeley, swapalpha, swap, iswap, sqrtswap,

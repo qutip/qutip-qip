@@ -35,11 +35,8 @@ import numbers
 
 import numpy as np
 
-from qutip.qobj import Qobj
-from qutip.qobjevo import QobjEvo
+from qutip import (Qobj, QobjEvo, tensor, mesolve)
 from ..operations.gates import globalphase
-from qutip.tensor import tensor
-from qutip.mesolve import mesolve
 from ..circuit import QubitCircuit
 from .processor import Processor
 from ..compiler import GateCompiler

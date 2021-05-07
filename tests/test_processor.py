@@ -37,16 +37,12 @@ from numpy.testing import (
 import numpy as np
 
 from qutip_qip.device.processor import Processor
-from qutip.states import basis
-from qutip.operators import sigmaz, sigmax, sigmay, identity, destroy
+from qutip import (basis, sigmaz, sigmax, sigmay, identity, destroy, tensor,
+                Options, rand_ket, rand_dm, fidelity)
 from qutip_qip.operations.gates import hadamard_transform
-from qutip.tensor import tensor
-from qutip.solver import Options
-from qutip.random_objects import rand_ket, rand_dm
 from qutip_qip.noise import (
     DecoherenceNoise, RandomNoise, ControlAmpNoise)
-from qutip_qip.qubits import qubit_states
-from qutip.metrics import fidelity
+from qutip_qip.qubits import qubit_states 
 from qutip_qip.pulse import Pulse
 
 
