@@ -189,13 +189,14 @@ class SCQubits(ModelProcessor):
         It is a 2-d nested list, in the plot,
         a different color will be used for each sublist.
         """
-        return ([[r"$\sigma_x^%d$" % n for n in range(self.num_qubits)],
-                [r"$\sigma_y^%d$" % n for n in range(self.num_qubits)],
-                [r"$ZX^{%d%d}$"
-                 % (n, n + 1) for n in range(self.num_qubits - 1)] +
-                [r"$ZX^{%d%d}$"
-                 % (n + 1, n) for n in range(self.num_qubits - 1)],
-                 ])
+        labels = [[r"$\sigma_x^%d$" % n for n in range(self.num_qubits)],
+                [r"$\sigma_y^%d$" % n for n in range(self.num_qubits)]]
+        label_zx = []
+        for m in range(self.num_qubits - 1):
+            label_zx.append("ZX^{%d%d}"% (m, m + 1))
+            label_zx.append("ZX^{%d%d}"% (m + 1, m))
+        labels.append(label_zx)
+        return labels
 
     def topology_map(self, qc):
         return to_chain_structure(qc)
