@@ -43,7 +43,8 @@ from copy import deepcopy
 import numpy as np
 import scipy.sparse as sp
 
-from qutip import (Qobj, identity, qeye, sigmax, sigmay, sigmaz, tensor, fock_dm)
+from qutip import (Qobj, identity, qeye, sigmax, sigmay, sigmaz, tensor,
+                    fock_dm)
 
 
 __all__ = ['Gate', 'rx', 'ry', 'rz', 'sqrtnot', 'snot', 'phasegate', 'qrot',

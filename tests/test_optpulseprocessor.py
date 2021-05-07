@@ -38,10 +38,10 @@ import numpy as np
 
 from qutip_qip.device.optpulseprocessor import OptPulseProcessor
 from qutip_qip.operations.gates import expand_operator
-from qutip.operators import sigmaz, sigmax, sigmay, identity, destroy
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.qubits import qubit_states
-from qutip import (fidelity, Qobj, tensor, Options,rand_ket, basis)
+from qutip import (fidelity, Qobj, tensor, Options,rand_ket, basis,  sigmaz,
+                    sigmax, sigmay, identity, destroy)
 from qutip_qip.operations.gates import (cnot, gate_sequence_product,
                                         hadamard_transform)
 

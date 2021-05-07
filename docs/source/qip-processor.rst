@@ -7,7 +7,7 @@ Pulse-level circuit simulation
 Modelling quantum hardware with Processor
 =========================================
 
-Based on the open system solver, :class:`.Processor` in the :mod:`qutip_qip` module simulates quantum circuits at the level of time evolution. One can consider the processor as a simulator of a quantum device, on which the quantum circuit is to be implemented. 
+Based on the open system solver, :class:`.Processor` in the :mod:`qutip_qip` module simulates quantum circuits at the level of time evolution. One can consider the processor as a simulator of a quantum device, on which the quantum circuit is to be implemented.
 
 The procedure is illustrated in the figure below.
 It first compiles circuit into a Hamiltonian model, adds noisy dynamics and then uses the QuTiP open time evolution solvers to simulation the evolution.
@@ -141,8 +141,8 @@ To let it find the optimal pulses, we need to give the parameters for :func:`~qu
 .. testcode::
 
       from qutip_qip.device import OptPulseProcessor
-      from qutip.operators import sigmaz, sigmax, sigmay
-      from qutip.tensor import tensor
+      from qutip import sigmaz, sigmax, sigmay, tensor
+
 
       # Same parameter for all the gates
       qc = QubitCircuit(N=1)
@@ -180,7 +180,7 @@ Compiler and scheduler
 In order to simulate quantum circuits at the level of time evolution.
 We need to first compile the circuit into the Hamiltonian model, i.e.
 the control pulses.
-Hence each :class:`.Processor` has a corresponding 
+Hence each :class:`.Processor` has a corresponding
 :class:`.compiler.GateCompiler` class.
 The compiler takes a :class:`.QubitCircuit`
 and returns the compiled ``tlist`` and ``coeffs``.

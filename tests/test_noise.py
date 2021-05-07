@@ -37,8 +37,8 @@ import numpy as np
 from qutip_qip.device.processor import Processor
 from qutip_qip.noise import (
     RelaxationNoise, DecoherenceNoise, ControlAmpNoise, RandomNoise, Noise)
-from qutip import (qeye, sigmaz, sigmax, sigmay, destroy, identity, tensor, QobjEvo,
-                    basis, fidelity, tensor)
+from qutip import (qeye, sigmaz, sigmax, sigmay, destroy, identity, tensor,
+                    QobjEvo, basis, fidelity, tensor)
 from qutip_qip.pulse import Pulse
 
 
