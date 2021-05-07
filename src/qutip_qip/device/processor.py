@@ -37,13 +37,8 @@ from copy import deepcopy
 import numpy as np
 from scipy.interpolate import CubicSpline
 
-from qutip.qobj import Qobj
-from qutip.qobjevo import QobjEvo
-from qutip.operators import identity
+from qutip import (Qobj, QobjEvo, identity, tensor, mesolve, mcsolve)
 from ..operations.gates import expand_operator, globalphase
-from qutip.tensor import tensor
-from qutip.mesolve import mesolve
-from qutip.mcsolve import mcsolve
 from ..circuit import QubitCircuit
 from ..noise import (
     Noise, RelaxationNoise, DecoherenceNoise,
@@ -773,7 +768,7 @@ class Processor(object):
         solver: str
             "mesolve" or "mcsolve",
             for :func:`~qutip.mesolve` and :func:`~qutip.mcsolve`.
-        
+
         noisy: bool
             Include noise or not.
 

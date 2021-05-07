@@ -36,11 +36,8 @@ import numbers
 
 import numpy as np
 
-from qutip.qobj import Qobj
-import qutip.control.pulseoptim as cpo
-from qutip.operators import identity
-from qutip.tensor import tensor
-from qutip.mesolve import mesolve
+from qutip import (Qobj, identity, tensor, mesolve)
+import qutip.control.pulseoptim as cpo 
 from ..circuit import QubitCircuit
 from .processor import Processor
 from ..operations.gates import gate_sequence_product
