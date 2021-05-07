@@ -11,6 +11,7 @@ Subpackages
    qutip_qip.compiler
    qutip_qip.device
    qutip_qip.operations
+   qutip_qip.transpiler
 
 Submodules
 ----------

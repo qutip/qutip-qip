@@ -1,7 +1,6 @@
-graft src
 include README.md
-include LICENSE.txt
+include LICENSE
 include requirements.txt
+include pyproject.toml
 
-recursive-include tests *
-recursive-exclude * __pycache__
+recursive-include tests *.py *.qasm pytest.ini

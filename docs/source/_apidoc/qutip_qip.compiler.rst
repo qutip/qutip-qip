@@ -12,6 +12,14 @@ qutip\_qip.compiler.cavityqedcompiler module
    :undoc-members:
    :show-inheritance:
 
+qutip\_qip.compiler.circuitqedcompiler module
+---------------------------------------------
+
+.. automodule:: qutip_qip.compiler.circuitqedcompiler
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 qutip\_qip.compiler.gatecompiler module
 ---------------------------------------
 

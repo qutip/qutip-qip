@@ -31,8 +31,9 @@
 #    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ###############################################################################
 from .processor import Processor
+from .modelprocessor import ModelProcessor
 from .spinchain import (
     SpinChain, LinearSpinChain, CircularSpinChain)
 from .cavityqed import DispersiveCavityQED
 from .optpulseprocessor import OptPulseProcessor
-from .modelprocessor import ModelProcessor
+from .circuitqed import *
