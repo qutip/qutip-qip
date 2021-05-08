@@ -75,7 +75,10 @@ class GateCompiler(object):
         self.num_qubits = num_qubits or N
         self.N = num_qubits  # backward compatibility
         self.params = params if params is not None else {}
-        self.gate_compiler = {"GLOBALPHASE": self.globalphase_compiler}
+        self.gate_compiler = {
+            "GLOBALPHASE": self.globalphase_compiler,
+            "IDLE": self.idle_compiler
+        }
         self.args = {}
         self.args.update({"params": self.params})
         self.global_phase = 0.
@@ -97,6 +100,13 @@ class GateCompiler(object):
         Compiler for the GLOBALPHASE gate
         """
         pass
+
+    def idle_compiler(self, gate, args):
+        """
+        Compiler for the GLOBALPHASE gate
+        """
+        idle_time = gate.arg_value
+        return [Instruction(gate, idle_time, [])]
 
     def compile(
             self, circuit, schedule_mode=None, args=None):
