@@ -38,7 +38,7 @@ import numpy as np
 from scipy.interpolate import CubicSpline
 
 from qutip import (Qobj, QobjEvo, identity, tensor, mesolve, mcsolve)
-from ..operations.gates import expand_operator, globalphase
+from ..operations import expand_operator, globalphase
 from ..circuit import QubitCircuit
 from ..noise import (
     Noise, RelaxationNoise, DecoherenceNoise,

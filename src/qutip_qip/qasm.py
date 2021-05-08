@@ -40,9 +40,9 @@ import warnings
 from math import pi
 import numpy as np
 
-from .operations.gates import gate_sequence_product
 from .circuit import QubitCircuit
-from .operations.gates import controlled_gate, qasmu_gate, rz, snot
+from .operations import (controlled_gate, qasmu_gate, rz, snot,
+                            gate_sequence_product)
 
 
 __all__ = ["read_qasm", "save_qasm", "print_qasm", "circuit_to_qasm_str"]

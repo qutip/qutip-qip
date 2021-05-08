@@ -37,10 +37,10 @@ import numbers
 import numpy as np
 
 from qutip import (Qobj, identity, tensor, mesolve)
-import qutip.control.pulseoptim as cpo 
+import qutip.control.pulseoptim as cpo
 from ..circuit import QubitCircuit
 from .processor import Processor
-from ..operations.gates import gate_sequence_product
+from ..operations import gate_sequence_product
 
 
 __all__ = ['OptPulseProcessor']

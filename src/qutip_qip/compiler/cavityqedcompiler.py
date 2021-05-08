@@ -33,7 +33,7 @@
 import numpy as np
 
 from ..circuit import QubitCircuit
-from ..operations.gates import Gate
+from ..operations import Gate
 from ..compiler import GateCompiler, Instruction
 
 

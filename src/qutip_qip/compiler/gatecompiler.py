@@ -34,7 +34,7 @@ import numpy as np
 from .instruction import Instruction
 from .scheduler import Scheduler
 from ..circuit import QubitCircuit
-from ..operations.gates import Gate
+from ..operations import Gate
 import warnings
 
 
