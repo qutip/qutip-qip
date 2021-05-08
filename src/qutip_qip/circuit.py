@@ -49,7 +49,7 @@ from .operations.gates import (rx, ry, rz, sqrtnot, snot, phasegate,
                                         iswap, sqrtswap, sqrtiswap, fredkin,
                                         toffoli, controlled_gate, globalphase,
                                         expand_operator, gate_sequence_product)
-from qutip import tensor, basis, identity, ket2dm
+from qutip import tensor, basis, identity, ket2dm, qeye
 from qutip.qobj import Qobj
 from qutip.measurement import measurement_statistics
 
@@ -750,7 +750,7 @@ class QubitCircuit:
 
     def _gate_IGNORED(self, gate, temp_resolved):
         temp_resolved.append(gate)
-    _gate_RY = _gate_RZ = _gate_basis_2q = _gate_IGNORED
+    _gate_RY = _gate_RZ = _gate_basis_2q = _gate_IDLE = _gate_IGNORED
     _gate_CNOT = _gate_RX = _gate_IGNORED
 
     def _gate_SQRTNOT(self, gate, temp_resolved):
@@ -1258,7 +1258,7 @@ class QubitCircuit:
                                num_cbits=self.num_cbits)
         temp_resolved = []
 
-        basis_1q_valid = ["RX", "RY", "RZ"]
+        basis_1q_valid = ["RX", "RY", "RZ", "IDLE"]
         basis_2q_valid = ["CNOT", "CSIGN", "ISWAP", "SQRTSWAP", "SQRTISWAP"]
 
         num_measurements = len(list(filter(
@@ -1277,6 +1277,7 @@ class QubitCircuit:
                 elif gate in basis_1q_valid:
                     basis_1q.append(gate)
                 else:
+                    pass
                     raise NotImplementedError(
                         "%s is not a valid basis gate" % gate)
             if len(basis_1q) == 1:
@@ -1550,6 +1551,8 @@ class QubitCircuit:
                                            gate.targets[0]))
             elif gate.name == "GLOBALPHASE":
                 self.U_list.append(globalphase(gate.arg_value, self.N))
+            elif gate.name == "IDLE":
+                self.U_list.append(qeye(self.N * [2]))
             elif gate.name in self.user_gates:
                 if gate.controls is not None:
                     raise ValueError("A user defined gate {} takes only  "
@@ -1655,6 +1658,8 @@ class QubitCircuit:
                 self.U_list.append(toffoli())
             elif gate.name == "GLOBALPHASE":
                 self.U_list.append(globalphase(gate.arg_value, n))
+            elif gate.name == "IDLE":
+                self.U_list.append(qeye(2))
             elif gate.name in self.user_gates:
                 if gate.controls is not None:
                     raise ValueError("A user defined gate {} takes only  "
