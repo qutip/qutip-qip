@@ -52,44 +52,53 @@ class SpinChain(ModelProcessor):
     The available Hamiltonian of the system is predefined.
     The processor can simulate the evolution under the given
     control pulses either numerically or analytically.
-    It is a base class and should not be used directly, please
-    refer the the subclasses :class:`.LinearSpinChain` and
-    :class:`.CircularSpinChain`.
-    (Only additional attributes are documented here, for others please
-    refer to the parent class :class:`.ModelProcessor`)
+    This is the base class and should not be used directly.
+    Please use :class:`.LinearSpinChain` or :class:`.CircularSpinChain`.
 
     Parameters
     ----------
     num_qubits: int
         The number of qubits in the system.
 
-    correct_global_phase: float
+    correct_global_phase: float, optional
         Save the global phase, the analytical solution
         will track the global phase.
         It has no effect on the numerical solution.
 
-    sx: int or list
-        The delta for each of the qubits in the system.
-
-    sz: int or list
-        The epsilon for each of the qubits in the system.
-
-    sxsy: int or list
-        The interaction strength for each of the qubit pair in the system.
-
-    t1: list or float
+    t1: list or float, optional
         Characterize the decoherence of amplitude damping for
-        each qubit. A list of size `num_qubits` or a float for all qubits.
+        each qubit. A list of size ``num_qubits`` or a float for all qubits.
 
-    t2: list of float
+    t2: list of float, optional
         Characterize the decoherence of dephasing for
-        each qubit. A list of size `num_qubits` or a float for all qubits.
+        each qubit. A list of size ``num_qubits`` or a float for all qubits.
+
+    **params:
+        Keyword argument for hardware parameters, in the unit of frequency
+        (MHz, GHz etc, the unit of time list needs to be adjusted accordingly).
+        Qubit parameters can either be a float or an array of the length
+        ``num_qubits``.
+        ``sxsy``, should be either a float or an array of the length
+        ``num_qubits-1`` (for :class:`.LinearSpinChain`) or ``num_qubits``
+        (for :`.CircularSpinChain`).
+
+        - ``sx``: the pulse strength of sigma-x control, default ``0.25``
+        - ``sz``: the pulse strength of sigma-z control, default ``1.0``
+        - ``sxsy``: the pulse strength for the exchange interaction,
+          default ``0.1``
     """
     def __init__(self, num_qubits, correct_global_phase,
-                 sx, sz, sxsy, t1, t2, N=None):
+                 t1, t2, N=None, **params):
         super(SpinChain, self).__init__(
             num_qubits, correct_global_phase=correct_global_phase,
             t1=t1, t2=t2, N=N)
+        self.params = {  # default parameters, in the unit of frequency
+            "sx": 0.25,
+            "sz": 1.0,
+            "sxsy": 0.1,
+        }
+        if params is not None:
+            self.params.update(params)
         self.correct_global_phase = correct_global_phase
         self.spline_kind = "step_func"
         self.pulse_dict = self.get_pulse_dict()
@@ -108,16 +117,16 @@ class SpinChain(ModelProcessor):
         """
         # sx_ops
         for m in range(num_qubits):
-            self.add_control(sigmax(), m, label="sx" + str(m))
+            self.add_control(2*np.pi*sigmax(), m, label="sx" + str(m))
         # sz_ops
         for m in range(num_qubits):
-            self.add_control(sigmaz(), m, label="sz" + str(m))
+            self.add_control(2*np.pi*sigmaz(), m, label="sz" + str(m))
         # sxsy_ops
         operator = tensor([sigmax(), sigmax()]) + tensor([sigmay(), sigmay()])
         for n in range(num_qubits - 1):
-            self.add_control(operator, [n, n+1], label="g" + str(n))
+            self.add_control(2*np.pi*operator, [n, n+1], label="g" + str(n))
 
-    def set_up_params(self, sx, sz):
+    def set_up_params(self):
         """
         Save the parameters in the attribute `params` and check the validity.
         The keys of `params` including "sx", "sz", and "sxsy", each
@@ -138,9 +147,11 @@ class SpinChain(ModelProcessor):
         -----
         The coefficient of sxsy is defined in the submethods.
         """
-        sx_para = 2 * np.pi * self.to_array(sx, self.num_qubits)
+        sx = self.params["sx"]
+        sz = self.params["sz"]
+        sx_para = self.to_array(sx, self.num_qubits)
         self._params["sx"] = sx_para
-        sz_para = 2 * np.pi * self.to_array(sz, self.num_qubits)
+        sz_para = self.to_array(sz, self.num_qubits)
         self._params["sz"] = sz_para
 
     @property
@@ -192,55 +203,25 @@ class SpinChain(ModelProcessor):
 
 class LinearSpinChain(SpinChain):
     """
-    A processor based on the physical implementation of
-    a linear spin chain qubits system.
-    The available Hamiltonian of the system is predefined.
-    The processor can simulate the evolution under the given
-    control pulses either numerically or analytically.
-
-    Parameters
-    ----------
-    num_qubits: int
-        The number of qubits in the system.
-
-    correct_global_phase: float
-        Save the global phase, the analytical solution
-        will track the global phase.
-        It has no effect on the numerical solution.
-
-    sx: int or list
-        The delta for each of the qubits in the system.
-
-    sz: int or list
-        The epsilon for each of the qubits in the system.
-
-    sxsy: int or list
-        The interaction strength for each of the qubit pair in the system.
-
-    t1: list or float, optional
-        Characterize the decoherence of amplitude damping for
-        each qubit.
-
-    t2: list of float, optional
-        Characterize the decoherence of dephasing for
-        each qubit.
+    Spin chain model with open-end topology. See :class:`.SpinChain`
+    for details.
     """
     def __init__(self, num_qubits=None, correct_global_phase=True,
-                 sx=0.25, sz=1.0, sxsy=0.1, t1=None, t2=None, N=None):
-
+                 t1=None, t2=None, N=None, **params):
         super(LinearSpinChain, self).__init__(
             num_qubits, correct_global_phase=correct_global_phase,
-            sx=sx, sz=sz, sxsy=sxsy, t1=t1, t2=t2, N=N)
-        self.set_up_params(sx=sx, sz=sz, sxsy=sxsy)
+            t1=t1, t2=t2, N=N, **params)
+        self.set_up_params()
         self.set_up_ops(num_qubits)
 
     def set_up_ops(self, num_qubits):
         super(LinearSpinChain, self).set_up_ops(num_qubits)
 
-    def set_up_params(self, sx, sz, sxsy):
+    def set_up_params(self):
         # Doc same as in the parent class
-        super(LinearSpinChain, self).set_up_params(sx, sz)
-        sxsy_para = 2 * np.pi * self.to_array(sxsy, self.num_qubits-1)
+        super(LinearSpinChain, self).set_up_params()
+        sxsy = self.params["sxsy"]
+        sxsy_para = self.to_array(sxsy, self.num_qubits-1)
         self._params["sxsy"] = sxsy_para
 
     @property
@@ -283,62 +264,33 @@ class LinearSpinChain(SpinChain):
 
 class CircularSpinChain(SpinChain):
     """
-    A processor based on the physical implementation of
-    a circular spin chain qubits system.
-    The available Hamiltonian of the system is predefined.
-    The processor can simulate the evolution under the given
-    control pulses either numerically or analytically.
-
-    Parameters
-    ----------
-    num_qubits: int
-        The number of qubits in the system.
-
-    correct_global_phase: float
-        Save the global phase, the analytical solution
-        will track the global phase.
-        It has no effect on the numerical solution.
-
-    sx: int or list
-        The delta for each of the qubits in the system.
-
-    sz: int or list
-        The epsilon for each of the qubits in the system.
-
-    sxsy: int or list
-        The interaction strength for each of the qubit pair in the system.
-
-    t1: list or float, optional
-        Characterize the decoherence of amplitude damping for
-        each qubit.
-
-    t2: list of float, optional
-        Characterize the decoherence of dephasing for
-        each qubit.
+    Spin chain model with circular topology. See :class:`.SpinChain`
+    for details.
     """
     def __init__(self, num_qubits=None, correct_global_phase=True,
-                 sx=0.25, sz=1.0, sxsy=0.1, t1=None, t2=None, N=None):
+                 t1=None, t2=None, N=None, **params):
         if num_qubits <= 1:
             raise ValueError(
                 "Circuit spin chain must have at least 2 qubits. "
                 "The number of qubits is increased to 2.")
         super(CircularSpinChain, self).__init__(
             num_qubits, correct_global_phase=correct_global_phase,
-            sx=sx, sz=sz, sxsy=sxsy, t1=t1, t2=t2, N=N)
-        self.set_up_params(sx=sx, sz=sz, sxsy=sxsy)
+            t1=t1, t2=t2, N=N, **params)
+        self.set_up_params()
         self.set_up_ops(num_qubits)
 
     def set_up_ops(self, num_qubits):
         super(CircularSpinChain, self).set_up_ops(num_qubits)
         operator = tensor([sigmax(), sigmax()]) + tensor([sigmay(), sigmay()])
         self.add_control(
-            operator, [num_qubits-1, 0], label="g" + str(num_qubits-1))
+            2*np.pi*operator, [num_qubits-1, 0], label="g" + str(num_qubits-1))
 
-    def set_up_params(self, sx, sz, sxsy):
+    def set_up_params(self):
         # Doc same as in the parent class
-        super(CircularSpinChain, self).set_up_params(sx, sz)
-        sxsy_para = 2 * np.pi * self.to_array(sxsy, self.num_qubits)
-        self._params["sxsy"] = sxsy_para
+        super(CircularSpinChain, self).set_up_params()
+        sxsy = self.params["sxsy"]
+        sxsy_para = self.to_array(sxsy, self.num_qubits)
+        self.params["sxsy"] = sxsy_para
 
     @property
     def sxsy_ops(self):

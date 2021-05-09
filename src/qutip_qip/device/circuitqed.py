@@ -12,7 +12,7 @@ __all__ = ['SCQubits']
 
 class SCQubits(ModelProcessor):
     """
-    A chain of SCQubits qubits with fixed frequency.
+    A chain of superconducting qubits with fixed frequency.
     Single-qubit control is realized by rotation around the X and Y axis
     while two-qubit gates are implemented with Cross Resonance gates.
     A 3-level system is used to simulate the superconducting qubit system,
@@ -37,7 +37,8 @@ class SCQubits(ModelProcessor):
         Each can should be given as list:
 
         - ``wq``: qubit bare frequency, default 5.15 and 5.09
-          for each pair of superconducting qubits
+          for each pair of superconducting qubits,
+          e.g. ``[5.15, 5.09, 5.15, ...]``
         - ``wr``: resonator bare frequency, default ``[5.96]*num_qubits``
         - ``alpha``: anharmonicity for each superconducting qubit,
           default ``[-0.3]*num_qubits``
