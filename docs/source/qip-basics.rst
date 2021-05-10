@@ -189,7 +189,7 @@ gate function returning a :class:`qutip.Qobj` and save it in the attribute ``use
 
 .. testcode::
 
-      from qutip_qip.operations.gates import Gate, rx
+      from qutip_qip.operations import Gate, rx
 
       def user_gate1(arg_value):
            # controlled rotation X
@@ -304,7 +304,7 @@ An example code for plotting the example quantum circuit from above is given:
 .. code-block:: python
 
     from qutip_qip.circuit import QubitCircuit
-    from qutip_qip.operations.gates import Gate
+    from qutip_qip.operations import Gate
     # create the quantum circuit
     qc = QubitCircuit(2, num_cbits=1)
     qc.add_gate("CNOT", controls=0, targets=1)
