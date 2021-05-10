@@ -33,7 +33,7 @@ A circuit with the various gates and registers available is demonstrated below:
 .. testcode::
 
   from qutip_qip.circuit import QubitCircuit
-  from qutip_qip.operations.gates import Gate
+  from qutip_qip.operations import Gate
   from qutip import tensor, basis
 
   qc = QubitCircuit(N=2, num_cbits=1)
