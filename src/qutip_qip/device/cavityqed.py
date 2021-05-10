@@ -43,8 +43,8 @@ from .processor import Processor
 from .modelprocessor import ModelProcessor
 from ..operations import expand_operator
 from ..pulse import Pulse
-from ..compiler import GateCompiler
-from ..compiler import CavityQEDCompiler
+from ..compiler import (GateCompiler, CavityQEDCompiler)
+
 
 
 __all__ = ['DispersiveCavityQED']
