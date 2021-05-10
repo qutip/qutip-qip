@@ -43,7 +43,7 @@ from .processor import Processor
 from .modelprocessor import ModelProcessor
 from ..operations import expand_operator
 from ..pulse import Pulse
-from ..compiler.gatecompiler import GateCompiler
+from ..compiler import GateCompiler
 from ..compiler import CavityQEDCompiler
 
 

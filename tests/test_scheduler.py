@@ -35,9 +35,8 @@ from copy import deepcopy
 
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.compiler import Instruction, Scheduler
-from qutip_qip.operations.gates import gate_sequence_product
+from qutip_qip.operations import Gate, gate_sequence_product
 from qutip import process_fidelity, qeye, tracedist
-from qutip_qip.operations.gates import Gate
 
 
 def _circuit1():

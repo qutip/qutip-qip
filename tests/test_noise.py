@@ -34,7 +34,7 @@
 from numpy.testing import assert_, run_module_suite, assert_allclose
 import numpy as np
 
-from qutip_qip.device.processor import Processor
+from qutip_qip.device import Processor
 from qutip_qip.noise import (
     RelaxationNoise, DecoherenceNoise, ControlAmpNoise, RandomNoise, Noise)
 from qutip import (qeye, sigmaz, sigmax, sigmay, destroy, identity, tensor,
