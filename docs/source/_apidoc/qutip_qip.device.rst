@@ -12,6 +12,14 @@ qutip\_qip.device.cavityqed module
    :undoc-members:
    :show-inheritance:
 
+qutip\_qip.device.circuitqed module
+-----------------------------------
+
+.. automodule:: qutip_qip.device.circuitqed
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 qutip\_qip.device.modelprocessor module
 ---------------------------------------
 

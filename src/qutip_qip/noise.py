@@ -36,13 +36,13 @@ from collections.abc import Iterable
 from copy import deepcopy
 import numpy as np
 
-from qutip import (QobjEvo, Qobj, sigmaz, destroy, num)
+from qutip import Qobj, QobjEvo, basis, sigmaz, destroy, num, qeye, tensor
 from .operations import expand_operator
 from .pulse import Pulse
 
 
 __all__ = ["Noise", "DecoherenceNoise", "RelaxationNoise",
-           "ControlAmpNoise", "RandomNoise", "process_noise"]
+           "ControlAmpNoise", "RandomNoise", "process_noise", "ZZCrossTalk"]
 
 
 def process_noise(pulses, noise_list, dims, t1=None, t2=None,
@@ -445,4 +445,54 @@ class RandomNoise(ControlAmpNoise):
             coeff = self.rand_gen(**self.kwargs, size=num_rand)
             pulses[i].add_coherent_noise(
                 pulse.qobj, pulse.targets, tlist, coeff)
+        return pulses, systematic_noise
+
+
+class ZZCrossTalk(Noise):
+    """
+    And an always-on ZZ cross talk noise with the corresponding coefficient
+    on each pair of qubits.
+    The operator acts only one the lowerest two levels and
+    is 0 on higher level.
+    Equivalent to ``tensor(sigmaz(), sigmaz())``.
+
+    Parameters
+    ----------
+    params:
+        Parameters computed from a :class:`.SCQubits`.
+    """
+    def __init__(
+            self, params):
+        self.params = params
+
+    def get_noisy_dynamics(
+            self, dims=None, pulses=None, systematic_noise=None):
+        J = self.params["J"]
+        wr_dr = self.params["wr_dressed"]
+        wr = self.params["wr"]
+        wq_dr = self.params["wq_dressed"]
+        wq = self.params["wq"]
+        alpha = self.params["alpha"]
+        omega = self.params["omega_cr"]
+        for i in range(len(dims) - 1):
+            d1 = dims[i]
+            d2 = dims[i + 1]
+            destroy_op1 = destroy(d1)
+            destroy_op2 = destroy(d2)
+            projector1 = basis(d1, 0) * basis(d1, 0).dag() + \
+                basis(d1, 1) * basis(d2, 1).dag()
+            projector2 = basis(d2, 0) * basis(d2, 0).dag() + \
+                basis(d2, 1) * basis(d2, 1).dag()
+            z1 = projector1 * \
+                (destroy_op1.dag() * destroy_op1 * 2 - qeye(d1)) * projector1
+            z2 = projector2 * \
+                (destroy_op2.dag() * destroy_op2 * 2 - qeye(d1)) * projector2
+            zz_op = tensor(z1, z2)
+            zz_coeff = (
+                1/(wq[i] - wr[i] - alpha[i + 1]) -
+                1/(wq[i] - wr[i] + alpha[i])
+                ) * J[i] ** 2
+            systematic_noise.add_control_noise(
+                zz_coeff * zz_op / 2, targets=[i, i + 1],
+                coeff=True, tlist=None)
         return pulses, systematic_noise

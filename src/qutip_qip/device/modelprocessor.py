@@ -275,7 +275,7 @@ class ModelProcessor(Processor):
         qc = self.transpile(qc)
         # Choose a compiler and compile the circuit
         if compiler is None and self._default_compiler is not None:
-            compiler = self._default_compiler(num_qubits, self.params)
+            compiler = self._default_compiler(self.num_qubits, self.params)
         if compiler is not None:
             tlist, coeffs = compiler.compile(
                 qc.gates, schedule_mode=schedule_mode)
