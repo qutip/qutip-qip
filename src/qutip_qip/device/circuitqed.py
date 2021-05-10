@@ -69,7 +69,7 @@ class SCQubits(ModelProcessor):
                 )[: self.num_qubits]
             ),
             "wr": self.to_array(5.96, num_qubits - 1),
-            "alpha": self.to_array(-1, num_qubits),
+            "alpha": self.to_array(-0.3, num_qubits),
             "g": self.to_array(0.1, 2 * (num_qubits - 1)),
             "omega_single": self.to_array(0.01, num_qubits),
             "omega_cr": self.to_array(0.01, num_qubits)
@@ -80,8 +80,8 @@ class SCQubits(ModelProcessor):
         self.set_up_params()
         self.native_gates = ["RX", "RY", "CNOT"]
         self._default_compiler = SCQubitsCompiler
-        # if zz_crosstalk:
-        #     self.add_noise(ZZCrossTalk(self.params))
+        if zz_crosstalk:
+            self.add_noise(ZZCrossTalk(self.params))
 
     def set_up_ops(self):
         """
@@ -115,7 +115,7 @@ class SCQubits(ModelProcessor):
             projector2 = basis(d2, 0) * basis(d2, 0).dag() + \
                 basis(d2, 1) * basis(d2, 1).dag()
             destroy_op1 = destroy(d1)
-            # Notice that this is actually -2πZX/4
+            # Notice that this is actually 2πZX/4
             z = projector1 * \
                 (- destroy_op1.dag()*destroy_op1 * 2 + qeye(d1)) / 2  \
                 * projector1
@@ -179,8 +179,8 @@ class SCQubits(ModelProcessor):
                 1/(wq[i] - wq[i-1])
                 )
             zx_coeff.append(tmp)
-        # The minus sign and times 2 because we use -2πZX/4 as operators
-        self.params["zx_coeff"] = - np.asarray(zx_coeff) * 2
+        # Times 2 because we use -2πZX/4 as operators
+        self.params["zx_coeff"] = np.asarray(zx_coeff) * 2
 
     def get_operators_labels(self):
         """
