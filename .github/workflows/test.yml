@@ -20,15 +20,46 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
+    - name: Install qutip-qip
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .[tests]
+    - name: Test with pytest
+      run: |
+        pytest tests --strict-config --strict-markers --verbosity=1
+
+  test-qutip-support:
+    # test for qutip master branch
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # latter we can add dev.major and minimal supported qutip version v4.6
+        qutip-version: ['master']
+        
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.6
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        python -m pip install flake8 pytest numpy scipy cython
-        pip install git+https://github.com/qutip/qutip.git
-        pip install .
-    - name: Test with pytest
+        python -m pip install numpy scipy cython matplotlib pytest pytest-cov coveralls
+    - name: Install qutip
       run: |
-        pytest tests --strict-markers
+        pip install git+https://github.com/qutip/qutip.git
+    - name: Install qutip-qip
+      # Installing in-place so that coveralls can locate the source code.
+      run: |
+        pip install -e .
+    - name: Test with pytest and generate coverage report
+      run: |
+        pytest tests --strict-markers --cov=qutip_qip --cov-report=
+    - name: Upload to Coveralls
+      env:
+        GITHUB_TOKEN: ${{ secrets.github_token }}
+      run: coveralls --service=github
 
   doctest:
     runs-on: ubuntu-latest
@@ -42,10 +73,9 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        python -m pip install numpy scipy cython sphinx matplotlib numpydoc sphinx_rtd_theme
-        pip install git+https://github.com/qutip/qutip.git
+        python -m pip install numpy scipy cython qutip sphinx matplotlib numpydoc sphinx_rtd_theme
         pip install .
-    - name: Test with pytest
+    - name: Test with doctest
       run: |
         cd docs
         make doctest
