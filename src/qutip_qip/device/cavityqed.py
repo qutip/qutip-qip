@@ -90,14 +90,15 @@ class DispersiveCavityQED(ModelProcessor):
 
         - ``deltamax``: the pulse strength of sigma-x control, default ``1.0``
         - ``epsmax``: the pulse strength of sigma-z control, default ``9.5``
-        - ``eps``: the epsilon for each of qubit, default ``10``
-        - ``delta``: the delta for each of qubit, default ``0.0``
+        - ``eps``: the bare transition frequency for each of the qubits,
+          default ``10``
+        - ``delta``: the coupling between qubit states, default ``0.0``
         - ``g``: the coupling strength between the resonator and the qubit,
           default ``1.0``
         - ``w0``: the bare frequency of the resonator. Should only be a float,
           default ``0.01``
 
-        The qubit frequency is `wq` is computed by
+        The dressed qubit frequency is `wq` is computed by
         :math:`w_q=\sqrt{\epsilon^2+\delta^2}`
 
     Attributes
