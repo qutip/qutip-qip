@@ -205,6 +205,37 @@ class LinearSpinChain(SpinChain):
     """
     Spin chain model with open-end topology. See :class:`.SpinChain`
     for details.
+
+    Parameters
+    ----------
+    num_qubits: int
+        The number of qubits in the system.
+
+    correct_global_phase: float, optional
+        Save the global phase, the analytical solution
+        will track the global phase.
+        It has no effect on the numerical solution.
+
+    t1: list or float, optional
+        Characterize the decoherence of amplitude damping for
+        each qubit. A list of size ``num_qubits`` or a float for all qubits.
+
+    t2: list of float, optional
+        Characterize the decoherence of dephasing for
+        each qubit. A list of size ``num_qubits`` or a float for all qubits.
+
+    **params:
+        Keyword argument for hardware parameters, in the unit of frequency
+        (MHz, GHz etc, the unit of time list needs to be adjusted accordingly).
+        Qubit parameters can either be a float or an array of the length
+        ``num_qubits``.
+        ``sxsy``, should be either a float or an array of the length
+        ``num_qubits-1``.
+
+        - ``sx``: the pulse strength of sigma-x control, default ``0.25``
+        - ``sz``: the pulse strength of sigma-z control, default ``1.0``
+        - ``sxsy``: the pulse strength for the exchange interaction,
+          default ``0.1``
     """
     def __init__(self, num_qubits=None, correct_global_phase=True,
                  t1=None, t2=None, N=None, **params):
@@ -266,6 +297,37 @@ class CircularSpinChain(SpinChain):
     """
     Spin chain model with circular topology. See :class:`.SpinChain`
     for details.
+
+    Parameters
+    ----------
+    num_qubits: int
+        The number of qubits in the system.
+
+    correct_global_phase: float, optional
+        Save the global phase, the analytical solution
+        will track the global phase.
+        It has no effect on the numerical solution.
+
+    t1: list or float, optional
+        Characterize the decoherence of amplitude damping for
+        each qubit. A list of size ``num_qubits`` or a float for all qubits.
+
+    t2: list of float, optional
+        Characterize the decoherence of dephasing for
+        each qubit. A list of size ``num_qubits`` or a float for all qubits.
+
+    **params:
+        Keyword argument for hardware parameters, in the unit of frequency
+        (MHz, GHz etc, the unit of time list needs to be adjusted accordingly).
+        Qubit parameters can either be a float or an array of the length
+        ``num_qubits``.
+        ``sxsy``, should be either a float or an array of the length
+        ``num_qubits``.
+
+        - ``sx``: the pulse strength of sigma-x control, default ``0.25``
+        - ``sz``: the pulse strength of sigma-z control, default ``1.0``
+        - ``sxsy``: the pulse strength for the exchange interaction,
+          default ``0.1``
     """
     def __init__(self, num_qubits=None, correct_global_phase=True,
                  t1=None, t2=None, N=None, **params):
