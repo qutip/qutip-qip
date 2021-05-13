@@ -39,6 +39,11 @@ Under the docs directory, use
 ```
 to build the documentation.
 
+Documentation
+-------------
+
+The documentation of `qutip-qip` updated to the latest development version is hosted at [qutip-qip.readthedocs.io/](https://qutip-qip.readthedocs.io/en/latest/).
+
 Support
 -------
 This package is supported and maintained by the same developers group as QuTiP.
