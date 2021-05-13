@@ -45,7 +45,7 @@ from qutip_qip.device import (
     DispersiveCavityQED, LinearSpinChain, CircularSpinChain, SCQubits
 )
 
-_tol = 2.e-2
+_tol = 3.e-2
 
 _x = Gate("X", targets=[0])
 _z = Gate("Z", targets=[0])
