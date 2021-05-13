@@ -307,7 +307,7 @@ An example code for plotting the example quantum circuit from above is given:
     # create the quantum circuit
     qc = QubitCircuit(2, num_cbits=1)
     qc.add_gate("CNOT", controls=0, targets=1)
-    qc.add_gate("H", targets=1)
+    qc.add_gate("SNOT", targets=1)
     qc.add_gate("ISWAP", targets=[0,1])
     qc.add_measurement("M0", targets=1, classical_store=0)
     # plot the quantum circuit
