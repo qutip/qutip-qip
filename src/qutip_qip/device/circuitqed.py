@@ -40,12 +40,14 @@ class SCQubits(ModelProcessor):
           for each pair of superconducting qubits,
           e.g. ``[5.15, 5.09, 5.15, ...]``
         - ``wr``: resonator bare frequency, default ``[5.96]*num_qubits``
+        - ``g``: The coupling strength between the resonator and the qubits,
+          default ``[0.1]*(num_qubits - 1)``
         - ``alpha``: anharmonicity for each superconducting qubit,
           default ``[-0.3]*num_qubits``
         - ``omega_single``: control strength for single-qubit gate,
-          default ``[-0.01]*num_qubits``
+          default ``[0.01]*num_qubits``
         - ``omega_cr``: control strength for cross resonance gate,
-          default ``[-0.01]*num_qubits``
+          default ``[0.01]*num_qubits``
 
     Attributes
     ----------
