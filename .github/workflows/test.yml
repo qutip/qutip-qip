@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # latter we can add dev.major and minimal supported qutip version v4.6
+        # TODO: add dev.major and minimal supported qutip version v4.6
         qutip-version: ['master']
         
     steps:
