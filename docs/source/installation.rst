@@ -28,9 +28,9 @@ In addition
 
 .. code-block:: bash
 
-    sphinx sphinx_rtd_theme doctest
+    sphinx numpydoc sphinx_rtd_theme
 
-are used to build the documentation.
+are used to build and test the documentation.
 
 A few other packages such as LaTeX is used for circuit plotting, please refer to the main documentation section for detailed instruction.
 
