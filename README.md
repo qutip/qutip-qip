@@ -44,6 +44,13 @@ Documentation
 
 The documentation of `qutip-qip` updated to the latest development version is hosted at [qutip-qip.readthedocs.io/](https://qutip-qip.readthedocs.io/en/latest/).
 
+Testing
+------------
+To test the installation from a download of the source code, run from the `qutip-qip` directory
+```
+    pytest tests
+```
+
 Support
 -------
 This package is supported and maintained by the same developers group as QuTiP.
