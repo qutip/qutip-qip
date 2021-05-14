@@ -48,7 +48,7 @@ Testing
 ------------
 To test the installation from a download of the source code, run from the `qutip-qip` directory
 ```
-    pytest
+    pytest tests
 ```
 
 Support
