@@ -2,6 +2,14 @@
 Installation
 ************
 
+Quick start
+===========
+To install the package ``qutip-qip`` from PyPI, use
+
+.. code-block:: bash
+
+    pip install qutip_qip
+
 .. _prerequisites:
 
 Prerequisites
@@ -45,7 +53,7 @@ To install the package, download to source code from `GitHub website <https://gi
 
     pip install .
 
-under the directory containing the ``setup.py`` file.
+under the directory containing the ``setup.cfg`` file.
 
 If you want to edit the code, use instead
 
