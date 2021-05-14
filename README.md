@@ -18,11 +18,10 @@ Installation
 ------------
 To install the package, download to source code and run
 ```
-pip install .
+pip install qutip_qip
 ```
-under the directory containing the ``setup.py`` file.
 
-If you want to edit the source code, use instead
+If you want to edit the source code, please download the source code and run the following command under the folder with `setup.cfg`
 ```
 pip install -e .
 ```
@@ -33,7 +32,7 @@ To build and test the documentation, additional packages need to be installed:
 pip install matplotlib sphinx numpydoc sphinx_rtd_theme
 ```
 
-Under the docs directory, use
+Under the `docs` directory, use
 ```
 make html
 ```
