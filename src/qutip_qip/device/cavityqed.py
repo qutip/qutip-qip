@@ -91,7 +91,7 @@ class DispersiveCavityQED(ModelProcessor):
         - ``deltamax``: the pulse strength of sigma-x control, default ``1.0``
         - ``epsmax``: the pulse strength of sigma-z control, default ``9.5``
         - ``eps``: the bare transition frequency for each of the qubits,
-          default ``10``
+          default ``9.5``
         - ``delta``: the coupling between qubit states, default ``0.0``
         - ``g``: the coupling strength between the resonator and the qubit,
           default ``1.0``
