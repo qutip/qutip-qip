@@ -196,8 +196,8 @@ class SCQubits(ModelProcessor):
                 [r"$\sigma_y^%d$" % n for n in range(self.num_qubits)]]
         label_zx = []
         for m in range(self.num_qubits - 1):
-            label_zx.append("ZX^{%d%d}"% (m, m + 1))
-            label_zx.append("ZX^{%d%d}"% (m + 1, m))
+            label_zx.append(r"$ZX^{%d%d}$"% (m, m + 1))
+            label_zx.append(r"$ZX^{%d%d}$"% (m + 1, m))
         labels.append(label_zx)
         return labels
 
