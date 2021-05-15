@@ -15,13 +15,25 @@ The package offers two different approaches for simulating quantum circuits, one
 
 If you would like to know the future development plan and ideas, have a look at the [discussion panel](https://github.com/qutip/qutip-qip/discussions) as well as the [qutip documentation for ideas](https://github.com/qutip/qutip-doc/tree/master/development/ideas).
 
-Installation
-------------
-To install the package, download to source code and run
+Quick start
+-----------
+To install the package, use
 ```
 pip install qutip_qip
 ```
 
+Migrating from ``qutip.qip``
+--------------------------
+As the introduction suggested, this package is based on a module in the [QuTiP](http://qutip.org/docs/latest/) package `qutip.qip`.
+If you were using the `qutip` package and now want to try out the new features included in this package, you can simply install this package and replace all the `qutip.qip` in your import statement with `qutip_qip`. Everything should work smoothly as usual.
+
+Documentation
+-------------
+
+The documentation of `qutip-qip` updated to the latest development version is hosted at [qutip-qip.readthedocs.io/](https://qutip-qip.readthedocs.io/en/latest/).
+
+Installation from source
+------------------------
 If you want to edit the source code, please download the source code and run the following command under the folder with `setup.cfg`
 ```
 pip install -e .
@@ -43,16 +55,11 @@ make doctest
 ```
 to test the code in the documentation.
 
-Documentation
--------------
-
-The documentation of `qutip-qip` updated to the latest development version is hosted at [qutip-qip.readthedocs.io/](https://qutip-qip.readthedocs.io/en/latest/).
-
 Testing
 ------------
 To test the installation from a download of the source code, run from the `qutip-qip` directory
 ```
-    pytest tests
+pytest tests
 ```
 
 Support
