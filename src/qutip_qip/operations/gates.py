@@ -36,15 +36,18 @@ from itertools import product, chain
 from functools import partial, reduce
 from operator import mul
 
+import warnings
+import inspect
+from copy import deepcopy
+
 import numpy as np
 import scipy.sparse as sp
-from qutip.qobj import Qobj
-from qutip.operators import identity, qeye, sigmax, sigmay, sigmaz
-from qutip.tensor import tensor
-from qutip.states import fock_dm
+
+from qutip import (Qobj, identity, qeye, sigmax, sigmay, sigmaz, tensor,
+                    fock_dm)
 
 
-__all__ = ['rx', 'ry', 'rz', 'sqrtnot', 'snot', 'phasegate', 'qrot',
+__all__ = ['Gate', 'rx', 'ry', 'rz', 'sqrtnot', 'snot', 'phasegate', 'qrot',
            'x_gate', 'y_gate', 'z_gate', 'cy_gate', 'cz_gate', 's_gate',
            't_gate', 'qasmu_gate', 'cs_gate', 'ct_gate', 'cphase', 'cnot',
            'csign', 'berkeley', 'swapalpha', 'swap', 'iswap', 'sqrtswap',
@@ -52,7 +55,220 @@ __all__ = ['rx', 'ry', 'rz', 'sqrtnot', 'snot', 'phasegate', 'qrot',
            'toffoli', 'rotation', 'controlled_gate',
            'globalphase', 'hadamard_transform', 'gate_sequence_product',
            'gate_expand_1toN', 'gate_expand_2toN', 'gate_expand_3toN',
-           'qubit_clifford_group', 'expand_operator']
+           'qubit_clifford_group', 'expand_operator', '_single_qubit_gates',
+           '_para_gates', '_ctrl_gates','_swap_like','_toffoli_like',
+           '_fredkin_like']
+
+
+_single_qubit_gates = ["RX", "RY", "RZ", "SNOT", "SQRTNOT", "PHASEGATE",
+                       "X", "Y", "Z", "S", "T", "QASMU"]
+_para_gates = ["RX", "RY", "RZ", "CPHASE", "SWAPalpha", "PHASEGATE",
+               "GLOBALPHASE", "CRX", "CRY", "CRZ", "QASMU"]
+_ctrl_gates = ["CNOT", "CSIGN", "CRX", "CRY", "CRZ", "CY", "CZ",
+               "CS", "CT", "CPHASE"]
+_swap_like = ["SWAP", "ISWAP", "SQRTISWAP", "SQRTSWAP", "BERKELEY",
+              "SWAPalpha"]
+_toffoli_like = ["TOFFOLI"]
+_fredkin_like = ["FREDKIN"]
+
+
+class Gate:
+    """
+    Representation of a quantum gate, with its required parametrs, and target
+    and control qubits.
+
+    Parameters
+    ----------
+    name : string
+        Gate name.
+    targets : list or int
+        Gate targets.
+    controls : list or int
+        Gate controls.
+    arg_value : float
+        Argument value(phi).
+    arg_label : string
+        Label for gate representation.
+    classical_controls : int or list of int, optional
+        indices of classical bits to control gate on.
+    control_value : int, optional
+        value of classical bits to control on, the classical controls are
+        interpreted as an integer with lowest bit being the first one.
+        If not specified, then the value is interpreted to be
+        2 ** len(classical_controls) - 1 (i.e. all classical controls are 1).
+    """
+
+    def __init__(self, name, targets=None, controls=None,
+                 arg_value=None, arg_label=None,
+                 classical_controls=None, control_value=None):
+        """
+        Create a gate with specified parameters.
+        """
+
+        self.name = name
+        self.targets = None
+        self.controls = None
+        self.classical_controls = None
+        self.control_value = None
+
+        if not isinstance(targets, Iterable) and targets is not None:
+            self.targets = [targets]
+        else:
+            self.targets = targets
+
+        if not isinstance(controls, Iterable) and controls is not None:
+            self.controls = [controls]
+        else:
+            self.controls = controls
+
+        if (not isinstance(classical_controls, Iterable) and
+                classical_controls is not None):
+            self.classical_controls = [classical_controls]
+        else:
+            self.classical_controls = classical_controls
+
+        if (control_value is not None
+                and control_value < 2 ** len(classical_controls)):
+            self.control_value = control_value
+
+        for ind_list in [self.targets, self.controls, self.classical_controls]:
+            if isinstance(ind_list, Iterable):
+                all_integer = all(
+                    [isinstance(ind, numbers.Integral) for ind in ind_list])
+                if not all_integer:
+                    raise ValueError("Index of a qubit must be an integer")
+
+        if name in _single_qubit_gates:
+            if self.targets is None or len(self.targets) != 1:
+                raise ValueError("Gate %s requires one target" % name)
+            if self.controls:
+                raise ValueError("Gate %s cannot have a control" % name)
+        elif name in _swap_like:
+            if (self.targets is None) or (len(self.targets) != 2):
+                raise ValueError("Gate %s requires two targets" % name)
+            if self.controls:
+                raise ValueError("Gate %s cannot have a control" % name)
+        elif name in _ctrl_gates:
+            if self.targets is None or len(self.targets) != 1:
+                raise ValueError("Gate %s requires one target" % name)
+            if self.controls is None or len(self.controls) != 1:
+                raise ValueError("Gate %s requires one control" % name)
+        elif name in _fredkin_like:
+            if self.targets is None or len(self.targets) != 2:
+                raise ValueError("Gate %s requires one target" % name)
+            if self.controls is None or len(self.controls) != 1:
+                raise ValueError("Gate %s requires two control" % name)
+        elif name in _toffoli_like:
+            if self.targets is None or len(self.targets) != 1:
+                raise ValueError("Gate %s requires one target" % name)
+            if self.controls is None or len(self.controls) != 2:
+                raise ValueError("Gate %s requires two control" % name)
+
+        if name in _para_gates:
+            if arg_value is None:
+                raise ValueError("Gate %s requires an argument value" % name)
+        else:
+            if (name in _GATE_NAME_TO_LABEL) and (arg_value is not None):
+                raise ValueError("Gate %s does not take argument value" % name)
+
+        self.arg_value = arg_value
+        self.arg_label = arg_label
+
+    def get_inds(self, N=None):
+        if self.controls:
+            return self.controls + self.targets
+        if self.targets:
+            return self.targets
+        else:
+            return list(range(N))
+
+    def __str__(self):
+        str_name = (("Gate(%s, targets=%s, controls=%s,"
+                    " classical controls=%s, control_value=%s)")
+                    % (self.name, self.targets,
+                       self.controls, self.classical_controls,
+                       self.control_value))
+        return str_name
+
+    def __repr__(self):
+        return str(self)
+
+    def _repr_latex_(self):
+        return str(self)
+
+    def _to_qasm(self, qasm_out):
+        """
+        Pipe output of gate signature and application to QasmOutput object.
+
+        Parameters
+        ----------
+        qasm_out: QasmOutput
+            object to store QASM output.
+        """
+
+        qasm_gate = qasm_out.qasm_name(self.name)
+
+        if not qasm_gate:
+            error_str =\
+                 "{} gate's qasm defn is not specified".format(self.name)
+            raise NotImplementedError(error_str)
+
+        if self.classical_controls:
+            err_msg = "Exporting controlled gates is not implemented yet."
+            raise NotImplementedError(err_msg)
+        else:
+            qasm_out.output(qasm_out._qasm_str(qasm_gate,
+                                               self.controls,
+                                               self.targets,
+                                               self.arg_value))
+
+
+_GATE_NAME_TO_LABEL = {
+    'X': r'X',
+    'Y': r'Y',
+    'CY': r'C_y',
+    'Z': r'Z',
+    'CZ': r'C_z',
+    'S': r'S',
+    'CS': r'C_s',
+    'T': r'T',
+    'CT': r'C_t',
+    'RX': r'R_x',
+    'RY': r'R_y',
+    'RZ': r'R_z',
+    'CRX': r'R_x',
+    'CRY': r'R_y',
+    'CRZ': r'R_z',
+    'SQRTNOT': r'\sqrt{\rm NOT}',
+    'SNOT': r'{\rm H}',
+    'PHASEGATE': r'{\rm PHASE}',
+    'QASMU': r'{\rm QASM-U}',
+    'CPHASE': r'{\rm R}',
+    'CNOT': r'{\rm CNOT}',
+    'CSIGN': r'{\rm Z}',
+    'BERKELEY': r'{\rm BERKELEY}',
+    'SWAPalpha': r'{\rm SWAPalpha}',
+    'SWAP': r'{\rm SWAP}',
+    'ISWAP': r'{i}{\rm SWAP}',
+    'SQRTSWAP': r'\sqrt{\rm SWAP}',
+    'SQRTISWAP': r'\sqrt{{i}\rm SWAP}',
+    'FREDKIN': r'{\rm FREDKIN}',
+    'TOFFOLI': r'{\rm TOFFOLI}',
+    'GLOBALPHASE': r'{\rm Ph}',
+}
+
+
+def _gate_label(name, arg_label):
+
+    if name in _GATE_NAME_TO_LABEL:
+        gate_label = _GATE_NAME_TO_LABEL[name]
+    else:
+        warnings.warn("Unknown gate %s" % name)
+        gate_label = name
+
+    if arg_label:
+        return r'%s(%s)' % (gate_label, arg_label)
+    return r'%s' % gate_label
 
 #
 # Single Qubit Gates

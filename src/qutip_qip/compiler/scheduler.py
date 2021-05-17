@@ -35,7 +35,8 @@ from copy import deepcopy
 from functools import cmp_to_key
 from random import shuffle
 
-from ..circuit import QubitCircuit, Gate
+from ..circuit import QubitCircuit
+from ..operations import Gate
 from .instruction import Instruction
 
 class InstructionsGraph():

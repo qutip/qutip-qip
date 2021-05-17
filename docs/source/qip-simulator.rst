@@ -13,8 +13,9 @@ examples of circuit evolution. We take a circuit from
 
 .. testcode::
 
-    from qutip_qip.circuit import QubitCircuit, Gate
-    from qutip_qip.operations import controlled_gate, hadamard_transform
+    from qutip_qip.circuit import QubitCircuit
+    from qutip_qip.operations import (Gate, controlled_gate,
+                                            hadamard_transform)
     def controlled_hadamard():
         # Controlled Hadamard
         return controlled_gate(

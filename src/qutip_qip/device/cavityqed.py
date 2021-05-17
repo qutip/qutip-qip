@@ -35,17 +35,16 @@ from copy import deepcopy
 
 import numpy as np
 
-from qutip.operators import tensor, identity, destroy, sigmax, sigmaz
-from qutip.states import basis
-from ..circuit import QubitCircuit, Gate
+from qutip import (tensor, identity, destroy, sigmax, sigmaz, basis, Qobj,
+                    QobjEvo)
+from ..circuit import QubitCircuit
+from ..operations import Gate
 from .processor import Processor
 from .modelprocessor import ModelProcessor
 from ..operations import expand_operator
-from qutip.qobj import Qobj
-from qutip.qobjevo import QobjEvo
 from ..pulse import Pulse
-from ..compiler.gatecompiler import GateCompiler
-from ..compiler import CavityQEDCompiler
+from ..compiler import (GateCompiler, CavityQEDCompiler)
+
 
 
 __all__ = ['DispersiveCavityQED']

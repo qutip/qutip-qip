@@ -33,7 +33,8 @@
 import numpy as np
 from .instruction import Instruction
 from .scheduler import Scheduler
-from ..circuit import QubitCircuit, Gate
+from ..circuit import QubitCircuit
+from ..operations import Gate
 import warnings
 
 
