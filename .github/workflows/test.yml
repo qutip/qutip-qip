@@ -51,7 +51,7 @@ jobs:
         make doctest
     - name: Test code examples for the pulse paper
       run: |
-        python -m pip intall joblib pytest pytest-custom_exit_code
+        python -m pip install joblib pytest pytest-custom_exit_code
         cd docs/pulse-paper
         mkdir figures
         pytest *.py --suppress-no-test-exit-code
