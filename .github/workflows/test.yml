@@ -42,7 +42,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        python -m pip install numpy scipy cython sphinx matplotlib numpydoc sphinx_rtd_theme
+        python -m pip install numpy scipy cython sphinx matplotlib numpydoc sphinx_rtd_theme pytest
         pip install qutip
         pip install .
     - name: Test code snippets in the documentation
