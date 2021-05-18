@@ -53,4 +53,4 @@ jobs:
       run: |
         cd docs/pulse-paper
         mkdir figures
-        pytest docs/pulse-paper/*.py
+        pytest *.py
