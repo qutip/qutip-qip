@@ -3,6 +3,7 @@ LINEWIDTH = 3.48692403487
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 try:
+    from quantum_plots import global_setup
     global_setup(fontsize = 10)
 except:
     pass
@@ -76,7 +77,7 @@ result = myprocessor.run_state(basis(2,0))
 fig, ax = myprocessor.plot_pulses(figsize=(LINEWIDTH*0.7,LINEWIDTH/2*0.7), dpi=200)
 ax[-1].set_xlabel("Time")
 fig.tight_layout()
-fig.savefig("customize.pdf")
+fig.savefig("figures/customize.pdf")
 fig.show()
 
 from joblib import Parallel, delayed
@@ -172,5 +173,5 @@ ax.set_ylabel("Average fidelity")
 ax.set_xlabel(r"Number of $\pi$ rotations")
 ax.set_xlim((0, 1700))
 fig.tight_layout()
-fig.savefig("figures\cross_talk.pdf")
+fig.savefig("figures/cross_talk.pdf")
 fig.show()

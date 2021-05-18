@@ -3,6 +3,7 @@ LINEWIDTH = 3.48692403487
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 try:
+    from quantum_plots import global_setup
     global_setup(fontsize = 10)
 except:
     pass
@@ -32,7 +33,7 @@ ax1[0].set_ylim(-0.1, 1.1)
 ax1[0].axhline(0)
 ax1[0].set_ylabel(None)
 fig1.tight_layout()
-fig1.savefig("discrete_pulse.pdf")
+fig1.savefig("figures/discrete_pulse.pdf")
 fig1.show()
 
 # continuous pulse
@@ -54,7 +55,7 @@ ax2[0].set_ylim(-0.1, 1.7)
 ax2[0].axhline(0)
 ax2[0].set_ylabel(None)
 fig2.tight_layout()
-fig2.savefig("continuous_pulse.pdf")
+fig2.savefig("figures/continuous_pulse.pdf")
 fig2.show()
 
 # bloch sphere
@@ -71,7 +72,7 @@ zp = np.cos(theta)
 pnts = [xp, yp, zp]
 b.add_points(pnts)
 b.show()
-fig3.savefig("bloch_sphere1.pdf")
+fig3.savefig("figures/bloch_sphere1.pdf")
 fig3.show()
 
 from qutip import Bloch
@@ -87,6 +88,6 @@ zp = np.cos(theta)
 pnts = [xp, yp, zp]
 b.add_points(pnts)
 b.show()
-fig4.savefig("bloch_sphere2.pdf")
+fig4.savefig("figures/bloch_sphere2.pdf")
 fig4.show()
 
