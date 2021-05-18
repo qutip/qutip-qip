@@ -51,4 +51,4 @@ jobs:
         make doctest
     - name: Test code examples for the pulse paper
       run: |
-        pytest docs/paper/*.py
+        pytest docs/pulse-paper/*.py
