@@ -64,6 +64,4 @@ jobs:
         pip install .[full]
     - name: Test with pytest
       run: |
-        cd docs/paper
-        mkdir figures
-        pytest *.py
+        pytest docs/paper/*.py

@@ -87,7 +87,7 @@ ax[7].set_ylabel(r"$g_{1}$")
 # ax[7].set_xlabel("Time")
 
 fig.tight_layout()
-fig.savefig("figures/optimal_control_pulse.pdf")
+fig.savefig("optimal_control_pulse.pdf")
 fig.show()
 
 width = TEXTWIDTH/3
@@ -103,7 +103,7 @@ ax2[6].set_ylabel(r"$g_{0}$")
 ax2[7].set_ylabel(r"$g_{1}$")
 # ax2[7].set_xlabel("Time")
 fig2.tight_layout()
-fig2.savefig("figures/spin_chain_pulse.pdf")
+fig2.savefig("spin_chain_pulse.pdf")
 fig2.show()
 
 width = TEXTWIDTH/3
@@ -121,7 +121,7 @@ ax3[8].set_ylabel(r"$\Omega^{\rm{cr}1}_{1}$")
 ax3[9].set_ylabel(r"$\Omega^{\rm{cr}2}_{1}$")
 # ax3[9].set_xlabel("Time")
 fig3.tight_layout()
-fig3.savefig("figures/transmon_pulse.pdf")
+fig3.savefig("transmon_pulse.pdf")
 fig3.show()
 
 
@@ -132,7 +132,7 @@ from qutip import hinton
 fig4, ax4 = plt.subplots(figsize=(LINEWIDTH*0.9, LINEWIDTH*0.7), dpi=200)
 first_two_qubits = result1.states[-1].ptrace([0,1])
 _, ax4 = hinton(first_two_qubits, ax=ax4)
-fig4.savefig("figures/hinton.pdf")
+fig4.savefig("hinton.pdf")
 fig4.show()
 
 # Plot trajectory
@@ -147,5 +147,5 @@ ax5.plot(t_record, expect, color="slategrey")
 ax5.set_ylabel(r"Population of $|00\rangle$")
 ax5.set_xlabel(r"Time [$\mu$s]")
 fig5.tight_layout()
-fig5.savefig("figures/population.pdf")
+fig5.savefig("population.pdf")
 fig5.show()
