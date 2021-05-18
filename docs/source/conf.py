@@ -22,7 +22,7 @@ copyright = '2021, QuTiP Community'
 author = 'QuTiP Community'
 
 # The full version, including alpha/beta/rc tags
-release = '0.2.0dev'
+release = '0.1.0dev'
 
 
 # -- General configuration ---------------------------------------------------
