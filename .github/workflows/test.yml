@@ -43,9 +43,15 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         python -m pip install numpy scipy cython sphinx matplotlib numpydoc sphinx_rtd_theme
-        pip install git+https://github.com/qutip/qutip.git
+        pip install qutip
         pip install .
-    - name: Test with pytest
+    - name: Test code snippets in the documentation
       run: |
         cd docs
         make doctest
+    - name: Test code examples for the pulse paper
+      run: |
+        python -m pip install joblib pytest pytest-custom_exit_code
+        cd docs/pulse-paper
+        mkdir figures
+        pytest *.py --suppress-no-test-exit-code
