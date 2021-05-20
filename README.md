@@ -18,7 +18,7 @@ Installation
 ------------
 To install the package, download to source code and run
 ```
-pip install qutip_qip
+pip install qutip-qip
 ```
 
 If you want to edit the source code, please download the source code and run the following command under the folder with `setup.cfg`

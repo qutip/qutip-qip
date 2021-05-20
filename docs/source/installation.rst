@@ -8,7 +8,7 @@ To install the package ``qutip-qip`` from PyPI, use
 
 .. code-block:: bash
 
-    pip install qutip_qip
+    pip install qutip-qip
 
 .. _prerequisites:
 
