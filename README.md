@@ -34,10 +34,12 @@ The documentation of `qutip-qip` updated to the latest development version is ho
 
 Installation from source
 ------------------------
-If you want to edit the source code, please download the source code and run the following command under the folder with `setup.cfg`
+If you want to edit the source code, please download the source code and run the following command under the root `qutip-qip` folder, 
 ```
+pip install --upgrade pip
 pip install -e .
 ```
+which makes sure that you are up to date with the latest `pip` version.
 
 To build and test the documentation, additional packages need to be installed:
 
