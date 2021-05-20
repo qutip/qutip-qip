@@ -35,9 +35,8 @@ from copy import deepcopy
 
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.compiler import Instruction, Scheduler
-from qutip_qip.operations.gates import gate_sequence_product
+from qutip_qip.operations import Gate, gate_sequence_product
 from qutip import process_fidelity, qeye, tracedist
-from qutip_qip.circuit import Gate
 
 
 def _circuit1():
@@ -249,4 +248,3 @@ def test_scheduling_pulse(
     circuit.gates = sum(scheduled_gate, [])
     result1 = gate_sequence_product(circuit.propagators())
     assert(tracedist(result0*result1.dag(), qeye(result0.dims[0])) < 1.0e-7)
-    

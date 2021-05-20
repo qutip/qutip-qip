@@ -35,17 +35,16 @@ from copy import deepcopy
 
 import numpy as np
 
-from qutip.operators import tensor, identity, destroy, sigmax, sigmaz
-from qutip.states import basis
-from ..circuit import QubitCircuit, Gate
+from qutip import (tensor, identity, destroy, sigmax, sigmaz, basis, Qobj,
+                    QobjEvo)
+from ..circuit import QubitCircuit
+from ..operations import Gate
 from .processor import Processor
 from .modelprocessor import ModelProcessor
 from ..operations import expand_operator
-from qutip.qobj import Qobj
-from qutip.qobjevo import QobjEvo
 from ..pulse import Pulse
-from ..compiler.gatecompiler import GateCompiler
-from ..compiler import CavityQEDCompiler
+from ..compiler import (GateCompiler, CavityQEDCompiler)
+
 
 
 __all__ = ['DispersiveCavityQED']
@@ -75,31 +74,31 @@ class DispersiveCavityQED(ModelProcessor):
     num_levels: int, optional
         The number of energy levels in the resonator.
 
-    deltamax: int or list, optional
-        The coefficients of sigma-x for each of the qubits in the system.
-
-    epsmax: int or list, optional
-        The coefficients of sigma-z for each of the qubits in the system.
-
-    w0: int, optional
-        The base frequency of the resonator.
-
-    eps: int or list, optional
-        The epsilon for each of the qubits in the system.
-
-    delta: int or list, optional
-        The epsilon for each of the qubits in the system.
-
-    g: int or list, optional
-        The interaction strength for each of the qubit with the resonator.
-
-    t1: list or float
+    t1: list or float, optional
         Characterize the decoherence of amplitude damping for
         each qubit. A list of size `num_qubits` or a float for all qubits.
 
-    t2: list of float
+    t2: list of float, optional
         Characterize the decoherence of dephasing for
         each qubit. A list of size `num_qubits` or a float for all qubits.
+
+    **params:
+        Keyword argument for hardware parameters, in the unit of GHz.
+        Qubit parameters can either be a float or a list of the length
+        ``num_qubits``.
+
+        - ``deltamax``: the pulse strength of sigma-x control, default ``1.0``
+        - ``epsmax``: the pulse strength of sigma-z control, default ``9.5``
+        - ``eps``: the bare transition frequency for each of the qubits,
+          default ``9.5``
+        - ``delta``: the coupling between qubit states, default ``0.0``
+        - ``g``: the coupling strength between the resonator and the qubit,
+          default ``1.0``
+        - ``w0``: the bare frequency of the resonator. Should only be a float,
+          default ``0.01``
+
+        The dressed qubit frequency is `wq` is computed by
+        :math:`w_q=\sqrt{\epsilon^2+\delta^2}`
 
     Attributes
     ----------
@@ -113,20 +112,28 @@ class DispersiveCavityQED(ModelProcessor):
     """
 
     def __init__(self, num_qubits, correct_global_phase=True,
-                 num_levels=10, deltamax=1.0,
-                 epsmax=9.5, w0=10., wq=None, eps=9.5,
-                 delta=0.0, g=0.01, t1=None, t2=None):
+                 num_levels=10, t1=None, t2=None, **params):
         super(DispersiveCavityQED, self).__init__(
             num_qubits, correct_global_phase=correct_global_phase,
             t1=t1, t2=t2)
         self.correct_global_phase = correct_global_phase
         self.spline_kind = "step_func"
         self.num_levels = num_levels
-        self._params = {}
-        self.set_up_params(
-            num_qubits=num_qubits, num_levels=num_levels, deltamax=deltamax,
-            epsmax=epsmax, w0=w0, wq=wq, eps=eps,
-            delta=delta, g=g)
+        self.params = {  # default parameters
+            "deltamax": 1.0,
+            "epsmax": 9.5,
+            "w0": 10,
+            "eps": 9.5,
+            "delta": 0.0,
+            "g": 0.01,
+        }
+        if params is not None:
+            self.params.update(params)
+        for key, value in self.params.items():
+            if key != "w0":
+                # if float, make it an array
+                self.params[key] = self.to_array(value, self.num_qubits)
+        self.set_up_params()
         self.set_up_ops(num_qubits)
         self.dims = [num_levels] + [2] * num_qubits
         self.pulse_dict = self.get_pulse_dict()
@@ -144,9 +151,9 @@ class DispersiveCavityQED(ModelProcessor):
         """
         # single qubit terms
         for m in range(num_qubits):
-            self.add_control(sigmax(), [m+1], label="sx" + str(m))
+            self.add_control(2*np.pi*sigmax(), [m+1], label="sx" + str(m))
         for m in range(num_qubits):
-            self.add_control(sigmaz(), [m+1], label="sz" + str(m))
+            self.add_control(2*np.pi*sigmaz(), [m+1], label="sz" + str(m))
         # coupling terms
         a = tensor(
             [destroy(self.num_levels)] +
@@ -156,64 +163,21 @@ class DispersiveCavityQED(ModelProcessor):
                         [destroy(2) if m == n else identity(2)
                          for m in range(num_qubits)])
             self.add_control(
-                a.dag() * sm + a * sm.dag(),
+                2*np.pi * a.dag() * sm + 2*np.pi * a * sm.dag(),
                 list(range(num_qubits+1)), label="g" + str(n)
             )
 
-    def set_up_params(
-            self, num_qubits, num_levels, deltamax,
-            epsmax, w0, wq, eps, delta, g):
+    def set_up_params(self):
         """
-        Save the parameters in the attribute `params` and check the validity.
-        The keys of `params` including "sx", "sz", "w0", "eps", "delta"
-        and "g", each
-        mapped to a list for parameters corresponding to each qubits.
-        For coupling strength "g", list element i is the interaction
-        between qubits i and i+1.
-        All parameters will be multiplied by 2*pi for simplicity.
-
-        Parameters
-        ----------
-        num_qubits: int
-            The number of qubits in the system.
-
-        num_levels: int
-            The number of energy levels in the resonator.
-
-        deltamax: list
-            The coefficients of sigma-x for each of the qubits in the system.
-
-        epsmax: list
-            The coefficients of sigma-z for each of the qubits in the system.
-
-        wo: int
-            The base frequency of the resonator.
-
-        wq: list
-            The frequency of the qubits.
-
-        eps: list
-            The epsilon for each of the qubits in the system.
-
-        delta: list
-            The delta for each of the qubits in the system.
-
-        g: list
-            The interaction strength for each of the qubit with the resonator.
+        Compute the qubit frequency and detune.
         """
-        sx_para = 2 * np.pi * self.to_array(deltamax, num_qubits)
-        self._params["sx"] = sx_para
-        sz_para = 2 * np.pi * self.to_array(epsmax, num_qubits)
-        self._params["sz"] = sz_para
-        w0 = 2 * np.pi * w0
-        self._params["w0"] = w0
-        eps = 2 * np.pi * self.to_array(eps, num_qubits)
-        self._params["eps"] = eps
-        delta = 2 * np.pi * self.to_array(delta, num_qubits)
-        self._params["delta"] = delta
-        g = 2 * np.pi * self.to_array(g, num_qubits)
-        self._params["g"] = g
-
+        # backward compatibility
+        self.params["sz"] = self.params["epsmax"]
+        self.params["sx"] = self.params["deltamax"]
+        eps = self.params["eps"]
+        delta = self.params["delta"]
+        w0 = self.params["w0"]
+        g = self.params["g"]
         # computed
         self.wq = np.sqrt(eps**2 + delta**2)
         self.Delta = self.wq - w0
@@ -225,6 +189,7 @@ class DispersiveCavityQED(ModelProcessor):
         if any((w0 - self.wq)/(w0 + self.wq) > 0.05):
             warnings.warn(
                 "The rotating-wave approximation might not be valid.")
+        print(self.params)
 
     @property
     def sx_ops(self):

@@ -2,6 +2,7 @@
 
 [![build](https://github.com/qutip/qutip-qip/workflows/Tests/badge.svg)](https://github.com/qutip/qutip-qip/actions)
 [![Documentation Status](https://readthedocs.org/projects/qutip-qip/badge/?version=latest)](https://qutip-qip.readthedocs.io/en/latest/)
+[![PyPI version](https://badge.fury.io/py/qutip-qip.svg)](https://badge.fury.io/py/qutip-qip)
 
 The qutip-qip package used to be a module ``qutip.qip`` under [QuTiP (Quantum Toolbox in Python)](http://qutip.org/index.html).
 From QuTiP 5.0, the community has decided to decrease the size of the core QuTiP package by reducing the external dependencies, in order to simplify maintenance.
@@ -14,37 +15,59 @@ The package offers two different approaches for simulating quantum circuits, one
 
 If you would like to know the future development plan and ideas, have a look at the [discussion panel](https://github.com/qutip/qutip-qip/discussions) as well as the [qutip documentation for ideas](https://github.com/qutip/qutip-doc/tree/master/development/ideas).
 
-Installation
+Quick start
+-----------
+To install the package, use
+```
+pip install qutip-qip
+```
+
+Migrating from ``qutip.qip``
+--------------------------
+As the introduction suggested, this package is based on a module in the [QuTiP](http://qutip.org/docs/latest/) package `qutip.qip`.
+If you were using the `qutip` package and now want to try out the new features included in this package, you can simply install this package and replace all the `qutip.qip` in your import statement with `qutip_qip`. Everything should work smoothly as usual.
+
+Documentation
+-------------
+
+The documentation of `qutip-qip` updated to the latest development version is hosted at [qutip-qip.readthedocs.io/](https://qutip-qip.readthedocs.io/en/latest/).
+
+Installation from source
+------------------------
+If you want to edit the source code, please download the source code and run the following command under the folder with `setup.cfg`
+```
+pip install -e .
+```
+
+To build and test the documentation, additional packages need to be installed:
+
+```
+pip install matplotlib sphinx numpydoc sphinx_rtd_theme
+```
+
+Under the `docs` directory, use
+```
+make html
+```
+to build the documentation, or
+```
+make doctest
+```
+to test the code in the documentation.
+
+Testing
 ------------
-To install the package, download to source code and run
+To test the installation from a download of the source code, run from the `qutip-qip` directory
 ```
-    pip install .
+pytest tests
 ```
-under the directory containing the ``setup.py`` file.
-
-If you want to edit the source code, use instead
-```
-    pip install -e .
-```
-
-To build and test the documentation, the following packages are required:
-
-```
-    sphinx numpydoc sphinx_rtd_theme doctest
-```
-
-Under the docs directory, use
-```
-    make html
-```
-to build the documentation.
 
 Support
 -------
 This package is supported and maintained by the same developers group as QuTiP.
 
 [![Powered by NumFOCUS](https://img.shields.io/badge/powered%20by-NumFOCUS-orange.svg?style=flat&colorA=E1523D&colorB=007D8A)](https://numfocus.org)
-[![Unitary Fund](https://img.shields.io/badge/Supported%20By-UNITARY%20FUND-brightgreen.svg?style=for-the-badge)](http://unitary.fund)
+[![Unitary Fund](https://img.shields.io/badge/Supported%20By-UNITARY%20FUND-brightgreen.svg?style=flat)](https://unitary.fund)
 
 
 QuTiP development is supported by [Nori's lab](http://dml.riken.jp/)

@@ -39,11 +39,10 @@ import numpy as np
 import pytest
 
 import qutip
-from qutip_qip.circuit import Gate, QubitCircuit
-from qutip_qip.operations.gates import gate_sequence_product
-from qutip_qip.device import (
-    DispersiveCavityQED, LinearSpinChain, CircularSpinChain, SCQubits
-)
+from qutip_qip.circuit import QubitCircuit
+from qutip_qip.operations import Gate, gate_sequence_product
+from qutip_qip.device import (DispersiveCavityQED, LinearSpinChain,
+                                CircularSpinChain, SCQubits)
 
 _tol = 3.e-2
 

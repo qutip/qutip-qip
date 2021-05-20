@@ -2,11 +2,26 @@
 Installation
 ************
 
+.. _quickstart:
+
+Quick start
+===========
+To install the package ``qutip-qip`` from PyPI, use
+
+.. code-block:: bash
+
+    pip install qutip-qip
+
+Migrating from ``qutip.qip``
+==========================
+As the :ref:`introduction` suggested, this package is based on a module in the `QuTiP <http://qutip.org/docs/latest/>`_ package ``qutip.qip``.
+If you were using the ``qutip`` package and now want to try out the new features included in this package, you can simply install this package and replace all the ``qutip.qip`` in your import statement with ``qutip_qip``. Everything should work smoothly as usual.
+
 .. _prerequisites:
 
 Prerequisites
 =============
-As the name indicates, this package is built upon QuTiP, the installation guide can be found at on `QuTiP Installation <http://qutip.org/docs/latest/installation.html>`_.
+This package is built upon QuTiP, of which the installation guide can be found at on `QuTiP Installation <http://qutip.org/docs/latest/installation.html>`_.
 The only difference is that C++ compilers are not required here
 since there is no run-time compiling for qutip-qip.
 The minimal Python version supported is Python 3.6.
@@ -28,9 +43,9 @@ In addition
 
 .. code-block:: bash
 
-    sphinx sphinx_rtd_theme doctest
+    sphinx numpydoc sphinx_rtd_theme
 
-are used to build the documentation.
+are used to build and test the documentation.
 
 A few other packages such as LaTeX is used for circuit plotting, please refer to the main documentation section for detailed instruction.
 
@@ -45,10 +60,15 @@ To install the package, download to source code from `GitHub website <https://gi
 
     pip install .
 
-under the directory containing the ``setup.py`` file.
+under the directory containing the ``setup.cfg`` file.
 
 If you want to edit the code, use instead
 
 .. code-block:: bash
 
     pip install -e .
+
+To test the installation from a download of the source code, run from the `qutip-qip` directory
+```
+pytest tests
+```

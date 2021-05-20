@@ -13,8 +13,9 @@ examples of circuit evolution. We take a circuit from
 
 .. testcode::
 
-    from qutip_qip.circuit import QubitCircuit, Gate
-    from qutip_qip.operations import controlled_gate, hadamard_transform
+    from qutip_qip.circuit import QubitCircuit
+    from qutip_qip.operations import (Gate, controlled_gate,
+                                            hadamard_transform)
     def controlled_hadamard():
         # Controlled Hadamard
         return controlled_gate(
@@ -34,7 +35,7 @@ It corresponds to the following circuit:
 
 We will add the measurement gates later. This circuit prepares the W-state :math:`\newcommand{\ket}[1]{\left|{#1}\right\rangle} (\ket{001} + \ket{010} + \ket{100})/\sqrt{3}`.
 The simplest way to carry out state evolution through a quantum circuit is
-providing a input state to the :meth:`.QubitCircuit.run`
+providing an input state to the :meth:`.QubitCircuit.run`
 method.
 
 .. testcode::

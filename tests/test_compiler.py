@@ -82,7 +82,7 @@ def gauss_rx_compiler(gate, args):
     gate_sigma = h_x2pi / np.sqrt(2*np.pi)
     duration = 6 * gate_sigma
     tlist = np.linspace(0, duration, 100)
-    coeff = gauss_dist(tlist, gate_sigma, amplitude, duration)
+    coeff = gauss_dist(tlist, gate_sigma, amplitude, duration) / np.pi / 2
     pulse_info = [("sx" + str(targets[0]), coeff)]  #  save the information in a tuple (pulse_name, coeff)
     return [Instruction(gate, tlist, pulse_info)]
 
@@ -130,7 +130,7 @@ def rx_compiler_without_pulse_dict(gate, args):
     targets = gate.targets
     g = args["params"]["sx"][targets[0]]
     coeff = np.sign(gate.arg_value) * g
-    tlist = abs(gate.arg_value) / (2 * g)
+    tlist = abs(gate.arg_value) / (2 * g) / np.pi/ 2
     pulse_info = [(targets[0], coeff)]
     return [Instruction(gate, tlist, pulse_info)]
 

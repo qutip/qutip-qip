@@ -32,7 +32,8 @@
 ###############################################################################
 import numpy as np
 
-from ..circuit import QubitCircuit, Gate
+from ..circuit import QubitCircuit
+from ..operations import Gate
 from ..compiler import GateCompiler, Instruction
 
 
@@ -85,7 +86,7 @@ class CavityQEDCompiler(GateCompiler):
         targets = gate.targets
         g = self.params["sz"][targets[0]]
         coeff = np.sign(gate.arg_value) * g
-        tlist = abs(gate.arg_value) / (2 * g)
+        tlist = abs(gate.arg_value) / (2*g) / np.pi / 2
         pulse_info = [("sz" + str(targets[0]), coeff)]
         return [Instruction(gate, tlist, pulse_info)]
 
@@ -96,7 +97,7 @@ class CavityQEDCompiler(GateCompiler):
         targets = gate.targets
         g = self.params["sx"][targets[0]]
         coeff = np.sign(gate.arg_value) * g
-        tlist = abs(gate.arg_value) / (2 * g)
+        tlist = abs(gate.arg_value) / (2*g) / np.pi / 2
         pulse_info = [("sx" + str(targets[0]), coeff)]
         return [Instruction(gate, tlist, pulse_info)]
 
@@ -127,7 +128,7 @@ class CavityQEDCompiler(GateCompiler):
 
         J = self.params["g"][q1] * self.params["g"][q2] * (
             1 / self.Delta[q1] + 1 / self.Delta[q2]) / 2
-        tlist = (4 * np.pi / abs(J)) / 8
+        tlist = (4 * np.pi / abs(J)) / 8 / np.pi / 2
         instruction_list = [Instruction(gate, tlist, pulse_info)]
 
         # corrections
@@ -162,7 +163,7 @@ class CavityQEDCompiler(GateCompiler):
 
         J = self.params["g"][q1] * self.params["g"][q2] * (
             1 / self.Delta[q1] + 1 / self.Delta[q2]) / 2
-        tlist = (4 * np.pi / abs(J)) / 4
+        tlist = (4 * np.pi / abs(J)) / 4 / np.pi / 2
         instruction_list = [Instruction(gate, tlist, pulse_info)]
 
         # corrections

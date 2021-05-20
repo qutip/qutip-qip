@@ -7,14 +7,14 @@ Pulse-level circuit simulation
 Modelling quantum hardware with Processor
 =========================================
 
-Based on the open system solver, :class:`.Processor` in the :mod:`qutip_qip` module simulates quantum circuits at the level of time evolution. One can consider the processor as a simulator of a quantum device, on which the quantum circuit is to be implemented. 
+Based on the open system solver, :class:`.Processor` in the :mod:`qutip_qip` module simulates quantum circuits at the level of time evolution. One can consider the processor as a simulator of a quantum device, on which the quantum circuit is to be implemented.
 
 The procedure is illustrated in the figure below.
 It first compiles circuit into a Hamiltonian model, adds noisy dynamics and then uses the QuTiP open time evolution solvers to simulation the evolution.
 
 .. image:: /figures//illustration.png
 
-Like a real quantum device, the processor is determined by a list of Hamiltonians, i.e. the control pulses driving the evolution. Given the intensity of the control pulses and the corresponding time slices for each pulse, the evolution is then computed. A control pulse is characterized by :class:`.pulse.Pulse`, consisting of the control Hamiltonian, the targets qubit, the pulse coefficients and the time sequence. We can either use the coefficients as a step function or with cubic spline. For step function, ``tlist`` specifies the start and the end of each pulse and thus is one element longer the ``coeffs``. One example of defining the control pulse coefficients and the time array is as follows:
+Like a real quantum device, the processor is determined by a list of Hamiltonians, i.e. the control pulses driving the evolution. Given the intensity of the control pulses and the corresponding time slices for each pulse, the evolution is then computed. A control pulse is characterized by :class:`.pulse.Pulse`, consisting of the control Hamiltonian, the targets qubit, the pulse coefficients and the time sequence. We can either use the coefficients as a step function or with cubic spline. For step function, ``tlist`` specifies the start and the end of each pulse and thus is one element longer than the ``coeffs``. One example of defining the control pulse coefficients and the time array is as follows:
 
 .. testcode::
 
@@ -62,7 +62,7 @@ gates is defined in the processor as well as the pulse implementing them in this
 
 Despite this difference, the logic behind all processors is the same:
 
-* One defines a processor by a list of available Hamiltonians and, as explained later, hardware-dependent noise. In model based processors, the Hamiltonians are predefined and one only needs to give the device parameters like frequency and interaction strength.
+* One defines a processor by a list of available Hamiltonians and, as explained later, hardware-dependent noise. In model-based processors, the Hamiltonians are predefined and one only needs to give the device parameters like frequency and interaction strength.
 
 * The control pulse coefficients and time slices are either specified by the user or calculated by the method :meth:`.Processor.load_circuit`, which takes a :class:`.QubitCircuit` and find the control pulse for this evolution.
 
@@ -70,11 +70,11 @@ Despite this difference, the logic behind all processors is the same:
 
 It is also possible to calculate the evolution analytically with matrix exponentiation by setting ``analytical=True``. A list of the matrices representing the gates is returned just like for :meth:`.QubitCircuit.propagators`. However, this does not consider the collapse operators or other noise. As the system size gets larger, this approach will become very inefficient.
 
-In the following we describe the predefined subclasses for :class:`.Processor`:
+In the following, we describe the predefined subclasses for :class:`.Processor`:
 
 **SpinChain**
 
-:class:`.LinearSpinChain` and :class:`.CircularSpinChain` are quantum computing models base on the spin chain realization. The control Hamiltonians are :math:`\sigma_x`, :math:`\sigma_z` and :math:`\sigma_x \sigma_x + \sigma_y \sigma_y`. This processor will first decompose the gate into the universal gate set with ISWAP or SQRTISWAP as two-qubit gates, resolve them into quantum gates of adjacent qubits and then calculate the pulse coefficients.
+:class:`.LinearSpinChain` and :class:`.CircularSpinChain` are quantum computing models based on the spin chain realization. The control Hamiltonians are :math:`\sigma_x`, :math:`\sigma_z` and :math:`\sigma_x \sigma_x + \sigma_y \sigma_y`. This processor will first decompose the gate into the universal gate set with ISWAP or SQRTISWAP as two-qubit gates, resolve them into quantum gates of adjacent qubits and then calculate the pulse coefficients.
 
 An example of simulating a simple circuit is shown below:
 
@@ -122,7 +122,7 @@ We can also visualize the pulses implementing this circuit:
 
 For the :class:`.SCQubits` model, the qubit is simulated by a three-level system, where the qubit subspace is defined as the ground state and the first excited state.
 The three-level representation will capture the leakage of the population out of the qubit subspace during single-qubit gates.
-The single-qubit control is generated by two orthogonal quadrature :math:`a + a^{\dagger}` and :math:`a - a^{\dagger}`, truncated to a three-level operator.
+The single-qubit control is generated by two orthogonal quadratures :math:`a + a^{\dagger}` and :math:`i(a - a^{\dagger})`, truncated to a three-level operator.
 Same as the Spin Chain model, the superconducting qubits are aligned in a 1 D structure and the interaction is only possible between adjacent qubits.
 As an example, the default interaction is implemented as a Cross Resonant pulses.
 Parameters for the interaction strength are taken from [1]_ [2]_.
@@ -155,8 +155,8 @@ To let it find the optimal pulses, we need to give the parameters for :func:`~qu
 .. testcode::
 
       from qutip_qip.device import OptPulseProcessor
-      from qutip.operators import sigmaz, sigmax, sigmay
-      from qutip.tensor import tensor
+      from qutip import sigmaz, sigmax, sigmay, tensor
+
 
       # Same parameter for all the gates
       qc = QubitCircuit(N=1)
@@ -194,7 +194,7 @@ Compiler and scheduler
 In order to simulate quantum circuits at the level of time evolution.
 We need to first compile the circuit into the Hamiltonian model, i.e.
 the control pulses.
-Hence each :class:`.Processor` has a corresponding 
+Hence each :class:`.Processor` has a corresponding
 :class:`.compiler.GateCompiler` class.
 The compiler takes a :class:`.QubitCircuit`
 and returns the compiled ``tlist`` and ``coeffs``.
@@ -221,14 +221,14 @@ It is called implicitly when calling the method
 .. testoutput::
     :options: +NORMALIZE_WHITESPACE
 
-    {'sx0': array([0., 1.]), 'sx1': array([0., 1., 2.])}
-    {'sx0': array([1.57079633]), 'sx1': array([0.        , 1.57079633])}
+    {'sx0': array([0., 1.]), 'sx1': array([0., 1., 2.])}   
+    {'sx0': array([0.25]), 'sx1': array([0.  , 0.25])} 
 
 Here we first use :meth:`.QubitCircuit.resolve_gates`
 to decompose the X gate to its natural gate on Spin Chain model,
 the rotation over X-axis.
 We pass the hardware parameters of the :class:`.SpinChain` model, ``processor.params``, as well as a map between the pulse name and pulse index ``pulse_dict`` to the compiler.
-The later one allows one to address the pulse more conveniently in the compiler.
+The latter one allows one to address the pulse more conveniently in the compiler.
 
 The compiler returns a list of ``tlist`` and ``coeff``, corresponding to each pulse.
 The first pulse starts from ``t=0`` and ends at ``t=1``, with the strengh :math:`\pi/2`.
@@ -294,7 +294,7 @@ In the common way of QIP simulation, where evolution is carried out by gate matr
 The typical approaches are either applying bit/sign flipping gate probabilistically
 or applying Kraus operators representing different noisy channels (e.g. amplitude damping, dephasing) after each unitary gate evolution. In the case of a single qubit, they have the same effect and the parameters in the Kraus operators are exactly the probability of a flipping error happens during the gate operation time.
 
-Since the processor simulates the state evolution at the level of the driving Hamiltonian, there is no way to apply an error operator to the continuous-time evolution. Instead, the error is added to the pulses (coherent control error) or the collapse operators (Lindblad error) contributing to the evolution. Mathematically, this is no different from adding error channel probabilistically (it is actually how :func:`qutip.mcsolve` works internally). The collapse operator for single-qubit amplitude damping and dephasing are exactly the destroying operator and the sign-flipping operator. One just needs to choose the correct coefficients for them to simulate the noise, e.g. the relaxation time T1 and dephasing time T2. Because it is based on the open system evolution instead of abstract operators, this simulation is closer to the physical implementation and requires less pre-analysis of the system.
+Since the processor simulates the state evolution at the level of the driving Hamiltonian, there is no way to apply an error operator to the continuous-time evolution. Instead, the error is added to the pulses (coherent control error) or the collapse operators (Lindblad error) contributing to the evolution. Mathematically, this is no different from adding an error channel probabilistically (it is actually how :func:`qutip.mcsolve` works internally). The collapse operator for single-qubit amplitude damping and dephasing are exactly the destroying operator and the sign-flipping operator. One just needs to choose the correct coefficients for them to simulate the noise, e.g. the relaxation time T1 and dephasing time T2. Because it is based on the open system evolution instead of abstract operators, this simulation is closer to the physical implementation and requires less pre-analysis of the system.
 
 Compared to the approach of Kraus operators, this way of simulating noise is more computationally expensive. If you only want to simulate the decoherence of single-qubit relaxation and the relaxation time is much longer than the gate duration, there is no need to go through all the calculations. However, this simulator is closer to the real experiment and, therefore, more convenient in some cases, such as when coherent noise or correlated noise exist. For instance, a pulse on one qubit might affect the neighbouring qubits, the evolution is still unitary but the gate fidelity will decrease. It is not always easy or even possible to define a noisy gate matrix. In our simulator, it can be done by defining a :class:`.noise.ControlAmpNoise` (Control Amplitude Noise).
 
