@@ -229,19 +229,23 @@ def single_crosstalk_simulation(num_gates):
 
 
 num_qubits = 2
-num_sample = 1600
+num_sample = 2
+# num_sample = 1600
 fidelity = []
 fidelity_error = []
 init_fid = 0.975
-num_gates_list = [250, 500, 750, 1000, 1250, 1500]
+num_gates_list = [250]
+# num_gates_list = [250, 500, 750, 1000, 1250, 1500]
 
-# # The following code may take several hours
-# for num_gates in num_gates_list:
-#     expect = Parallel(n_jobs=8)(delayed(single_crosstalk_simulation)(num_gates) for i in range(num_sample))
-#     fidelity.append(np.mean(expect))
-#     fidelity_error.append(np.std(expect)/np.sqrt(num_sample))
+# The full simulation may take several hours
+# so we just choose num_sample=2 and num_gates=250 as a test
+for num_gates in num_gates_list:
+    expect = Parallel(n_jobs=1)(delayed(single_crosstalk_simulation)(num_gates) for i in range(num_sample))
+    fidelity.append(np.mean(expect))
+    fidelity_error.append(np.std(expect)/np.sqrt(num_sample))
 
 # Recorded result
+num_gates_list = [250, 500, 750, 1000, 1250, 1500]
 data_y = [
     0.9577285560461476,
     0.9384849070716464,

@@ -3,6 +3,7 @@ LINEWIDTH = 3.48692403487
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 try:
+    from quantum_plots import global_setup
     global_setup(fontsize = 10)
 except:
     pass
