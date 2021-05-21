@@ -1,6 +1,6 @@
 This folder contains code examples used in the publication [*Pulse-level noisy quantum circuits with QuTiP*](https://arxiv.org/abs/2105.09902). To run the examples, please first install the software package qutip-qip
 ```
-pip install qutip_qip=0.1.0
+pip install qutip_qip[full] joblib
 ```
 All examples are self-contained and running the code should reproduce the plots used in the paper.
 
