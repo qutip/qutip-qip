@@ -3,7 +3,6 @@ LINEWIDTH = 3.48692403487
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 try:
-    from quantum_plots import global_setup
     global_setup(fontsize = 10)
 except:
     pass
@@ -47,5 +46,5 @@ ax.set_ylabel("Ramsey signal")
 ax.legend()
 ax.grid()
 fig.tight_layout()
-fig.savefig("figures/decoherence.pdf")
+fig.savefig("fig5_decoherence.pdf")
 fig.show()

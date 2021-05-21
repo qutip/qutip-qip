@@ -1,95 +1,159 @@
 TEXTWIDTH = 7.1398920714
 LINEWIDTH = 3.48692403487
+
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+
+from scipy.optimize import curve_fit
+
 try:
-    from quantum_plots import global_setup
-    global_setup(fontsize = 10)
+    global_setup(fontsize=10)
 except:
     pass
+from joblib import Parallel, delayed  # for parallel simulations
 
 import numpy as np
 from qutip import sigmax, sigmay, sigmaz, basis, qeye, tensor, Qobj, fock_dm
 from qutip_qip.circuit import QubitCircuit, Gate
 from qutip_qip.device import ModelProcessor
 from qutip_qip.compiler import GateCompiler, Instruction
+from qutip import Options
+from qutip_qip.noise import Noise
+
 
 class MyProcessor(ModelProcessor):
-    """Custom processor built using ModelProcessor as the base class."""
+    """Custom processor built using ModelProcessor as the base class.
+
+    This custom processor will inherit all the methods of the base class 
+    such as setting up of the T1 and T2 decoherence rates in the simulations.
+
+    In addition, it is possible to write your own functions to add control
+    pulses.
+
+    Args:
+        num_qubits (int): Number of qubits in the processor.
+        t1, t2 (float or list): The T1 and T2 decoherence rates for the
+                                qubit. If it is a list, then it is assumed that
+                                each element of the list corresponds to the rates
+                                for each of the qubits.
+    """
+
     def __init__(self, num_qubits, t1=None, t2=None):
         super().__init__(num_qubits, t1=t1, t2=t2)
-        self.pulse_mode = "discrete"  # The control pulse is discrete or continous.
-        self.set_up_ops(num_qubits)  # set up the available Hamiltonians
-        self.dims = [2] * num_qubits  # The dimension of the quantum system
+        self.pulse_mode = "discrete"  # set the control pulse as discrete or continuous.
+        self.set_up_ops()  # set up the available Hamiltonians.
+        self.dims = [2] * num_qubits  # dimension of the quantum system.
         self.num_qubits = num_qubits
         self.native_gates = ["RX", "RY"]
 
-    def set_up_ops(self, num_qubits):
+    def set_up_ops(self):
         """Sets up the single qubit control operators for each qubit."""
-        for m in range(num_qubits):
-            self.add_control(2 * np.pi * sigmax()/2, m, label="sx" + str(m))
-        for m in range(num_qubits):
-            self.add_control(2 * np.pi * sigmay()/2, m, label="sy" + str(m))
+        for m in range(self.num_qubits):
+            self.add_control(2 * np.pi * sigmax() / 2, m, label="sx" + str(m))
+        for m in range(self.num_qubits):
+            self.add_control(2 * np.pi * sigmay() / 2, m, label="sy" + str(m))
+
 
 class MyCompiler(GateCompiler):
-    """ Custom compiler for generating pulses from gates."""
+    """Custom compiler for generating pulses from gates using the base class 
+    GateCompiler.
+
+    Args:
+        num_qubits (int): The number of qubits in the processor
+        params (dict): A dictionary of parameters for gate pulses such as
+                       the pulse amplitude.
+    """
+
     def __init__(self, num_qubits, params):
         super().__init__(num_qubits, params=params)
         self.params = params
-        self.gate_compiler={"ROT": self.rotation_with_phase_compiler,
-                            "RX": self.single_qubit_gate_compiler,
-                            "RY": self.single_qubit_gate_compiler}
+        self.gate_compiler = {
+            "ROT": self.rotation_with_phase_compiler,
+            "RX": self.single_qubit_gate_compiler,
+            "RY": self.single_qubit_gate_compiler,
+        }
 
-    def generate_pulse(self, gate, tlist, coeff, phase=0.):
-        """Generates the pulses"""
-        pulse_info = [("sx" + str(gate.targets[0]), np.cos(phase) * coeff),  
-                      ("sy" + str(gate.targets[0]), np.sin(phase) * coeff)]
+    def generate_pulse(self, gate, tlist, coeff, phase=0.0):
+        """Generates the pulses.
+
+        Args:
+            gate (qutip_qip.circuit.Gate): A qutip Gate object.
+            tlist (array): A list of times for the evolution.
+            coeff (array): An array of coefficients for the gate pulses
+            phase (float): The value of the phase for the gate.
+
+        Returns:
+            Instruction (qutip_qip.compiler.instruction.Instruction): An instruction
+            to implement a gate containing the control pulses.                                               
+        """
+        pulse_info = [
+            ("sx" + str(gate.targets[0]), np.cos(phase) * coeff),
+            ("sy" + str(gate.targets[0]), np.sin(phase) * coeff),
+        ]
         return [Instruction(gate, tlist, pulse_info)]
 
     def single_qubit_gate_compiler(self, gate, args):
-        """Compiles single qubit gates to pulses"""
+        """Compiles single qubit gates to pulses.
+        
+        Args:
+            gate (qutip_qip.circuit.Gate): A qutip Gate object.
+        
+        Returns:
+            Instruction (qutip_qip.compiler.instruction.Instruction): An instruction
+            to implement a gate containing the control pulses.
+        """
         # gate.arg_value is the rotation angle
         tlist = np.abs(gate.arg_value) / self.params["pulse_amplitude"]
         coeff = self.params["pulse_amplitude"] * np.sign(gate.arg_value)
         if gate.name == "RX":
-            return self.generate_pulse(gate, tlist, coeff, phase=0.)
+            return self.generate_pulse(gate, tlist, coeff, phase=0.0)
         elif gate.name == "RY":
-            return self.generate_pulse(gate, tlist, coeff, phase=np.pi/2)
+            return self.generate_pulse(gate, tlist, coeff, phase=np.pi / 2)
 
     def rotation_with_phase_compiler(self, gate, args):
-        """Compiles gates with a phase term."""
+        """Compiles gates with a phase term.
+
+        Args:
+            gate (qutip_qip.circuit.Gate): A qutip Gate object.
+        
+        Returns:
+            Instruction (qutip_qip.compiler.instruction.Instruction): An instruction
+            to implement a gate containing the control pulses.
+        """
         # gate.arg_value is the pulse phase
         tlist = self.params["duration"]
         coeff = self.params["pulse_amplitude"]
         return self.generate_pulse(gate, tlist, coeff, phase=gate.arg_value)
 
+
 # Define a circuit and run the simulation
 num_qubits = 1
+
 circuit = QubitCircuit(1)
-circuit.add_gate("RX", targets=0, arg_value=np.pi/2)
+circuit.add_gate("RX", targets=0, arg_value=np.pi / 2)
 circuit.add_gate("Z", targets=0)
 
 myprocessor = MyProcessor(1)
-mycompiler = MyCompiler(num_qubits, {"pulse_amplitude":0.02})
-myprocessor.load_circuit(circuit, compiler=mycompiler)
-result = myprocessor.run_state(basis(2,0))
 
-fig, ax = myprocessor.plot_pulses(figsize=(LINEWIDTH*0.7,LINEWIDTH/2*0.7), dpi=200)
+mycompiler = MyCompiler(num_qubits, {"pulse_amplitude": 0.02})
+
+myprocessor.load_circuit(circuit, compiler=mycompiler)
+result = myprocessor.run_state(basis(2, 0))
+
+fig, ax = myprocessor.plot_pulses(
+    figsize=(LINEWIDTH * 0.7, LINEWIDTH / 2 * 0.7), dpi=200
+)
 ax[-1].set_xlabel("Time")
 fig.tight_layout()
-fig.savefig("figures/customize.pdf")
+fig.savefig("custom_compiler_pulse.pdf")
 fig.show()
 
-from joblib import Parallel, delayed
-from qutip import Options
-from qutip_qip.noise import Noise
 
 class ClassicalCrossTalk(Noise):
     def __init__(self, ratio):
         self.ratio = ratio
 
-    def get_noisy_dynamics(
-            self, dims=None, pulses=None, systematic_noise=None):
+    def get_noisy_dynamics(self, dims=None, pulses=None, systematic_noise=None):
         """Adds noise to the control pulses.
         
         Args:
@@ -107,40 +171,62 @@ class ClassicalCrossTalk(Noise):
             target = pulse.targets[0]
             if target != 0:  # add pulse to the left neighbour
                 pulses[i].add_control_noise(
-                    self.ratio * pulse.qobj, targets=[target - 1],
-                    coeff=pulse.coeff, tlist=pulse.tlist)
-            if target != len(dims)-1:  # add pulse to the right neighbour
+                    self.ratio * pulse.qobj,
+                    targets=[target - 1],
+                    coeff=pulse.coeff,
+                    tlist=pulse.tlist,
+                )
+            if target != len(dims) - 1:  # add pulse to the right neighbour
                 pulses[i].add_control_noise(
-                    self.ratio * pulse.qobj, targets=[target + 1],
-                    coeff=pulse.coeff,tlist=pulse.tlist)
+                    self.ratio * pulse.qobj,
+                    targets=[target + 1],
+                    coeff=pulse.coeff,
+                    tlist=pulse.tlist,
+                )
         return pulses, systematic_noise
 
+
 def single_crosstalk_simulation(num_gates):
-    """ A single simulation, with num_gates representing the number of rotations."""
+    """ A single simulation, with num_gates representing the number of rotations.
+
+    Args:
+        num_gates (int): The random number of gates to add in the simulation.
+
+    Returns:
+        result (qutip.solver.Result): A qutip Result object obtained from any of the
+                                      solver methods such as mesolve.
+    """
     num_qubits = 2  # Qubit-0 is the target qubit. Qubit-1 suffers from crosstalk.
     myprocessor = MyProcessor(num_qubits)
     # Add qubit frequency detuning 1.852MHz for the second qubit.
     myprocessor.add_drift(2 * np.pi * (sigmaz() + 1) / 2 * 1.852, targets=1)
     myprocessor.native_gates = None  # Remove the native gates
-    mycompiler = MyCompiler(num_qubits, {"pulse_amplitude":0.02, "duration":25})
-    myprocessor.add_noise(ClassicalCrossTalk(1.))
+    mycompiler = MyCompiler(num_qubits, {"pulse_amplitude": 0.02, "duration": 25})
+    myprocessor.add_noise(ClassicalCrossTalk(1.0))
     # Define a randome circuit.
-    gates_set = [Gate("ROT", 0, arg_value=0),
-                Gate("ROT", 0, arg_value=np.pi/2),
-                Gate("ROT", 0, arg_value=np.pi),
-                Gate("ROT", 0, arg_value=np.pi/2*3)]
+    gates_set = [
+        Gate("ROT", 0, arg_value=0),
+        Gate("ROT", 0, arg_value=np.pi / 2),
+        Gate("ROT", 0, arg_value=np.pi),
+        Gate("ROT", 0, arg_value=np.pi / 2 * 3),
+    ]
     circuit = QubitCircuit(num_qubits)
     for ind in np.random.randint(0, 4, num_gates):
         circuit.add_gate(gates_set[ind])
     # Simulate the circuit.
     myprocessor.load_circuit(circuit, compiler=mycompiler)
     init_state = tensor(
-        [Qobj([[init_fid, 0],[0, 0.025]]), Qobj([[init_fid, 0],[0, 0.025]])])
+        [Qobj([[init_fid, 0], [0, 0.025]]), Qobj([[init_fid, 0], [0, 0.025]])]
+    )
     options = Options(nsteps=10000)  # increase the maximal allowed steps
     e_ops = [tensor([qeye(2), fock_dm(2)])]  # observable
-    result = myprocessor.run_state(init_state, options=options, e_ops=e_ops)
+
+    # compute results of the run using a solver of choice with custom options
+    result = myprocessor.run_state(init_state, solver="mesolve",
+        options=options, e_ops=e_ops)
     result = result.expect[0][-1]  # measured expectation value at the end
     return result
+
 
 num_qubits = 2
 num_sample = 1600
@@ -155,23 +241,43 @@ num_gates_list = [250, 500, 750, 1000, 1250, 1500]
 #     fidelity.append(np.mean(expect))
 #     fidelity_error.append(np.std(expect)/np.sqrt(num_sample))
 
-# plotting
-import matplotlib.pyplot as plt
-from scipy.optimize import curve_fit
 # Recorded result
-data_y = [0.9577285560461476, 0.9384849070716464, 0.9230217713086177, 0.9062344084919285, 0.889009550855518, 0.8749290612064392]
-data_y_error = [0.000431399017208067, 0.0008622091914303468, 0.0012216267555118497, 0.001537120153687202, 0.0018528957172559654, 0.0020169257334183596]
+data_y = [
+    0.9577285560461476,
+    0.9384849070716464,
+    0.9230217713086177,
+    0.9062344084919285,
+    0.889009550855518,
+    0.8749290612064392,
+]
+data_y_error = [
+    0.000431399017208067,
+    0.0008622091914303468,
+    0.0012216267555118497,
+    0.001537120153687202,
+    0.0018528957172559654,
+    0.0020169257334183596,
+]
+
+
 def linear(x, a):
-    return (1/2 + np.exp(-2 * a * x)/2) * 0.975
+    return (1 / 2 + np.exp(-2 * a * x) / 2) * 0.975
+
+
 pos, cov = curve_fit(linear, num_gates_list, data_y, p0=[0.001])
+
 xline = np.linspace(0, 1700, 200)
 yline = linear(xline, *pos)
-fig, ax = plt.subplots(figsize = (LINEWIDTH, 0.65 * LINEWIDTH), dpi=200)
-ax.errorbar(num_gates_list, data_y, yerr=data_y_error, fmt=".", capsize=2, color="slategrey")
+
+fig, ax = plt.subplots(figsize=(LINEWIDTH, 0.65 * LINEWIDTH), dpi=200)
+ax.errorbar(
+    num_gates_list, data_y, yerr=data_y_error, fmt=".", capsize=2, color="slategrey"
+)
 ax.plot(xline, yline, color="slategrey")
 ax.set_ylabel("Average fidelity")
 ax.set_xlabel(r"Number of $\pi$ rotations")
 ax.set_xlim((0, 1700))
+
 fig.tight_layout()
-fig.savefig("figures/cross_talk.pdf")
+fig.savefig("fig4_cross_talk.pdf")
 fig.show()
