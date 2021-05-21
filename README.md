@@ -26,10 +26,12 @@ Migrating from ``qutip.qip``
 As the introduction suggested, this package is based on a module in the [QuTiP](http://qutip.org/docs/latest/) package `qutip.qip`.
 If you were using the `qutip` package and now want to try out the new features included in this package, you can simply install this package and replace all the `qutip.qip` in your import statement with `qutip_qip`. Everything should work smoothly as usual.
 
-Documentation
+Documentation and tutorials
 -------------
 
 The documentation of `qutip-qip` updated to the latest development version is hosted at [qutip-qip.readthedocs.io/](https://qutip-qip.readthedocs.io/en/latest/).
+
+Code examples used in the preprint [*Pulse-level noisy quantum circuits with QuTiP*](https://arxiv.org/abs/2105.09902), updated for the latest code version, are hosted in [this folder](https://github.com/qutip/qutip-qip/tree/master/docs/pulse-paper).
 
 Installation from source
 ------------------------
