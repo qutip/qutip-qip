@@ -11,6 +11,7 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import os
+import pathlib
 import sys
 sys.path.insert(0, os.path.abspath('.'))
 
@@ -21,8 +22,24 @@ project = 'qutip_qip'
 copyright = '2021, QuTiP Community'
 author = 'QuTiP Community'
 
-# The full version, including alpha/beta/rc tags
-release = '0.1.0dev'
+
+def qutip_qip_version():
+    """ Retrieve the qutip-qip version from ``../../VERSION``.
+    """
+    src_folder_root = pathlib.Path(__file__).absolute().parent.parent.parent
+    version = src_folder_root.joinpath(
+        "VERSION"
+    ).read_text().strip()
+    return version
+
+
+# The version info for the project you're documenting, acts as replacement for
+# |version| and |release|, also used in various other places throughout the
+# built documents.
+# The full version, including alpha/beta/rc tags.
+release = qutip_qip_version()
+# The short X.Y version.
+version = ".".join(release.split(".")[:2])
 
 
 # -- General configuration ---------------------------------------------------
