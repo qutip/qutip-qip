@@ -75,10 +75,6 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install numpy scipy cython qutip sphinx matplotlib numpydoc sphinx_rtd_theme
         pip install .
-    - name: Test with doctest
-        python -m pip install numpy scipy cython sphinx matplotlib numpydoc sphinx_rtd_theme
-        pip install qutip
-        pip install .
     - name: Test code snippets in the documentation
       run: |
         cd doc
