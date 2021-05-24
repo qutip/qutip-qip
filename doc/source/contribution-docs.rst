@@ -38,7 +38,7 @@ Under the ``doc`` directory, use
 
     make html
 
-to build the documentation in html format. The build is saved under the directory ``doc/build/html``
+to build the documentation in html format. The build is saved under the directory ``doc/_build/html``
 
 Use the command
 
