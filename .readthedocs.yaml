@@ -2,14 +2,14 @@
 
 version: 2
 
-# Build from the docs/ directory with Sphinx
+# Build from the doc/ directory with Sphinx
 sphinx:
-  configuration: docs/source/conf.py
+  configuration: doc/source/conf.py
 
 # Explicitly set the version of Python and its requirements
 python:
   version: 3.8
   install:
-    - requirements: docs/requirements.txt
+    - requirements: doc/requirements.txt
     - method: pip
       path: .
