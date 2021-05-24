@@ -32,13 +32,13 @@ To build and test the documentation, the following packages are required:
 
     sphinx numpydoc sphinx_rtd_theme doctest
 
-Under the ``docs`` directory, use
+Under the ``doc`` directory, use
 
 .. code-block:: bash
 
     make html
 
-to build the documentation in html format. The build is saved under the directory ``docs/build/html``
+to build the documentation in html format. The build is saved under the directory ``doc/_build/html``
 
 Use the command
 
@@ -68,8 +68,8 @@ Doctest
 
 
 The doctest directive enables tests on interactive code examples. The simplest way
-to do this is by specifying a prompt along with it's respective output:
-::
+to do this is by specifying a prompt along with it's respective output: ::
+
     .. doctest::
 
         >>> a = 2
@@ -92,16 +92,16 @@ after it. This directive is ideally used when there are a number of examples tha
 need to be checked in quick succession.
 
 A different way to specify code examples (and test them) is using the associated
-**.. testcode::** directive which is effectively a code block:
-::
+**.. testcode::** directive which is effectively a code block: ::
+
     .. testcode::
 
         a = 2
         print(a)
 
 followed by  it's results. The result can be specified with the
-**.. testoutput::** block:
-::
+**.. testoutput::** block: ::
+
     .. testoutput::
 
         2
@@ -130,8 +130,8 @@ A few notes on using the doctest extension:
 
 - By default, each **testcode** and **doctest** block is run in a fresh namespace.
   To share a common namespace, we can specify a common group across the blocks
-  (within a single **.rst** file). For example,
-  ::
+  (within a single **.rst** file). For example, ::
+
         .. doctest:: [group_name]
 
           >>> a = 2
@@ -233,7 +233,7 @@ One can use the following code to generate API documentation:
 
 .. code-block::
 
-    cd docs
+    cd doc
     sphinx-apidoc -f -o source/_apidoc/ ../src/qutip_qip -T
 
 It scan the source code of qutip_qip and save the automatically generated API documentation under the path ``source/_apidoc/``.
