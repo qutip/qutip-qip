@@ -13,7 +13,7 @@ To install the package ``qutip-qip`` from PyPI, use
     pip install qutip-qip
 
 Migrating from ``qutip.qip``
-==========================
+============================
 As the :ref:`introduction` suggested, this package is based on a module in the `QuTiP <http://qutip.org/docs/latest/>`_ package ``qutip.qip``.
 If you were using the ``qutip`` package and now want to try out the new features included in this package, you can simply install this package and replace all the ``qutip.qip`` in your import statement with ``qutip_qip``. Everything should work smoothly as usual.
 
