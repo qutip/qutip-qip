@@ -32,11 +32,11 @@ Documentation and tutorials
 
 The documentation of `qutip-qip` updated to the latest development version is hosted at [qutip-qip.readthedocs.io/](https://qutip-qip.readthedocs.io/en/latest/).
 
-Code examples used in the preprint [*Pulse-level noisy quantum circuits with QuTiP*](https://arxiv.org/abs/2105.09902), updated for the latest code version, are hosted in [this folder](https://github.com/qutip/qutip-qip/tree/master/docs/pulse-paper).
+Code examples used in the preprint [*Pulse-level noisy quantum circuits with QuTiP*](https://arxiv.org/abs/2105.09902), updated for the latest code version, are hosted in [this folder](https://github.com/qutip/qutip-qip/tree/master/doc/pulse-paper).
 
 Installation from source
 ------------------------
-If you want to edit the source code, please download the source code and run the following command under the root `qutip-qip` folder, 
+If you want to edit the source code, please download the source code and run the following command under the root `qutip-qip` folder,
 ```
 pip install --upgrade pip
 pip install -e .
@@ -49,7 +49,7 @@ To build and test the documentation, additional packages need to be installed:
 pip install matplotlib sphinx numpydoc sphinx_rtd_theme
 ```
 
-Under the `docs` directory, use
+Under the `doc` directory, use
 ```
 make html
 ```

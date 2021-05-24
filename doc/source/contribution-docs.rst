@@ -32,13 +32,13 @@ To build and test the documentation, the following packages are required:
 
     sphinx numpydoc sphinx_rtd_theme doctest
 
-Under the ``docs`` directory, use
+Under the ``doc`` directory, use
 
 .. code-block:: bash
 
     make html
 
-to build the documentation in html format. The build is saved under the directory ``docs/build/html``
+to build the documentation in html format. The build is saved under the directory ``doc/build/html``
 
 Use the command
 
@@ -233,7 +233,7 @@ One can use the following code to generate API documentation:
 
 .. code-block::
 
-    cd docs
+    cd doc
     sphinx-apidoc -f -o source/_apidoc/ ../src/qutip_qip -T
 
 It scan the source code of qutip_qip and save the automatically generated API documentation under the path ``source/_apidoc/``.
