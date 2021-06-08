@@ -262,7 +262,7 @@ class QubitCircuit:
         Parameters
         ----------
         name: string
-            Measurement name. If name is an instance of `Measuremnent`,
+            Measurement name. If name is an instance of `Measurement`,
             parameters are unpacked and added.
         targets: list
             Gate targets
