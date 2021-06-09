@@ -3,7 +3,7 @@
 #    Copyright (c) 2011 and later, Paul D. Nation and Robert J. Johansson.
 #    All rights reserved.
 #
-#    Redistribution and use in source and binary forms, with or without
+#    Redistribution and use in sourc e and binary forms, with or without
 #    modification, are permitted provided that the following conditions are
 #    met:
 #
