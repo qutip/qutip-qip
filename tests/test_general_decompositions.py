@@ -30,3 +30,27 @@
 #    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 #    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ###############################################################################
+import numpy as np
+import pytest
+from qutip_qip.decompositions.general_decompositions import normalize_matrix
+from qutip import Qobj
+
+def test_normalize_matrix_valid_input():
+    """ Test output when a valid input is provided.
+    """
+    M = np.array([[1, 2], [3, 4]])
+    normalized_M = normalize_matrix(M)
+    calculated_M = np.array([[0.+0.70711j, 0.+1.41421j],[0.+2.12132j, 0.+2.82843j]])
+    assert np.array_equal(calculated_M, normalized_M)
+
+@pytest.mark.parametrize("invalid_input", (Qobj([[1],[2],[3],[4],[5]]),(1,2)))
+def test_normalize_matrix_invalid_input(invalid_input):
+    """ Test error when Qobj array is provided as input.
+    """
+    with pytest.raises(TypeError, match="Not a valid input : A Numpy input array must be provided."):
+        normalize_matrix(invalid_input)
+
+def test_normalize_matrix_empty_array():
+    """When an empty array is provided as input."""
+    with pytest.raises(ValueError, match="An empty array was provided as input."):
+        normalize_matrix(np.array([]))

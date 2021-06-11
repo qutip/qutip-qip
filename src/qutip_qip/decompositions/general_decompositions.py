@@ -30,3 +30,32 @@
 #    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 #    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ###############################################################################
+
+import numpy as np
+
+def normalize_matrix(input_array)-> np.array:
+    """ Checks if the input gate's array is normalized or not. If not, makes
+    sure the input has been normalized.
+
+     Args:
+        input_array : Matrix of a gate in array form.
+    """
+    if not isinstance(input_array, np.ndarray):
+        raise TypeError("Not a valid input : A Numpy input array must be provided.")
+
+
+    if isinstance(input_array, np.ndarray):
+        if input_array.size==0:
+            raise ValueError("An empty array was provided as input.")
+
+        if input_array.shape[0] != input_array.shape[1]:
+            raise ValueError("Input is not a valid matrix gate. Provided array" +
+                            " does not have the same number of rows and columns.")
+
+        if np.linalg.det(input_array) != 1:
+            norm_factor = float(1/np.linalg.det(input_array))**0.5
+            input_array = np.around(norm_factor*input_array,5)
+        else:
+            input_array = input_array
+
+        return(input_array)
