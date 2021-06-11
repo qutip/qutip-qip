@@ -57,6 +57,8 @@ def normalize_matrix(input_array)-> np.array:
             raise ValueError("Input must be a square matrix to be a valid gate.")
 
         if np.linalg.det(input_array) != 1:
+            if np.linalg.det(input_array) ==0:
+                raise ZeroDivisionError("Determinant of matrix =0.")
             norm_factor = float(1/np.abs(np.linalg.det(input_array)))**0.5
             input_array = np.around(norm_factor*input_array,5)
         else:
@@ -64,7 +66,8 @@ def normalize_matrix(input_array)-> np.array:
 
         return(input_array)
 
-# note this function is defined for qobj, re-defined here for a numpy array.
+# Note this function is defined for qobj, re-defined here for a numpy array.
+# Accessing individual elements of Qobj array could be problematic.
 def check_unitary(input_array)-> bool:
     """Checks if the input matrix is unitary or not.
     """
@@ -74,6 +77,6 @@ def check_unitary(input_array)-> bool:
     check_unitary_left = np.allclose(identity_matrix, np.dot(input_array_dagger,input_array))
     check_unitary_right = np.allclose(identity_matrix, np.dot(input_array,input_array_dagger))
     if check_unitary_left != check_unitary_right:
-        print("Unitary product assertions do not match.")
+        raise ArithmeticError("Unitary product assertions do not match.")
     check_unitary = check_unitary_left
     return(check_unitary)

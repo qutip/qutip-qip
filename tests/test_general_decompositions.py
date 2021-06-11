@@ -64,6 +64,13 @@ def test_normalize_matrix_non_square_matrix():
                     normalize_matrix(np.array([[1]]))
                     normalize_matrix(np.array([[1, 2], [3, 4],[5,6]]))
 
+def test_normalize_matrix_zero_determinant():
+    """Check if function tries to divide by 0 norm factor.
+    """
+    with pytest.raises(ZeroDivisionError, match="Determinant of matrix =0."):
+        normalize_matrix(np.array([[0, 0], [0, 0]]))
+
+
 def test_check_unitary():
     """Tests if input is correctly idenitified as unitary. """
     input_array = np.array([[1+1j,1-1j],[1-1j,1+1j]])
