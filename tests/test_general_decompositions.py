@@ -32,15 +32,16 @@
 ###############################################################################
 import numpy as np
 import pytest
-from qutip_qip.decompositions.general_decompositions import normalize_matrix
+from qutip_qip.decompositions.general_decompositions import normalize_matrix, check_unitary
 from qutip import Qobj
 
-def test_normalize_matrix_valid_input():
-    """ Test output when a valid input is provided.
+def test_normalize_matrix_valid_input_not_unitary():
+    """ Test output when a valid input is provided which is not a unitary.
     """
     normalized_M = normalize_matrix(np.array([[1, 2], [3, 4]]))
-    calculated_M = np.array([[0.+0.70711j, 0.+1.41421j],[0.+2.12132j, 0.+2.82843j]])
+    calculated_M = np.array([[0.70711, 1.41421],[2.12132, 2.82843]])
     assert np.array_equal(calculated_M, normalized_M)
+    assert check_unitary(calculated_M) == False
 
 @pytest.mark.parametrize("invalid_input", (Qobj([[1],[2],[3],[4],[5]]),(1,2)))
 def test_normalize_matrix_invalid_input(invalid_input):
@@ -62,3 +63,8 @@ def test_normalize_matrix_non_square_matrix():
                     normalize_matrix(np.array([[1,4,3]]))
                     normalize_matrix(np.array([[1]]))
                     normalize_matrix(np.array([[1, 2], [3, 4],[5,6]]))
+
+def test_check_unitary():
+    """Tests if input is correctly idenitified as unitary. """
+    input_array = np.array([[1+1j,1-1j],[1-1j,1+1j]])
+    assert check_unitary(input_array) == True

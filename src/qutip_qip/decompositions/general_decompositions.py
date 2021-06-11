@@ -37,6 +37,9 @@ def normalize_matrix(input_array)-> np.array:
     """ Checks if the input gate's array is normalized or not. If not, makes
     sure the input has been normalized.
 
+    This function will also check if the input is a valid array and a valid
+    quantum gate.
+
      Args:
         input_array : Matrix of a gate in array form.
     """
@@ -54,9 +57,23 @@ def normalize_matrix(input_array)-> np.array:
             raise ValueError("Input must be a square matrix to be a valid gate.")
 
         if np.linalg.det(input_array) != 1:
-            norm_factor = float(1/np.linalg.det(input_array))**0.5
+            norm_factor = float(1/np.abs(np.linalg.det(input_array)))**0.5
             input_array = np.around(norm_factor*input_array,5)
         else:
             input_array = input_array
 
         return(input_array)
+
+# note this function is defined for qobj, re-defined here for a numpy array.
+def check_unitary(input_array)-> bool:
+    """Checks if the input matrix is unitary or not.
+    """
+    input_array = normalize_matrix(input_array)
+    identity_matrix = np.eye(input_array.shape[0])
+    input_array_dagger = input_array.conj().T
+    check_unitary_left = np.allclose(identity_matrix, np.dot(input_array_dagger,input_array))
+    check_unitary_right = np.allclose(identity_matrix, np.dot(input_array,input_array_dagger))
+    if check_unitary_left != check_unitary_right:
+        print("Unitary product assertions do not match.")
+    check_unitary = check_unitary_left
+    return(check_unitary)
