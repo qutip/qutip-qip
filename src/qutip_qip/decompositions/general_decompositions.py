@@ -48,9 +48,10 @@ def normalize_matrix(input_array)-> np.array:
         if input_array.size==0:
             raise ValueError("An empty array was provided as input.")
 
-        if input_array.shape[0] != input_array.shape[1]:
-            raise ValueError("Input is not a valid matrix gate. Provided array" +
-                            " does not have the same number of rows and columns.")
+        input_matrix_rows = input_array.shape[0]
+        input_matrix_columns = input_array.shape[1]
+        if input_matrix_rows !=input_matrix_columns:
+            raise ValueError("Input must be a square matrix to be a valid gate.")
 
         if np.linalg.det(input_array) != 1:
             norm_factor = float(1/np.linalg.det(input_array))**0.5

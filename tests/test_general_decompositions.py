@@ -38,8 +38,7 @@ from qutip import Qobj
 def test_normalize_matrix_valid_input():
     """ Test output when a valid input is provided.
     """
-    M = np.array([[1, 2], [3, 4]])
-    normalized_M = normalize_matrix(M)
+    normalized_M = normalize_matrix(np.array([[1, 2], [3, 4]]))
     calculated_M = np.array([[0.+0.70711j, 0.+1.41421j],[0.+2.12132j, 0.+2.82843j]])
     assert np.array_equal(calculated_M, normalized_M)
 
@@ -54,3 +53,12 @@ def test_normalize_matrix_empty_array():
     """When an empty array is provided as input."""
     with pytest.raises(ValueError, match="An empty array was provided as input."):
         normalize_matrix(np.array([]))
+
+
+def test_normalize_matrix_non_square_matrix():
+    """Test error is raised when row number and column number of Matrix
+    are mismatched."""
+    with pytest.raises(ValueError, match="Input must be a square matrix to be a valid gate."):
+                    normalize_matrix(np.array([[1,4,3]]))
+                    normalize_matrix(np.array([[1]]))
+                    normalize_matrix(np.array([[1, 2], [3, 4],[5,6]]))
