@@ -41,7 +41,7 @@ def normalize_matrix(input_array)-> np.array:
     quantum gate.
 
      Args:
-        input_array : Matrix of a gate in array form.
+        input_array : Matrix of a gate in Numpy array form.
     """
     if not isinstance(input_array, np.ndarray):
         raise TypeError("Not a valid input : A Numpy input array must be provided.")
@@ -70,6 +70,9 @@ def normalize_matrix(input_array)-> np.array:
 # Accessing individual elements of Qobj array could be problematic.
 def check_unitary(input_array)-> bool:
     """Checks if the input matrix is unitary or not.
+
+    Args:
+       input_array : Matrix of a gate in Numpy array form.
     """
     input_array = normalize_matrix(input_array)
     identity_matrix = np.eye(input_array.shape[0])
@@ -80,3 +83,15 @@ def check_unitary(input_array)-> bool:
         raise ArithmeticError("Unitary product assertions do not match.")
     check_unitary = check_unitary_left
     return(check_unitary)
+
+def extract_global_phase(input_array):
+    """Express input array as a product of some global phase factor and a special
+    unitary matrix array (returned in the form of a list containing `phasegate`
+    and some other special unitary array).
+
+    Args:
+       input_array : Matrix of a gate in Numpy array form.
+    """
+    if check_unitary == True:
+        input_array = normalize_matrix(input_array)
+        
