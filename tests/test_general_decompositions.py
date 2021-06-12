@@ -55,14 +55,17 @@ def test_normalize_matrix_empty_array():
     with pytest.raises(ValueError, match="An empty array was provided as input."):
         normalize_matrix(np.array([]))
 
-
-def test_normalize_matrix_non_square_matrix():
+@pytest.mark.parametrize("input",[np.array([[1,4,3]]),np.array([[1, 2], [3, 4],[5,6]])])
+def test_normalize_matrix_non_square_matrix(input):
     """Test error is raised when row number and column number of Matrix
     are mismatched."""
     with pytest.raises(ValueError, match="Input must be a square matrix to be a valid gate."):
-                    normalize_matrix(np.array([[1,4,3]]))
-                    normalize_matrix(np.array([[1]]))
-                    normalize_matrix(np.array([[1, 2], [3, 4],[5,6]]))
+                    normalize_matrix(input)
+
+def test_normalize_matrix_one_element_array():
+    """Test proper error is raised when 1x1 matrix is provided as input."""
+    with pytest.raises(ValueError, match="Provide a larger array as input."):
+        normalize_matrix(np.array([[1]]))
 
 def test_normalize_matrix_zero_determinant():
     """Check if function tries to divide by 0 norm factor.

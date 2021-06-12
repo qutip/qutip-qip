@@ -51,6 +51,9 @@ def normalize_matrix(input_array)-> np.array:
         if input_array.size==0:
             raise ValueError("An empty array was provided as input.")
 
+        if input_array.shape == (1,1):
+            raise ValueError("Provide a larger array as input.")
+
         input_matrix_rows = input_array.shape[0]
         input_matrix_columns = input_array.shape[1]
         if input_matrix_rows !=input_matrix_columns:
@@ -94,4 +97,18 @@ def extract_global_phase(input_array):
     """
     if check_unitary == True:
         input_array = normalize_matrix(input_array)
-        
+        power_factor_based_on_matrix_shape = 1/input_array.shape[0]
+        det = np.linalg.det(input_array)
+
+        if det.imag == 0.0:
+            sin_value_from_determinant = 0
+        else:
+            sin_value_from_determinant = -det.imag
+
+        if det.real == 0.0:
+            raise ZeroDivisionError("Real part of determinant is 0.")
+        else:
+            cos_value_from_determinant = det.real
+        phase_factor = power_factor_based_on_matrix_shape*np.arctan(sin_value_from_determinant/cos_value_from_determinant)
+
+        return(phase_factor)
