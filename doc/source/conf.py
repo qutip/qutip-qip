@@ -112,7 +112,6 @@ latex_logo = 'figures/logo.png'
 # It screws a few things up if you do - don't be tempted.
 latex_keep_old_macro_names=True
 
-
 # For "manual" documents, if this is true, then toplevel headings are parts,
 # not chapters.
 #latex_use_parts = True
