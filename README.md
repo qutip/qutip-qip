@@ -3,6 +3,7 @@
 [![build](https://github.com/qutip/qutip-qip/workflows/Tests/badge.svg)](https://github.com/qutip/qutip-qip/actions)
 [![Documentation Status](https://readthedocs.org/projects/qutip-qip/badge/?version=latest)](https://qutip-qip.readthedocs.io/en/latest/)
 [![PyPI version](https://badge.fury.io/py/qutip-qip.svg)](https://badge.fury.io/py/qutip-qip)
+[![arXiv paper](https://img.shields.io/badge/arXiv-2105.09902-<COLOR>.svg)](https://arxiv.org/abs/2105.09902)
 
 The qutip-qip package used to be a module ``qutip.qip`` under [QuTiP (Quantum Toolbox in Python)](http://qutip.org/index.html).
 From QuTiP 5.0, the community has decided to decrease the size of the core QuTiP package by reducing the external dependencies, in order to simplify maintenance.
@@ -65,7 +66,20 @@ To test the installation from a download of the source code, run from the `qutip
 ```
 pytest tests
 ```
+Citing `qutip-qip`
+------------
+If you use `qutip-qip` in your research, the  [*preprint*](https://arxiv.org/abs/2105.09902) can be cited as
 
+```bibtex
+@misc{li2021pulselevel,
+      title={Pulse-level noisy quantum circuits with QuTiP},
+      author={Boxi Li and Shahnawaz Ahmed and Sidhant Saraogi and Neill Lambert and Franco Nori and Alexander Pitchford and Nathan Shammah},
+      year={2021},
+      eprint={2105.09902},
+      archivePrefix={arXiv},
+      primaryClass={quant-ph}
+}
+```
 Support
 -------
 This package is supported and maintained by the same developers group as QuTiP.
