@@ -78,6 +78,13 @@ def test_normalize_matrix_zero_determinant():
     with pytest.raises(ZeroDivisionError, match="Determinant of matrix =0."):
         normalize_matrix(np.array([[0, 0], [0, 0]]))
 
+def test_normalize_matrix_normalized_array():
+    """Check if function tries to divide by 0 norm factor.
+    """
+    pauliz = np.array([[1,0],[0,-1]])
+    calculated_array = normalize_matrix(pauliz)
+    assert all([out==inp] for out, inp in zip(calculated_array,pauliz))
+
 
 def test_check_unitary():
     """Tests if input is correctly idenitified as unitary. """
@@ -89,3 +96,35 @@ def test_extract_global_phase_non_unitary_input():
     a unitary."""
     with pytest.raises(ValueError, match = "Input array is not a unitary matrix."):
         extract_global_phase(np.array([[1, 2], [3, 4]]))
+
+def test_extract_global_phase_valid_input_phase_comparison():
+    """Tests if phase is correctly calculated when input is valid. """
+
+    # Determinant has real part only
+    matrix1 = np.multiply(np.array([[1,1],[1,-1]]),1/np.sqrt(2))
+    determined_list_of_gates = extract_global_phase(matrix1)
+    determined_phase_value = determined_list_of_gates[0]
+    actual_phase_value = 1+0j
+    assert(determined_phase_value==actual_phase_value)
+
+
+def test_extract_global_phase_valid_input_output_comparison():
+    """Tests if product of outputs is equal to input when input is valid. """
+
+    # Determinant has real part only
+    matrix1 = np.multiply(np.array([[1,1],[1,-1]]),1/np.sqrt(2))
+    determined_list_of_gates = extract_global_phase(matrix1)
+    determined_phase_value = determined_list_of_gates[0]
+    calculated_array = np.multiply(determined_list_of_gates[1],determined_phase_value)
+    assert all([out==inp] for out, inp in zip(calculated_array,matrix1))
+
+
+def test_extract_global_phase_valid_input_shape_comparison():
+    """Tests if shape of array is unchanged by function. """
+
+    # Determinant has real part only
+    matrix1 = np.multiply(np.array([[1,1],[1,-1]]),1/np.sqrt(2))
+    determined_list_of_gates = extract_global_phase(matrix1)
+    determined_array_shape = np.shape(determined_list_of_gates[1])
+    input_array_shape = np.shape(matrix1)
+    assert all([out==inp] for out, inp in zip(input_array_shape,determined_array_shape))

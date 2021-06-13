@@ -77,7 +77,10 @@ def check_unitary(input_array)-> bool:
     Args:
        input_array : Matrix of a gate in Numpy array form.
     """
-    input_array = normalize_matrix(input_array)
+    try:
+        input_array = normalize_matrix(input_array)
+    except ZeroDivisionError:
+        input_array = input_array
     identity_matrix = np.eye(input_array.shape[0])
     input_array_dagger = input_array.conj().T
     check_unitary_left = np.allclose(identity_matrix, np.dot(input_array_dagger,input_array))
@@ -96,9 +99,13 @@ def extract_global_phase(input_array):
        input_array : Matrix of a gate in Numpy array form.
     """
     if check_unitary(input_array) is True:
-        input_array = normalize_matrix(input_array)
-        power_factor_based_on_matrix_shape = 1/input_array.shape[0]
+        try:
+            input_array = normalize_matrix(input_array)
+        except ZeroDivisionError:
+            input_array = input_array
+
         det = np.linalg.det(input_array)
+        power_factor_based_on_matrix_shape = 1/input_array.shape[0]
 
 
         sin_value_from_determinant = -det.imag
@@ -114,12 +121,11 @@ def extract_global_phase(input_array):
             phase_factor = np.arctan(ratio_sin_cos)
 
         phase_factor = power_factor_based_on_matrix_shape*phase_factor
+        phase_exp_value = np.cos(phase_factor) - 1j*np.sin(phase_factor)
 
-
-        if phase_factor == -0.0:
-            phase_exp_value = -1
-        else:
-            phase_exp_value = np.cos(phase_factor) - 1j*np.sin(phase_factor)
+        # Makes sure the value at |0><0| is positive (not really needed)
+        if phase_exp_value > 0 and input_array[0][0] <0:
+            phase_exp_value = - phase_exp_value
 
         input_to_su_from_phase = np.multiply(input_array,phase_exp_value)
         return((phase_exp_value,input_to_su_from_phase))
