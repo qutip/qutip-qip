@@ -81,7 +81,7 @@ def test_normalize_matrix_zero_determinant():
 def test_normalize_matrix_normalized_array():
     """Check if function tries to divide by 0 norm factor.
     """
-    pauliz = np.array([[1,0],[0,-1]])
+    pauliz = np.multiply(np.array([[1,0],[0,-1]]),1/np.sqrt(2))
     calculated_array = normalize_matrix(pauliz)
     assert all([out==inp] for out, inp in zip(calculated_array,pauliz))
 
