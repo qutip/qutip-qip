@@ -8,4 +8,4 @@ readthedocs-sphinx-search==0.1.0rc3
 numpydoc==1.1.0
 matplotlib==3.3.4
 docutils==0.16
-sphinxcontrib_bibtex==2.3.0
+sphinxcontrib-bibtex==2.3.0
