@@ -29,7 +29,6 @@ qutip-qip: QuTiP quantum information processing
 
     tutorials.rst
 
-
 .. toctree::
     :maxdepth: 2
     :caption: Contribute to qutip-qip
