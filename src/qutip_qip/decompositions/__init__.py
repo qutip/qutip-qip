@@ -30,4 +30,5 @@
 #    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 #    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ###############################################################################
-from qutip_qip.decompositions.general_decompositions import normalize_matrix, check_unitary
+from qutip_qip.decompositions.general_decompositions import (normalize_matrix,
+check_unitary, extract_global_phase)

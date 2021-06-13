@@ -32,7 +32,8 @@
 ###############################################################################
 import numpy as np
 import pytest
-from qutip_qip.decompositions.general_decompositions import normalize_matrix, check_unitary
+from qutip_qip.decompositions.general_decompositions import (
+normalize_matrix, check_unitary, extract_global_phase)
 from qutip import Qobj
 
 def test_normalize_matrix_valid_input_not_unitary():
@@ -43,29 +44,33 @@ def test_normalize_matrix_valid_input_not_unitary():
     assert np.array_equal(calculated_M, normalized_M)
     assert check_unitary(calculated_M) == False
 
-@pytest.mark.parametrize("invalid_input", (Qobj([[1],[2],[3],[4],[5]]),(1,2)))
-def test_normalize_matrix_invalid_input(invalid_input):
+@pytest.mark.parametrize("invalid_input", (Qobj([[1],[2],[3],[4],[5]]),(1,2),1.0,10))
+@pytest.mark.parametrize("method",[normalize_matrix,extract_global_phase,check_unitary])
+def test_method_invalid_input(invalid_input,method):
     """ Test error when Qobj array is provided as input.
     """
     with pytest.raises(TypeError, match="Not a valid input : A Numpy input array must be provided."):
-        normalize_matrix(invalid_input)
+        method(invalid_input)
 
-def test_normalize_matrix_empty_array():
+@pytest.mark.parametrize("method",(normalize_matrix,extract_global_phase,check_unitary))
+def test_method_empty_array(method):
     """When an empty array is provided as input."""
     with pytest.raises(ValueError, match="An empty array was provided as input."):
-        normalize_matrix(np.array([]))
+        method(np.array([]))
 
 @pytest.mark.parametrize("input",[np.array([[1,4,3]]),np.array([[1, 2], [3, 4],[5,6]])])
-def test_normalize_matrix_non_square_matrix(input):
+@pytest.mark.parametrize("method",(normalize_matrix,extract_global_phase,check_unitary))
+def test_method_non_square_matrix(input,method):
     """Test error is raised when row number and column number of Matrix
     are mismatched."""
     with pytest.raises(ValueError, match="Input must be a square matrix to be a valid gate."):
-                    normalize_matrix(input)
+                    method(input)
 
-def test_normalize_matrix_one_element_array():
+@pytest.mark.parametrize("method",(normalize_matrix,extract_global_phase,check_unitary))
+def test_method_one_element_array(method):
     """Test proper error is raised when 1x1 matrix is provided as input."""
     with pytest.raises(ValueError, match="Provide a larger array as input."):
-        normalize_matrix(np.array([[1]]))
+        method(np.array([[1]]))
 
 def test_normalize_matrix_zero_determinant():
     """Check if function tries to divide by 0 norm factor.
@@ -78,3 +83,9 @@ def test_check_unitary():
     """Tests if input is correctly idenitified as unitary. """
     input_array = np.array([[1+1j,1-1j],[1-1j,1+1j]])
     assert check_unitary(input_array) == True
+
+def test_extract_global_phase_non_unitary_input():
+    """Tests if a proper error is raised when input to the function is not
+    a unitary."""
+    with pytest.raises(ValueError, match = "Input array is not a unitary matrix."):
+        extract_global_phase(np.array([[1, 2], [3, 4]]))

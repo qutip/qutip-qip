@@ -95,20 +95,34 @@ def extract_global_phase(input_array):
     Args:
        input_array : Matrix of a gate in Numpy array form.
     """
-    if check_unitary == True:
+    if check_unitary(input_array) is True:
         input_array = normalize_matrix(input_array)
         power_factor_based_on_matrix_shape = 1/input_array.shape[0]
         det = np.linalg.det(input_array)
 
-        if det.imag == 0.0:
-            sin_value_from_determinant = 0
-        else:
-            sin_value_from_determinant = -det.imag
 
-        if det.real == 0.0:
-            raise ZeroDivisionError("Real part of determinant is 0.")
-        else:
-            cos_value_from_determinant = det.real
-        phase_factor = power_factor_based_on_matrix_shape*np.arctan(sin_value_from_determinant/cos_value_from_determinant)
+        sin_value_from_determinant = -det.imag
+        cos_value_from_determinant = det.real
 
-        return(phase_factor)
+        if cos_value_from_determinant == 0.0:
+            if sin_value_from_determinant > 0.0:
+                phase_factor = np.arctan(np.inf)
+            elif sin_value_from_determinant < 0.0:
+                phase_factor = np.arctan(-np.inf)
+        else:
+            ratio_sin_cos = sin_value_from_determinant/cos_value_from_determinant
+            phase_factor = np.arctan(ratio_sin_cos)
+
+        phase_factor = power_factor_based_on_matrix_shape*phase_factor
+
+
+        if phase_factor == -0.0:
+            phase_exp_value = -1
+        else:
+            phase_exp_value = np.cos(phase_factor) - 1j*np.sin(phase_factor)
+
+        input_to_su_from_phase = np.multiply(input_array,phase_exp_value)
+        return((phase_exp_value,input_to_su_from_phase))
+
+    else:
+        raise ValueError("Input array is not a unitary matrix.")
