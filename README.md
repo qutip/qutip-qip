@@ -43,6 +43,14 @@ pip install -e .
 ```
 which makes sure that you are up to date with the latest `pip` version.
 
+In order to check if your code in `some_file.py` follows `PEP8` style guidelines, [*Black*](https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html) has to be installed.
+```
+pip install black
+python -m black some_file.py --diff --color
+python -m black some_file.py
+```
+Using [*`--diff`*](https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html#diffs) will show the changes that will be made by `Black`. If you would prefer these changes to be made, use the last line of above code block. 
+
 To build and test the documentation, additional packages need to be installed:
 
 ```
