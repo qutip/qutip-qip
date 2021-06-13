@@ -15,12 +15,6 @@ qutip-qip: QuTiP quantum information processing
     introduction.rst
     installation.rst
 
-.. toctree::
-    :maxdepth: 2
-    :caption: Tutorials
-
-    tutorials.rst
-
 
 .. toctree::
     :maxdepth: 2
@@ -29,6 +23,13 @@ qutip-qip: QuTiP quantum information processing
     qip-basics.rst
     qip-simulator.rst
     qip-processor.rst
+
+.. toctree::
+    :maxdepth: 2
+    :caption: Tutorials
+
+    tutorials.rst
+
 
 .. toctree::
     :maxdepth: 2
