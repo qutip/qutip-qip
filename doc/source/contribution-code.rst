@@ -28,8 +28,8 @@ The docstring should follow
 Checking Code Style and Format
 ==============================
 
-In order to check if your code in ``some_file.py`` follows `PEP8<https://www.python.org/dev/peps/pep-0008/>`_
-style guidelines, `Black<https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html>`_
+In order to check if your code in ``some_file.py`` follows `PEP8 <https://www.python.org/dev/peps/pep-0008/>`_
+style guidelines, `Black <https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html>`_
 has to be installed.
 
 .. code-block::
@@ -46,11 +46,11 @@ In the directory that contains ``some_file.py``, use
 
 Using ``--check`` will show if any of the file will be reformatted or not.
 
-  * `Code 0<https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html#the-basics>`_ means nothing will be reformatted.
+  * `Code 0 <https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html#the-basics>`_ means nothing will be reformatted.
   * Code 1 means one or more files could be reformatted. More than one files could
     be reformatted if ``black some_directory --check`` is used.
 
-Using ``--diff --color`` will show a `difference<https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html#diffs>`_ of
+Using ``--diff --color`` will show a `difference <https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html#diffs>`_ of
 the changes that will be made by ``Black``. If you would prefer these changes to be made, use the last line of above code block.
 
 .. note::
@@ -85,8 +85,8 @@ or navigate to the file before running the tests.
 A code coverage report in ``html`` format  can be generated locally for
 ``qutip-qip`` using the code line given below. By default the coverage report
 is generated in a temporary directory ``htmlcov``. The report can be output
-in `other formats<https://pytest-cov.readthedocs.io/en/latest/reporting.html>`_
-besides ``html``. 
+in `other formats <https://pytest-cov.readthedocs.io/en/latest/reporting.html>`_
+besides ``html``.
 
 .. code-block::
 
