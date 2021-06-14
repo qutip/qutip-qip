@@ -12,10 +12,9 @@ build a conda environment.
 You don't need to build ``qutip`` in the editable mode unless you also want to contribute to `qutip`.
 Instead, you need to install ``qutip-qip`` by downloading the source code and run
 
-.. code-block::
+.. code-block:: bash
 
     pip install -e .
-
 
 Docstrings for the code
 =======================
