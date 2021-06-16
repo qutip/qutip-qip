@@ -43,12 +43,12 @@ If you want to edit the source code, please download the source code and run the
 pip install --upgrade pip
 pip install -e .
 ```
-which makes sure that you are up to date with the latest `pip` version.
+which makes sure that you are up to date with the latest `pip` version. Contribution guidelines are available [*here*](https://qutip-qip.readthedocs.io/en/latest/contribution-code.html). 
 
 To build and test the documentation, additional packages need to be installed:
 
 ```
-pip install matplotlib sphinx numpydoc sphinx_rtd_theme
+pip install pytest matplotlib sphinx numpydoc sphinx_rtd_theme
 ```
 
 Under the `doc` directory, use
