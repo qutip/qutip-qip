@@ -9,6 +9,7 @@ Subpackages
 
    qutip_qip.algorithms
    qutip_qip.compiler
+   qutip_qip.decompositions
    qutip_qip.device
    qutip_qip.operations
    qutip_qip.transpiler
@@ -68,6 +69,14 @@ qutip\_qip.qubits module
 ------------------------
 
 .. automodule:: qutip_qip.qubits
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+qutip\_qip.version module
+-------------------------
+
+.. automodule:: qutip_qip.version
    :members:
    :undoc-members:
    :show-inheritance:
