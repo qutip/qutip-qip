@@ -31,8 +31,10 @@
 #    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ###############################################################################
 import numpy as np
+import cmath
 
 from qutip.qobj import Qobj
+from ..operations import globalphase
 
 class ConversionError():
     pass
@@ -73,6 +75,13 @@ def extract_global_phase(input_gate):
         if unitary_check == False:
             raise ValueError("Input is not a unitary quantum gate.")
 
+    # find the number of qubits the input gate is acting on
+    dims_of_input = input_gate.dims
+    # To do :write this in a loop based on how dims output could look for larger number of qubits
+    # for example if dims = [[[2], [2]], [[2], [2]]] then first element cannot be accessed as [0][0]
+    if input_shape[0]%input_gate.dims[0][0]==0.0:
+        number_of_qubits = np.log(input_shape[0])/np.log(input_gate.dims[0][0])
+
     # convert input qobj to a numpy array
     input_to_array = Qobj.full(input_gate)
     try:
@@ -84,9 +93,17 @@ def extract_global_phase(input_gate):
     # since there's a check for input being a unitary or not, there's no error
     # being raised 0 determinant.
     real_part = np.real(input_determinant)
-    im_part = -np.imag(input_determinant)
+    im_part = np.imag(input_determinant)
+    polar_angle = cmath.polar(complex(-im_part,real_part))
+    phase_angle = (1/input_shape[0])*polar_angle[1]
+    some_constant = polar_angle[0]
 
+    # globalphase adjusted input
+    constant_for_adjustment = 1/cmath.rect(some_constant,phase_angle)
+    adjusted_input = constant_for_adjustment*input_to_array
 
-    phase_angle = (1/input_shape[0])*np.arctan2(im_part,real_part)
+    # get the global phase gate
+    global_gate_for_input = globalphase(-phase_angle, int(number_of_qubits))
 
-    return(phase_angle)
+    # return a list of the the phase gate and global phase adjusted input gate
+    return((number_of_qubits , -phase_angle, global_gate_for_input, adjusted_input))
