@@ -30,3 +30,23 @@
 #    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 #    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ###############################################################################
+import numpy as np
+import cmath
+
+from qutip.qobj import Qobj
+from .general_decompositions import check_input, find_qubits_in_circuit, convert_qobj_gate_to_array
+
+def ZY_decompositions(input_gate):
+    """Decomposes input quantum gate into a product of Ry and Rz.
+
+    input_gate : :class:`qutip.Qobj`
+        The matrix that's supposed to be decomposed should be a Qobj.
+    """
+    num_of_qubits = find_qubits_in_circuit(input_gate)
+    if num_of_qubits != 1:
+        raise AttributeError("Input is not a 1-qubit gate.")
+    else:
+        if check_input(input_gate) == True:
+            input_gate = convert_qobj_gate_to_array(input_gate)
+        else:
+            raise ValueError("Input is not unitary.")

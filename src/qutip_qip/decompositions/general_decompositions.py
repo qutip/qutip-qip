@@ -96,7 +96,9 @@ def find_qubits_in_circuit(input_gate):
             number_of_qubits = np.log(input_shape[0])/np.log(2)
         else:
             raise ValueError("Input is operationg on odd dimensional qudit state.")
-    return(int(number_of_qubits))
+        return(int(number_of_qubits))
+    else:
+        raise ValueError("Input is not unitary.")
 
 def convert_qobj_gate_to_array(input_gate):
     """Converts a valid unitary quantum gate to a numpy array.
@@ -118,4 +120,6 @@ def convert_qobj_gate_to_array(input_gate):
             isinstance(input_to_array, np.ndarray)
         except:
             raise ConversionError("Input Qobj could not be converted to a numpy array.")
-    return(input_to_array)
+        return(input_to_array)
+    else:
+        raise ValueError("Input is not unitary.")
