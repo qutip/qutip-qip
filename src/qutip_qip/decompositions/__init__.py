@@ -30,4 +30,5 @@
 #    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 #    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ###############################################################################
-from qutip_qip.decompositions.general_decompositions import (extract_global_phase)
+from qutip_qip.decompositions.general_decompositions import (check_input, find_qubits_in_circuit,
+convert_qobj_gate_to_array)

@@ -34,14 +34,13 @@ import numpy as np
 import cmath
 
 from qutip.qobj import Qobj
-from ..operations import globalphase
 
 class ConversionError():
     pass
 
 
-def extract_global_phase(input_gate):
-    """Extracts global phase angle from a valid input quantum gate.
+def check_input(input_gate):
+    """Verifies input is a valid quantum gate.
 
     Parameters
     ----------
@@ -50,60 +49,73 @@ def extract_global_phase(input_gate):
 
     Returns
     -------
-    list[phase_angle,new_array]
-
-    phase_angle : float
-        Global phase angle :math:`{\\alpha}` in :math:`e^{i {\\alpha}}`.
-
-    new_array : np.array
-        Returns an array which is the input gate array multiplied by the
-        global phase factor :math:`e^{i {\\alpha}}`.
+    bool
+        If the input is a valid quantum gate matrix, the function returns "True".
+        In the case of "False" being returned, this function will ensure no
+        decomposition scheme can proceed.
     """
-
     # check if input is a qobj
-    try:
-        isinstance(input_gate,Qobj)
-    except:
+    qobj_check = isinstance(input_gate,Qobj)
+    if qobj_check == False:
         raise TypeError("The input matrix is not a Qobj.")
-
-    # check if input is square and a unitary
-    input_shape = input_gate.shape
-    if input_shape[0] != input_shape[1]:
-        raise ValueError("Input is not a square matrix.")
     else:
-        unitary_check = Qobj.check_isunitary(input_gate)
-        if unitary_check == False:
-            raise ValueError("Input is not a unitary quantum gate.")
+        # check if input is square and a unitary
+        input_shape = input_gate.shape
+        if input_shape[0]==1:
+            raise ValueError("A 1-D Qobj is not a valid quantum gate.")
+        if input_shape[0] != input_shape[1]:
+            raise ValueError("Input is not a square matrix.")
+        else:
+            unitary_check = Qobj.check_isunitary(input_gate)
+            return unitary_check
 
-    # find the number of qubits the input gate is acting on
-    dims_of_input = input_gate.dims
-    # To do :write this in a loop based on how dims output could look for larger number of qubits
-    # for example if dims = [[[2], [2]], [[2], [2]]] then first element cannot be accessed as [0][0]
-    if input_shape[0]%input_gate.dims[0][0]==0.0:
-        number_of_qubits = np.log(input_shape[0])/np.log(input_gate.dims[0][0])
 
-    # convert input qobj to a numpy array
-    input_to_array = Qobj.full(input_gate)
-    try:
-        isinstance(input_to_array, np.ndarray)
-    except:
-        raise ConversionError("Input Qobj could not be converted to a numpy array.")
 
-    input_determinant = np.linalg.det(input_to_array)
-    # since there's a check for input being a unitary or not, there's no error
-    # being raised 0 determinant.
-    real_part = np.real(input_determinant)
-    im_part = np.imag(input_determinant)
-    polar_angle = cmath.polar(complex(-im_part,real_part))
-    phase_angle = (1/input_shape[0])*polar_angle[1]
-    some_constant = polar_angle[0]
+def find_qubits_in_circuit(input_gate):
+    """Based on the shape of the unitary input gate, determines the number of
+    qubits the input gate will act on.
 
-    # globalphase adjusted input
-    constant_for_adjustment = 1/cmath.rect(some_constant,phase_angle)
-    adjusted_input = constant_for_adjustment*input_to_array
+    TO DO: CHANGE THE LOOP FOR QUDITS (CURRENTLY ONLY WORKS FOR QUBITS)
 
-    # get the global phase gate
-    global_gate_for_input = globalphase(-phase_angle, int(number_of_qubits))
+    Parameters
+    ----------
+    input_gate : :class:`qutip.Qobj`
+        The matrix that's supposed to be decomposed should be a Qobj.
 
-    # return a list of the the phase gate and global phase adjusted input gate
-    return((number_of_qubits , -phase_angle, global_gate_for_input, adjusted_input))
+    Returns
+    -------
+    number_of_qubits: int
+        Returns an integer value for the number of qubits
+    """
+    input_check_bool = check_input(input_gate)
+    if input_check_bool == True:
+        input_shape = input_gate.shape
+        if input_shape[0]%2==0.0: # won't be 2 for higher qudits
+        # TO DO : if d=4 (qu4it) then it will still appear as a d=2 i.e. qubit gate
+        # change to powers of 2
+            number_of_qubits = np.log(input_shape[0])/np.log(2)
+        else:
+            raise ValueError("Input is operationg on odd dimensional qudit state.")
+    return(int(number_of_qubits))
+
+def convert_qobj_gate_to_array(input_gate):
+    """Converts a valid unitary quantum gate to a numpy array.
+
+    Parameters
+    ----------
+    input_gate : :class:`qutip.Qobj`
+        The matrix that's supposed to be decomposed should be a Qobj.
+
+    Returns
+    -------
+    input_gate : `np.array`
+        The input is returned as a converted numpy array.
+    """
+    input_check_bool = check_input(input_gate)
+    if input_check_bool == True:
+        input_to_array = Qobj.full(input_gate)
+        try:
+            isinstance(input_to_array, np.ndarray)
+        except:
+            raise ConversionError("Input Qobj could not be converted to a numpy array.")
+    return(input_to_array)
