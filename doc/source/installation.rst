@@ -47,7 +47,26 @@ In addition
 
 are used to build and test the documentation.
 
-A few other packages such as LaTeX is used for circuit plotting, please refer to the main documentation section for detailed instruction.
+Plotting Circuits
+------------------
+In order to plot circuits, following packages are needed.
+
+``texlive`` is one of the packages that could be installed for `LaTeX`.
+
+.. code-block::
+
+  apt-get texlive texlive-latex-base texlive-latex-recommended texlive-latex-extra
+
+
+``ImageMagick`` is needed to display the circuit diagrams. The installation
+instructions are available `here <https://github.com/conda-forge/imagemagick-feedstock#installing-imagemagick>`_.
+
+You `might need <RuntimeError: convert-im6.q16: not authorized `qcirc.pdf' @ error/constitute.c/ReadImage/412.
+convert-im6.q16: no images defined `qcirc.png' @ error/convert.c/ConvertImageCommand/3258.>`_ to make changes to ``policy.xml`` if following error occurs :
+
+.. code-block::
+  RuntimeError: convert-im6.q16: not authorized `qcirc.pdf' @ error/constitute.c/ReadImage/412.
+  convert-im6.q16: no images defined `qcirc.png' @ error/convert.c/ConvertImageCommand/3258.
 
 .. _installation:
 
