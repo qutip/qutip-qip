@@ -38,7 +38,7 @@ from qutip.qobj import Qobj
 from .general_decompositions import (check_input, find_qubits_in_circuit,
                                     convert_qobj_gate_to_array, extract_global_phase)
 
-from .single_qubit_decomposition import (single_qubit_decomposition, ABC_decomposition,
+from .single_qubit_decompositions import (single_qubit_decomposition, ABC_decomposition,
 ZY_decomposition)
 
 def verify_decomposition(input_gate):
@@ -50,5 +50,3 @@ def verify_decomposition(input_gate):
     """
 
     # NOTE : This function is not yet complete.
-
-    
