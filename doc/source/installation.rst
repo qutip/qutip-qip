@@ -47,26 +47,35 @@ In addition
 
 are used to build and test the documentation.
 
+.. _circuit_plot_packages:
+
 Plotting Circuits
 ------------------
-In order to plot circuits, following packages are needed.
+In order to plot circuits, following packages are needed - ``LaTex``, ``ImageMagick``,
+``QCircuit``, ``pdfcrop`` and ``pdflatex``.
 
-``texlive`` is one of the packages that could be installed for `LaTeX`.
+**For Linux** : If you would prefer to avoid installing the full ``texlive``
+package for ``LaTex``, `this link has <https://tex.stackexchange.com/a/504566/203959>`_
+some useful discussion on selectively installing smaller packages. ``LaTex`` is needed
+to plot the circuits.
 
-.. code-block::
+* ``braket`` will be installed as a part of ``texlive-latex-extra``
+* ``qcircuit`` will be installed as a part of ``texlive-pictures``
+* ``pdfcrop`` and ``pdflatex`` are installed when a minimal ``texlive`` is installed.
 
-  apt-get texlive texlive-latex-base texlive-latex-recommended texlive-latex-extra
+``ImageMagick`` can be installed as a conda package via `this link <https://github.com/conda-forge/imagemagick-feedstock#installing-imagemagick>`_
+or use this `link <https://imagemagick.org/script/download.php>`_ to install
+via source. This package along with ``pdfcrop`` and ``pdflatex`` are
+needed to display the circuit diagrams.
 
 
-``ImageMagick`` is needed to display the circuit diagrams. The installation
-instructions are available `here <https://github.com/conda-forge/imagemagick-feedstock#installing-imagemagick>`_.
+You `might need to make changes <https://stackoverflow.com/a/52863413/10241324>`_ to ``policy.xml`` if following error occurs :
 
-You `might need <RuntimeError: convert-im6.q16: not authorized `qcirc.pdf' @ error/constitute.c/ReadImage/412.
-convert-im6.q16: no images defined `qcirc.png' @ error/convert.c/ConvertImageCommand/3258.>`_ to make changes to ``policy.xml`` if following error occurs :
+.. code-block:: text
 
-.. code-block::
   RuntimeError: convert-im6.q16: not authorized `qcirc.pdf' @ error/constitute.c/ReadImage/412.
   convert-im6.q16: no images defined `qcirc.png' @ error/convert.c/ConvertImageCommand/3258.
+
 
 .. _installation:
 
