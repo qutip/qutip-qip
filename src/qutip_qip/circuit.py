@@ -49,7 +49,7 @@ from .operations import (Gate, rx, ry, rz, sqrtnot, snot, phasegate,
                                         iswap, sqrtswap, sqrtiswap, fredkin,
                                         toffoli, controlled_gate, globalphase,
                                         expand_operator, gate_sequence_product,
-                                        ,'_GATE_NAME_TO_LABEL','_gate_label')
+                                        _GATE_NAME_TO_LABEL,_gate_label)
 from qutip import tensor, basis, identity, ket2dm, qeye
 from qutip.qobj import Qobj
 from qutip.measurement import measurement_statistics
