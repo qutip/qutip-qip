@@ -34,9 +34,12 @@ import numpy as np
 import cmath
 
 from qutip.qobj import Qobj
-from .general_decompositions import check_input, find_qubits_in_circuit, convert_qobj_gate_to_array
+from .general_decompositions import (check_input, find_qubits_in_circuit,
+                                    convert_qobj_gate_to_array, extract_global_phase)
 
-def ZY_decompositions(input_gate):
+from ..operations import (ry, rz, globalphase, x_gate)
+
+def ZY_decomposition(input_gate):
     """Decomposes input quantum gate into a product of Ry and Rz.
 
     input_gate : :class:`qutip.Qobj`
@@ -47,6 +50,80 @@ def ZY_decompositions(input_gate):
         raise AttributeError("Input is not a 1-qubit gate.")
     else:
         if check_input(input_gate) == True:
-            input_gate = convert_qobj_gate_to_array(input_gate)
+            input_list_of_phase_array = extract_global_phase(input_gate)
         else:
             raise ValueError("Input is not unitary.")
+
+        phase_angle = input_list_of_phase_array[0]
+        num_of_qubits = input_list_of_phase_array[1]
+        input_array = input_list_of_phase_array[2]
+
+        # Change labels of variables
+        # Currently, it is all consistent with the calculations pdf.
+        a = input_array[0][0]
+        b = input_array[0][1]
+
+        # Find the angles for Rz and Ry
+        alpha = cmath.phase(complex(-np.imag(a),np.real(a))) + cmath.phase(complex(-np.imag(b),np.real(b)))
+        beta = cmath.phase(complex(-np.imag(a),np.real(a))) - cmath.phase(complex(-np.imag(b),np.real(b)))
+        theta = cmath.phase(np.sqrt(cmath.abs(b)/cmath.abs(a)))
+
+        # Return a list of the gate arrays
+        gate_1 = rz(alpha)
+        gate_2 = ry(theta)
+        gate_3 = rz(beta)
+        global_phase_gate = globalphase(phase_angle)
+
+        output_list = [global_phase_gate,gate_1,gate_2,gate_3]
+
+def ABC_decomposition(input_gate):
+    """Decomposes input quantum gate into a product of Pauli X, Ry and Rz.
+
+    input_gate : :class:`qutip.Qobj`
+        The matrix that's supposed to be decomposed should be a Qobj.
+    """
+    num_of_qubits = find_qubits_in_circuit(input_gate)
+    if num_of_qubits != 1:
+        raise AttributeError("Input is not a 1-qubit gate.")
+    else:
+        if check_input(input_gate) == True:
+            input_list_of_phase_array = extract_global_phase(input_gate)
+        else:
+            raise ValueError("Input is not unitary.")
+
+        phase_angle = input_list_of_phase_array[0]
+        num_of_qubits = input_list_of_phase_array[1]
+        input_array = input_list_of_phase_array[2]
+
+        # Change labels of variables
+        # Currently, it is all consistent with the calculations pdf.
+        a = input_array[0][0]
+        b = input_array[0][1]
+
+        # Find the angles for Rz and Ry
+        alpha = cmath.phase(complex(-np.imag(a),np.real(a))) + cmath.phase(complex(-np.imag(b),np.real(b)))
+        beta = cmath.phase(complex(-np.imag(a),np.real(a))) - cmath.phase(complex(-np.imag(b),np.real(b)))
+        theta = cmath.phase(np.sqrt(cmath.abs(b)/cmath.abs(a)))
+
+        # Return a list of the gate arrays
+        A_1 = rz(alpha)
+        A_2 = ry(theta/2)
+        B_1 = ry(-theta/2)
+        B_2 = rz(-(alpha+beta)/2)
+        C = rz((-alpha+beta)/2)
+        global_phase_gate = globalphase(phase_angle)
+
+        output_list = [global_phase_gate, A_1, A_2,x_gate, B_1, B_2, x_gate, C]
+
+
+def single_qubit_decomposition(input_choice):
+    """ Decomposes an arbitrary input 1 - qubit gate based on the user's choice.
+    """
+
+    if (input_choice == 'optimize_decomposition') or (input_choice = 'ZY_decomposition'):
+        calculated_decomposition = ZY_decomposition(input_choice)
+    elif input_choice == 'ABC_decomposition':
+        calculated_decomposition = ABC_decomposition(input_choice)
+    else:
+        raise NameError("Decomposition method not defined.")
+    return(calculated_decomposition)

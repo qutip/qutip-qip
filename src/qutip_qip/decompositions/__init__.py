@@ -31,4 +31,7 @@
 #    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ###############################################################################
 from qutip_qip.decompositions.general_decompositions import (check_input, find_qubits_in_circuit,
-convert_qobj_gate_to_array)
+convert_qobj_gate_to_array, extract_global_phase)
+
+from qutip_qip.decompositions.single_qubit_decomposition import (single_qubit_decomposition, ABC_decomposition,
+ZY_decomposition)

@@ -100,6 +100,7 @@ def find_qubits_in_circuit(input_gate):
     else:
         raise ValueError("Input is not unitary.")
 
+
 def convert_qobj_gate_to_array(input_gate):
     """Converts a valid unitary quantum gate to a numpy array.
 
@@ -123,3 +124,38 @@ def convert_qobj_gate_to_array(input_gate):
         return(input_to_array)
     else:
         raise ValueError("Input is not unitary.")
+
+
+def extract_global_phase(input_gate):
+    """ Extracts some common constant from all the elements of the matrix. The output
+    is retuned in the complex exponential form.
+
+    Parameters
+    ----------
+    input_gate : :class:`qutip.Qobj`
+        The matrix that's supposed to be decomposed should be a Qobj.
+
+    Returns
+    -------
+    list(phase_angle, num_of_qubits, input_array)
+        A list containing the phase angle and the input Qobj converted
+        to an array. The phase angle value and num_of_qubits will be used as
+        an input for the global phase gate.
+    """
+    input_array = convert_qobj_gate_to_array(input_gate)
+
+    # Calculate the number of qubits
+    num_of_qubits = find_qubits_in_circuit(input_array)
+
+
+    det_of_input = np.linalg.det(input_array)
+    # https://docs.python.org/2/library/cmath.html#conversions-to-and-from-polar-coordinates
+    phase_angle = cmath.phase(complex(-np.imag(det_of_input),np.real(det_of_input)))
+
+    # Calculates the multiplication factor to change input_array
+    # r = 1 because there was a check for the input to be unitary
+    phase_factor = cmath.rect(1, -phase_angle)
+    input_array = np.multiply(input_array,phase_factor)
+
+    output_list = [-phase_angle,int(num_of_qubits), input_array]
+    return(output_list)

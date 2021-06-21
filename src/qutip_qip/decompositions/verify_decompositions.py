@@ -31,4 +31,24 @@
 #    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ###############################################################################
 
-# add functions to check the calculated decomposition is equivalent to input array. 
+import numpy as np
+import cmath
+
+from qutip.qobj import Qobj
+from .general_decompositions import (check_input, find_qubits_in_circuit,
+                                    convert_qobj_gate_to_array, extract_global_phase)
+
+from .single_qubit_decomposition import (single_qubit_decomposition, ABC_decomposition,
+ZY_decomposition)
+
+def verify_decomposition(input_gate):
+    """Checks if input quantum gate and the list of decompositions are
+    equivalent within some global phase.
+
+    input_gate : :class:`qutip.Qobj`
+        The matrix that's supposed to be decomposed should be a Qobj.
+    """
+
+    # NOTE : This function is not yet complete.
+
+    
