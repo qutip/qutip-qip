@@ -399,7 +399,7 @@ class TestQubitCircuit:
                       targets=[1])
         pytest.raises(ValueError, qc.add_gate, gate)
 
-    def test_global_phase_gate_propagators(self):
+    def test_globalphase_gate_propagators(self):
         qc = QubitCircuit(2)
         qc.add_gate("GLOBALPHASE", arg_value=np.pi / 2)
 
