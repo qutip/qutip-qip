@@ -48,9 +48,10 @@ In addition
 are used to build and test the documentation.
 
 .. _circuit_plot_packages:
+
 Additional software for Plotting Circuits
 =========================================
-In order to plot circuits, the following non-Python softwares are needed:
+In order to plot circuits, the following non-Python packages are needed:
 
 LaTeX
 -----
@@ -71,24 +72,16 @@ has some useful discussion on selectively installing part of the packages. In pa
   environment.
 
 **For Windows** :
-We recommend installing `MiKTeX <https://miktex.org/>`_, which will automatically install necessary packages like `qcircuit` for you when it is used. It will only take a few more minutes in your first attempt at plotting a circuit.
+We recommend installing `MiKTeX <https://miktex.org/>`_, which will automatically install necessary packages like ``qcircuit`` for you when it is used. It will only take a few more minutes in your first attempt at plotting a circuit.
 In addition, you also need to install perl for ``pdfcrop``.
 
 ImageMagick and Ghostscript
 ---------------------------
-The output of a circuit plot will be output in a `Jupyter notebook <https://jupyterlab.readthedocs.io/en/stable/getting_started/installation.html>`_.
-In your virtual environment, start a Jupyter notebook and run your examples
-in a notebook. If you try to access a circuit plot in a terminal or IPython console,
-you will be able to access the location of this image in memory.
+In order to display the circuit in Jupyter notebook, we need to convert it to png
+format. To do that, you will need to install `Ghostscript <https://www.ghostscript.com/doc/current/Make.htm>`_
+and `ImageMagick <https://imagemagick.org/script/install-source.php>`_.
+The first is responsible for reading the pdf file while the second will convert it to png.
 
-
-In order to display the circuit in Jupyter notebook, we need to convert it to png format. To do that, you will need to isntall `Ghostscript <https://www.ghostscript.com/>`_ and `ImageMagick <https://imagemagick.org/script/download.php>`_.
-The first is responsible for reading the pdf file while the second converting it to png.
-
-``ImageMagick`` can be installed as a conda package via `this link <https://github.com/conda-forge/imagemagick-feedstock#installing-imagemagick>`_
-or use this `link <https://imagemagick.org/script/download.php>`_ to install
-via source. This package along with ``pdfcrop`` and ``pdflatex`` are
-needed to display the circuit diagrams.
 
 .. note::
     You `might need to make changes <https://stackoverflow.com/a/52863413/10241324>`_ to ``policy.xml`` if the following error occurs :
@@ -97,6 +90,14 @@ needed to display the circuit diagrams.
 
         RuntimeError: convert-im6.q16: not authorized `qcirc.pdf' @ error/constitute.c/ReadImage/412.
         convert-im6.q16: no images defined `qcirc.png' @ error/convert.c/ConvertImageCommand/3258.
+
+
+The output of a circuit plot will be output in a `Jupyter notebook <https://jupyterlab.readthedocs.io/en/stable/getting_started/installation.html>`_.
+In your virtual environment, start a Jupyter notebook and run your examples
+in a notebook. If you try to access a circuit plot in a terminal or IPython console,
+you will only be able to access the location of this image in your device's memory.
+
+
 
 pdf2svg
 -------
@@ -129,6 +130,7 @@ If you want to edit the code, use instead
     pip install -e .
 
 To test the installation from a download of the source code, run from the `qutip-qip` directory
+
 ```
 pytest tests
 ```
