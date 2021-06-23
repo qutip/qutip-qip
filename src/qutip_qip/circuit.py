@@ -344,8 +344,6 @@ class QubitCircuit:
 
         else:
             for position in index:
-                num_mes = (sum(isinstance(op, Measurement) for op
-                               in self.gates[:position]))
                 gate = Gate(name, targets=targets, controls=controls,
                             arg_value=arg_value, arg_label=arg_label,
                             classical_controls=classical_controls,
