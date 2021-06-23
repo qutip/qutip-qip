@@ -291,9 +291,9 @@ ImageMagick can be easily installed with the command conda install imagemagick i
 Otherwise, please follow the installation instructions on the ImageMagick documentation.
 
 More information related to installing these packages is also available in the
-installation guide (:ref:`circuit_plot_packages`). 
+installation guide (:ref:`circuit_plot_packages`).
 
-On windows, you need to download and install ImageMagick installer.
+On Windows, you need to download and install ImageMagick installer.
 In addition, you also need perl (for ``pdfcrop``) and
 Ghostscript (additional dependency of ImageMagick for png conversion).
 
