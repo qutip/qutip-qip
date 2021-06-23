@@ -1235,8 +1235,20 @@ class QubitCircuit:
 
     def propagators(self, expand=True):
         """
-        Propagator matrix calculator for N qubits returning the individual
+        Propagator matrix calculator returning the individual
         steps as unitary matrices operating from left to right.
+
+        Parameters
+        ----------
+        expand : bool, optional
+            Whether to expand the unitary matrices for the individual
+            steps to the full Hilbert space for N qubits.
+            Defaults to ``True``.
+            If ``False``, the unitary matrices will not be expanded and the
+            list of unitaries will need to be combined with the list of
+            gates in order to determine which qubits the unitaries should
+            act on.
+
         Returns
         -------
         U_list : list
