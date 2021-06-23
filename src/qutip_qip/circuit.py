@@ -47,8 +47,8 @@ from .operations import (Gate, rx, ry, rz, sqrtnot, snot, phasegate,
                                         csign, berkeley, swapalpha, swap,
                                         iswap, sqrtswap, sqrtiswap, fredkin,
                                         toffoli, controlled_gate, globalphase,
-                                        expand_operator, gate_sequence_product,
-                                        _gate_label)
+                                        expand_operator, gate_sequence_product)
+from .operations.gates import _gate_label
 from qutip import basis, ket2dm, qeye
 from qutip.qobj import Qobj
 from qutip.measurement import measurement_statistics
