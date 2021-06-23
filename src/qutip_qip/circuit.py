@@ -568,7 +568,7 @@ class QubitCircuit:
     def _gate_NOTIMPLEMENTED(self, gate, temp_resolved):
         raise NotImplementedError("Cannot be resolved in this basis")
 
-    _gate_PHASEGATE = _gate_BERKELEY = _gate_SWAPalpha = _gate_NOTIMPLEMENTED
+    _gate_BERKELEY = _gate_SWAPalpha = _gate_NOTIMPLEMENTED
     _gate_SQRTSWAP = _gate_SQRTISWAP = _gate_NOTIMPLEMENTED
 
     def _gate_CSIGN(self, gate, temp_resolved):
