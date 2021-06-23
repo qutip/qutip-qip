@@ -47,7 +47,8 @@ from .operations import (Gate, rx, ry, rz, sqrtnot, snot, phasegate,
                                         csign, berkeley, swapalpha, swap,
                                         iswap, sqrtswap, sqrtiswap, fredkin,
                                         toffoli, controlled_gate, globalphase,
-                                        expand_operator, gate_sequence_product)
+                                        expand_operator, gate_sequence_product,
+                                        _gate_label)
 from qutip import basis, ket2dm, qeye
 from qutip.qobj import Qobj
 from qutip.measurement import measurement_statistics
@@ -66,6 +67,7 @@ except ImportError:
 
 __all__ = ['QubitCircuit', 'Measurement',
            'CircuitResult', 'CircuitSimulator']
+
 
 class Measurement:
     """
@@ -1445,7 +1447,7 @@ class QubitCircuit:
             elif gate.name == "TOFFOLI":
                 self.U_list.append(toffoli())
             elif gate.name == "GLOBALPHASE":
-                self.U_list.append(globalphase(gate.arg_value, n))
+                self.U_list.append(globalphase(gate.arg_value, self.N))
             elif gate.name == "IDLE":
                 self.U_list.append(qeye(2))
             elif gate.name in self.user_gates:
