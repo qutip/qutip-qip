@@ -48,6 +48,8 @@ from qutip_qip.operations import (
     _para_gates
 )
 
+import qutip as qp
+
 
 def _op_dist(A, B):
     return (A - B).norm()
@@ -396,6 +398,20 @@ class TestQubitCircuit:
         pytest.raises(ValueError, qc.add_gate, gate,
                       targets=[1])
         pytest.raises(ValueError, qc.add_gate, gate)
+
+    def test_global_phase_gate_propagators(self):
+        qc = QubitCircuit(2)
+        qc.add_gate("GLOBALPHASE", arg_value=np.pi / 2)
+
+        [gate] = qc.gates
+        assert gate.name == "GLOBALPHASE"
+        assert gate.arg_value == np.pi / 2
+
+        [U_expanded] = qc.propagators()
+        assert U_expanded == 1j * qp.qeye([2, 2])
+
+        [U_unexpanded] = qc.propagators(expand=False)
+        assert U_unexpanded == 1j * qp.qeye([2, 2])
 
     def test_single_qubit_gates(self):
         """
