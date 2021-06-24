@@ -120,7 +120,7 @@ def single_qubit_decomposition(input_choice):
     """ Decomposes an arbitrary input 1 - qubit gate based on the user's choice.
     """
 
-    if (input_choice == 'optimize_decomposition') or (input_choice = 'ZY_decomposition'):
+    if (input_choice == 'optimize_decomposition') or (input_choice == 'ZY_decomposition'):
         calculated_decomposition = ZY_decomposition(input_choice)
     elif input_choice == 'ABC_decomposition':
         calculated_decomposition = ABC_decomposition(input_choice)

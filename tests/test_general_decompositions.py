@@ -71,7 +71,7 @@ def test_check_input_non_qobj(unitary):
 
 @pytest.mark.parametrize("non_unitary",[Qobj([[1,1],[0,1]])])
 def test_check_input_non_qobj(non_unitary):
-    """Checks if non-unitary innput is correctly identified.
+    """Checks if non-unitary input is correctly identified.
     """
     assert(check_input(non_unitary)==False)
 
