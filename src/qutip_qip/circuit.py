@@ -1258,7 +1258,7 @@ class QubitCircuit:
         """
 
         if not expand:
-            return self.propagators_no_expand()
+            return self._propagators_no_expand()
 
         U_list = []
 
@@ -1380,7 +1380,7 @@ class QubitCircuit:
 
         return U_list
 
-    def propagators_no_expand(self):
+    def _propagators_no_expand(self):
         """
         Propagator matrix calculator for N qubits returning the individual
         steps as unitary matrices operating from left to right.
