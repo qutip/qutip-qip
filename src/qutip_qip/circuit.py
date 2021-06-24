@@ -48,7 +48,7 @@ from .operations import (Gate, rx, ry, rz, sqrtnot, snot, phasegate,
                                         csign, berkeley, swapalpha, swap,
                                         iswap, sqrtswap, sqrtiswap, fredkin,
                                         toffoli, controlled_gate, globalphase,
-                                        expand_operator, gate_sequence_product,_GATE_NAME_TO_LABEL,
+                                        expand_operator, gate_sequence_product,
                                         _gate_label)
 from qutip import tensor, basis, identity, ket2dm, qeye
 from qutip.qobj import Qobj
