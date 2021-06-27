@@ -106,6 +106,8 @@ def extract_global_phase(input_gate, num_of_qubits):
     """
     input_array = convert_qobj_gate_to_array(input_gate)
     determinant_of_input = np.linalg.det(input_array)
-    global_phase_angle = cmath.phase(determinant_of_input)
+    y = np.imag(determinant_of_input)
+    x = np.real(determinant_of_input)
+    global_phase_angle = np.arctan2(y,x)
     global_phase_angle = global_phase_angle/(2**num_of_qubits)
     return(global_phase_angle)

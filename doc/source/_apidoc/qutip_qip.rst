@@ -9,9 +9,9 @@ Subpackages
 
    qutip_qip.algorithms
    qutip_qip.compiler
+   qutip_qip.decompositions
    qutip_qip.device
    qutip_qip.operations
-   qutip_qip.decompositions
    qutip_qip.transpiler
 
 Submodules
