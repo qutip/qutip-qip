@@ -43,33 +43,6 @@ def test_check_input_non_qobj(non_unitary):
     assert(check_input(non_unitary)==False)
 
 
-@pytest.mark.parametrize("valid_input",[Qobj([[1,0],[0,-1]]),rx(np.pi/2),z_gate(1),t_gate(1)])
-def test_one_qubit_gates(valid_input):
-    """Checks if number of qubits the gate will act on are identified properly
-    for one qubit gates.
-    """
-    assert(find_qubits_in_circuit(valid_input)==1)
-
-@pytest.mark.parametrize("valid_input",[rx(np.pi/2,2),z_gate(2),t_gate(2)])
-def test_two_qubit_gates(valid_input):
-    """Checks if number of qubits the gate will act on are identified properly
-    for two qubit gates.
-    """
-    assert(find_qubits_in_circuit(valid_input)==2)
-
-@pytest.mark.parametrize("valid_input",[rx(np.pi/2,3),z_gate(3),t_gate(3)])
-def test_three_qubit_gates(valid_input):
-    """Checks if number of qubits the gate will act on are identified properly
-    for three qubit gates.
-    """
-    assert(find_qubits_in_circuit(valid_input)==3)
-
-@pytest.mark.parametrize("valid_input",[Qobj([[1,0,0],[0,1,0],[0,0,1]])])
-def test_one_qutrit_gates(valid_input):
-    """Checks if qutrit gate is identified.
-    """
-    with pytest.raises(ValueError,match="Input is operationg on odd dimensional qudit state."):
-        find_qubits_in_circuit(valid_input)
 
 @pytest.mark.parametrize("valid_input",[Qobj([[1,0,0],[0,1,0],[0,0,1]]),rx(np.pi/2,3),z_gate(3),t_gate(3)])
 def test_one_qutrit_gates(valid_input):
