@@ -3,6 +3,12 @@ import cmath
 
 from qutip.qobj import Qobj
 
+class MethodError(Exception):
+    pass
+
+class GateError(Exception):
+    pass
+
 def check_input(input_gate):
     """Verifies input is a valid quantum gate.
 
@@ -60,11 +66,7 @@ def check_input_shape(input_gate, num_of_qubits):
     input_check_bool = check_input(input_gate)
     if input_check_bool == True:
         input_shape = input_gate.shape
-        try:
-            assert input_shape[0] == 2**num_of_qubits
-        except AssertionError:
-            return(False)
-        return(True)
+        return input_shape[0] == 2**num_of_qubits
     else:
         raise ValueError("Input is not unitary.")
 
@@ -104,10 +106,13 @@ def extract_global_phase(input_gate, num_of_qubits):
         The matrix that's supposed to be decomposed should be a Qobj.
 
     """
-    input_array = convert_qobj_gate_to_array(input_gate)
-    determinant_of_input = np.linalg.det(input_array)
-    y = np.imag(determinant_of_input)
-    x = np.real(determinant_of_input)
-    global_phase_angle = np.arctan2(y,x)
-    global_phase_angle = global_phase_angle/(2**num_of_qubits)
-    return(global_phase_angle)
+    if check_input_shape(input_gate, num_of_qubits) == True:
+        input_array = convert_qobj_gate_to_array(input_gate)
+        determinant_of_input = np.linalg.det(input_array)
+        y = np.imag(determinant_of_input)
+        x = np.real(determinant_of_input)
+        global_phase_angle = np.arctan2(y,x)
+        global_phase_angle = global_phase_angle/(2**num_of_qubits)
+        return(global_phase_angle)
+    else:
+        raise GateError("Gate shape does not match to the number of qubits in the circuit. ")

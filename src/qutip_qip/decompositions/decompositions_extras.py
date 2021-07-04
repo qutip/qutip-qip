@@ -1,8 +1,8 @@
 from qutip_qip.decompositions.general_decompositions import (check_input,
 check_input_shape, convert_qobj_gate_to_array)
 
-from qutip_qip.decompositions.single_decompositions import (_ZYZ_rotation, ABC_decomposition)
-from qutip import *
+from qutip_qip.decompositions.single_decompositions import (_ZYZ_rotation, _ZXZ_rotation, _rotation_matrices_dictionary, decompose_to_rotation_matrices, ABC_decomposition)
+from qutip.qobj import Qobj
 from qutip_qip.operations import *
 from qutip_qip.circuit import QubitCircuit, Gate
 from numpy import pi
