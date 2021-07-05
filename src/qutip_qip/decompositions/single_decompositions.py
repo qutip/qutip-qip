@@ -2,7 +2,7 @@ import numpy as np
 import cmath
 
 from qutip.qobj import Qobj
-from .general_decompositions import (check_input, check_input_shape,
+from qutip_qip.decompositions.general_decompositions import (check_input, check_input_shape,
 convert_qobj_gate_to_array, extract_global_phase, MethodError, GateError)
 
 from qutip_qip.operations import *
@@ -10,13 +10,14 @@ from qutip_qip.circuit import QubitCircuit, Gate
 
 
 # Functions for decompose_to_rotation_matrices
-def _angles_for_ZYZ(input_gate, 1):
+single_qubit = 1
+def _angles_for_ZYZ(input_gate, single_qubit):
     """ Finds and returns the angles for ZYZ rotation matrix. These are
     used to change ZYZ to other combinations.
     """
-    global_phase_angle = extract_global_phase(input_gate,1)
-    input_array = cmath.rect(1,global_phase_angle)*convert_qobj_gate_to_array(input_gate)
-
+    global_phase_angle = extract_global_phase(input_gate,single_qubit)
+    input_array = convert_qobj_gate_to_array(input_gate)
+    input_array = input_array/cmath.rect(1,global_phase_angle)
     # separate all the elements
     a = input_array[0][0]
     b = input_array[0][1]
@@ -27,7 +28,7 @@ def _angles_for_ZYZ(input_gate, 1):
     alpha = cmath.phase(-a_star) + cmath.phase(b_star)
     beta = cmath.phase(-a_star) - cmath.phase(b_star)
     theta = 2*np.arctan2(np.absolute(b_star), np.absolute(a))
-    return(alpha, theta, beta, global_phase_angle)
+    return(alpha, theta, beta, np.pi+global_phase_angle)
 
 
 
@@ -40,7 +41,7 @@ def _ZYZ_rotation(input_gate, num_of_qubits, target):
     input_gate : :class:`qutip.Qobj`
         The matrix that's supposed to be decomposed should be a Qobj.
     """
-    angle_list = _angles_for_ZYZ(input_gate, 1)
+    angle_list = _angles_for_ZYZ(input_gate, single_qubit)
     alpha = angle_list[0]
     beta = angle_list[2]
     theta = angle_list[1]
@@ -68,7 +69,7 @@ def _ZXZ_rotation(input_gate, num_of_qubits, target):
     input_gate : :class:`qutip.Qobj`
         The matrix that's supposed to be decomposed should be a Qobj.
     """
-    angle_list = _angles_for_ZYZ(input_gate, 1)
+    angle_list = _angles_for_ZYZ(input_gate, single_qubit)
     alpha = angle_list[0]
     alpha = alpha - np.pi/2
     beta = angle_list[2]
@@ -194,16 +195,17 @@ def ABC_decomposition(input_gate, num_of_qubits, target):
             raise GateError("This method is valid for single qubit gates only. Provide a target qubit for larger circuits. ")
 
 
-    global_phase_angle = extract_global_phase(input_gate,1)
-    global_phase_angle_string = global_phase_angle/np.pi
-    input_array = cmath.rect(1,global_phase_angle)*convert_qobj_gate_to_array(input_gate)
-
+    global_phase_angle = extract_global_phase(input_gate,single_qubit)
+    input_array = convert_qobj_gate_to_array(input_gate)
+    input_array = input_array/cmath.rect(1,global_phase_angle)
     # separate all the elements
     a = input_array[0][0]
     b = input_array[0][1]
     a_star = input_array[1][1]
     b_star = input_array[1][0]
 
+    global_phase_angle=np.pi+global_phase_angle
+    global_phase_angle_string = global_phase_angle/np.pi
     # find alpha, beta and theta
     alpha = cmath.phase(-a_star) + cmath.phase(b_star)
     alpha_string = alpha/np.pi # for string in circuit diagram

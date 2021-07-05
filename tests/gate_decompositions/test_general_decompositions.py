@@ -1,10 +1,11 @@
 
 import numpy as np
 import cmath
+import pytest
 
 from qutip.qobj import Qobj
-from .general_decompositions import (check_input, check_input_shape,
-convert_qobj_gate_to_array, extract_global_phase)
+from qutip_qip.decompositions.general_decompositions import (check_input, check_input_shape,
+convert_qobj_gate_to_array, extract_global_phase, MethodError, GateError)
 
 from qutip_qip.operations import *
 from qutip_qip.circuit import QubitCircuit, Gate
@@ -45,6 +46,18 @@ def test_check_input_non_qobj(non_unitary):
     assert(check_input(non_unitary)==False)
 
 # Tests for check_input_shape
+@pytest.mark.parametrize("unitary",[Qobj([[1,0],[0,-1]])])
+def test_check_input_shape_unitary_input(unitary):
+    """Checks if shape of input is correctly identified.
+    """
+    assert(check_input_shape(unitary,1)==True)
+
+@pytest.mark.parametrize("non_unitary",[Qobj([[1,1],[0,1]])])
+def test_check_input_non_qobj(non_unitary):
+    """Checks if non-unitary input is correctly identified.
+    """
+    with pytest.raises(ValueError, match="Input is not unitary."):
+        check_input_shape(non_unitary,1)
 
 # Tests for convert_qobj_gate_to_array
 @pytest.mark.parametrize("valid_input",[Qobj([[1,0,0],[0,1,0],[0,0,1]]),rx(np.pi/2,3),z_gate(3),t_gate(3)])
@@ -53,4 +66,24 @@ def test_one_qutrit_gates(valid_input):
     """
     assert(isinstance(convert_qobj_gate_to_array(valid_input),np.ndarray))
 
+@pytest.mark.parametrize("non_unitary",[Qobj([[1,1],[0,1]])])
+def test_convert_qobj_gate_to_array(non_unitary):
+    """Checks if non-unitary input is correctly identified.
+    """
+    with pytest.raises(ValueError, match="Input is not unitary."):
+        convert_qobj_gate_to_array(non_unitary)
+
 # Tests for extract_global_phase
+def test_extract_global_phase_valid_input():
+    """Checks if global phase is correctly identified for multiplication.
+    """
+    H = Qobj([[1/np.sqrt(2),1/np.sqrt(2)],[1/np.sqrt(2),-1/np.sqrt(2)]])
+    H_global_phase = extract_global_phase(H,1)
+    assert(H_global_phase == np.pi/2)
+
+def test_extract_global_phase_valid_input_incorrect_number_of_qubits():
+    """Checks if global phase is correctly identified for multiplication.
+    """
+    H = Qobj([[1/np.sqrt(2),1/np.sqrt(2)],[1/np.sqrt(2),-1/np.sqrt(2)]])
+    with pytest.raises(GateError, match="Gate shape does not match to the number of qubits in the circuit. "):
+        extract_global_phase(H,2)

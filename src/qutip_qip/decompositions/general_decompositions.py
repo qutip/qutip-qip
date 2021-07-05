@@ -4,9 +4,14 @@ import cmath
 from qutip.qobj import Qobj
 
 class MethodError(Exception):
+    """When invalid method is chosen, this error is raised.
+    """
     pass
 
 class GateError(Exception):
+    """When chosen method cannot be applied to the input gate, this error
+    is raised. 
+    """
     pass
 
 def check_input(input_gate):
@@ -89,7 +94,8 @@ def convert_qobj_gate_to_array(input_gate):
         input_to_array = Qobj.full(input_gate)
         try:
             isinstance(input_to_array, np.ndarray)
-        except:
+        except: # Not sure if this error has to be included. If an error occurs,
+        # then it ought to covered in the main qutip module.
             raise ConversionError("Input Qobj could not be converted to a numpy array.")
         return(input_to_array)
     else:
@@ -109,9 +115,7 @@ def extract_global_phase(input_gate, num_of_qubits):
     if check_input_shape(input_gate, num_of_qubits) == True:
         input_array = convert_qobj_gate_to_array(input_gate)
         determinant_of_input = np.linalg.det(input_array)
-        y = np.imag(determinant_of_input)
-        x = np.real(determinant_of_input)
-        global_phase_angle = np.arctan2(y,x)
+        global_phase_angle = cmath.phase(determinant_of_input)
         global_phase_angle = global_phase_angle/(2**num_of_qubits)
         return(global_phase_angle)
     else:
