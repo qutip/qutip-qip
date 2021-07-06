@@ -5,3 +5,5 @@ from qutip_qip.decompositions.single_decompositions import (_ZYZ_rotation, _ZXZ_
                                                             ABC_decomposition, decompose_to_rotation_matrices)
 
 from qutip_qip.decompositions.decompositions_extras import (decomposed_gates_to_circuit, matrix_of_decomposed_gates)
+
+from qutip_qip.decompositions.n_qubit_decompositions import two_level_unitary_matrix
