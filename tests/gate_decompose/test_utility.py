@@ -4,10 +4,9 @@ import cmath
 import pytest
 
 from qutip.qobj import Qobj
-from qutip_qip.decompositions.general_decompositions import (check_input, check_input_shape,
+from qutip_qip.decompose._utility import (check_input, check_input_shape,
 convert_qobj_gate_to_array, extract_global_phase, MethodError, GateError)
-
-from qutip_qip.operations import *
+from qutip_qip.operations import rx, z_gate, t_gate
 from qutip_qip.circuit import QubitCircuit, Gate
 
 # Tests for check_input_shape

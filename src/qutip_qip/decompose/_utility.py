@@ -1,7 +1,7 @@
 import numpy as np
 import cmath
 
-from qutip.qobj import Qobj
+from qutip import Qobj
 
 class MethodError(Exception):
     """When invalid method is chosen, this error is raised.
@@ -10,7 +10,7 @@ class MethodError(Exception):
 
 class GateError(Exception):
     """When chosen method cannot be applied to the input gate, this error
-    is raised. 
+    is raised.
     """
     pass
 
@@ -48,7 +48,7 @@ def check_input(input_gate):
 
 
 def check_input_shape(input_gate, num_of_qubits):
-    """Check if the shape of input gate is valid to act on input number of qubits
+    """Check if the shape of input gate is valid to act on input number of qubits.
 
     If :math:`n` is the number of qubits in the circuit then a valid quantum gate
     acting on these qubits must be of dimension :math:`2^n \\times 2^n`.
@@ -92,11 +92,6 @@ def convert_qobj_gate_to_array(input_gate):
     input_check_bool = check_input(input_gate)
     if input_check_bool == True:
         input_to_array = Qobj.full(input_gate)
-        try:
-            isinstance(input_to_array, np.ndarray)
-        except: # Not sure if this error has to be included. If an error occurs,
-        # then it ought to covered in the main qutip module.
-            raise ConversionError("Input Qobj could not be converted to a numpy array.")
         return(input_to_array)
     else:
         raise ValueError("Input is not unitary.")
@@ -110,7 +105,6 @@ def extract_global_phase(input_gate, num_of_qubits):
     ----------
     input_gate : :class:`qutip.Qobj`
         The matrix that's supposed to be decomposed should be a Qobj.
-
     """
     if check_input_shape(input_gate, num_of_qubits) == True:
         input_array = convert_qobj_gate_to_array(input_gate)
