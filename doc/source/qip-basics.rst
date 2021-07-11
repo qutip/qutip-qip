@@ -284,20 +284,8 @@ Plotting a Quantum Circuit
 A quantum circuit (described above) can directly be plotted using the QCircuit library (https://github.com/CQuIC/qcircuit).
 QCiruit is a quantum circuit drawing application and is implemented directly into QuTiP.
 
-The circuit image visualization requires LaTeX and ImageMagick for display.
-The module automatically generates the LaTeX code for plotting the circuit,
-produces the pdf and converts it to the png format. On Mac and Linux,
-ImageMagick can be easily installed with the command conda install imagemagick if you have conda installed.
-Otherwise, please follow the installation instructions on the ImageMagick documentation.
-
-On windows, you need to download and install ImageMagick installer.
-In addition, you also need perl (for ``pdfcrop``) and
-Ghostscript (additional dependency of ImageMagick for png conversion).
-
-If you want to check whether all dependencies are installed,
-see if the following three commands work correctly:
-``pdflatex``, ``pdfcrop`` and ``magick anypdf.pdf anypdf.png``,
-where ``anypdf.pdf`` is any pdf file you have.
+More information related to installing these packages is also available in the
+installation guide (:ref:`circuit_plot_packages`).
 
 An example code for plotting the example quantum circuit from above is given:
 
