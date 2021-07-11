@@ -93,7 +93,7 @@ The first is responsible for reading the pdf file while the second will convert 
 
 
 The output of a circuit plot will be output in a `Jupyter notebook <https://jupyterlab.readthedocs.io/en/stable/getting_started/installation.html>`_.
-In your virtual environment, start `a Jupyter notebook server <https://jupyter.readthedocs.io/en/latest/running.html#starting-the-notebook-server>`_` and run your examples
+In your virtual environment, start `a Jupyter notebook server <https://jupyter.readthedocs.io/en/latest/running.html#starting-the-notebook-server>`_ and run your examples
 in a notebook. If you try to access a circuit plot in a terminal or IPython console,
 you will only be able to access the location of this image in your device's memory.
 
