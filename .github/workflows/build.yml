@@ -68,31 +68,10 @@ jobs:
           # dependencies are specified by our setup code.
           python -m build --sdist .
 
-      # Zip files are not part of PEP 517, so we need to make our own.
-      - name: Create zipfile from tarball
-        shell: bash
-        working-directory: dist
-        run: |
-          # First assert that there is exactly one tarball, and find its name.
-          shopt -s failglob
-          tarball_pattern="*.tar.gz"
-          tarballs=($tarball_pattern)
-          [[ ${#tarballs[@]} == 1 ]]
-          tarball="${tarballs[0]}"
-          # Get the stem and make the zipfile name.
-          stem="${tarball%.tar.gz}"
-          zipfile="${stem}.zip"
-          # Extract the tarball and rezip it.
-          tar -xzf "$tarball"
-          zip "$zipfile" -r "$stem"
-          rm -r "$stem"
-
       - uses: actions/upload-artifact@v2
         with:
           name: sdist
-          path: |
-            dist/*.tar.gz
-            dist/*.zip
+          path: dist/*.tar.gz
           if-no-files-found: error
 
 
@@ -130,6 +109,7 @@ jobs:
         with:
           name: wheels
           path: ./wheelhouse/*.whl
+          if-no-files-found: error
 
 
   deploy:
@@ -141,11 +121,6 @@ jobs:
     if: ${{ github.event.inputs.confirm_ref != '' }}
     needs: [deploy_test, build_sdist, build_wheels]
     runs-on: ubuntu-latest
-    env:
-      TWINE_USERNAME: __token__
-      TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
-      TWINE_NON_INTERACTIVE: 1
-      TWINE_REPOSITORY: pypi
 
     steps:
       - name: Download build artifacts to local runner
@@ -162,9 +137,12 @@ jobs:
           python -m pip install wheels/*.whl
           python -c 'import qutip_qip; print(qutip_qip.__version__); assert "dev" not in qutip_qip.__version__; assert "+" not in qutip_qip.__version__'
 
-      # We built the zipfile for convenience distributing to Windows users on
-      # our end, but PyPI only needs the tarball.
       - name: Upload sdist and wheels to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+          TWINE_NON_INTERACTIVE: 1
+          TWINE_REPOSITORY: pypi
         run: |
           python -m pip install "twine"
           python -m twine upload --verbose wheels/*.whl sdist/*.tar.gz
