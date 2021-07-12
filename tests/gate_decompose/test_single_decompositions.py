@@ -55,3 +55,13 @@ def test_check_single_qubit_to_decompose_to_rotations(gate, method):
     target = 0
     gate_list = decompose_to_rotation_matrices(gate,1,target,method)
     assert(isinstance(gate_list, tuple))
+
+@pytest.mark.xfail
+def test_sigmay_decomposition():
+    """Output matrix of sigmay is off by a global phase of -1.
+    """
+    target = 0
+    gate_list =_ZYZ_rotation(sigmay,1,target)
+    decomposed_gates_circuit = decomposed_gates_to_circuit(gate_list,1)
+    decomposed_gates_final_matrix = compute_unitary(decomposed_gates_circuit)
+    assert(decomposed_gates_final_matrix == sigmay)
