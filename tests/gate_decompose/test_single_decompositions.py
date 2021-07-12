@@ -53,7 +53,7 @@ def test_output_is_tuple(gate, method):
 def test_check_single_qubit_to_decompose_to_rotations(gate, method):
     """Initial matrix and product of final decompositions are same within some phase."""
     target = 0
-    gate_list = decompose_to_rotation_matrices(gate,1,target,method)
+    gate_list = decompose_to_rotation_matrices(gate,method, 1,target)
     assert(isinstance(gate_list, tuple))
 
 @pytest.mark.xfail
