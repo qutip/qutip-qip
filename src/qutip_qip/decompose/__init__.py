@@ -1,1 +1,1 @@
-from qutip_qip.decompose.single_decompositions import (ABC_decomposition, decompose_to_rotation_matrices)
+from qutip_qip.decompose.decompose_single_qubit_gate import (ABC_decomposition, decompose_to_rotation_matrices)
