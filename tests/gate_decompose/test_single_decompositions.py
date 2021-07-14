@@ -4,7 +4,7 @@ import pytest
 
 from qutip import Qobj, average_gate_fidelity
 
-from qutip_qip.decompose.single_decompositions import (_ZYZ_rotation, _ZXZ_rotation,
+from qutip_qip.decompose.decompose_single_qubit_gate import (_ZYZ_rotation, _ZXZ_rotation,
                                                             ABC_decomposition, decompose_to_rotation_matrices)
 
 from qutip_qip.circuit import (decomposed_gates_to_circuit, compute_unitary)
