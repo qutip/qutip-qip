@@ -131,19 +131,17 @@ class Noise(object):
         systematic_noise : :class:`.Pulse`
             The dummy pulse representing pulse-independent noise.
         """
-        try:
-            # Try to check if the old API is defined.
-            result = self.get_noisy_dynamics(dims, pulses, systematic_noise)
+        get_noisy_dynamics = getattr(self, "get_noisy_dynamics", None)
+        if get_noisy_dynamics is not None:
             warnings.warn(
                 "Using get_noisy_dynamics as the hook function for custom "
                 "noise will be deprecated, "
                 "please use get_noisy_pulses instead.",
                 PendingDeprecationWarning)
-            return result
-        except AttributeError:
-            raise NotImplementedError(
-                "Subclass error needs a method"
-                "`get_noisy_pulses` to process the noise.") from None
+            return self.get_noisy_dynamics(dims, pulses, systematic_noise)
+        raise NotImplementedError(
+            "Subclass error needs a method"
+            "`get_noisy_pulses` to process the noise.")
 
     def _apply_noise(self, pulses=None, systematic_noise=None, dims=None):
         """
