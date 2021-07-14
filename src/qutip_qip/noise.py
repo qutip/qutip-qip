@@ -108,7 +108,7 @@ class Noise(object):
         """
         Return the input pulses list with noise added and
         the pulse independent noise in a dummy :class:`.Pulse` object.
-        This is a template method, a method with the same name and signitures
+        This is a template method, a method with the same name and signatures
         needs to be defined in the subclasses.
 
         Parameters
