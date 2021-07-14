@@ -223,7 +223,7 @@ class DecoherenceNoise(Noise):
         ----------
         dims: list, optional
             The dimension of the components system, the default value is
-            [2,2...,2] for qubits system.
+            [2, 2, ..., 2] for a system of qubits.
         pulses : list of :class:`.Pulse`
             The input pulses. The noise will be added to pulses in this list.
         systematic_noise : :class:`.Pulse`
