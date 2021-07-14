@@ -2,8 +2,7 @@ import numpy as np
 import cmath
 
 from qutip import Qobj
-from qutip_qip.decompose._utility import (check_input, check_input_shape,
-convert_qobj_gate_to_array, extract_global_phase, MethodError, GateError)
+from qutip_qip.decompose._utility import (check_gate, extract_global_phase, MethodError, GateError)
 
 from qutip_qip.circuit import QubitCircuit, Gate
 
@@ -18,8 +17,9 @@ def _angles_for_ZYZ(input_gate, num_qubits=1):
     input_gate : :class:`qutip.Qobj`
         The gate matrix that's supposed to be decomposed should be a Qobj.
     """
-    global_phase_angle = extract_global_phase(input_gate,num_qubits)
-    input_array = convert_qobj_gate_to_array(input_gate)
+    check_gate(input_gate, num_qubits)
+    global_phase_angle = extract_global_phase(input_gate, num_qubits)
+    input_array = input_gate.full()
     input_array = input_array/cmath.rect(1,global_phase_angle)
     # separate all the elements
     a = input_array[0][0]
@@ -35,7 +35,7 @@ def _angles_for_ZYZ(input_gate, num_qubits=1):
 
 
 
-def _ZYZ_rotation(input_gate, num_of_qubits, target):
+def _ZYZ_rotation(input_gate, num_qubits, target):
     r""" An input 1-qubit gate is expressed as a product of rotation matrices
     :math:`\textrm{R}_z` and :math:`\textrm{R}_y`.
 
@@ -63,7 +63,7 @@ def _ZYZ_rotation(input_gate, num_of_qubits, target):
 
     return(Rz_alpha, Ry_theta, Rz_beta, Phase_gate)
 
-def _ZXZ_rotation(input_gate, num_of_qubits, target):
+def _ZXZ_rotation(input_gate, num_qubits, target):
     r""" An input 1-qubit gate is expressed as a product of rotation matrices
     :math:`\textrm{R}_z` and :math:`\textrm{R}_x`.
 
@@ -98,7 +98,7 @@ _rotation_matrices_dictionary ={"ZYZ": _ZYZ_rotation,
                                 "ZXZ": _ZXZ_rotation,
                                 } # other combinations to add here
 
-def decompose_to_rotation_matrices(input_gate, method, num_of_qubits, target=0):
+def decompose_to_rotation_matrices(input_gate, method, num_qubits, target=0):
     r""" An input 1-qubit gate is expressed as a product of rotation matrices
     :math:`\textrm{R}_i` and :math:`\textrm{R}_j`.
 
@@ -116,7 +116,7 @@ def decompose_to_rotation_matrices(input_gate, method, num_of_qubits, target=0):
     input_gate : :class:`qutip.Qobj`
         The matrix that's supposed to be decomposed should be a Qobj.
 
-    num_of_qubits : int
+    num_qubits : int
         Number of qubits being acted upon by input gate
 
     target : int
@@ -146,23 +146,23 @@ def decompose_to_rotation_matrices(input_gate, method, num_of_qubits, target=0):
         :math:`\textrm{R}_i(\beta)`, and some global phase gate.
     """
     try:
-        assert num_of_qubits == 1
+        assert num_qubits == 1
     except AssertionError:
-        if target is None and num_of_qubits >1:
+        if target is None and num_qubits >1:
             raise GateError("This method is valid for single qubit gates only. Provide a target qubit for single qubit gate.")
 
 
     key = _rotation_matrices_dictionary.keys()
     if str(method) in key:
         method = _rotation_matrices_dictionary[str(method)]
-        return(method(input_gate, num_of_qubits, target))
+        return(method(input_gate, num_qubits, target))
 
     else:
         raise MethodError("Invalid method chosen.")
 
 # new combinations need to be added by creating a dictionary for these.
 # The fucntion below will decompose the amtrix as a product of Rz, Ry and Pauli X only.
-def ABC_decomposition(input_gate, num_of_qubits, target):
+def ABC_decomposition(input_gate, num_qubits, target):
     r""" An input 1-qubit gate is expressed as a product of rotation matrices
     :math:`\textrm{R}_z`, :math:`\textrm{R}_y` and Pauli :math:`\textrm{X}`.
 
@@ -193,14 +193,14 @@ def ABC_decomposition(input_gate, num_of_qubits, target):
         1 gates forming :math:`\textrm{C}`, and some global phase gate.
     """
     try:
-        assert num_of_qubits == 1
+        assert num_qubits == 1
     except AssertionError:
-        if target is None and num_of_qubits >1:
+        if target is None and num_qubits >1:
             raise GateError("This method is valid for single qubit gates only. Provide a target qubit for larger circuits. ")
 
-
+    check_gate(input_gate, num_qubits)
     global_phase_angle = extract_global_phase(input_gate,1)
-    input_array = convert_qobj_gate_to_array(input_gate)
+    input_array = input_gate.full()
     input_array = input_array/cmath.rect(1,global_phase_angle)
     # separate all the elements
     a = input_array[0][0]
