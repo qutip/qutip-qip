@@ -3,15 +3,18 @@ import cmath
 
 from qutip import Qobj
 
+
 class MethodError(Exception):
-    """When invalid method is chosen, this error is raised.
-    """
+    """When invalid method is chosen, this error is raised."""
+
     pass
+
 
 class GateError(Exception):
     """When chosen method cannot be applied to the input gate, this error
     is raised.
     """
+
     pass
 
 
