@@ -4,14 +4,12 @@ import pytest
 
 from qutip import Qobj, average_gate_fidelity, rand_unitary, sigmax, sigmay, sigmaz
 
-from qutip_qip.decompose.single_qubit_gate import (
+from qutip_qip._decomposition_functions._single_qubit_gate import (
     _ZYZ_rotation,
     _ZXZ_rotation,
-    ABC_decomposition,
     _ZYZ_pauli_X,
-    decompose_to_rotation_matrices,
 )
-
+from qutip_qip.decompose import decompose_one_qubit_gate
 from qutip_qip.circuit import decomposed_gates_to_circuit, compute_unitary
 from qutip_qip.operations.gates import snot, sqrtnot
 
@@ -45,10 +43,10 @@ def test_single_qubit_to_rotations(gate, method):
 @pytest.mark.parametrize(
     "gate", [H, sigmax, sigmay, sigmaz, SQRTNOT, S, T, rand_unitary(2)]
 )
-@pytest.mark.parametrize("method", ["ZXZ", "ZYZ"])
+@pytest.mark.parametrize("method", ["ZXZ", "ZYZ", "ZYZ_PauliX"])
 def test_check_single_qubit_to_decompose_to_rotations(gate, method):
     """Initial matrix and product of final decompositions are same within some phase."""
-    gate_list = decompose_to_rotation_matrices(gate, method, target, num_qubits)
+    gate_list = decompose_one_qubit_gate(gate, method, target, num_qubits)
     decomposed_gates_circuit = decomposed_gates_to_circuit(gate_list, num_qubits)
     decomposed_gates_final_matrix = compute_unitary(decomposed_gates_circuit)
     fidelity_of_input_output = average_gate_fidelity(
@@ -71,18 +69,8 @@ def test_output_is_tuple(gate, method):
 @pytest.mark.parametrize(
     "gate", [H, sigmax, sigmay, sigmaz, SQRTNOT, S, T, rand_unitary(2)]
 )
-@pytest.mark.parametrize("method", ["ZXZ", "ZYZ"])
+@pytest.mark.parametrize("method", ["ZXZ", "ZYZ", "ZYZ_PauliX"])
 def test_check_single_qubit_to_decompose_to_rotations(gate, method):
     """Initial matrix and product of final decompositions are same within some phase."""
-    gate_list = decompose_to_rotation_matrices(gate, method, num_qubits, target)
-    assert isinstance(gate_list, tuple)
-
-
-@pytest.mark.parametrize(
-    "gate", [H, sigmax, sigmay, sigmaz, SQRTNOT, S, T, rand_unitary(2)]
-)
-@pytest.mark.parametrize("method", ["ZYZ_PauliX"])
-def test_check_single_qubit_to_decompose_to_rotations(gate, method):
-    """Initial matrix and product of final decompositions are same within some phase."""
-    gate_list = ABC_decomposition(gate, method, num_qubits, target)
+    gate_list = decompose_one_qubit_gate(gate, method, num_qubits, target)
     assert isinstance(gate_list, tuple)

@@ -3,7 +3,11 @@ import cmath
 import pytest
 
 from qutip import Qobj, qeye
-from qutip_qip.decompose._utility import check_gate, MethodError, GateError
+from qutip_qip._decomposition_functions._utility import (
+    check_gate,
+    MethodError,
+    GateError,
+)
 from qutip_qip.operations import rx, z_gate, t_gate
 from qutip_qip.circuit import QubitCircuit, Gate
 

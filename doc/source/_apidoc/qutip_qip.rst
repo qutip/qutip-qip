@@ -9,7 +9,6 @@ Subpackages
 
    qutip_qip.algorithms
    qutip_qip.compiler
-   qutip_qip.decompose
    qutip_qip.device
    qutip_qip.operations
    qutip_qip.transpiler
@@ -29,6 +28,14 @@ qutip\_qip.circuit\_latex module
 --------------------------------
 
 .. automodule:: qutip_qip.circuit_latex
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+qutip\_qip.decompose module
+---------------------------
+
+.. automodule:: qutip_qip.decompose
    :members:
    :undoc-members:
    :show-inheritance:
