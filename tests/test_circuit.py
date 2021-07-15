@@ -48,7 +48,7 @@ from qutip_qip.operations import (
     _para_gates
 )
 
-from qutip_qip.decompose.decompose_single_qubit_gate import _ZYZ_rotation
+from qutip_qip.decompose.single_qubit_gate import _ZYZ_rotation
 
 import qutip as qp
 
@@ -687,8 +687,8 @@ def test_decomposed_gates_to_circuit(invalid_input):
 
 H = Qobj([[1/np.sqrt(2),1/np.sqrt(2)],[1/np.sqrt(2),-1/np.sqrt(2)]])
 sigmax = Qobj([[0,1],[1,0]])
-H_zyz_gates = _ZYZ_rotation(H, 1, 0)
-sigmax_zyz_gates = _ZYZ_rotation(sigmax, 1, 0)
+H_zyz_gates = _ZYZ_rotation(H, 0, 1)
+sigmax_zyz_gates = _ZYZ_rotation(sigmax, 0, 1)
 
 @pytest.mark.parametrize("valid_input",[H_zyz_gates,sigmax_zyz_gates])
 def test_decomposed_gates_to_circuit(valid_input):

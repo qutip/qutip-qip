@@ -3,7 +3,7 @@ import cmath
 import pytest
 
 from qutip import Qobj, qeye
-from qutip_qip.decompose._utility import (check_gate, extract_global_phase, MethodError, GateError)
+from qutip_qip.decompose._utility import (check_gate, MethodError, GateError)
 from qutip_qip.operations import rx, z_gate, t_gate
 from qutip_qip.circuit import QubitCircuit, Gate
 
@@ -35,11 +35,3 @@ def test_check_gate_unitary_input(unitary):
     """
     # No error raised if it passes.
     check_gate(unitary, num_qubits=1)
-
-
-def test_extract_global_phase_valid_input():
-    """Checks if global phase is correctly identified for multiplication.
-    """
-    H = Qobj([[1/np.sqrt(2),1/np.sqrt(2)],[1/np.sqrt(2),-1/np.sqrt(2)]])
-    H_global_phase = extract_global_phase(H,1)
-    assert(H_global_phase == np.pi/2)

@@ -37,19 +37,3 @@ def check_gate(gate, num_qubits):
         raise ValueError("Input is not unitary.")
     if gate.dims != [[2] * num_qubits] * 2:
         raise ValueError(f"Input is not a unitary on {num_qubits} qubits.")
-
-
-def extract_global_phase(input_gate, num_qubits):
-    """ Extracts some common constant from all the elements of the matrix. The output
-    is retuned in the complex exponential form.
-
-    Parameters
-    ----------
-    input_gate : :class:`qutip.Qobj`
-        The matrix that's supposed to be decomposed should be a Qobj.
-    """
-    input_array = input_gate.full()
-    determinant_of_input = np.linalg.det(input_array)
-    global_phase_angle = cmath.phase(determinant_of_input)
-    global_phase_angle = global_phase_angle / (2**num_qubits)
-    return global_phase_angle
