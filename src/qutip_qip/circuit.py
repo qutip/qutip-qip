@@ -2131,29 +2131,32 @@ class CircuitSimulator:
             raise NotImplementedError(
                 "mode {} is not available.".format(self.mode))
 
+
 # For Decomposition functions
-def decomposed_gates_to_circuit(decomposed_gate,num_qubits):
+def decomposed_gates_to_circuit(decomposed_gate, num_qubits):
     """This function takes the input from a decomposition function and returns
     a quantum circuit.
+
+    Parameters
+    ----------
+    decomposed_gate : tuple
+        The output from some decomposition function in a tuple form.
     """
-    # as decomposed_gate contains information about targets/control, there's no
-    # additional input of target here.
-    # In addition, there's no check if the gates are valid for number of qubits
-    # because this is done in a decomposition function before output.
-    if isinstance(decomposed_gate,tuple) == True:
-        q_circuit = QubitCircuit(num_qubits, reverse_states=False)
-        for i in decomposed_gate:
-            q_circuit.add_gate(i)
-        return(q_circuit)
-    else:
+    # there's no check if the gates are valid for number of qubits
+    # because this is done in a decomposition function before output
+    if not isinstance(decomposed_gate, tuple):
         raise TypeError("Input is not a tuple of gates.")
+    q_circuit = QubitCircuit(num_qubits, reverse_states=False)
+    for i in decomposed_gate:
+        q_circuit.add_gate(i)
+    return(q_circuit)
+
 
 def compute_unitary(quantum_circuit):
-    """Evaluates all the gates in the quantum circuit.
+    """Evaluates all the gates in the quantum circuit of decomposed gates.
     """
-    if isinstance(quantum_circuit, QubitCircuit) == True:
-        gate_list = quantum_circuit.propagators()
-        matrix_of_all_gates = gate_sequence_product(gate_list)
-        return(matrix_of_all_gates)
-    else:
+    if not isinstance(quantum_circuit, QubitCircuit):
         raise TypeError("Input is not of type QubitCircuit.")
+    gate_list = quantum_circuit.propagators()
+    matrix_of_all_gates = gate_sequence_product(gate_list)
+    return(matrix_of_all_gates)

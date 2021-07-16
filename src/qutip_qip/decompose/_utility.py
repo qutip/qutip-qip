@@ -1,19 +1,8 @@
-import numpy as np
-import cmath
-
 from qutip import Qobj
 
 
 class MethodError(Exception):
     """When invalid method is chosen, this error is raised."""
-
-    pass
-
-
-class GateError(Exception):
-    """When chosen method cannot be applied to the input gate, this error
-    is raised.
-    """
 
     pass
 
@@ -26,7 +15,7 @@ def check_gate(gate, num_qubits):
     gate : :class:`qutip.Qobj`
         The matrix that's supposed to be decomposed should be a Qobj.
     num_qubits:
-        Number of qubits in the circuit.
+        Total number of qubits in the circuit.
     Raises
     ------
     TypeError

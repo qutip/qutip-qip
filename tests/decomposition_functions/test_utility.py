@@ -1,15 +1,11 @@
 import numpy as np
-import cmath
 import pytest
 
 from qutip import Qobj, qeye
-from qutip_qip._decomposition_functions._utility import (
+from qutip_qip.decompose._utility import (
     check_gate,
-    MethodError,
-    GateError,
 )
-from qutip_qip.operations import rx, z_gate, t_gate
-from qutip_qip.circuit import QubitCircuit, Gate
+
 
 # Tests for check_gate
 @pytest.mark.parametrize(
@@ -26,7 +22,8 @@ from qutip_qip.circuit import QubitCircuit, Gate
     ],
 )
 def test_check_gate_non_qobj(invalid_input):
-    """Checks if correct value is returned or not when the input is not a Qobj."""
+    """Checks if correct value is returned or not when the input is not a Qobj
+    ."""
     with pytest.raises(TypeError, match="The input matrix is not a Qobj."):
         check_gate(invalid_input, num_qubits=1)
 
@@ -38,11 +35,12 @@ def test_check_gate_non_unitary(non_unitary):
         check_gate(non_unitary, num_qubits=1)
 
 
-@pytest.mark.parametrize("non_qubit_unitary", [qeye(4)])
-def test_check_gate_non_unitary(non_qubit_unitary):
+@pytest.mark.parametrize("non_1qubit_unitary", [qeye(4)])
+def test_check_gate_non_1qubit(non_1qubit_unitary):
     """Checks if non-unitary input is correctly identified."""
-    with pytest.raises(ValueError, match="Input is not a unitary on 2 qubits."):
-        check_gate(non_qubit_unitary, num_qubits=2)
+    num_qubits = 1
+    with pytest.raises(ValueError, match=f"Input is not a unitary on {num_qubits} qubits."):
+        check_gate(non_1qubit_unitary, num_qubits)
 
 
 @pytest.mark.parametrize("unitary", [Qobj([[1, 0], [0, -1]])])
