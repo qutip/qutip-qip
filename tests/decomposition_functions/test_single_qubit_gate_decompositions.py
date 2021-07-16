@@ -6,9 +6,9 @@ from qutip import (
     Qobj, average_gate_fidelity, rand_unitary, sigmax, sigmay, sigmaz
 )
 from qutip_qip.decompose.decompose_single_qubit_gate import (
-    ZYZ_rotation,
-    ZXZ_rotation,
-    ZYZ_pauli_X,
+    _ZYZ_rotation,
+    _ZXZ_rotation,
+    _ZYZ_pauli_X,
 )
 from qutip_qip.decompose import decompose_one_qubit_gate
 from qutip_qip.circuit import decomposed_gates_to_circuit, compute_unitary
@@ -31,7 +31,7 @@ num_qubits = 1
     "gate", [H, sigmax, sigmay, sigmaz, SQRTNOT, S, T, rand_unitary(2)]
 )
 @pytest.mark.parametrize(
-    "method", [ZYZ_rotation, ZXZ_rotation, ZYZ_pauli_X]
+    "method", [_ZYZ_rotation, _ZXZ_rotation, _ZYZ_pauli_X]
 )
 def test_single_qubit_to_rotations(gate, method):
     """Initial matrix and product of final decompositions are same within some
@@ -68,7 +68,7 @@ def test_check_single_qubit_to_decompose_to_rotations(gate, method):
     "gate", [H, sigmax, sigmay, sigmaz, SQRTNOT, S, T, rand_unitary(2)]
 )
 @pytest.mark.parametrize(
-                    "method", [ZYZ_rotation, ZXZ_rotation, ZYZ_pauli_X]
+                    "method", [_ZYZ_rotation, _ZXZ_rotation, _ZYZ_pauli_X]
                         )
 def test_output_is_tuple(gate, method):
     """Initial matrix and product of final decompositions are same within some

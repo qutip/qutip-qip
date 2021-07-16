@@ -37,7 +37,7 @@ def _angles_for_ZYZ(input_gate):
     return (alpha, -theta, beta, global_phase_angle)
 
 
-def ZYZ_rotation(input_gate):
+def _ZYZ_rotation(input_gate):
     r"""An input 1-qubit gate is expressed as a product of rotation matrices
     :math:`\textrm{R}_z` and :math:`\textrm{R}_y`.
 
@@ -77,7 +77,7 @@ def ZYZ_rotation(input_gate):
     return (Rz_alpha, Ry_theta, Rz_beta, Phase_gate)
 
 
-def ZXZ_rotation(input_gate):
+def _ZXZ_rotation(input_gate):
     r"""An input 1-qubit gate is expressed as a product of rotation matrices
     :math:`\textrm{R}_z` and :math:`\textrm{R}_x`.
 
@@ -123,7 +123,7 @@ def ZXZ_rotation(input_gate):
 # Functions for ABC_decomposition
 
 
-def ZYZ_pauli_X(input_gate):
+def _ZYZ_pauli_X(input_gate):
     """Returns a 1 qubit unitary as a product of ZYZ rotation matrices and
     Pauli X."""
     check_gate(input_gate, num_qubits=1)
@@ -171,9 +171,9 @@ def ZYZ_pauli_X(input_gate):
 
 
 _single_decompositions_dictionary = {
-    "ZYZ": ZYZ_rotation,
-    "ZXZ": ZXZ_rotation,
-    "ZYZ_PauliX": ZYZ_pauli_X,
+    "ZYZ": _ZYZ_rotation,
+    "ZXZ": _ZXZ_rotation,
+    "ZYZ_PauliX": _ZYZ_pauli_X,
 }  # other combinations to add here
 
 
