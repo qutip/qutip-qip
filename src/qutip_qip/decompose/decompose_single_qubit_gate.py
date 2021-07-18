@@ -207,7 +207,7 @@ def decompose_one_qubit_gate(input_gate, method):
     Parameters
     ----------
     input_gate : :class:`qutip.Qobj`
-        The matrix that's supposed to be decomposed should be a Qobj.
+        The matrix to be decomposed.
 
 
     method : string

@@ -38,9 +38,9 @@ from pathlib import Path
 
 
 from qutip_qip.circuit import (
-    QubitCircuit, CircuitSimulator, Measurement, compute_unitary, decomposed_gates_to_circuit)
+    QubitCircuit, CircuitSimulator, Measurement)
 from qutip import (tensor, Qobj, ptrace, rand_ket, fock_dm, basis,
-                   rand_dm, bell_state, ket2dm, identity)
+                   rand_dm, bell_state, ket2dm, identity, sigmax)
 from qutip_qip.qasm import read_qasm
 from qutip_qip.operations import (
     Gate, gates, gate_sequence_product,
@@ -677,52 +677,32 @@ class TestQubitCircuit:
             "",
         ])
 
+    H = Qobj([[1/np.sqrt(2), 1/np.sqrt(2)], [1/np.sqrt(2), -1/np.sqrt(2)]])
+    H_zyz_gates = _ZYZ_rotation(H)
+    H_zyz_quantum_circuit = QubitCircuit(1)
+    H_zyz_quantum_circuit.add_gates(H_zyz_gates)
+    sigmax_zyz_gates = _ZYZ_rotation(sigmax())
+    sigmax_zyz_quantum_circuit = QubitCircuit(1)
+    sigmax_zyz_quantum_circuit.add_gates(sigmax_zyz_gates)
 
-# Tests for decomposed_gates_to_circuit
-@pytest.mark.parametrize("invalid_input", [
-    np.array([[1, 1], [1, 1]]), ([[1, 1], [1, 1]]), 1.5, 3])
-def test_decomposed_gates_to_circuit(invalid_input):
-    """Checks if correct error is raised when input is anything but a tuple of
-    gates.
-    """
-    with pytest.raises(TypeError, match="Input is not a tuple of gates."):
-        decomposed_gates_to_circuit(invalid_input, 1)
+    @pytest.mark.parametrize(
+        "valid_input, correct_result",
+        [(H_zyz_gates, H), 
+        (sigmax_zyz_gates, sigmax())]
+        )
+    def test_add_gates(self, valid_input, correct_result):
+        circuit = QubitCircuit(1)
+        circuit.add_gates(valid_input)
+        result = gate_sequence_product(circuit.propagators())
+        assert(result == correct_result)
 
-
-H = Qobj([[1/np.sqrt(2), 1/np.sqrt(2)], [1/np.sqrt(2), -1/np.sqrt(2)]])
-sigmax = Qobj([[0, 1], [1, 0]])
-H_zyz_gates = _ZYZ_rotation(H)
-sigmax_zyz_gates = _ZYZ_rotation(sigmax)
-
-
-@pytest.mark.parametrize("valid_input", [H_zyz_gates, sigmax_zyz_gates])
-def test_decomposed_gates_to_circuit_input_valid(valid_input):
-    """Checks if output is of type QubitCircuit.
-    """
-    assert(isinstance(decomposed_gates_to_circuit(
-        valid_input, 1), QubitCircuit))
-
-
-H_zyz_quantum_circuit = decomposed_gates_to_circuit(H_zyz_gates, 1)
-sigmax_zyz_quantum_circuit = decomposed_gates_to_circuit(sigmax_zyz_gates, 1)
-sigmax_zyz_output = (sigmax_zyz_quantum_circuit)
-# Tests for matrix_of_decomposed_gates
-
-
-@pytest.mark.parametrize("invalid_input", [
-    np.array([[1, 1], [1, 1]]), ([[1, 1], [1, 1]]), 1.5, 3])
-def test_matrix_of_decomposed_gates(invalid_input):
-    """Checks if correct error is raised when input is anything but a quantum
-    circuit.
-    """
-    with pytest.raises(TypeError, match="Input is not of type QubitCircuit."):
-        compute_unitary(invalid_input)
-
-
-@pytest.mark.parametrize("valid_input", [
-    H_zyz_quantum_circuit, sigmax_zyz_quantum_circuit])
-def test_matrix_of_decomposed_gates_isqobj(valid_input):
-    """Checks if final output is a Qobj.
-    """
-    final_output = compute_unitary(valid_input)
-    assert(isinstance(final_output, Qobj))
+    @pytest.mark.parametrize(
+        "valid_input, correct_result",
+        [(H_zyz_quantum_circuit, H),
+        (sigmax_zyz_quantum_circuit, sigmax())]
+        )
+    def test_compute_unitary(
+            self, valid_input, correct_result):
+        final_output = valid_input.compute_unitary()
+        assert(isinstance(final_output, Qobj))
+        assert(final_output == correct_result)
