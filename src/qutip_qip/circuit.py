@@ -321,7 +321,6 @@ class QubitCircuit:
             2 ** len(classical_controls) - 1
             (i.e. all classical controls are 1).
         """
-
         if isinstance(gate, Gate):
             name = gate.name
             targets = gate.targets
@@ -348,6 +347,18 @@ class QubitCircuit:
                             classical_controls=classical_controls,
                             control_value=control_value)
                 self.gates.insert(position, gate)
+
+    def add_gates(self, gates):
+        """
+        Add a sequence of gates to the circuit.
+
+        Parameters
+        ----------
+        gates: Iterable (e.g., list)
+            The sequence of gates to be added.
+        """
+        for g in gates:
+            self.add_gate(g)
 
     def add_1q_gate(self, name, start=0, end=None, qubits=None,
                     arg_value=None, arg_label=None,
@@ -1486,6 +1497,13 @@ class QubitCircuit:
 
         return U_list
 
+    def compute_unitary(self):
+        """Evaluates all the gates in the quantum circuit of decomposed gates.
+        """
+        gate_list = self.propagators()
+        unitary = gate_sequence_product(gate_list)
+        return unitary
+
     def latex_code(self):
         rows = []
 
@@ -2130,33 +2148,3 @@ class CircuitSimulator:
         else:
             raise NotImplementedError(
                 "mode {} is not available.".format(self.mode))
-
-
-# For Decomposition functions
-def decomposed_gates_to_circuit(decomposed_gate, num_qubits):
-    """This function takes the input from a decomposition function and returns
-    a quantum circuit.
-
-    Parameters
-    ----------
-    decomposed_gate : tuple
-        The output from some decomposition function in a tuple form.
-    """
-    # there's no check if the gates are valid for number of qubits
-    # because this is done in a decomposition function before output
-    if not isinstance(decomposed_gate, tuple):
-        raise TypeError("Input is not a tuple of gates.")
-    q_circuit = QubitCircuit(num_qubits, reverse_states=False)
-    for i in decomposed_gate:
-        q_circuit.add_gate(i)
-    return(q_circuit)
-
-
-def compute_unitary(quantum_circuit):
-    """Evaluates all the gates in the quantum circuit of decomposed gates.
-    """
-    if not isinstance(quantum_circuit, QubitCircuit):
-        raise TypeError("Input is not of type QubitCircuit.")
-    gate_list = quantum_circuit.propagators()
-    matrix_of_all_gates = gate_sequence_product(gate_list)
-    return(matrix_of_all_gates)

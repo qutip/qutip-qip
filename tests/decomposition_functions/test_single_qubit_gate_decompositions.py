@@ -11,7 +11,7 @@ from qutip_qip.decompose.decompose_single_qubit_gate import (
     _ZYZ_pauli_X,
 )
 from qutip_qip.decompose import decompose_one_qubit_gate
-from qutip_qip.circuit import decomposed_gates_to_circuit, compute_unitary
+from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations.gates import snot, sqrtnot
 
 # Fidelity closer to 1 means the two states are similar to each other
@@ -37,10 +37,9 @@ def test_single_qubit_to_rotations(gate, method):
     """Initial matrix and product of final decompositions are same within some
     phase."""
     gate_list = method(gate)
-    decomposed_gates_circuit = decomposed_gates_to_circuit(
-                            gate_list,
-                            num_qubits)
-    decomposed_gates_final_matrix = compute_unitary(decomposed_gates_circuit)
+    circuit = QubitCircuit(num_qubits)
+    circuit.add_gates(gate_list)
+    decomposed_gates_final_matrix = circuit.compute_unitary()
     fidelity_of_input_output = average_gate_fidelity(
         gate, decomposed_gates_final_matrix
     )
@@ -55,9 +54,9 @@ def test_check_single_qubit_to_decompose_to_rotations(gate, method):
     """Initial matrix and product of final decompositions are same within some
     phase."""
     gate_list = decompose_one_qubit_gate(gate, method)
-    decomposed_gates_circuit = decomposed_gates_to_circuit(
-                            gate_list, num_qubits)
-    decomposed_gates_final_matrix = compute_unitary(decomposed_gates_circuit)
+    circuit = QubitCircuit(num_qubits)
+    circuit.add_gates(gate_list)
+    decomposed_gates_final_matrix = circuit.compute_unitary()
     fidelity_of_input_output = average_gate_fidelity(
         gate, decomposed_gates_final_matrix
     )
