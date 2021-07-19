@@ -40,13 +40,15 @@ from pathlib import Path
 from qutip_qip.circuit import (
     QubitCircuit, CircuitSimulator, Measurement)
 from qutip import (tensor, Qobj, ptrace, rand_ket, fock_dm, basis,
-                   rand_dm, bell_state, ket2dm, identity)
+                   rand_dm, bell_state, ket2dm, identity, sigmax)
 from qutip_qip.qasm import read_qasm
 from qutip_qip.operations import (
     Gate, gates, gate_sequence_product,
     _ctrl_gates, _single_qubit_gates, _swap_like, _toffoli_like, _fredkin_like,
     _para_gates
 )
+
+from qutip_qip.decompose.decompose_single_qubit_gate import _ZYZ_rotation
 
 import qutip as qp
 
@@ -674,3 +676,33 @@ class TestQubitCircuit:
             r"  \gate{{\rm H}}  &  \meter &  \qw  &  \qw  &  \qw  & \qw \\ ",
             "",
         ])
+
+    H = Qobj([[1/np.sqrt(2), 1/np.sqrt(2)], [1/np.sqrt(2), -1/np.sqrt(2)]])
+    H_zyz_gates = _ZYZ_rotation(H)
+    H_zyz_quantum_circuit = QubitCircuit(1)
+    H_zyz_quantum_circuit.add_gates(H_zyz_gates)
+    sigmax_zyz_gates = _ZYZ_rotation(sigmax())
+    sigmax_zyz_quantum_circuit = QubitCircuit(1)
+    sigmax_zyz_quantum_circuit.add_gates(sigmax_zyz_gates)
+
+    @pytest.mark.parametrize(
+        "valid_input, correct_result",
+        [(H_zyz_gates, H), 
+        (sigmax_zyz_gates, sigmax())]
+        )
+    def test_add_gates(self, valid_input, correct_result):
+        circuit = QubitCircuit(1)
+        circuit.add_gates(valid_input)
+        result = gate_sequence_product(circuit.propagators())
+        assert(result == correct_result)
+
+    @pytest.mark.parametrize(
+        "valid_input, correct_result",
+        [(H_zyz_quantum_circuit, H),
+        (sigmax_zyz_quantum_circuit, sigmax())]
+        )
+    def test_compute_unitary(
+            self, valid_input, correct_result):
+        final_output = valid_input.compute_unitary()
+        assert(isinstance(final_output, Qobj))
+        assert(final_output == correct_result)

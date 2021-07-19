@@ -49,7 +49,7 @@ from .operations import (
 )
 from .operations.gates import _gate_label
 from qutip import basis, ket2dm, qeye
-from qutip.qobj import Qobj
+from qutip import Qobj
 from qutip.measurement import measurement_statistics
 
 
@@ -321,7 +321,6 @@ class QubitCircuit:
             2 ** len(classical_controls) - 1
             (i.e. all classical controls are 1).
         """
-
         if isinstance(gate, Gate):
             name = gate.name
             targets = gate.targets
@@ -348,6 +347,19 @@ class QubitCircuit:
                             classical_controls=classical_controls,
                             control_value=control_value)
                 self.gates.insert(position, gate)
+
+    def add_gates(self, gates):
+        """
+        Adds a sequence of gates to the circuit in a positive order, i.e.
+        the first gate in the sequence will be applied first to the state.
+
+        Parameters
+        ----------
+        gates: Iterable (e.g., list)
+            The sequence of gates to be added.
+        """
+        for g in gates:
+            self.add_gate(g)
 
     def add_1q_gate(self, name, start=0, end=None, qubits=None,
                     arg_value=None, arg_label=None,
@@ -1485,6 +1497,18 @@ class QubitCircuit:
                     "{} gate is an unknown gate.".format(gate.name))
 
         return U_list
+
+    def compute_unitary(self):
+        """Evaluates the matrix of all the gates in a quantum circuit.
+
+        Returns
+        -------
+        circuit_unitary : :class:`qutip.Qobj`
+            Product of all gate arrays in the quantum circuit.
+        """
+        gate_list = self.propagators()
+        circuit_unitary = gate_sequence_product(gate_list)
+        return circuit_unitary
 
     def latex_code(self):
         rows = []
