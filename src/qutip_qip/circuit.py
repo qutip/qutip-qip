@@ -350,7 +350,8 @@ class QubitCircuit:
 
     def add_gates(self, gates):
         """
-        Add a sequence of gates to the circuit.
+        Adds a sequence of gates to the circuit in a positive order, i.e.
+        the first gate in the sequence will be applied first to the state.
 
         Parameters
         ----------
@@ -1498,11 +1499,16 @@ class QubitCircuit:
         return U_list
 
     def compute_unitary(self):
-        """Evaluates all the gates in the quantum circuit of decomposed gates.
+        """Evaluates the matrix of all the gates in a quantum circuit.
+
+        Returns
+        -------
+        circuit_unitary : :class:`qutip.Qobj`
+            Product of all gate arrays in the quantum circuit.
         """
         gate_list = self.propagators()
-        unitary = gate_sequence_product(gate_list)
-        return unitary
+        circuit_unitary = gate_sequence_product(gate_list)
+        return circuit_unitary
 
     def latex_code(self):
         rows = []
