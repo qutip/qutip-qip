@@ -620,7 +620,7 @@ class TestQubitCircuit:
             if isinstance(gate, Measurement):
                 continue
             else:
-                inds_list.append(gate.get_inds(qc.N))
+                inds_list.append(gate.get_all_qubits())
 
         U_1, _ = gate_sequence_product(U_list,
                                        inds_list=inds_list,
