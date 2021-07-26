@@ -2,6 +2,8 @@
 
 [![build](https://github.com/qutip/qutip-qip/workflows/Tests/badge.svg)](https://github.com/qutip/qutip-qip/actions)
 [![Documentation Status](https://readthedocs.org/projects/qutip-qip/badge/?version=latest)](https://qutip-qip.readthedocs.io/en/latest/)
+[![PyPI version](https://badge.fury.io/py/qutip-qip.svg)](https://badge.fury.io/py/qutip-qip)
+[![arXiv paper](https://img.shields.io/badge/arXiv-2105.09902-<COLOR>.svg)](https://arxiv.org/abs/2105.09902)
 
 The qutip-qip package used to be a module ``qutip.qip`` under [QuTiP (Quantum Toolbox in Python)](http://qutip.org/index.html).
 From QuTiP 5.0, the community has decided to decrease the size of the core QuTiP package by reducing the external dependencies, in order to simplify maintenance.
@@ -14,25 +16,42 @@ The package offers two different approaches for simulating quantum circuits, one
 
 If you would like to know the future development plan and ideas, have a look at the [discussion panel](https://github.com/qutip/qutip-qip/discussions) as well as the [qutip documentation for ideas](https://github.com/qutip/qutip-doc/tree/master/development/ideas).
 
-Installation
-------------
-To install the package, download to source code and run
+Quick start
+-----------
+To install the package, use
 ```
-pip install qutip_qip
+pip install qutip-qip
 ```
 
-If you want to edit the source code, please download the source code and run the following command under the folder with `setup.cfg`
+Migrating from ``qutip.qip``
+--------------------------
+As the introduction suggested, this package is based on a module in the [QuTiP](http://qutip.org/docs/latest/) package `qutip.qip`.
+If you were using the `qutip` package and now want to try out the new features included in this package, you can simply install this package and replace all the `qutip.qip` in your import statement with `qutip_qip`. Everything should work smoothly as usual.
+
+Documentation and tutorials
+-------------
+
+The documentation of `qutip-qip` updated to the latest development version is hosted at [qutip-qip.readthedocs.io/](https://qutip-qip.readthedocs.io/en/latest/).
+Tutorials related to using quantum gates and circuits in `qutip-qip` can be found [*here*](https://qutip.org/tutorials#quantum-information-processing) and those related to using noise simulators areavailable at [*this link*](https://qutip.org/tutorials#nisq). 
+
+Code examples used in the preprint [*Pulse-level noisy quantum circuits with QuTiP*](https://arxiv.org/abs/2105.09902), updated for the latest code version, are hosted in [this folder](https://github.com/qutip/qutip-qip/tree/master/doc/pulse-paper).
+
+Installation from source
+------------------------
+If you want to edit the source code, please download the source code and run the following command under the root `qutip-qip` folder,
 ```
+pip install --upgrade pip
 pip install -e .
 ```
+which makes sure that you are up to date with the latest `pip` version. Contribution guidelines are available [*here*](https://qutip-qip.readthedocs.io/en/latest/contribution-code.html). 
 
 To build and test the documentation, additional packages need to be installed:
 
 ```
-pip install matplotlib sphinx numpydoc sphinx_rtd_theme
+pip install pytest matplotlib sphinx numpydoc sphinx_rtd_theme
 ```
 
-Under the `docs` directory, use
+Under the `doc` directory, use
 ```
 make html
 ```
@@ -42,18 +61,26 @@ make doctest
 ```
 to test the code in the documentation.
 
-Documentation
--------------
-
-The documentation of `qutip-qip` updated to the latest development version is hosted at [qutip-qip.readthedocs.io/](https://qutip-qip.readthedocs.io/en/latest/).
-
 Testing
 ------------
 To test the installation from a download of the source code, run from the `qutip-qip` directory
 ```
-    pytest tests
+pytest tests
 ```
+Citing `qutip-qip`
+------------
+If you use `qutip-qip` in your research, the  [*preprint*](https://arxiv.org/abs/2105.09902) can be cited as
 
+```bibtex
+@misc{li2021pulselevel,
+      title={Pulse-level noisy quantum circuits with QuTiP},
+      author={Boxi Li and Shahnawaz Ahmed and Sidhant Saraogi and Neill Lambert and Franco Nori and Alexander Pitchford and Nathan Shammah},
+      year={2021},
+      eprint={2105.09902},
+      archivePrefix={arXiv},
+      primaryClass={quant-ph}
+}
+```
 Support
 -------
 This package is supported and maintained by the same developers group as QuTiP.

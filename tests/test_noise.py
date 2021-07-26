@@ -1,5 +1,6 @@
 from numpy.testing import assert_, run_module_suite, assert_allclose
 import numpy as np
+import pytest
 
 from qutip import (
     tensor, qeye, sigmaz, sigmax, sigmay, destroy, identity, QobjEvo,
@@ -11,16 +12,6 @@ from qutip_qip.noise import (
     ZZCrossTalk, Noise)
 from qutip_qip.pulse import Pulse, Drift
 from qutip_qip.circuit import QubitCircuit
-
-
-class DriftNoise(Noise):
-    def __init__(self, op):
-        self.qobj = op
-
-    def get_noisy_dynamics(self, dims, pulses, systematic_noise):
-        systematic_noise.add_coherent_noise(self.qobj, 0, coeff=True)
-        # test the backward compatibility
-        return pulses
 
 
 class TestNoise:
@@ -35,15 +26,15 @@ class TestNoise:
         decnoise = DecoherenceNoise(
             sigmaz(), coeff=coeff, tlist=tlist, targets=[1])
         dims = [2] * 2
-        pulses, systematic_noise = decnoise.get_noisy_dynamics(dims=dims)
+        pulses, systematic_noise = decnoise.get_noisy_pulses(dims=dims)
         noisy_qu, c_ops = systematic_noise.get_noisy_qobjevo(dims=dims)
         assert_allclose(c_ops[0].ops[0].qobj, tensor(qeye(2), sigmaz()))
         assert_allclose(c_ops[0].ops[0].coeff, coeff)
         assert_allclose(c_ops[0].tlist, tlist)
 
-        # Time-indenpendent and all qubits
+        # Time-independent and all qubits
         decnoise = DecoherenceNoise(sigmax(), all_qubits=True)
-        pulses, systematic_noise = decnoise.get_noisy_dynamics(dims=dims)
+        pulses, systematic_noise = decnoise.get_noisy_pulses(dims=dims)
         noisy_qu, c_ops = systematic_noise.get_noisy_qobjevo(dims=dims)
         c_ops = [qu.cte for qu in c_ops]
         assert_(tensor([qeye(2), sigmax()]) in c_ops)
@@ -52,7 +43,7 @@ class TestNoise:
         # Time-denpendent and all qubits
         decnoise = DecoherenceNoise(
             sigmax(), all_qubits=True, coeff=coeff*2, tlist=tlist)
-        pulses, systematic_noise = decnoise.get_noisy_dynamics(dims=dims)
+        pulses, systematic_noise = decnoise.get_noisy_pulses(dims=dims)
         noisy_qu, c_ops = systematic_noise.get_noisy_qobjevo(dims=dims)
         assert_allclose(c_ops[0].ops[0].qobj, tensor(sigmax(), qeye(2)))
         assert_allclose(c_ops[0].ops[0].coeff, coeff*2)
@@ -68,7 +59,7 @@ class TestNoise:
         dims = [2] * 3
         relnoise = RelaxationNoise(t1=[1., 1., 1.], t2=None)
         systematic_noise = Pulse(None, None, label="system")
-        pulses, systematic_noise = relnoise.get_noisy_dynamics(
+        pulses, systematic_noise = relnoise.get_noisy_pulses(
             dims=dims, systematic_noise=systematic_noise)
         noisy_qu, c_ops = systematic_noise.get_noisy_qobjevo(dims=dims)
         assert_(len(c_ops) == 3)
@@ -78,7 +69,7 @@ class TestNoise:
         dims = [2] * 2
         relnoise = RelaxationNoise(t1=None, t2=None)
         systematic_noise = Pulse(None, None, label="system")
-        pulses, systematic_noise = relnoise.get_noisy_dynamics(
+        pulses, systematic_noise = relnoise.get_noisy_pulses(
             dims=dims, systematic_noise=systematic_noise)
         noisy_qu, c_ops = systematic_noise.get_noisy_qobjevo(dims=dims)
         assert_(len(c_ops) == 0)
@@ -86,14 +77,14 @@ class TestNoise:
         # only t2
         relnoise = RelaxationNoise(t1=None, t2=[0.2, 0.7])
         systematic_noise = Pulse(None, None, label="system")
-        pulses, systematic_noise = relnoise.get_noisy_dynamics(
+        pulses, systematic_noise = relnoise.get_noisy_pulses(
             dims=dims, systematic_noise=systematic_noise)
         noisy_qu, c_ops = systematic_noise.get_noisy_qobjevo(dims=dims)
         assert_(len(c_ops) == 2)
 
         # t1+t2 and systematic_noise = None
         relnoise = RelaxationNoise(t1=[1., 1.], t2=[0.5, 0.5])
-        pulses, systematic_noise = relnoise.get_noisy_dynamics(dims=dims)
+        pulses, systematic_noise = relnoise.get_noisy_pulses(dims=dims)
         noisy_qu, c_ops = systematic_noise.get_noisy_qobjevo(dims=dims)
         assert_(len(c_ops) == 4)
 
@@ -108,7 +99,7 @@ class TestNoise:
         pulses = [Pulse(sigmaz(), 0, tlist, coeff)]
         connoise = ControlAmpNoise(coeff=coeff, tlist=tlist)
         noisy_pulses, systematic_noise = \
-            connoise.get_noisy_dynamics(pulses=pulses)
+            connoise.get_noisy_pulses(pulses=pulses)
         assert_allclose(pulses[0].coherent_noise[0].qobj, sigmaz())
         assert_allclose(noisy_pulses[0].coherent_noise[0].coeff, coeff)
 
@@ -129,7 +120,7 @@ class TestNoise:
         gaussnoise = RandomNoise(
             dt=0.1, rand_gen=np.random.normal, loc=mean, scale=std)
         noisy_pulses, systematic_noise = \
-            gaussnoise.get_noisy_dynamics(pulses=pulses)
+            gaussnoise.get_noisy_pulses(pulses=pulses)
         assert_allclose(noisy_pulses[2].qobj, sigmay())
         assert_allclose(noisy_pulses[1].coherent_noise[0].qobj, sigmax())
         assert_allclose(
@@ -143,7 +134,7 @@ class TestNoise:
         gaussnoise = RandomNoise(lam=0.1, dt=0.2, rand_gen=np.random.poisson)
         assert_(gaussnoise.rand_gen is np.random.poisson)
         noisy_pulses, systematic_noise = \
-            gaussnoise.get_noisy_dynamics(pulses=pulses)
+            gaussnoise.get_noisy_pulses(pulses=pulses)
         assert_allclose(
             noisy_pulses[0].coherent_noise[0].tlist,
             np.linspace(1, 6, int(5/0.2) + 1))
@@ -153,19 +144,6 @@ class TestNoise:
         assert_allclose(
             noisy_pulses[2].coherent_noise[0].tlist,
             np.linspace(1, 6, int(5/0.2) + 1))
-
-    def test_user_defined_noise(self):
-        """
-        Test for the user-defined noise object
-        """
-        dr_noise = DriftNoise(sigmax())
-        proc = Processor(1)
-        proc.add_noise(dr_noise)
-        tlist = np.array([0, np.pi/2.])
-        proc.add_pulse(Pulse(identity(2), 0, tlist, False))
-        result = proc.run_state(init_state=basis(2, 0))
-        assert_allclose(
-            fidelity(result.states[-1], basis(2, 1)), 1, rtol=1.0e-6)
 
     def test_zz_cross_talk(self):
         circuit = QubitCircuit(2)
@@ -177,3 +155,71 @@ class TestNoise:
         for pulse in pulses:
             if not isinstance(pulse, Drift) and pulse.label=="systematic_noise":
                 assert(len(pulse.coherent_noise) == 1)
+
+
+class DriftNoise1(Noise):
+    """Standard defintion."""
+    def __init__(self, op):
+        self.qobj = op
+
+    def get_noisy_pulses(self, dims, pulses, systematic_noise):
+        systematic_noise.add_coherent_noise(self.qobj, 0, coeff=True)
+        return pulses, systematic_noise
+
+
+class DriftNoise2(Noise):
+    """Only pulses is returned, no system noise."""
+    def __init__(self, op):
+        self.qobj = op
+
+    def get_noisy_pulses(self, dims, pulses, systematic_noise):
+        systematic_noise.add_coherent_noise(self.qobj, 0, coeff=True)
+        return pulses
+
+
+class DriftNoiseOld1(Noise):
+    """Using get_noisy_dynamics as the hook function."""
+    def __init__(self, op):
+        self.qobj = op
+
+    def get_noisy_dynamics(self, dims, pulses, systematic_noise):
+        systematic_noise.add_coherent_noise(self.qobj, 0, coeff=True)
+        return pulses, systematic_noise
+
+
+class DriftNoiseError1(Noise):
+    """Missing hook function, check the error raised."""
+    def __init__(self, op):
+        self.qobj = op
+
+
+@pytest.mark.parametrize(
+        "noise_class, mode",
+        [(DriftNoise1, "pass"),
+        (DriftNoise2, "pass"),
+        (DriftNoiseOld1, "warning"),
+        (DriftNoiseError1, "error"),
+        ]
+    )
+def test_user_defined_noise(noise_class, mode):
+    """
+    Test for the user-defined noise object
+    """
+    dr_noise = noise_class(sigmax())
+    proc = Processor(1)
+    proc.add_noise(dr_noise)
+    tlist = np.array([0, np.pi/2.])
+    proc.add_pulse(Pulse(identity(2), 0, tlist, False))
+
+    if mode == "warning":
+        with pytest.warns(PendingDeprecationWarning):
+            result = proc.run_state(init_state=basis(2, 0))
+    elif mode == "error":
+        with pytest.raises(NotImplementedError):
+            result = proc.run_state(init_state=basis(2, 0))
+        return
+    else:
+        result = proc.run_state(init_state=basis(2, 0))
+
+    assert_allclose(
+        fidelity(result.states[-1], basis(2, 1)), 1, rtol=1.0e-6)

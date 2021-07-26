@@ -45,6 +45,7 @@ from qutip import (tensor, Qobj, ptrace, rand_ket, fock_dm, basis,
                    rand_dm, bell_state, ket2dm)
 from qutip_qip.qasm import read_qasm
 from qutip_qip.operations.gates import gate_sequence_product
+import qutip as qp
 
 
 def _op_dist(A, B):
@@ -159,7 +160,6 @@ class TestQubitCircuit:
         qc2 = qc1.resolve_gates()
         U2 = gates.gate_sequence_product(qc2.propagators())
         assert _op_dist(U1, U2) < 1e-12
-
 
     def testadjacentgates(self):
         """
@@ -395,6 +395,20 @@ class TestQubitCircuit:
         pytest.raises(ValueError, qc.add_gate, gate,
                       targets=[1])
         pytest.raises(ValueError, qc.add_gate, gate)
+
+    def test_globalphase_gate_propagators(self):
+        qc = QubitCircuit(2)
+        qc.add_gate("GLOBALPHASE", arg_value=np.pi / 2)
+
+        [gate] = qc.gates
+        assert gate.name == "GLOBALPHASE"
+        assert gate.arg_value == np.pi / 2
+
+        [U_expanded] = qc.propagators()
+        assert U_expanded == 1j * qp.qeye([2, 2])
+
+        [U_unexpanded] = qc.propagators(expand=False)
+        assert U_unexpanded == 1j * qp.qeye([2, 2])
 
     def test_single_qubit_gates(self):
         """
@@ -641,6 +655,19 @@ class TestQubitCircuit:
                 np.testing.assert_allclose(probs_initial, probs_final)
                 assert sum(result_cbits[i]) == 1
 
-
-if __name__ == "__main__":
-    run_module_suite()
+    def test_latex_code_teleportation_circuit(self):
+        qc = _teleportation_circuit()
+        latex = qc.latex_code()
+        assert latex == "\n".join([
+            r" & \lstick{c1} &  \qw  &  \qw  &  \qw  &  \qw"
+            r"  &  \qw \cwx[4]  &  \qw  &  \qw  &  \ctrl{2}  & \qw \\ ",
+            r" & \lstick{c0} &  \qw  &  \qw  &  \qw  &  \qw"
+            r"  &  \qw  &  \qw \cwx[2]  &  \ctrl{1}  &  \qw  & \qw \\ ",
+            r" & \lstick{\ket{0}} &  \qw  &  \targ  &  \qw  &  \qw"
+            r"  &  \qw  &  \qw  &  \gate{X}  &  \gate{Z}  & \qw \\ ",
+            r" & \lstick{\ket{0}} &  \gate{{\rm H}}  &  \ctrl{-1}  &"
+            r"  \targ  &  \qw  &  \qw  &  \meter &  \qw  &  \qw  & \qw \\ ",
+            r" & \lstick{\ket{q0}} &  \qw  &  \qw  &  \ctrl{-1}  &"
+            r"  \gate{{\rm H}}  &  \meter &  \qw  &  \qw  &  \qw  & \qw \\ ",
+            "",
+        ])
