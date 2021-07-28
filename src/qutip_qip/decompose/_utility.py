@@ -169,27 +169,41 @@ def gray_code_gate_info(index_of_state_1, index_of_state_2, num_qubits):
 
     # find number of ones in each gray code step, this will be used
     # to keep track of control values.
-    one_bit_count = []
+    # one_bit_count = []
+    # for i in range(num_steps+1):
+    #    check_bit = gray_code[i].count("1")
+    #    one_bit_count.append(check_bit)
+
+    # make a dictionary of an array of binary values
+    # find position of 1's
+    input_binary_values = {}
+
     for i in range(num_steps+1):
-        check_bit = gray_code[i].count("1")
-        one_bit_count.append(check_bit)
-
-    gate_dictionary = {}
-    for i in range(num_steps):
+        bit_array_at_i = []
         a = gray_code[i]
-        b = gray_code[i+1]
-        for j in range(num_qubits):
-            gate_controls = []
-            gate_target = []
-            gate_control_value = []
-            while a[j] == b[j]:
-                partial_gate_control = j
-                gate_controls.append(partial_gate_control)
-                gate_control_value.append(a[j])
+        for j in range(3):
+            bit_array_at_i.append(a[j])
+
+        input_binary_values[i] = bit_array_at_i
+
+    # compare the array values
+    step_iteration_dictionary = {}
+    for i in range(num_steps):
+        a = input_binary_values[i]
+        b = input_binary_values[i+1]
+        controls = []
+        control_value = []
+        target = []
+        all_together = {}
+        for j in range(3):
+            if a[j] == b[j]:
+                controls.append(j)
+                control_value.append(a[j])
             else:
-                partial_gate_target = j
-                gate_target.append(partial_gate_target)
+                target.append(j)
+            all_together['controls ='] = controls
+            all_together['control_value ='] = control_value
+            all_together['targets ='] = target
+        step_iteration_dictionary[i] = all_together
 
-        gate_dictionary[i] = [gate_controls, gate_control_value, gate_target]
-
-    return(gate_dictionary)
+    return(step_iteration_dictionary)
