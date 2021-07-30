@@ -13,7 +13,12 @@ from qutip import (fidelity, Qobj, tensor, Options,rand_ket, basis,  sigmaz,
                     sigmax, sigmay, identity, destroy)
 from qutip_qip.operations import (cnot, gate_sequence_product,
                                         hadamard_transform, expand_operator)
-
+import qutip
+from packaging.version import parse as parse_version
+if parse_version(qutip.__version__) < parse_version('5.dev'):
+    from qutip import Options as SolverOptions
+else:
+    from qutip import SolverOptions
 
 class TestOptPulseProcessor:
     def test_simple_hadamard(self):
@@ -69,7 +74,7 @@ class TestOptPulseProcessor:
         rho0 = qubit_states(3, [1, 1, 1])
         rho1 = qubit_states(3, [1, 1, 0])
         result = test.run_state(
-            rho0, options=Options(store_states=True))
+            rho0, options=SolverOptions(store_states=True))
         assert_(fidelity(result.states[-1], rho1) > 1-1.0e-6)
 
     def test_multi_gates(self):

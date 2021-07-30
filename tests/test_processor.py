@@ -1,13 +1,21 @@
 import os
 import pytest
 
+from packaging.version import parse as parse_version
 from numpy.testing import (
     assert_, run_module_suite, assert_allclose, assert_equal)
 import numpy as np
+import pytest
 
+import qutip
+if parse_version(qutip.__version__) < parse_version('5.dev'):
+    from qutip import Options as SolverOptions
+else:
+    from qutip import SolverOptions
 from qutip_qip.device.processor import Processor
-from qutip import (basis, sigmaz, sigmax, sigmay, identity, destroy, tensor,
-                Options, rand_ket, rand_dm, fidelity)
+from qutip import (
+    basis, sigmaz, sigmax, sigmay, identity, destroy, tensor,
+    rand_ket, rand_dm, fidelity)
 from qutip_qip.operations import hadamard_transform
 from qutip_qip.noise import (
     DecoherenceNoise, RandomNoise, ControlAmpNoise)
@@ -84,9 +92,10 @@ class TestCircuitProcessor:
         tlist = [0., 1., 2.]
         proc.add_pulse(Pulse(identity(2), 0, tlist, False))
         result = proc.run_state(
-            init_state, options=Options(store_final_state=True))
-        global_phase = init_state.data[0, 0]/result.final_state.data[0, 0]
-        assert_allclose(global_phase*result.final_state, init_state)
+            init_state, options=SolverOptions(store_final_state=True))
+        global_phase = init_state[0, 0]/result.final_state[0, 0]
+        assert_allclose(
+            global_phase*result.final_state.full(), init_state.full())
 
     def test_id_with_T1_T2(self):
         """
@@ -199,6 +208,12 @@ class TestCircuitProcessor:
         noisy_qobjevo, c_ops = processor.get_qobjevo(noisy=True)
         assert_(not noisy_qobjevo.args["_step_func_coeff"])
 
+    @pytest.mark.skipif(
+        parse_version(qutip.__version__) >= parse_version('5.dev'),
+        reason=
+            "QobjEvo in qutip 5 changes significantly."
+            "A new test needs to be built separately."
+        )
     def testGetObjevo(self):
         tlist = np.array([1, 2, 3, 4, 5, 6], dtype=float)
         coeff = np.array([1, 1, 1, 1, 1, 1], dtype=float)
@@ -267,16 +282,24 @@ class TestCircuitProcessor:
         proc.set_all_tlist(tlist)
         result = proc.run_state(init_state=init_state)
         assert_allclose(
-            fidelity(result.states[-1], qubit_states(2, [0, 1, 0, 0])),
-            1, rtol=1.e-7)
+            fidelity(
+                result.states[-1],
+                qubit_states(2, [0, 1, 0, 0])
+            ),
+            1, rtol=1.e-7
+        )
 
         # decoherence noise
         dec_noise = DecoherenceNoise([0.25*a], targets=1)
         proc.add_noise(dec_noise)
         result = proc.run_state(init_state=init_state)
         assert_allclose(
-            fidelity(result.states[-1], qubit_states(2, [0, 1, 0, 0])),
-            0.981852, rtol=1.e-3)
+            fidelity(
+                result.states[-1],
+                qubit_states(2, [0, 1, 0, 0])
+            ),
+            0.981852, rtol=1.e-3
+        )
 
         # white random noise
         proc.model._noise = []
