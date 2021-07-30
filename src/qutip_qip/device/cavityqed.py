@@ -144,10 +144,16 @@ class DispersiveCavityQED(ModelProcessor):
         Eliminate the auxillary modes like the cavity modes in cqed.
         """
         psi_proj = tensor(
-            [basis(self.num_levels, 0)]
-            + [identity(2) for n in range(self.num_qubits)]
-        )
-        return psi_proj.dag() * U * psi_proj
+            [basis(self.num_levels, 0)] +
+            [identity(2) for n in range(self.num_qubits)])
+        result = psi_proj.dag() * U * psi_proj
+        # In qutip 5 multiplication of matrices
+        # with dims [[1, 2], [2, 2]] and [[2, 2], [1, 2]]
+        # will give a result of
+        # dims [[1, 2], [1, 2]] instead of [[2], [2]].
+        if result.dims[0][0] == 1:
+            result = result.ptrace(list(range(len(self.dims)))[1:])
+        return result
 
     def load_circuit(self, qc, schedule_mode="ASAP", compiler=None):
         if compiler is None:
