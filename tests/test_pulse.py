@@ -12,6 +12,7 @@ if parse_version(qutip.__version__) >= parse_version('5.dev'):
 else:
     is_qutip5 = False
 
+
 class TestPulse:
     def testBasicPulse(self):
         """
@@ -44,7 +45,6 @@ class TestPulse:
             tensor(identity(2), sigmaz()).full()
         )
 
-
     def testCoherentNoise(self):
         """
         Test for pulse genration with coherent noise.
@@ -73,6 +73,11 @@ class TestPulse:
                 array_to_check = ele.coeff
             assert_allclose(array_to_check, coeff)
 
+    @pytest.mark.xfail(
+        parse_version(qutip.__version__) >= parse_version('5.dev'),
+        reason="QobjEvo in qutip 5 changes significantly."
+               "Need to rework Pulse and the coefficients."
+        )
     def testNoisyPulse(self):
         """
         Test for lindblad noise and different tlist
@@ -107,15 +112,21 @@ class TestPulse:
                     ele.coeff, np.array([0., 0., 0.5, 0.5, 0.1, 0.5]))
         for c_op in c_ops:
             if len(c_op.ops) == 0:
-                assert_allclose(c_ops[0].cte.full(), tensor(identity(2), sigmax()).full())
+                assert_allclose(
+                    c_ops[0].cte.full(),
+                    tensor(identity(2), sigmax()).full()
+                )
             else:
                 assert_allclose(
-                    c_ops[1].ops[0].qobj.full(), tensor(sigmax(), identity(2)).full())
+                    c_ops[1].ops[0].qobj.full(),
+                    tensor(sigmax(), identity(2)).full()
+                    )
                 assert_allclose(
                     c_ops[1].tlist, np.array([0., 0.5, 1., 2., 2.5, 3.]))
                 assert_allclose(
-                    c_ops[1].ops[0].coeff, np.array([0., 0.1, 0.1, 0.2, 0.2, 0.3]))
-
+                    c_ops[1].ops[0].coeff,
+                    np.array([0., 0.1, 0.1, 0.2, 0.2, 0.3])
+                    )
 
     def testPulseConstructor(self):
         """
@@ -154,7 +165,6 @@ class TestPulse:
             c_ops[0].ops[0].qobj.full(),
             tensor([random_qobj, identity(2)]).full()
         )
-
 
     def testDrift(self):
         """

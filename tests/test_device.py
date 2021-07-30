@@ -1,6 +1,7 @@
 from itertools import product
 from functools import reduce
 from operator import mul
+from packaging.version import parse as parse_version
 
 import warnings
 import numpy as np
@@ -101,6 +102,11 @@ def test_analytical_evolution(num_qubits, gates, device_class, kwargs):
     assert abs(qutip.metrics.fidelity(result, ideal) - 1) < _tol
 
 
+@pytest.mark.skipif(
+    parse_version(qutip.__version__) >= parse_version('5.dev'),
+    reason="QobjEvo in qutip 5 changes significantly."
+           "Need to rework Pulse and the coefficients."
+    )
 @pytest.mark.filterwarnings("ignore:Not in the dispersive regime")
 @pytest.mark.parametrize(("num_qubits", "gates"), single_gate_tests)
 @pytest.mark.parametrize(("device_class", "kwargs"), device_lists_numeric)
@@ -155,6 +161,11 @@ circuit2 = deepcopy(circuit)
 circuit2.add_gate("SQRTISWAP", targets=[0, 2])  # supported only by SpinChain
 
 
+@pytest.mark.skipif(
+    parse_version(qutip.__version__) >= parse_version('5.dev'),
+    reason="QobjEvo in qutip 5 changes significantly."
+           "Need to rework Pulse and the coefficients."
+    )
 @pytest.mark.filterwarnings("ignore:Not in the dispersive regime")
 @pytest.mark.parametrize(("circuit", "device_class", "kwargs"), [
     pytest.param(circuit, DispersiveCavityQED, {"g":0.1}, id = "DispersiveCavityQED"),

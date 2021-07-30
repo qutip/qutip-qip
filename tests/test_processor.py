@@ -208,11 +208,11 @@ class TestCircuitProcessor:
         noisy_qobjevo, c_ops = processor.get_qobjevo(noisy=True)
         assert_(not noisy_qobjevo.args["_step_func_coeff"])
 
-    @pytest.mark.skipif(
+    @pytest.mark.xfail(
         parse_version(qutip.__version__) >= parse_version('5.dev'),
         reason=
             "QobjEvo in qutip 5 changes significantly."
-            "A new test needs to be built separately."
+            "Need to rework Pulse and the coefficients."
         )
     def testGetObjevo(self):
         tlist = np.array([1, 2, 3, 4, 5, 6], dtype=float)

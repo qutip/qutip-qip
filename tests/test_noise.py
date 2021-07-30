@@ -20,6 +20,7 @@ if parse_version(qutip.__version__) >= parse_version('5.dev'):
 else:
     is_qutip5 = False
 
+
 class TestNoise:
     def test_decoherence_noise(self):
         """

@@ -2,7 +2,9 @@ import pytest
 import numpy as np
 from numpy.testing import assert_array_equal
 from qutip_qip.compiler.gatecompiler import _default_window_t_max
+from packaging.version import parse as parse_version
 
+import qutip
 from qutip_qip.device import (
     DispersiveCavityQED, CircularSpinChain, LinearSpinChain)
 from qutip_qip.compiler import (
@@ -77,6 +79,13 @@ schedule_mode = [
     pytest.param("ALAP", id="ALAP"),
     pytest.param(False, id = "No schedule"),
 ]
+
+
+@pytest.mark.skipif(
+    parse_version(qutip.__version__) >= parse_version('5.dev'),
+    reason="QobjEvo in qutip 5 changes significantly."
+           "Need to rework Pulse and the coefficients."
+    )
 @pytest.mark.parametrize("spline_kind", spline_kind)
 @pytest.mark.parametrize("schedule_mode", schedule_mode)
 def test_compiler_with_continous_pulse(spline_kind, schedule_mode):
