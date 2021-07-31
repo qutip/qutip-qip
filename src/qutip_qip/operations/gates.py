@@ -42,7 +42,7 @@ from copy import deepcopy
 
 import numpy as np
 import scipy.sparse as sp
-
+from scipy.linalg import block_diag
 from qutip import (Qobj, identity, qeye, sigmax, sigmay, sigmaz, tensor,
                     fock_dm)
 
@@ -1050,7 +1050,9 @@ def rotation(op, phi, N=None, target=0):
     return (-1j * op * phi / 2).expm()
 
 
-def controlled_gate(U, N=2, control=0, target=1, control_value=1):
+def controlled_gate(
+        U, N=2, controls=[0], targets=[1], control_value=[1],
+        control=None, target=None):
     """
     Create an N-qubit controlled gate from a single-qubit gate U with the given
     control and target qubits.
@@ -1061,29 +1063,44 @@ def controlled_gate(U, N=2, control=0, target=1, control_value=1):
         Arbitrary single-qubit gate.
 
     N : integer
-        The number of qubits in the target space.
+        The total number of qubits.
 
-    control : integer
+    controls : integer or list of integer
         The index of the first control qubit.
 
-    target : integer
+    target : integer or list of integer
         The index of the target qubit.
 
-    control_value : integer (1)
+    control_value : integer or list of integer
         The state of the control qubit that activates the gate U.
 
     Returns
     -------
     result : qobj
         Quantum object representing the controlled-U gate.
-
     """
+    # Compatibility
+    if control is not None:
+        controls = [control]
+    if target is not None:
+        targets = [target]
+    if isinstance(control_value, int):
+        control_value = [control_value]
+    num_controls = len(controls)
+    num_targets = len(targets)
 
-    if [N, control, target] == [2, 0, 1]:
-        return (tensor(fock_dm(2, control_value), U) +
-                tensor(fock_dm(2, 1 - control_value), identity(2)))
-    U2 = controlled_gate(U, control_value=control_value)
-    return gate_expand_2toN(U2, N=N, control=control, target=target)
+    # First, assume that the last qubit is the target and control qubits are
+    # in the increasing order.
+    # Transfer the binary control value to the location of this unitary.
+    block_matrices = [np.array([[1, 0], [0, 1]])] * 2 ** num_controls
+    unitary_loc = int("".join(str(s) for s in control_value), 2)
+    block_matrices[unitary_loc] = U.full()
+    result = block_diag(*block_matrices)
+    result = Qobj(result, dims=[[2] * (num_controls + num_targets)] * 2)
+
+    # Expand it to N qubits and permute qubits labelling
+    result = expand_operator(result, N, targets=controls + targets)
+    return result
 
 
 def globalphase(theta, N=1):
