@@ -136,26 +136,20 @@ def _gray_code_steps(index_of_state_1, index_of_state_2, num_qubits):
     gray_code_sequence = _gray_code_sequence(num_qubits)
     state_1_gray_code_index = gray_code_sequence.index(state_1_binary)
     state_2_gray_code_index = gray_code_sequence.index(state_2_binary)
-    num_steps_gray_code = state_2_gray_code_index - state_1_gray_code_index
+    num_steps_gray_code = np.abs(
+        state_2_gray_code_index - state_1_gray_code_index)
 
     # create a smaller gray code sequence between the two states of interest
-    gray_code = _gray_code_sequence(num_qubits)[
-        state_1_gray_code_index:state_2_gray_code_index+1]
+    if state_1_gray_code_index < state_2_gray_code_index:
+        gray_code = _gray_code_sequence(num_qubits)[
+            state_1_gray_code_index:state_2_gray_code_index+1]
+    else:  # check math for reversed order
+        # what is the difference between using gates from left to right vs
+        # right to left - with current code, the order is mixed.
+        gray_code = _gray_code_sequence(num_qubits)[
+            state_2_gray_code_index:state_1_gray_code_index+1]
+
     return(gray_code, num_steps_gray_code)
-
-
-def gray_code_plot(index_of_state_1, index_of_state_2, num_qubits):
-    """ Plots the difference between each step of a gray code sequence.
-
-    Parameters
-    -----------
-    index_of_state_i: int
-        The non-trivial indices in a two-level unitary matrix gate.
-
-    num_qubits:
-        Number of qubits being acted upon by the quantum gate.
-    """
-    # This function is still incomplete.
 
 
 def gray_code_gate_info(index_of_state_1, index_of_state_2, num_qubits):
@@ -181,7 +175,7 @@ def gray_code_gate_info(index_of_state_1, index_of_state_2, num_qubits):
     for i in range(num_steps+1):
         bit_array_at_i = []
         a = gray_code[i]
-        for j in range(3):
+        for j in range(num_qubits):
             bit_array_at_i.append(a[j])
 
         input_binary_values[i] = bit_array_at_i
@@ -195,7 +189,7 @@ def gray_code_gate_info(index_of_state_1, index_of_state_2, num_qubits):
         control_value = []
         target = []
         all_together = {}
-        for j in range(3):
+        for j in range(num_qubits):
             if a[j] == b[j]:
                 controls.append(j)
                 control_value.append(a[j])

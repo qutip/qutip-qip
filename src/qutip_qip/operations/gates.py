@@ -56,7 +56,7 @@ __all__ = ['Gate', 'rx', 'ry', 'rz', 'sqrtnot', 'snot', 'phasegate', 'qrot',
            'globalphase', 'hadamard_transform', 'gate_sequence_product',
            'gate_expand_1toN', 'gate_expand_2toN', 'gate_expand_3toN',
            'qubit_clifford_group', 'expand_operator', '_single_qubit_gates',
-           '_para_gates', '_ctrl_gates','_swap_like','_toffoli_like',
+           '_para_gates', '_ctrl_gates', '_swap_like', '_toffoli_like',
            '_fredkin_like']
 
 
