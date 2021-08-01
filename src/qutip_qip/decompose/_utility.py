@@ -139,6 +139,10 @@ def _gray_code_steps(index_of_state_1, index_of_state_2, num_qubits):
     num_steps_gray_code = np.abs(
         state_2_gray_code_index - state_1_gray_code_index)
 
+    if num_steps_gray_code == 1:
+        num_steps_gray_code = num_steps_gray_code
+    else:  # repeat the mapping back to initial index
+        num_steps_gray_code = 2*num_steps_gray_code - 1
     # create a smaller gray code sequence between the two states of interest
     if state_1_gray_code_index < state_2_gray_code_index:
         gray_code = _gray_code_sequence(num_qubits)[
@@ -161,12 +165,13 @@ def gray_code_gate_info(index_of_state_1, index_of_state_2, num_qubits):
     gray_code = gray_code_info[0]
     num_steps = gray_code_info[1]
 
-    # find number of ones in each gray code step, this will be used
-    # to keep track of control values.
-    # one_bit_count = []
-    # for i in range(num_steps+1):
-    #    check_bit = gray_code[i].count("1")
-    #    one_bit_count.append(check_bit)
+    # repeat the mapping from last index to first initial index
+    if num_steps == 1:
+        gray_code = gray_code
+    else:  # skip last index
+        for i in reversed(range(len(gray_code)-1)):
+            gray_code_repeat = gray_code[i]
+            gray_code.append(gray_code_repeat)
 
     # make a dictionary of an array of binary values
     # find position of 1's

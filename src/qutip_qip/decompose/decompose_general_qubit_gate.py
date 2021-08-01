@@ -17,6 +17,7 @@ from .decompose_single_qubit_gate import decompose_one_qubit_gate
 warnings.filterwarnings("ignore", category=UserWarning)
 
 
+# Functions for gray code decomposition
 def plot_gray_code_grid(index_of_state_1, index_of_state_2, num_qubits):
     """ Plots the difference between each step of a gray code sequence.
 
@@ -203,3 +204,21 @@ def _two_level_gate_info(input_gate, num_qubits):
         gate_dictionary[gate_key] = gate_i_info
 
     return(gate_dictionary)
+
+
+def _sqrt_of_1_qubit_array(input_array):
+    """ Finds the square root of a 1 qubit gate for decomposing a multi-qubit
+    array into smaller controlled CNOT and 2-qubit two-level unitary.
+    """
+    check_gate(Qobj(input_array, dims=[[2] * 1] * 2), 1)
+    # method taken
+    # from https://en.wikipedia.org/wiki/Square_root_of_a_2_by_2_matrix
+
+    U_array = input_array
+    tau = U_array[0][0] + U_array[1][1]
+    delta = np.linalg.det(U_array)
+    s = cmath.sqrt(delta)
+    t = cmath.sqrt(tau + 2*s)
+    sqrt_U = np.multiply(1/t, np.array([[U_array[0][0]+s, U_array[0][1]],
+                                        [U_array[1][0], U_array[1][1]+s]]))
+    return(sqrt_U)

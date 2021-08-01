@@ -8,9 +8,11 @@ from qutip import (
 
 from qutip_qip.decompose.decompose_general_qubit_gate import (
                     _decompose_to_two_level_arrays,
-                    plot_gray_code_grid
+                    plot_gray_code_grid,
+                    _sqrt_of_1_qubit_array,
     )
 
+from qutip_qip.decompose._utility import gray_code_gate_info
 
 # def test_plot_gray_code_grid():
 #    """ Test output type of gray code plotting function.
@@ -73,3 +75,56 @@ def test_two_level_compact_output(num_qubits):
         product_of_U, input_gate
     )
     assert np.isclose(fidelity_of_input_output, 1.0)
+
+
+def test_sqrt_of_1_qubit_array():
+    """ Tests if square root of numpy array is correctly returned.
+    """
+    num_qubits = 1
+    U = rand_unitary(2**num_qubits, dims=[[2] * num_qubits] * 2)
+    U_array = U.full()
+    sqrtU = _sqrt_of_1_qubit_array(U_array)
+    sqrtU_squared = np.matmul(sqrtU, sqrtU)
+    fidelity_of_input_output = average_gate_fidelity(
+        Qobj(sqrtU_squared, dims=[[2] * 1] * 2), U
+    )
+    assert np.isclose(fidelity_of_input_output, 1.0)
+
+
+@pytest.mark.xfail
+def test_gray_code_info():
+    """ Tests if the controls, targets are correctly idenitfied.
+    """
+    # Note the current function is not outputting expected gate control/target
+    # info. The shortened gray code sequence should be ['000', '001', '011',
+    # '010', '110', '111', '110', '010', '011', '001', '000'] but the gate
+    # control and target info should not be returned for '111' to '110'.
+    calculated_output3 = gray_code_gate_info(0, 7, 3)
+    ex_out = {
+     0: {
+        'controls =': [0, 1], 'control_value =': ['0', '0'], 'targets =': [2]},
+     1: {
+        'controls =': [0, 2], 'control_value =': ['0', '1'], 'targets =': [1]},
+     2: {
+        'controls =': [0, 1], 'control_value =': ['0', '1'], 'targets =': [2]},
+     3: {
+        'controls =': [1, 2], 'control_value =': ['1', '0'], 'targets =': [0]},
+     4: {'controls =': [0, 1], 'control_value =': ['1', '1'], 'targets =': [2]},
+     5: {'controls =': [1, 2], 'control_value =': ['1', '0'], 'targets =': [0]},
+     6: {
+        'controls =': [0, 1], 'control_value =': ['0', '1'], 'targets =': [2]},
+     7: {'controls =': [0, 2], 'control_value =': ['0', '1'], 'targets =': [1]},
+     8: {'controls =': [0, 1], 'control_value =': ['0', '0'], 'targets =': [2]}
+     }
+    # currently last gate of the sequence is not output correctly
+    assert calculated_output3 == ex_out
+
+    calc_output2 = gray_code_gate_info(0, 2, 2)
+    ex_out2 = {
+     0: {'controls =': [0], 'control_value =': ['0'], 'targets =': [1]},
+     1: {'controls =': [1], 'control_value =': ['1'], 'targets =': [0]},
+     2: {'controls =': [0], 'control_value =': ['1'], 'targets =': [1]},
+     3: {'controls =': [1], 'control_value =': ['1'], 'targets =': [0]},
+     4: {'controls =': [0], 'control_value =': ['0'], 'targets =': [1]},
+     }
+    assert calc_output2 == ex_out2

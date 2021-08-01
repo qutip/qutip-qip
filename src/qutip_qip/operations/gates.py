@@ -223,6 +223,14 @@ class Gate:
                                                self.arg_value))
 
 
+class TwoLevelGate(Gate):
+    """ Defines a class for two-level unitary. This gate has 4 non-trivial
+    indices and the rest are identical to an identity matrix.
+    """
+
+
+
+
 _GATE_NAME_TO_LABEL = {
     'X': r'X',
     'Y': r'Y',
