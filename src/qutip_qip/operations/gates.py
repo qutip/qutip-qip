@@ -227,6 +227,12 @@ class TwoLevelGate(Gate):
     """ Defines a class for two-level unitary. This gate has 4 non-trivial
     indices and the rest are identical to an identity matrix.
     """
+    def __init__(self, name, num_qubits, targets, controls, control_value):
+        self.name = name
+        self.num_qubits = num_qubits
+        self.targets = targets
+        self.controls = controls
+        self.control_value = control_value
 
 
 
