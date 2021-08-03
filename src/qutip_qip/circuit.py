@@ -1294,7 +1294,7 @@ class QubitCircuit:
             if gate.name in self.user_gates:
                 if gate.controls is not None:
                     raise ValueError("A user defined gate {} takes only  "
-                                    "`targets` variable.".format(gate.name))
+                                     "`targets` variable.".format(gate.name))
                 func_or_oper = self.user_gates[gate.name]
                 if inspect.isfunction(func_or_oper):
                     func = func_or_oper
