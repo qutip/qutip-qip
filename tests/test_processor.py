@@ -365,3 +365,11 @@ class TestCircuitProcessor:
         processor = Processor(1)
         processor.add_control(sigmax(), 0, label="test")
         assert("test" in processor.get_pulse_dict())
+
+    def test_repeated_use_of_processor(self):
+        processor = Processor(1, t1=1.)
+        processor.add_pulse(
+            Pulse(sigmax(), targets=0, coeff=True))
+        result1 = processor.run_state(basis(2, 0), tlist=np.linspace(0, 1, 10))
+        result2 = processor.run_state(basis(2, 0), tlist=np.linspace(0, 1, 10))
+        assert_allclose(result1.states[-1].full(), result2.states[-1].full())
