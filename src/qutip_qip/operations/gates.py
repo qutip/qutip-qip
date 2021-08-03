@@ -174,13 +174,25 @@ class Gate:
         self.arg_value = arg_value
         self.arg_label = arg_label
 
-    def get_inds(self, N=None):
-        if self.controls:
+    def get_all_qubits(self):
+        """
+        Return a list of all qubits that the gate operator
+        acts on.
+        The list concatenates the two lists representing
+        the controls and the targets qubits while retains the order.
+
+        Returns
+        -------
+        targets_list : list of int
+            A list of all qubits, including controls and targets.
+        """
+        if self.controls is not None:
             return self.controls + self.targets
-        if self.targets:
+        if self.targets is not None:
             return self.targets
         else:
-            return list(range(N))
+            # Special case: the global phase gate
+            return []
 
     def __str__(self):
         str_name = (("Gate(%s, targets=%s, controls=%s,"
@@ -221,6 +233,125 @@ class Gate:
                                                self.controls,
                                                self.targets,
                                                self.arg_value))
+
+    def get_compact_qobj(self):
+        """
+        Get the compact :class:`qutip.Qobj` representation of the gate
+        operator, ignoring the controls and targets.
+        In the unitary representation,
+        it always assumes that the first few qubits are controls,
+        then targets.
+
+        Returns
+        -------
+        qobj : :obj:`qutip.Qobj`
+            The compact gate operator as a unitary matrix.
+        """
+        # TODO This will be moved to each sub-class of Gate
+        if self.name == "RX":
+            qobj = rx(self.arg_value)
+        elif self.name == "RY":
+            qobj = ry(self.arg_value)
+        elif self.name == "RZ":
+            qobj = rz(self.arg_value)
+        elif self.name == "X":
+            qobj = x_gate()
+        elif self.name == "Y":
+            qobj = y_gate()
+        elif self.name == "CY":
+            qobj = cy_gate()
+        elif self.name == "Z":
+            qobj = z_gate()
+        elif self.name == "CZ":
+            qobj = cz_gate()
+        elif self.name == "T":
+            qobj = t_gate()
+        elif self.name == "CT":
+            qobj = ct_gate()
+        elif self.name == "S":
+            qobj = s_gate()
+        elif self.name == "CS":
+            qobj = cs_gate()
+        elif self.name == "SQRTNOT":
+            qobj = sqrtnot()
+        elif self.name == "SNOT":
+            qobj = snot()
+        elif self.name == "PHASEGATE":
+            qobj = phasegate(self.arg_value)
+        elif self.name == "QASMU":
+            qobj = qasmu_gate(self.arg_value)
+        elif self.name == "CRX":
+            qobj = controlled_gate(rx(self.arg_value))
+        elif self.name == "CRY":
+            qobj = controlled_gate(ry(self.arg_value))
+        elif self.name == "CRZ":
+            qobj = controlled_gate(rz(self.arg_value))
+        elif self.name == "CPHASE":
+            qobj = cphase(self.arg_value)
+        elif self.name == "CNOT":
+            qobj = cnot()
+        elif self.name == "CSIGN":
+            qobj = csign()
+        elif self.name == "BERKELEY":
+            qobj = berkeley()
+        elif self.name == "SWAPalpha":
+            qobj = swapalpha(self.arg_value)
+        elif self.name == "SWAP":
+            qobj = swap()
+        elif self.name == "ISWAP":
+            qobj = iswap()
+        elif self.name == "SQRTSWAP":
+            qobj = sqrtswap()
+        elif self.name == "SQRTISWAP":
+            qobj = sqrtiswap()
+        elif self.name == "FREDKIN":
+            qobj = fredkin()
+        elif self.name == "TOFFOLI":
+            qobj = toffoli()
+        elif self.name == "IDLE":
+            qobj = qeye(2)
+        elif self.name == "GLOBALPHASE":
+            raise NotImplementedError(
+                "Globalphase gate has no compack qobj representation.")
+        else:
+            raise NotImplementedError(f"{self.name} is an unknown gate.")
+        return qobj
+
+    def get_qobj(self, num_qubits=None, dims=None):
+        """
+        Get the :class:`qutip.Qobj` representation of the gate operator.
+        The operator is expanded to the full Herbert space according to
+        the controls and targets qubits defined for the gate.
+
+        Parameters
+        ----------
+        num_qubits : int, optional
+            The number of qubits.
+            If not given, use the minimal number of qubits required
+            by the target and control qubits.
+        dims : list, optional
+            A list representing the dimensions of each quantum system.
+            If not given, it is assumed to be an all-qubit system.
+
+        Returns
+        -------
+        qobj : :obj:`qutip.Qobj`
+            The compact gate operator as a unitary matrix.
+        """
+        if self.name == "GLOBALPHASE":
+            if num_qubits is not None:
+                return globalphase(self.arg_value, num_qubits)
+            else:
+                raise ValueError(
+                    "The number of qubits must be provided for "
+                    "global phase gates.")
+
+        all_targets = self.get_all_qubits()
+        if num_qubits is None:
+            num_qubits = max(all_targets)
+        return expand_operator(
+            self.get_compact_qobj(), N=num_qubits, targets=all_targets,
+            dims=dims)
 
 
 _GATE_NAME_TO_LABEL = {
@@ -1301,7 +1432,6 @@ def _gate_sequence_product(U_list, ind_list):
 
     >>> U_list, overall_inds = _gate_sequence_product(tensor_lst, overall_inds)
     """
-
     num_qubits = len(set(chain(*ind_list)))
     sorted_inds = sorted(set(_flatten(ind_list)))
     ind_list = [[sorted_inds.index(ind) for ind in inds] for inds in ind_list]
@@ -1402,7 +1532,6 @@ def gate_sequence_product(U_list, left_to_right=True,
     overall_inds : list of int, optional
         List of qubit indices on which U_overall applies.
     """
-
     if expand:
         return _gate_sequence_product(U_list, inds_list)
     else:

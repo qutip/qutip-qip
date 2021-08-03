@@ -68,7 +68,7 @@ full dimension of the circuit:
 
 .. testcode::
 
-  U_list = qc.propagators()
+  U_list = qc.propagators(ignore_measurement=True)
   print(U_list)
 
 **Output**:
@@ -103,7 +103,7 @@ can be achieved with the argument ``expand=False`` specified to the
 
 .. testcode::
 
-  U_list = qc.propagators(expand=False)
+  U_list = qc.propagators(expand=False, ignore_measurement=True)
   print(U_list)
 
 **Output**:

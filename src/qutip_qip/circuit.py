@@ -33,7 +33,7 @@
 from collections.abc import Iterable
 from itertools import product
 import numbers
-
+import warnings
 import inspect
 
 import numpy as np
@@ -202,7 +202,7 @@ class QubitCircuit:
         self.N = N
         self.reverse_states = reverse_states
         self.gates = []
-        self.dims = dims
+        self.dims = dims if dims is not None else [2] * N
         self.num_cbits = num_cbits
 
         if input_states:
@@ -1247,7 +1247,7 @@ class QubitCircuit:
 
         return temp
 
-    def propagators(self, expand=True):
+    def propagators(self, expand=True, ignore_measurement=False):
         """
         Propagator matrix calculator returning the individual
         steps as unitary matrices operating from left to right.
@@ -1262,110 +1262,36 @@ class QubitCircuit:
             list of unitaries will need to be combined with the list of
             gates in order to determine which qubits the unitaries should
             act on.
+        ignore_measurement: bool, optional
+            Whether :class:`.Measurement` operators should be ignored.
+            If set False, it will raise an error
+            when the circuit has measurement.
 
         Returns
         -------
         U_list : list
             Return list of unitary matrices for the qubit circuit.
+
+        Notes
+        -----
+        If ``expand=False``, the global phase gate only returns a number.
+        Also, classical controls are be ignored.
         """
-
-        if not expand:
-            return self._propagators_no_expand()
-
         U_list = []
 
-        gates = filter(lambda x: isinstance(x, Gate), self.gates)
+        gates = [g for g in self.gates if not isinstance(g, Measurement)]
+        if len(gates) < len(self.gates) and not ignore_measurement:
+            raise TypeError(
+                "Cannot compute the propagator of a measurement operator."
+                "Please set ignore_measurement=True.")
 
         for gate in gates:
-            if gate.name == "RX":
-                U_list.append(rx(
-                    gate.arg_value, self.N, gate.targets[0]))
-            elif gate.name == "RY":
-                U_list.append(ry(
-                    gate.arg_value, self.N, gate.targets[0]))
-            elif gate.name == "RZ":
-                U_list.append(rz(
-                    gate.arg_value, self.N, gate.targets[0]))
-            elif gate.name == "X":
-                U_list.append(x_gate(self.N, gate.targets[0]))
-            elif gate.name == "Y":
-                U_list.append(y_gate(self.N, gate.targets[0]))
-            elif gate.name == "CY":
-                U_list.append(cy_gate(
-                    self.N, gate.controls[0], gate.targets[0]))
-            elif gate.name == "Z":
-                U_list.append(z_gate(self.N, gate.targets[0]))
-            elif gate.name == "CZ":
-                U_list.append(cz_gate(
-                    self.N, gate.controls[0], gate.targets[0]))
-            elif gate.name == "T":
-                U_list.append(t_gate(self.N, gate.targets[0]))
-            elif gate.name == "CT":
-                U_list.append(ct_gate(
-                    self.N, gate.controls[0], gate.targets[0]))
-            elif gate.name == "S":
-                U_list.append(s_gate(self.N, gate.targets[0]))
-            elif gate.name == "CS":
-                U_list.append(cs_gate(
-                    self.N, gate.controls[0], gate.targets[0]))
-            elif gate.name == "SQRTNOT":
-                U_list.append(sqrtnot(self.N, gate.targets[0]))
-            elif gate.name == "SNOT":
-                U_list.append(snot(self.N, gate.targets[0]))
-            elif gate.name == "PHASEGATE":
-                U_list.append(phasegate(gate.arg_value, self.N,
-                                        gate.targets[0]))
-            elif gate.name == "QASMU":
-                U_list.append(qasmu_gate(gate.arg_value, self.N,
-                                         gate.targets[0]))
-            elif gate.name == "CRX":
-                U_list.append(controlled_gate(rx(gate.arg_value),
-                                              N=self.N,
-                                              control=gate.controls[0],
-                                              target=gate.targets[0]))
-            elif gate.name == "CRY":
-                U_list.append(controlled_gate(ry(gate.arg_value),
-                                              N=self.N,
-                                              control=gate.controls[0],
-                                              target=gate.targets[0]))
-            elif gate.name == "CRZ":
-                U_list.append(controlled_gate(rz(gate.arg_value),
-                                              N=self.N,
-                                              control=gate.controls[0],
-                                              target=gate.targets[0]))
-            elif gate.name == "CPHASE":
-                U_list.append(cphase(gate.arg_value, self.N,
-                                     gate.controls[0], gate.targets[0]))
-            elif gate.name == "CNOT":
-                U_list.append(cnot(self.N,
-                                   gate.controls[0], gate.targets[0]))
-            elif gate.name == "CSIGN":
-                U_list.append(csign(self.N,
-                                    gate.controls[0], gate.targets[0]))
-            elif gate.name == "BERKELEY":
-                U_list.append(berkeley(self.N, gate.targets))
-            elif gate.name == "SWAPalpha":
-                U_list.append(swapalpha(gate.arg_value, self.N,
-                                        gate.targets))
-            elif gate.name == "SWAP":
-                U_list.append(swap(self.N, gate.targets))
-            elif gate.name == "ISWAP":
-                U_list.append(iswap(self.N, gate.targets))
-            elif gate.name == "SQRTSWAP":
-                U_list.append(sqrtswap(self.N, gate.targets))
-            elif gate.name == "SQRTISWAP":
-                U_list.append(sqrtiswap(self.N, gate.targets))
-            elif gate.name == "FREDKIN":
-                U_list.append(fredkin(self.N, gate.controls[0],
-                                      gate.targets))
-            elif gate.name == "TOFFOLI":
-                U_list.append(toffoli(self.N, gate.controls,
-                                      gate.targets[0]))
-            elif gate.name == "GLOBALPHASE":
-                U_list.append(globalphase(gate.arg_value, self.N))
-            elif gate.name == "IDLE":
-                U_list.append(qeye(self.N * [2]))
-            elif gate.name in self.user_gates:
+            if gate.name == "GLOBALPHASE":
+                qobj = gate.get_qobj(self.N)
+                U_list.append(qobj)
+                continue
+
+            if gate.name in self.user_gates:
                 if gate.controls is not None:
                     raise ValueError("A user defined gate {} takes only  "
                                      "`targets` variable.".format(gate.name))
@@ -1374,128 +1300,26 @@ class QubitCircuit:
                     func = func_or_oper
                     para_num = len(inspect.getfullargspec(func)[0])
                     if para_num == 0:
-                        oper = func()
+                        qobj = func()
                     elif para_num == 1:
-                        oper = func(gate.arg_value)
+                        qobj = func(gate.arg_value)
                     else:
                         raise ValueError(
                                 "gate function takes at most one parameters.")
                 elif isinstance(func_or_oper, Qobj):
-                    oper = func_or_oper
+                    qobj = func_or_oper
                 else:
                     raise ValueError("gate is neither function nor operator")
-                U_list.append(expand_operator(
-                    oper, N=self.N, targets=gate.targets, dims=self.dims))
+                if expand:
+                    all_targets = gate.get_all_qubits()
+                    qobj = expand_operator(
+                        qobj, N=self.N, targets=all_targets, dims=self.dims)
             else:
-                raise NotImplementedError(
-                    "{} gate is an unknown gate.".format(gate.name))
-
-        return U_list
-
-    def _propagators_no_expand(self):
-        """
-        Propagator matrix calculator for N qubits returning the individual
-        steps as unitary matrices operating from left to right.
-
-        Returns
-        -------
-        U_list : list
-            Return list of unitary matrices for the qubit circuit.
-
-        """
-        U_list = []
-
-        gates = filter(lambda x: isinstance(x, Gate), self.gates)
-
-        for gate in gates:
-            if gate.name == "RX":
-                U_list.append(rx(gate.arg_value))
-            elif gate.name == "RY":
-                U_list.append(ry(gate.arg_value))
-            elif gate.name == "RZ":
-                U_list.append(rz(gate.arg_value))
-            elif gate.name == "X":
-                U_list.append(x_gate())
-            elif gate.name == "Y":
-                U_list.append(y_gate())
-            elif gate.name == "CY":
-                U_list.append(cy_gate())
-            elif gate.name == "Z":
-                U_list.append(z_gate())
-            elif gate.name == "CZ":
-                U_list.append(cz_gate())
-            elif gate.name == "T":
-                U_list.append(t_gate())
-            elif gate.name == "CT":
-                U_list.append(ct_gate())
-            elif gate.name == "S":
-                U_list.append(s_gate())
-            elif gate.name == "CS":
-                U_list.append(cs_gate())
-            elif gate.name == "SQRTNOT":
-                U_list.append(sqrtnot())
-            elif gate.name == "SNOT":
-                U_list.append(snot())
-            elif gate.name == "PHASEGATE":
-                U_list.append(phasegate(gate.arg_value))
-            elif gate.name == "QASMU":
-                U_list.append(qasmu_gate(gate.arg_value))
-            elif gate.name == "CRX":
-                U_list.append(controlled_gate(rx(gate.arg_value)))
-            elif gate.name == "CRY":
-                U_list.append(controlled_gate(ry(gate.arg_value)))
-            elif gate.name == "CRZ":
-                U_list.append(controlled_gate(rz(gate.arg_value)))
-            elif gate.name == "CPHASE":
-                U_list.append(cphase(gate.arg_value))
-            elif gate.name == "CNOT":
-                U_list.append(cnot())
-            elif gate.name == "CSIGN":
-                U_list.append(csign())
-            elif gate.name == "BERKELEY":
-                U_list.append(berkeley())
-            elif gate.name == "SWAPalpha":
-                U_list.append(swapalpha(gate.arg_value))
-            elif gate.name == "SWAP":
-                U_list.append(swap())
-            elif gate.name == "ISWAP":
-                U_list.append(iswap())
-            elif gate.name == "SQRTSWAP":
-                U_list.append(sqrtswap())
-            elif gate.name == "SQRTISWAP":
-                U_list.append(sqrtiswap())
-            elif gate.name == "FREDKIN":
-                U_list.append(fredkin())
-            elif gate.name == "TOFFOLI":
-                U_list.append(toffoli())
-            elif gate.name == "GLOBALPHASE":
-                U_list.append(globalphase(gate.arg_value, self.N))
-            elif gate.name == "IDLE":
-                U_list.append(qeye(2))
-            elif gate.name in self.user_gates:
-                if gate.controls is not None:
-                    raise ValueError("A user defined gate {} takes only  "
-                                     "`targets` variable.".format(gate.name))
-                func_or_oper = self.user_gates[gate.name]
-                if inspect.isfunction(func_or_oper):
-                    func = func_or_oper
-                    para_num = len(inspect.getfullargspec(func)[0])
-                    if para_num == 0:
-                        oper = func()
-                    elif para_num == 1:
-                        oper = func(gate.arg_value)
-                    else:
-                        raise ValueError(
-                                "gate function takes at most one parameters.")
-                elif isinstance(func_or_oper, Qobj):
-                    oper = func_or_oper
+                if expand:
+                    qobj = gate.get_qobj(self.N, self.dims)
                 else:
-                    raise ValueError("gate is neither function nor operator")
-                U_list.append(oper)
-            else:
-                raise NotImplementedError(
-                    "{} gate is an unknown gate.".format(gate.name))
-
+                    qobj = gate.get_compact_qobj()
+            U_list.append(qobj)
         return U_list
 
     def compute_unitary(self):
@@ -1824,9 +1648,10 @@ class CircuitSimulator:
         if U_list:
             self.U_list = U_list
         elif precompute_unitary:
-            self.U_list = qc.propagators(expand=False)
+            self.U_list = qc.propagators(
+                expand=False, ignore_measurement=True)
         else:
-            self.U_list = qc.propagators()
+            self.U_list = qc.propagators(ignore_measurement=True)
 
         self.ops = []
         self.inds_list = []
@@ -1881,7 +1706,7 @@ class CircuitSimulator:
             if isinstance(gate, Measurement):
                 continue
             else:
-                self.inds_list.append(gate.get_inds(self.qc.N))
+                self.inds_list.append(gate.get_all_qubits())
 
         for operation in self.qc.gates:
             if isinstance(operation, Measurement):
@@ -2073,7 +1898,7 @@ class CircuitSimulator:
             if apply_gate:
                 if self.precompute_unitary:
                     U = expand_operator(U, self.qc.N,
-                                        operation.get_inds(self.qc.N))
+                                        operation.get_all_qubits())
                 self._evolve_state(U)
         else:
             self._evolve_state(op)
