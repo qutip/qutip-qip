@@ -77,6 +77,7 @@ def process_noise(pulses, noise_list, dims, t1=None, t2=None,
     noisy_pulses: list of :class:`.Pulse`
         The noisy pulses, including the system noise.
     """
+    noise_list = noise_list.copy()
     noisy_pulses = deepcopy(pulses)
     systematic_noise = Pulse(None, None, label="systematic_noise")
 
