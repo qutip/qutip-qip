@@ -313,12 +313,14 @@ def _paulix_for_control_0(step_iteration_dictionary):
                 new_target_info.append(new_target)
                 # change control value to be 1 if it is 0
                 gray_code_info[0]['control_value ='] = ['1']*num_control_qubits
-            else:
-                return({0: gray_code_info})
+            # else:
+            #    return(gray_code_info)
         if len(new_target_info) != 0:
             # returns info about which two-level array gate decomposition
             # needs pauli x to correct ctrl_value = 0
             array_gate_info_with_control_0.append([0, new_target_info])
+        else:
+            return(gray_code_info)
 
         # create array of pauli gates to put before and after the decomposition
         # info from gray code
@@ -341,7 +343,7 @@ def _paulix_for_control_0(step_iteration_dictionary):
         if len(full_gate_array) == 0:
             return(gray_code_info)
         else:
-            return({0: full_gate_array})
+            return(full_gate_array)
     else:
         # gray code info
         full_gray_code_info = step_iteration_dictionary
