@@ -291,12 +291,14 @@ class GateCompiler(object):
             # and the end of the idling to prevent wrong cubic spline.
             if start_time - last_pulse_time > 3 * step_size:
                 idling_tlist1 = np.linspace(
-                    last_pulse_time + step_size / 5,
+                    last_pulse_time + step_size / 10,
                     last_pulse_time + step_size,
-                    5,
+                    10
                 )
                 idling_tlist2 = np.linspace(
-                    start_time - step_size, start_time, 5
+                    start_time - step_size,
+                    start_time,
+                    10
                 )
                 idling_tlist.extend([idling_tlist1, idling_tlist2])
             else:
