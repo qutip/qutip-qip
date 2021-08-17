@@ -1,3 +1,4 @@
+from packaging.version import parse as parse_version
 from collections.abc import Iterable
 import warnings
 from copy import deepcopy
@@ -21,7 +22,13 @@ from ..noise import (
 from ..pulse import Pulse, Drift, _merge_qobjevo, _fill_coeff
 
 
-__all__ = ["Processor"]
+if parse_version(qutip.__version__) >= parse_version('5.dev'):
+    is_qutip5 = True
+else:
+    is_qutip5 = False
+
+
+__all__ = ['Processor']
 
 
 class Processor(object):
@@ -493,6 +500,28 @@ class Processor(object):
         )
         return full_tlist
 
+    def tlist(self, noisy):
+        """
+        Return the merged tlist of all the pulses.
+
+        Parameters
+        ----------
+        noisy: bool, optional
+            If noise should be included. Default is False.
+        """
+        if not noisy:
+            dynamics = self.pulses
+        else:
+            dynamics = self.get_noisy_pulses(
+                device_noise=True, drift=True)
+
+        t_lists = []
+        for pulse in dynamics:
+            tlist = pulse.get_full_tlist()
+            if tlist is not None:
+                t_lists.append(tlist)
+        return np.unique(np.sort(np.hstack(t_lists)))
+
     def get_full_coeffs(self, full_tlist=None):
         """
         Return the full coefficients in a 2d matrix form.
@@ -530,14 +559,11 @@ class Processor(object):
                     coeffs_list.append(np.zeros(len(full_tlist)))
                 continue
             if self.spline_kind == "step_func":
-                arg = {"_step_func_coeff": True}
                 coeffs_list.append(
-                    _fill_coeff(pulse.coeff, pulse.tlist, full_tlist, arg)
-                )
+                    _fill_coeff(pulse.coeff, pulse.tlist, full_tlist, True))
             elif self.spline_kind == "cubic":
                 coeffs_list.append(
-                    _fill_coeff(pulse.coeff, pulse.tlist, full_tlist, {})
-                )
+                    _fill_coeff(pulse.coeff, pulse.tlist, full_tlist, False))
             else:
                 raise ValueError("Unknown spline kind.")
         return np.array(coeffs_list)
@@ -936,6 +962,7 @@ class Processor(object):
             t1=self.t1,
             t2=self.t2,
             device_noise=device_noise,
+            spline_kind=self.spline_kind
         )
         if drift:
             drift_obj = self._get_drift_obj()
@@ -990,7 +1017,10 @@ class Processor(object):
             qu_list.append(qu)
 
         final_qu = _merge_qobjevo(qu_list)
-        final_qu.args.update(args)
+        if is_qutip5:
+            final_qu.arguments(args)
+        else:
+            final_qu.args.update(args)
 
         # bring all c_ops to the same tlist, won't need it in QuTiP 5
         temp = []
@@ -1181,15 +1211,15 @@ class Processor(object):
             tlist = kwargs["tlist"]
             del kwargs["tlist"]
         else:
-            tlist = noisy_qobjevo.tlist
+            # TODO, this can be simplified further, tlist in the solver only
+            # determines the time step for intermediate result.
+            tlist = self.get_full_tlist()
         if solver == "mesolve":
             evo_result = mesolve(
-                H=noisy_qobjevo, rho0=init_state, tlist=tlist, **kwargs
-            )
+                H=noisy_qobjevo, rho0=init_state, tlist=tlist, **kwargs)
         elif solver == "mcsolve":
             evo_result = mcsolve(
-                H=noisy_qobjevo, psi0=init_state, tlist=tlist, **kwargs
-            )
+                H=noisy_qobjevo, psi0=init_state, tlist=tlist, **kwargs)
 
         return evo_result
 

@@ -172,6 +172,11 @@ class TestCircuitProcessor:
         # left open, so we politely close it:
         plt.close(fig)
 
+    @pytest.mark.skipif(
+        parse_version(qutip.__version__) >= parse_version('5.dev'),
+        reason="QobjEvo in qutip 5 changes significantly."
+            "Need to rework Pulse and the coefficients."
+        )
     def testSpline(self):
         """
         Test if the spline kind is correctly transfered into
@@ -327,7 +332,7 @@ class TestCircuitProcessor:
         tlist = np.array([0., np.pi, 2*np.pi, 3*np.pi])
         processor.add_pulse(Pulse(None, None, tlist, False))
         ideal_qobjevo, _ = processor.get_qobjevo(noisy=True)
-        assert_equal(ideal_qobjevo.cte, sigmax() / 2)
+        assert_equal(ideal_qobjevo(0), sigmax() / 2)
 
         init_state = basis(2)
         propagators = processor.run_analytically()
