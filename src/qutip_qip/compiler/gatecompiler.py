@@ -1,9 +1,11 @@
+import warnings
 import numpy as np
+from scipy import signal
+
 from .instruction import Instruction
 from .scheduler import Scheduler
 from ..circuit import QubitCircuit
 from ..operations import Gate
-import warnings
 
 
 __all__ = ['GateCompiler']
@@ -36,8 +38,18 @@ class GateCompiler(object):
         Note that for continuous pulse, the first coeff should always be 0.
 
     args: dict
-        Arguments for individual compiling routines.
-        It adds more flexibility in customizing compiler.
+        The compilation configurations.
+        It will be passed to each compiling functions.
+        Available arguments:
+
+        * ``shape``: The compiled pulse shape. ``rectangular`` or
+          one of the `SciPy window functions
+          <https://docs.scipy.org/doc/scipy/reference/signal.windows.html>`_.
+        * ``num_samples``:
+          Number of samples in continuous pulse.
+          It has not effect in rectangular pulse.
+        * ``params``: Hardware parameters computed in the :obj:`Processor`.
+
     """
     def __init__(self, num_qubits=None, params=None, pulse_dict=None, N=None):
         self.gate_compiler = {}
@@ -48,8 +60,11 @@ class GateCompiler(object):
             "GLOBALPHASE": self.globalphase_compiler,
             "IDLE": self.idle_compiler
         }
-        self.args = {}
-        self.args.update({"params": self.params})
+        self.args = {  # Default configuration
+            "shape": "rectangular",
+            "num_samples": None,
+            "params": self.params,
+            }
         self.global_phase = 0.
         if pulse_dict is not None:
             warnings.warn(
@@ -287,3 +302,147 @@ class GateCompiler(object):
             # idling until the start time
             idling_tlist.append([start_time])
         return np.concatenate(idling_tlist)
+
+    def default_single_qubit_compiler(
+            self, gate, args, param_name=None, op_name=None, scaling=1.):
+        """
+        Default compiler for single qubits gates.
+        It compiles ``"RY"`` ``"RX"`` and ``"RZ"`` gate,
+        assuming that the corresponding
+        operator is named ``"sy"``, ``"sx"``, and ``"sz"``.
+
+        Parameters
+        ----------
+        gate : :obj:`.Gate`:
+            The quantum gate to be compiled.
+        args : dict
+            The compilation configuration defined in the attributes
+            :obj:`.GateCompiler.args` or given as a parameter in
+            :obj:`.GateCompiler.compile`.
+        param_name ：str
+            The name of the coefficient saved in the attribute
+            :obj:`GateCompiler.params`.
+            The corresponding value sets the maximum of the pulse.
+            It should be calculated in the corresponding :class:`.Processor`
+            and passed to the compiler.
+        op_name : str
+            The name of the corresponding operator.
+            It will be one of the keys of the returned dictionary of
+            :obj:`.GateCompiler.compile`.
+            The name should match the label prefix of the control Hamiltonians
+            in :obj:`.Processor`.
+            E.g., if the label is "sx0" for the zeroth qubit,
+            set ``op_name="sx"``.
+        scaling : float
+            Scaling for the ``tlist``.
+            By default, the operator is assumed to be
+            ``2*pi*sigmax()/2`` (or y, z).
+            If operators with other factors are used, e.g., ``2*pi*sigmax()``,
+            choose ``scaling=0.5``.
+            It will be multiplied to the ``tlist`` to ensure that
+            the total area is desired.
+
+        Returns
+        -------
+        A list of :obj:`.Instruction`, including the compiled pulse
+        information for this gate.
+        """
+        targets = gate.targets
+        if gate.name == "RY":
+            pulse_prefix = "sy"
+        elif gate.name == "RX":
+            pulse_prefix = "sx"
+        elif gate.name == "RZ":
+            pulse_prefix = "sz"
+        else:
+            raise ValueError(f"Gate {gate.name} cannot not be compiled.")
+        if param_name is None:
+            param_name = pulse_prefix
+        if op_name is None:
+            op_name = pulse_prefix
+        coeff, tlist = self.generate_pulse_shape(
+            args["shape"], args["num_samples"],
+            maximum=self.params[param_name][targets[0]],
+            area=gate.arg_value / 2. / np.pi)
+        pulse_info = [(op_name + str(targets[0]), coeff)]
+        return [Instruction(gate, tlist * scaling, pulse_info)]
+
+    def generate_pulse_shape(self, window, num_samples, maximum=1., area=1.):
+        """
+        Return a tuple consisting of a coeff list and a time sequence
+        according to a given window function.
+
+        Parameters
+        ----------
+        window : str
+            The name ``"rectangular"`` for constant pulse or
+            the name of a Scipy window function.
+            See
+            `the Scipy documentation
+            <https://docs.scipy.org/doc/scipy/reference/signal.windows.html>`_
+            for detail.
+        num_samples : int
+            The number of the samples of the coefficients.
+        maximum : float
+            The maximum of the coefficients.
+            The absolute value will be used if negative.
+        area : float
+            The total area if one integrates coeff as a function of the time.
+
+        Returns
+        -------
+        coeff, tlist :
+            If the default window ``"shape"="rectangular"`` is used,
+            both are float numbers.
+            If Scipy window functions are used, both are a 1-dimensional numpy
+            array with the same size.
+
+        Notes
+        -----
+        If Scipy window functions are used, it is suggested to set
+        ``Processor.pulse_mode`` to ``"continuous"``.
+        Also, finite number of samples will also make
+        the total integral of the coefficients slightly deviate from ``area``.
+        """
+        coeff, tlist = _normalized_window(window, num_samples)
+        sign = np.sign(area)
+        coeff *= np.abs(maximum) * sign
+        tlist *= abs(area) / np.abs(maximum)
+        return coeff, tlist
+
+
+"""
+Normalized scipy window functions.
+The scipy implementation only makes sure that it is maximum is 1.
+Here, we save a default t_max so that the integral is always 1.
+"""
+_default_window_t_max = {
+    "boxcar": 1.,
+    "triang": 2.,
+    "blackman": 1./0.42,
+    "hamming": 1./0.54,
+    "hann": 2.,
+    "bartlett": 2.,
+    "flattop": 1./0.21557897160000217,
+    "parzen": 1./0.375,
+    "bohman": 1./0.4052847750978287,
+    "blackmanharris": 1./0.35875003586900384,
+    "nuttall": 1./0.36358193632191405,
+    "barthann": 2.,
+    "cosine": np.pi/2.,
+    }
+
+
+def _normalized_window(window, num_samples):
+    """
+    Return a normalized window functions.
+    """
+    if window == "rectangular":
+        return 1., 1.
+    if window not in _default_window_t_max.keys():
+        raise RuntimeError(f"Window function {window} is not supported.")
+    coeff = signal.windows.get_window(
+        window, num_samples
+    )
+    tlist = np.linspace(0, _default_window_t_max[window], num_samples)
+    return coeff, tlist

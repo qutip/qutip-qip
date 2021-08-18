@@ -191,6 +191,9 @@ To let it find the optimal pulses, we need to give the parameters for :func:`~qu
 Compiler and scheduler
 ======================
 
+Compiler
+--------
+
 In order to simulate quantum circuits at the level of time evolution.
 We need to first compile the circuit into the Hamiltonian model, i.e.
 the control pulses.
@@ -235,6 +238,9 @@ The first pulse starts from ``t=0`` and ends at ``t=1``, with the strengh :math:
 The second one is turned on from ``t=1`` to ``t=2`` with the same strength.
 The compiled pulse here is different from what is shown in the plot
 in the previous subsection because the scheduler is turned off by default.
+
+Scheduler
+---------
 
 The scheduler is implemented in the class :class:`.compiler.Scheduler`,
 based on the idea of https://doi.org/10.1117/12.666419.
@@ -286,6 +292,26 @@ For pulse schedule, or scheduling gates with different duration,
 one will need to wrap the :class:`.Gate` object with :class:`.compiler.instruction` object,
 with a parameter `duration`.
 The result will then be the start time of each instruction.
+
+Pulse shape
+-----------
+Apart from square pulses, compilers also support different pulse shapes.
+All pulse shapes from `SciPy window functions <https://docs.scipy.org/doc/scipy/reference/signal.windows.html>`_ that does not require additional parameters are supported.
+The method :obj:`.GateCompiler.generate_pulse_shape` allows one to generate pulse shapes that fulfil the given maximum intensity and the total integral area.
+
+.. plot::
+
+    from qutip_qip.compiler import GateCompiler
+    compiler = GateCompiler()
+    coeff, tlist = compiler.generate_pulse_shape(
+        "hann", 1000, maximum=2., area=1.)
+    fig, ax = plt.subplots(figsize=(4,2))
+    ax.plot(tlist, coeff)
+    ax.set_xlabel("Time")
+    fig.show()
+
+For predefined compilers, the compiled pulse shape can also be configured by the key word ``"shape"`` and ``"num_samples"`` in the dictionary attribute :attr:`.GateCompiler.args`
+or the ``args`` parameter of :obj:`.GateCompiler.compile`.
 
 Noise Simulation
 ================

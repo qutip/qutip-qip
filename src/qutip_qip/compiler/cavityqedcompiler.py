@@ -1,4 +1,6 @@
+from functools import partial
 import numpy as np
+import scipy
 
 from ..circuit import QubitCircuit
 from ..operations import Gate
@@ -10,8 +12,22 @@ __all__ = ['CavityQEDCompiler']
 
 class CavityQEDCompiler(GateCompiler):
     """
-    Decompose a :class:`.QubitCircuit` into
-    the pulse sequence for the processor.
+    Compiler for :obj:`.DispersiveCavityQED`.
+    Compiled pulse strength is in the unit of GHz.
+
+    Supported native gates: "RX", "RY", "RZ", "ISWAP", "SQRTISWAP",
+    "GLOBALPHASE".
+
+    Default configuration (see :obj:`.GateCompiler.args` and
+    :obj:`.GateCompiler.compile`):
+
+        +-----------------+--------------------+
+        | key             | value              |
+        +=================+====================+
+        | ``shape``       | ``rectangular``    |
+        +-----------------+--------------------+
+        |``params``       | Hardware Parameters|
+        +-----------------+--------------------+
 
     Parameters
     ----------
@@ -39,81 +55,15 @@ class CavityQEDCompiler(GateCompiler):
         self.gate_compiler.update({
             "ISWAP": self.iswap_compiler,
             "SQRTISWAP": self.sqrtiswap_compiler,
-            "RZ": self.rz_compiler,
-            "RX": self.rx_compiler,
+            "RZ": partial(self.default_single_qubit_compiler, scaling=0.5),
+            "RX": partial(self.default_single_qubit_compiler, scaling=0.5),
             "GLOBALPHASE": self.globalphase_compiler
             })
         self.wq = np.sqrt(self.params["eps"]**2 + self.params["delta"]**2)
         self.Delta = self.wq - self.params["w0"]
         self.global_phase = global_phase
 
-    def rz_compiler(self, gate, args):
-        """
-        Compiler for the RZ gate
-        """
-        targets = gate.targets
-        g = self.params["sz"][targets[0]]
-        coeff = np.sign(gate.arg_value) * g
-        tlist = abs(gate.arg_value) / (2*g) / np.pi / 2
-        pulse_info = [("sz" + str(targets[0]), coeff)]
-        return [Instruction(gate, tlist, pulse_info)]
-
-    def rx_compiler(self, gate, args):
-        """
-        Compiler for the RX gate
-        """
-        targets = gate.targets
-        g = self.params["sx"][targets[0]]
-        coeff = np.sign(gate.arg_value) * g
-        tlist = abs(gate.arg_value) / (2*g) / np.pi / 2
-        pulse_info = [("sx" + str(targets[0]), coeff)]
-        return [Instruction(gate, tlist, pulse_info)]
-
-    def sqrtiswap_compiler(self, gate, args):
-        """
-        Compiler for the SQRTISWAP gate
-
-        Notes
-        -----
-        This version of sqrtiswap_compiler has very low fidelity, please use
-        iswap
-        """
-        # FIXME This decomposition has poor behaviour
-        q1, q2 = gate.targets
-        pulse_info = []
-        pulse_name = "sz" + str(q1)
-        coeff = self.wq[q1] - self.params["w0"]
-        pulse_info += [(pulse_name, coeff)]
-        pulse_name = "sz" + str(q1)
-        coeff = self.wq[q2] - self.params["w0"]
-        pulse_info += [(pulse_name, coeff)]
-        pulse_name = "g" + str(q1)
-        coeff = self.params["g"][q1]
-        pulse_info += [(pulse_name, coeff)]
-        pulse_name = "g" + str(q2)
-        coeff = self.params["g"][q2]
-        pulse_info += [(pulse_name, coeff)]
-
-        J = self.params["g"][q1] * self.params["g"][q2] * (
-            1 / self.Delta[q1] + 1 / self.Delta[q2]) / 2
-        tlist = (4 * np.pi / abs(J)) / 8 / np.pi / 2
-        instruction_list = [Instruction(gate, tlist, pulse_info)]
-
-        # corrections
-        gate1 = Gate("RZ", [q1], None, arg_value=-np.pi/4)
-        compiled_gate1 = self.rz_compiler(gate1, args)
-        instruction_list += compiled_gate1
-        gate2 = Gate("RZ", [q2], None, arg_value=-np.pi/4)
-        compiled_gate2 = self.rz_compiler(gate2, args)
-        instruction_list += compiled_gate2
-        gate3 = Gate("GLOBALPHASE", None, None, arg_value=-np.pi/4)
-        self.globalphase_compiler(gate3, args)
-        return instruction_list
-
-    def iswap_compiler(self, gate, args):
-        """
-        Compiler for the ISWAP gate
-        """
+    def _two_qubit_compiler(self, gate_name, gate, args):
         q1, q2 = gate.targets
         pulse_info = []
         pulse_name = "sz" + str(q1)
@@ -130,20 +80,75 @@ class CavityQEDCompiler(GateCompiler):
         pulse_info += [(pulse_name, coeff)]
 
         J = self.params["g"][q1] * self.params["g"][q2] * (
-            1 / self.Delta[q1] + 1 / self.Delta[q2]) / 2
-        tlist = (4 * np.pi / abs(J)) / 4 / np.pi / 2
+            1. / self.Delta[q1] + 1. / self.Delta[q2]) / 2.
+        if gate_name == "ISWAP":
+            area = 1. / 2.
+            correction_angle = -np.pi / 2.
+        elif gate_name == "SQRTISWAP":
+            area = 1. / 4.
+            correction_angle = -np.pi / 4.
+        else:
+            raise ValueError(f"Gate {gate.name} cannot not be compiled.")
+        coeff, tlist = self.generate_pulse_shape(
+            args["shape"], args["num_samples"], maximum=J, area=area)
         instruction_list = [Instruction(gate, tlist, pulse_info)]
 
         # corrections
-        gate1 = Gate("RZ", [q1], None, arg_value=-np.pi/2.)
-        compiled_gate1 = self.rz_compiler(gate1, args)
+        gate1 = Gate("RZ", [q1], None, arg_value=correction_angle)
+        compiled_gate1 = self.gate_compiler["RZ"](gate1, args)
         instruction_list += compiled_gate1
-        gate2 = Gate("RZ", [q2], None, arg_value=-np.pi/2)
-        compiled_gate2 = self.rz_compiler(gate2, args)
+        gate2 = Gate("RZ", [q2], None, arg_value=correction_angle)
+        compiled_gate2 = self.gate_compiler["RZ"](gate2, args)
         instruction_list += compiled_gate2
-        gate3 = Gate("GLOBALPHASE", None, None, arg_value=-np.pi/2)
+        gate3 = Gate("GLOBALPHASE", None, None, arg_value=correction_angle)
         self.globalphase_compiler(gate3, args)
         return instruction_list
+
+    def sqrtiswap_compiler(self, gate, args):
+        """
+        Compiler for the SQRTISWAP gate.
+
+        Parameters
+        ----------
+        gate : :obj:`.Gate`:
+            The quantum gate to be compiled.
+        args : dict
+            The compilation configuration defined in the attributes
+            :obj:`.GateCompiler.args` or given as a parameter in
+            :obj:`.GateCompiler.compile`.
+
+        Returns
+        -------
+        A list of :obj:`.Instruction`, including the compiled pulse
+        information for this gate.
+
+        Notes
+        -----
+        This version of sqrtiswap_compiler has very low fidelity, please use
+        iswap
+        """
+        # FIXME This decomposition has poor behaviour.
+        return self._two_qubit_compiler("SQRTISWAP", gate, args)
+
+    def iswap_compiler(self, gate, args):
+        """
+        Compiler for the ISWAP gate.
+
+        Parameters
+        ----------
+        gate : :obj:`.Gate`:
+            The quantum gate to be compiled.
+        args : dict
+            The compilation configuration defined in the attributes
+            :obj:`.GateCompiler.args` or given as a parameter in
+            :obj:`.GateCompiler.compile`.
+
+        Returns
+        -------
+        A list of :obj:`.Instruction`, including the compiled pulse
+        information for this gate.
+        """
+        return self._two_qubit_compiler("ISWAP", gate, args)
 
     def globalphase_compiler(self, gate, args):
         """
