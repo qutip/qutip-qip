@@ -296,7 +296,7 @@ The result will then be the start time of each instruction.
 Pulse shape
 -----------
 Apart from square pulses, compilers also support different pulse shapes.
-All pulse shapes from `SciPy window functions <https://docs.scipy.org/doc/scipy/reference/signal.windows.html>`_ that does not require additional parameters are supported.
+All pulse shapes from `SciPy window functions <https://docs.scipy.org/doc/scipy/reference/signal.windows.html>`_ that do not require additional parameters are supported.
 The method :obj:`.GateCompiler.generate_pulse_shape` allows one to generate pulse shapes that fulfil the given maximum intensity and the total integral area.
 
 .. plot::
