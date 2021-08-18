@@ -88,11 +88,12 @@ def test_compiler_with_continous_pulse(spline_kind, schedule_mode):
     circuit.add_gate("X", targets=0)
 
     processor = CircularSpinChain(num_qubits)
+    processor.spline_kind = spline_kind
     gauss_compiler = MyCompiler(num_qubits, processor.params)
     processor.load_circuit(
         circuit, schedule_mode = schedule_mode, compiler=gauss_compiler)
     result = processor.run_state(init_state = basis([2,2], [0,0]))
-    assert(abs(fidelity(result.states[-1],basis([2,2],[0,1])) - 1) < 1.e-6)
+    assert(abs(fidelity(result.states[-1],basis([2,2],[0,1])) - 1) < 1.e-5)
 
 
 def rx_compiler_without_pulse_dict(gate, args):
