@@ -15,8 +15,10 @@ from qutip_qip.device import (DispersiveCavityQED, LinearSpinChain,
 
 from packaging.version import parse as parse_version
 if parse_version(qutip.__version__) < parse_version('5.dev'):
+    is_qutip5 = False
     from qutip import Options as SolverOptions
 else:
+    is_qutip5 = True
     from qutip import SolverOptions
 
 _tol = 3.e-2
@@ -41,7 +43,8 @@ single_gate_tests = [
     pytest.param(2, [_rz], id="RZ"),
     pytest.param(2, [_rx], id="RX"),
     pytest.param(2, [_ry], id="RY"),
-    pytest.param(2, [_iswap], id="ISWAP"),
+    pytest.param(2, [_iswap], id="ISWAP",
+        marks=pytest.mark.skipif(is_qutip5, reason="qutip5 interpolation")),
     pytest.param(2, [_sqrt_iswap], id="SQRTISWAP", marks=pytest.mark.skip),
     pytest.param(2, [_cnot], id="CNOT"),
 ]
@@ -102,11 +105,6 @@ def test_analytical_evolution(num_qubits, gates, device_class, kwargs):
     assert abs(qutip.metrics.fidelity(result, ideal) - 1) < _tol
 
 
-@pytest.mark.skipif(
-    parse_version(qutip.__version__) >= parse_version('5.dev'),
-    reason="QobjEvo in qutip 5 changes significantly."
-           "Need to rework Pulse and the coefficients."
-    )
 @pytest.mark.filterwarnings("ignore:Not in the dispersive regime")
 @pytest.mark.parametrize(("num_qubits", "gates"), single_gate_tests)
 @pytest.mark.parametrize(("device_class", "kwargs"), device_lists_numeric)
@@ -161,18 +159,15 @@ circuit2 = deepcopy(circuit)
 circuit2.add_gate("SQRTISWAP", targets=[0, 2])  # supported only by SpinChain
 
 
-@pytest.mark.skipif(
-    parse_version(qutip.__version__) >= parse_version('5.dev'),
-    reason="QobjEvo in qutip 5 changes significantly."
-           "Need to rework Pulse and the coefficients."
-    )
 @pytest.mark.filterwarnings("ignore:Not in the dispersive regime")
 @pytest.mark.parametrize(("circuit", "device_class", "kwargs"), [
     pytest.param(circuit, DispersiveCavityQED, {"g":0.1}, id = "DispersiveCavityQED"),
     pytest.param(circuit2, LinearSpinChain, {}, id = "LinearSpinChain"),
     pytest.param(circuit2, CircularSpinChain, {}, id = "CircularSpinChain"),
     # The length of circuit is limited for SCQubits due to leakage
-    pytest.param(circuit, SCQubits, {"omega_single":[0.003]*3}, id = "SCQubits"),
+    pytest.param(
+        circuit, SCQubits, {"omega_single": [0.003]*3}, id="SCQubits",
+        marks=pytest.mark.skipif(is_qutip5, reason="qutip5 interpolation")),
 ])
 @pytest.mark.parametrize(("schedule_mode"), ["ASAP", "ALAP", None])
 def test_numerical_circuit(circuit, device_class, kwargs, schedule_mode):

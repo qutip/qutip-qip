@@ -209,6 +209,7 @@ class GateCompiler(object):
         Concatenate compiled pulses coefficients and tlist for each pulse.
         If there is idling time, add zeros properly to prevent wrong spline.
         """
+        min_step_size = np.inf
         # Concatenate tlist and coeffs for each control pulses
         compiled_tlist = [[] for tmp in range(num_controls)]
         compiled_coeffs = [[] for tmp in range(num_controls)]
@@ -223,6 +224,7 @@ class GateCompiler(object):
                     step_size,
                     pulse_mode,
                 ) = self._process_gate_pulse(start_time, tlist, coeff)
+                min_step_size = min(step_size, min_step_size)
 
                 if abs(last_pulse_time) < step_size * 1.0e-6:  # if first pulse
                     compiled_tlist[pulse_ind].append([0.0])
@@ -246,6 +248,18 @@ class GateCompiler(object):
                 last_pulse_time = execution_time[-1]
                 compiled_tlist[pulse_ind].append(execution_time)
                 compiled_coeffs[pulse_ind].append(coeffs)
+
+        final_time = np.max([tlist[-1] for tlist in compiled_tlist])
+        for pulse_ind in range(num_controls):
+            if not compiled_tlist[pulse_ind]:
+                continue
+            last_pulse_time = compiled_tlist[pulse_ind][-1][-1]
+            if np.abs(final_time - last_pulse_time) > min_step_size * 1.0e-6:
+                idling_tlist = self._process_idling_tlist(
+                    pulse_mode, final_time, last_pulse_time, min_step_size)
+                compiled_tlist[pulse_ind].append(idling_tlist)
+                compiled_coeffs[pulse_ind].append(
+                    np.zeros(len(idling_tlist)))
 
         for i in range(num_controls):
             if not compiled_coeffs[i]:
