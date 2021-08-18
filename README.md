@@ -4,6 +4,8 @@
 [![Documentation Status](https://readthedocs.org/projects/qutip-qip/badge/?version=latest)](https://qutip-qip.readthedocs.io/en/latest/)
 [![PyPI version](https://badge.fury.io/py/qutip-qip.svg)](https://badge.fury.io/py/qutip-qip)
 [![arXiv paper](https://img.shields.io/badge/arXiv-2105.09902-<COLOR>.svg)](https://arxiv.org/abs/2105.09902)
+[![Maintainability](https://api.codeclimate.com/v1/badges/30293d7b8eb249f8d679/maintainability)](https://codeclimate.com/github/qutip/qutip-qip/maintainability)
+[![Coverage Status](https://coveralls.io/repos/github/qutip/qutip-qip/badge.svg)](https://coveralls.io/github/qutip/qutip-qip)
 
 The qutip-qip package used to be a module ``qutip.qip`` under [QuTiP (Quantum Toolbox in Python)](http://qutip.org/index.html).
 From QuTiP 5.0, the community has decided to decrease the size of the core QuTiP package by reducing the external dependencies, in order to simplify maintenance.
