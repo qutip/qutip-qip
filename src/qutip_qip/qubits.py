@@ -8,36 +8,86 @@ import numpy as np
 from numpy import sqrt
 
 
-def qubit_states(N=1, states=[0]):
+def qubit_states(states):
     """
-    Function to define initial state of the qubits.
+    Shortcut to generate disentangled qubit states.
 
     Parameters
     ----------
-    N : Integer
-        Number of qubits in the register.
-    states : List
-        Initial state of each qubit.
+    states : list or str
+        - If a list consisting of ``0``, ``1``, ``"0"``, ``"1"``, ``"+"``
+          and ``"-"``, return the corresponding zero/one/plus/minus state.
+        - If a string consisting of ``0``, ``1``, ``+``, ``-``,
+          same as above.
+        - If a list of float or complex numbers,
+          each number is mapped to a state of the form
+          :math:`\\sqrt{1 - |a|^2} \\left|0\\right\\rangle + a |1\\rangle`,
+          where :math:`a` is the given number.
 
     Returns
     -------
-    qstates : Qobj
-        List of qubits.
+    quantum_states : :obj:`qutip.Qobj`
+        The generated qubit states.
 
+    Examples
+    --------
+    >>> from qutip_qip.qubits import qubit_states
+    >>> qubit_states([0, 0])  # doctest: +NORMALIZE_WHITESPACE
+    Quantum object: dims = [[2, 2], [1, 1]], shape = (4, 1), type = ket
+    Qobj data =
+    [[1.]
+     [0.]
+     [0.]
+     [0.]]
+    >>> qubit_states([1, "+"])  # doctest: +NORMALIZE_WHITESPACE
+    Quantum object: dims = [[2, 2], [1, 1]], shape =
+    (4, 1), type = ket
+    Qobj data =
+    [[0.        ]
+     [0.        ]
+     [0.70710678]
+     [0.70710678]]
+    >>> qubit_states("-")  # doctest: +NORMALIZE_WHITESPACE
+    Quantum object: dims = [[2], [1]], shape = (2, 1), type = ket
+    Qobj data =
+    [[ 0.70710678]
+     [-0.70710678]]
+    >>> qubit_states("1-")  # doctest: +NORMALIZE_WHITESPACE
+    Quantum object: dims = [[2, 2], [1, 1]], shape =
+    (4, 1), type = ket
+    Qobj data =
+    [[ 0.        ]
+     [ 0.        ]
+     [ 0.70710678]
+     [-0.70710678]]
+    >>> import numpy as np
+    >>> qubit_states([1.j/np.sqrt(2)])  # doctest: +NORMALIZE_WHITESPACE
+    Quantum object: dims = [[2], [1]], shape = (2, 1), type = ket
+    Qobj data =
+    [[0.70710678+0.j        ]
+     [0.        +0.70710678j]]
     """
-    state_list = []
-    for i in range(N):
-        if N > len(states) and i >= len(states):
-            state_list.append(0)
-        else:
-            state_list.append(states[i])
+    states_map = {
+        0: qutip.basis(2, 0),
+        1: qutip.basis(2, 1),
+        "0": qutip.basis(2, 0),
+        "1": qutip.basis(2, 1),
+        "+": (qutip.basis(2, 0) + qutip.basis(2, 1)).unit(),
+        "-": (qutip.basis(2, 0) - qutip.basis(2, 1)).unit(),
+    }
 
-    return tensor(
-        [
-            alpha * basis(2, 1) + sqrt(1 - alpha**2) * basis(2, 0)
-            for alpha in state_list
-        ]
-    )
+    states_list = []
+    for s in states:
+        if s in states_map:
+            states_list.append(states_map[s])
+        elif np.isscalar(s) and abs(s) <= 1:
+            states_list.append(
+                s * qutip.basis(2, 1)
+                + np.sqrt(1 - abs(s) ** 2) * qutip.basis(2, 0)
+            )
+        else:
+            raise TypeError(f"Invalid input {s}.")
+    return qutip.tensor(states_list)
 
 
 def _find_reduced_indices(dims):
@@ -174,5 +224,5 @@ def expand_qubit_state(state, dims):
     output = np.zeros([np.product(d) for d in full_dims], dtype=complex)
     reduced_indices1 = reduced_indices if not state.isbra else zero_slice
     reduced_indices2 = reduced_indices if not state.isket else zero_slice
-    output[reduced_indices1[:, np.newaxis], reduced_indices2] = state
+    output[reduced_indices1[:, np.newaxis], reduced_indices2] = state.full()
     return qutip.Qobj(output, dims=full_dims)

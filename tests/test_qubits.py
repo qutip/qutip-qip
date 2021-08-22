@@ -19,28 +19,26 @@ class TestQubits:
         """
         Tests the qubit_states function.
         """
-        psi0_a = basis(2, 0)
-        psi0_b = qubit_states()
-        assert_(psi0_a == psi0_b)
-
-        psi1_a = basis(2, 1)
-        psi1_b = qubit_states(states=[1])
-        assert_(psi1_a == psi1_b)
-
-        psi01_a = tensor(psi0_a, psi1_a)
-        psi01_b = qubit_states(N=2, states=[0, 1])
-        assert_(psi01_a == psi01_b)
+        assert(qubit_states([0]) == basis(2, 0))
+        assert(qubit_states([1]) == basis(2, 1))
+        assert(qubit_states([0, 1]) == tensor(basis(2, 0), basis(2, 1)))
+        plus = (basis(2, 0) + basis(2, 1)).unit()
+        minus = (basis(2, 0) - basis(2, 1)).unit()
+        assert(qubit_states("-+") == tensor(minus, plus))
+        assert(qubit_states("0+") == tensor(basis(2, 0), plus))
+        assert(qubit_states("+11") == tensor(plus, basis(2, 1), basis(2, 1)))
+        assert(
+            qubit_states([1.j/np.sqrt(2), 1.]) ==
+            tensor(qutip.Qobj([[1/np.sqrt(2)], [1.j/np.sqrt(2)]]), basis(2, 1))
+            )
 
     @pytest.mark.parametrize(
         "state, full_dims",
         [
-            (qutip.rand_dm(18, dims=[[3, 2, 3], [3, 2, 3]]), [3, 2, 3]),
-            (qutip.rand_ket(18, dims=[[2, 3, 3], [1, 1, 1]]), [2, 3, 3]),
+            (qutip.rand_dm([3, 2, 3]), [3, 2, 3]),
+            (qutip.rand_ket([2, 3, 3]), [2, 3, 3]),
             (
-                qutip.Qobj(
-                    qutip.rand_ket(18).full().transpose(),
-                    dims=[[1, 1, 1], [3, 2, 3]],
-                ),
+                qutip.rand_ket([3, 2, 3]).dag(),
                 [3, 2, 3],
             ),
         ],
@@ -68,13 +66,10 @@ class TestQubits:
     @pytest.mark.parametrize(
         "state, full_dims",
         [
-            (qutip.rand_dm(8, dims=[[2, 2, 2], [2, 2, 2]]), [3, 2, 3]),
-            (qutip.rand_ket(8, dims=[[2, 2, 2], [1, 1, 1]]), [2, 3, 3]),
+            (qutip.rand_dm([2, 2, 2]), [3, 2, 3]),
+            (qutip.rand_ket([2, 2, 2]), [2, 3, 3]),
             (
-                qutip.Qobj(
-                    qutip.rand_ket(8).full().transpose(),
-                    dims=[[1, 1, 1], [2, 2, 2]],
-                ),
+                qutip.rand_ket([2, 2, 2]).dag(),
                 [3, 2, 3],
             ),
         ],
