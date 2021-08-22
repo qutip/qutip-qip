@@ -476,7 +476,7 @@ def _paulix_for_control_0(step_iteration_dictionary):
             elif len(for_array_gate_info_with_control_0) < len(
                     forward_gray_code):
                 key = back_gate_keys[i]
-                if i in gate_keys:
+                if key in gate_keys:
                     left_pauli = back_full_left_pauli_gate_dict[key]
                     right_pauli = back_full_right_pauli_gate_dict[key]
                     gray_code_with_ctrl_1 = backward_gray_code[key]
