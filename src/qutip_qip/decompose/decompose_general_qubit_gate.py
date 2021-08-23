@@ -8,10 +8,11 @@ from qutip_qip.decompose._utility import (
     _gray_code_gate_info,
     _paulix_for_control_0,
 )
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
+from matplotlib.cbook import flatten
 import warnings
 from qutip_qip.circuit import Gate
-from qutip_qip.operations import controlled_gate
+from qutip_qip.operations import (controlled_gate, rz, ry)
 from .decompose_single_qubit_gate import decompose_one_qubit_gate
 
 
@@ -282,7 +283,7 @@ def _full_CNOT_to_Toffoli(num_qubits):
     """Decomposes a multi-controlled CNOT with last qubit as target into a
     circuit composed of toffoli and ancilla qubits.
     """
-    if num_qubits > 3:
+    if num_qubits >= 3:
         num_ctrl_qubits = num_qubits - 1
         num_ancilla_qubits = num_ctrl_qubits - 1
         # change last qubit due to ancillas
@@ -717,6 +718,200 @@ def _CNOT_gate_to_last_target(step_dict_at_i):
             return(step_dict_at_i)
 
 
+def _threeq_decomposition(input_gate):
+    """Method to decompose a three-qubit gate upto single qubit gates and CNOT.
+    """
+    # Abandoned for now until general method is complete
+
+    two_level_info = _decompose_to_two_level_arrays(
+        input_gate, 3, expand=False)
+
+    # find array with first qubit as target
+    ind_for_0_target = _find_index_for_firstq_target(
+        two_level_info, 3)
+    first_target_qubit_array = two_level_info[ind_for_0_target]
+    first_target_qubit_array_index = first_target_qubit_array[0]
+
+    # create a list of non-trivial indices
+    non_trivial_indices = []
+    for i in range(len(two_level_info)):
+        non_trivial_indices.append(two_level_info[i][0])
+
+    # gate dict for two-level gates
+    gate_keys = list(range(len(two_level_info)))[::-1]
+    full_gate_dict = {}
+
+    # gray code steps
+    full_gray_code_info = []
+    for i in range(len(two_level_info)):
+        ind1, ind2 = non_trivial_indices[i]
+        full_gray_code_info.append(_gray_code_gate_info(ind1, ind2, 3))
+
+    # add pauli gates
+    gray_code_ctrl_val_1 = {}
+    for i in range(len(full_gray_code_info)):
+        gray_pauli_i = _paulix_for_control_0(full_gray_code_info[i])
+        gray_code_ctrl_val_1[i] = gray_pauli_i
+
+    # decompose last target array into single qubit gates
+    # this will be used for other arrays alongwith SWAP gates.
+    target0_gates = _threeq_last_target(two_level_info[0][1].full())
+    full_gate_dict[gate_keys[0]] = target0_gates
+
+    # first qubit as target
+
+    return(gray_code_ctrl_val_1)
+
+
+def _create_list_of_indices_from_two_level_array(two_level_arrays_non_expand):
+    ind_list = []
+    for i in range(len(two_level_arrays_non_expand)):
+        ind_at_i = two_level_arrays_non_expand[i][0]
+        ind_list.append(ind_at_i)
+    return(ind_list)
+
+
+def _shift_last_qubit_ancilla(two_level_arrays_index_list, num_qubits):
+    """in the gray code gate information, if a gate is either controlled on
+    last qubit or last qubit is a target,
+    shift the last qubit by number of ancilla qubits added.
+    """
+    if num_qubits > 3:
+        total_qubits = _total_num_qubits_with_ancilla(num_qubits)-1
+        # create a list of gray code gate info
+        gray_code = {}
+        for i in range(len(two_level_arrays_index_list)):
+            gray_code_i = _gray_code_gate_info(two_level_arrays_index_list[i][0], two_level_arrays_index_list[i][1], num_qubits)
+            len_gray = len(gray_code_i)
+            if len_gray == 1:
+                ctrl_list = gray_code_i[0]['controls =']
+                targ_list = gray_code_i[0]['targets =']
+                if num_qubits-1 in ctrl_list:
+                    ind_to_change = ctrl_list.index(num_qubits-1)
+                    gray_code_i[0]['controls ='][
+                        ind_to_change] = total_qubits-1
+
+                elif num_qubits-1 in targ_list:
+                    ind_to_change = targ_list.index(num_qubits-1)
+                    gray_code_i[0]['targets ='][ind_to_change] = total_qubits-1
+
+                gray_code[i] = gray_code_i
+            else:
+                # forward gray code
+                len_sub_dict = len(gray_code_i[0])
+                for p in range(len_sub_dict):
+                    ctrl_list = gray_code_i[0][p]['controls =']
+                    targ_list = gray_code_i[0][p]['targets =']
+                    if num_qubits-1 in ctrl_list:
+                        ind_to_change = ctrl_list.index(num_qubits-1)
+                        gray_code_i[0][p]['controls ='][
+                            ind_to_change] = total_qubits-1
+
+                    elif num_qubits-1 in targ_list:
+                        ind_to_change = targ_list.index(num_qubits-1)
+                        gray_code_i[0][p]['targets ='][
+                            ind_to_change] = total_qubits-1
+                # backward gray code
+                len_sub_dict2 = len(gray_code_i[1])
+                key_list = [*gray_code_i[1]]
+                for j in range(len_sub_dict2):
+                    back_ctrl_list = gray_code_i[1][key_list[j]]['controls =']
+                    back_targ_list = gray_code_i[1][key_list[j]]['targets =']
+
+                    if num_qubits-1 in back_ctrl_list:
+                        ind_to_change = back_ctrl_list.index(num_qubits-1)
+                        gray_code_i[1][key_list[j]]['controls ='][
+                            ind_to_change] = total_qubits-1
+
+                    elif num_qubits-1 in back_targ_list:
+                        ind_to_change = back_targ_list.index(num_qubits-1)
+                        gray_code_i[1][key_list[j]]['targets ='][
+                            ind_to_change] = total_qubits-1
+
+                gray_code[i] = [gray_code_i[0], gray_code_i[1]]
+        return(gray_code, total_qubits)
+
+
+def _lastq_target_ancilla(two_level_arrays_non_expand, num_qubits):
+    # The input is non-expanded output
+    """Outputs decomposition of mult-qubit controlled gate with last qubit as
+    target by using ancilla qubits.
+
+    First object in two-level array output.
+    """
+    # first decomposition
+    ind_list = _create_list_of_indices_from_two_level_array(
+        two_level_arrays_non_expand)
+    ctrl_targ_inf = _shift_last_qubit_ancilla(ind_list, num_qubits)[0]
+    total_qubits_for_circ = _shift_last_qubit_ancilla(ind_list, num_qubits)[1]
+    first_targ_qubit = ctrl_targ_inf[0][0]['targets ='][0]
+    first_ctrl = len(ctrl_targ_inf[0][0]['controls ='])-1
+
+    last_two_level_array = two_level_arrays_non_expand[0][1].full()
+    first_gate_list = _two_qubit_last_target(
+        last_two_level_array, first_targ_qubit, first_ctrl)
+
+    # decompose A1 controlled on second last qubit
+    ind_A1 = 0
+    # get arg_value to create a rz qobj
+    arg_A1 = first_gate_list[ind_A1].arg_value
+    A1_qobj = rz(arg_A1, N=None, target=first_targ_qubit)
+    A1_gate_list = _two_qubit_last_target(
+        A1_qobj.full(), first_targ_qubit, first_ctrl)
+
+    # decompose A2 controlled on second last qubit
+    ind_A2 = 1
+    # get arg_value to create a ry qobj
+    arg_A2 = first_gate_list[ind_A2].arg_value
+    A2_qobj = ry(arg_A2, N=None, target=first_targ_qubit)
+    A2_gate_list = _two_qubit_last_target(
+        A2_qobj.full(), first_targ_qubit, first_ctrl)
+
+    # decompose B1 controlled on second last qubit
+    ind_B1 = 5
+    # get arg_value to create a ry qobj
+    arg_B1 = first_gate_list[ind_B1].arg_value
+    B1_qobj = ry(arg_B1, N=None, target=first_targ_qubit)
+    B1_gate_list = _two_qubit_last_target(
+        B1_qobj.full(), first_targ_qubit, first_ctrl)
+
+    # decompose B2 controlled on second last qubit
+    ind_B2 = 6
+    # get arg_value to create a rz qobj
+    arg_B2 = first_gate_list[ind_B2].arg_value
+    B2_qobj = rz(arg_B2, N=None, target=first_targ_qubit)
+    B2_gate_list = _two_qubit_last_target(
+        B2_qobj.full(), first_targ_qubit, first_ctrl)
+
+    # decompose C controlled on second last qubit
+    ind_C = 10
+    # get arg_value to create a rz qobj
+    arg_C = first_gate_list[ind_C].arg_value
+    C_qobj = rz(arg_C, N=None, target=first_targ_qubit)
+    C_gate_list = _two_qubit_last_target(
+        C_qobj.full(), first_targ_qubit, first_ctrl)
+    # remove gates at ind_A1,....
+
+    PauliX = first_gate_list[2]
+    CNOT1 = first_gate_list[3]
+
+    toffoli_CNOT_decomposition = _full_CNOT_to_Toffoli(num_qubits-1)
+
+    # full_gate_list = []
+    sub_lists = [
+            A1_gate_list,
+            A2_gate_list,
+            toffoli_CNOT_decomposition, CNOT1, toffoli_CNOT_decomposition,
+            B1_gate_list,  B2_gate_list, toffoli_CNOT_decomposition, CNOT1,
+            toffoli_CNOT_decomposition, C_gate_list, first_gate_list[-1]]
+
+    full_gate_list = list(flatten(sub_lists))
+
+    return(full_gate_list, total_qubits_for_circ)
+
+# have not defined swap function for the ancilla case
+
+
 def decompose_general_qubit_gate(input_gate, num_qubits):
     """ Returns a dictionary or a list of gates forming input gate and number
     of qubits in the circuit describing the decomposition.
@@ -733,24 +928,5 @@ def decompose_general_qubit_gate(input_gate, num_qubits):
         two_level_array = _decompose_to_two_level_arrays(
             input_gate, num_qubits, expand=False)
 
-        # first object in two level array is a two-level gate with last qubit
-        # as target and others as control
-        last_target_qubit_array = two_level_array[0]
-        # because arrays are returned in a reversed order
-        last_target_qubit_array_index = last_target_qubit_array[0]
-        if last_target_qubit_array_index != [2**num_qubits-2, 2**num_qubits-1]:
-            raise MethodError("The chosen method cannot be used.")
-
-        # look for the two-level matrix with first qubit as target and rest as
-        # controls i.e. want target qubit = 0
-        ind_for_0_target = _find_index_for_firstq_target(
-            two_level_array, num_qubits)
-        first_target_qubit_array = two_level_array[ind_for_0_target]
-        first_target_qubit_array_index = first_target_qubit_array[0]
-
-        # create a list of all two-level arrays without first or last qubit as
-        # targets
-        index_list = list(range(len(two_level_array)))
-        index_list.remove(0)
-        index_list.remove(ind_for_0_target)
-        return(index_list)
+        # note this returns only the first two-level array decomposition
+        return(_lastq_target_ancilla(two_level_array, num_qubits))
