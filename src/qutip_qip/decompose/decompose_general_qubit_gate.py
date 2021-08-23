@@ -102,6 +102,7 @@ def _decompose_to_two_level_arrays(input_gate, num_qubits, expand=True):
         return(compact_U_information)
 
 
+# To do - delete this function after decisinf if it's needed or not
 def _two_qubit_lastq_target(last_two_level_array_info):
     """ Finds equivalent circuit of two qubit two-level array when last qubit
     is the target and first is the control with a control value = 1.
@@ -177,6 +178,7 @@ def _two_qubit_lastq_target(last_two_level_array_info):
     return(final_gate_list)
 
 
+# To do - delete this function after decisinf if it's needed or not
 def _two_qubit_firstq_target(last_two_level_array_info):
     """ Finds equivalent circuit of two qubit two-level array when last qubit
     is the target and first is the control with a control value = 1.
