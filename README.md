@@ -1,7 +1,7 @@
 # qutip-qip
 
 [![build](https://github.com/qutip/qutip-qip/workflows/Tests/badge.svg)](https://github.com/qutip/qutip-qip/actions)
-[![Documentation Status](https://readthedocs.org/projects/qutip-qip/badge/?version=latest)](https://qutip-qip.readthedocs.io/en/latest/)
+[![Documentation Status](https://readthedocs.org/projects/qutip-qip/badge/?version=stable)](https://qutip-qip.readthedocs.io/en/stable/)
 [![PyPI version](https://badge.fury.io/py/qutip-qip.svg)](https://badge.fury.io/py/qutip-qip)
 [![arXiv paper](https://img.shields.io/badge/arXiv-2105.09902-<COLOR>.svg)](https://arxiv.org/abs/2105.09902)
 [![Maintainability](https://api.codeclimate.com/v1/badges/30293d7b8eb249f8d679/maintainability)](https://codeclimate.com/github/qutip/qutip-qip/maintainability)
