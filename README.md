@@ -33,7 +33,7 @@ If you were using the `qutip` package and now want to try out the new features i
 Documentation and tutorials
 -------------
 
-The documentation of `qutip-qip` updated to the latest development version is hosted at [qutip-qip.readthedocs.io/](https://qutip-qip.readthedocs.io/en/latest/).
+The documentation of `qutip-qip` updated to the latest development version is hosted at [qutip-qip.readthedocs.io/](https://qutip-qip.readthedocs.io/en/stable/).
 Tutorials related to using quantum gates and circuits in `qutip-qip` can be found [*here*](https://qutip.org/tutorials#quantum-information-processing) and those related to using noise simulators areavailable at [*this link*](https://qutip.org/tutorials#nisq). 
 
 Code examples used in the preprint [*Pulse-level noisy quantum circuits with QuTiP*](https://arxiv.org/abs/2105.09902), updated for the latest code version, are hosted in [this folder](https://github.com/qutip/qutip-qip/tree/master/doc/pulse-paper).
