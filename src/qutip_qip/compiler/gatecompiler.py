@@ -46,8 +46,8 @@ class GateCompiler(object):
           one of the `SciPy window functions
           <https://docs.scipy.org/doc/scipy/reference/signal.windows.html>`_.
         * ``num_samples``:
-          Number of samples in continuous pulse.
-          It has not effect in rectangular pulse.
+          Number of samples for continuous pulses.
+          It has no effect for rectangular pulses.
         * ``params``: Hardware parameters computed in the :obj:`Processor`.
 
     """
@@ -304,7 +304,7 @@ class GateCompiler(object):
         return np.concatenate(idling_tlist)
 
     @classmethod
-    def generate_pulse_shape(self, window, num_samples, maximum=1., area=1.):
+    def generate_pulse_shape(cls, window, num_samples, maximum=1., area=1.):
         """
         Return a tuple consisting of a coeff list and a time sequence
         according to a given window function.
@@ -325,6 +325,7 @@ class GateCompiler(object):
             The absolute value will be used if negative.
         area : float
             The total area if one integrates coeff as a function of the time.
+            If the area is negative, the pulse is flipped vertically (i.e. the pulse is multiplied by the sign of the area).
 
         Returns
         -------
@@ -376,10 +377,11 @@ def _normalized_window(window, num_samples):
     """
     if window == "rectangular":
         return 1., 1.
-    if window not in _default_window_t_max.keys():
-        raise RuntimeError(f"Window function {window} is not supported.")
+    t_max = _default_window_t_max.get(window, None)
+    if t_max is None:
+        raise ValueError(f"Window function {window} is not supported.")
     coeff = signal.windows.get_window(
         window, num_samples
     )
-    tlist = np.linspace(0, _default_window_t_max[window], num_samples)
+    tlist = np.linspace(0, t_max, num_samples)
     return coeff, tlist

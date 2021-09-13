@@ -83,7 +83,7 @@ class CavityQEDCompiler(GateCompiler):
         coeff, tlist = self.generate_pulse_shape(
             args["shape"], args["num_samples"],
             maximum=self.params["sx"][targets[0]],
-            area=gate.arg_value / 2. / np.pi * 0.5)  # operator is= X, not X/2
+            area=gate.arg_value / 2. / np.pi * 0.5)  # operator is X, not X/2
         pulse_info = [("sx" + str(targets[0]), coeff)]
         return [Instruction(gate, tlist, pulse_info)]
 
