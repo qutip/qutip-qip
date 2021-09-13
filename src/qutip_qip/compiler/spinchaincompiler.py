@@ -79,11 +79,35 @@ class SpinChainCompiler(GateCompiler):
         self.gate_compiler.update({
             "ISWAP": self.iswap_compiler,
             "SQRTISWAP": self.sqrtiswap_compiler,
-            "RZ": partial(self.default_single_qubit_compiler, scaling=0.5),
-            "RX": partial(self.default_single_qubit_compiler, scaling=0.5),
+            "RZ": self.rz_compiler,
+            "RX": self.rx_compiler,
             "GLOBALPHASE": self.globalphase_compiler
             })
         self.global_phase = global_phase
+
+    def rz_compiler(self, gate, args):
+        """
+        Compiler for the RZ gate
+        """
+        targets = gate.targets
+        coeff, tlist = self.generate_pulse_shape(
+            args["shape"], args["num_samples"],
+            maximum=self.params["sz"][targets[0]],
+            area=gate.arg_value / 2. / np.pi * 0.5)  # operator is Z, not Z/2
+        pulse_info = [("sz" + str(targets[0]), coeff)]
+        return [Instruction(gate, tlist, pulse_info)]
+
+    def rx_compiler(self, gate, args):
+        """
+        Compiler for the RX gate
+        """
+        targets = gate.targets
+        coeff, tlist = self.generate_pulse_shape(
+            args["shape"], args["num_samples"],
+            maximum=self.params["sx"][targets[0]],
+            area=gate.arg_value / 2. / np.pi * 0.5)  # operator is= X, not X/2
+        pulse_info = [("sx" + str(targets[0]), coeff)]
+        return [Instruction(gate, tlist, pulse_info)]
 
     def _two_qubit_compiler(self, gate_name, gate, args):
         targets = gate.targets

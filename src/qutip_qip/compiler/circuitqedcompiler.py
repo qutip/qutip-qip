@@ -1,4 +1,3 @@
-from functools import partial
 import numpy as np
 
 from ..circuit import Gate
@@ -31,10 +30,8 @@ class SCQubitsCompiler(GateCompiler):
     def __init__(self, num_qubits, params):
         super(SCQubitsCompiler, self).__init__(num_qubits, params=params)
         self.gate_compiler.update({
-            "RX": partial(
-                self.default_single_qubit_compiler, param_name="omega_single"),
-            "RY": partial(
-                self.default_single_qubit_compiler, param_name="omega_single"),
+            "RY": self.ry_compiler,
+            "RX": self.rx_compiler,
             "CNOT": self.cnot_compiler,
             })
         self.args = {  # Default configuration
@@ -63,12 +60,29 @@ class SCQubitsCompiler(GateCompiler):
             ) / max_pulse
         return tlist, coeff
 
-    def single_qubit_compiler(self, gate, args):
+    def ry_compiler(self, gate, args):
         """
-        Compiler for the RX and RY gate.
+        Compiler for the RZ gate
         """
-        return partial(
-            self.default_single_qubit_compiler, param_name="omega_single")
+        targets = gate.targets
+        coeff, tlist = self.generate_pulse_shape(
+            args["shape"], args["num_samples"],
+            maximum=self.params["omega_single"][targets[0]],
+            area=gate.arg_value / 2. / np.pi)
+        pulse_info = [("sy" + str(targets[0]), coeff)]
+        return [Instruction(gate, tlist, pulse_info)]
+
+    def rx_compiler(self, gate, args):
+        """
+        Compiler for the RX gate
+        """
+        targets = gate.targets
+        coeff, tlist = self.generate_pulse_shape(
+            args["shape"], args["num_samples"],
+            maximum=self.params["omega_single"][targets[0]],
+            area=gate.arg_value / 2. / np.pi)
+        pulse_info = [("sx" + str(targets[0]), coeff)]
+        return [Instruction(gate, tlist, pulse_info)]
 
     def cnot_compiler(self, gate, args):
         """

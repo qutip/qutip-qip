@@ -303,70 +303,7 @@ class GateCompiler(object):
             idling_tlist.append([start_time])
         return np.concatenate(idling_tlist)
 
-    def default_single_qubit_compiler(
-            self, gate, args, param_name=None, op_name=None, scaling=1.):
-        """
-        Default compiler for single qubits gates.
-        It compiles ``"RY"`` ``"RX"`` and ``"RZ"`` gate,
-        assuming that the corresponding
-        operator is named ``"sy"``, ``"sx"``, and ``"sz"``.
-
-        Parameters
-        ----------
-        gate : :obj:`.Gate`:
-            The quantum gate to be compiled.
-        args : dict
-            The compilation configuration defined in the attributes
-            :obj:`.GateCompiler.args` or given as a parameter in
-            :obj:`.GateCompiler.compile`.
-        param_name ：str
-            The name of the coefficient saved in the attribute
-            :obj:`GateCompiler.params`.
-            The corresponding value sets the maximum of the pulse.
-            It should be calculated in the corresponding :class:`.Processor`
-            and passed to the compiler.
-        op_name : str
-            The name of the corresponding operator.
-            It will be one of the keys of the returned dictionary of
-            :obj:`.GateCompiler.compile`.
-            The name should match the label prefix of the control Hamiltonians
-            in :obj:`.Processor`.
-            E.g., if the label is "sx0" for the zeroth qubit,
-            set ``op_name="sx"``.
-        scaling : float
-            Scaling for the ``tlist``.
-            By default, the operator is assumed to be
-            ``2*pi*sigmax()/2`` (or y, z).
-            If operators with other factors are used, e.g., ``2*pi*sigmax()``,
-            choose ``scaling=0.5``.
-            It will be multiplied to the ``tlist`` to ensure that
-            the total area is desired.
-
-        Returns
-        -------
-        A list of :obj:`.Instruction`, including the compiled pulse
-        information for this gate.
-        """
-        targets = gate.targets
-        if gate.name == "RY":
-            pulse_prefix = "sy"
-        elif gate.name == "RX":
-            pulse_prefix = "sx"
-        elif gate.name == "RZ":
-            pulse_prefix = "sz"
-        else:
-            raise ValueError(f"Gate {gate.name} cannot not be compiled.")
-        if param_name is None:
-            param_name = pulse_prefix
-        if op_name is None:
-            op_name = pulse_prefix
-        coeff, tlist = self.generate_pulse_shape(
-            args["shape"], args["num_samples"],
-            maximum=self.params[param_name][targets[0]],
-            area=gate.arg_value / 2. / np.pi)
-        pulse_info = [(op_name + str(targets[0]), coeff)]
-        return [Instruction(gate, tlist * scaling, pulse_info)]
-
+    @classmethod
     def generate_pulse_shape(self, window, num_samples, maximum=1., area=1.):
         """
         Return a tuple consisting of a coeff list and a time sequence
