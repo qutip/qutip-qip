@@ -60,29 +60,76 @@ class SCQubitsCompiler(GateCompiler):
             ) / max_pulse
         return tlist, coeff
 
-    def ry_compiler(self, gate, args):
+    def _rotation_compiler(self, gate, op_label, param_label, args):
         """
-        Compiler for the RZ gate
+        Single qubit gate compiler.
+
+        Parameters
+        ----------
+        gate : :obj:`.Gate`:
+            The quantum gate to be compiled.
+        op_label : str
+            Label of the corresponding control Hamiltonian.
+        param_label : str
+            Label of the hardware parameters saved in
+            :obj:`GateCompiler.params`.
+        args : dict
+            The compilation configuration defined in the attributes
+            :obj:`.GateCompiler.args` or given as a parameter in
+            :obj:`.GateCompiler.compile`.
+
+        Returns
+        -------
+        A list of :obj:`.Instruction`, including the compiled pulse
+        information for this gate.
         """
         targets = gate.targets
         coeff, tlist = self.generate_pulse_shape(
             args["shape"], args["num_samples"],
-            maximum=self.params["omega_single"][targets[0]],
+            maximum=self.params[param_label][targets[0]],
             area=gate.arg_value / 2. / np.pi)
-        pulse_info = [("sy" + str(targets[0]), coeff)]
+        pulse_info = [(op_label + str(targets[0]), coeff)]
         return [Instruction(gate, tlist, pulse_info)]
+
+    def ry_compiler(self, gate, args):
+        """
+        Compiler for the RZ gate
+
+        Parameters
+        ----------
+        gate : :obj:`.Gate`:
+            The quantum gate to be compiled.
+        args : dict
+            The compilation configuration defined in the attributes
+            :obj:`.GateCompiler.args` or given as a parameter in
+            :obj:`.GateCompiler.compile`.
+
+        Returns
+        -------
+        A list of :obj:`.Instruction`, including the compiled pulse
+        information for this gate.
+        """
+        return self._rotation_compiler(gate, "sy", "omega_single", args)
 
     def rx_compiler(self, gate, args):
         """
         Compiler for the RX gate
+
+        Parameters
+        ----------
+        gate : :obj:`.Gate`:
+            The quantum gate to be compiled.
+        args : dict
+            The compilation configuration defined in the attributes
+            :obj:`.GateCompiler.args` or given as a parameter in
+            :obj:`.GateCompiler.compile`.
+
+        Returns
+        -------
+        A list of :obj:`.Instruction`, including the compiled pulse
+        information for this gate.
         """
-        targets = gate.targets
-        coeff, tlist = self.generate_pulse_shape(
-            args["shape"], args["num_samples"],
-            maximum=self.params["omega_single"][targets[0]],
-            area=gate.arg_value / 2. / np.pi)
-        pulse_info = [("sx" + str(targets[0]), coeff)]
-        return [Instruction(gate, tlist, pulse_info)]
+        return self._rotation_compiler(gate, "sx", "omega_single", args)
 
     def cnot_compiler(self, gate, args):
         """
