@@ -119,7 +119,6 @@ class SCQubitsCompiler(GateCompiler):
         sign = np.sign(amplitude) * np.sign(area)
         tlist = tlist / amplitude * area * sign
         coeff = coeff * amplitude * sign
-        from scipy.integrate import simps
         coeff, tlist = self.generate_pulse_shape(
             args["shape"], args["num_samples"], maximum=zx_coeff, area=area)
         pulse_info = [("zx" + str(q1) + str(q2), coeff)]
