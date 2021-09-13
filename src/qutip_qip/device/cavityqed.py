@@ -157,7 +157,6 @@ class DispersiveCavityQED(ModelProcessor):
         if any((w0 - self.wq)/(w0 + self.wq) > 0.05):
             warnings.warn(
                 "The rotating-wave approximation might not be valid.")
-        print(self.params)
 
     @property
     def sx_ops(self):
