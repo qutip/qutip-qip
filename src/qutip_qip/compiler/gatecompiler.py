@@ -325,7 +325,8 @@ class GateCompiler(object):
             The absolute value will be used if negative.
         area : float
             The total area if one integrates coeff as a function of the time.
-            If the area is negative, the pulse is flipped vertically (i.e. the pulse is multiplied by the sign of the area).
+            If the area is negative, the pulse is flipped vertically
+            (i.e. the pulse is multiplied by the sign of the area).
 
         Returns
         -------
