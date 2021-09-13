@@ -109,17 +109,11 @@ class SpinChainCompiler(GateCompiler):
         pulse_info = [("sx" + str(targets[0]), coeff)]
         return [Instruction(gate, tlist, pulse_info)]
 
-    def _two_qubit_compiler(self, gate_name, gate, args):
+    def _swap_compiler(self, gate, area, args):
         targets = gate.targets
         q1, q2 = min(targets), max(targets)
         g = self.params["sxsy"][q1]
         maximum = g
-        if gate_name == "ISWAP":
-            area = -1 / 8
-        elif gate_name == "SQRTISWAP":
-            area = -1 / 16
-        else:
-            raise ValueError(f"Gate {gate.name} cannot not be compiled.")
         coeff, tlist = self.generate_pulse_shape(
             args["shape"], args["num_samples"], maximum, area)
         if self.N != 2 and q1 == 0 and q2 == self.N - 1:
@@ -147,7 +141,7 @@ class SpinChainCompiler(GateCompiler):
         A list of :obj:`.Instruction`, including the compiled pulse
         information for this gate.
         """
-        return self._two_qubit_compiler("ISWAP", gate, args)
+        return self._swap_compiler(gate, area=-1/8, args=args)
 
     def sqrtiswap_compiler(self, gate, args):
         """
@@ -167,7 +161,7 @@ class SpinChainCompiler(GateCompiler):
         A list of :obj:`.Instruction`, including the compiled pulse
         information for this gate.
         """
-        return self._two_qubit_compiler("SQRTISWAP", gate, args)
+        return self._swap_compiler(gate, area=-1/16, args=args)
 
     def globalphase_compiler(self, gate, args):
         """

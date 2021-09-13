@@ -87,7 +87,7 @@ class CavityQEDCompiler(GateCompiler):
         pulse_info = [("sx" + str(targets[0]), coeff)]
         return [Instruction(gate, tlist, pulse_info)]
 
-    def _two_qubit_compiler(self, gate_name, gate, args):
+    def _swap_compiler(self, gate, area, correction_angle, args):
         q1, q2 = gate.targets
         pulse_info = []
         pulse_name = "sz" + str(q1)
@@ -105,14 +105,6 @@ class CavityQEDCompiler(GateCompiler):
 
         J = self.params["g"][q1] * self.params["g"][q2] * (
             1. / self.Delta[q1] + 1. / self.Delta[q2]) / 2.
-        if gate_name == "ISWAP":
-            area = 1. / 2.
-            correction_angle = -np.pi / 2.
-        elif gate_name == "SQRTISWAP":
-            area = 1. / 4.
-            correction_angle = -np.pi / 4.
-        else:
-            raise ValueError(f"Gate {gate.name} cannot not be compiled.")
         coeff, tlist = self.generate_pulse_shape(
             args["shape"], args["num_samples"], maximum=J, area=area)
         instruction_list = [Instruction(gate, tlist, pulse_info)]
@@ -152,7 +144,8 @@ class CavityQEDCompiler(GateCompiler):
         iswap
         """
         # FIXME This decomposition has poor behaviour.
-        return self._two_qubit_compiler("SQRTISWAP", gate, args)
+        return self._swap_compiler(
+            gate, area=1/4, correction_angle=-np.pi/4, args=args)
 
     def iswap_compiler(self, gate, args):
         """
@@ -172,7 +165,8 @@ class CavityQEDCompiler(GateCompiler):
         A list of :obj:`.Instruction`, including the compiled pulse
         information for this gate.
         """
-        return self._two_qubit_compiler("ISWAP", gate, args)
+        return self._swap_compiler(
+            gate, area=1/2, correction_angle=-np.pi/2, args=args)
 
     def globalphase_compiler(self, gate, args):
         """
