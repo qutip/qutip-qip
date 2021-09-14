@@ -154,9 +154,10 @@ def test_compiler_result_format():
     assert_array_equal(processor.pulses[0].tlist, tlist[0])
 
 
-@pytest.mark.parametrize("shape", _default_window_t_max.keys())
-def test_pulse_shape(shape):
-    """Test different pulse shape functions"""
+@pytest.mark.parametrize(
+    "shape", list(_default_window_t_max.keys()) + ["rectangular"])
+def test_pulse_shape_scipy(shape):
+    """Test different pulse shape functions imported from scipy"""
     num_qubits = 1
     circuit = QubitCircuit(num_qubits)
     circuit.add_gate("X", 0)
@@ -164,7 +165,10 @@ def test_pulse_shape(shape):
     compiler = SpinChainCompiler(num_qubits, processor.params)
     compiler.args.update({"shape": shape, "num_samples": 100})
     processor.load_circuit(circuit, compiler=compiler)
-    processor.pulse_mode = "continuous"
+    if shape == "rectangular":
+        processor.pulse_mode = "discrete"
+    else:
+        processor.pulse_mode = "continuous"
     init_state = basis(2, 0)
     num_result = processor.run_state(init_state).states[-1]
     ideal_result = circuit.run(init_state)
