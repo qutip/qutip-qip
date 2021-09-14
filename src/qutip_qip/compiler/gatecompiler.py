@@ -304,14 +304,14 @@ class GateCompiler(object):
         return np.concatenate(idling_tlist)
 
     @classmethod
-    def generate_pulse_shape(cls, window, num_samples, maximum=1., area=1.):
+    def generate_pulse_shape(cls, shape, num_samples, maximum=1., area=1.):
         """
         Return a tuple consisting of a coeff list and a time sequence
-        according to a given window function.
+        according to a given pulse shape.
 
         Parameters
         ----------
-        window : str
+        shape : str
             The name ``"rectangular"`` for constant pulse or
             the name of a Scipy window function.
             See
@@ -320,10 +320,10 @@ class GateCompiler(object):
             for detail.
         num_samples : int
             The number of the samples of the coefficients.
-        maximum : float
+        maximum : float, optional
             The maximum of the coefficients.
             The absolute value will be used if negative.
-        area : float
+        area : float, optional
             The total area if one integrates coeff as a function of the time.
             If the area is negative, the pulse is flipped vertically
             (i.e. the pulse is multiplied by the sign of the area).
@@ -340,10 +340,10 @@ class GateCompiler(object):
         -----
         If Scipy window functions are used, it is suggested to set
         ``Processor.pulse_mode`` to ``"continuous"``.
-        Also, finite number of samples will also make
+        Notice that finite number of sampling points will also make
         the total integral of the coefficients slightly deviate from ``area``.
         """
-        coeff, tlist = _normalized_window(window, num_samples)
+        coeff, tlist = _normalized_window(shape, num_samples)
         sign = np.sign(area)
         coeff *= np.abs(maximum) * sign
         tlist *= abs(area) / np.abs(maximum)
@@ -372,17 +372,17 @@ _default_window_t_max = {
     }
 
 
-def _normalized_window(window, num_samples):
+def _normalized_window(shape, num_samples):
     """
     Return a normalized window functions.
     """
-    if window == "rectangular":
+    if shape == "rectangular":
         return 1., 1.
-    t_max = _default_window_t_max.get(window, None)
+    t_max = _default_window_t_max.get(shape, None)
     if t_max is None:
-        raise ValueError(f"Window function {window} is not supported.")
+        raise ValueError(f"Window function {shape} is not supported.")
     coeff = signal.windows.get_window(
-        window, num_samples
+        shape, num_samples
     )
     tlist = np.linspace(0, t_max, num_samples)
     return coeff, tlist
