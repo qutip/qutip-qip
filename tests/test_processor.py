@@ -32,13 +32,15 @@
 ###############################################################################
 import os
 
+import pytest
 from numpy.testing import (
     assert_, run_module_suite, assert_allclose, assert_equal)
 import numpy as np
 
 from qutip_qip.device.processor import Processor
-from qutip import (basis, sigmaz, sigmax, sigmay, identity, destroy, tensor,
-                Options, rand_ket, rand_dm, fidelity)
+from qutip import (
+    basis, sigmaz, sigmax, sigmay, identity, destroy, tensor,
+    Options, rand_ket, rand_dm, fidelity, Qobj)
 from qutip_qip.operations import hadamard_transform
 from qutip_qip.noise import (
     DecoherenceNoise, RandomNoise, ControlAmpNoise)
@@ -374,3 +376,55 @@ class TestCircuitProcessor:
         result1 = processor.run_state(basis(2, 0), tlist=np.linspace(0, 1, 10))
         result2 = processor.run_state(basis(2, 0), tlist=np.linspace(0, 1, 10))
         assert_allclose(result1.states[-1].full(), result2.states[-1].full())
+
+    def test_frame_transformation(self):
+        # Define the drift, the bare eigenvalue and the transformation U.
+        H_d = sigmaz() + 0.1 * sigmay()
+        energy, U = np.linalg.eigh(H_d.full())
+        U = Qobj(np.flip(U, axis=1))  # largest eigenvalue first
+        H_c = sigmay()
+
+        # Initialize a processor
+        processor = Processor(1)
+        processor.use_dressed_states = True
+        processor.add_drift(H_d, targets=0)
+
+        # only drift
+        processor.add_pulse(  # add a dummy empty pulse
+            Pulse(
+                0. * H_c, targets=0,
+                coeff=True, tlist=np.array([0., 1.]))
+            )
+        processor.compute_dressed_states()
+        np.testing.assert_allclose(
+            processor.get_transformation(),
+            U
+        )
+        qu, _ = processor.get_qobjevo(noisy=True)
+        np.testing.assert_allclose(
+            qu(0).full(),
+            np.diag([max(energy), min(energy)])
+        )
+
+        # drift + control
+        processor.add_pulse(
+            Pulse(
+                H_c, targets=0,
+                coeff=True, tlist=np.array([0., 1.]))
+            )
+        qu, _ = processor.get_qobjevo(noisy=True)
+        np.testing.assert_allclose(
+            qu(0).full(),
+            (U.dag() * (H_d + H_c) * U).full()
+        )
+
+        # set custom transformation
+        processor.use_dressed_states = False
+        processor.set_transformation(sigmax())
+        assert(processor.get_transformation() == sigmax())
+
+        # Ambiguous dressed states
+        processor = Processor(1)
+        processor.add_drift(sigmax(), targets=0)
+        with pytest.raises(ValueError):
+            processor.compute_dressed_states()
