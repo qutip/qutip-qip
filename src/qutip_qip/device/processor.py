@@ -51,7 +51,7 @@ __all__ = ['Processor']
 
 
 class Processor(object):
-    """
+    r"""
     A simulator of a quantum device based on the QuTiP solver
     :func:`qutip.mesolve`.
     It is defined by the available driving Hamiltonian and
@@ -122,10 +122,10 @@ class Processor(object):
         It will not change the saved Hamiltonian model.
         The loaded quantum circuit and the result of evolution
         are given with respect to the dressed states.
-        A dressed state :math:`|\tilde{i}\rangle`
+        A dressed state :math:`\hat{\left|i\right\rangle}`
         is defined as the eigenstate that
         has the maximal overlap with the corresponding bare qubit state
-        :math:`|i\rangle`.
+        :math:`\left| i \right\rangle`.
         The dressed states are saved as a unitary matrix and
         can be obtained by :obj:`.get_transformation`,
         where each column corresponds to a dressed state.
