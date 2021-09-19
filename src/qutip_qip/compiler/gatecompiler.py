@@ -350,11 +350,6 @@ class GateCompiler(object):
         return coeff, tlist
 
 
-"""
-Normalized scipy window functions.
-The scipy implementation only makes sure that it is maximum is 1.
-Here, we save a default t_max so that the integral is always 1.
-"""
 _default_window_t_max = {
     "boxcar": 1.,
     "triang": 2.,
@@ -374,7 +369,9 @@ _default_window_t_max = {
 
 def _normalized_window(shape, num_samples):
     """
-    Return a normalized window functions.
+    Normalized SciPy window functions.
+    The SciPy implementation only makes sure that it is maximum is 1.
+    Here, we save a default t_max so that the integral is always 1.
     """
     if shape == "rectangular":
         return 1., 1.

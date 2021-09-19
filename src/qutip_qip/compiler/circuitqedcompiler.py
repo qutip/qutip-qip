@@ -62,7 +62,7 @@ class SCQubitsCompiler(GateCompiler):
 
     def _rotation_compiler(self, gate, op_label, param_label, args):
         """
-        Single qubit gate compiler.
+        Single qubit rotation compiler.
 
         Parameters
         ----------
