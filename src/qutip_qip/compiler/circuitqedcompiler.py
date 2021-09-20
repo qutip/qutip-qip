@@ -11,14 +11,34 @@ class SCQubitsCompiler(GateCompiler):
     """
     Compiler for :class:`.SCQubits`.
     Compiled pulse strength is in the unit of GHz.
+
+    Supported native gates: "RX", "RY", "CNOT".
+
+    Default configuration (see :obj:`.GateCompiler.args` and
+    :obj:`.GateCompiler.compile`):
+
+        +-----------------+-----------------------+
+        | key             | value                 |
+        +=================+=======================+
+        | ``shape``       | ``hann``              |
+        +-----------------+-----------------------+
+        |``num_samples``  | 1000                  |
+        +-----------------+-----------------------+
+        |``params``       | Hardware Parameters   |
+        +-----------------+-----------------------+
     """
     def __init__(self, num_qubits, params):
         super(SCQubitsCompiler, self).__init__(num_qubits, params=params)
         self.gate_compiler.update({
-            "RX": self.single_qubit_compiler,
-            "RY": self.single_qubit_compiler,
+            "RY": self.ry_compiler,
+            "RX": self.rx_compiler,
             "CNOT": self.cnot_compiler,
             })
+        self.args = {  # Default configuration
+            "shape": "hann",
+            "num_samples": 1000,
+            "params": self.params,
+            }
 
     def _normalized_gauss_pulse(self):
         """
@@ -32,37 +52,105 @@ class SCQubitsCompiler(GateCompiler):
         #  td normalization so that the total integral area is 1
         td = 2.4384880692912567
         sigma = 1/6 * td  # 3 sigma
-        tlist = np.linspace(0, td, 100)
+        tlist = np.linspace(0, td, 1000)
         max_pulse = 1 - np.exp(-(0-td/2)**2/2/sigma**2)
-        coeff = (np.exp(-(tlist-td/2)**2/2/sigma**2)
-            - np.exp(-(0-td/2)**2/2/sigma**2)) / max_pulse
+        coeff = (
+            np.exp(-(tlist-td/2)**2/2/sigma**2)
+            - np.exp(-(0-td/2)**2/2/sigma**2)
+            ) / max_pulse
         return tlist, coeff
 
-    def single_qubit_compiler(self, gate, args):
+    def _rotation_compiler(self, gate, op_label, param_label, args):
         """
-        Compiler for the RX and RY gate.
+        Single qubit rotation compiler.
+
+        Parameters
+        ----------
+        gate : :obj:`.Gate`:
+            The quantum gate to be compiled.
+        op_label : str
+            Label of the corresponding control Hamiltonian.
+        param_label : str
+            Label of the hardware parameters saved in
+            :obj:`GateCompiler.params`.
+        args : dict
+            The compilation configuration defined in the attributes
+            :obj:`.GateCompiler.args` or given as a parameter in
+            :obj:`.GateCompiler.compile`.
+
+        Returns
+        -------
+        A list of :obj:`.Instruction`, including the compiled pulse
+        information for this gate.
         """
         targets = gate.targets
-        omega_single = self.params["omega_single"][targets[0]]
-        tlist, coeff = self._normalized_gauss_pulse()
-        sign = np.sign(omega_single) * np.sign(gate.arg_value)
-        tlist = tlist / omega_single * gate.arg_value/np.pi/2 * sign
-        coeff = coeff * omega_single * sign
-        if gate.name == "RY":
-            pulse_prefix = "sy"
-        elif gate.name == "RX":
-            pulse_prefix = "sx"
-        else:
-            raise ValueError(f"Gate {gate.name} cnot not be compiled.")
-        pulse_info = [(pulse_prefix + str(targets[0]), coeff)]
+        coeff, tlist = self.generate_pulse_shape(
+            args["shape"], args["num_samples"],
+            maximum=self.params[param_label][targets[0]],
+            area=gate.arg_value / 2. / np.pi)
+        pulse_info = [(op_label + str(targets[0]), coeff)]
         return [Instruction(gate, tlist, pulse_info)]
+
+    def ry_compiler(self, gate, args):
+        """
+        Compiler for the RZ gate
+
+        Parameters
+        ----------
+        gate : :obj:`.Gate`:
+            The quantum gate to be compiled.
+        args : dict
+            The compilation configuration defined in the attributes
+            :obj:`.GateCompiler.args` or given as a parameter in
+            :obj:`.GateCompiler.compile`.
+
+        Returns
+        -------
+        A list of :obj:`.Instruction`, including the compiled pulse
+        information for this gate.
+        """
+        return self._rotation_compiler(gate, "sy", "omega_single", args)
+
+    def rx_compiler(self, gate, args):
+        """
+        Compiler for the RX gate
+
+        Parameters
+        ----------
+        gate : :obj:`.Gate`:
+            The quantum gate to be compiled.
+        args : dict
+            The compilation configuration defined in the attributes
+            :obj:`.GateCompiler.args` or given as a parameter in
+            :obj:`.GateCompiler.compile`.
+
+        Returns
+        -------
+        A list of :obj:`.Instruction`, including the compiled pulse
+        information for this gate.
+        """
+        return self._rotation_compiler(gate, "sx", "omega_single", args)
 
     def cnot_compiler(self, gate, args):
         """
         Compiler for CNOT gate using the cross resonance iteraction.
         See
         https://journals.aps.org/prb/abstract/10.1103/PhysRevB.81.134507
-        for reference
+        for reference.
+
+        Parameters
+        ----------
+        gate : :obj:`.Gate`:
+            The quantum gate to be compiled.
+        args : dict
+            The compilation configuration defined in the attributes
+            :obj:`.GateCompiler.args` or given as a parameter in
+            :obj:`.GateCompiler.compile`.
+
+        Returns
+        -------
+        A list of :obj:`.Instruction`, including the compiled pulse
+        information for this gate.
         """
         result = []
         q1 = gate.controls[0]
@@ -78,6 +166,8 @@ class SCQubitsCompiler(GateCompiler):
         sign = np.sign(amplitude) * np.sign(area)
         tlist = tlist / amplitude * area * sign
         coeff = coeff * amplitude * sign
+        coeff, tlist = self.generate_pulse_shape(
+            args["shape"], args["num_samples"], maximum=zx_coeff, area=area)
         pulse_info = [("zx" + str(q1) + str(q2), coeff)]
         result += [Instruction(gate, tlist, pulse_info)]
 

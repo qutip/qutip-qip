@@ -1,3 +1,4 @@
+from functools import partial
 import numpy as np
 
 from ..circuit import QubitCircuit
@@ -10,8 +11,22 @@ __all__ = ['SpinChainCompiler']
 
 class SpinChainCompiler(GateCompiler):
     """
-    Compile a :class:`.QubitCircuit` into
-    the pulse sequence for the processor.
+    Compiler for :obj:`.SpinChain`.
+    Compiled pulse strength is in the unit of MHz.
+
+    Supported native gates: "RX", "RY", "RZ", "ISWAP", "SQRTISWAP",
+    "GLOBALPHASE".
+
+    Default configuration (see :obj:`.GateCompiler.args` and
+    :obj:`.GateCompiler.compile`):
+
+        +-----------------+--------------------+
+        | key             | value              |
+        +=================+====================+
+        | ``shape``       | ``rectangular``    |
+        +-----------------+--------------------+
+        |``params``       | Hardware Parameters|
+        +-----------------+--------------------+
 
     Parameters
     ----------
@@ -70,59 +85,131 @@ class SpinChainCompiler(GateCompiler):
             })
         self.global_phase = global_phase
 
+    def _rotation_compiler(self, gate, op_label, param_label, args):
+        """
+        Single qubit rotation compiler.
+
+        Parameters
+        ----------
+        gate : :obj:`.Gate`:
+            The quantum gate to be compiled.
+        op_label : str
+            Label of the corresponding control Hamiltonian.
+        param_label : str
+            Label of the hardware parameters saved in
+            :obj:`GateCompiler.params`.
+        args : dict
+            The compilation configuration defined in the attributes
+            :obj:`.GateCompiler.args` or given as a parameter in
+            :obj:`.GateCompiler.compile`.
+
+        Returns
+        -------
+        A list of :obj:`.Instruction`, including the compiled pulse
+        information for this gate.
+        """
+        targets = gate.targets
+        coeff, tlist = self.generate_pulse_shape(
+            args["shape"], args["num_samples"],
+            maximum=self.params[param_label][targets[0]],
+            # The operator is Pauli Z/X/Y, without 1/2.
+            area=gate.arg_value / 2. / np.pi * 0.5)
+        pulse_info = [(op_label + str(targets[0]), coeff)]
+        return [Instruction(gate, tlist, pulse_info)]
+
     def rz_compiler(self, gate, args):
         """
         Compiler for the RZ gate
+
+        Parameters
+        ----------
+        gate : :obj:`.Gate`:
+            The quantum gate to be compiled.
+        args : dict
+            The compilation configuration defined in the attributes
+            :obj:`.GateCompiler.args` or given as a parameter in
+            :obj:`.GateCompiler.compile`.
+
+        Returns
+        -------
+        A list of :obj:`.Instruction`, including the compiled pulse
+        information for this gate.
         """
-        targets = gate.targets
-        g = self.params["sz"][targets[0]]
-        coeff = np.sign(gate.arg_value) * g
-        tlist = abs(gate.arg_value) / (2 * g) / np.pi / 2
-        pulse_info = [("sz" + str(targets[0]), coeff)]
-        return [Instruction(gate, tlist, pulse_info)]
+        return self._rotation_compiler(gate, "sz", "sz", args)
 
     def rx_compiler(self, gate, args):
         """
         Compiler for the RX gate
+
+        Parameters
+        ----------
+        gate : :obj:`.Gate`:
+            The quantum gate to be compiled.
+        args : dict
+            The compilation configuration defined in the attributes
+            :obj:`.GateCompiler.args` or given as a parameter in
+            :obj:`.GateCompiler.compile`.
+
+        Returns
+        -------
+        A list of :obj:`.Instruction`, including the compiled pulse
+        information for this gate.
         """
+        return self._rotation_compiler(gate, "sx", "sx", args)
+
+    def _swap_compiler(self, gate, area, args):
         targets = gate.targets
-        g = self.params["sx"][targets[0]]
-        coeff = np.sign(gate.arg_value) * g
-        tlist = abs(gate.arg_value) / (2 * g) / np.pi / 2
-        pulse_info = [("sx" + str(targets[0]), coeff)]
+        q1, q2 = min(targets), max(targets)
+        g = self.params["sxsy"][q1]
+        maximum = g
+        coeff, tlist = self.generate_pulse_shape(
+            args["shape"], args["num_samples"], maximum, area)
+        if self.N != 2 and q1 == 0 and q2 == self.N - 1:
+            pulse_name = "g" + str(q2)
+        else:
+            pulse_name = "g" + str(q1)
+        pulse_info = [(pulse_name, coeff)]
         return [Instruction(gate, tlist, pulse_info)]
 
     def iswap_compiler(self, gate, args):
         """
-        Compiler for the ISWAP gate
+        Compiler for the ISWAP gate.
+
+        Parameters
+        ----------
+        gate : :obj:`.Gate`:
+            The quantum gate to be compiled.
+        args : dict
+            The compilation configuration defined in the attributes
+            :obj:`.GateCompiler.args` or given as a parameter in
+            :obj:`.GateCompiler.compile`.
+
+        Returns
+        -------
+        A list of :obj:`.Instruction`, including the compiled pulse
+        information for this gate.
         """
-        targets = gate.targets
-        q1, q2 = min(targets), max(targets)
-        g = self.params["sxsy"][q1]
-        coeff = -g
-        tlist = np.pi / (4 * g) / np.pi / 2
-        if self.N != 2 and q1 == 0 and q2 == self.N - 1:
-            pulse_name = "g" + str(q2)
-        else:
-            pulse_name = "g" + str(q1)
-        pulse_info = [(pulse_name, coeff)]
-        return [Instruction(gate, tlist, pulse_info)]
+        return self._swap_compiler(gate, area=-1/8, args=args)
 
     def sqrtiswap_compiler(self, gate, args):
         """
-        Compiler for the SQRTISWAP gate
+        Compiler for the SQRTISWAP gate.
+
+        Parameters
+        ----------
+        gate : :obj:`Gate`:
+            The quantum gate to be compiled.
+        args : dict
+            The compilation configuration defined in the attributes
+            :obj:`.GateCompiler.args` or given as a parameter in
+            :obj:`.GateCompiler.compile`.
+
+        Returns
+        -------
+        A list of :obj:`.Instruction`, including the compiled pulse
+        information for this gate.
         """
-        targets = gate.targets
-        q1, q2 = min(targets), max(targets)
-        g = self.params["sxsy"][q1]
-        coeff = -g
-        tlist = np.pi / (8 * g) / np.pi / 2
-        if self.N != 2 and q1 == 0 and q2 == self.N - 1:
-            pulse_name = "g" + str(q2)
-        else:
-            pulse_name = "g" + str(q1)
-        pulse_info = [(pulse_name, coeff)]
-        return [Instruction(gate, tlist, pulse_info)]
+        return self._swap_compiler(gate, area=-1/16, args=args)
 
     def globalphase_compiler(self, gate, args):
         """

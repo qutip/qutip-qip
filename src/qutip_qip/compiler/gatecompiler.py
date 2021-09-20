@@ -1,9 +1,11 @@
+import warnings
 import numpy as np
+from scipy import signal
+
 from .instruction import Instruction
 from .scheduler import Scheduler
 from ..circuit import QubitCircuit
 from ..operations import Gate
-import warnings
 
 
 __all__ = ['GateCompiler']
@@ -36,8 +38,18 @@ class GateCompiler(object):
         Note that for continuous pulse, the first coeff should always be 0.
 
     args: dict
-        Arguments for individual compiling routines.
-        It adds more flexibility in customizing compiler.
+        The compilation configurations.
+        It will be passed to each compiling functions.
+        Available arguments:
+
+        * ``shape``: The compiled pulse shape. ``rectangular`` or
+          one of the `SciPy window functions
+          <https://docs.scipy.org/doc/scipy/reference/signal.windows.html>`_.
+        * ``num_samples``:
+          Number of samples for continuous pulses.
+          It has no effect for rectangular pulses.
+        * ``params``: Hardware parameters computed in the :obj:`Processor`.
+
     """
     def __init__(self, num_qubits=None, params=None, pulse_dict=None, N=None):
         self.gate_compiler = {}
@@ -48,8 +60,11 @@ class GateCompiler(object):
             "GLOBALPHASE": self.globalphase_compiler,
             "IDLE": self.idle_compiler
         }
-        self.args = {}
-        self.args.update({"params": self.params})
+        self.args = {  # Default configuration
+            "shape": "rectangular",
+            "num_samples": None,
+            "params": self.params,
+            }
         self.global_phase = 0.
         if pulse_dict is not None:
             warnings.warn(
@@ -287,3 +302,84 @@ class GateCompiler(object):
             # idling until the start time
             idling_tlist.append([start_time])
         return np.concatenate(idling_tlist)
+
+    @classmethod
+    def generate_pulse_shape(cls, shape, num_samples, maximum=1., area=1.):
+        """
+        Return a tuple consisting of a coeff list and a time sequence
+        according to a given pulse shape.
+
+        Parameters
+        ----------
+        shape : str
+            The name ``"rectangular"`` for constant pulse or
+            the name of a Scipy window function.
+            See
+            `the Scipy documentation
+            <https://docs.scipy.org/doc/scipy/reference/signal.windows.html>`_
+            for detail.
+        num_samples : int
+            The number of the samples of the coefficients.
+        maximum : float, optional
+            The maximum of the coefficients.
+            The absolute value will be used if negative.
+        area : float, optional
+            The total area if one integrates coeff as a function of the time.
+            If the area is negative, the pulse is flipped vertically
+            (i.e. the pulse is multiplied by the sign of the area).
+
+        Returns
+        -------
+        coeff, tlist :
+            If the default window ``"shape"="rectangular"`` is used,
+            both are float numbers.
+            If Scipy window functions are used, both are a 1-dimensional numpy
+            array with the same size.
+
+        Notes
+        -----
+        If Scipy window functions are used, it is suggested to set
+        ``Processor.pulse_mode`` to ``"continuous"``.
+        Notice that finite number of sampling points will also make
+        the total integral of the coefficients slightly deviate from ``area``.
+        """
+        coeff, tlist = _normalized_window(shape, num_samples)
+        sign = np.sign(area)
+        coeff *= np.abs(maximum) * sign
+        tlist *= abs(area) / np.abs(maximum)
+        return coeff, tlist
+
+
+_default_window_t_max = {
+    "boxcar": 1.,
+    "triang": 2.,
+    "blackman": 1./0.42,
+    "hamming": 1./0.54,
+    "hann": 2.,
+    "bartlett": 2.,
+    "flattop": 1./0.21557897160000217,
+    "parzen": 1./0.375,
+    "bohman": 1./0.4052847750978287,
+    "blackmanharris": 1./0.35875003586900384,
+    "nuttall": 1./0.36358193632191405,
+    "barthann": 2.,
+    "cosine": np.pi/2.,
+    }
+
+
+def _normalized_window(shape, num_samples):
+    """
+    Normalized SciPy window functions.
+    The SciPy implementation only makes sure that it is maximum is 1.
+    Here, we save a default t_max so that the integral is always 1.
+    """
+    if shape == "rectangular":
+        return 1., 1.
+    t_max = _default_window_t_max.get(shape, None)
+    if t_max is None:
+        raise ValueError(f"Window function {shape} is not supported.")
+    coeff = signal.windows.get_window(
+        shape, num_samples
+    )
+    tlist = np.linspace(0, t_max, num_samples)
+    return coeff, tlist
