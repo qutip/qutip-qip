@@ -7,7 +7,7 @@ from ..operations import Gate
 from ..compiler import GateCompiler, Instruction
 
 
-__all__ = ['CavityQEDCompiler']
+__all__ = ["CavityQEDCompiler"]
 
 
 class CavityQEDCompiler(GateCompiler):
@@ -47,19 +47,21 @@ class CavityQEDCompiler(GateCompiler):
         The Python dictionary in the form of {gate_name: decompose_function}.
         It saves the decomposition scheme for each gate.
     """
-    def __init__(
-            self, num_qubits, params, global_phase=0.,
-            pulse_dict=None, N=None):
+
+    def __init__(self, num_qubits, params, global_phase=0.0, pulse_dict=None, N=None):
         super(CavityQEDCompiler, self).__init__(
-            num_qubits, params=params, pulse_dict=pulse_dict, N=N)
-        self.gate_compiler.update({
-            "ISWAP": self.iswap_compiler,
-            "SQRTISWAP": self.sqrtiswap_compiler,
-            "RZ": self.rz_compiler,
-            "RX": self.rx_compiler,
-            "GLOBALPHASE": self.globalphase_compiler
-            })
-        self.wq = np.sqrt(self.params["eps"]**2 + self.params["delta"]**2)
+            num_qubits, params=params, pulse_dict=pulse_dict, N=N
+        )
+        self.gate_compiler.update(
+            {
+                "ISWAP": self.iswap_compiler,
+                "SQRTISWAP": self.sqrtiswap_compiler,
+                "RZ": self.rz_compiler,
+                "RX": self.rx_compiler,
+                "GLOBALPHASE": self.globalphase_compiler,
+            }
+        )
+        self.wq = np.sqrt(self.params["eps"] ** 2 + self.params["delta"] ** 2)
         self.Delta = self.wq - self.params["w0"]
         self.global_phase = global_phase
 
@@ -88,10 +90,12 @@ class CavityQEDCompiler(GateCompiler):
         """
         targets = gate.targets
         coeff, tlist = self.generate_pulse_shape(
-            args["shape"], args["num_samples"],
+            args["shape"],
+            args["num_samples"],
             maximum=self.params[param_label][targets[0]],
             # The operator is Pauli Z/X/Y, without 1/2.
-            area=gate.arg_value / 2. / np.pi * 0.5)
+            area=gate.arg_value / 2.0 / np.pi * 0.5,
+        )
         pulse_info = [(op_label + str(targets[0]), coeff)]
         return [Instruction(gate, tlist, pulse_info)]
 
@@ -151,10 +155,15 @@ class CavityQEDCompiler(GateCompiler):
         coeff = self.params["g"][q2]
         pulse_info += [(pulse_name, coeff)]
 
-        J = self.params["g"][q1] * self.params["g"][q2] * (
-            1. / self.Delta[q1] + 1. / self.Delta[q2]) / 2.
+        J = (
+            self.params["g"][q1]
+            * self.params["g"][q2]
+            * (1.0 / self.Delta[q1] + 1.0 / self.Delta[q2])
+            / 2.0
+        )
         coeff, tlist = self.generate_pulse_shape(
-            args["shape"], args["num_samples"], maximum=J, area=area)
+            args["shape"], args["num_samples"], maximum=J, area=area
+        )
         instruction_list = [Instruction(gate, tlist, pulse_info)]
 
         # corrections
@@ -193,7 +202,8 @@ class CavityQEDCompiler(GateCompiler):
         """
         # FIXME This decomposition has poor behaviour.
         return self._swap_compiler(
-            gate, area=1/4, correction_angle=-np.pi/4, args=args)
+            gate, area=1 / 4, correction_angle=-np.pi / 4, args=args
+        )
 
     def iswap_compiler(self, gate, args):
         """
@@ -214,7 +224,8 @@ class CavityQEDCompiler(GateCompiler):
         information for this gate.
         """
         return self._swap_compiler(
-            gate, area=1/2, correction_angle=-np.pi/2, args=args)
+            gate, area=1 / 2, correction_angle=-np.pi / 2, args=args
+        )
 
     def globalphase_compiler(self, gate, args):
         """

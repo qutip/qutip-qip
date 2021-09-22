@@ -158,13 +158,13 @@ def _ZYZ_pauli_X(input_gate):
         "RZ",
         targets=[0],
         arg_value=-(alpha + beta) / 2,
-        arg_label=r"{:0.2f} \times \pi".format(-(alpha + beta) / (2*np.pi)),
+        arg_label=r"{:0.2f} \times \pi".format(-(alpha + beta) / (2 * np.pi)),
     )
     Rz_C = Gate(
         "RZ",
         targets=[0],
         arg_value=(-alpha + beta) / 2,
-        arg_label=r"{:0.2f} \times \pi".format((-alpha + beta) / (2*np.pi)),
+        arg_label=r"{:0.2f} \times \pi".format((-alpha + beta) / (2 * np.pi)),
     )
 
     return (Rz_A, Ry_A, Pauli_X, Ry_B, Rz_B, Pauli_X, Rz_C, Phase_gate)

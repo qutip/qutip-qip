@@ -9,7 +9,7 @@ from ..circuit import QubitCircuit
 from qutip import Qobj
 
 
-__all__ = ['qft', 'qft_steps', 'qft_gate_sequence']
+__all__ = ["qft", "qft_steps", "qft_gate_sequence"]
 
 
 def qft(N=1):
@@ -67,8 +67,9 @@ def qft_steps(N=1, swapping=True):
     else:
         for i in range(N):
             for j in range(i):
-                U_step_list.append(cphase(np.pi / (2 ** (i - j)), N,
-                                          control=i, target=j))
+                U_step_list.append(
+                    cphase(np.pi / (2 ** (i - j)), N, control=i, target=j)
+                )
             U_step_list.append(snot(N, i))
         if swapping:
             for i in range(N // 2):
@@ -104,9 +105,13 @@ def qft_gate_sequence(N=1, swapping=True):
     else:
         for i in range(N):
             for j in range(i):
-                qc.add_gate("CPHASE", targets=[j], controls=[i],
-                            arg_label=r"{\pi/2^{%d}}" % (i - j),
-                            arg_value=np.pi / (2 ** (i - j)))
+                qc.add_gate(
+                    "CPHASE",
+                    targets=[j],
+                    controls=[i],
+                    arg_label=r"{\pi/2^{%d}}" % (i - j),
+                    arg_value=np.pi / (2 ** (i - j)),
+                )
             qc.add_gate("SNOT", targets=[i])
         if swapping:
             for i in range(N // 2):

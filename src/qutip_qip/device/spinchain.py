@@ -10,7 +10,7 @@ from ..compiler import SpinChainCompiler
 from ..transpiler import to_chain_structure
 
 
-__all__ = ['SpinChain', 'LinearSpinChain', 'CircularSpinChain']
+__all__ = ["SpinChain", "LinearSpinChain", "CircularSpinChain"]
 
 
 class SpinChain(ModelProcessor):
@@ -55,11 +55,11 @@ class SpinChain(ModelProcessor):
         - ``sxsy``: the pulse strength for the exchange interaction,
           default ``0.1``
     """
-    def __init__(self, num_qubits, correct_global_phase,
-                 t1, t2, N=None, **params):
+
+    def __init__(self, num_qubits, correct_global_phase, t1, t2, N=None, **params):
         super(SpinChain, self).__init__(
-            num_qubits, correct_global_phase=correct_global_phase,
-            t1=t1, t2=t2, N=N)
+            num_qubits, correct_global_phase=correct_global_phase, t1=t1, t2=t2, N=N
+        )
         self.params = {  # default parameters, in the unit of frequency
             "sx": 0.25,
             "sz": 1.0,
@@ -85,14 +85,14 @@ class SpinChain(ModelProcessor):
         """
         # sx_ops
         for m in range(num_qubits):
-            self.add_control(2*np.pi*sigmax(), m, label="sx" + str(m))
+            self.add_control(2 * np.pi * sigmax(), m, label="sx" + str(m))
         # sz_ops
         for m in range(num_qubits):
-            self.add_control(2*np.pi*sigmaz(), m, label="sz" + str(m))
+            self.add_control(2 * np.pi * sigmaz(), m, label="sz" + str(m))
         # sxsy_ops
         operator = tensor([sigmax(), sigmax()]) + tensor([sigmay(), sigmay()])
         for n in range(num_qubits - 1):
-            self.add_control(2*np.pi*operator, [n, n+1], label="g" + str(n))
+            self.add_control(2 * np.pi * operator, [n, n + 1], label="g" + str(n))
 
     def set_up_params(self):
         """
@@ -130,7 +130,7 @@ class SpinChain(ModelProcessor):
     @property
     def sz_ops(self):
         """list: A list of sigmaz Hamiltonians for each qubit."""
-        return self.ctrls[self.num_qubits: 2*self.num_qubits]
+        return self.ctrls[self.num_qubits : 2 * self.num_qubits]
 
     @property
     def sxsy_ops(self):
@@ -138,7 +138,7 @@ class SpinChain(ModelProcessor):
         list: A list of tensor(sigmax, sigmay)
         interacting Hamiltonians for each qubit.
         """
-        return self.ctrls[2*self.num_qubits:]
+        return self.ctrls[2 * self.num_qubits :]
 
     @property
     def sx_u(self):
@@ -148,7 +148,7 @@ class SpinChain(ModelProcessor):
     @property
     def sz_u(self):
         """array-like: Pulse coefficients for sigmaz Hamiltonians."""
-        return self.coeffs[self.num_qubits: 2*self.num_qubits]
+        return self.coeffs[self.num_qubits : 2 * self.num_qubits]
 
     @property
     def sxsy_u(self):
@@ -156,15 +156,14 @@ class SpinChain(ModelProcessor):
         array-like: Pulse coefficients for tensor(sigmax, sigmay)
         interacting Hamiltonians.
         """
-        return self.coeffs[2*self.num_qubits:]
+        return self.coeffs[2 * self.num_qubits :]
 
-    def load_circuit(
-            self, qc, setup, schedule_mode="ASAP", compiler=None):
+    def load_circuit(self, qc, setup, schedule_mode="ASAP", compiler=None):
         if compiler is None:
-            compiler = SpinChainCompiler(
-                self.num_qubits, self.params, setup=setup)
+            compiler = SpinChainCompiler(self.num_qubits, self.params, setup=setup)
         tlist, coeffs = super().load_circuit(
-            qc, schedule_mode=schedule_mode, compiler=compiler)
+            qc, schedule_mode=schedule_mode, compiler=compiler
+        )
         self.global_phase = compiler.global_phase
         return tlist, coeffs
 
@@ -205,11 +204,24 @@ class LinearSpinChain(SpinChain):
         - ``sxsy``: the pulse strength for the exchange interaction,
           default ``0.1``
     """
-    def __init__(self, num_qubits=None, correct_global_phase=True,
-                 t1=None, t2=None, N=None, **params):
+
+    def __init__(
+        self,
+        num_qubits=None,
+        correct_global_phase=True,
+        t1=None,
+        t2=None,
+        N=None,
+        **params
+    ):
         super(LinearSpinChain, self).__init__(
-            num_qubits, correct_global_phase=correct_global_phase,
-            t1=t1, t2=t2, N=N, **params)
+            num_qubits,
+            correct_global_phase=correct_global_phase,
+            t1=t1,
+            t2=t2,
+            N=N,
+            **params
+        )
         self.set_up_params()
         self.set_up_ops(num_qubits)
 
@@ -220,7 +232,7 @@ class LinearSpinChain(SpinChain):
         # Doc same as in the parent class
         super(LinearSpinChain, self).set_up_params()
         sxsy = self.params["sxsy"]
-        sxsy_para = self.to_array(sxsy, self.num_qubits-1)
+        sxsy_para = self.to_array(sxsy, self.num_qubits - 1)
         self._params["sxsy"] = sxsy_para
 
     @property
@@ -229,7 +241,7 @@ class LinearSpinChain(SpinChain):
         list: A list of tensor(sigmax, sigmay)
         interacting Hamiltonians for each qubit.
         """
-        return self.ctrls[2*self.num_qubits: 3*self.num_qubits-1]
+        return self.ctrls[2 * self.num_qubits : 3 * self.num_qubits - 1]
 
     @property
     def sxsy_u(self):
@@ -237,12 +249,12 @@ class LinearSpinChain(SpinChain):
         array-like: Pulse coefficients for tensor(sigmax, sigmay)
         interacting Hamiltonians.
         """
-        return self.coeffs[2*self.num_qubits: 3*self.num_qubits-1]
+        return self.coeffs[2 * self.num_qubits : 3 * self.num_qubits - 1]
 
-    def load_circuit(
-            self, qc, schedule_mode="ASAP", compiler=None):
+    def load_circuit(self, qc, schedule_mode="ASAP", compiler=None):
         return super(LinearSpinChain, self).load_circuit(
-            qc, "linear", schedule_mode=schedule_mode, compiler=compiler)
+            qc, "linear", schedule_mode=schedule_mode, compiler=compiler
+        )
 
     def get_operators_labels(self):
         """
@@ -251,11 +263,15 @@ class LinearSpinChain(SpinChain):
         It is a 2-d nested list, in the plot,
         a different color will be used for each sublist.
         """
-        return ([[r"$\sigma_x^%d$" % n for n in range(self.num_qubits)],
-                [r"$\sigma_z^%d$" % n for n in range(self.num_qubits)],
-                [r"$\sigma_x^%d\sigma_x^{%d} + \sigma_y^%d\sigma_y^{%d}$"
-                 % (n, n + 1, n, n + 1) for n in range(self.num_qubits - 1)],
-                 ])
+        return [
+            [r"$\sigma_x^%d$" % n for n in range(self.num_qubits)],
+            [r"$\sigma_z^%d$" % n for n in range(self.num_qubits)],
+            [
+                r"$\sigma_x^%d\sigma_x^{%d} + \sigma_y^%d\sigma_y^{%d}$"
+                % (n, n + 1, n, n + 1)
+                for n in range(self.num_qubits - 1)
+            ],
+        ]
 
     def topology_map(self, qc):
         return to_chain_structure(qc, "linear")
@@ -297,15 +313,29 @@ class CircularSpinChain(SpinChain):
         - ``sxsy``: the pulse strength for the exchange interaction,
           default ``0.1``
     """
-    def __init__(self, num_qubits=None, correct_global_phase=True,
-                 t1=None, t2=None, N=None, **params):
+
+    def __init__(
+        self,
+        num_qubits=None,
+        correct_global_phase=True,
+        t1=None,
+        t2=None,
+        N=None,
+        **params
+    ):
         if num_qubits <= 1:
             raise ValueError(
                 "Circuit spin chain must have at least 2 qubits. "
-                "The number of qubits is increased to 2.")
+                "The number of qubits is increased to 2."
+            )
         super(CircularSpinChain, self).__init__(
-            num_qubits, correct_global_phase=correct_global_phase,
-            t1=t1, t2=t2, N=N, **params)
+            num_qubits,
+            correct_global_phase=correct_global_phase,
+            t1=t1,
+            t2=t2,
+            N=N,
+            **params
+        )
         self.set_up_params()
         self.set_up_ops(num_qubits)
 
@@ -313,7 +343,8 @@ class CircularSpinChain(SpinChain):
         super(CircularSpinChain, self).set_up_ops(num_qubits)
         operator = tensor([sigmax(), sigmax()]) + tensor([sigmay(), sigmay()])
         self.add_control(
-            2*np.pi*operator, [num_qubits-1, 0], label="g" + str(num_qubits-1))
+            2 * np.pi * operator, [num_qubits - 1, 0], label="g" + str(num_qubits - 1)
+        )
 
     def set_up_params(self):
         # Doc same as in the parent class
@@ -328,7 +359,7 @@ class CircularSpinChain(SpinChain):
         list: A list of tensor(sigmax, sigmay)
         interacting Hamiltonians for each qubit.
         """
-        return self.ctrls[2*self.num_qubits: 3*self.num_qubits]
+        return self.ctrls[2 * self.num_qubits : 3 * self.num_qubits]
 
     @property
     def sxsy_u(self):
@@ -336,12 +367,12 @@ class CircularSpinChain(SpinChain):
         array-like: Pulse coefficients for tensor(sigmax, sigmay)
         interacting Hamiltonians.
         """
-        return self.coeffs[2*self.num_qubits: 3*self.num_qubits]
+        return self.coeffs[2 * self.num_qubits : 3 * self.num_qubits]
 
-    def load_circuit(
-            self, qc, schedule_mode="ASAP", compiler=None):
+    def load_circuit(self, qc, schedule_mode="ASAP", compiler=None):
         return super(CircularSpinChain, self).load_circuit(
-            qc, "circular", schedule_mode=schedule_mode, compiler=compiler)
+            qc, "circular", schedule_mode=schedule_mode, compiler=compiler
+        )
 
     def get_operators_labels(self):
         """
@@ -350,11 +381,15 @@ class CircularSpinChain(SpinChain):
         It is a 2-d nested list, in the plot,
         a different color will be used for each sublist.
         """
-        return ([[r"$\sigma_x^%d$" % n for n in range(self.num_qubits)],
-                [r"$\sigma_z^%d$" % n for n in range(self.num_qubits)],
-                [r"$\sigma_x^%d\sigma_x^{%d} + \sigma_y^%d\sigma_y^{%d}$"
-                 % (n, (n + 1) % self.num_qubits, n, (n + 1) % self.num_qubits)
-                 for n in range(self.num_qubits)]])
+        return [
+            [r"$\sigma_x^%d$" % n for n in range(self.num_qubits)],
+            [r"$\sigma_z^%d$" % n for n in range(self.num_qubits)],
+            [
+                r"$\sigma_x^%d\sigma_x^{%d} + \sigma_y^%d\sigma_y^{%d}$"
+                % (n, (n + 1) % self.num_qubits, n, (n + 1) % self.num_qubits)
+                for n in range(self.num_qubits)
+            ],
+        ]
 
     def topology_map(self, qc):
         return to_chain_structure(qc, "circular")

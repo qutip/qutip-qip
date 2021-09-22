@@ -8,7 +8,7 @@ from ..circuit import QubitCircuit
 from ..operations import Gate
 
 
-__all__ = ['GateCompiler']
+__all__ = ["GateCompiler"]
 
 
 class GateCompiler(object):
@@ -51,6 +51,7 @@ class GateCompiler(object):
         * ``params``: Hardware parameters computed in the :obj:`Processor`.
 
     """
+
     def __init__(self, num_qubits=None, params=None, pulse_dict=None, N=None):
         self.gate_compiler = {}
         self.num_qubits = num_qubits or N
@@ -58,14 +59,14 @@ class GateCompiler(object):
         self.params = params if params is not None else {}
         self.gate_compiler = {
             "GLOBALPHASE": self.globalphase_compiler,
-            "IDLE": self.idle_compiler
+            "IDLE": self.idle_compiler,
         }
         self.args = {  # Default configuration
             "shape": "rectangular",
             "num_samples": None,
             "params": self.params,
-            }
-        self.global_phase = 0.
+        }
+        self.global_phase = 0.0
         if pulse_dict is not None:
             warnings.warn(
                 """
@@ -76,7 +77,7 @@ class GateCompiler(object):
                 The parameter pulse_dict has no effect now,
                 you can simply remove it.
                 """,
-                DeprecationWarning
+                DeprecationWarning,
             )
 
     def globalphase_compiler(self, gate, args):
@@ -92,8 +93,7 @@ class GateCompiler(object):
         idle_time = gate.arg_value
         return [Instruction(gate, idle_time, [])]
 
-    def compile(
-            self, circuit, schedule_mode=None, args=None):
+    def compile(self, circuit, schedule_mode=None, args=None):
         """
         Compile the the native gates into control pulse sequence.
         It calls each compiling method and concatenates
@@ -151,29 +151,29 @@ class GateCompiler(object):
         #   An ordered list of the start_time for each pulse,
         #   corresponding to gates in the instruction_list.
         # instruction_list reordered according to the scheduled result
-        instruction_list, scheduled_start_time = \
-            self._schedule(instruction_list, schedule_mode)
+        instruction_list, scheduled_start_time = self._schedule(
+            instruction_list, schedule_mode
+        )
 
         # An instruction can be composed from several different pulse elements.
         # We separate them an assign them to each pulse index.
         pulse_ind_map = {}
         next_pulse_ind = 0
         pulse_instructions = []
-        for instruction, start_time in \
-                zip(instruction_list, scheduled_start_time):
+        for instruction, start_time in zip(instruction_list, scheduled_start_time):
             for pulse_name, coeff in instruction.pulse_info:
                 if pulse_name not in pulse_ind_map:
                     pulse_instructions.append([])
                     pulse_ind_map[pulse_name] = next_pulse_ind
                     next_pulse_ind += 1
                 pulse_instructions[pulse_ind_map[pulse_name]].append(
-                    (start_time, instruction.tlist, coeff))
+                    (start_time, instruction.tlist, coeff)
+                )
 
         # concatenate pulses
-        compiled_tlist, compiled_coeffs = \
-            self._concatenate_pulses(
-                pulse_instructions, scheduled_start_time,
-                len(pulse_instructions))
+        compiled_tlist, compiled_coeffs = self._concatenate_pulses(
+            pulse_instructions, scheduled_start_time, len(pulse_instructions)
+        )
         compiled_tlist_map, compiled_coeffs_map = {}, {}
         for key, index in pulse_ind_map.items():
             compiled_tlist_map[key] = compiled_tlist[index]
@@ -192,14 +192,16 @@ class GateCompiler(object):
             instruction_list = [instruction_list[i] for i in time_ordered_pos]
             scheduled_start_time.sort()
         else:  # no scheduling
-            scheduled_start_time = [0.]
+            scheduled_start_time = [0.0]
             for instruction in instruction_list[:-1]:
                 scheduled_start_time.append(
-                    instruction.duration + scheduled_start_time[-1])
+                    instruction.duration + scheduled_start_time[-1]
+                )
         return instruction_list, scheduled_start_time
 
     def _concatenate_pulses(
-            self, pulse_instructions, scheduled_start_time, num_controls):
+        self, pulse_instructions, scheduled_start_time, num_controls
+    ):
         """
         Concatenate compiled pulses coefficients and tlist for each pulse.
         If there is idling time, add zeros properly to prevent wrong spline.
@@ -208,27 +210,28 @@ class GateCompiler(object):
         compiled_tlist = [[] for tmp in range(num_controls)]
         compiled_coeffs = [[] for tmp in range(num_controls)]
         for pulse_ind in range(num_controls):
-            last_pulse_time = 0.
+            last_pulse_time = 0.0
             for start_time, tlist, coeff in pulse_instructions[pulse_ind]:
                 # compute the gate time, step size and coeffs
                 # according to different pulse mode
-                gate_tlist, coeffs, step_size, pulse_mode = \
-                    self._process_gate_pulse(start_time, tlist, coeff)
+                gate_tlist, coeffs, step_size, pulse_mode = self._process_gate_pulse(
+                    start_time, tlist, coeff
+                )
 
                 if abs(last_pulse_time) < step_size * 1.0e-6:  # if first pulse
-                    compiled_tlist[pulse_ind].append([0.])
+                    compiled_tlist[pulse_ind].append([0.0])
                     if pulse_mode == "continuous":
-                        compiled_coeffs[pulse_ind].append([0.])
+                        compiled_coeffs[pulse_ind].append([0.0])
                     # for discrete pulse len(coeffs) = len(tlist) - 1
 
                 # If there is idling time between the last pulse and
                 # the current one, we need to add zeros in between.
                 if np.abs(start_time - last_pulse_time) > step_size * 1.0e-6:
                     idling_tlist = self._process_idling_tlist(
-                        pulse_mode, start_time, last_pulse_time, step_size)
+                        pulse_mode, start_time, last_pulse_time, step_size
+                    )
                     compiled_tlist[pulse_ind].append(idling_tlist)
-                    compiled_coeffs[pulse_ind].append(
-                        np.zeros(len(idling_tlist)))
+                    compiled_coeffs[pulse_ind].append(np.zeros(len(idling_tlist)))
 
                 # Add the gate time and coeffs to the list.
                 execution_time = gate_tlist + start_time
@@ -245,8 +248,7 @@ class GateCompiler(object):
                 compiled_coeffs[i] = np.concatenate(compiled_coeffs[i])
         return compiled_tlist, compiled_coeffs
 
-    def _process_gate_pulse(
-            self, start_time, tlist, coeff):
+    def _process_gate_pulse(self, start_time, tlist, coeff):
         # compute the gate time, step size and coeffs
         # according to different pulse mode
         if np.isscalar(tlist):
@@ -269,34 +271,23 @@ class GateCompiler(object):
             coeff = np.asarray(coeff)[1:]
             gate_tlist = np.asarray(tlist)[1:]
         else:
-            raise ValueError(
-                "The shape of the compiled pulse is not correct.")
+            raise ValueError("The shape of the compiled pulse is not correct.")
         return gate_tlist, coeff, step_size, pulse_mode
 
-    def _process_idling_tlist(
-            self, pulse_mode, start_time, last_pulse_time, step_size):
+    def _process_idling_tlist(self, pulse_mode, start_time, last_pulse_time, step_size):
         idling_tlist = []
         if pulse_mode == "continuous":
             # We add sufficient number of zeros at the begining
             # and the end of the idling to prevent wrong cubic spline.
             if start_time - last_pulse_time > 3 * step_size:
                 idling_tlist1 = np.linspace(
-                    last_pulse_time + step_size/5,
-                    last_pulse_time + step_size,
-                    5
+                    last_pulse_time + step_size / 5, last_pulse_time + step_size, 5
                 )
-                idling_tlist2 = np.linspace(
-                    start_time - step_size,
-                    start_time,
-                    5
-                )
+                idling_tlist2 = np.linspace(start_time - step_size, start_time, 5)
                 idling_tlist.extend([idling_tlist1, idling_tlist2])
             else:
                 idling_tlist.append(
-                    np.arange(
-                        last_pulse_time + step_size,
-                        start_time, step_size
-                    )
+                    np.arange(last_pulse_time + step_size, start_time, step_size)
                 )
         elif pulse_mode == "discrete":
             # idling until the start time
@@ -304,7 +295,7 @@ class GateCompiler(object):
         return np.concatenate(idling_tlist)
 
     @classmethod
-    def generate_pulse_shape(cls, shape, num_samples, maximum=1., area=1.):
+    def generate_pulse_shape(cls, shape, num_samples, maximum=1.0, area=1.0):
         """
         Return a tuple consisting of a coeff list and a time sequence
         according to a given pulse shape.
@@ -351,20 +342,20 @@ class GateCompiler(object):
 
 
 _default_window_t_max = {
-    "boxcar": 1.,
-    "triang": 2.,
-    "blackman": 1./0.42,
-    "hamming": 1./0.54,
-    "hann": 2.,
-    "bartlett": 2.,
-    "flattop": 1./0.21557897160000217,
-    "parzen": 1./0.375,
-    "bohman": 1./0.4052847750978287,
-    "blackmanharris": 1./0.35875003586900384,
-    "nuttall": 1./0.36358193632191405,
-    "barthann": 2.,
-    "cosine": np.pi/2.,
-    }
+    "boxcar": 1.0,
+    "triang": 2.0,
+    "blackman": 1.0 / 0.42,
+    "hamming": 1.0 / 0.54,
+    "hann": 2.0,
+    "bartlett": 2.0,
+    "flattop": 1.0 / 0.21557897160000217,
+    "parzen": 1.0 / 0.375,
+    "bohman": 1.0 / 0.4052847750978287,
+    "blackmanharris": 1.0 / 0.35875003586900384,
+    "nuttall": 1.0 / 0.36358193632191405,
+    "barthann": 2.0,
+    "cosine": np.pi / 2.0,
+}
 
 
 def _normalized_window(shape, num_samples):
@@ -374,12 +365,10 @@ def _normalized_window(shape, num_samples):
     Here, we save a default t_max so that the integral is always 1.
     """
     if shape == "rectangular":
-        return 1., 1.
+        return 1.0, 1.0
     t_max = _default_window_t_max.get(shape, None)
     if t_max is None:
         raise ValueError(f"Window function {shape} is not supported.")
-    coeff = signal.windows.get_window(
-        shape, num_samples
-    )
+    coeff = signal.windows.get_window(shape, num_samples)
     tlist = np.linspace(0, t_max, num_samples)
     return coeff, tlist

@@ -3,14 +3,14 @@ import numbers
 
 import numpy as np
 
-from qutip import (Qobj, QobjEvo, tensor, mesolve)
+from qutip import Qobj, QobjEvo, tensor, mesolve
 from ..operations import globalphase
 from ..circuit import QubitCircuit
 from .processor import Processor
 from ..compiler import GateCompiler
 
 
-__all__ = ['ModelProcessor']
+__all__ = ["ModelProcessor"]
 
 
 class ModelProcessor(Processor):
@@ -48,12 +48,11 @@ class ModelProcessor(Processor):
         will track the global phase.
         It has no effect on the numerical solution.
     """
-    def __init__(
-            self, num_qubits, correct_global_phase=True,
-            t1=None, t2=None, N=None):
+
+    def __init__(self, num_qubits, correct_global_phase=True, t1=None, t2=None, N=None):
         super(ModelProcessor, self).__init__(num_qubits, t1=t1, t2=t2, N=None)
         self.correct_global_phase = correct_global_phase
-        self.global_phase = 0.
+        self.global_phase = 0.0
         self._params = {}
         self.native_gates = None
         self.transpile_functions = []
@@ -92,8 +91,9 @@ class ModelProcessor(Processor):
     def params(self, par):
         self._params = par
 
-    def run_state(self, init_state=None, analytical=False, qc=None,
-                  states=None, **kwargs):
+    def run_state(
+        self, init_state=None, analytical=False, qc=None, states=None, **kwargs
+    ):
         """
         If ``analytical`` is False, use :func:`qutip.mesolve` to
         calculate the time of the state evolution
@@ -133,8 +133,8 @@ class ModelProcessor(Processor):
         if qc is not None:
             self.load_circuit(qc)
         return super(ModelProcessor, self).run_state(
-            init_state=init_state, analytical=analytical,
-            states=states, **kwargs)
+            init_state=init_state, analytical=analytical, states=states, **kwargs
+        )
 
     def get_ops_and_u(self):
         """
@@ -176,8 +176,9 @@ class ModelProcessor(Processor):
             t_idx_len = int(np.floor(dt_list[n] / dt))
             mm = 0
             for m in range(len(ctrls)):
-                u[mm, t_start:(t_start + t_idx_len)] = (np.ones(t_idx_len) *
-                                                        coeffs[n, m])
+                u[mm, t_start : (t_start + t_idx_len)] = (
+                    np.ones(t_idx_len) * coeffs[n, m]
+                )
                 mm += 1
             t_start += t_idx_len
 
@@ -215,8 +216,7 @@ class ModelProcessor(Processor):
             qc = qc.resolve_gates(basis=self.native_gates)
         return qc
 
-    def load_circuit(
-            self, qc, schedule_mode="ASAP", compiler=None):
+    def load_circuit(self, qc, schedule_mode="ASAP", compiler=None):
         """
         The default routine of compilation.
         It first calls the :meth:`.transpile` to convert the circuit to
@@ -245,8 +245,7 @@ class ModelProcessor(Processor):
         if compiler is None and self._default_compiler is not None:
             compiler = self._default_compiler(self.num_qubits, self.params)
         if compiler is not None:
-            tlist, coeffs = compiler.compile(
-                qc.gates, schedule_mode=schedule_mode)
+            tlist, coeffs = compiler.compile(qc.gates, schedule_mode=schedule_mode)
         else:
             raise ValueError("No compiler defined.")
         # Save compiler pulses
