@@ -3,7 +3,16 @@ from copy import deepcopy
 
 import numpy as np
 
-from qutip import tensor, identity, destroy, sigmax, sigmaz, basis, Qobj, QobjEvo
+from qutip import (
+    tensor,
+    identity,
+    destroy,
+    sigmax,
+    sigmaz,
+    basis,
+    Qobj,
+    QobjEvo,
+)
 from ..circuit import QubitCircuit
 from ..operations import Gate
 from .processor import Processor
@@ -124,17 +133,25 @@ class DispersiveCavityQED(ModelProcessor):
         """
         # single qubit terms
         for m in range(num_qubits):
-            self.add_control(2 * np.pi * sigmax(), [m + 1], label="sx" + str(m))
+            self.add_control(
+                2 * np.pi * sigmax(), [m + 1], label="sx" + str(m)
+            )
         for m in range(num_qubits):
-            self.add_control(2 * np.pi * sigmaz(), [m + 1], label="sz" + str(m))
+            self.add_control(
+                2 * np.pi * sigmaz(), [m + 1], label="sz" + str(m)
+            )
         # coupling terms
         a = tensor(
-            [destroy(self.num_levels)] + [identity(2) for n in range(num_qubits)]
+            [destroy(self.num_levels)]
+            + [identity(2) for n in range(num_qubits)]
         )
         for n in range(num_qubits):
             sm = tensor(
                 [identity(self.num_levels)]
-                + [destroy(2) if m == n else identity(2) for m in range(num_qubits)]
+                + [
+                    destroy(2) if m == n else identity(2)
+                    for m in range(num_qubits)
+                ]
             )
             self.add_control(
                 2 * np.pi * a.dag() * sm + 2 * np.pi * a * sm.dag(),
@@ -162,7 +179,9 @@ class DispersiveCavityQED(ModelProcessor):
             warnings.warn("Not in the dispersive regime")
 
         if any((w0 - self.wq) / (w0 + self.wq) > 0.05):
-            warnings.warn("The rotating-wave approximation might not be valid.")
+            warnings.warn(
+                "The rotating-wave approximation might not be valid."
+            )
 
     @property
     def sx_ops(self):
@@ -221,13 +240,16 @@ class DispersiveCavityQED(ModelProcessor):
         Eliminate the auxillary modes like the cavity modes in cqed.
         """
         psi_proj = tensor(
-            [basis(self.num_levels, 0)] + [identity(2) for n in range(self.num_qubits)]
+            [basis(self.num_levels, 0)]
+            + [identity(2) for n in range(self.num_qubits)]
         )
         return psi_proj.dag() * U * psi_proj
 
     def load_circuit(self, qc, schedule_mode="ASAP", compiler=None):
         if compiler is None:
-            compiler = CavityQEDCompiler(self.num_qubits, self.params, global_phase=0.0)
+            compiler = CavityQEDCompiler(
+                self.num_qubits, self.params, global_phase=0.0
+            )
         tlist, coeff = super().load_circuit(
             qc, schedule_mode=schedule_mode, compiler=compiler
         )

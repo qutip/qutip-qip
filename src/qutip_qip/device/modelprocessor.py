@@ -49,7 +49,9 @@ class ModelProcessor(Processor):
         It has no effect on the numerical solution.
     """
 
-    def __init__(self, num_qubits, correct_global_phase=True, t1=None, t2=None, N=None):
+    def __init__(
+        self, num_qubits, correct_global_phase=True, t1=None, t2=None, N=None
+    ):
         super(ModelProcessor, self).__init__(num_qubits, t1=t1, t2=t2, N=None)
         self.correct_global_phase = correct_global_phase
         self.global_phase = 0.0
@@ -133,7 +135,10 @@ class ModelProcessor(Processor):
         if qc is not None:
             self.load_circuit(qc)
         return super(ModelProcessor, self).run_state(
-            init_state=init_state, analytical=analytical, states=states, **kwargs
+            init_state=init_state,
+            analytical=analytical,
+            states=states,
+            **kwargs
         )
 
     def get_ops_and_u(self):
@@ -245,7 +250,9 @@ class ModelProcessor(Processor):
         if compiler is None and self._default_compiler is not None:
             compiler = self._default_compiler(self.num_qubits, self.params)
         if compiler is not None:
-            tlist, coeffs = compiler.compile(qc.gates, schedule_mode=schedule_mode)
+            tlist, coeffs = compiler.compile(
+                qc.gates, schedule_mode=schedule_mode
+            )
         else:
             raise ValueError("No compiler defined.")
         # Save compiler pulses

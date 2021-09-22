@@ -20,7 +20,9 @@ __all__ = [
 ]
 
 
-def process_noise(pulses, noise_list, dims, t1=None, t2=None, device_noise=False):
+def process_noise(
+    pulses, noise_list, dims, t1=None, t2=None, device_noise=False
+):
     """
     Apply noise to the input list of pulses. It does not modify the input
     pulse, but return a new one containing the noise.
@@ -58,11 +60,16 @@ def process_noise(pulses, noise_list, dims, t1=None, t2=None, device_noise=False
         noise_list.append(RelaxationNoise(t1, t2))
 
     for noise in noise_list:
-        if isinstance(noise, (DecoherenceNoise, RelaxationNoise)) and not device_noise:
+        if (
+            isinstance(noise, (DecoherenceNoise, RelaxationNoise))
+            and not device_noise
+        ):
             pass
         else:
             noisy_pulses, systematic_noise = noise._apply_noise(
-                dims=dims, pulses=noisy_pulses, systematic_noise=systematic_noise
+                dims=dims,
+                pulses=noisy_pulses,
+                systematic_noise=systematic_noise,
             )
 
     if device_noise:
@@ -115,7 +122,8 @@ class Noise(object):
             )
             return self.get_noisy_dynamics(dims, pulses, systematic_noise)
         raise NotImplementedError(
-            "Subclass error needs a method" "`get_noisy_pulses` to process the noise."
+            "Subclass error needs a method"
+            "`get_noisy_pulses` to process the noise."
         )
 
     def _apply_noise(self, pulses=None, systematic_noise=None, dims=None):
@@ -134,7 +142,9 @@ class Noise(object):
         elif isinstance(result, list) and len(result) == len(pulses):
             pulses = result
         else:
-            raise TypeError("Returned value of get_noisy_pulses not understood.")
+            raise TypeError(
+                "Returned value of get_noisy_pulses not understood."
+            )
         return pulses, systematic_noise
 
 
@@ -173,7 +183,9 @@ class DecoherenceNoise(Noise):
         ``all_qubits=True`` will allow it to be applied to all qubits.
     """
 
-    def __init__(self, c_ops, targets=None, coeff=None, tlist=None, all_qubits=False):
+    def __init__(
+        self, c_ops, targets=None, coeff=None, tlist=None, all_qubits=False
+    ):
         if isinstance(c_ops, Qobj):
             self.c_ops = [c_ops]
         else:
@@ -340,7 +352,8 @@ class RelaxationNoise(Noise):
                 if t1 is not None:
                     if 2 * t1 < t2:
                         raise ValueError(
-                            "t1={}, t2={} does not fulfill " "2*t1>t2".format(t1, t2)
+                            "t1={}, t2={} does not fulfill "
+                            "2*t1>t2".format(t1, t2)
                         )
                     T2_eff = 1.0 / (1.0 / t2 - 1.0 / 2.0 / t1)
                 else:
@@ -398,7 +411,9 @@ class ControlAmpNoise(Noise):
                 tlist = pulse.tlist
             else:
                 tlist = self.tlist
-            pulses[i].add_coherent_noise(pulse.qobj, pulse.targets, tlist, coeff)
+            pulses[i].add_coherent_noise(
+                pulse.qobj, pulse.targets, tlist, coeff
+            )
         return pulses, systematic_noise
 
 
@@ -490,7 +505,9 @@ class RandomNoise(ControlAmpNoise):
         for i in indices:
             pulse = pulses[i]
             coeff = self.rand_gen(**self.kwargs, size=num_rand)
-            pulses[i].add_coherent_noise(pulse.qobj, pulse.targets, tlist, coeff)
+            pulses[i].add_coherent_noise(
+                pulse.qobj, pulse.targets, tlist, coeff
+            )
         return pulses, systematic_noise
 
 
@@ -546,10 +563,12 @@ class ZZCrossTalk(Noise):
             destroy_op1 = destroy(d1)
             destroy_op2 = destroy(d2)
             projector1 = (
-                basis(d1, 0) * basis(d1, 0).dag() + basis(d1, 1) * basis(d2, 1).dag()
+                basis(d1, 0) * basis(d1, 0).dag()
+                + basis(d1, 1) * basis(d2, 1).dag()
             )
             projector2 = (
-                basis(d2, 0) * basis(d2, 0).dag() + basis(d2, 1) * basis(d2, 1).dag()
+                basis(d2, 0) * basis(d2, 0).dag()
+                + basis(d2, 1) * basis(d2, 1).dag()
             )
             z1 = (
                 projector1
@@ -563,9 +582,13 @@ class ZZCrossTalk(Noise):
             )
             zz_op = tensor(z1, z2)
             zz_coeff = (
-                1 / (wq[i] - wr[i] - alpha[i + 1]) - 1 / (wq[i] - wr[i] + alpha[i])
+                1 / (wq[i] - wr[i] - alpha[i + 1])
+                - 1 / (wq[i] - wr[i] + alpha[i])
             ) * J[i] ** 2
             systematic_noise.add_control_noise(
-                zz_coeff * zz_op / 2, targets=[i, i + 1], coeff=True, tlist=None
+                zz_coeff * zz_op / 2,
+                targets=[i, i + 1],
+                coeff=True,
+                tlist=None,
             )
         return pulses, systematic_noise

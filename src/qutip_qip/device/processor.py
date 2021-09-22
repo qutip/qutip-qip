@@ -162,7 +162,9 @@ class Processor(object):
         else:
             self.drift.add_drift(qobj, targets)
 
-    def add_control(self, qobj, targets=None, cyclic_permutation=False, label=None):
+    def add_control(
+        self, qobj, targets=None, cyclic_permutation=False, label=None
+    ):
         """
         Add a control Hamiltonian to the processor. It creates a new
         :class:`.Pulse`
@@ -316,7 +318,9 @@ class Processor(object):
         elif mode == "continuous":
             spline_kind = "cubic"
         else:
-            raise ValueError("Pulse mode must be either discrete or continuous.")
+            raise ValueError(
+                "Pulse mode must be either discrete or continuous."
+            )
 
         self.spline_kind = spline_kind
         for pulse in self.pulses:
@@ -333,7 +337,9 @@ class Processor(object):
         full_tlist: array-like 1d
             The full time sequence for the ideal evolution.
         """
-        full_tlist = [pulse.tlist for pulse in self.pulses if pulse.tlist is not None]
+        full_tlist = [
+            pulse.tlist for pulse in self.pulses if pulse.tlist is not None
+        ]
         if not full_tlist:
             return None
         full_tlist = np.unique(np.sort(np.hstack(full_tlist)))
@@ -370,7 +376,8 @@ class Processor(object):
                 continue
             if not isinstance(pulse.coeff, (bool, np.ndarray)):
                 raise ValueError(
-                    "get_full_coeffs only works for " "NumPy array or bool coeff."
+                    "get_full_coeffs only works for "
+                    "NumPy array or bool coeff."
                 )
             if isinstance(pulse.coeff, bool):
                 if pulse.coeff:
@@ -714,7 +721,9 @@ class Processor(object):
 
         try:  # correct_global_phase are defined for ModelProcessor
             if self.correct_global_phase and self.global_phase != 0:
-                U_list.append(globalphase(self.global_phase, N=self.num_qubits))
+                U_list.append(
+                    globalphase(self.global_phase, N=self.num_qubits)
+                )
         except AttributeError:
             pass
 

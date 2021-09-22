@@ -56,9 +56,15 @@ class SpinChain(ModelProcessor):
           default ``0.1``
     """
 
-    def __init__(self, num_qubits, correct_global_phase, t1, t2, N=None, **params):
+    def __init__(
+        self, num_qubits, correct_global_phase, t1, t2, N=None, **params
+    ):
         super(SpinChain, self).__init__(
-            num_qubits, correct_global_phase=correct_global_phase, t1=t1, t2=t2, N=N
+            num_qubits,
+            correct_global_phase=correct_global_phase,
+            t1=t1,
+            t2=t2,
+            N=N,
         )
         self.params = {  # default parameters, in the unit of frequency
             "sx": 0.25,
@@ -92,7 +98,9 @@ class SpinChain(ModelProcessor):
         # sxsy_ops
         operator = tensor([sigmax(), sigmax()]) + tensor([sigmay(), sigmay()])
         for n in range(num_qubits - 1):
-            self.add_control(2 * np.pi * operator, [n, n + 1], label="g" + str(n))
+            self.add_control(
+                2 * np.pi * operator, [n, n + 1], label="g" + str(n)
+            )
 
     def set_up_params(self):
         """
@@ -160,7 +168,9 @@ class SpinChain(ModelProcessor):
 
     def load_circuit(self, qc, setup, schedule_mode="ASAP", compiler=None):
         if compiler is None:
-            compiler = SpinChainCompiler(self.num_qubits, self.params, setup=setup)
+            compiler = SpinChainCompiler(
+                self.num_qubits, self.params, setup=setup
+            )
         tlist, coeffs = super().load_circuit(
             qc, schedule_mode=schedule_mode, compiler=compiler
         )
@@ -343,7 +353,9 @@ class CircularSpinChain(SpinChain):
         super(CircularSpinChain, self).set_up_ops(num_qubits)
         operator = tensor([sigmax(), sigmax()]) + tensor([sigmay(), sigmay()])
         self.add_control(
-            2 * np.pi * operator, [num_qubits - 1, 0], label="g" + str(num_qubits - 1)
+            2 * np.pi * operator,
+            [num_qubits - 1, 0],
+            label="g" + str(num_qubits - 1),
         )
 
     def set_up_params(self):

@@ -158,7 +158,9 @@ class OptPulseProcessor(Processor):
             props = qc
             gates = None  # using list of Qobj, no gates name
         else:
-            raise ValueError("qc should be a " "QubitCircuit or a list of Qobj")
+            raise ValueError(
+                "qc should be a " "QubitCircuit or a list of Qobj"
+            )
         if merge_gates:  # merge all gates/Qobj into one Qobj
             props = [gate_sequence_product(props)]
             gates = None
@@ -176,7 +178,9 @@ class OptPulseProcessor(Processor):
                 kwargs.update(setting_args[gates[prop_ind]])
 
             full_drift_ham = self.drift.get_ideal_qobjevo(self.dims).cte
-            full_ctrls_hams = [pulse.get_ideal_qobj(self.dims) for pulse in self.pulses]
+            full_ctrls_hams = [
+                pulse.get_ideal_qobj(self.dims) for pulse in self.pulses
+            ]
             result = cpo.optimize_pulse_unitary(
                 full_drift_ham, full_ctrls_hams, U_0, U_targ, **kwargs
             )
@@ -195,7 +199,9 @@ class OptPulseProcessor(Processor):
             if verbose:
                 print("********** Gate {} **********".format(prop_ind))
                 print("Final fidelity error {}".format(result.fid_err))
-                print("Final gradient normal {}".format(result.grad_norm_final))
+                print(
+                    "Final gradient normal {}".format(result.grad_norm_final)
+                )
                 print("Terminated due to {}".format(result.termination_reason))
                 print("Number of iterations {}".format(result.num_iter))
 

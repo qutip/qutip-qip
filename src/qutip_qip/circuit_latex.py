@@ -55,7 +55,9 @@ def _test_convert_is_imagemagick():
     try:
         # Don't use `capture_output` because we're still supporting Python 3.6
         process = subprocess.run(
-            ("convert", "-version"), stdout=subprocess.PIPE, stderr=subprocess.DEVNULL
+            ("convert", "-version"),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
         )
         return "imagemagick" in process.stdout.decode("utf-8").lower()
     except FileNotFoundError:
@@ -131,7 +133,9 @@ _CONVERTER_CONFIGURATIONS = [
         arguments=("-density", "100"),
         binary=True,
     ),
-    _ConverterConfiguration("svg", "pdf2svg", ["pdf2svg"], arguments=(), binary=False),
+    _ConverterConfiguration(
+        "svg", "pdf2svg", ["pdf2svg"], arguments=(), binary=False
+    ),
 ]
 
 
@@ -213,7 +217,9 @@ if _pdflatex is not None:
                 with open(filename + ".tex", "w") as file:
                     file.write(_latex_template % code)
                 try:
-                    _run_command((_pdflatex, "-interaction", "batchmode", filename))
+                    _run_command(
+                        (_pdflatex, "-interaction", "batchmode", filename)
+                    )
                 except RuntimeError as e:
                     message = (
                         "pdflatex failed."

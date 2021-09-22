@@ -64,7 +64,9 @@ class _EvoElement:
                 if self.tlist is None:
                     qu = QobjEvo(mat, tlist=self.tlist)
                 else:
-                    qu = QobjEvo([mat, np.ones(len(self.tlist))], tlist=self.tlist)
+                    qu = QobjEvo(
+                        [mat, np.ones(len(self.tlist))], tlist=self.tlist
+                    )
             else:
                 qu = QobjEvo(mat * 0.0, tlist=self.tlist)
         else:
@@ -116,7 +118,9 @@ class _EvoElement:
         try:
             return self._get_qobjevo_helper(spline_kind, dims=dims)
         except Exception as err:
-            print("The Evolution element went wrong was\n {}".format(str(self)))
+            print(
+                "The Evolution element went wrong was\n {}".format(str(self))
+            )
             raise (err)
 
     def __str__(self):
@@ -391,11 +395,13 @@ class Pulse:
         """
         ideal_qu = self.get_ideal_qobjevo(dims)
         noise_qu_list = [
-            noise.get_qobjevo(self.spline_kind, dims) for noise in self.coherent_noise
+            noise.get_qobjevo(self.spline_kind, dims)
+            for noise in self.coherent_noise
         ]
         qu = _merge_qobjevo([ideal_qu] + noise_qu_list)
         c_ops = [
-            noise.get_qobjevo(self.spline_kind, dims) for noise in self.lindblad_noise
+            noise.get_qobjevo(self.spline_kind, dims)
+            for noise in self.lindblad_noise
         ]
         full_tlist = self.get_full_tlist()
         qu = _merge_qobjevo([qu], full_tlist)
@@ -437,7 +443,8 @@ class Pulse:
         the coherent noise and the lindblad noise.
         """
         print(
-            "-----------------------------------" "-----------------------------------"
+            "-----------------------------------"
+            "-----------------------------------"
         )
         if self.label is not None:
             print("Pulse label:", self.label)
@@ -461,7 +468,8 @@ class Pulse:
             for ele in self.lindblad_noise:
                 print(ele)
         print(
-            "-----------------------------------" "-----------------------------------"
+            "-----------------------------------"
+            "-----------------------------------"
         )
 
 
@@ -521,7 +529,9 @@ class Drift:
         """
         if not self.drift_hamiltonians:
             self.drift_hamiltonians = [_EvoElement(None, None)]
-        qu_list = [QobjEvo(evo.get_qobj(dims)) for evo in self.drift_hamiltonians]
+        qu_list = [
+            QobjEvo(evo.get_qobj(dims)) for evo in self.drift_hamiltonians
+        ]
         return _merge_qobjevo(qu_list)
 
     def get_noisy_qobjevo(self, dims):
@@ -594,7 +604,9 @@ def _merge_qobjevo(qobjevo_list, full_tlist=None):
             qobjevo = qobjevo_list[i]
         for j, ele in enumerate(qobjevo.ops):
             if isinstance(ele.coeff, np.ndarray):
-                new_coeff = _fill_coeff(ele.coeff, qobjevo.tlist, full_tlist, args)
+                new_coeff = _fill_coeff(
+                    ele.coeff, qobjevo.tlist, full_tlist, args
+                )
                 qobjevo_list[i].ops[j].coeff = new_coeff
         qobjevo_list[i].tlist = full_tlist
 

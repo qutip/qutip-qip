@@ -85,7 +85,11 @@ class InstructionsGraph:
             node.successors = set()
 
         num_qubits = (
-            max(set().union(*[instruction.used_qubits for instruction in self.nodes]))
+            max(
+                set().union(
+                    *[instruction.used_qubits for instruction in self.nodes]
+                )
+            )
             + 1
         )
         qubits_instructions_dependency = [[set()] for i in range(num_qubits)]
@@ -124,9 +128,15 @@ class InstructionsGraph:
         for instructions_cycles in qubits_instructions_dependency:
             for cycle_ind1 in range(len(instructions_cycles) - 1):
                 for instruction_ind1 in instructions_cycles[cycle_ind1]:
-                    for instruction_ind2 in instructions_cycles[cycle_ind1 + 1]:
-                        self.nodes[instruction_ind1].successors.add(instruction_ind2)
-                        self.nodes[instruction_ind2].predecessors.add(instruction_ind1)
+                    for instruction_ind2 in instructions_cycles[
+                        cycle_ind1 + 1
+                    ]:
+                        self.nodes[instruction_ind1].successors.add(
+                            instruction_ind2
+                        )
+                        self.nodes[instruction_ind2].predecessors.add(
+                            instruction_ind1
+                        )
 
         # Find start and end nodes of the graph
         start = []
@@ -146,7 +156,10 @@ class InstructionsGraph:
         Predecessors and successors of each node are exchanged.
         """
         for node in self.nodes:
-            node.predecessors, node.successors = node.successors, node.predecessors
+            node.predecessors, node.successors = (
+                node.successors,
+                node.predecessors,
+            )
             try:
                 self.distance_to_start, self.distance_to_end = (
                     self.distance_to_end,
@@ -260,13 +273,17 @@ class InstructionsGraph:
         for cycle in cycles_list:
             for ind in cycle:
                 if not self.nodes[ind].predecessors:
-                    self.nodes[ind].distance_to_start = self.nodes[ind].duration
+                    self.nodes[ind].distance_to_start = self.nodes[
+                        ind
+                    ].duration
                 else:
                     self.nodes[ind].distance_to_start = (
                         max(
                             [
                                 self.nodes[predecessor_ind].distance_to_start
-                                for predecessor_ind in self.nodes[ind].predecessors
+                                for predecessor_ind in self.nodes[
+                                    ind
+                                ].predecessors
                             ]
                         )
                         + self.nodes[ind].duration
@@ -284,12 +301,16 @@ class InstructionsGraph:
                         max(
                             [
                                 self.nodes[predecessor_ind].distance_to_end
-                                for predecessor_ind in self.nodes[ind].predecessors
+                                for predecessor_ind in self.nodes[
+                                    ind
+                                ].predecessors
                             ]
                         )
                         + self.nodes[ind].duration
                     )
-        self.longest_distance = max([self.nodes[i].distance_to_end for i in self.end])
+        self.longest_distance = max(
+            [self.nodes[i].distance_to_end for i in self.end]
+        )
         self.reverse_graph()
 
     def _compare_priority(self, ind1, ind2):
@@ -304,14 +325,21 @@ class InstructionsGraph:
         ind1, ind2: int
             Indices of nodes.
         """
-        if self.nodes[ind1].distance_to_end == self.nodes[ind2].distance_to_end:
+        if (
+            self.nodes[ind1].distance_to_end
+            == self.nodes[ind2].distance_to_end
+        ):
             # lower distance_to_start, higher priority
             return (
-                self.nodes[ind1].distance_to_start - self.nodes[ind2].distance_to_start
+                self.nodes[ind1].distance_to_start
+                - self.nodes[ind2].distance_to_start
             )
         else:
             # higher distance_to_end, higher priority
-            return self.nodes[ind2].distance_to_end - self.nodes[ind1].distance_to_end
+            return (
+                self.nodes[ind2].distance_to_end
+                - self.nodes[ind1].distance_to_end
+            )
 
     def add_constraint_dependency(self, constraint_dependency):
         """
@@ -498,7 +526,9 @@ class Scheduler:
 
         # Generate the quantum operations dependency graph.
         instructions_graph = InstructionsGraph(gates)
-        instructions_graph.generate_dependency_graph(commuting=self.commutation_rules)
+        instructions_graph.generate_dependency_graph(
+            commuting=self.commutation_rules
+        )
         if self.method == "ALAP":
             instructions_graph.reverse_graph()
 
@@ -510,8 +540,13 @@ class Scheduler:
         instructions_graph.compute_distance(cycles_list=cycles_list)
 
         # Schedule again with priority and hardware constraint.
-        cycles_list, constraint_dependency = instructions_graph.find_topological_order(
-            priority=True, apply_constraint=self.apply_constraint, random=random_shuffle
+        (
+            cycles_list,
+            constraint_dependency,
+        ) = instructions_graph.find_topological_order(
+            priority=True,
+            apply_constraint=self.apply_constraint,
+            random=random_shuffle,
         )
 
         # If we only need gates schedule, we can output the result here.
@@ -544,7 +579,8 @@ class Scheduler:
         elif self.method == "ALAP":
             for instruction in instructions_graph.nodes:
                 instruction_start_time.append(
-                    instructions_graph.longest_distance - instruction.distance_to_start
+                    instructions_graph.longest_distance
+                    - instruction.distance_to_start
                 )
         return instruction_start_time
 
@@ -564,7 +600,9 @@ class Scheduler:
         instruction2 = instructions[ind2]
         if instruction1.name != instruction2.name:
             return False
-        if (instruction1.controls) and (instruction1.controls == instruction2.controls):
+        if (instruction1.controls) and (
+            instruction1.controls == instruction2.controls
+        ):
             return True
         elif instruction1.targets == instruction2.targets:
             return True

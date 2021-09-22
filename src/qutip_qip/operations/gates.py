@@ -91,8 +91,26 @@ _para_gates = [
     "CRZ",
     "QASMU",
 ]
-_ctrl_gates = ["CNOT", "CSIGN", "CRX", "CRY", "CRZ", "CY", "CZ", "CS", "CT", "CPHASE"]
-_swap_like = ["SWAP", "ISWAP", "SQRTISWAP", "SQRTSWAP", "BERKELEY", "SWAPalpha"]
+_ctrl_gates = [
+    "CNOT",
+    "CSIGN",
+    "CRX",
+    "CRY",
+    "CRZ",
+    "CY",
+    "CZ",
+    "CS",
+    "CT",
+    "CPHASE",
+]
+_swap_like = [
+    "SWAP",
+    "ISWAP",
+    "SQRTISWAP",
+    "SQRTSWAP",
+    "BERKELEY",
+    "SWAPalpha",
+]
 _toffoli_like = ["TOFFOLI"]
 _fredkin_like = ["FREDKIN"]
 
@@ -161,7 +179,9 @@ class Gate:
         else:
             self.classical_controls = classical_controls
 
-        if control_value is not None and control_value < 2 ** len(classical_controls):
+        if control_value is not None and control_value < 2 ** len(
+            classical_controls
+        ):
             self.control_value = control_value
 
         for ind_list in [self.targets, self.controls, self.classical_controls]:
@@ -260,7 +280,9 @@ class Gate:
         qasm_gate = qasm_out.qasm_name(self.name)
 
         if not qasm_gate:
-            error_str = "{} gate's qasm defn is not specified".format(self.name)
+            error_str = "{} gate's qasm defn is not specified".format(
+                self.name
+            )
             raise NotImplementedError(error_str)
 
         if self.classical_controls:
@@ -383,14 +405,18 @@ class Gate:
                 return globalphase(self.arg_value, num_qubits)
             else:
                 raise ValueError(
-                    "The number of qubits must be provided for " "global phase gates."
+                    "The number of qubits must be provided for "
+                    "global phase gates."
                 )
 
         all_targets = self.get_all_qubits()
         if num_qubits is None:
             num_qubits = max(all_targets)
         return expand_operator(
-            self.get_compact_qobj(), N=num_qubits, targets=all_targets, dims=dims
+            self.get_compact_qobj(),
+            N=num_qubits,
+            targets=all_targets,
+            dims=dims,
         )
 
 
@@ -527,7 +553,8 @@ def cz_gate(N=None, control=0, target=1):
     if N is not None:
         return gate_expand_2toN(cz_gate(), N, control, target)
     return Qobj(
-        [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]], dims=[[2, 2], [2, 2]]
+        [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]],
+        dims=[[2, 2], [2, 2]],
     )
 
 
@@ -561,7 +588,8 @@ def cs_gate(N=None, control=0, target=1):
     if N is not None:
         return gate_expand_2toN(cs_gate(), N, control, target)
     return Qobj(
-        [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1j]], dims=[[2, 2], [2, 2]]
+        [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1j]],
+        dims=[[2, 2], [2, 2]],
     )
 
 
@@ -594,7 +622,12 @@ def ct_gate(N=None, control=0, target=1):
     if N is not None:
         return gate_expand_2toN(ct_gate(), N, control, target)
     return Qobj(
-        [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, np.exp(1j * np.pi / 4)]],
+        [
+            [1, 0, 0, 0],
+            [0, 1, 0, 0],
+            [0, 0, 1, 0],
+            [0, 0, 0, np.exp(1j * np.pi / 4)],
+        ],
         dims=[[2, 2], [2, 2]],
     )
 
@@ -630,7 +663,10 @@ def ry(phi, N=None, target=0):
     if N is not None:
         return gate_expand_1toN(ry(phi), N, target)
     return Qobj(
-        [[np.cos(phi / 2), -np.sin(phi / 2)], [np.sin(phi / 2), np.cos(phi / 2)]]
+        [
+            [np.cos(phi / 2), -np.sin(phi / 2)],
+            [np.sin(phi / 2), np.cos(phi / 2)],
+        ]
     )
 
 
@@ -739,8 +775,14 @@ def qrot(theta, phi, N=None, target=0):
         return expand_operator(qrot(theta, phi), N=N, targets=target)
     return Qobj(
         [
-            [np.cos(theta / 2.0), -1.0j * np.exp(-1.0j * phi) * np.sin(theta / 2.0)],
-            [-1.0j * np.exp(1.0j * phi) * np.sin(theta / 2.0), np.cos(theta / 2.0)],
+            [
+                np.cos(theta / 2.0),
+                -1.0j * np.exp(-1.0j * phi) * np.sin(theta / 2.0),
+            ],
+            [
+                -1.0j * np.exp(1.0j * phi) * np.sin(theta / 2.0),
+                np.cos(theta / 2.0),
+            ],
         ]
     )
 
@@ -772,7 +814,9 @@ def qasmu_gate(args, N=None, target=0):
 
     theta, phi, gamma = args
     if N is not None:
-        return expand_operator(qasmu_gate([theta, phi, gamma]), N=N, targets=target)
+        return expand_operator(
+            qasmu_gate([theta, phi, gamma]), N=N, targets=target
+        )
     return Qobj(rz(phi) * ry(theta) * rz(gamma))
 
 
@@ -850,7 +894,8 @@ shape = [4, 4], type = oper, isHerm = True
     if N is not None:
         return gate_expand_2toN(cnot(), N, control, target)
     return Qobj(
-        [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]], dims=[[2, 2], [2, 2]]
+        [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]],
+        dims=[[2, 2], [2, 2]],
     )
 
 
@@ -881,7 +926,8 @@ shape = [4, 4], type = oper, isHerm = True
     if N is not None:
         return gate_expand_2toN(csign(), N, control, target)
     return Qobj(
-        [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]], dims=[[2, 2], [2, 2]]
+        [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]],
+        dims=[[2, 2], [2, 2]],
     )
 
 
@@ -995,7 +1041,8 @@ shape = [4, 4], type = oper, isHerm = True
     if N is not None:
         return gate_expand_2toN(swap(), N, targets=targets)
     return Qobj(
-        [[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]], dims=[[2, 2], [2, 2]]
+        [[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]],
+        dims=[[2, 2], [2, 2]],
     )
 
 
@@ -1165,7 +1212,9 @@ shape = [8, 8], type = oper, isHerm = True
         N = 3
 
     if N is not None:
-        return gate_expand_3toN(fredkin(), N, [control, targets[0]], targets[1])
+        return gate_expand_3toN(
+            fredkin(), N, [control, targets[0]], targets[1]
+        )
     return Qobj(
         [
             [1, 0, 0, 0, 0, 0, 0, 0],
@@ -1306,7 +1355,9 @@ shape = [2, 2], type = oper, isHerm = False
      [ 0.00000000+0.j          0.70710678+0.70710678j]]
 
     """
-    data = np.exp(1.0j * theta) * sp.eye(2 ** N, 2 ** N, dtype=complex, format="csr")
+    data = np.exp(1.0j * theta) * sp.eye(
+        2 ** N, 2 ** N, dtype=complex, format="csr"
+    )
     return Qobj(data, dims=[[2] * N, [2] * N])
 
 
@@ -1432,7 +1483,9 @@ def _mult_sublists(tensor_list, overall_inds, U, inds):
     sorted_positions = sorted(range(N), key=lambda key: revised_inds[key])
     ind_map = {ind: pos for ind, pos in zip(revised_inds, sorted_positions)}
 
-    U_sublist = expand_operator(U_sublist, N, [ind_map[ind] for ind in inds_sublist])
+    U_sublist = expand_operator(
+        U_sublist, N, [ind_map[ind] for ind in inds_sublist]
+    )
     U = expand_operator(U, N, [ind_map[ind] for ind in inds])
 
     U_sublist = U * U_sublist
@@ -1511,10 +1564,14 @@ def _gate_sequence_product(U_list, ind_list):
         # expand the tensor_list to a unitary and call _gate_sequence_product
         # recursively on the rest of the U_list.
         if len(overall_inds) == 1 and len(overall_inds[0]) == num_qubits:
-            U_overall, overall_inds = _expand_overall(tensor_list, overall_inds)
+            U_overall, overall_inds = _expand_overall(
+                tensor_list, overall_inds
+            )
             U_left, rem_inds = _gate_sequence_product(U_list[i:], ind_list[i:])
             U_left = expand_operator(U_left, num_qubits, rem_inds)
-            return U_left * U_overall, [sorted_inds[ind] for ind in overall_inds]
+            return U_left * U_overall, [
+                sorted_inds[ind] for ind in overall_inds
+            ]
 
         # special case for first unitary in the list
         if U_overall == 1:
@@ -1569,7 +1626,9 @@ def _gate_sequence_product_with_expansion(U_list, left_to_right=True):
     return U_overall
 
 
-def gate_sequence_product(U_list, left_to_right=True, inds_list=None, expand=False):
+def gate_sequence_product(
+    U_list, left_to_right=True, inds_list=None, expand=False
+):
     """
     Calculate the overall unitary matrix for a given list of unitary operations.
 
@@ -1654,7 +1713,8 @@ def qubit_clifford_group(N=None, target=0):
     E = H * (S ** 3) * w ** 3
 
     for op in map(
-        partial(reduce, mul), product(_powers(E, 3), _powers(X, 2), _powers(S, 4))
+        partial(reduce, mul),
+        product(_powers(E, 3), _powers(X, 2), _powers(S, 4)),
     ):
 
         # partial(reduce, mul) returns a function that takes products
@@ -1706,7 +1766,9 @@ def gate_expand_1toN(U, N, target):
     if target >= N:
         raise ValueError("target must be integer < integer N")
 
-    return tensor([identity(2)] * (target) + [U] + [identity(2)] * (N - target - 1))
+    return tensor(
+        [identity(2)] * (target) + [U] + [identity(2)] * (N - target - 1)
+    )
 
 
 def gate_expand_2toN(U, N, control=None, target=None, targets=None):
@@ -1803,9 +1865,15 @@ def gate_expand_3toN(U, N, controls=[0, 1], target=2):
             "control and not target is None." " Must be integer < integer N"
         )
 
-    if controls[0] == target or controls[1] == target or controls[0] == controls[1]:
+    if (
+        controls[0] == target
+        or controls[1] == target
+        or controls[0] == controls[1]
+    ):
 
-        raise ValueError("controls[0], controls[1], and target" " cannot be equal")
+        raise ValueError(
+            "controls[0], controls[1], and target" " cannot be equal"
+        )
 
     p = list(range(N))
     p1 = list(range(N))
@@ -1944,7 +2012,8 @@ def _check_qubits_oper(oper, dims=None, targets=None):
     # if operator matches N
     if not isinstance(oper, Qobj) or oper.dims[0] != oper.dims[1]:
         raise ValueError(
-            "The operator is not an " "Qobj with the same input and output dimensions."
+            "The operator is not an "
+            "Qobj with the same input and output dimensions."
         )
     # if operator dims matches the target dims
     if dims is not None and targets is not None:
@@ -2040,7 +2109,9 @@ def expand_operator(oper, N, targets, dims=None, cyclic_permutation=False):
         oper_list = []
         for i in range(N):
             new_targets = np.mod(np.array(targets) + i, N)
-            oper_list.append(expand_operator(oper, N=N, targets=new_targets, dims=dims))
+            oper_list.append(
+                expand_operator(oper, N=N, targets=new_targets, dims=dims)
+            )
         return oper_list
 
     # Generate the correct order for qubits permutation,

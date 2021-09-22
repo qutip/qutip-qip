@@ -48,7 +48,9 @@ class CavityQEDCompiler(GateCompiler):
         It saves the decomposition scheme for each gate.
     """
 
-    def __init__(self, num_qubits, params, global_phase=0.0, pulse_dict=None, N=None):
+    def __init__(
+        self, num_qubits, params, global_phase=0.0, pulse_dict=None, N=None
+    ):
         super(CavityQEDCompiler, self).__init__(
             num_qubits, params=params, pulse_dict=pulse_dict, N=N
         )

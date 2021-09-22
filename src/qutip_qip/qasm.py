@@ -8,7 +8,13 @@ from math import pi
 import numpy as np
 
 from .circuit import QubitCircuit
-from .operations import controlled_gate, qasmu_gate, rz, snot, gate_sequence_product
+from .operations import (
+    controlled_gate,
+    qasmu_gate,
+    rz,
+    snot,
+    gate_sequence_product,
+)
 
 
 __all__ = ["read_qasm", "save_qasm", "print_qasm", "circuit_to_qasm_str"]
@@ -82,7 +88,9 @@ def _tokenize_line(command):
         if groups:
             tokens = ["if", "(", groups.group(1), ")"]
             tokens_gate = _tokenize_line(
-                "{} ({}) {}".format(groups.group(2), groups.group(3), groups.group(4))
+                "{} ({}) {}".format(
+                    groups.group(2), groups.group(3), groups.group(4)
+                )
             )
             tokens += tokens_gate
         # for classically controlled gates without arguments
@@ -209,11 +217,15 @@ class QasmProcessor:
                     "cu3",
                 ]
             )
-            self.predefined_gates = self.predefined_gates.union(self.qiskitgates)
+            self.predefined_gates = self.predefined_gates.union(
+                self.qiskitgates
+            )
 
         self.gate_names = deepcopy(self.predefined_gates)
         for gate in self.predefined_gates:
-            self.qasm_gates[gate] = QasmGate("U", ["alpha", "beta", "gamma"], ["q"])
+            self.qasm_gates[gate] = QasmGate(
+                "U", ["alpha", "beta", "gamma"], ["q"]
+            )
         self.commands = commands
 
     def _process_includes(self):
@@ -239,7 +251,9 @@ class QasmProcessor:
 
             if os.path.exists(filename):
                 with open(filename, "r") as f:
-                    qasm_lines = [line.strip() for line in f.read().splitlines()]
+                    qasm_lines = [
+                        line.strip() for line in f.read().splitlines()
+                    ]
                     qasm_lines = list(
                         filter(lambda x: x[:2] != "//" and x != "", qasm_lines)
                     )
@@ -375,11 +389,13 @@ class QasmProcessor:
 
             for arg, real_arg in args_map.items():
                 com_args = [
-                    command.replace(arg.strip(), str(real_arg)) for command in com_args
+                    command.replace(arg.strip(), str(real_arg))
+                    for command in com_args
                 ]
             for reg, real_reg in regs_map.items():
                 com_regs = [
-                    command.replace(reg.strip(), str(real_reg)) for command in com_regs
+                    command.replace(reg.strip(), str(real_reg))
+                    for command in com_regs
                 ]
             com_args = [eval(arg) for arg in com_args]
 
@@ -492,7 +508,9 @@ class QasmProcessor:
                 return zip(
                     *list(
                         map(
-                            lambda x: x if isinstance(x, list) else [x] * expand,
+                            lambda x: x
+                            if isinstance(x, list)
+                            else [x] * expand,
                             new_regs,
                         )
                     )
@@ -501,7 +519,13 @@ class QasmProcessor:
                 return [new_regs]
 
     def _add_qiskit_gates(
-        self, qc, name, regs, args=None, classical_controls=None, control_value=None
+        self,
+        qc,
+        name,
+        regs,
+        args=None,
+        classical_controls=None,
+        control_value=None,
     ):
         """
         Add any gates that are pre-defined in qiskit-style exported
@@ -646,7 +670,13 @@ class QasmProcessor:
             )
 
     def _add_predefined_gates(
-        self, qc, name, com_regs, com_args, classical_controls=None, control_value=None
+        self,
+        qc,
+        name,
+        com_regs,
+        com_args,
+        classical_controls=None,
+        control_value=None,
     ):
         """
         Add any gates that are pre-defined and/or inbuilt
@@ -694,7 +724,12 @@ class QasmProcessor:
             )
 
     def _gate_add(
-        self, qc, command, custom_gates, classical_controls=None, control_value=None
+        self,
+        qc,
+        command,
+        custom_gates,
+        classical_controls=None,
+        control_value=None,
     ):
         """
         Add gates to :class:`.QubitCircuit` from processed tokens,
@@ -727,10 +762,15 @@ class QasmProcessor:
             gate_name = "{}".format(command[0])
 
         # creates custom-gate (if required) using gate defn and provided args
-        if command[0] not in self.predefined_gates and command[0] not in custom_gates:
+        if (
+            command[0] not in self.predefined_gates
+            and command[0] not in custom_gates
+        ):
             n = len(reg_set[0])
             qc_temp = QubitCircuit(n)
-            self._custom_gate(qc_temp, [command[0], args, [str(i) for i in range(n)]])
+            self._custom_gate(
+                qc_temp, [command[0], args, [str(i) for i in range(n)]]
+            )
             unitary_mat = gate_sequence_product(qc_temp.propagators())
             custom_gates[gate_name] = unitary_mat
 
@@ -777,7 +817,9 @@ class QasmProcessor:
                 # adds measurement to the QubitCircuit
                 reg_set = self._regs_processor(command[1:], "measure")
                 for regs in reg_set:
-                    qc.add_measurement("M", targets=[regs[0]], classical_store=regs[1])
+                    qc.add_measurement(
+                        "M", targets=[regs[0]], classical_store=regs[1]
+                    )
             elif command[0] == "if":
                 warnings.warn(
                     (
@@ -789,9 +831,13 @@ class QasmProcessor:
                 cbit_reg, control_value = command[2].split("==")
                 cbit_inds = self.cbit_regs[cbit_reg]
                 control_value = int(control_value)
-                self._gate_add(qc, command[4:], custom_gates, cbit_inds, control_value)
+                self._gate_add(
+                    qc, command[4:], custom_gates, cbit_inds, control_value
+                )
             else:
-                err = "QASM: {} is not a valid QASM command.".format(command[0])
+                err = "QASM: {} is not a valid QASM command.".format(
+                    command[0]
+                )
                 raise SyntaxError(err)
 
 
@@ -960,9 +1006,9 @@ class QasmOutput:
 
         self.output(
             "gate {} {{".format(
-                self._qasm_str(curr_gate.name.lower(), q_controls, q_targets, arg_name)[
-                    :-1
-                ]
+                self._qasm_str(
+                    curr_gate.name.lower(), q_controls, q_targets, arg_name
+                )[:-1]
             )
         )
 
@@ -984,7 +1030,8 @@ class QasmOutput:
             else:
                 raise ValueError(
                     (
-                        "The given resolved gate {} cannot be defined" " in QASM format"
+                        "The given resolved gate {} cannot be defined"
+                        " in QASM format"
                     ).format(curr_gate.name)
                 )
         self.output("}")

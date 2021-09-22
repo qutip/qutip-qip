@@ -160,7 +160,9 @@ class GateCompiler(object):
         pulse_ind_map = {}
         next_pulse_ind = 0
         pulse_instructions = []
-        for instruction, start_time in zip(instruction_list, scheduled_start_time):
+        for instruction, start_time in zip(
+            instruction_list, scheduled_start_time
+        ):
             for pulse_name, coeff in instruction.pulse_info:
                 if pulse_name not in pulse_ind_map:
                     pulse_instructions.append([])
@@ -214,9 +216,12 @@ class GateCompiler(object):
             for start_time, tlist, coeff in pulse_instructions[pulse_ind]:
                 # compute the gate time, step size and coeffs
                 # according to different pulse mode
-                gate_tlist, coeffs, step_size, pulse_mode = self._process_gate_pulse(
-                    start_time, tlist, coeff
-                )
+                (
+                    gate_tlist,
+                    coeffs,
+                    step_size,
+                    pulse_mode,
+                ) = self._process_gate_pulse(start_time, tlist, coeff)
 
                 if abs(last_pulse_time) < step_size * 1.0e-6:  # if first pulse
                     compiled_tlist[pulse_ind].append([0.0])
@@ -231,7 +236,9 @@ class GateCompiler(object):
                         pulse_mode, start_time, last_pulse_time, step_size
                     )
                     compiled_tlist[pulse_ind].append(idling_tlist)
-                    compiled_coeffs[pulse_ind].append(np.zeros(len(idling_tlist)))
+                    compiled_coeffs[pulse_ind].append(
+                        np.zeros(len(idling_tlist))
+                    )
 
                 # Add the gate time and coeffs to the list.
                 execution_time = gate_tlist + start_time
@@ -274,20 +281,28 @@ class GateCompiler(object):
             raise ValueError("The shape of the compiled pulse is not correct.")
         return gate_tlist, coeff, step_size, pulse_mode
 
-    def _process_idling_tlist(self, pulse_mode, start_time, last_pulse_time, step_size):
+    def _process_idling_tlist(
+        self, pulse_mode, start_time, last_pulse_time, step_size
+    ):
         idling_tlist = []
         if pulse_mode == "continuous":
             # We add sufficient number of zeros at the begining
             # and the end of the idling to prevent wrong cubic spline.
             if start_time - last_pulse_time > 3 * step_size:
                 idling_tlist1 = np.linspace(
-                    last_pulse_time + step_size / 5, last_pulse_time + step_size, 5
+                    last_pulse_time + step_size / 5,
+                    last_pulse_time + step_size,
+                    5,
                 )
-                idling_tlist2 = np.linspace(start_time - step_size, start_time, 5)
+                idling_tlist2 = np.linspace(
+                    start_time - step_size, start_time, 5
+                )
                 idling_tlist.extend([idling_tlist1, idling_tlist2])
             else:
                 idling_tlist.append(
-                    np.arange(last_pulse_time + step_size, start_time, step_size)
+                    np.arange(
+                        last_pulse_time + step_size, start_time, step_size
+                    )
                 )
         elif pulse_mode == "discrete":
             # idling until the start time
