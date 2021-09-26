@@ -47,7 +47,7 @@ from .operations import (
     expand_operator,
     gate_sequence_product,
 )
-from .operations.gates import _gate_label, _single_qubit_gates
+from .operations.gates import _gate_label, GATE_CLASS_MAP
 from qutip import basis, ket2dm, qeye
 from qutip import Qobj
 from qutip.measurement import measurement_statistics
@@ -354,21 +354,13 @@ class QubitCircuit:
             2 ** len(classical_controls) - 1
             (i.e. all classical controls are 1).
         """
-        if isinstance(gate, Gate):
-            name = gate.name
-            targets = gate.targets
-            controls = gate.controls
-            arg_value = gate.arg_value
-            arg_label = gate.arg_label
-            classical_controls = gate.classical_controls
-            control_value = gate.control_value
-
-        else:
-            name = gate
-
-        if index is None:
-            gate = Gate(
-                name,
+        if not isinstance(gate, Gate):
+            if gate in GATE_CLASS_MAP:
+                gate_class = GATE_CLASS_MAP[gate]
+            else:
+                gate_class = Gate
+            gate = gate_class(
+                name=gate,
                 targets=targets,
                 controls=controls,
                 arg_value=arg_value,
@@ -376,6 +368,8 @@ class QubitCircuit:
                 classical_controls=classical_controls,
                 control_value=control_value,
             )
+
+        if index is None:
             self.gates.append(gate)
 
         else:
@@ -383,15 +377,6 @@ class QubitCircuit:
             #       gates by an additional position to the right.
             shifted_inds = np.sort(index) + np.arange(len(index))
             for position in shifted_inds:
-                gate = Gate(
-                    name,
-                    targets=targets,
-                    controls=controls,
-                    arg_value=arg_value,
-                    arg_label=arg_label,
-                    classical_controls=classical_controls,
-                    control_value=control_value,
-                )
                 self.gates.insert(position, gate)
 
     def add_gates(self, gates):
@@ -438,13 +423,9 @@ class QubitCircuit:
         arg_label : string
             Label for gate representation.
         """
-        if name not in _single_qubit_gates:
-            raise ValueError("%s is not a single qubit gate" % name)
-
         if qubits is not None:
             for _, i in enumerate(qubits):
-                gate = Gate(
-                    name,
+                gate = GATE_CLASS_MAP[name](
                     targets=qubits[i],
                     controls=None,
                     arg_value=arg_value,
@@ -458,8 +439,7 @@ class QubitCircuit:
             if end is None:
                 end = self.N - 1
             for i in range(start, end + 1):
-                gate = Gate(
-                    name,
+                gate = GATE_CLASS_MAP[name](
                     targets=i,
                     controls=None,
                     arg_value=arg_value,

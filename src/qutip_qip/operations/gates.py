@@ -11,11 +11,13 @@ from copy import deepcopy
 import numpy as np
 import scipy.sparse as sp
 
+import qutip
 from qutip import Qobj, identity, qeye, sigmax, sigmay, sigmaz, tensor, fock_dm
 
 
 __all__ = [
     "Gate",
+    "GATE_CLASS_MAP",
     "rx",
     "ry",
     "rz",
@@ -143,7 +145,7 @@ class Gate:
 
     def __init__(
         self,
-        name,
+        name=None,
         targets=None,
         controls=None,
         arg_value=None,
@@ -227,6 +229,7 @@ class Gate:
 
         self.arg_value = arg_value
         self.arg_label = arg_label
+        self.latex_str = r"U"
 
     def get_all_qubits(self):
         """
@@ -467,6 +470,283 @@ def _gate_label(name, arg_label):
         return r"%s(%s)" % (gate_label, arg_label)
     return r"%s" % gate_label
 
+
+class ParameterizedGate(Gate):
+    def __init__(self, targets, arg_value, **kwargs):
+        super().__init__(targets=targets, arg_value=arg_value, **kwargs)
+        self.name = "ParameterizedGate"
+        if arg_value is None:
+            raise ValueError(
+                f"Gate {self.__class__.__name__} requires an argument value."
+            )
+
+
+class SingleQubitGate(Gate):
+    def __init__(self, targets, **kwargs):
+        super().__init__(targets=targets, **kwargs)
+        self.name = "SingleQubitGate"
+        if self.targets is None or len(self.targets) != 1:
+            raise ValueError(
+                f"Gate {self.__class__.__name__} requires one target"
+            )
+        if self.controls:
+            raise ValueError(
+                f"Gate {self.__class__.__name__} cannot have a control"
+            )
+
+
+class XGate(SingleQubitGate):
+    def __init__(self, targets, **kwargs):
+        super().__init__(targets=targets, **kwargs)
+        self.name = "X"
+        self.latex_str = r"X"
+
+    def get_compact_qobj(self):
+        return qutip.sigmax()
+
+
+class YGate(SingleQubitGate):
+    def __init__(self, targets, **kwargs):
+        super().__init__(targets=targets, **kwargs)
+        self.name = "Y"
+        self.latex_str = r"Y"
+
+    def get_compact_qobj(self):
+        return qutip.sigmay()
+
+
+class ZGate(SingleQubitGate):
+    def __init__(self, targets, **kwargs):
+        super().__init__(targets=targets, **kwargs)
+        self.name = "Z"
+        self.latex_str = r"Z"
+
+    def get_compact_qobj(self):
+        return qutip.sigmaz()
+
+
+class RX(SingleQubitGate, ParameterizedGate):
+    def __init__(self, targets, arg_value, **kwargs):
+        super().__init__(targets=targets, arg_value=arg_value, **kwargs)
+        self.name = "RX"
+        self.latex_str = r"R_x"
+
+    def get_compact_qobj(self):
+        return rx(self.arg_value)
+
+
+class RY(SingleQubitGate, ParameterizedGate):
+    def __init__(self, targets, arg_value, **kwargs):
+        super().__init__(targets=targets, arg_value=arg_value, **kwargs)
+        self.name = "RY"
+        self.latex_str = r"R_y"
+
+    def get_compact_qobj(self):
+        return ry(self.arg_value)
+
+
+class RZ(SingleQubitGate, ParameterizedGate):
+    def __init__(self, targets, arg_value, **kwargs):
+        super().__init__(targets=targets, arg_value=arg_value, **kwargs)
+        self.name = "RZ"
+        self.latex_str = r"R_z"
+
+    def get_compact_qobj(self):
+        return rz(self.arg_value)
+
+
+class H(SingleQubitGate):
+    def __init__(self, targets, **kwargs):
+        super().__init__(targets=targets, **kwargs)
+        self.name = "H"
+        self.latex_str = r"{\rm H}"
+
+    def get_compact_qobj(self):
+        return snot()
+
+
+class SNOT(H):
+    def __init__(self, targets, **kwargs):
+        super().__init__(targets=targets, **kwargs)
+        self.name = "SNOT"
+        self.latex_str = r"{\rm H}"
+
+
+class SQRTNOT(SingleQubitGate):
+    def __init__(self, targets, **kwargs):
+        super().__init__(targets=targets, **kwargs)
+        self.name = "SQRTNOT"
+
+    def get_compact_qobj(self):
+        return sqrtnot()
+        self.latex_str = r"\sqrt{\rm NOT}"
+
+
+class S(SingleQubitGate):
+    def __init__(self, targets, **kwargs):
+        super().__init__(targets=targets, **kwargs)
+        self.name = "S"
+        self.latex_str = r"{\rm S}"
+
+    def get_compact_qobj(self):
+        return s_gate()
+
+
+class T(SingleQubitGate):
+    def __init__(self, targets, **kwargs):
+        super().__init__(targets=targets, **kwargs)
+        self.name = "T"
+        self.latex_str = r"{\rm T}"
+
+    def get_compact_qobj(self):
+        return t_gate()
+
+
+class QASMU(SingleQubitGate):
+    def __init__(self, targets, arg_value=None, **kwargs):
+        super().__init__(targets=targets, arg_value=arg_value, **kwargs)
+        self.name = "QASMU"
+        self.latex_str = r"{\rm QASM-U}"
+
+    def get_compact_qobj(self):
+        return qasmu_gate(self.arg_value)
+
+
+class TwoQubitGate(Gate):
+    def __init__(self, targets, **kwargs):
+        super().__init__(targets=targets, **kwargs)
+        self.name = "TwoQubitGate"
+        if len(self.get_all_qubits()) != 2:
+            raise ValueError(
+                f"Gate {self.__class__.__name__} requires two targets"
+            )
+
+
+class SWAP(TwoQubitGate):
+    def __init__(self, targets, **kwargs):
+        super().__init__(targets=targets, **kwargs)
+        self.name = "SWAP"
+        self.latex_str = r"{\rm SWAP}"
+
+    def get_compact_qobj(self):
+        return swap()
+
+
+class ISWAP(TwoQubitGate):
+    def __init__(self, targets, **kwargs):
+        super().__init__(targets=targets, **kwargs)
+        self.name = "ISWAP"
+        self.latex_str = r"{i}{\rm SWAP}"
+
+    def get_compact_qobj(self):
+        return iswap()
+
+
+class CNOT(TwoQubitGate):
+    def __init__(self, targets, controls, **kwargs):
+        super().__init__(targets=targets, controls=controls, **kwargs)
+        self.name = "CNOT"
+        self.latex_str = r"{\rm CNOT}"
+
+    def get_compact_qobj(self):
+        return cnot()
+
+
+class SQRTSWAP(TwoQubitGate):
+    def __init__(self, targets, **kwargs):
+        super().__init__(targets=targets, **kwargs)
+        self.name = "SQRTSWAP"
+        self.latex_str = r"\sqrt{\rm SWAP}"
+
+    def get_compact_qobj(self):
+        return sqrtswap()
+
+
+class SQRTISWAP(TwoQubitGate):
+    def __init__(self, targets, **kwargs):
+        super().__init__(targets=targets, **kwargs)
+        self.name = "SQRTISWAP"
+        self.latex_str = r"\sqrt{{i}\rm SWAP}"
+
+    def get_compact_qobj(self):
+        return sqrtiswap()
+
+
+class BERKELEY(TwoQubitGate):
+    def __init__(self, targets, **kwargs):
+        super().__init__(targets=targets, **kwargs)
+        self.name = "BERKELEY"
+        self.latex_str = r"{\rm BERKELEY}"
+
+    def get_compact_qobj(self):
+        return berkeley()
+
+
+class SWAPALPHA(TwoQubitGate, ParameterizedGate):
+    def __init__(self, targets, arg_value, **kwargs):
+        super().__init__(targets=targets, arg_value=arg_value, **kwargs)
+        self.name = "SWAPALPHA"
+        self.latex_str = r"{\rm SWAPALPHA}"
+
+    def get_compact_qobj(self):
+        return swapalpha(self.arg_value)
+
+
+class MS(TwoQubitGate, ParameterizedGate):
+    def __init__(self, targets, arg_value, **kwargs):
+        super().__init__(targets=targets, arg_value=arg_value, **kwargs)
+        self.name = "MS"
+        self.latex_str = r"{\rm MS}"
+
+    def get_compact_qobj(self):
+        return molmer_sorensen(self.arg_value)
+
+
+class TOFFOLI(Gate):
+    def __init__(self, targets, **kwargs):
+        super().__init__(targets=targets, **kwargs)
+        self.name = "TOFFOLI"
+        self.latex_str = r"{\rm TOFFOLI}"
+
+    def get_compact_qobj(self):
+        return toffoli()
+
+
+class FREDKIN(Gate):
+    def __init__(self, targets, **kwargs):
+        super().__init__(targets=targets, **kwargs)
+        self.name = "FREDKIN"
+        self.latex_str = r"{\rm FREDKIN}"
+
+    def get_compact_qobj(self):
+        return fredkin()
+
+
+GATE_CLASS_MAP = {
+    "X": XGate,
+    "Y": YGate,
+    "Z": ZGate,
+    "RX": RX,
+    "RY": RY,
+    "RZ": RZ,
+    "H": H,
+    "SNOT": SNOT,
+    "SQRTNOT": SQRTNOT,
+    "S": S,
+    "T": T,
+    "QASMU": QASMU,
+    "SWAP": SWAP,
+    "ISWAP": ISWAP,
+    "iSWAP": ISWAP,
+    "CNOT": CNOT,
+    "SQRTSWAP": SQRTSWAP,
+    "SQRTISWAP": SQRTISWAP,
+    "SWAPALPHA": SWAPALPHA,
+    "SWAPalpha": SWAPALPHA,
+    "MS": MS,
+    "TOFFOLI": TOFFOLI,
+    "FREDKIN": FREDKIN,
+}
 
 #
 # Single Qubit Gates
