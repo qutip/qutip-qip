@@ -3,19 +3,26 @@ from copy import deepcopy
 
 import numpy as np
 
-from qutip import (tensor, identity, destroy, sigmax, sigmaz, basis, Qobj,
-                    QobjEvo)
+from qutip import (
+    tensor,
+    identity,
+    destroy,
+    sigmax,
+    sigmaz,
+    basis,
+    Qobj,
+    QobjEvo,
+)
 from ..circuit import QubitCircuit
 from ..operations import Gate
 from .processor import Processor
 from .modelprocessor import ModelProcessor
 from ..operations import expand_operator
 from ..pulse import Pulse
-from ..compiler import (GateCompiler, CavityQEDCompiler)
+from ..compiler import GateCompiler, CavityQEDCompiler
 
 
-
-__all__ = ['DispersiveCavityQED']
+__all__ = ["DispersiveCavityQED"]
 
 
 class DispersiveCavityQED(ModelProcessor):
@@ -79,11 +86,18 @@ class DispersiveCavityQED(ModelProcessor):
         from wq and w0 for each qubit.
     """
 
-    def __init__(self, num_qubits, correct_global_phase=True,
-                 num_levels=10, t1=None, t2=None, **params):
+    def __init__(
+        self,
+        num_qubits,
+        correct_global_phase=True,
+        num_levels=10,
+        t1=None,
+        t2=None,
+        **params
+    ):
         super(DispersiveCavityQED, self).__init__(
-            num_qubits, correct_global_phase=correct_global_phase,
-            t1=t1, t2=t2)
+            num_qubits, correct_global_phase=correct_global_phase, t1=t1, t2=t2
+        )
         self.correct_global_phase = correct_global_phase
         self.spline_kind = "step_func"
         self.num_levels = num_levels
@@ -119,20 +133,30 @@ class DispersiveCavityQED(ModelProcessor):
         """
         # single qubit terms
         for m in range(num_qubits):
-            self.add_control(2*np.pi*sigmax(), [m+1], label="sx" + str(m))
+            self.add_control(
+                2 * np.pi * sigmax(), [m + 1], label="sx" + str(m)
+            )
         for m in range(num_qubits):
-            self.add_control(2*np.pi*sigmaz(), [m+1], label="sz" + str(m))
+            self.add_control(
+                2 * np.pi * sigmaz(), [m + 1], label="sz" + str(m)
+            )
         # coupling terms
         a = tensor(
-            [destroy(self.num_levels)] +
-            [identity(2) for n in range(num_qubits)])
+            [destroy(self.num_levels)]
+            + [identity(2) for n in range(num_qubits)]
+        )
         for n in range(num_qubits):
-            sm = tensor([identity(self.num_levels)] +
-                        [destroy(2) if m == n else identity(2)
-                         for m in range(num_qubits)])
+            sm = tensor(
+                [identity(self.num_levels)]
+                + [
+                    destroy(2) if m == n else identity(2)
+                    for m in range(num_qubits)
+                ]
+            )
             self.add_control(
-                2*np.pi * a.dag() * sm + 2*np.pi * a * sm.dag(),
-                list(range(num_qubits+1)), label="g" + str(n)
+                2 * np.pi * a.dag() * sm + 2 * np.pi * a * sm.dag(),
+                list(range(num_qubits + 1)),
+                label="g" + str(n),
             )
 
     def set_up_params(self):
@@ -147,37 +171,38 @@ class DispersiveCavityQED(ModelProcessor):
         w0 = self.params["w0"]
         g = self.params["g"]
         # computed
-        self.wq = np.sqrt(eps**2 + delta**2)
+        self.wq = np.sqrt(eps ** 2 + delta ** 2)
         self.Delta = self.wq - w0
 
         # rwa/dispersive regime tests
         if any(g / (w0 - self.wq) > 0.05):
             warnings.warn("Not in the dispersive regime")
 
-        if any((w0 - self.wq)/(w0 + self.wq) > 0.05):
+        if any((w0 - self.wq) / (w0 + self.wq) > 0.05):
             warnings.warn(
-                "The rotating-wave approximation might not be valid.")
+                "The rotating-wave approximation might not be valid."
+            )
 
     @property
     def sx_ops(self):
         """
         list: A list of sigmax Hamiltonians for each qubit.
         """
-        return self.ctrls[0: self.num_qubits]
+        return self.ctrls[0 : self.num_qubits]
 
     @property
     def sz_ops(self):
         """
         list: A list of sigmaz Hamiltonians for each qubit.
         """
-        return self.ctrls[self.num_qubits: 2*self.num_qubits]
+        return self.ctrls[self.num_qubits : 2 * self.num_qubits]
 
     @property
     def cavityqubit_ops(self):
         """
         list: A list of interacting Hamiltonians between cavity and each qubit.
         """
-        return self.ctrls[2*self.num_qubits: 3*self.num_qubits]
+        return self.ctrls[2 * self.num_qubits : 3 * self.num_qubits]
 
     @property
     def sx_u(self):
@@ -187,7 +212,7 @@ class DispersiveCavityQED(ModelProcessor):
     @property
     def sz_u(self):
         """array-like: Pulse matrix for sigmaz Hamiltonians."""
-        return self.coeffs[self.num_qubits: 2*self.num_qubits]
+        return self.coeffs[self.num_qubits : 2 * self.num_qubits]
 
     @property
     def g_u(self):
@@ -195,7 +220,7 @@ class DispersiveCavityQED(ModelProcessor):
         array-like: Pulse matrix for interacting Hamiltonians
         between cavity and each qubit.
         """
-        return self.coeffs[2*self.num_qubits: 3*self.num_qubits]
+        return self.coeffs[2 * self.num_qubits : 3 * self.num_qubits]
 
     def get_operators_labels(self):
         """
@@ -204,25 +229,29 @@ class DispersiveCavityQED(ModelProcessor):
         It is a 2-d nested list, in the plot,
         a different color will be used for each sublist.
         """
-        return ([[r"$\sigma_x^%d$" % n for n in range(self.num_qubits)],
-                 [r"$\sigma_z^%d$" % n for n in range(self.num_qubits)],
-                 [r"$g_{%d}$" % (n) for n in range(self.num_qubits)]])
+        return [
+            [r"$\sigma_x^%d$" % n for n in range(self.num_qubits)],
+            [r"$\sigma_z^%d$" % n for n in range(self.num_qubits)],
+            [r"$g_{%d}$" % (n) for n in range(self.num_qubits)],
+        ]
 
     def eliminate_auxillary_modes(self, U):
         """
         Eliminate the auxillary modes like the cavity modes in cqed.
         """
         psi_proj = tensor(
-            [basis(self.num_levels, 0)] +
-            [identity(2) for n in range(self.num_qubits)])
+            [basis(self.num_levels, 0)]
+            + [identity(2) for n in range(self.num_qubits)]
+        )
         return psi_proj.dag() * U * psi_proj
 
-    def load_circuit(
-            self, qc, schedule_mode="ASAP", compiler=None):
+    def load_circuit(self, qc, schedule_mode="ASAP", compiler=None):
         if compiler is None:
             compiler = CavityQEDCompiler(
-                self.num_qubits, self.params, global_phase=0.)
+                self.num_qubits, self.params, global_phase=0.0
+            )
         tlist, coeff = super().load_circuit(
-            qc, schedule_mode=schedule_mode, compiler=compiler)
+            qc, schedule_mode=schedule_mode, compiler=compiler
+        )
         self.global_phase = compiler.global_phase
         return tlist, coeff

@@ -4,14 +4,14 @@ import numbers
 
 import numpy as np
 
-from qutip import (Qobj, identity, tensor, mesolve)
+from qutip import Qobj, identity, tensor, mesolve
 import qutip.control.pulseoptim as cpo
 from ..circuit import QubitCircuit
 from .processor import Processor
 from ..operations import gate_sequence_product
 
 
-__all__ = ['OptPulseProcessor']
+__all__ = ["OptPulseProcessor"]
 
 
 class OptPulseProcessor(Processor):
@@ -46,15 +46,22 @@ class OptPulseProcessor(Processor):
         Default value is a
         qubit system of ``dim=[2,2,2,...,2]``
     """
+
     def __init__(self, N, drift=None, t1=None, t2=None, dims=None):
-        super(OptPulseProcessor, self).__init__(
-            N, t1=t1, t2=t2, dims=dims)
+        super(OptPulseProcessor, self).__init__(N, t1=t1, t2=t2, dims=dims)
         if drift is not None:
             self.add_drift(drift, list(range(N)))
         self.spline_kind = "step_func"
 
-    def load_circuit(self, qc, min_fid_err=np.inf, merge_gates=True,
-                     setting_args=None, verbose=False, **kwargs):
+    def load_circuit(
+        self,
+        qc,
+        min_fid_err=np.inf,
+        merge_gates=True,
+        setting_args=None,
+        verbose=False,
+        **kwargs
+    ):
         """
         Find the pulses realizing a given :class:`.Circuit` using
         :func:`qutip.control.optimize_pulse_unitary`. Further parameter for
@@ -152,15 +159,15 @@ class OptPulseProcessor(Processor):
             gates = None  # using list of Qobj, no gates name
         else:
             raise ValueError(
-                "qc should be a "
-                "QubitCircuit or a list of Qobj")
+                "qc should be a " "QubitCircuit or a list of Qobj"
+            )
         if merge_gates:  # merge all gates/Qobj into one Qobj
             props = [gate_sequence_product(props)]
             gates = None
 
         time_record = []  # a list for all the gates
         coeff_record = []
-        last_time = 0.  # used in concatenation of tlist
+        last_time = 0.0  # used in concatenation of tlist
         for prop_ind, U_targ in enumerate(props):
             U_0 = identity(U_targ.dims[0])
 
@@ -171,16 +178,19 @@ class OptPulseProcessor(Processor):
                 kwargs.update(setting_args[gates[prop_ind]])
 
             full_drift_ham = self.drift.get_ideal_qobjevo(self.dims).cte
-            full_ctrls_hams = [pulse.get_ideal_qobj(self.dims)
-                               for pulse in self.pulses]
+            full_ctrls_hams = [
+                pulse.get_ideal_qobj(self.dims) for pulse in self.pulses
+            ]
             result = cpo.optimize_pulse_unitary(
-                full_drift_ham, full_ctrls_hams, U_0, U_targ, **kwargs)
+                full_drift_ham, full_ctrls_hams, U_0, U_targ, **kwargs
+            )
 
             if result.fid_err > min_fid_err:
                 warnings.warn(
                     "The fidelity error of gate {} is higher "
                     "than required limit. Use verbose=True to see"
-                    "the more detailed information.".format(prop_ind))
+                    "the more detailed information.".format(prop_ind)
+                )
 
             time_record.append(result.time[1:] + last_time)
             last_time += result.time[-1]
@@ -189,12 +199,13 @@ class OptPulseProcessor(Processor):
             if verbose:
                 print("********** Gate {} **********".format(prop_ind))
                 print("Final fidelity error {}".format(result.fid_err))
-                print("Final gradient normal {}".format(
-                                                result.grad_norm_final))
+                print(
+                    "Final gradient normal {}".format(result.grad_norm_final)
+                )
                 print("Terminated due to {}".format(result.termination_reason))
                 print("Number of iterations {}".format(result.num_iter))
 
-        tlist = np.hstack([[0.]] + time_record)
+        tlist = np.hstack([[0.0]] + time_record)
         for i in range(len(self.pulses)):
             self.pulses[i].tlist = tlist
         coeffs = np.vstack([np.hstack(coeff_record)])

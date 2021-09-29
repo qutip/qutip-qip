@@ -5,16 +5,21 @@ from copy import deepcopy
 import numpy as np
 from scipy.interpolate import CubicSpline
 
-from qutip import (Qobj, QobjEvo, identity, tensor, mesolve, mcsolve)
+from qutip import Qobj, QobjEvo, identity, tensor, mesolve, mcsolve
 from ..operations import expand_operator, globalphase
 from ..circuit import QubitCircuit
 from ..noise import (
-    Noise, RelaxationNoise, DecoherenceNoise,
-    ControlAmpNoise, RandomNoise, process_noise)
+    Noise,
+    RelaxationNoise,
+    DecoherenceNoise,
+    ControlAmpNoise,
+    RandomNoise,
+    process_noise,
+)
 from ..pulse import Pulse, Drift, _merge_qobjevo, _fill_coeff
 
 
-__all__ = ['Processor']
+__all__ = ["Processor"]
 
 
 class Processor(object):
@@ -92,8 +97,16 @@ class Processor(object):
         Type of the coefficient interpolation.
         See parameters of :class:`.Processor` for details.
     """
-    def __init__(self, num_qubits=None, t1=None, t2=None,
-                 dims=None, spline_kind="step_func", N=None):
+
+    def __init__(
+        self,
+        num_qubits=None,
+        t1=None,
+        t2=None,
+        dims=None,
+        spline_kind="step_func",
+        N=None,
+    ):
         self.num_qubits = num_qubits if (num_qubits is not None) else N
         self.pulses = []
         self.t1 = t1
@@ -149,8 +162,9 @@ class Processor(object):
         else:
             self.drift.add_drift(qobj, targets)
 
-    def add_control(self, qobj, targets=None, cyclic_permutation=False,
-                    label=None):
+    def add_control(
+        self, qobj, targets=None, cyclic_permutation=False, label=None
+    ):
         """
         Add a control Hamiltonian to the processor. It creates a new
         :class:`.Pulse`
@@ -192,12 +206,17 @@ class Processor(object):
                     temp_label = label + "_" + str(temp_targets)
                 temp_label = label
                 self.pulses.append(
-                    Pulse(qobj, temp_targets, spline_kind=self.spline_kind,
-                          label=temp_label))
+                    Pulse(
+                        qobj,
+                        temp_targets,
+                        spline_kind=self.spline_kind,
+                        label=temp_label,
+                    )
+                )
         else:
             self.pulses.append(
                 Pulse(qobj, targets, spline_kind=self.spline_kind, label=label)
-                )
+            )
 
     def get_pulse_dict(self):
         label_list = {}
@@ -215,14 +234,15 @@ class Processor(object):
                 raise KeyError(
                     "Pulse name {} undefined. "
                     "Please define it in the attribute "
-                    "`pulse_dict`.".format(pulse_name))
+                    "`pulse_dict`.".format(pulse_name)
+                )
         elif isinstance(pulse_name, int):
             return self.pulses[pulse_name]
         else:
             raise TypeError(
                 "pulse_name is either a string or an integer, not "
                 "{}".format(type(pulse_name))
-                )
+            )
 
     @property
     def ctrls(self):
@@ -289,8 +309,7 @@ class Processor(object):
         elif self.spline_kind == "cubic":
             return "continuous"
         else:
-            raise ValueError(
-                "Saved spline_kind not understood.")
+            raise ValueError("Saved spline_kind not understood.")
 
     @pulse_mode.setter
     def pulse_mode(self, mode):
@@ -300,7 +319,8 @@ class Processor(object):
             spline_kind = "cubic"
         else:
             raise ValueError(
-                "Pulse mode must be either discrete or continuous.")
+                "Pulse mode must be either discrete or continuous."
+            )
 
         self.spline_kind = spline_kind
         for pulse in self.pulses:
@@ -317,14 +337,16 @@ class Processor(object):
         full_tlist: array-like 1d
             The full time sequence for the ideal evolution.
         """
-        full_tlist = [pulse.tlist
-                      for pulse in self.pulses if pulse.tlist is not None]
+        full_tlist = [
+            pulse.tlist for pulse in self.pulses if pulse.tlist is not None
+        ]
         if not full_tlist:
             return None
         full_tlist = np.unique(np.sort(np.hstack(full_tlist)))
         # account for inaccuracy in float-point number
         full_tlist = np.concatenate(
-            (full_tlist[:1], full_tlist[1:][np.diff(full_tlist) > tol]))
+            (full_tlist[:1], full_tlist[1:][np.diff(full_tlist) > tol])
+        )
         return full_tlist
 
     def get_full_coeffs(self, full_tlist=None):
@@ -355,7 +377,8 @@ class Processor(object):
             if not isinstance(pulse.coeff, (bool, np.ndarray)):
                 raise ValueError(
                     "get_full_coeffs only works for "
-                    "NumPy array or bool coeff.")
+                    "NumPy array or bool coeff."
+                )
             if isinstance(pulse.coeff, bool):
                 if pulse.coeff:
                     coeffs_list.append(np.ones(len(full_tlist)))
@@ -365,10 +388,12 @@ class Processor(object):
             if self.spline_kind == "step_func":
                 arg = {"_step_func_coeff": True}
                 coeffs_list.append(
-                    _fill_coeff(pulse.coeff, pulse.tlist, full_tlist, arg))
+                    _fill_coeff(pulse.coeff, pulse.tlist, full_tlist, arg)
+                )
             elif self.spline_kind == "cubic":
                 coeffs_list.append(
-                    _fill_coeff(pulse.coeff, pulse.tlist, full_tlist, {}))
+                    _fill_coeff(pulse.coeff, pulse.tlist, full_tlist, {})
+                )
             else:
                 raise ValueError("Unknown spline kind.")
         return np.array(coeffs_list)
@@ -454,15 +479,17 @@ class Processor(object):
             if pulse.tlist is None:
                 raise ValueError(
                     "Pulse id={} is invalid. "
-                    "Please define a tlist for the pulse.".format(i))
+                    "Please define a tlist for the pulse.".format(i)
+                )
             if pulse.tlist is not None and pulse.coeff is None:
                 raise ValueError(
                     "Pulse id={} is invalid. "
-                    "Please define a coeff for the pulse.".format(i))
+                    "Please define a coeff for the pulse.".format(i)
+                )
             coeff_len = len(pulse.coeff)
             tlist_len = len(pulse.tlist)
             if pulse.spline_kind == "step_func":
-                if coeff_len == tlist_len-1 or coeff_len == tlist_len:
+                if coeff_len == tlist_len - 1 or coeff_len == tlist_len:
                     pass
                 else:
                     raise ValueError(
@@ -470,7 +497,8 @@ class Processor(object):
                         "labelled {} is invalid. "
                         "It's either len(tlist)=len(coeff) or "
                         "len(tlist)-1=len(coeff) for coefficients "
-                        "as step function".format(i))
+                        "as step function".format(i)
+                    )
             else:
                 if coeff_len == tlist_len:
                     pass
@@ -478,7 +506,8 @@ class Processor(object):
                     raise ValueError(
                         "The length of tlist and coeff of the pulse "
                         "labelled {} is invalid. "
-                        "It should be either len(tlist)=len(coeff)".format(i))
+                        "It should be either len(tlist)=len(coeff)".format(i)
+                    )
         return True
 
     def add_noise(self, noise):
@@ -517,7 +546,7 @@ class Processor(object):
         else:
             data = coeffs.T
 
-        np.savetxt(file_name, data, delimiter='\t', fmt='%1.16f')
+        np.savetxt(file_name, data, delimiter="\t", fmt="%1.16f")
 
     def read_coeff(self, file_name, inctime=True):
         """
@@ -540,7 +569,7 @@ class Processor(object):
         coeffs: array_like
             The pulse matrix read from the file.
         """
-        data = np.loadtxt(file_name, delimiter='\t')
+        data = np.loadtxt(file_name, delimiter="\t")
         if not inctime:
             self.coeffs = data.T
             return self.coeffs
@@ -574,8 +603,13 @@ class Processor(object):
         """
         pulses = deepcopy(self.pulses)
         noisy_pulses = process_noise(
-            pulses, self.noise, self.dims, t1=self.t1, t2=self.t2,
-            device_noise=device_noise)
+            pulses,
+            self.noise,
+            self.dims,
+            t1=self.t1,
+            t2=self.t2,
+            device_noise=device_noise,
+        )
         if drift:
             noisy_pulses += [self.drift]
         return noisy_pulses
@@ -615,8 +649,7 @@ class Processor(object):
         if not noisy:
             dynamics = self.pulses
         else:
-            dynamics = self.get_noisy_pulses(
-                device_noise=True, drift=True)
+            dynamics = self.get_noisy_pulses(device_noise=True, drift=True)
 
         qu_list = []
         c_ops = []
@@ -677,10 +710,10 @@ class Processor(object):
             H_drift += drift_ham.get_qobj(self.dims)
 
         # Compute control Hamiltonians
-        for n in range(len(tlist)-1):
+        for n in range(len(tlist) - 1):
             H = H_drift + sum(
-                [coeffs[m, n] * self.ctrls[m]
-                    for m in range(len(self.ctrls))])
+                [coeffs[m, n] * self.ctrls[m] for m in range(len(self.ctrls))]
+            )
             dt = tlist[n + 1] - tlist[n]
             U = (-1j * H * dt).expm()
             U = self.eliminate_auxillary_modes(U)
@@ -688,8 +721,8 @@ class Processor(object):
 
         try:  # correct_global_phase are defined for ModelProcessor
             if self.correct_global_phase and self.global_phase != 0:
-                U_list.append(globalphase(
-                    self.global_phase, N=self.num_qubits)
+                U_list.append(
+                    globalphase(self.global_phase, N=self.num_qubits)
                 )
         except AttributeError:
             pass
@@ -716,8 +749,15 @@ class Processor(object):
             self.load_circuit(qc)
         return self.run_analytically(qc=qc, init_state=None)
 
-    def run_state(self, init_state=None, analytical=False, states=None,
-                  noisy=True, solver="mesolve", **kwargs):
+    def run_state(
+        self,
+        init_state=None,
+        analytical=False,
+        states=None,
+        noisy=True,
+        solver="mesolve",
+        **kwargs
+    ):
         """
         If `analytical` is False, use :func:`qutip.mesolve` to
         calculate the time of the state evolution
@@ -764,7 +804,8 @@ class Processor(object):
         if states is not None:
             warnings.warn(
                 "states will be deprecated and replaced by init_state",
-                DeprecationWarning)
+                DeprecationWarning,
+            )
         if init_state is None and states is None:
             raise ValueError("Qubit state not defined.")
         elif init_state is None:
@@ -776,19 +817,22 @@ class Processor(object):
                 raise warnings.warn(
                     "Analytical matrices exponentiation"
                     "does not process noise or"
-                    "any keyword arguments.")
+                    "any keyword arguments."
+                )
             return self.run_analytically(init_state=init_state)
 
         # kwargs can not contain H
         if "H" in kwargs:
             raise ValueError(
                 "`H` is already specified by the processor "
-                "and can not be given as a keyword argument")
+                "and can not be given as a keyword argument"
+            )
 
         # construct qobjevo for unitary evolution
         if "args" in kwargs:
             noisy_qobjevo, sys_c_ops = self.get_qobjevo(
-                    args=kwargs["args"], noisy=noisy)
+                args=kwargs["args"], noisy=noisy
+            )
         else:
             noisy_qobjevo, sys_c_ops = self.get_qobjevo(noisy=noisy)
 
@@ -806,15 +850,15 @@ class Processor(object):
             tlist = kwargs["tlist"]
             del kwargs["tlist"]
         else:
-            tlist=noisy_qobjevo.tlist
+            tlist = noisy_qobjevo.tlist
         if solver == "mesolve":
             evo_result = mesolve(
-                H=noisy_qobjevo, rho0=init_state,
-                tlist=tlist, **kwargs)
+                H=noisy_qobjevo, rho0=init_state, tlist=tlist, **kwargs
+            )
         elif solver == "mcsolve":
             evo_result = mcsolve(
-                H=noisy_qobjevo, psi0=init_state,
-                tlist=tlist, **kwargs)
+                H=noisy_qobjevo, psi0=init_state, tlist=tlist, **kwargs
+            )
 
         return evo_result
 
@@ -845,9 +889,14 @@ class Processor(object):
         return [label_list]
 
     def plot_pulses(
-            self, title=None, figsize=(12, 6), dpi=None,
-            show_axis=False, rescale_pulse_coeffs=True,
-            num_steps=1000):
+        self,
+        title=None,
+        figsize=(12, 6),
+        dpi=None,
+        show_axis=False,
+        rescale_pulse_coeffs=True,
+        num_steps=1000,
+    ):
         """
         Plot the ideal pulse coefficients.
 
@@ -885,18 +934,19 @@ class Processor(object):
         """
         import matplotlib.pyplot as plt
         import matplotlib.gridspec as gridspec
-        color_list = plt.rcParams['axes.prop_cycle'].by_key()['color']
+
+        color_list = plt.rcParams["axes.prop_cycle"].by_key()["color"]
 
         # create a axis for each pulse
         fig = plt.figure(figsize=figsize, dpi=dpi)
         grids = gridspec.GridSpec(len(self.pulses), 1)
-        grids.update(wspace=0., hspace=0.)
+        grids.update(wspace=0.0, hspace=0.0)
 
-        tlist = np.linspace(0., self.get_full_tlist()[-1], num_steps)
+        tlist = np.linspace(0.0, self.get_full_tlist()[-1], num_steps)
         dt = tlist[1] - tlist[0]
 
         # make sure coeffs start and end with zero, for ax.fill
-        tlist = np.hstack(([-dt*1.e-20], tlist, [tlist[-1] + dt*1.e-20]))
+        tlist = np.hstack(([-dt * 1.0e-20], tlist, [tlist[-1] + dt * 1.0e-20]))
         coeffs = []
         for pulse in self.pulses:
             coeffs.append(_pulse_interpolate(pulse, tlist))
@@ -914,16 +964,16 @@ class Processor(object):
                     ymax = np.max(np.abs(coeffs[pulse_ind])) * 1.1
                 else:
                     ymax = np.max(np.abs(coeffs)) * 1.1
-                if ymax != 0.:
+                if ymax != 0.0:
                     ax.set_ylim((-ymax, ymax))
 
                 # disable frame and ticks
                 if not show_axis:
                     ax.set_xticks([])
-                    ax.spines['bottom'].set_visible(False)
-                ax.spines['top'].set_visible(False)
-                ax.spines['right'].set_visible(False)
-                ax.spines['left'].set_visible(False)
+                    ax.spines["bottom"].set_visible(False)
+                ax.spines["top"].set_visible(False)
+                ax.spines["right"].set_visible(False)
+                ax.spines["left"].set_visible(False)
                 ax.set_yticks([])
                 ax.set_ylabel(label, rotation=0)
                 pulse_ind += 1
@@ -947,15 +997,16 @@ def _pulse_interpolate(pulse, tlist):
             coeff = np.zeros(len(tlist))
         return coeff
     coeff = pulse.coeff
-    if len(coeff) == len(pulse.tlist)-1:  # for discrete pulse
+    if len(coeff) == len(pulse.tlist) - 1:  # for discrete pulse
         coeff = np.concatenate([coeff, [0]])
 
     from scipy import interpolate
+
     if pulse.spline_kind == "step_func":
         kind = "previous"
     else:
         kind = "cubic"
     inter = interpolate.interp1d(
-        pulse.tlist, coeff, kind=kind,
-        bounds_error=False, fill_value=0.0)
+        pulse.tlist, coeff, kind=kind, bounds_error=False, fill_value=0.0
+    )
     return inter(tlist)

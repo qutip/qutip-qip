@@ -2,10 +2,10 @@ from copy import deepcopy
 import numpy as np
 
 
-__all__ = ['Instruction']
+__all__ = ["Instruction"]
 
 
-class Instruction():
+class Instruction:
     """
     The instruction that implements a quantum gate.
     It contains the control pulse required to implement the gate
@@ -34,9 +34,8 @@ class Instruction():
     used_qubits: set
         Union of the control and target qubits.
     """
-    def __init__(
-            self, gate, tlist=None,
-            pulse_info=(), duration=1):
+
+    def __init__(self, gate, tlist=None, pulse_info=(), duration=1):
         self.gate = deepcopy(gate)
         self.used_qubits = set()
         if self.targets is not None:
@@ -49,7 +48,7 @@ class Instruction():
         if self.tlist is not None:
             if np.isscalar(self.tlist):
                 self.duration = self.tlist
-            elif abs(self.tlist[0]) > 1.e-8:
+            elif abs(self.tlist[0]) > 1.0e-8:
                 raise ValueError("Pulse time sequence must start from 0")
             else:
                 self.duration = self.tlist[-1]

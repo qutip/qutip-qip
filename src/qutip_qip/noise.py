@@ -9,12 +9,20 @@ from .operations import expand_operator
 from .pulse import Pulse
 
 
-__all__ = ["Noise", "DecoherenceNoise", "RelaxationNoise",
-           "ControlAmpNoise", "RandomNoise", "process_noise", "ZZCrossTalk"]
+__all__ = [
+    "Noise",
+    "DecoherenceNoise",
+    "RelaxationNoise",
+    "ControlAmpNoise",
+    "RandomNoise",
+    "process_noise",
+    "ZZCrossTalk",
+]
 
 
-def process_noise(pulses, noise_list, dims, t1=None, t2=None,
-                  device_noise=False):
+def process_noise(
+    pulses, noise_list, dims, t1=None, t2=None, device_noise=False
+):
     """
     Apply noise to the input list of pulses. It does not modify the input
     pulse, but return a new one containing the noise.
@@ -52,13 +60,17 @@ def process_noise(pulses, noise_list, dims, t1=None, t2=None,
         noise_list.append(RelaxationNoise(t1, t2))
 
     for noise in noise_list:
-        if isinstance(noise, (DecoherenceNoise, RelaxationNoise)) \
-                and not device_noise:
+        if (
+            isinstance(noise, (DecoherenceNoise, RelaxationNoise))
+            and not device_noise
+        ):
             pass
         else:
             noisy_pulses, systematic_noise = noise._apply_noise(
-                dims=dims, pulses=noisy_pulses,
-                systematic_noise=systematic_noise)
+                dims=dims,
+                pulses=noisy_pulses,
+                systematic_noise=systematic_noise,
+            )
 
     if device_noise:
         return noisy_pulses + [systematic_noise]
@@ -72,6 +84,7 @@ class Noise(object):
     The noise object can be added to :class:`.device.Processor` and
     contributes to evolution.
     """
+
     def get_noisy_pulses(self, dims=None, pulses=None, systematic_noise=None):
         """
         Return the input pulses list with noise added and
@@ -105,11 +118,13 @@ class Noise(object):
                 "Using get_noisy_dynamics as the hook function for custom "
                 "noise will be deprecated, "
                 "please use get_noisy_pulses instead.",
-                PendingDeprecationWarning)
+                PendingDeprecationWarning,
+            )
             return self.get_noisy_dynamics(dims, pulses, systematic_noise)
         raise NotImplementedError(
             "Subclass error needs a method"
-            "`get_noisy_pulses` to process the noise.")
+            "`get_noisy_pulses` to process the noise."
+        )
 
     def _apply_noise(self, pulses=None, systematic_noise=None, dims=None):
         """
@@ -117,7 +132,8 @@ class Noise(object):
         or only return the pulse.
         """
         result = self.get_noisy_pulses(
-            pulses=pulses, systematic_noise=systematic_noise, dims=dims)
+            pulses=pulses, systematic_noise=systematic_noise, dims=dims
+        )
         if result is None:  # in-place change
             pass
         elif isinstance(result, tuple) and len(result) == 2:
@@ -127,7 +143,8 @@ class Noise(object):
             pulses = result
         else:
             raise TypeError(
-                "Returned value of get_noisy_pulses not understood.")
+                "Returned value of get_noisy_pulses not understood."
+            )
         return pulses, systematic_noise
 
 
@@ -165,8 +182,10 @@ class DecoherenceNoise(Noise):
         If `c_ops` contains only single qubits collapse operator,
         ``all_qubits=True`` will allow it to be applied to all qubits.
     """
-    def __init__(self, c_ops, targets=None, coeff=None, tlist=None,
-                 all_qubits=False):
+
+    def __init__(
+        self, c_ops, targets=None, coeff=None, tlist=None, all_qubits=False
+    ):
         if isinstance(c_ops, Qobj):
             self.c_ops = [c_ops]
         else:
@@ -178,11 +197,11 @@ class DecoherenceNoise(Noise):
             if not all([c_op.dims == [[2], [2]] for c_op in self.c_ops]):
                 raise ValueError(
                     "The operator is not a single qubit operator, "
-                    "thus cannot be applied to all qubits")
+                    "thus cannot be applied to all qubits"
+                )
         self.all_qubits = all_qubits
 
-    def get_noisy_pulses(
-            self, dims=None, pulses=None, systematic_noise=None):
+    def get_noisy_pulses(self, dims=None, pulses=None, systematic_noise=None):
         """
         Return the input pulses list with noise added and
         the pulse independent noise in a dummy :class:`.Pulse` object.
@@ -215,10 +234,12 @@ class DecoherenceNoise(Noise):
             if self.all_qubits:
                 for targets in range(N):
                     systematic_noise.add_lindblad_noise(
-                        c_op, targets, self.tlist, self.coeff)
+                        c_op, targets, self.tlist, self.coeff
+                    )
             else:
                 systematic_noise.add_lindblad_noise(
-                    c_op, self.targets, self.tlist, self.coeff)
+                    c_op, self.targets, self.tlist, self.coeff
+                )
         return pulses, systematic_noise
 
 
@@ -249,6 +270,7 @@ class RelaxationNoise(Noise):
     targets: int or list
         The indices of qubits that are acted on.
     """
+
     def __init__(self, t1=None, t2=None, targets=None):
         self.t1 = t1
         self.t2 = t2
@@ -278,10 +300,10 @@ class RelaxationNoise(Noise):
             raise ValueError(
                 "Invalid relaxation time T={},"
                 "either the length is not equal to the number of qubits, "
-                "or T is not a positive number.".format(T))
+                "or T is not a positive number.".format(T)
+            )
 
-    def get_noisy_pulses(
-            self, dims=None, pulses=None, systematic_noise=None):
+    def get_noisy_pulses(self, dims=None, pulses=None, systematic_noise=None):
         """
         Return the input pulses list with noise added and
         the pulse independent noise in a dummy :class:`.Pulse` object.
@@ -312,8 +334,8 @@ class RelaxationNoise(Noise):
         if len(self.t1) != N or len(self.t2) != N:
             raise ValueError(
                 "Length of t1 or t2 does not match N, "
-                "len(t1)={}, len(t2)={}".format(
-                    len(self.t1), len(self.t2)))
+                "len(t1)={}, len(t2)={}".format(len(self.t1), len(self.t2))
+            )
 
         if self.targets is None:
             targets = range(N)
@@ -323,19 +345,20 @@ class RelaxationNoise(Noise):
             t1 = self.t1[qu_ind]
             t2 = self.t2[qu_ind]
             if t1 is not None:
-                op = 1/np.sqrt(t1) * destroy(dims[qu_ind])
+                op = 1 / np.sqrt(t1) * destroy(dims[qu_ind])
                 systematic_noise.add_lindblad_noise(op, qu_ind, coeff=True)
             if t2 is not None:
                 # Keep the total dephasing ~ exp(-t/t2)
                 if t1 is not None:
-                    if 2*t1 < t2:
+                    if 2 * t1 < t2:
                         raise ValueError(
                             "t1={}, t2={} does not fulfill "
-                            "2*t1>t2".format(t1, t2))
-                    T2_eff = 1./(1./t2-1./2./t1)
+                            "2*t1>t2".format(t1, t2)
+                        )
+                    T2_eff = 1.0 / (1.0 / t2 - 1.0 / 2.0 / t1)
                 else:
                     T2_eff = t2
-                op = 1/np.sqrt(2*T2_eff) * 2 * num(dims[qu_ind])
+                op = 1 / np.sqrt(2 * T2_eff) * 2 * num(dims[qu_ind])
                 systematic_noise.add_lindblad_noise(op, qu_ind, coeff=True)
         return pulses, systematic_noise
 
@@ -365,13 +388,13 @@ class ControlAmpNoise(Noise):
         The indices of target pulse in the list of pulses.
 
     """
+
     def __init__(self, coeff, tlist=None, indices=None):
         self.coeff = coeff
         self.tlist = tlist
         self.indices = indices
 
-    def get_noisy_pulses(
-            self, dims=None, pulses=None, systematic_noise=None):
+    def get_noisy_pulses(self, dims=None, pulses=None, systematic_noise=None):
         if pulses is None:
             pulses = []
         if self.indices is None:
@@ -389,7 +412,8 @@ class ControlAmpNoise(Noise):
             else:
                 tlist = self.tlist
             pulses[i].add_coherent_noise(
-                pulse.qobj, pulse.targets, tlist, coeff)
+                pulse.qobj, pulse.targets, tlist, coeff
+            )
         return pulses, systematic_noise
 
 
@@ -430,8 +454,8 @@ class RandomNoise(ControlAmpNoise):
             dt=0.1, rand_gen=np.random.normal, loc=mean, scale=std) \
             # doctest: +SKIP
     """
-    def __init__(
-            self, dt, rand_gen, indices=None, **kwargs):
+
+    def __init__(self, dt, rand_gen, indices=None, **kwargs):
         super(RandomNoise, self).__init__(coeff=None, tlist=None)
         self.rand_gen = rand_gen
         self.kwargs = kwargs
@@ -440,8 +464,7 @@ class RandomNoise(ControlAmpNoise):
         self.dt = dt
         self.indices = indices
 
-    def get_noisy_pulses(
-            self, dims=None, pulses=None, systematic_noise=None):
+    def get_noisy_pulses(self, dims=None, pulses=None, systematic_noise=None):
         """
         Return the input pulses list with noise added and
         the pulse independent noise in a dummy :class:`.Pulse` object.
@@ -476,14 +499,15 @@ class RandomNoise(ControlAmpNoise):
             t_min = min(min(pulse.tlist), t_min)
         # create new tlist and random coeff
         num_rand = int(np.floor((t_max - t_min) / self.dt)) + 1
-        tlist = (np.arange(0, self.dt*num_rand, self.dt)[:num_rand] + t_min)
+        tlist = np.arange(0, self.dt * num_rand, self.dt)[:num_rand] + t_min
         # [:num_rand] for round of error like 0.2*6=1.2000000000002
 
         for i in indices:
             pulse = pulses[i]
             coeff = self.rand_gen(**self.kwargs, size=num_rand)
             pulses[i].add_coherent_noise(
-                pulse.qobj, pulse.targets, tlist, coeff)
+                pulse.qobj, pulse.targets, tlist, coeff
+            )
         return pulses, systematic_noise
 
 
@@ -500,12 +524,11 @@ class ZZCrossTalk(Noise):
     params:
         Parameters computed from a :class:`.SCQubits`.
     """
-    def __init__(
-            self, params):
+
+    def __init__(self, params):
         self.params = params
 
-    def get_noisy_pulses(
-            self, dims=None, pulses=None, systematic_noise=None):
+    def get_noisy_pulses(self, dims=None, pulses=None, systematic_noise=None):
         """
         Return the input pulses list with noise added and
         the pulse independent noise in a dummy :class:`.Pulse` object.
@@ -539,20 +562,33 @@ class ZZCrossTalk(Noise):
             d2 = dims[i + 1]
             destroy_op1 = destroy(d1)
             destroy_op2 = destroy(d2)
-            projector1 = basis(d1, 0) * basis(d1, 0).dag() + \
-                basis(d1, 1) * basis(d2, 1).dag()
-            projector2 = basis(d2, 0) * basis(d2, 0).dag() + \
-                basis(d2, 1) * basis(d2, 1).dag()
-            z1 = projector1 * \
-                (destroy_op1.dag() * destroy_op1 * 2 - qeye(d1)) * projector1
-            z2 = projector2 * \
-                (destroy_op2.dag() * destroy_op2 * 2 - qeye(d1)) * projector2
+            projector1 = (
+                basis(d1, 0) * basis(d1, 0).dag()
+                + basis(d1, 1) * basis(d2, 1).dag()
+            )
+            projector2 = (
+                basis(d2, 0) * basis(d2, 0).dag()
+                + basis(d2, 1) * basis(d2, 1).dag()
+            )
+            z1 = (
+                projector1
+                * (destroy_op1.dag() * destroy_op1 * 2 - qeye(d1))
+                * projector1
+            )
+            z2 = (
+                projector2
+                * (destroy_op2.dag() * destroy_op2 * 2 - qeye(d1))
+                * projector2
+            )
             zz_op = tensor(z1, z2)
             zz_coeff = (
-                1/(wq[i] - wr[i] - alpha[i + 1]) -
-                1/(wq[i] - wr[i] + alpha[i])
-                ) * J[i] ** 2
+                1 / (wq[i] - wr[i] - alpha[i + 1])
+                - 1 / (wq[i] - wr[i] + alpha[i])
+            ) * J[i] ** 2
             systematic_noise.add_control_noise(
-                zz_coeff * zz_op / 2, targets=[i, i + 1],
-                coeff=True, tlist=None)
+                zz_coeff * zz_op / 2,
+                targets=[i, i + 1],
+                coeff=True,
+                tlist=None,
+            )
         return pulses, systematic_noise

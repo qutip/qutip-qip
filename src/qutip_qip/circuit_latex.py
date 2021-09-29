@@ -26,8 +26,11 @@ def _run_command(command, *args, **kwargs):
     """
     try:
         return subprocess.run(
-            command, *args,
-            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE,
+            command,
+            *args,
+            check=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
             **kwargs,
         )
     except subprocess.CalledProcessError as e:
@@ -51,16 +54,18 @@ def _test_convert_is_imagemagick():
     """
     try:
         # Don't use `capture_output` because we're still supporting Python 3.6
-        process = subprocess.run(('convert', '-version'),
-                                 stdout=subprocess.PIPE,
-                                 stderr=subprocess.DEVNULL)
-        return "imagemagick" in process.stdout.decode('utf-8').lower()
+        process = subprocess.run(
+            ("convert", "-version"),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+        )
+        return "imagemagick" in process.stdout.decode("utf-8").lower()
     except FileNotFoundError:
         return False
 
 
 _SPECIAL_CASES = {
-    'convert': _test_convert_is_imagemagick,
+    "convert": _test_convert_is_imagemagick,
 }
 
 
@@ -79,11 +84,12 @@ def _find_system_command(names):
     return None
 
 
-_pdflatex = _find_system_command(['pdflatex'])
-_pdfcrop = _find_system_command(['pdfcrop'])
+_pdflatex = _find_system_command(["pdflatex"])
+_pdfcrop = _find_system_command(["pdfcrop"])
 
 
 if _pdfcrop is not None:
+
     def _crop_pdf(filename):
         """Crop the pdf file `filename` in place."""
         temporary = ".tmp." + filename
@@ -91,11 +97,16 @@ if _pdfcrop is not None:
         # Windows does not allow renaming to an existing file (but unix does).
         _force_remove(filename)
         os.rename(temporary, filename)
+
+
 else:
+
     def _crop_pdf(_):
         # Warn, but do not raise - we can recover from a failed crop.
-        warnings.warn("Could not locate system 'pdfcrop':"
-                      " image output may have additional margins.")
+        warnings.warn(
+            "Could not locate system 'pdfcrop':"
+            " image output may have additional margins."
+        )
 
 
 def _convert_pdf(file_stem):
@@ -109,16 +120,22 @@ def _convert_pdf(file_stem):
 # Record type to hold definitions of possible conversions - this is just for
 # reading convenience.
 _ConverterConfiguration = collections.namedtuple(
-    '_ConverterConfiguration',
-    ['file_type', 'dependency', 'executables', 'arguments', 'binary'],
+    "_ConverterConfiguration",
+    ["file_type", "dependency", "executables", "arguments", "binary"],
 )
 CONVERTERS = {"pdf": _convert_pdf}
 _MISSING_CONVERTERS = {}
 _CONVERTER_CONFIGURATIONS = [
-    _ConverterConfiguration('png', 'ImageMagick', ['magick', 'convert'],
-                            arguments=('-density', '100'), binary=True),
-    _ConverterConfiguration('svg', 'pdf2svg', ['pdf2svg'],
-                            arguments=(), binary=False),
+    _ConverterConfiguration(
+        "png",
+        "ImageMagick",
+        ["magick", "convert"],
+        arguments=("-density", "100"),
+        binary=True,
+    ),
+    _ConverterConfiguration(
+        "svg", "pdf2svg", ["pdf2svg"], arguments=(), binary=False
+    ),
 ]
 
 
@@ -149,6 +166,7 @@ def _make_converter(configuration):
         _run_command((which, *configuration.arguments, in_file, out_file))
         with open(out_file, mode) as file:
             return file.read()
+
     return converter
 
 
@@ -164,6 +182,7 @@ for configuration in _CONVERTER_CONFIGURATIONS:
 
 
 if _pdflatex is not None:
+
     def image_from_latex(code, file_type="png"):
         """
         Convert the LaTeX `code` into an image format, defined by the
@@ -198,8 +217,9 @@ if _pdflatex is not None:
                 with open(filename + ".tex", "w") as file:
                     file.write(_latex_template % code)
                 try:
-                    _run_command((_pdflatex, '-interaction', 'batchmode',
-                                  filename))
+                    _run_command(
+                        (_pdflatex, "-interaction", "batchmode", filename)
+                    )
                 except RuntimeError as e:
                     message = (
                         "pdflatex failed."
@@ -210,21 +230,31 @@ if _pdflatex is not None:
                 _crop_pdf(filename + ".pdf")
                 if file_type in _MISSING_CONVERTERS:
                     dependency = _MISSING_CONVERTERS[file_type]
-                    message = "".join([
-                        "Could not find system ", dependency, ".",
-                        " Image conversion to '", file_type, "'",
-                        " is not available."
-                    ])
+                    message = "".join(
+                        [
+                            "Could not find system ",
+                            dependency,
+                            ".",
+                            " Image conversion to '",
+                            file_type,
+                            "'",
+                            " is not available.",
+                        ]
+                    )
                     raise RuntimeError(message)
                 if file_type not in CONVERTERS:
-                    raise ValueError("".join(["Unknown output format: '",
-                                              file_type, "'."]))
+                    raise ValueError(
+                        "".join(["Unknown output format: '", file_type, "'."])
+                    )
                 out = CONVERTERS[file_type](filename)
             finally:
                 # Leave the temporary directory before it is removed (necessary
                 # on Windows, but it doesn't hurt on POSIX).
                 os.chdir(previous_dir)
         return out
+
+
 else:
+
     def image_from_latex(*args, **kwargs):
         raise RuntimeError("Could not find system 'pdflatex'.")

@@ -6,7 +6,7 @@ from ..operations import Gate
 from ..compiler import GateCompiler, Instruction
 
 
-__all__ = ['SpinChainCompiler']
+__all__ = ["SpinChainCompiler"]
 
 
 class SpinChainCompiler(GateCompiler):
@@ -71,18 +71,28 @@ class SpinChainCompiler(GateCompiler):
     global_phase: bool
         Record of the global phase change and will be returned.
     """
+
     def __init__(
-            self, num_qubits, params, setup="linear",
-            global_phase=0., pulse_dict=None, N=None):
+        self,
+        num_qubits,
+        params,
+        setup="linear",
+        global_phase=0.0,
+        pulse_dict=None,
+        N=None,
+    ):
         super(SpinChainCompiler, self).__init__(
-            num_qubits, params=params, pulse_dict=pulse_dict, N=N)
-        self.gate_compiler.update({
-            "ISWAP": self.iswap_compiler,
-            "SQRTISWAP": self.sqrtiswap_compiler,
-            "RZ": self.rz_compiler,
-            "RX": self.rx_compiler,
-            "GLOBALPHASE": self.globalphase_compiler
-            })
+            num_qubits, params=params, pulse_dict=pulse_dict, N=N
+        )
+        self.gate_compiler.update(
+            {
+                "ISWAP": self.iswap_compiler,
+                "SQRTISWAP": self.sqrtiswap_compiler,
+                "RZ": self.rz_compiler,
+                "RX": self.rx_compiler,
+                "GLOBALPHASE": self.globalphase_compiler,
+            }
+        )
         self.global_phase = global_phase
 
     def _rotation_compiler(self, gate, op_label, param_label, args):
@@ -110,10 +120,12 @@ class SpinChainCompiler(GateCompiler):
         """
         targets = gate.targets
         coeff, tlist = self.generate_pulse_shape(
-            args["shape"], args["num_samples"],
+            args["shape"],
+            args["num_samples"],
             maximum=self.params[param_label][targets[0]],
             # The operator is Pauli Z/X/Y, without 1/2.
-            area=gate.arg_value / 2. / np.pi * 0.5)
+            area=gate.arg_value / 2.0 / np.pi * 0.5,
+        )
         pulse_info = [(op_label + str(targets[0]), coeff)]
         return [Instruction(gate, tlist, pulse_info)]
 
@@ -163,7 +175,8 @@ class SpinChainCompiler(GateCompiler):
         g = self.params["sxsy"][q1]
         maximum = g
         coeff, tlist = self.generate_pulse_shape(
-            args["shape"], args["num_samples"], maximum, area)
+            args["shape"], args["num_samples"], maximum, area
+        )
         if self.N != 2 and q1 == 0 and q2 == self.N - 1:
             pulse_name = "g" + str(q2)
         else:
@@ -189,7 +202,7 @@ class SpinChainCompiler(GateCompiler):
         A list of :obj:`.Instruction`, including the compiled pulse
         information for this gate.
         """
-        return self._swap_compiler(gate, area=-1/8, args=args)
+        return self._swap_compiler(gate, area=-1 / 8, args=args)
 
     def sqrtiswap_compiler(self, gate, args):
         """
@@ -209,7 +222,7 @@ class SpinChainCompiler(GateCompiler):
         A list of :obj:`.Instruction`, including the compiled pulse
         information for this gate.
         """
-        return self._swap_compiler(gate, area=-1/16, args=args)
+        return self._swap_compiler(gate, area=-1 / 16, args=args)
 
     def globalphase_compiler(self, gate, args):
         """
