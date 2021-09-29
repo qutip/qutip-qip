@@ -4,6 +4,7 @@ from copy import deepcopy
 
 import numpy as np
 from scipy.interpolate import CubicSpline
+from numpy.linalg import eigh
 
 from qutip import Qobj, QobjEvo, identity, tensor, mesolve, mcsolve
 from ..operations import expand_operator, globalphase
@@ -23,7 +24,7 @@ __all__ = ["Processor"]
 
 
 class Processor(object):
-    """
+    r"""
     A simulator of a quantum device based on the QuTiP solver
     :func:`qutip.mesolve`.
     It is defined by the available driving Hamiltonian and
@@ -70,9 +71,6 @@ class Processor(object):
     num_qubits: int
         The number of component systems.
 
-    pulses : list of :class:`.Pulse`
-        A list of control pulses of this device
-
     t1: float or list
         Characterize the decoherence of amplitude damping of
         each qubit.
@@ -88,14 +86,22 @@ class Processor(object):
     drift : :class:`.Drift`
         A `Drift` object representing the drift Hamiltonians.
 
-    dims: list
-        The dimension of each component system.
-        Default value is a
-        qubit system of ``dim=[2,2,2,...,2]``
-
-    spline_kind: str
-        Type of the coefficient interpolation.
-        See parameters of :class:`.Processor` for details.
+    use_dressed_states: bool
+        If ``True``, the drift Hamiltonian will be diagonalized
+        to obtain a dressed frame, i.e. an interaction picture, in which
+        the dressed eigenstates are used the computational basis.
+        All the Hamiltonians and collapse opeartors
+        will be transformed accordingly when generating the dynamics.
+        It will not change the saved Hamiltonian model.
+        The loaded quantum circuit and the result of evolution
+        are given with respect to the dressed states.
+        A dressed state :math:`\hat{\left|i\right\rangle}`
+        is defined as the eigenstate that
+        has the maximal overlap with the corresponding bare qubit state
+        :math:`\left| i \right\rangle`.
+        The dressed states are saved as a unitary matrix and
+        can be obtained by :obj:`.get_transformation`,
+        where each column corresponds to a dressed state.
     """
 
     def __init__(
@@ -119,6 +125,8 @@ class Processor(object):
             self.dims = dims
         self.pulse_mode = "discrete"
         self.spline_kind = spline_kind
+        self.use_dressed_states = False
+        self._transformation = None
 
     @property
     def N(self):
@@ -579,6 +587,55 @@ class Processor(object):
             self.coeffs = data[:, 1:].T
             return self.get_full_tlist, self.coeffs
 
+    def compute_dressed_states(self):
+        """
+        Compute the dressed state using the drift Hamiltonian.
+        The eigenstates are saved as a transformation unitary, where
+        each column corresponds to one eigenstate.
+        The transformation matrix can be obtained by
+        :obj:`.get_transformation`.
+        """
+        if self.drift is None:
+            raise ValueError("No drift Hamiltonian defined.")
+        ham = self.drift.get_ideal_qobjevo(dims=self.dims)(0)
+        U = eigh(ham.full())[1]
+        # Permute the eigenstates in U according to the overlap
+        # with bare qubit states so that the transformed Hamiltonian
+        # match the definfinition of logical qubits.
+        # A logical qubit state |i> is defined as the eigenstate that
+        # has the maximal overlap with the corresponding bare qubit state |i>.
+        qubit_state_labels = np.argmax(np.abs(U), axis=0)
+        if len(qubit_state_labels) != len(set(qubit_state_labels)):
+            raise ValueError(
+                "The definition of dressed states is ambiguous."
+                "Please define the unitary manually by the attributes"
+                "Processor.dressing_unitary")
+        U = U[:, np.argsort(qubit_state_labels)]  # Permutation
+        U = Qobj(U, dims=[self.dims, self.dims])
+        self._transformation = U
+        return self._transformation
+
+    def get_transformation(self):
+        """
+        Get the saved unitary matrix for frame transformation.
+        """
+        return self._transformation
+
+    def set_transformation(self, unitary):
+        """
+        Set a unitary transformation that will be applied to
+        the Hamiltonian and collapse operators according to the transformation
+        :math:``O_I = U^{\dagger} O U``.
+        It will not change the saved Hamiltonian model, but only apply to it
+        when generating the dynamics.
+        """
+        if self.use_dressed_states:
+            raise ValueError(
+                "To use custom transformation, "
+                "set the option use_dressed_states to False."
+                )
+        self._transformation = unitary
+
     def get_noisy_pulses(self, device_noise=False, drift=False):
         """
         It takes the pulses defined in the `Processor` and
@@ -670,6 +727,15 @@ class Processor(object):
         for c_op in c_ops:
             temp.append(_merge_qobjevo([c_op], full_tlist))
         c_ops = temp
+
+        # compute the dressed Hamiltonian and collapse operator
+        if self.use_dressed_states:
+            self.compute_dressed_states()
+        if self._transformation is not None:
+            U = self._transformation
+            U_dag = self._transformation.dag()
+            final_qu = U_dag * final_qu * U
+            c_ops = [U_dag * op * U for op in c_ops]
 
         if noisy:
             return final_qu, c_ops
