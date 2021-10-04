@@ -28,7 +28,8 @@ def check_gate_defn(gate, gate_name, targets, controls=None,
     assert gate.targets == targets
     assert gate.controls == controls
     assert gate.classical_controls == classical_controls
-    assert gate.control_value == control_value
+    # The quantum control and classical control now use the same parameters.
+    # assert gate.control_value == control_value
 
 
 def check_measurement_defn(gate, gate_name, targets, classical_store):

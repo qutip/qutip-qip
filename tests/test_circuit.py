@@ -418,21 +418,6 @@ class TestQubitCircuit:
         qc = QubitCircuit(2)
         pytest.raises(ValueError, qc.add_gate, gate, targets=[1], controls=[0])
 
-    @pytest.mark.parametrize('gate', ['CY', 'CZ', 'CS', 'CT'])
-    def test_exceptions_controlled(self, gate):
-        """
-        Text exceptions are thrown correctly for inadequate inputs
-        """
-        qc = QubitCircuit(2)
-        '''
-        pytest.raises(ValueError, qc.add_gate, gate,
-                    targets=[1], controls=[0])
-        '''
-
-        pytest.raises(ValueError, qc.add_gate, gate,
-                      targets=[1])
-        pytest.raises(ValueError, qc.add_gate, gate)
-
     def test_globalphase_gate_propagators(self):
         qc = QubitCircuit(2)
         qc.add_gate("GLOBALPHASE", arg_value=np.pi / 2)

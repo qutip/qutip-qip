@@ -121,26 +121,44 @@ class Gate:
     """
     Representation of a quantum gate, with its required parameters, and target
     and control qubits.
+    Base class for a quantum gate,
+    concrete gate classes need to be defined as subclasses.
 
     Parameters
     ----------
-    name : string
-        Gate name.
     targets : list or int
-        Gate targets.
+        The target qubits fo the gate.
     controls : list or int
-        Gate controls.
-    arg_value : float
-        Argument value(phi).
-    arg_label : string
-        Label for gate representation.
+        The controlling qubits of the gate.
+    arg_value : object
+        Argument value of the gate. It will be saved as an attributes and
+        can be accessed when generating the `:obj:qutip.Qobj`.
     classical_controls : int or list of int, optional
-        indices of classical bits to control gate on.
-    control_value : int, optional
-        value of classical bits to control on, the classical controls are
-        interpreted as an integer with lowest bit being the first one.
-        If not specified, then the value is interpreted to be
-        2 ** len(classical_controls) - 1 (i.e. all classical controls are 1).
+        Indices of classical bits to control the unitary operator.
+    control_value : int or (int, int), optional
+        The decimal value of controlling bits for executing
+        the unitary operator on the target qubits.
+        If the gate is only quantum controlled or classically controlled,
+        it could be given as an integer,
+        If both are used, it should be a tuple where the first one is quantum
+        and the second one the classical.
+        E.g. if the gate should be executed when the zero-th bit is 1,
+        ``controll_value=1``;
+        If the gate should be executed when the first two bits are 0 and 1,
+        ``controll_value=3``.
+    arg_label : string
+        Label for the argument, it will be shown in the circuit plot,
+        representing the argument value provided to the gate, e.g,
+        if ``arg_label="\phi" the latex name for the gate in the circuit plot
+        will be ``$U(\phi)$``.
+    name : string, optional
+        The name of the gate. This is kept for backward compatibility
+        to identify different gates.
+        In most cases it is identical to the class name,
+        but that is not guaranteed.
+        It is recommended to use ``isinstance``
+        or ``issubclass`` to identify a gate rather than
+        comparing the name string.
     """
 
     def __init__(
@@ -149,9 +167,10 @@ class Gate:
         targets=None,
         controls=None,
         arg_value=None,
-        arg_label=None,
-        classical_controls=None,
         control_value=None,
+        classical_controls=None,
+        arg_label=None,
+        **kwargs,
     ):
         """
         Create a gate with specified parameters.
@@ -181,55 +200,17 @@ class Gate:
         else:
             self.classical_controls = classical_controls
 
-        if control_value is not None and control_value < 2 ** len(
-            classical_controls
-        ):
-            self.control_value = control_value
-
-        for ind_list in [self.targets, self.controls, self.classical_controls]:
-            if isinstance(ind_list, Iterable):
-                all_integer = all(
-                    [isinstance(ind, numbers.Integral) for ind in ind_list]
-                )
-                if not all_integer:
-                    raise ValueError("Index of a qubit must be an integer")
-
-        if name in _single_qubit_gates:
-            if self.targets is None or len(self.targets) != 1:
-                raise ValueError("Gate %s requires one target" % name)
-            if self.controls:
-                raise ValueError("Gate %s cannot have a control" % name)
-        elif name in _swap_like:
-            if (self.targets is None) or (len(self.targets) != 2):
-                raise ValueError("Gate %s requires two targets" % name)
-            if self.controls:
-                raise ValueError("Gate %s cannot have a control" % name)
-        elif name in _ctrl_gates:
-            if self.targets is None or len(self.targets) != 1:
-                raise ValueError("Gate %s requires one target" % name)
-            if self.controls is None or len(self.controls) != 1:
-                raise ValueError("Gate %s requires one control" % name)
-        elif name in _fredkin_like:
-            if self.targets is None or len(self.targets) != 2:
-                raise ValueError("Gate %s requires one target" % name)
-            if self.controls is None or len(self.controls) != 1:
-                raise ValueError("Gate %s requires two control" % name)
-        elif name in _toffoli_like:
-            if self.targets is None or len(self.targets) != 1:
-                raise ValueError("Gate %s requires one target" % name)
-            if self.controls is None or len(self.controls) != 2:
-                raise ValueError("Gate %s requires two control" % name)
-
-        if name in _para_gates:
-            if arg_value is None:
-                raise ValueError("Gate %s requires an argument value" % name)
-        else:
-            if (name in _GATE_NAME_TO_LABEL) and (arg_value is not None):
-                raise ValueError("Gate %s does not take argument value" % name)
-
+        self.control_value = control_value
         self.arg_value = arg_value
         self.arg_label = arg_label
         self.latex_str = r"U"
+
+        for ind_list in [self.targets, self.controls, self.classical_controls]:
+            all_integer = all(
+                [isinstance(ind, numbers.Integral) for ind in ind_list]
+            )
+            if not all_integer:
+                raise ValueError("Index of a qubit must be an integer")
 
     def get_all_qubits(self):
         """
@@ -414,7 +395,7 @@ class Gate:
 
         all_targets = self.get_all_qubits()
         if num_qubits is None:
-            num_qubits = max(all_targets)
+            num_qubits = max(all_targets) + 1
         return expand_operator(
             self.get_compact_qobj(),
             N=num_qubits,
@@ -471,20 +452,9 @@ def _gate_label(name, arg_label):
     return r"%s" % gate_label
 
 
-class ParameterizedGate(Gate):
-    def __init__(self, targets, arg_value, **kwargs):
-        super().__init__(targets=targets, arg_value=arg_value, **kwargs)
-        self.name = "ParameterizedGate"
-        if arg_value is None:
-            raise ValueError(
-                f"Gate {self.__class__.__name__} requires an argument value."
-            )
-
-
 class SingleQubitGate(Gate):
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
-        self.name = "SingleQubitGate"
         if self.targets is None or len(self.targets) != 1:
             raise ValueError(
                 f"Gate {self.__class__.__name__} requires one target"
@@ -495,7 +465,7 @@ class SingleQubitGate(Gate):
             )
 
 
-class XGate(SingleQubitGate):
+class X(SingleQubitGate):
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
         self.name = "X"
@@ -505,7 +475,7 @@ class XGate(SingleQubitGate):
         return qutip.sigmax()
 
 
-class YGate(SingleQubitGate):
+class Y(SingleQubitGate):
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
         self.name = "Y"
@@ -515,7 +485,7 @@ class YGate(SingleQubitGate):
         return qutip.sigmay()
 
 
-class ZGate(SingleQubitGate):
+class Z(SingleQubitGate):
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
         self.name = "Z"
@@ -525,7 +495,7 @@ class ZGate(SingleQubitGate):
         return qutip.sigmaz()
 
 
-class RX(SingleQubitGate, ParameterizedGate):
+class RX(SingleQubitGate):
     def __init__(self, targets, arg_value, **kwargs):
         super().__init__(targets=targets, arg_value=arg_value, **kwargs)
         self.name = "RX"
@@ -535,7 +505,7 @@ class RX(SingleQubitGate, ParameterizedGate):
         return rx(self.arg_value)
 
 
-class RY(SingleQubitGate, ParameterizedGate):
+class RY(SingleQubitGate):
     def __init__(self, targets, arg_value, **kwargs):
         super().__init__(targets=targets, arg_value=arg_value, **kwargs)
         self.name = "RY"
@@ -545,7 +515,7 @@ class RY(SingleQubitGate, ParameterizedGate):
         return ry(self.arg_value)
 
 
-class RZ(SingleQubitGate, ParameterizedGate):
+class RZ(SingleQubitGate):
     def __init__(self, targets, arg_value, **kwargs):
         super().__init__(targets=targets, arg_value=arg_value, **kwargs)
         self.name = "RZ"
@@ -558,18 +528,14 @@ class RZ(SingleQubitGate, ParameterizedGate):
 class H(SingleQubitGate):
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
-        self.name = "H"
+        self.name = "SNOT"
         self.latex_str = r"{\rm H}"
 
     def get_compact_qobj(self):
         return snot()
 
 
-class SNOT(H):
-    def __init__(self, targets, **kwargs):
-        super().__init__(targets=targets, **kwargs)
-        self.name = "SNOT"
-        self.latex_str = r"{\rm H}"
+SNOT = H
 
 
 class SQRTNOT(SingleQubitGate):
@@ -615,7 +581,6 @@ class QASMU(SingleQubitGate):
 class TwoQubitGate(Gate):
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
-        self.name = "TwoQubitGate"
         if len(self.get_all_qubits()) != 2:
             raise ValueError(
                 f"Gate {self.__class__.__name__} requires two targets"
@@ -682,7 +647,7 @@ class BERKELEY(TwoQubitGate):
         return berkeley()
 
 
-class SWAPALPHA(TwoQubitGate, ParameterizedGate):
+class SWAPALPHA(TwoQubitGate):
     def __init__(self, targets, arg_value, **kwargs):
         super().__init__(targets=targets, arg_value=arg_value, **kwargs)
         self.name = "SWAPALPHA"
@@ -692,7 +657,7 @@ class SWAPALPHA(TwoQubitGate, ParameterizedGate):
         return swapalpha(self.arg_value)
 
 
-class MS(TwoQubitGate, ParameterizedGate):
+class MS(TwoQubitGate):
     def __init__(self, targets, arg_value, **kwargs):
         super().__init__(targets=targets, arg_value=arg_value, **kwargs)
         self.name = "MS"
@@ -722,10 +687,147 @@ class FREDKIN(Gate):
         return fredkin()
 
 
+class ControlledGate(Gate):
+    def __init__(
+        self, targets, controls, control_value, target_gate, **kwargs
+    ):
+        super().__init__(
+            targets=targets,
+            controls=controls,
+            control_value=control_value,
+            target_gate=target_gate,
+            **kwargs,
+        )
+        self.controls = (
+            [controls] if not isinstance(controls, list) else controls
+        )
+        self.control_value = control_value
+        self.target_gate = target_gate
+        self.kwargs = kwargs
+        # In the circuit plot, only the target gate is shown.
+        # The control has its own symbol.
+        self.latex_str = target_gate(
+            targets=self.targets, **self.kwargs
+        ).latex_str
+
+    def get_compact_qobj(self):
+        quantum_control_value = (
+            self.control_value[0]
+            if isinstance(self.control_value, Iterable)
+            else self.control_value
+        )
+        return controlled_gate(
+            U=self.target_gate(
+                targets=self.targets, **self.kwargs
+            ).get_compact_qobj(),
+            controls=list(range(len(self.controls))),
+            targets=list(
+                range(
+                    len(self.controls), len(self.targets) + len(self.controls)
+                )
+            ),
+            control_value=quantum_control_value,
+        )
+
+
+class _OneControlledGate(ControlledGate):
+    """
+    This class allows correctly generating the gate instance
+    when a redundant control_value is given, e.g.
+    ``CNOT(1, 0, control_value=1)``,
+    and raise an error if it is 0.
+    """
+
+    def __init__(self, targets, controls, target_gate, **kwargs):
+        _control_value = kwargs.get("control_value", None)
+        if _control_value is not None:
+            if (isinstance(_control_value, int) and _control_value != 1) or (
+                isinstance(_control_value, Iterable) and _control_value[0] != 1
+            ):
+                raise ValueError(
+                    f"{self.__class__.__name__} must has control_value=1"
+                )
+        else:
+            kwargs["control_value"] = 1
+        super().__init__(
+            targets=targets,
+            controls=controls,
+            target_gate=target_gate,
+            **kwargs,
+        )
+
+
+class CNOT(_OneControlledGate):
+    def __init__(self, targets, controls, **kwargs):
+        self.target_gate = X
+        super().__init__(
+            targets=targets,
+            controls=controls,
+            target_gate=self.target_gate,
+            **kwargs,
+        )
+        self.name = "CNOT"
+
+    def get_compact_qobj(self):
+        return cnot()
+
+
+class CSIGN(_OneControlledGate):
+    def __init__(self, targets, controls, **kwargs):
+        self.target_gate = Z
+        super().__init__(
+            targets=targets,
+            controls=controls,
+            target_gate=self.target_gate,
+            **kwargs,
+        )
+        self.name = "CSIGN"
+
+    def get_compact_qobj(self):
+        return csign()
+
+
+class CZ(CSIGN):
+    def __init__(self, targets, controls, **kwargs):
+        self.target_gate = Z
+        super().__init__(
+            targets=targets,
+            controls=controls,
+            **kwargs,
+        )
+        self.name = "CZ"
+
+
+class CPHASE(_OneControlledGate):
+    def __init__(
+        self, targets, controls, arg_value, control_value=1, **kwargs
+    ):
+        self.target_gate = RZ
+        super().__init__(
+            targets=targets,
+            controls=controls,
+            arg_value=arg_value,
+            target_gate=self.target_gate,
+            **kwargs,
+        )
+        self.name = "CPHASE"
+
+    def get_compact_qobj(self):
+        return cphase(self.arg_value)
+
+
+CRY = partial(_OneControlledGate, target_gate=RY)
+CRX = partial(_OneControlledGate, target_gate=RX)
+CRZ = partial(_OneControlledGate, target_gate=RZ)
+CY = partial(_OneControlledGate, target_gate=Y)
+CX = partial(_OneControlledGate, target_gate=X)
+CT = partial(_OneControlledGate, target_gate=T)
+CS = partial(_OneControlledGate, target_gate=S)
+
 GATE_CLASS_MAP = {
-    "X": XGate,
-    "Y": YGate,
-    "Z": ZGate,
+    "X": X,
+    "Y": Y,
+    "Z": Z,
     "RX": RX,
     "RY": RY,
     "RZ": RZ,
@@ -746,6 +848,17 @@ GATE_CLASS_MAP = {
     "MS": MS,
     "TOFFOLI": TOFFOLI,
     "FREDKIN": FREDKIN,
+    "CNOT": CNOT,
+    "CSIGN": CSIGN,
+    "CRX": CRX,
+    "CRY": CRY,
+    "CRZ": CRZ,
+    "CY": CY,
+    "CX": CX,
+    "CZ": CZ,
+    "CS": CS,
+    "CT": CT,
+    "CPHASE": CPHASE,
 }
 
 #
@@ -1574,41 +1687,59 @@ def rotation(op, phi, N=None, target=0):
     return (-1j * op * phi / 2).expm()
 
 
-def controlled_gate(U, N=2, control=0, target=1, control_value=1):
+def controlled_gate(
+    U,
+    controls=0,
+    targets=1,
+    N=None,
+    control_value=1,
+):
     """
     Create an N-qubit controlled gate from a single-qubit gate U with the given
     control and target qubits.
 
     Parameters
     ----------
-    U : Qobj
-        Arbitrary single-qubit gate.
-
-    N : integer
-        The number of qubits in the target space.
-
-    control : integer
+    U : :class:`qutip.Qobj`
+        An arbitrary unitary gate.
+    controls : list of int
         The index of the first control qubit.
-
-    target : integer
+    targets : list of int
         The index of the target qubit.
-
-    control_value : integer (1)
-        The state of the control qubit that activates the gate U.
+    N : int
+        The total number of qubits.
+    control_value : int
+        The decimal value of the controlled qubits that activates the gate U.
 
     Returns
     -------
     result : qobj
         Quantum object representing the controlled-U gate.
-
     """
+    # Compatibility
+    if not isinstance(targets, Iterable):
+        controls = [controls]
+    if not isinstance(targets, Iterable):
+        targets = [targets]
+    num_controls = len(controls)
+    num_targets = len(U.dims[0])
+    N = num_controls + num_targets if N is None else N
 
-    if [N, control, target] == [2, 0, 1]:
-        return tensor(fock_dm(2, control_value), U) + tensor(
-            fock_dm(2, 1 - control_value), identity(2)
-        )
-    U2 = controlled_gate(U, control_value=control_value)
-    return gate_expand_2toN(U2, N=N, control=control, target=target)
+    # First, assume that the last qubit is the target and control qubits are
+    # in the increasing order.
+    # The control_value is the location of this unitary.
+    block_matrices = [np.array([[1, 0], [0, 1]])] * 2 ** num_controls
+    block_matrices[control_value] = U.full()
+    from scipy.linalg import block_diag  # move this to the top of the file
+
+    result = block_diag(*block_matrices)
+    result = Qobj(result, dims=[[2] * (num_controls + num_targets)] * 2)
+
+    # Expand it to N qubits and permute qubits labelling
+    if controls + targets == list(range(N)):
+        return result
+    else:
+        return expand_operator(result, N, targets=controls + targets)
 
 
 def globalphase(theta, N=1):
@@ -2323,7 +2454,7 @@ def _targets_to_list(targets, oper=None, N=None):
     if not isinstance(targets, Iterable):
         targets = [targets]
     if not all([isinstance(t, numbers.Integral) for t in targets]):
-        raise TypeError("targets should be " "an integer or a list of integer")
+        raise TypeError("targets should be an integer or a list of integer")
     # if targets has correct length
     if oper is not None:
         req_num = len(oper.dims[0])
