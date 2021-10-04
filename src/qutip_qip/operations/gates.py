@@ -206,6 +206,8 @@ class Gate:
         self.latex_str = r"U"
 
         for ind_list in [self.targets, self.controls, self.classical_controls]:
+            if ind_list is None:
+                continue
             all_integer = all(
                 [isinstance(ind, numbers.Integral) for ind in ind_list]
             )
