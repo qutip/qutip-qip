@@ -57,64 +57,7 @@ __all__ = [
     "gate_expand_3toN",
     "qubit_clifford_group",
     "expand_operator",
-    "_single_qubit_gates",
-    "_para_gates",
-    "_ctrl_gates",
-    "_swap_like",
-    "_toffoli_like",
-    "_fredkin_like",
 ]
-
-
-_single_qubit_gates = [
-    "RX",
-    "RY",
-    "RZ",
-    "SNOT",
-    "SQRTNOT",
-    "PHASEGATE",
-    "X",
-    "Y",
-    "Z",
-    "S",
-    "T",
-    "QASMU",
-]
-_para_gates = [
-    "RX",
-    "RY",
-    "RZ",
-    "CPHASE",
-    "SWAPalpha",
-    "PHASEGATE",
-    "GLOBALPHASE",
-    "CRX",
-    "CRY",
-    "CRZ",
-    "QASMU",
-]
-_ctrl_gates = [
-    "CNOT",
-    "CSIGN",
-    "CRX",
-    "CRY",
-    "CRZ",
-    "CY",
-    "CZ",
-    "CS",
-    "CT",
-    "CPHASE",
-]
-_swap_like = [
-    "SWAP",
-    "ISWAP",
-    "SQRTISWAP",
-    "SQRTSWAP",
-    "BERKELEY",
-    "SWAPalpha",
-]
-_toffoli_like = ["TOFFOLI"]
-_fredkin_like = ["FREDKIN"]
 
 
 class Gate:
@@ -404,54 +347,6 @@ class Gate:
             targets=all_targets,
             dims=dims,
         )
-
-
-_GATE_NAME_TO_LABEL = {
-    "X": r"X",
-    "Y": r"Y",
-    "CY": r"C_y",
-    "Z": r"Z",
-    "CZ": r"C_z",
-    "S": r"S",
-    "CS": r"C_s",
-    "T": r"T",
-    "CT": r"C_t",
-    "RX": r"R_x",
-    "RY": r"R_y",
-    "RZ": r"R_z",
-    "CRX": r"R_x",
-    "CRY": r"R_y",
-    "CRZ": r"R_z",
-    "SQRTNOT": r"\sqrt{\rm NOT}",
-    "SNOT": r"{\rm H}",
-    "PHASEGATE": r"{\rm PHASE}",
-    "QASMU": r"{\rm QASM-U}",
-    "CPHASE": r"{\rm R}",
-    "CNOT": r"{\rm CNOT}",
-    "CSIGN": r"{\rm Z}",
-    "BERKELEY": r"{\rm BERKELEY}",
-    "SWAPalpha": r"{\rm SWAPalpha}",
-    "SWAP": r"{\rm SWAP}",
-    "ISWAP": r"{i}{\rm SWAP}",
-    "SQRTSWAP": r"\sqrt{\rm SWAP}",
-    "SQRTISWAP": r"\sqrt{{i}\rm SWAP}",
-    "FREDKIN": r"{\rm FREDKIN}",
-    "TOFFOLI": r"{\rm TOFFOLI}",
-    "GLOBALPHASE": r"{\rm Ph}",
-}
-
-
-def _gate_label(name, arg_label):
-
-    if name in _GATE_NAME_TO_LABEL:
-        gate_label = _GATE_NAME_TO_LABEL[name]
-    else:
-        warnings.warn("Unknown gate %s" % name)
-        gate_label = name
-
-    if arg_label:
-        return r"%s(%s)" % (gate_label, arg_label)
-    return r"%s" % gate_label
 
 
 class SingleQubitGate(Gate):
@@ -1730,7 +1625,7 @@ def controlled_gate(
     # First, assume that the last qubit is the target and control qubits are
     # in the increasing order.
     # The control_value is the location of this unitary.
-    block_matrices = [np.array([[1, 0], [0, 1]])] * 2 ** num_controls
+    block_matrices = [np.array([[1, 0], [0, 1]])] * 2**num_controls
     block_matrices[control_value] = U.full()
     from scipy.linalg import block_diag  # move this to the top of the file
 

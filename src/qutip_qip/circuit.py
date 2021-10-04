@@ -47,7 +47,7 @@ from .operations import (
     expand_operator,
     gate_sequence_product,
 )
-from .operations.gates import _gate_label, GATE_CLASS_MAP
+from .operations.gates import GATE_CLASS_MAP
 from qutip import basis, ket2dm, qeye
 from qutip import Qobj
 from qutip.measurement import measurement_statistics
@@ -1865,13 +1865,12 @@ class QubitCircuit:
                                     r" \multigate{%d}{%s} "
                                     % (
                                         len(gate.targets) - 1,
-                                        _gate_label(gate.name, gate.arg_label),
+                                        _gate_label(gate),
                                     )
                                 )
                             else:
                                 col.append(
-                                    r" \ghost{%s} "
-                                    % (_gate_label(gate.name, gate.arg_label))
+                                    r" \ghost{%s} " % (_gate_label(gate))
                                 )
 
                         elif gate.name == "CNOT":
@@ -1887,10 +1886,7 @@ class QubitCircuit:
                         elif gate.name == "TOFFOLI":
                             col.append(r" \targ ")
                         else:
-                            col.append(
-                                r" \gate{%s} "
-                                % _gate_label(gate.name, gate.arg_label)
-                            )
+                            col.append(r" \gate{%s} " % _gate_label(gate))
 
                     elif gate.controls and n in gate.controls:
                         control_tag = (-1 if self.reverse_states else 1) * (
@@ -1914,14 +1910,11 @@ class QubitCircuit:
                                 r" \multigate{%d}{%s} "
                                 % (
                                     self.N - 1,
-                                    _gate_label(gate.name, gate.arg_label),
+                                    _gate_label(gate),
                                 )
                             )
                         else:
-                            col.append(
-                                r" \ghost{%s} "
-                                % (_gate_label(gate.name, gate.arg_label))
-                            )
+                            col.append(r" \ghost{%s} " % (_gate_label(gate)))
                     else:
                         col.append(r" \qw ")
 
@@ -2071,6 +2064,13 @@ _latex_template = r"""
 %s}
 \end{document}
 """
+
+
+def _gate_label(gate):
+    gate_label = gate.latex_str
+    if gate.arg_label is not None:
+        return r"%s(%s)" % (gate_label, arg_label)
+    return r"%s" % gate_label
 
 
 class CircuitResult:

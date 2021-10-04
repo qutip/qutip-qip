@@ -11,9 +11,7 @@ from qutip import (tensor, Qobj, ptrace, rand_ket, fock_dm, basis,
                    rand_dm, bell_state, ket2dm, identity, sigmax)
 from qutip_qip.qasm import read_qasm
 from qutip_qip.operations import (
-    Gate, gates, gate_sequence_product,
-    _ctrl_gates, _single_qubit_gates, _swap_like, _toffoli_like, _fredkin_like,
-    _para_gates
+    Gate, gates, gate_sequence_product
 )
 
 from qutip_qip.decompose.decompose_single_qubit_gate import _ZYZ_rotation
