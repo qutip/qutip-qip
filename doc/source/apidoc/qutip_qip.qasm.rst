@@ -1,0 +1,27 @@
+﻿:orphan:
+
+qutip\_qip.qasm
+===============
+
+.. automodule:: qutip_qip.qasm
+   :members:
+   :show-inheritance:
+   :imported-members:
+
+   .. rubric:: Classes
+
+   .. autosummary::
+
+      QasmGate
+      QasmOutput
+      QasmProcessor
+
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      circuit_to_qasm_str
+      print_qasm
+      qasmu_gate
+      read_qasm
+      save_qasm
