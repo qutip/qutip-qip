@@ -476,7 +476,8 @@ class Pulse:
 
 class Drift:
     """
-    Representation of the time-independent drift Hamiltonian. Usually its the intrinsic
+    Representation of the time-independent drift Hamiltonian.
+    Usually its the intrinsic
     evolution of the quantum system that can not be tuned.
 
     Parameters
