@@ -10,7 +10,7 @@ from qutip_qip.decompose._utility import (
 from qutip_qip.circuit import Gate
 
 
-__all__ = ['decompose_one_qubit_gate']
+__all__ = ["decompose_one_qubit_gate"]
 
 
 def _angles_for_ZYZ(input_gate):

@@ -2107,6 +2107,7 @@ class CircuitResult:
     """
     Result of a quantum circuit simulation.
     """
+
     def __init__(self, final_states, probabilities, cbits=None):
         """
         Store result of CircuitSimulator.
@@ -2202,6 +2203,7 @@ class CircuitSimulator:
     """
     Operator based circuit simulator.
     """
+
     def __init__(
         self,
         qc,
