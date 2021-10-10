@@ -1,3 +1,4 @@
+"""Pulse representation of a quantum circuit."""
 import numpy as np
 from scipy.interpolate import CubicSpline
 
@@ -475,7 +476,7 @@ class Pulse:
 
 class Drift:
     """
-    The time independent drift Hamiltonian. Usually its the intrinsic
+    Representation of the time-independent drift Hamiltonian. Usually its the intrinsic
     evolution of the quantum system that can not be tuned.
 
     Parameters

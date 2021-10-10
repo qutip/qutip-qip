@@ -12,6 +12,5 @@ qutip\_qip.pulse
 
    .. autosummary::
    
-      CubicSpline
       Drift
       Pulse

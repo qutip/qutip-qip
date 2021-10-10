@@ -12,21 +12,7 @@ qutip\_qip.circuit
 
    .. autosummary::
    
+      QubitCircuit
       CircuitResult
       CircuitSimulator
-      DisplayImage
-      DisplaySVG
-      Measurement
-      QubitCircuit
-
-   .. rubric:: Functions
-
-   .. autosummary::
-
-      measurement_statistics
-   
-   
-
-   
-   
-   
+      Measurement   

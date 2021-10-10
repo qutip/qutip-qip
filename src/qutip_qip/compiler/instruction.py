@@ -7,7 +7,7 @@ __all__ = ["Instruction"]
 
 class Instruction:
     """
-    The instruction that implements a quantum gate.
+    Representation of pulses that implement a quantum gate.
     It contains the control pulse required to implement the gate
     on a particular hardware model.
 

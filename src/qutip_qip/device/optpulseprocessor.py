@@ -16,10 +16,9 @@ __all__ = ["OptPulseProcessor"]
 
 class OptPulseProcessor(Processor):
     """
-    A processor, which takes the Hamiltonian available
-    as dynamic generators, calls the
-    `qutip.control.optimize_pulse_unitary` function
-    to find an optimized pulse sequence for the desired quantum circuit.
+    A processor that uses
+    :obj:`qutip.control.optimize_pulse_unitary`
+    to find optimized pulses for a given quantum circuit.
     The processor can simulate the evolution under the given
     control pulses using :func:`qutip.mesolve`.
     (For attributes documentation, please

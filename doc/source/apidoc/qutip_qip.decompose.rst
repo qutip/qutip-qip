@@ -12,11 +12,4 @@ qutip\_qip.decompose
 
    .. autosummary::
 
-      check_gate
       decompose_one_qubit_gate
-
-   .. rubric:: Exceptions
-
-   .. autosummary::
-   
-      MethodError

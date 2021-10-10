@@ -8,14 +8,6 @@ qutip\_qip.qasm
    :show-inheritance:
    :imported-members:
 
-   .. rubric:: Classes
-
-   .. autosummary::
-
-      QasmGate
-      QasmOutput
-      QasmProcessor
-
    .. rubric:: Functions
 
    .. autosummary::

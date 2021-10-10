@@ -1,3 +1,6 @@
+"""
+Quantum circuit representation and simulation.
+"""
 from collections.abc import Iterable
 from itertools import product
 import numbers
@@ -2101,6 +2104,9 @@ class QubitCircuit:
 
 
 class CircuitResult:
+    """
+    Result of a quantum circuit simulation.
+    """
     def __init__(self, final_states, probabilities, cbits=None):
         """
         Store result of CircuitSimulator.
@@ -2193,6 +2199,9 @@ class CircuitResult:
 
 
 class CircuitSimulator:
+    """
+    Operator based circuit simulator.
+    """
     def __init__(
         self,
         qc,
