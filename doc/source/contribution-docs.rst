@@ -226,14 +226,18 @@ the case where code examples require both testing and rendering figures, it is
 easier to use the Plot directive. To learn more about each directive, it is useful
 to refer to their individual pages.
 
-Generate API documentation
-==========================
+API documentation
+-----------------
 
-One can use the following code to generate API documentation:
+If you are adding a new function or class in one of the existing modules,
+you only need to add it to the corresponding file in ``source/apidoc/``.
+If you are building a new module, first add the module to ``source/apidoc.rst``.
+Then add all the public classes and functions into ``source/apidoc/``.
+You may need to first use ``make clean`` to clean the build history before
+rebuilding the documentation.
 
-.. code-block::
-
-    cd doc
-    sphinx-apidoc -f -o source/_apidoc/ ../src/qutip_qip -T
-
-It scan the source code of qutip_qip and save the automatically generated API documentation under the path ``source/_apidoc/``.
+If the new module contains many new functions/classes, you could
+turn on the ``autosummary_generate = True`` in ``conf.py``.
+This will automatically generate all the files in ``source/apidoc/``, however,
+this will overwrite all the hand-optimized API documentation.
+Please revert other changes and keep only the file that you need.

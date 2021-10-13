@@ -1,3 +1,6 @@
+"""
+Simulation of quantum hardware.
+"""
 from .processor import Processor
 from .modelprocessor import ModelProcessor
 from .spinchain import SpinChain, LinearSpinChain, CircularSpinChain

@@ -1,3 +1,4 @@
+"""Generating qubit states."""
 __all__ = ["qubit_states"]
 
 from qutip import tensor, basis

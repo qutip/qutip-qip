@@ -13,7 +13,8 @@ __all__ = ["GateCompiler"]
 
 class GateCompiler(object):
     """
-    Base class. It compiles a :class:`.QubitCircuit` into
+    Base class of compilers, including the :meth:`GateCompiler.compile` method.
+    It compiles a :class:`.QubitCircuit` into
     the pulse sequence for the processor. The core member function
     `compile` calls compiling method from the sub-class and concatenate
     the compiled pulses.

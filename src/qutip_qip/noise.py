@@ -1,3 +1,4 @@
+"""Noise of quantum hardware."""
 import numbers
 import warnings
 from collections.abc import Iterable
@@ -513,7 +514,7 @@ class RandomNoise(ControlAmpNoise):
 
 class ZZCrossTalk(Noise):
     """
-    And an always-on ZZ cross talk noise with the corresponding coefficient
+    An always-on ZZ cross talk noise with the corresponding coefficient
     on each pair of qubits.
     The operator acts only one the lowerest two levels and
     is 0 on higher level.

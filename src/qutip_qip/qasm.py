@@ -1,3 +1,4 @@
+"""Importation and exportation of QASM circuits"""
 import re
 import os
 from itertools import chain

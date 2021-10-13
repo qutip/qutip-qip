@@ -47,7 +47,7 @@ qutip-qip: QuTiP quantum information processing
     :maxdepth: 2
     :caption: API documentation
 
-    _apidoc/qutip_qip.rst
+    apidoc.rst
 
 Indices and tables
 ==================

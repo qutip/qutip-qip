@@ -163,3 +163,12 @@ plot_html_show_source_link = False
 numpydoc_show_class_members = False
 napoleon_numpy_docstring = True
 napoleon_use_admonition_for_notes = True
+
+# -- Options for api doc ---------------------------------------
+# autosummary_generate can be turned on to automatically generate files
+# in the apidoc folder. This is particularly useful for modules with 
+# lots of functions/classes like qutip_qip.operations. However, pay
+# attention that some api docs files are adjusted manually for better illustration
+# and should not be overwritten.
+# autosummary_generate = True
+autosummary_imported_members = True
