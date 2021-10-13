@@ -132,6 +132,8 @@ class Processor(object):
     def N(self, value):
         self.num_qubits = value
 
+    ####################################################################
+    # Hamiltonian model
     def add_drift(self, qobj, targets, cyclic_permutation=False):
         """
         Add a drift Hamiltonians. The drift Hamiltonians are intrinsic
@@ -218,32 +220,20 @@ class Processor(object):
                 Pulse(qobj, targets, spline_kind=self.spline_kind, label=label)
             )
 
-    def get_pulse_dict(self):
-        label_list = {}
-        for i, pulse in enumerate(self.pulses):
-            if pulse.label:
-                label_list[pulse.label] = i
-        return label_list
+    def get_operators_labels(self):
+        """
+        Get the labels for each Hamiltonian.
+        It is used in the method method :meth:`.Processor.plot_pulses`.
+        It is a 2-d nested list, in the plot,
+        a different color will be used for each sublist.
+        """
+        label_list = []
+        for pulse in self.pulses:
+            label_list.append(pulse.label)
+        return [label_list]
 
-    def find_pulse(self, pulse_name):
-        pulse_dict = self.get_pulse_dict()
-        if isinstance(pulse_name, str):
-            try:
-                return self.pulses[pulse_dict[pulse_name]]
-            except (KeyError):
-                raise KeyError(
-                    "Pulse name {} undefined. "
-                    "Please define it in the attribute "
-                    "`pulse_dict`.".format(pulse_name)
-                )
-        elif isinstance(pulse_name, int):
-            return self.pulses[pulse_name]
-        else:
-            raise TypeError(
-                "pulse_name is either a string or an integer, not "
-                "{}".format(type(pulse_name))
-            )
-
+    ####################################################################
+    # Control coefficients
     @property
     def ctrls(self):
         """
@@ -295,36 +285,6 @@ class Processor(object):
                 self.pulses[i].coeff = coeff
         else:
             raise TypeError("Unknown coeffs type.")
-
-    @property
-    def pulse_mode(self):
-        """
-        If the given pulse is going to be interpreted as
-        "continuous" or "discrete".
-
-        :type: str
-        """
-        if self.spline_kind == "step_func":
-            return "discrete"
-        elif self.spline_kind == "cubic":
-            return "continuous"
-        else:
-            raise ValueError("Saved spline_kind not understood.")
-
-    @pulse_mode.setter
-    def pulse_mode(self, mode):
-        if mode == "discrete":
-            spline_kind = "step_func"
-        elif mode == "continuous":
-            spline_kind = "cubic"
-        else:
-            raise ValueError(
-                "Pulse mode must be either discrete or continuous."
-            )
-
-        self.spline_kind = spline_kind
-        for pulse in self.pulses:
-            pulse.spline_kind = spline_kind
 
     def get_full_tlist(self, tol=1.0e-10):
         """
@@ -398,6 +358,61 @@ class Processor(object):
                 raise ValueError("Unknown spline kind.")
         return np.array(coeffs_list)
 
+    def save_coeff(self, file_name, inctime=True):
+        """
+        Save a file with the control amplitudes in each timeslot.
+
+        Parameters
+        ----------
+        file_name: string
+            Name of the file.
+
+        inctime: bool, optional
+            True if the time list should be included in the first column.
+        """
+        self._is_pulses_valid()
+        coeffs = np.array(self.get_full_coeffs())
+        if inctime:
+            shp = coeffs.T.shape
+            data = np.empty((shp[0], shp[1] + 1), dtype=np.float64)
+            data[:, 0] = self.get_full_tlist()
+            data[:, 1:] = coeffs.T
+        else:
+            data = coeffs.T
+
+        np.savetxt(file_name, data, delimiter="\t", fmt="%1.16f")
+
+    def read_coeff(self, file_name, inctime=True):
+        """
+        Read the control amplitudes matrix and time list
+        saved in the file by `save_amp`.
+
+        Parameters
+        ----------
+        file_name: string
+            Name of the file.
+
+        inctime: bool, optional
+            True if the time list in included in the first column.
+
+        Returns
+        -------
+        tlist: array_like
+            The time list read from the file.
+
+        coeffs: array_like
+            The pulse matrix read from the file.
+        """
+        data = np.loadtxt(file_name, delimiter="\t")
+        if not inctime:
+            self.coeffs = data.T
+            return self.coeffs
+        else:
+            tlist = data[:, 0]
+            self.set_all_tlist(tlist)
+            self.coeffs = data[:, 1:].T
+            return self.get_full_tlist, self.coeffs
+
     def set_all_tlist(self, tlist):
         """
         Set the same `tlist` for all the pulses.
@@ -427,6 +442,8 @@ class Processor(object):
             for i in range(len(tlist)):
                 self.pulses[i].tlist = tlist[i]
 
+    ####################################################################
+    # Pulse
     def add_pulse(self, pulse):
         """
         Add a new pulse to the device.
@@ -510,6 +527,158 @@ class Processor(object):
                     )
         return True
 
+    def get_pulse_dict(self):
+        label_list = {}
+        for i, pulse in enumerate(self.pulses):
+            if pulse.label:
+                label_list[pulse.label] = i
+        return label_list
+
+    def find_pulse(self, pulse_name):
+        pulse_dict = self.get_pulse_dict()
+        if isinstance(pulse_name, str):
+            try:
+                return self.pulses[pulse_dict[pulse_name]]
+            except (KeyError):
+                raise KeyError(
+                    "Pulse name {} undefined. "
+                    "Please define it in the attribute "
+                    "`pulse_dict`.".format(pulse_name)
+                )
+        elif isinstance(pulse_name, int):
+            return self.pulses[pulse_name]
+        else:
+            raise TypeError(
+                "pulse_name is either a string or an integer, not "
+                "{}".format(type(pulse_name))
+            )
+
+    @property
+    def pulse_mode(self):
+        """
+        If the given pulse is going to be interpreted as
+        "continuous" or "discrete".
+
+        :type: str
+        """
+        if self.spline_kind == "step_func":
+            return "discrete"
+        elif self.spline_kind == "cubic":
+            return "continuous"
+        else:
+            raise ValueError("Saved spline_kind not understood.")
+
+    @pulse_mode.setter
+    def pulse_mode(self, mode):
+        if mode == "discrete":
+            spline_kind = "step_func"
+        elif mode == "continuous":
+            spline_kind = "cubic"
+        else:
+            raise ValueError(
+                "Pulse mode must be either discrete or continuous."
+            )
+
+        self.spline_kind = spline_kind
+        for pulse in self.pulses:
+            pulse.spline_kind = spline_kind
+
+    def plot_pulses(
+        self,
+        title=None,
+        figsize=(12, 6),
+        dpi=None,
+        show_axis=False,
+        rescale_pulse_coeffs=True,
+        num_steps=1000,
+    ):
+        """
+        Plot the ideal pulse coefficients.
+
+        Parameters
+        ----------
+        title: str, optional
+            Title for the plot.
+
+        figsize: tuple, optional
+            The size of the figure.
+
+        dpi: int, optional
+            The dpi of the figure.
+
+        show_axis: bool, optional
+            If the axis are shown.
+
+        rescale_pulse_coeffs: bool, optional
+            Rescale the hight of each pulses.
+
+        num_steps: int, optional
+            Number of time steps in the plot.
+
+        Returns
+        -------
+        fig: matplotlib.figure.Figure
+            The `Figure` object for the plot.
+
+        ax: matplotlib.axes._subplots.AxesSubplot
+            The axes for the plot.
+
+        Notes
+        -----
+        :meth:.Processor.plot_pulses` only works for array_like coefficients.
+        """
+        import matplotlib.pyplot as plt
+        import matplotlib.gridspec as gridspec
+
+        color_list = plt.rcParams["axes.prop_cycle"].by_key()["color"]
+
+        # create a axis for each pulse
+        fig = plt.figure(figsize=figsize, dpi=dpi)
+        grids = gridspec.GridSpec(len(self.pulses), 1)
+        grids.update(wspace=0.0, hspace=0.0)
+
+        tlist = np.linspace(0.0, self.get_full_tlist()[-1], num_steps)
+        dt = tlist[1] - tlist[0]
+
+        # make sure coeffs start and end with zero, for ax.fill
+        tlist = np.hstack(([-dt * 1.0e-20], tlist, [tlist[-1] + dt * 1.0e-20]))
+        coeffs = []
+        for pulse in self.pulses:
+            coeffs.append(_pulse_interpolate(pulse, tlist))
+
+        pulse_ind = 0
+        axis = []
+        for i, label_group in enumerate(self.get_operators_labels()):
+            for j, label in enumerate(label_group):
+                grid = grids[pulse_ind]
+                ax = plt.subplot(grid)
+                axis.append(ax)
+                ax.fill(tlist, coeffs[pulse_ind], color_list[i], alpha=0.7)
+                ax.plot(tlist, coeffs[pulse_ind], color_list[i])
+                if rescale_pulse_coeffs:
+                    ymax = np.max(np.abs(coeffs[pulse_ind])) * 1.1
+                else:
+                    ymax = np.max(np.abs(coeffs)) * 1.1
+                if ymax != 0.0:
+                    ax.set_ylim((-ymax, ymax))
+
+                # disable frame and ticks
+                if not show_axis:
+                    ax.set_xticks([])
+                    ax.spines["bottom"].set_visible(False)
+                ax.spines["top"].set_visible(False)
+                ax.spines["right"].set_visible(False)
+                ax.spines["left"].set_visible(False)
+                ax.set_yticks([])
+                ax.set_ylabel(label, rotation=0)
+                pulse_ind += 1
+                if i == 0 and j == 0 and title is not None:
+                    ax.set_title(title)
+        fig.tight_layout()
+        return fig, axis
+
+    ####################################################################
+    # Noise
     def add_noise(self, noise):
         """get_noisy_pulses
         Add a noise object to the processor
@@ -524,61 +693,8 @@ class Processor(object):
         else:
             raise TypeError("Input is not a Noise object.")
 
-    def save_coeff(self, file_name, inctime=True):
-        """
-        Save a file with the control amplitudes in each timeslot.
-
-        Parameters
-        ----------
-        file_name: string
-            Name of the file.
-
-        inctime: bool, optional
-            True if the time list should be included in the first column.
-        """
-        self._is_pulses_valid()
-        coeffs = np.array(self.get_full_coeffs())
-        if inctime:
-            shp = coeffs.T.shape
-            data = np.empty((shp[0], shp[1] + 1), dtype=np.float64)
-            data[:, 0] = self.get_full_tlist()
-            data[:, 1:] = coeffs.T
-        else:
-            data = coeffs.T
-
-        np.savetxt(file_name, data, delimiter="\t", fmt="%1.16f")
-
-    def read_coeff(self, file_name, inctime=True):
-        """
-        Read the control amplitudes matrix and time list
-        saved in the file by `save_amp`.
-
-        Parameters
-        ----------
-        file_name: string
-            Name of the file.
-
-        inctime: bool, optional
-            True if the time list in included in the first column.
-
-        Returns
-        -------
-        tlist: array_like
-            The time list read from the file.
-
-        coeffs: array_like
-            The pulse matrix read from the file.
-        """
-        data = np.loadtxt(file_name, delimiter="\t")
-        if not inctime:
-            self.coeffs = data.T
-            return self.coeffs
-        else:
-            tlist = data[:, 0]
-            self.set_all_tlist(tlist)
-            self.coeffs = data[:, 1:].T
-            return self.get_full_tlist, self.coeffs
-
+    ####################################################################
+    # Simulation API and utilities
     def get_noisy_pulses(self, device_noise=False, drift=False):
         """
         It takes the pulses defined in the `Processor` and
@@ -875,112 +991,6 @@ class Processor(object):
         (Defined in subclasses)
         """
         return U
-
-    def get_operators_labels(self):
-        """
-        Get the labels for each Hamiltonian.
-        It is used in the method method :meth:`.Processor.plot_pulses`.
-        It is a 2-d nested list, in the plot,
-        a different color will be used for each sublist.
-        """
-        label_list = []
-        for pulse in self.pulses:
-            label_list.append(pulse.label)
-        return [label_list]
-
-    def plot_pulses(
-        self,
-        title=None,
-        figsize=(12, 6),
-        dpi=None,
-        show_axis=False,
-        rescale_pulse_coeffs=True,
-        num_steps=1000,
-    ):
-        """
-        Plot the ideal pulse coefficients.
-
-        Parameters
-        ----------
-        title: str, optional
-            Title for the plot.
-
-        figsize: tuple, optional
-            The size of the figure.
-
-        dpi: int, optional
-            The dpi of the figure.
-
-        show_axis: bool, optional
-            If the axis are shown.
-
-        rescale_pulse_coeffs: bool, optional
-            Rescale the hight of each pulses.
-
-        num_steps: int, optional
-            Number of time steps in the plot.
-
-        Returns
-        -------
-        fig: matplotlib.figure.Figure
-            The `Figure` object for the plot.
-
-        ax: matplotlib.axes._subplots.AxesSubplot
-            The axes for the plot.
-
-        Notes
-        -----
-        :meth:.Processor.plot_pulses` only works for array_like coefficients.
-        """
-        import matplotlib.pyplot as plt
-        import matplotlib.gridspec as gridspec
-
-        color_list = plt.rcParams["axes.prop_cycle"].by_key()["color"]
-
-        # create a axis for each pulse
-        fig = plt.figure(figsize=figsize, dpi=dpi)
-        grids = gridspec.GridSpec(len(self.pulses), 1)
-        grids.update(wspace=0.0, hspace=0.0)
-
-        tlist = np.linspace(0.0, self.get_full_tlist()[-1], num_steps)
-        dt = tlist[1] - tlist[0]
-
-        # make sure coeffs start and end with zero, for ax.fill
-        tlist = np.hstack(([-dt * 1.0e-20], tlist, [tlist[-1] + dt * 1.0e-20]))
-        coeffs = []
-        for pulse in self.pulses:
-            coeffs.append(_pulse_interpolate(pulse, tlist))
-
-        pulse_ind = 0
-        axis = []
-        for i, label_group in enumerate(self.get_operators_labels()):
-            for j, label in enumerate(label_group):
-                grid = grids[pulse_ind]
-                ax = plt.subplot(grid)
-                axis.append(ax)
-                ax.fill(tlist, coeffs[pulse_ind], color_list[i], alpha=0.7)
-                ax.plot(tlist, coeffs[pulse_ind], color_list[i])
-                if rescale_pulse_coeffs:
-                    ymax = np.max(np.abs(coeffs[pulse_ind])) * 1.1
-                else:
-                    ymax = np.max(np.abs(coeffs)) * 1.1
-                if ymax != 0.0:
-                    ax.set_ylim((-ymax, ymax))
-
-                # disable frame and ticks
-                if not show_axis:
-                    ax.set_xticks([])
-                    ax.spines["bottom"].set_visible(False)
-                ax.spines["top"].set_visible(False)
-                ax.spines["right"].set_visible(False)
-                ax.spines["left"].set_visible(False)
-                ax.set_yticks([])
-                ax.set_ylabel(label, rotation=0)
-                pulse_ind += 1
-                if i == 0 and j == 0 and title is not None:
-                    ax.set_title(title)
-        fig.tight_layout()
-        return fig, axis
 
 
 def _pulse_interpolate(pulse, tlist):
