@@ -8,6 +8,7 @@ from ..operations import globalphase
 from ..circuit import QubitCircuit
 from .processor import Processor
 from ..compiler import GateCompiler
+from ..pulse import Pulse
 
 
 __all__ = ["ModelProcessor"]
@@ -55,19 +56,10 @@ class ModelProcessor(Processor):
         super(ModelProcessor, self).__init__(num_qubits, t1=t1, t2=t2, N=None)
         self.correct_global_phase = correct_global_phase
         self.global_phase = 0.0
-        self._params = {}
+        self.params = {}
         self.native_gates = None
         self.transpile_functions = []
         self._default_compiler = None
-
-    def to_array(self, params, num_qubits):
-        """
-        Transfer a parameter to an array.
-        """
-        if isinstance(params, numbers.Real):
-            return np.asarray([params] * num_qubits)
-        elif isinstance(params, Iterable):
-            return np.asarray(params)
 
     def set_up_params(self):
         """
@@ -79,19 +71,6 @@ class ModelProcessor(Processor):
         All parameters will be multiplied by 2*pi for simplicity
         """
         raise NotImplementedError("Parameters should be defined in subclass.")
-
-    @property
-    def params(self):
-        """
-        dict: A Python dictionary contains the name
-        and the value of the parameters
-        in the physical realization, such as laser frequency, detuning etc.
-        """
-        return self._params
-
-    @params.setter
-    def params(self, par):
-        self._params = par
 
     def run_state(
         self, init_state=None, analytical=False, qc=None, states=None, **kwargs
@@ -256,6 +235,16 @@ class ModelProcessor(Processor):
         else:
             raise ValueError("No compiler defined.")
         # Save compiler pulses
-        self.set_all_coeffs(coeffs)
-        self.set_all_tlist(tlist)
+        self.set_coeffs(coeffs)
+        self.set_tlist(tlist)
         return tlist, coeffs
+
+
+def _to_array(params, num_qubits):
+    """
+    Transfer a parameter to an array.
+    """
+    if isinstance(params, numbers.Real):
+        return np.asarray([params] * num_qubits)
+    elif isinstance(params, Iterable):
+        return np.asarray(params)

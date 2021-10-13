@@ -4,7 +4,8 @@ import numpy as np
 
 from qutip import sigmax, sigmay, sigmaz, tensor
 from ..circuit import QubitCircuit
-from .modelprocessor import ModelProcessor
+from .processor import Model
+from .modelprocessor import ModelProcessor, _to_array
 from ..pulse import Pulse
 from ..compiler import SpinChainCompiler
 from ..transpiler import to_chain_structure
@@ -66,69 +67,12 @@ class SpinChain(ModelProcessor):
             t2=t2,
             N=N,
         )
-        self.params = {  # default parameters, in the unit of frequency
-            "sx": 0.25,
-            "sz": 1.0,
-            "sxsy": 0.1,
-        }
+        self.params["num_qubits"] = num_qubits
         if params is not None:
             self.params.update(params)
         self.correct_global_phase = correct_global_phase
         self.spline_kind = "step_func"
-        self.pulse_dict = self.get_pulse_dict()
         self.native_gates = ["SQRTISWAP", "ISWAP", "RX", "RZ"]
-        # params and ops are set in the submethods
-
-    def set_up_ops(self, num_qubits):
-        """
-        Generate the Hamiltonians for the spinchain model and save them in the
-        attribute `ctrls`.
-
-        Parameters
-        ----------
-        num_qubits: int
-            The number of qubits in the system.
-        """
-        # sx_ops
-        for m in range(num_qubits):
-            self.add_control(2 * np.pi * sigmax(), m, label="sx" + str(m))
-        # sz_ops
-        for m in range(num_qubits):
-            self.add_control(2 * np.pi * sigmaz(), m, label="sz" + str(m))
-        # sxsy_ops
-        operator = tensor([sigmax(), sigmax()]) + tensor([sigmay(), sigmay()])
-        for n in range(num_qubits - 1):
-            self.add_control(
-                2 * np.pi * operator, [n, n + 1], label="g" + str(n)
-            )
-
-    def set_up_params(self):
-        """
-        Save the parameters in the attribute `params` and check the validity.
-        The keys of `params` including "sx", "sz", and "sxsy", each
-        mapped to a list for parameters corresponding to each qubits.
-        For coupling strength "sxsy", list element i is the interaction
-        between qubits i and i+1.
-        All parameters will be multiplied by 2*pi for simplicity
-
-        Parameters
-        ----------
-        sx: float or list
-            The coefficient of sigmax in the model
-
-        sz: flaot or list
-            The coefficient of sigmaz in the model
-
-        Notes
-        -----
-        The coefficient of sxsy is defined in the submethods.
-        """
-        sx = self.params["sx"]
-        sz = self.params["sz"]
-        sx_para = self.to_array(sx, self.num_qubits)
-        self._params["sx"] = sx_para
-        sz_para = self.to_array(sz, self.num_qubits)
-        self._params["sz"] = sz_para
 
     @property
     def sx_ops(self):
@@ -222,7 +166,7 @@ class LinearSpinChain(SpinChain):
         t1=None,
         t2=None,
         N=None,
-        **params
+        **params,
     ):
         super(LinearSpinChain, self).__init__(
             num_qubits,
@@ -230,20 +174,10 @@ class LinearSpinChain(SpinChain):
             t1=t1,
             t2=t2,
             N=N,
-            **params
+            **params,
         )
-        self.set_up_params()
-        self.set_up_ops(num_qubits)
-
-    def set_up_ops(self, num_qubits):
-        super(LinearSpinChain, self).set_up_ops(num_qubits)
-
-    def set_up_params(self):
-        # Doc same as in the parent class
-        super(LinearSpinChain, self).set_up_params()
-        sxsy = self.params["sxsy"]
-        sxsy_para = self.to_array(sxsy, self.num_qubits - 1)
-        self._params["sxsy"] = sxsy_para
+        self.model = SpinChainModel(setup="linear", **self.params)
+        self.params = self.model.params
 
     @property
     def sxsy_ops(self):
@@ -265,23 +199,6 @@ class LinearSpinChain(SpinChain):
         return super(LinearSpinChain, self).load_circuit(
             qc, "linear", schedule_mode=schedule_mode, compiler=compiler
         )
-
-    def get_operators_labels(self):
-        """
-        Get the labels for each Hamiltonian.
-        It is used in the method method :meth:`.Processor.plot_pulses`.
-        It is a 2-d nested list, in the plot,
-        a different color will be used for each sublist.
-        """
-        return [
-            [r"$\sigma_x^%d$" % n for n in range(self.num_qubits)],
-            [r"$\sigma_z^%d$" % n for n in range(self.num_qubits)],
-            [
-                r"$\sigma_x^%d\sigma_x^{%d} + \sigma_y^%d\sigma_y^{%d}$"
-                % (n, n + 1, n, n + 1)
-                for n in range(self.num_qubits - 1)
-            ],
-        ]
 
     def topology_map(self, qc):
         return to_chain_structure(qc, "linear")
@@ -331,7 +248,7 @@ class CircularSpinChain(SpinChain):
         t1=None,
         t2=None,
         N=None,
-        **params
+        **params,
     ):
         if num_qubits <= 1:
             raise ValueError(
@@ -344,26 +261,10 @@ class CircularSpinChain(SpinChain):
             t1=t1,
             t2=t2,
             N=N,
-            **params
+            **params,
         )
-        self.set_up_params()
-        self.set_up_ops(num_qubits)
-
-    def set_up_ops(self, num_qubits):
-        super(CircularSpinChain, self).set_up_ops(num_qubits)
-        operator = tensor([sigmax(), sigmax()]) + tensor([sigmay(), sigmay()])
-        self.add_control(
-            2 * np.pi * operator,
-            [num_qubits - 1, 0],
-            label="g" + str(num_qubits - 1),
-        )
-
-    def set_up_params(self):
-        # Doc same as in the parent class
-        super(CircularSpinChain, self).set_up_params()
-        sxsy = self.params["sxsy"]
-        sxsy_para = self.to_array(sxsy, self.num_qubits)
-        self.params["sxsy"] = sxsy_para
+        self.model = SpinChainModel(setup="circular", **self.params)
+        self.params = self.model.params
 
     @property
     def sxsy_ops(self):
@@ -386,22 +287,105 @@ class CircularSpinChain(SpinChain):
             qc, "circular", schedule_mode=schedule_mode, compiler=compiler
         )
 
-    def get_operators_labels(self):
+    def topology_map(self, qc):
+        return to_chain_structure(qc, "circular")
+
+
+class SpinChainModel(Model):
+    def __init__(self, **params):
+        self.params = {  # default parameters, in the unit of frequency
+            "sx": 0.25,
+            "sz": 1.0,
+            "sxsy": 0.1,
+        }
+        self._drift = []
+        self.params.update(deepcopy(params))
+        self._controls = self._set_up_controls(self.params["num_qubits"])
+        self.params.update(self._compute_params())
+
+    def get_all_drift(self):
+        return self._drift
+
+    @property
+    def _old_index_label_map(self):
+        num_qubits = self.params["num_qubits"]
+        return (
+            ["sx" + str(i) for i in range(num_qubits)]
+            + ["sz" + str(i) for i in range(num_qubits)]
+            + ["g" + str(i) for i in range(num_qubits)]
+        )
+
+    def get_control(self, label):
+        """label should be hashable"""
+        _old_index_label_map = self._old_index_label_map
+        if isinstance(label, int):
+            label = _old_index_label_map[label]
+        return self._controls[label]
+
+    def get_control_labels(self):
+        return list(self._controls.keys())
+
+    def _get_num_coupling(self):
+        if self.params["setup"] == "linear":
+            num_coupling = self.params["num_qubits"] - 1
+        elif self.params["setup"] == "circular":
+            num_coupling = self.params["num_qubits"]
+        else:
+            raise ValueError(
+                "Parameter setup needs to be linear or circular, "
+                f"not {self.params['setup']}"
+            )
+        return num_coupling
+
+    def _set_up_controls(self, num_qubits):
+        """
+        Generate the Hamiltonians for the spinchain model and save them in the
+        attribute `ctrls`.
+
+        Parameters
+        ----------
+        num_qubits: int
+            The number of qubits in the system.
+        """
+        controls = {}
+        # sx_controls
+        for m in range(num_qubits):
+            controls["sx" + str(m)] = (2 * np.pi * sigmax(), m)
+        # sz_controls
+        for m in range(num_qubits):
+            controls["sz" + str(m)] = (2 * np.pi * sigmaz(), m)
+        # sxsy_controls
+        num_coupling = self._get_num_coupling()
+        if num_coupling == 0:
+            return controls
+        operator = tensor([sigmax(), sigmax()]) + tensor([sigmay(), sigmay()])
+        for n in range(num_coupling):
+            controls["g" + str(n)] = (
+                2 * np.pi * operator,
+                [n, (n + 1) % num_qubits],
+            )
+        return controls
+
+    def _compute_params(self):
+        num_qubits = self.params["num_qubits"]
+        computed_params = {}
+        computed_params["sx"] = _to_array(self.params["sx"], num_qubits)
+        computed_params["sz"] = _to_array(self.params["sz"], num_qubits)
+        num_coupling = self._get_num_coupling()
+        computed_params["sxsy"] = _to_array(self.params["sxsy"], num_coupling)
+        return computed_params
+
+    def get_latex_str(self):
         """
         Get the labels for each Hamiltonian.
         It is used in the method method :meth:`.Processor.plot_pulses`.
         It is a 2-d nested list, in the plot,
         a different color will be used for each sublist.
         """
+        num_qubits = self.params["num_qubits"]
+        num_coupling = self._get_num_coupling()
         return [
-            [r"$\sigma_x^%d$" % n for n in range(self.num_qubits)],
-            [r"$\sigma_z^%d$" % n for n in range(self.num_qubits)],
-            [
-                r"$\sigma_x^%d\sigma_x^{%d} + \sigma_y^%d\sigma_y^{%d}$"
-                % (n, (n + 1) % self.num_qubits, n, (n + 1) % self.num_qubits)
-                for n in range(self.num_qubits)
-            ],
+            {f"sx{m}": f"$\sigma_x^{m}$" for m in range(num_qubits)},
+            {f"sz{m}": f"$\sigma_z^{m}$" for m in range(num_qubits)},
+            {f"g{m}": f"$\sigma_x^{m}\sigma_x^{m} + \sigma_y^{m}\sigma_y^{m}$" for m in range(num_coupling)},
         ]
-
-    def topology_map(self, qc):
-        return to_chain_structure(qc, "circular")

@@ -8,7 +8,7 @@ from qutip import Qobj, identity, tensor, mesolve
 import qutip.control.pulseoptim as cpo
 from ..circuit import QubitCircuit
 from .processor import Processor
-from ..operations import gate_sequence_product
+from ..operations import gate_sequence_product, expand_operator
 
 
 __all__ = ["OptPulseProcessor"]
@@ -176,10 +176,25 @@ class OptPulseProcessor(Processor):
             if gates is not None and setting_args:
                 kwargs.update(setting_args[gates[prop_ind]])
 
-            full_drift_ham = self.drift.get_ideal_qobjevo(self.dims).cte
-            full_ctrls_hams = [
-                pulse.get_ideal_qobj(self.dims) for pulse in self.pulses
-            ]
+            # FIXME use model
+            full_drift_ham = sum(
+                [
+                    expand_operator(
+                        qobj, len(self.dims), targets=targets, dims=self.dims
+                    )
+                    for (qobj, targets) in self.model.get_all_drift()
+                ]
+            )
+
+            control_labels = self.model.get_control_labels()
+            full_ctrls_hams = []
+            for label in control_labels:
+                qobj, targets = self.model.get_control(label)
+                full_ctrls_hams.append(
+                    expand_operator(
+                        qobj, len(self.dims), targets=targets, dims=self.dims
+                    )
+                )
             result = cpo.optimize_pulse_unitary(
                 full_drift_ham, full_ctrls_hams, U_0, U_targ, **kwargs
             )
@@ -208,6 +223,8 @@ class OptPulseProcessor(Processor):
         for i in range(len(self.pulses)):
             self.pulses[i].tlist = tlist
         coeffs = np.vstack([np.hstack(coeff_record)])
-        self.coeffs = coeffs
 
+        coeffs = {label: coeff for label, coeff in zip(control_labels, coeffs)}
+        self.set_coeffs(coeffs)
+        self.set_tlist(tlist)
         return tlist, coeffs

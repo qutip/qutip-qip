@@ -112,13 +112,14 @@ class Processor(object):
         self.t1 = t1
         self.t2 = t2
         self.noise = []
-        self.drift = Drift()
         if dims is None:
             self.dims = [2] * self.num_qubits
         else:
             self.dims = dims
         self.pulse_mode = "discrete"
         self.spline_kind = spline_kind
+        self.params = {}
+        self.model = Model(**self.params)
 
     @property
     def N(self):
@@ -134,120 +135,139 @@ class Processor(object):
 
     ####################################################################
     # Hamiltonian model
-    def add_drift(self, qobj, targets, cyclic_permutation=False):
+    @property
+    def drift(self):
         """
-        Add a drift Hamiltonians. The drift Hamiltonians are intrinsic
+        The drift Hamiltonian in the form ``[(qobj, targets), ...]``
+        :type: list
+        """
+        return self.model.get_all_drift()
+
+    def _get_drift_obj(self):
+        """generate the Drift representation"""
+        drift_obj = Drift()
+        for qobj, targets in self.model.get_all_drift():
+            num_qubits = len(qobj.dims[0])
+            if isinstance(targets, int):
+                targets = [targets]
+            drift_obj.add_drift(qobj, targets)
+        return drift_obj
+
+    def _unify_targets(self, qobj, targets):
+        if targets is None:
+            targets = list(range(len(qobj.dims[0])))
+        if not isinstance(targets, Iterable):
+            targets = [targets]
+        return targets
+        
+    def add_drift(self, qobj, targets=None, cyclic_permutation=False):
+        """
+        Add the drift Hamiltonian to the model.
+        The drift Hamiltonians are intrinsic
         of the quantum system and cannot be controlled by external field.
 
         Parameters
         ----------
         qobj : :class:`qutip.Qobj`
             The drift Hamiltonian.
-        targets: list
+        targets : list, optional
             The indices of the target qubits
             (or subquantum system of other dimensions).
+        cyclic_permutation : bool, optional
+            If true, the Hamiltonian will be added for all qubits,
+            e.g. if ``targets=[0,1]``, and there are 2 qubits,
+            The Hamiltonian will be added to the target qubits
+            ``[0,1]``, ``[1,2]`` and ``[2,0]``.
         """
-        if not isinstance(qobj, Qobj):
-            raise TypeError("The drift Hamiltonian must be a qutip.Qobj.")
-        if not qobj.isherm:
-            raise ValueError("The drift Hamiltonian must be Hermitian.")
-
-        num_qubits = len(qobj.dims[0])
-        if targets is None:
-            targets = list(range(num_qubits))
-        if not isinstance(targets, list):
-            targets = [targets]
+        targets = self._unify_targets(qobj, targets)
         if cyclic_permutation:
             for i in range(self.num_qubits):
                 temp_targets = [(t + i) % self.num_qubits for t in targets]
-                self.drift.add_drift(qobj, temp_targets)
+                self.model._drift.append((qobj, temp_targets))
         else:
-            self.drift.add_drift(qobj, targets)
+            self.model._drift.append((qobj, targets))
 
     def add_control(
         self, qobj, targets=None, cyclic_permutation=False, label=None
     ):
         """
-        Add a control Hamiltonian to the processor. It creates a new
-        :class:`.Pulse`
-        object for the device that is turned off
-        (``tlist = None``, ``coeff = None``). To activate the pulse, one
-        can set its `tlist` and `coeff`.
+        Add a control Hamiltonian to the model.
 
         Parameters
         ----------
         qobj : :obj:`qutip.Qobj`
-            The Hamiltonian for the control pulse..
+            The control Hamiltonian.
 
-        targets: list, optional
+        targets : list, optional
             The indices of the target qubits
-            (or subquantum system of other dimensions).
+            (or composite quantum systems).
 
-        cyclic_permutation: bool, optional
-            If true, the Hamiltonian will be expanded for
-            all cyclic permutation of the target qubits.
+        cyclic_permutation : bool, optional
+            If true, the Hamiltonian will be added for all qubits,
+            e.g. if ``targets=[0,1]``, and there are 2 qubits,
+            the Hamiltonian will be added to the target qubits
+            ``[0,1]``, ``[1,2]`` and ``[2,0]``.
 
-        label: str, optional
-            The label (name) of the pulse
+        label : str, optional
+            The label (name) of the control Hamiltonian. If ``None``,
+            it will be set to the current number of
+            control Hamiltonians in the system.
         """
-        # Check validity of ctrl
-        if not isinstance(qobj, Qobj):
-            raise TypeError("The control Hamiltonian must be a qutip.Qobj.")
-        if not qobj.isherm:
-            raise ValueError("The control Hamiltonian must be Hermitian.")
-
-        num_qubits = len(qobj.dims[0])
-        if targets is None:
-            targets = list(range(num_qubits))
-        if not isinstance(targets, list):
-            targets = [targets]
+        targets = self._unify_targets(qobj, targets)
+        if label is None:
+            label = len(self.model._controls)
         if cyclic_permutation:
             for i in range(self.num_qubits):
                 temp_targets = [(t + i) % self.num_qubits for t in targets]
-                if label is not None:
-                    temp_label = label + "_" + str(temp_targets)
-                temp_label = label
-                self.pulses.append(
-                    Pulse(
-                        qobj,
-                        temp_targets,
-                        spline_kind=self.spline_kind,
-                        label=temp_label,
-                    )
-                )
+                temp_label = (label, tuple(temp_targets))
+                self.model._controls[temp_label] = (qobj, temp_targets)
         else:
-            self.pulses.append(
-                Pulse(qobj, targets, spline_kind=self.spline_kind, label=label)
-            )
+            self.model._controls[label] = (qobj, targets)
 
-    def get_operators_labels(self):
+    def get_control(self, label):
+        """Get the control Hamiltonian, see :obj:`.Model.get_control`."""
+        return self.model.get_control(label)
+
+    def get_control_labels(self):
+        """Get the labels for all control Hamiltonians,
+        see :obj:`.Model.get_control_labels`."""
+        return self.model.get_control_labels()
+
+    def get_latex_str(self):
         """
         Get the labels for each Hamiltonian.
         It is used in the method method :meth:`.Processor.plot_pulses`.
         It is a 2-d nested list, in the plot,
         a different color will be used for each sublist.
         """
-        label_list = []
-        for pulse in self.pulses:
-            label_list.append(pulse.label)
-        return [label_list]
+        if hasattr(self.model, "get_latex_str"):
+            return self.model.get_latex_str()
+        labels = self.model.get_control_labels()
+        return [{label: label for label in labels}]
 
     ####################################################################
     # Control coefficients
     @property
-    def ctrls(self):
+    def controls(self):
         """
-        A list of Hamiltonians of all pulses.
+        A list of the ideal control Hamiltonians in all saved pulses.
+        Note that control Hamiltonians with no pulse will not be included.
+        The order matches with :obj:`Processor.coeffs`
         """
         result = []
         for pulse in self.pulses:
-            result.append(pulse.get_ideal_qobj(self.dims))
+            result.append(
+                pulse.get_ideal_qobj(dims=self.dims)
+            )
         return result
+
+    ctrls = controls
 
     @property
     def coeffs(self):
         """
-        A list of the coefficients for all control pulses.
+        A list of ideal control coefficients for all saved pulses.
+        The order matches with :obj:`Processor.controls`
         """
         if not self.pulses:
             return None
@@ -256,35 +276,81 @@ class Processor(object):
 
     @coeffs.setter
     def coeffs(self, coeffs):
-        self.set_all_coeffs(coeffs)
+        self.set_coeffs(coeffs)
 
-    def set_all_coeffs(self, coeffs):
+    def _generate_iterator_from_dict_or_list(self, value):
+        if isinstance(value, dict):
+            iterator = value.items()
+        elif isinstance(value, (list, np.ndarray)):
+            iterator = enumerate(value)
+        else:
+            raise ValueError("Wrong type.")
+        return iterator
+
+    def set_coeffs(self, coeffs):
         """
-        Save the coeffs in the processor.
+        Clear all the existing pulses and
+        reset the coefficients for the control Hamiltonians.
 
         Parameters
         ----------
-        coeffs: dict or list of NumPy arraries.
+        coeffs: NumPy arraries, dict or list.
+            - If it is an 1-D array, all the pulses will be set
+              by this tlist.
+            - If it is a dict, it should be a map of
+              the label of control Hamiltonians and
+            availablerresponding coefficients.
+              Use :obj:`.Processor.get_control_labels()` to see the
+              available Hamiltonians.
+            - If it is a list of arrays or a 2D NumPy array,
+            it is treated same to ``dict``, only that
+              the pulse label is assumed to be integers from 0
+              to ``len(coeffs)-1``.
+        """
+        self.clear_pulses()
+        iterator = self._generate_iterator_from_dict_or_list(coeffs)
+        for label, coeff in iterator:
+            label = label
+            ham, targets = self.model.get_control(label)
+            self.add_pulse(
+                Pulse(
+                    ham,
+                    targets,
+                    coeff=coeffs[label],
+                    spline_kind=self.spline_kind,
+                    label=label,
+                )
+            )
+    
+    set_all_coeffs = set_coeffs
+    set_all_coeffs.__doct__="Equivalent to :obj:`Processor.set_coeffs`."
+
+    def set_tlist(self, tlist):
+        """
+        Set the ``tlist`` for all existing pulses. It assumes that
+        pulses all already added to the processor.
+        To add pulses automatically, first use :obj:`Processor.set_coeffs`.
+
+        Parameters
+        ----------
+        tlist: dict or list of NumPy arraries.
             If it is a dict, it should be a map between pulse label and
-            the corresponding coefficients.
+            the time sequences.
             If it is a list of arrays or a 2D NumPy array,
             each array will be associated
             to a pulse, following the order in the pulse list.
         """
-        if isinstance(coeffs, dict):
-            pulse_dict = self.get_pulse_dict()
-            for pulse_name, value in coeffs.items():
-                if pulse_name in pulse_dict:
-                    self.pulses[pulse_dict[pulse_name]].coeff = value
-                elif isinstance(pulse_name, int):
-                    self.pulses[pulse_name].coeff = value
-                else:
-                    raise ValueError("Pulse {} not found".format(pulse_name))
-        elif isinstance(coeffs, (list, np.ndarray)):
-            for i, coeff in enumerate(coeffs):
-                self.pulses[i].coeff = coeff
-        else:
-            raise TypeError("Unknown coeffs type.")
+        if isinstance(tlist, np.ndarray) and len(tlist.shape) == 1:
+            for pulse in self.pulses:
+                pulse.tlist = tlist
+            return
+        iterator = self._generate_iterator_from_dict_or_list(tlist)
+        pulse_dict = self.get_pulse_dict()
+        for pulse_label, value in iterator:
+            self.pulses[pulse_dict[pulse_label]].tlist = value
+
+    set_all_tlist = set_tlist
+    set_all_coeffs.__doct__="Equivalent to :obj:`Processor.set_tlist`."
 
     def get_full_tlist(self, tol=1.0e-10):
         """
@@ -372,15 +438,17 @@ class Processor(object):
         """
         self._is_pulses_valid()
         coeffs = np.array(self.get_full_coeffs())
+        header = ';'.join([str(pulse.label) for pulse in self.pulses])
         if inctime:
             shp = coeffs.T.shape
             data = np.empty((shp[0], shp[1] + 1), dtype=np.float64)
             data[:, 0] = self.get_full_tlist()
             data[:, 1:] = coeffs.T
+            header = ';' + header
         else:
             data = coeffs.T
 
-        np.savetxt(file_name, data, delimiter="\t", fmt="%1.16f")
+        np.savetxt(file_name, data, delimiter="\t", fmt="%1.16f", header=header)
 
     def read_coeff(self, file_name, inctime=True):
         """
@@ -403,44 +471,39 @@ class Processor(object):
         coeffs: array_like
             The pulse matrix read from the file.
         """
+        f = open(file_name)
+        header = f.readline()
+        label_list = header[2: -1].split(';')
+        f.close()
+
         data = np.loadtxt(file_name, delimiter="\t")
         if not inctime:
-            self.coeffs = data.T
-            return self.coeffs
+            coeffs = data.T
         else:
             tlist = data[:, 0]
-            self.set_all_tlist(tlist)
-            self.coeffs = data[:, 1:].T
-            return self.get_full_tlist, self.coeffs
+            coeffs = data[:, 1:].T
+            label_list = label_list[1:]
+        coeffs = {label : coeffs[i] for i, label in enumerate(label_list)}
+        self.set_coeffs(coeffs)
+        if not inctime:
+            return coeffs
+        else:
+            self.set_tlist(tlist)
+            return self.get_full_tlist, coeffs
 
-    def set_all_tlist(self, tlist):
-        """
-        Set the same `tlist` for all the pulses.
+    def add_noise(self, noise):
+        """get_noisy_pulses
+        Add a noise object to the processor
 
         Parameters
         ----------
-        tlist: dict or list of NumPy arraries.
-            If it is a dict, it should be a map between pulse label and
-            the time sequences.
-            If it is a list of arrays or a 2D NumPy array,
-            each array will be associated
-            to a pulse, following the order in the pulse list.
+        noise : :class:`.Noise`
+            The noise object defined outside the processor
         """
-        if isinstance(tlist, (np.ndarray)) and len(tlist.shape) == 1:
-            for pulse in self.pulses:
-                pulse.tlist = tlist
-        elif isinstance(tlist, dict):
-            pulse_dict = self.get_pulse_dict()
-            for pulse_name, value in tlist.items():
-                if pulse_name in pulse_dict:
-                    self.pulses[pulse_dict[pulse_name]].tlist = value
-                elif isinstance(pulse_name, int):
-                    self.pulses[pulse_name].tlist = value
-                else:
-                    raise ValueError("Pulse {} not found".format(pulse_name))
+        if isinstance(noise, Noise):
+            self.noise.append(noise)
         else:
-            for i in range(len(tlist)):
-                self.pulses[i].tlist = tlist[i]
+            raise TypeError("Input is not a Noise object.")
 
     ####################################################################
     # Pulse
@@ -481,6 +544,9 @@ class Processor(object):
             for ind, pulse in enumerate(self.pulses):
                 if pulse.label == label:
                     del self.pulses[ind]
+
+    def clear_pulses(self):
+        self.pulses = []
 
     def _is_pulses_valid(self):
         """
@@ -528,9 +594,10 @@ class Processor(object):
         return True
 
     def get_pulse_dict(self):
+        # FIXME
         label_list = {}
         for i, pulse in enumerate(self.pulses):
-            if pulse.label:
+            if pulse.label is not None:
                 label_list[pulse.label] = i
         return label_list
 
@@ -627,6 +694,7 @@ class Processor(object):
         -----
         :meth:.Processor.plot_pulses` only works for array_like coefficients.
         """
+        # FIXME fix if pulse is not fully defined.
         import matplotlib.pyplot as plt
         import matplotlib.gridspec as gridspec
 
@@ -634,7 +702,7 @@ class Processor(object):
 
         # create a axis for each pulse
         fig = plt.figure(figsize=figsize, dpi=dpi)
-        grids = gridspec.GridSpec(len(self.pulses), 1)
+        grids = gridspec.GridSpec(len(self.model.get_control_labels()), 1)
         grids.update(wspace=0.0, hspace=0.0)
 
         tlist = np.linspace(0.0, self.get_full_tlist()[-1], num_steps)
@@ -648,15 +716,20 @@ class Processor(object):
 
         pulse_ind = 0
         axis = []
-        for i, label_group in enumerate(self.get_operators_labels()):
-            for j, label in enumerate(label_group):
+        for i, label_group in enumerate(self.get_latex_str()):
+            for j, (label, latex_str) in enumerate(label_group.items()):
+                try:
+                    pulse = self.find_pulse(label)
+                    coeff = _pulse_interpolate(pulse, tlist)
+                except KeyError:
+                    coeff = np.zeros(tlist.shape)
                 grid = grids[pulse_ind]
                 ax = plt.subplot(grid)
                 axis.append(ax)
-                ax.fill(tlist, coeffs[pulse_ind], color_list[i], alpha=0.7)
-                ax.plot(tlist, coeffs[pulse_ind], color_list[i])
+                ax.fill(tlist, coeff, color_list[i], alpha=0.7)
+                ax.plot(tlist, coeff, color_list[i])
                 if rescale_pulse_coeffs:
-                    ymax = np.max(np.abs(coeffs[pulse_ind])) * 1.1
+                    ymax = np.max(np.abs(coeff)) * 1.1
                 else:
                     ymax = np.max(np.abs(coeffs)) * 1.1
                 if ymax != 0.0:
@@ -670,28 +743,12 @@ class Processor(object):
                 ax.spines["right"].set_visible(False)
                 ax.spines["left"].set_visible(False)
                 ax.set_yticks([])
-                ax.set_ylabel(label, rotation=0)
+                ax.set_ylabel(latex_str, rotation=0)
                 pulse_ind += 1
                 if i == 0 and j == 0 and title is not None:
                     ax.set_title(title)
         fig.tight_layout()
         return fig, axis
-
-    ####################################################################
-    # Noise
-    def add_noise(self, noise):
-        """get_noisy_pulses
-        Add a noise object to the processor
-
-        Parameters
-        ----------
-        noise : :class:`.Noise`
-            The noise object defined outside the processor
-        """
-        if isinstance(noise, Noise):
-            self.noise.append(noise)
-        else:
-            raise TypeError("Input is not a Noise object.")
 
     ####################################################################
     # Simulation API and utilities
@@ -727,7 +784,8 @@ class Processor(object):
             device_noise=device_noise,
         )
         if drift:
-            noisy_pulses += [self.drift]
+            drift_obj = self._get_drift_obj()
+            noisy_pulses += [drift_obj]
         return noisy_pulses
 
     def get_qobjevo(self, args=None, noisy=False):
@@ -822,13 +880,17 @@ class Processor(object):
 
         # Compute drift Hamiltonians
         H_drift = 0
-        for drift_ham in self.drift.drift_hamiltonians:
+        drift = self._get_drift_obj()
+        for drift_ham in drift.drift_hamiltonians:
             H_drift += drift_ham.get_qobj(self.dims)
 
         # Compute control Hamiltonians
         for n in range(len(tlist) - 1):
             H = H_drift + sum(
-                [coeffs[m, n] * self.ctrls[m] for m in range(len(self.ctrls))]
+                [
+                    coeffs[m, n] * self.pulses[m].get_ideal_qobj(self.dims)
+                    for m in range(len(self.pulses))
+                ]
             )
             dt = tlist[n + 1] - tlist[n]
             U = (-1j * H * dt).expm()
@@ -1020,3 +1082,41 @@ def _pulse_interpolate(pulse, tlist):
         pulse.tlist, coeff, kind=kind, bounds_error=False, fill_value=0.0
     )
     return inter(tlist)
+
+
+class Model:
+    def __init__(self, **params):
+        self.params = deepcopy(params)
+        self._controls = {}
+        self._drift = []
+
+    def get_all_drift(self):
+        return self._drift
+
+    def get_control(self, label):
+        """label should be hashable"""
+        if hasattr(self, "_old_index_label_map"):
+            _old_index_label_map = self._old_index_label_map
+            if isinstance(label, int):
+                label = _old_index_label_map[label]
+        return self._controls[label]
+
+    def get_control_labels(self):
+        return list(self._controls.keys())
+
+    def get_all_controls(self):
+        return self._controls
+
+    def add_drift(self, qobj, targets=None, cyclic_permutation=False):
+        if not hasattr(self, "_drift"):
+            raise NotImplementedError(
+                "The model does not support adding drift."
+            )
+        self._drift.append((qobj, targets))
+
+    def add_control(self, label, qobj, targets):
+        if not hasattr(self, "_controls"):
+            raise NotImplementedError(
+                "The model does not support adding controls."
+            )
+        self._controls[label] = (qobj, targets)
