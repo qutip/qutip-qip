@@ -299,20 +299,22 @@ class Test_expand_operator:
                              [0, 0, 0, 1, 0, 0, 0, 0]])
         np.testing.assert_allclose(test, expected, atol=1e-15)
 
-
     def test_hadamard_explicit(self):
         test = gates.hadamard_transform(3).full()
-        expected = np.array([[ 1,  1,  1,  1,  1,  1,  1,  1],
-                            [ 1, -1,  1, -1,  1, -1,  1, -1],
-                            [ 1,  1, -1, -1,  1,  1, -1, -1],
-                            [ 1, -1, -1,  1,  1, -1, -1,  1],
-                            [ 1,  1,  1,  1, -1, -1, -1, -1],
-                            [ 1, -1,  1, -1, -1,  1, -1,  1],
-                            [ 1,  1, -1, -1, -1, -1,  1,  1],
-                            [ 1, -1, -1,  1, -1,  1,  1, -1]])
-        expected = expected/np.sqrt(8)
+        expected = np.array(
+            [
+                [1, 1, 1, 1, 1, 1, 1, 1],
+                [1, -1, 1, -1, 1, -1, 1, -1],
+                [1, 1, -1, -1, 1, 1, -1, -1],
+                [1, -1, -1, 1, 1, -1, -1, 1],
+                [1, 1, 1, 1, -1, -1, -1, -1],
+                [1, -1, 1, -1, -1, 1, -1, 1],
+                [1, 1, -1, -1, -1, -1, 1, 1],
+                [1, -1, -1, 1, -1, 1, 1, -1],
+            ]
+        )
+        expected = expected / np.sqrt(8)
         np.testing.assert_allclose(test, expected)
-
 
     def test_cyclic_permutation(self):
         operators = [qutip.sigmax(), qutip.sigmaz()]
