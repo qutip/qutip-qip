@@ -40,7 +40,7 @@ method.
 
 .. testcode::
 
-  from qutip import tensor
+  from qutip import tensor, basis
   zero_state = tensor(basis(2, 0), basis(2, 0), basis(2, 0))
   result = qc.run(state=zero_state)
   wstate = result
@@ -94,42 +94,42 @@ outputs, we can use the :meth:`.QubitCircuit.run_statistics` function:
 .. testoutput::
   :options: +NORMALIZE_WHITESPACE
 
-    State:
-    Quantum object: dims = [[2, 2, 2], [1, 1, 1]], shape = (8, 1), type = ket
-    Qobj data =
-    [[0.]
-    [1.]
-    [0.]
-    [0.]
-    [0.]
-    [0.]
-    [0.]
-    [0.]]
-    with probability 0.33333257054168813
-    State:
-    Quantum object: dims = [[2, 2, 2], [1, 1, 1]], shape = (8, 1), type = ket
-    Qobj data =
-    [[0.]
-    [0.]
-    [1.]
-    [0.]
-    [0.]
-    [0.]
-    [0.]
-    [0.]]
-    with probability 0.33333257054168813
-    State:
-    Quantum object: dims = [[2, 2, 2], [1, 1, 1]], shape = (8, 1), type = ket
-    Qobj data =
-    [[0.]
-    [0.]
-    [0.]
-    [0.]
-    [1.]
-    [0.]
-    [0.]
-    [0.]]
-    with probability 0.33333485891662384
+  State:
+  Quantum object: dims = [[2, 2, 2], [1, 1, 1]], shape = (8, 1), type = ket
+  Qobj data =
+  [[0.]
+   [1.]
+   [0.]
+   [0.]
+   [0.]
+   [0.]
+   [0.]
+   [0.]]
+  with probability 0.3333325705416881
+  State:
+  Quantum object: dims = [[2, 2, 2], [1, 1, 1]], shape = (8, 1), type = ket
+  Qobj data =
+  [[0.]
+   [0.]
+   [1.]
+   [0.]
+   [0.]
+   [0.]
+   [0.]
+   [0.]]
+  with probability 0.3333325705416881
+  State:
+  Quantum object: dims = [[2, 2, 2], [1, 1, 1]], shape = (8, 1), type = ket
+  Qobj data =
+  [[0.]
+   [0.]
+   [0.]
+   [0.]
+   [1.]
+   [0.]
+   [0.]
+   [0.]]
+  with probability 0.33333485891662384
 
 The function returns a :class:`~.Result` object which contains
 the output states.
@@ -187,7 +187,7 @@ The :class:`.CircuitSimulator` class also enables stepping through the circuit:
    [0.        ]
    [0.        ]]
 
-This only excutes one gate in the circuit and
+This only executes one gate in the circuit and
 allows for a better understanding of how the state evolution takes place.
 The method steps through both the gates and the measurements.
 
