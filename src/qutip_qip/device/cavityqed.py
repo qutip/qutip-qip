@@ -41,75 +41,33 @@ class DispersiveCavityQED(ModelProcessor):
     num_qubits: int
         The number of qubits in the system.
 
+    num_levels: int, optional
+        The number of energy levels in the resonator.
+
     correct_global_phase: float, optional
         Save the global phase, the analytical solution
         will track the global phase.
         It has no effect on the numerical solution.
 
-    num_levels: int, optional
-        The number of energy levels in the resonator.
-
-    t1: list or float, optional
-        Characterize the decoherence of amplitude damping for
-        each qubit. A list of size `num_qubits` or a float for all qubits.
-
-    t2: list of float, optional
-        Characterize the decoherence of dephasing for
-        each qubit. A list of size `num_qubits` or a float for all qubits.
-
     **params:
-        Keyword argument for hardware parameters, in the unit of GHz.
-        Qubit parameters can either be a float or a list of the length
-        ``num_qubits``.
-
-        - ``deltamax``: the pulse strength of sigma-x control, default ``1.0``
-        - ``epsmax``: the pulse strength of sigma-z control, default ``9.5``
-        - ``eps``: the bare transition frequency for each of the qubits,
-          default ``9.5``
-        - ``delta``: the coupling between qubit states, default ``0.0``
-        - ``g``: the coupling strength between the resonator and the qubit,
-          default ``1.0``
-        - ``w0``: the bare frequency of the resonator. Should only be a float,
-          default ``0.01``
-
-        The dressed qubit frequency is `wq` is computed by
-        :math:`w_q=\sqrt{\epsilon^2+\delta^2}`
-
-    Attributes
-    ----------
-    wq: list of float
-        The frequency of the qubits calculated from
-        eps and delta for each qubit.
-
-    Delta: list of float
-        The detuning with respect to w0 calculated
-        from wq and w0 for each qubit.
+        Hardware parameters. See :obj:`CavityQEDModel`.
     """
 
     def __init__(
-        self,
-        num_qubits,
-        correct_global_phase=True,
-        num_levels=10,
-        t1=None,
-        t2=None,
-        **params
+        self, num_qubits, num_levels=10, correct_global_phase=True, **params
     ):
+        model = CavityQEDModel(
+            num_qubits=num_qubits,
+            num_levels=num_levels,
+            **params,
+        )
         super(DispersiveCavityQED, self).__init__(
-            num_qubits, correct_global_phase=correct_global_phase, t1=t1, t2=t2
+            model=model, correct_global_phase=correct_global_phase
         )
         self.correct_global_phase = correct_global_phase
-        self.spline_kind = "step_func"
         self.num_levels = num_levels
-        self.params = {}
-        if params is not None:
-            self.params.update(params)
-        self.params["num_qubits"] = num_qubits
-        self.params["num_levels"] = num_levels
-        self.model = DispersiveCavityQEDModel(**self.params)
-        self.params = self.model.params
-        self.dims = [num_levels] + [2] * num_qubits
         self.native_gates = ["SQRTISWAP", "ISWAP", "RX", "RZ"]
+        self.spline_kind = "step_func"
 
     @property
     def sx_ops(self):
@@ -172,8 +130,49 @@ class DispersiveCavityQED(ModelProcessor):
         return tlist, coeff
 
 
-class DispersiveCavityQEDModel(Model):
-    def __init__(self, **params):
+class CavityQEDModel(Model):
+    """
+    The physical model for a dispersive cavity-QED system.
+
+    Parameters
+    ----------
+    num_qubits : int
+        The number of component systems.
+    num_levels : int, optional
+        The truncation level of the resonator.
+    **params :
+        Keyword arguments for hardware parameters, in the unit of GHz.
+        Qubit parameters can either be a float or a list of the length
+        ``num_qubits``.
+
+        - deltamax: float or list, optional
+            The pulse strength of sigma-x control, default ``1.0``.
+        - epsmax: float or list, optional
+            The pulse strength of sigma-z control, default ``9.5``.
+        - eps: float or list, optional
+            The bare transition frequency for each of the qubits,
+            default ``9.5``.
+        - delta : float or list, optional
+            The coupling between qubit states, default ``0.0``.
+        - g : float or list, optional
+            The coupling strength between the resonator and the qubit,
+            default ``1.0``.
+        - w0 : float, optional
+            The bare frequency of the resonator. Should only be a float,
+            default ``0.01``.
+        - t1 : float or list, optional
+            Characterize the amplitude damping for each qubit.
+        - t2 : list of list, optional
+            Characterize the total dephasing for each qubit.
+
+        The dressed qubit frequency is `wq` is computed by
+        :math:`w_q=\sqrt{\epsilon^2+\delta^2}`
+    """
+
+    def __init__(self, num_qubits, num_levels=10, **params):
+        self.num_qubits = num_qubits
+        self.num_levels = num_levels
+        self.dims = [num_levels] + [2] * num_qubits
         self.params = {  # default parameters
             "deltamax": 1.0,
             "epsmax": 9.5,
@@ -182,32 +181,23 @@ class DispersiveCavityQEDModel(Model):
             "delta": 0.0,
             "g": 0.01,
         }
-        self._drift = []
         self.params.update(deepcopy(params))
+        self._drift = []
         self._controls = self._set_up_controls()
         self._compute_params()
+        self._noise = []
 
     def get_all_drift(self):
         return self._drift
 
     @property
     def _old_index_label_map(self):
-        num_qubits = self.params["num_qubits"]
+        num_qubits = self.num_qubits
         return (
             ["sx" + str(i) for i in range(num_qubits)]
             + ["sz" + str(i) for i in range(num_qubits)]
             + ["g" + str(i) for i in range(num_qubits)]
         )
-
-    def get_control(self, label):
-        """label should be hashable"""
-        _old_index_label_map = self._old_index_label_map
-        if isinstance(label, int):
-            label = _old_index_label_map[label]
-        return self._controls[label]
-
-    def get_control_labels(self):
-        return list(self._controls.keys())
 
     def _set_up_controls(self):
         """
@@ -220,8 +210,8 @@ class DispersiveCavityQEDModel(Model):
             The number of qubits in the system.
         """
         controls = {}
-        num_qubits = self.params["num_qubits"]
-        num_levels = self.params["num_levels"]
+        num_qubits = self.num_qubits
+        num_levels = self.num_levels
         # single qubit terms
         for m in range(num_qubits):
             controls["sx" + str(m)] = (2 * np.pi * sigmax(), [m + 1])
@@ -250,7 +240,7 @@ class DispersiveCavityQEDModel(Model):
         """
         Compute the qubit frequency and detune.
         """
-        num_qubits = self.params["num_qubits"]
+        num_qubits = self.num_qubits
         w0 = self.params["w0"]  # only one resonator
         # same parameters for all qubits if it is not a list
         for name in ["epsmax", "deltamax", "eps", "delta", "g"]:
@@ -281,9 +271,9 @@ class DispersiveCavityQEDModel(Model):
         It is a 2-d nested list, in the plot,
         a different color will be used for each sublist.
         """
-        num_qubits = self.params["num_qubits"]
+        num_qubits = self.num_qubits
         return [
-            {f"sx{m}": f"$\sigma_x^{m}$" for m in range(num_qubits)},
-            {f"sz{m}": f"$\sigma_z^{m}$" for m in range(num_qubits)},
+            {f"sx{m}": r"$\sigma_x^" + f"{m}$" for m in range(num_qubits)},
+            {f"sz{m}": r"$\sigma_z^" + f"{m}$" for m in range(num_qubits)},
             {f"g{m}": f"$g^{m}$" for m in range(num_qubits)},
         ]

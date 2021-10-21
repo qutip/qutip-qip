@@ -26,30 +26,31 @@ class OptPulseProcessor(Processor):
 
     Parameters
     ----------
-    N: int
+    num_qubits : int
         The number of component systems.
 
     drift: `:class:`qutip.Qobj`
         The drift Hamiltonian. The size must match the whole quantum system.
 
-    t1: list or float
-        Characterize the decoherence of amplitude damping for
-        each qubit. A list of size `N` or a float for all qubits.
-
-    t2: list of float
-        Characterize the decoherence of dephasing for
-        each qubit. A list of size `N` or a float for all qubits.
-
     dims: list
         The dimension of each component system.
-        Default value is a
-        qubit system of ``dim=[2,2,2,...,2]``
+        Default value is a qubit system of ``dim=[2,2,2,...,2]``
+
+    **params:
+        - t1 : float or list, optional
+            Characterize the amplitude damping for each qubit.
+            A list of size `num_qubits` or a float for all qubits.
+        - t2 : float or list, optional
+            Characterize the total dephasing for each qubit.
+            A list of size `num_qubits` or a float for all qubits.
     """
 
-    def __init__(self, N, drift=None, t1=None, t2=None, dims=None):
-        super(OptPulseProcessor, self).__init__(N, t1=t1, t2=t2, dims=dims)
+    def __init__(self, num_qubits, drift=None, dims=None, **params):
+        super(OptPulseProcessor, self).__init__(
+            num_qubits, dims=dims, **params
+        )
         if drift is not None:
-            self.add_drift(drift, list(range(N)))
+            self.add_drift(drift, list(range(num_qubits)))
         self.spline_kind = "step_func"
 
     def load_circuit(
@@ -76,11 +77,11 @@ class OptPulseProcessor(Processor):
 
         >>> from qutip_qip.circuit import QubitCircuit
         >>> from qutip_qip.device import OptPulseProcessor
-        >>> qc = QubitCircuit(N=1)
+        >>> qc = QubitCircuit(num_qubits=1)
         >>> qc.add_gate("SNOT", 0)
         >>> num_tslots = 10
         >>> evo_time = 10
-        >>> processor = OptPulseProcessor(N=1, drift=sigmaz())
+        >>> processor = OptPulseProcessor(num_qubits=1, drift=sigmaz())
         >>> processor.add_control(sigmax())
         >>> # num_tslots and evo_time are two keyword arguments
         >>> tlist, coeffs = processor.load_circuit(\
@@ -90,12 +91,12 @@ class OptPulseProcessor(Processor):
 
         >>> from qutip_qip.circuit import QubitCircuit
         >>> from qutip_qip.device import OptPulseProcessor
-        >>> qc = QubitCircuit(N=2)
+        >>> qc = QubitCircuit(num_qubits=2)
         >>> qc.add_gate("SNOT", 0)
         >>> qc.add_gate("SWAP", targets=[0, 1])
         >>> qc.add_gate('CNOT', controls=1, targets=[0])
         >>> processor = OptPulseProcessor(\
-                N=2, drift=tensor([sigmaz()]*2))
+                num_qubits=2, drift=tensor([sigmaz()]*2))
         >>> processor.add_control(sigmax(), cyclic_permutation=True)
         >>> processor.add_control(sigmay(), cyclic_permutation=True)
         >>> processor.add_control(tensor([sigmay(), sigmay()]))

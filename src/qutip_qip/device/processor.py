@@ -1,10 +1,12 @@
 from collections.abc import Iterable
 import warnings
 from copy import deepcopy
+from typing import Any, List, Tuple
 
 import numpy as np
 from scipy.interpolate import CubicSpline
 
+import qutip
 from qutip import Qobj, QobjEvo, identity, tensor, mesolve, mcsolve
 from ..operations import expand_operator, globalphase
 from ..circuit import QubitCircuit
@@ -24,34 +26,21 @@ __all__ = ["Processor"]
 
 class Processor(object):
     """
-    A simulator of a quantum device based on the QuTiP solver
-    :func:`qutip.mesolve`.
-    It is defined by the available driving Hamiltonian and
-    the decoherence time for each component systems.
-    The processor can simulate the evolution under the given
-    control pulses. Noisy evolution is supported by
-    :class:`.Noise` and can be added to the processor.
+    The noisy quantum device simulator using QuTiP dynamic solvers.
+    It compiles quantum circuit into a Hamiltonian model and then
+    simulate the time-evolution described by the master equation.
 
     Parameters
     ----------
-    num_qubits: int
+    num_qubits : int, optional
         The number of component systems.
-        It replaces the old API is ``N``.
+        It replaces the old API ``N``.
 
-    t1: list or float, optional
-        Characterize the decoherence of amplitude damping for
-        each qubit. A list of size `num_qubits` or a float for all qubits.
-
-    t2: list of float, optional
-        Characterize the decoherence of dephasing for
-        each qubit. A list of size `num_qubits` or a float for all qubits.
-
-    dims: list, optional
+    dims : list, optional
         The dimension of each component system.
-        Default value is a
-        qubit system of ``dim=[2,2,2,...,2]``
+        Default value is a qubit system of ``dim=[2,2,2,...,2]``.
 
-    spline_kind: str, optional
+    spline_kind : str, optional
         Type of the coefficient interpolation. Default is "step_func"
         Note that they have different requirement for the length of ``coeff``.
 
@@ -65,83 +54,125 @@ class Processor(object):
         -"cubic": Use cubic interpolation for the coefficient. It requires
         ``len(coeff)=len(tlist)``
 
-    Attributes
-    ----------
-    num_qubits: int
-        The number of component systems.
+    model : :obj:`Model`
+        Provide a predefined physical model of the simulated hardware.
+        If other parameters, such as `t1` is given as input, it will overwrite those saved in :obj:`Processor.model.params`.
 
-    pulses : list of :class:`.Pulse`
-        A list of control pulses of this device
-
-    t1: float or list
-        Characterize the decoherence of amplitude damping of
-        each qubit.
-
-    t2: float or list
-        Characterize the decoherence of dephasing for
-        each qubit.
-
-    noise : :class:`.Noise`, optional
-        A list of noise objects. They will be processed when creating the
-        noisy :class:`qutip.QobjEvo` from the processor or run the simulation.
-
-    drift : :class:`.Drift`
-        A `Drift` object representing the drift Hamiltonians.
-
-    dims: list
-        The dimension of each component system.
-        Default value is a
-        qubit system of ``dim=[2,2,2,...,2]``
-
-    spline_kind: str
-        Type of the coefficient interpolation.
-        See parameters of :class:`.Processor` for details.
+    **params:
+        - t1 : float or list, optional
+            Characterize the amplitude damping for each qubit.
+            A list of size `num_qubits` or a float for all qubits.
+        - t2 : float or list, optional
+            Characterize the dephasing for each qubit.
+            A list of size `num_qubits` or a float for all qubits.
     """
 
     def __init__(
         self,
         num_qubits=None,
-        t1=None,
-        t2=None,
         dims=None,
         spline_kind="step_func",
+        model=None,
         N=None,
+        **params
     ):
-        self.num_qubits = num_qubits if (num_qubits is not None) else N
-        self.pulses = []
-        self.t1 = t1
-        self.t2 = t2
-        self.noise = []
-        if dims is None:
-            self.dims = [2] * self.num_qubits
+        num_qubits = num_qubits if num_qubits is not None else N
+        if model is None:
+            self.model = Model(num_qubits=num_qubits, dims=dims, **params)
         else:
-            self.dims = dims
-        self.pulse_mode = "discrete"
+            self.model = model
+            self.model.num_qubits = (
+                num_qubits if num_qubits is not None else self.model.num_qubits
+            )
+            self.model.dims = dims if dims is not None else self.model.dims
+            self.model.params.update(deepcopy(params))
+        self.pulses = []
+        # FIXME # Think about the handling of spline_kind.
         self.spline_kind = spline_kind
-        self.params = {}
-        self.model = Model(**self.params)
 
     @property
-    def N(self):
+    def num_qubits(self):
         """
         Number of qubits (or subsystems). For backward compatibility.
         :type: int
         """
-        return self.num_qubits
+        return self.model.num_qubits
 
-    @N.setter
-    def N(self, value):
-        self.num_qubits = value
+    @property
+    def dims(self):
+        """
+        The dimension of each component system.
+        :type: list
+        """
+        return self.model.dims
+
+    @property
+    def t1(self):
+        """
+        Characterize the decoherence of amplitude damping of
+        each qubit.
+        :type: float or list
+        """
+        return self.params.get("t1", None)
+
+    @t1.setter
+    def t1(self, value):
+        self.params.get("t1", None)
+
+    @property
+    def t2(self):
+        """
+        Characterize the decoherence of dephasing for
+        each qubit.
+        :type: float or list
+        """
+        return self.params.get("t2", None)
+
+    @t2.setter
+    def t2(self, value):
+        self.params.get("t2", None)
+
+    @property
+    def params(self):
+        """
+        Hardware parameters.
+        :type: dict
+        """
+        return self.model.params
+
+    @property
+    def noise(self):
+        """.coverage"""
+        if hasattr(self.model, "get_noise"):
+            return self.model.get_noise()
+        else:
+            return []
+
+    @property
+    def N(self):
+        return self.num_qubits
 
     ####################################################################
     # Hamiltonian model
+    def get_all_drift(self):
+        """
+        Get all the drift Hamiltonians.
+
+        Returns
+        -------
+        drift_hamiltonian_list : list
+            A list of drift Hamiltonians in the form of
+            ``[(qobj, targets), ...]``.
+        """
+        return self.model.get_all_drift()
+
     @property
     def drift(self):
         """
         The drift Hamiltonian in the form ``[(qobj, targets), ...]``
         :type: list
         """
-        return self.model.get_all_drift()
+        return self.get_all_drift()
 
     def _get_drift_obj(self):
         """generate the Drift representation"""
@@ -159,7 +190,7 @@ class Processor(object):
         if not isinstance(targets, Iterable):
             targets = [targets]
         return targets
-        
+
     def add_drift(self, qobj, targets=None, cyclic_permutation=False):
         """
         Add the drift Hamiltonian to the model.
@@ -183,9 +214,9 @@ class Processor(object):
         if cyclic_permutation:
             for i in range(self.num_qubits):
                 temp_targets = [(t + i) % self.num_qubits for t in targets]
-                self.model._drift.append((qobj, temp_targets))
+                self.model._add_drift(qobj, temp_targets)
         else:
-            self.model._drift.append((qobj, targets))
+            self.model._add_drift(qobj, targets)
 
     def add_control(
         self, qobj, targets=None, cyclic_permutation=False, label=None
@@ -220,30 +251,79 @@ class Processor(object):
             for i in range(self.num_qubits):
                 temp_targets = [(t + i) % self.num_qubits for t in targets]
                 temp_label = (label, tuple(temp_targets))
-                self.model._controls[temp_label] = (qobj, temp_targets)
+                self.model._add_control(temp_label, qobj, temp_targets)
         else:
-            self.model._controls[label] = (qobj, targets)
+            self.model._add_control(label, qobj, targets)
 
     def get_control(self, label):
-        """Get the control Hamiltonian, see :obj:`.Model.get_control`."""
+        """
+        Get the the control Hamiltonian corresponding to the label.
+
+        Parameters
+        ----------
+        label :
+            A label that identify the Hamiltonian.
+
+        Returns
+        -------
+        control_hamiltonian : tuple
+            The control Hamiltonian in the form of ``(qobj, targets)``.
+        """
         return self.model.get_control(label)
 
     def get_control_labels(self):
-        """Get the labels for all control Hamiltonians,
-        see :obj:`.Model.get_control_labels`."""
+        """
+        Get a list of all available control Hamiltonians.
+
+        Returns
+        -------
+        label_list : list
+            A list of hashable objects each corresponds to an availbale control Hamiltonian.
+        """
         return self.model.get_control_labels()
 
     def get_latex_str(self):
         """
-        Get the labels for each Hamiltonian.
-        It is used in the method method :meth:`.Processor.plot_pulses`.
-        It is a 2-d nested list, in the plot,
-        a different color will be used for each sublist.
+        Get the latex string for each Hamiltonian.
+        It is used in the method :meth:`.Processor.plot_pulses`.
+        It is a list of dictionary.
+        In the plot, a different color will be used
+        for each dictionary in the list.
+
+        Returns
+        -------
+        nested_latex_str : list of dict
+            E.g.: ``[{"sx": "\sigma_z"}, {"sy": "\sigma_y"}]``.
         """
         if hasattr(self.model, "get_latex_str"):
             return self.model.get_latex_str()
         labels = self.model.get_control_labels()
         return [{label: label for label in labels}]
+
+    def get_noise(self):
+        """
+        Get a list of :obj:`.Noise` objects.
+
+        Returns
+        -------
+        noise_list : list
+            A list of :obj:`.Noise`.
+        """
+        return self.model.get_noise()
+
+    def add_noise(self, noise):
+        """get_noisy_pulses
+        Add a noise object to the processor.
+
+        Parameters
+        ----------
+        noise : :class:`.Noise`
+            The noise object defined outside the processor.
+        """
+        if isinstance(noise, Noise):
+            self.model._add_noise(noise)
+        else:
+            raise TypeError("Input is not a Noise object.")
 
     ####################################################################
     # Control coefficients
@@ -256,9 +336,7 @@ class Processor(object):
         """
         result = []
         for pulse in self.pulses:
-            result.append(
-                pulse.get_ideal_qobj(dims=self.dims)
-            )
+            result.append(pulse.get_ideal_qobj(dims=self.dims))
         return result
 
     ctrls = controls
@@ -299,11 +377,11 @@ class Processor(object):
               by this tlist.
             - If it is a dict, it should be a map of
               the label of control Hamiltonians and
-            availablerresponding coefficients.
+              availablerresponding coefficients.
               Use :obj:`.Processor.get_control_labels()` to see the
               available Hamiltonians.
             - If it is a list of arrays or a 2D NumPy array,
-            it is treated same to ``dict``, only that
+              it is treated same to ``dict``, only that
               the pulse label is assumed to be integers from 0
               to ``len(coeffs)-1``.
         """
@@ -321,9 +399,9 @@ class Processor(object):
                     label=label,
                 )
             )
-    
+
     set_all_coeffs = set_coeffs
-    set_all_coeffs.__doct__="Equivalent to :obj:`Processor.set_coeffs`."
+    set_all_coeffs.__doct__ = "Equivalent to :obj:`Processor.set_coeffs`."
 
     def set_tlist(self, tlist):
         """
@@ -350,7 +428,7 @@ class Processor(object):
             self.pulses[pulse_dict[pulse_label]].tlist = value
 
     set_all_tlist = set_tlist
-    set_all_coeffs.__doct__="Equivalent to :obj:`Processor.set_tlist`."
+    set_all_coeffs.__doct__ = "Equivalent to :obj:`Processor.set_tlist`."
 
     def get_full_tlist(self, tol=1.0e-10):
         """
@@ -438,17 +516,19 @@ class Processor(object):
         """
         self._is_pulses_valid()
         coeffs = np.array(self.get_full_coeffs())
-        header = ';'.join([str(pulse.label) for pulse in self.pulses])
+        header = ";".join([str(pulse.label) for pulse in self.pulses])
         if inctime:
             shp = coeffs.T.shape
             data = np.empty((shp[0], shp[1] + 1), dtype=np.float64)
             data[:, 0] = self.get_full_tlist()
             data[:, 1:] = coeffs.T
-            header = ';' + header
+            header = ";" + header
         else:
             data = coeffs.T
 
-        np.savetxt(file_name, data, delimiter="\t", fmt="%1.16f", header=header)
+        np.savetxt(
+            file_name, data, delimiter="\t", fmt="%1.16f", header=header
+        )
 
     def read_coeff(self, file_name, inctime=True):
         """
@@ -473,7 +553,7 @@ class Processor(object):
         """
         f = open(file_name)
         header = f.readline()
-        label_list = header[2: -1].split(';')
+        label_list = header[2:-1].split(";")
         f.close()
 
         data = np.loadtxt(file_name, delimiter="\t")
@@ -483,27 +563,13 @@ class Processor(object):
             tlist = data[:, 0]
             coeffs = data[:, 1:].T
             label_list = label_list[1:]
-        coeffs = {label : coeffs[i] for i, label in enumerate(label_list)}
+        coeffs = {label: coeffs[i] for i, label in enumerate(label_list)}
         self.set_coeffs(coeffs)
         if not inctime:
             return coeffs
         else:
             self.set_tlist(tlist)
             return self.get_full_tlist, coeffs
-
-    def add_noise(self, noise):
-        """get_noisy_pulses
-        Add a noise object to the processor
-
-        Parameters
-        ----------
-        noise : :class:`.Noise`
-            The noise object defined outside the processor
-        """
-        if isinstance(noise, Noise):
-            self.noise.append(noise)
-        else:
-            raise TypeError("Input is not a Noise object.")
 
     ####################################################################
     # Pulse
@@ -1085,38 +1151,116 @@ def _pulse_interpolate(pulse, tlist):
 
 
 class Model:
-    def __init__(self, **params):
+    """
+    Template class for a physical model representing a quantum hardware.
+    The concrete model class does not have to inherit from this, as long as
+    the following methods are defined.
+
+    Parameters
+    ----------
+    num_qubits : int, optional
+        The number of component systems.
+    dims : list, optional
+        The dimension of each component system.
+        Default value is a qubit system of ``dim=[2,2,2,...,2]``.
+    **params :
+        Hardware parameters for the model.
+
+    Attributes
+    ----------
+    num_qubits : int, optional
+        The number of component systems.
+    dims : list, optional
+        The dimension of each component system.
+        Default value is a qubit system of ``dim=[2,2,2,...,2]``.
+    params : dict
+        Hardware parameters for the model.
+    """
+
+    def __init__(self, num_qubits, dims=None, **params):
+        self.num_qubits = num_qubits
+        self.dims = dims if dims is not None else num_qubits * [2]
         self.params = deepcopy(params)
         self._controls = {}
         self._drift = []
+        self._noise = []
 
-    def get_all_drift(self):
+    def get_all_drift(self) -> List[Tuple[Qobj, List[str]]]:
+        """
+        Get all the drift Hamiltonians.
+
+        Returns
+        -------
+        drift_hamiltonian_list : list
+            A list of drift Hamiltonians in the form of
+            ``[(qobj, targets), ...]``.
+        """
         return self._drift
 
-    def get_control(self, label):
-        """label should be hashable"""
+    def get_control(self, label: Any) -> Tuple[Qobj, List[str]]:
+        """
+        Get the the control Hamiltonian corresponding to the label.
+
+        Parameters
+        ----------
+        label :
+            A label that identify the Hamiltonian.
+
+        Returns
+        -------
+        control_hamiltonian : tuple
+            The control Hamiltonian in the form of ``(qobj, targets)``.
+        """
         if hasattr(self, "_old_index_label_map"):
             _old_index_label_map = self._old_index_label_map
             if isinstance(label, int):
                 label = _old_index_label_map[label]
         return self._controls[label]
 
-    def get_control_labels(self):
+    def get_control_labels(self) -> List[Any]:
+        """
+        Get a list of all available control Hamiltonians.
+
+        Returns
+        -------
+        label_list : list
+            A list of hashable objects each corresponds to
+            an availbale control Hamiltonian.
+        """
         return list(self._controls.keys())
 
-    def get_all_controls(self):
-        return self._controls
+    def get_noise(self) -> List[Noise]:
+        """
+        Get a list of :obj:`.Noise` objects.
+        Single qubit relaxation (T1, T2) are not included here.
+        Optional method.
 
-    def add_drift(self, qobj, targets=None, cyclic_permutation=False):
+        Returns
+        -------
+        noise_list : list
+            A list of :obj:`.Noise`.
+        """
+        if not hasattr(self, "_noise"):
+            return []
+        return self._noise
+
+    def _add_drift(self, qobj, targets):
         if not hasattr(self, "_drift"):
             raise NotImplementedError(
                 "The model does not support adding drift."
             )
         self._drift.append((qobj, targets))
 
-    def add_control(self, label, qobj, targets):
+    def _add_control(self, label, qobj, targets):
         if not hasattr(self, "_controls"):
             raise NotImplementedError(
                 "The model does not support adding controls."
             )
         self._controls[label] = (qobj, targets)
+
+    def _add_noise(self, noise):
+        if not hasattr(self, "_noise"):
+            raise NotImplementedError(
+                "The model does not support adding noise objects."
+            )
+        self._noise.append(noise)

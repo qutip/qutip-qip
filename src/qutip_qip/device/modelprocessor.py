@@ -27,36 +27,40 @@ class ModelProcessor(Processor):
 
     Parameters
     ----------
-    num_qubits: int
+    num_qubits: int, optional
         The number of component systems.
+        It replaces the old API ``N``.
+
+    dims: list, optional
+        The dimension of each component system.
+        Default value is a qubit system of ``dim=[2,2,2,...,2]``.
 
     correct_global_phase: boolean, optional
         If true, the analytical solution will track the global phase. It
         has no effect on the numerical solution.
 
-    t1: list or float
-        Characterize the decoherence of amplitude damping for
-        each qubit. A list of size `num_qubits` or a float for all qubits.
-
-    t2: list of float
-        Characterize the decoherence of dephasing for
-        each qubit. A list of size `num_qubits` or a float for all qubits.
-
-    Attributes
-    ----------
-    correct_global_phase: float
-        Save the global phase, the analytical solution
-        will track the global phase.
-        It has no effect on the numerical solution.
+    **params:
+        - t1: float or list, optional
+            Characterize the amplitude damping for each qubit.
+            A list of size `num_qubits` or a float for all qubits.
+        - t2: float or list, optional
+            Characterize the total dephasing for each qubit.
+            A list of size `num_qubits` or a float for all qubits.
     """
 
     def __init__(
-        self, num_qubits, correct_global_phase=True, t1=None, t2=None, N=None
+        self,
+        num_qubits=None,
+        dims=None,
+        correct_global_phase=True,
+        model=None,
+        **params
     ):
-        super(ModelProcessor, self).__init__(num_qubits, t1=t1, t2=t2, N=None)
+        super(ModelProcessor, self).__init__(
+            num_qubits=num_qubits, dims=dims, model=model, **params
+        )
         self.correct_global_phase = correct_global_phase
         self.global_phase = 0.0
-        self.params = {}
         self.native_gates = None
         self.transpile_functions = []
         self._default_compiler = None
