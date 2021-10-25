@@ -265,7 +265,7 @@ class SCQubitsModel(Model):
         # Times 2 because we use -2πZX/4 as operators
         self.params["zx_coeff"] = np.asarray(zx_coeff) * 2
 
-    def get_latex_str(self):
+    def get_control_latex(self):
         """
         Get the labels for each Hamiltonian.
         It is used in the method method :meth:`.Processor.plot_pulses`.

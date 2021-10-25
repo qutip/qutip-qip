@@ -327,7 +327,7 @@ class SpinChainModel(Model):
         computed_params["sxsy"] = _to_array(self.params["sxsy"], num_coupling)
         return computed_params
 
-    def get_latex_str(self):
+    def get_control_latex(self):
         """
         Get the labels for each Hamiltonian.
         It is used in the method method :meth:`.Processor.plot_pulses`.

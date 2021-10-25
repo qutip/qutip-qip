@@ -277,7 +277,7 @@ class Processor(object):
         """
         return self.model.get_control_labels()
 
-    def get_latex_str(self):
+    def get_control_latex(self):
         """
         Get the latex string for each Hamiltonian.
         It is used in the method :meth:`.Processor.plot_pulses`.
@@ -290,8 +290,8 @@ class Processor(object):
         nested_latex_str : list of dict
             E.g.: ``[{"sx": "\sigma_z"}, {"sy": "\sigma_y"}]``.
         """
-        if hasattr(self.model, "get_latex_str"):
-            return self.model.get_latex_str()
+        if hasattr(self.model, "get_control_latex"):
+            return self.model.get_control_latex()
         labels = self.model.get_control_labels()
         return [{label: label for label in labels}]
 
@@ -754,6 +754,10 @@ class Processor(object):
         -----
         :meth:.Processor.plot_pulses` only works for array_like coefficients.
         """
+        if hasattr(self, "get_operators_labels"):
+            warnings.warn("Using the get_operators_labels to provide labels "
+            "for plotting is deprecated. Please use get_control_latex instead.")
+
         # FIXME fix if pulse is not fully defined.
         import matplotlib.pyplot as plt
         import matplotlib.gridspec as gridspec
@@ -776,7 +780,7 @@ class Processor(object):
 
         pulse_ind = 0
         axis = []
-        for i, label_group in enumerate(self.get_latex_str()):
+        for i, label_group in enumerate(self.get_control_latex()):
             for j, (label, latex_str) in enumerate(label_group.items()):
                 try:
                     pulse = self.find_pulse(label)

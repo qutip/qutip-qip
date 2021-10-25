@@ -24,7 +24,7 @@ def test_cavityqed_model():
     assert_array_equal(model.params["w0"], 7.0)
     assert_array_equal(model.params["epsmax"], [1.1, 1, 0, 0.8])
     assert model.get_control(0) == model.get_control("sx0")
-    model.get_latex_str()
+    model.get_control_latex()
 
 
 @pytest.mark.parametrize(("model_class"), [LinearSpinChain, CircularSpinChain])
@@ -41,7 +41,7 @@ def test_spinchain_model(model_class):
     assert_array_equal(model.params["sz"], 7.0)
     assert_array_equal(model.params["sx"], [1.1, 1, 0, 0.8])
     assert model.get_control(0) == model.get_control("sx0")
-    model.get_latex_str()
+    model.get_control_latex()
     assert model.params["t1"] == 10.0
 
 
@@ -57,7 +57,7 @@ def test_scqubits_model():
     assert_array_equal(model.params["omega_single"], np.array([0.02] * 3))
     assert_array_equal(model.params["alpha"], [-0.02, -0.015, -0.025])
     assert model.get_control(0) == model.get_control("sx0")
-    model.get_latex_str()
+    model.get_control_latex()
 
 
 def test_define_model_in_processor():
