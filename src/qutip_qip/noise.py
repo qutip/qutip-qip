@@ -38,10 +38,10 @@ def process_noise(
         Dimension of the system.
         If int, we assume it is the number of qubits in the system.
         If list, it is the dimension of the component systems.
-    t1: list or float, optional
+    t1: float or list, optional
         Characterize the decoherence of amplitude damping for
         each qubit. A list of size `N` or a float for all qubits.
-    t2: list of float, optional
+    t2: float or list, optional
         Characterize the decoherence of dephasing for
         each qubit. A list of size `N` or a float for all qubits.
     device_noise: bool
@@ -283,7 +283,7 @@ class RelaxationNoise(Noise):
 
         Parameters
         ----------
-        T: list of float
+        T: float or list
             The relaxation time
         N: int
             The number of component systems.
