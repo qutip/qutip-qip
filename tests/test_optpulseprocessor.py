@@ -39,17 +39,6 @@ class TestOptPulseProcessor:
         result = test.run_state(rho0)
         assert_allclose(fidelity(result.states[-1], plus), 1, rtol=1.0e-6)
 
-        # test add/remove ctrl
-        test.add_control(sigmay())
-        test.remove_pulse(0)
-        assert_(
-            len(test.pulses) == 1,
-            msg="Method of remove_pulse could be wrong.")
-        assert_allclose(test.drift.drift_hamiltonians[0].qobj, H_d)
-        assert_(
-            sigmay() in test.ctrls,
-            msg="Method of remove_pulse could be wrong.")
-
     def test_multi_qubits(self):
         """
         Test for multi-qubits system.
@@ -68,11 +57,7 @@ class TestOptPulseProcessor:
         # test periodically adding ctrls
         sx = sigmax()
         iden = identity(2)
-        # print(test.ctrls)
-        # print(Qobj(tensor([sx, iden, sx])))
-        assert_(Qobj(tensor([sx, iden, sx])) in test.ctrls)
-        assert_(Qobj(tensor([iden, sx, sx])) in test.ctrls)
-        assert_(Qobj(tensor([sx, sx, iden])) in test.ctrls)
+        assert(len(test.get_control_labels()) == 3)
         test.add_control(sigmax(), cyclic_permutation=True)
         test.add_control(sigmay(), cyclic_permutation=True)
 
@@ -85,17 +70,6 @@ class TestOptPulseProcessor:
         result = test.run_state(
             rho0, options=Options(store_states=True))
         assert_(fidelity(result.states[-1], rho1) > 1-1.0e-6)
-
-        # # test save and read coeffs
-        # test.save_coeff("qutip_test_multi_qubits.txt")
-        # test2 = OptPulseProcessor(N, H_d, H_c)
-        # test2.drift = test.drift
-        # test2.ctrls = test.ctrls
-        # test2.read_coeff("qutip_test_multi_qubits.txt")
-        # os.remove("qutip_test_multi_qubits.txt")
-        # assert_(np.max((test.coeffs-test2.coeffs)**2) < 1.0e-13)
-        # result = test2.run_state(rho0,)
-        # assert_(fidelity(result.states[-1], rho1) > 1-1.0e-6)
 
     def test_multi_gates(self):
         N = 2

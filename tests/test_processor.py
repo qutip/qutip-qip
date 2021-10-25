@@ -1,4 +1,5 @@
 import os
+import pytest
 
 from numpy.testing import (
     assert_, run_module_suite, assert_allclose, assert_equal)
@@ -15,45 +16,49 @@ from qutip_qip.pulse import Pulse
 
 
 class TestCircuitProcessor:
-    def test_modify_ctrls(self):
-        """
-        Test for modifying Hamiltonian, add_control, remove_pulse
-        """
-        N = 2
-        proc = Processor(N=N)
-        proc.ctrls
-        proc.add_control(sigmaz())
-        assert_(tensor([sigmaz(), identity(2)]), proc.ctrls[0])
-        proc.add_control(sigmax(), cyclic_permutation=True)
-        assert_allclose(len(proc.ctrls), 3)
-        assert_allclose(tensor([sigmax(), identity(2)]), proc.ctrls[1])
-        assert_allclose(tensor([identity(2), sigmax()]), proc.ctrls[2])
-        proc.add_control(sigmay(), targets=1)
-        assert_allclose(tensor([identity(2), sigmay()]), proc.ctrls[3])
-        proc.remove_pulse([0, 1, 2])
-        assert_allclose(tensor([identity(2), sigmay()]), proc.ctrls[0])
-        proc.remove_pulse(0)
-        assert_allclose(len(proc.ctrls), 0)
+    def test_control_and_coeffs(self):
+        processor = Processor(2)
+        processor.add_control(sigmax())
+        processor.add_control(sigmaz())
+
+        # Set coeffs and tlist without a label
+        coeffs = np.array([[1., 2., 3.], [3., 2., 1.]])
+        processor.set_coeffs(coeffs)
+        assert_allclose(coeffs, processor.coeffs)
+        tlist = np.array([0., 1., 2., 3.])
+        processor.set_tlist(tlist)
+        assert_allclose(tlist, processor.get_full_tlist())
+        processor.set_tlist({0: tlist, 1: tlist})
+        assert_allclose(tlist, processor.get_full_tlist())
+
+        # Pulses
+        assert(len(processor.pulses) == 2)
+        assert(processor.find_pulse(0) == processor.pulses[0])
+        assert(processor.find_pulse(1) == processor.pulses[1])
+        with pytest.raises(KeyError):
+            processor.find_pulse("non_exist_pulse")
 
     def test_save_read(self):
         """
         Test for saving and reading a pulse matrix
         """
         proc = Processor(N=2)
-        proc.add_control(sigmaz(), cyclic_permutation=True)
+        proc.add_control(sigmaz(), label="sz")
+        proc.add_control(sigmax(), label="sx")
         proc1 = Processor(N=2)
-        proc1.add_control(sigmaz(), cyclic_permutation=True)
+        proc1.add_control(sigmaz(), label="sz")
+        proc1.add_control(sigmax(), label="sx")
         proc2 = Processor(N=2)
-        proc2.add_control(sigmaz(), cyclic_permutation=True)
+        proc2.add_control(sigmaz(), label="sz")
+        proc2.add_control(sigmax(), label="sx")
         # TODO generalize to different tlist
         tlist = np.array([0., 0.1, 0.2, 0.3, 0.4, 0.5])
         amp1 = np.arange(0, 5, 1)
         amp2 = np.arange(5, 0, -1)
 
-        proc.pulses[0].tlist = tlist
-        proc.pulses[0].coeff = amp1
-        proc.pulses[1].tlist = tlist
-        proc.pulses[1].coeff = amp2
+
+        proc.set_all_coeffs({label: amp for label, amp in zip(proc.get_control_labels(), [amp1, amp2])})
+        proc.set_all_tlist(tlist)
         proc.save_coeff("qutip_test_CircuitProcessor.txt")
         proc1.read_coeff("qutip_test_CircuitProcessor.txt")
         os.remove("qutip_test_CircuitProcessor.txt")
@@ -135,9 +140,9 @@ class TestCircuitProcessor:
         # step_func
         tlist = np.linspace(0., 2*np.pi, 20)
         processor = Processor(N=1, spline_kind="step_func")
-        processor.add_control(sigmaz())
-        processor.pulses[0].tlist = tlist
-        processor.pulses[0].coeff = np.array([np.sin(t) for t in tlist])
+        processor.add_control(sigmaz(), label="sz")
+        processor.set_all_coeffs({"sz": np.array([np.sin(t) for t in tlist])})
+        processor.set_all_tlist(tlist)
         fig, _ = processor.plot_pulses()
         # testing under Xvfb with pytest-xvfb complains if figure windows are
         # left open, so we politely close it:
@@ -146,9 +151,9 @@ class TestCircuitProcessor:
         # cubic spline
         tlist = np.linspace(0., 2*np.pi, 20)
         processor = Processor(N=1, spline_kind="cubic")
-        processor.add_control(sigmaz())
-        processor.pulses[0].tlist = tlist
-        processor.pulses[0].coeff = np.array([np.sin(t) for t in tlist])
+        processor.add_control(sigmaz(), label="sz")
+        processor.set_all_coeffs({"sz": np.array([np.sin(t) for t in tlist])})
+        processor.set_all_tlist(tlist)
         processor.plot_pulses()
         fig, _ = processor.plot_pulses()
         # testing under Xvfb with pytest-xvfb complains if figure windows are
@@ -163,15 +168,14 @@ class TestCircuitProcessor:
         tlist = np.array([1, 2, 3, 4, 5, 6], dtype=float)
         coeff = np.array([1, 1, 1, 1, 1, 1], dtype=float)
         processor = Processor(N=1, spline_kind="step_func")
-        processor.add_control(sigmaz())
-        processor.pulses[0].tlist = tlist
-        processor.pulses[0].coeff = coeff
+        processor.add_control(sigmaz(), label="sz")
+        processor.set_all_coeffs({"sz": coeff})
+        processor.set_tlist(tlist)
 
         ideal_qobjevo, _ = processor.get_qobjevo(noisy=False)
         assert_(ideal_qobjevo.args["_step_func_coeff"])
         noisy_qobjevo, c_ops = processor.get_qobjevo(noisy=True)
         assert_(noisy_qobjevo.args["_step_func_coeff"])
-        processor.T1 = 100.
         processor.add_noise(ControlAmpNoise(coeff=coeff, tlist=tlist))
         noisy_qobjevo, c_ops = processor.get_qobjevo(noisy=True)
         assert_(noisy_qobjevo.args["_step_func_coeff"])
@@ -179,15 +183,15 @@ class TestCircuitProcessor:
         tlist = np.array([1, 2, 3, 4, 5, 6], dtype=float)
         coeff = np.array([1, 1, 1, 1, 1, 1], dtype=float)
         processor = Processor(N=1, spline_kind="cubic")
-        processor.add_control(sigmaz())
-        processor.pulses[0].tlist = tlist
-        processor.pulses[0].coeff = coeff
+        processor.add_control(sigmaz(), label="sz")
+        processor.set_all_coeffs({"sz": coeff})
+        processor.set_all_tlist(tlist)
 
         ideal_qobjevo, _ = processor.get_qobjevo(noisy=False)
         assert_(not ideal_qobjevo.args["_step_func_coeff"])
         noisy_qobjevo, c_ops = processor.get_qobjevo(noisy=True)
         assert_(not noisy_qobjevo.args["_step_func_coeff"])
-        processor.T1 = 100.
+        processor.t1 = 100.
         processor.add_noise(ControlAmpNoise(coeff=coeff, tlist=tlist))
         noisy_qobjevo, c_ops = processor.get_qobjevo(noisy=True)
         assert_(not noisy_qobjevo.args["_step_func_coeff"])
@@ -196,9 +200,9 @@ class TestCircuitProcessor:
         tlist = np.array([1, 2, 3, 4, 5, 6], dtype=float)
         coeff = np.array([1, 1, 1, 1, 1, 1], dtype=float)
         processor = Processor(N=1)
-        processor.add_control(sigmaz())
-        processor.pulses[0].tlist = tlist
-        processor.pulses[0].coeff = coeff
+        processor.add_control(sigmaz(), label="sz")
+        processor.set_all_coeffs({"sz": coeff})
+        processor.set_all_tlist(tlist)
 
         # without noise
         unitary_qobjevo, _ = processor.get_qobjevo(
@@ -228,11 +232,11 @@ class TestCircuitProcessor:
 
         # with amplitude noise
         processor = Processor(N=1, spline_kind="cubic")
-        processor.add_control(sigmaz())
+        processor.add_control(sigmaz(), label="sz")
         tlist = np.linspace(1, 6, int(5/0.2))
         coeff = np.random.rand(len(tlist))
-        processor.pulses[0].tlist = tlist
-        processor.pulses[0].coeff = coeff
+        processor.set_all_coeffs({"sz": coeff})
+        processor.set_all_tlist(tlist)
 
         amp_noise = ControlAmpNoise(coeff=coeff, tlist=tlist)
         processor.add_noise(amp_noise)
@@ -255,9 +259,9 @@ class TestCircuitProcessor:
         tlist = np.array([0., np.pi/2.])
         a = destroy(2)
         proc = Processor(N=2)
-        proc.add_control(sigmax(), targets=1)
-        proc.pulses[0].tlist = tlist
-        proc.pulses[0].coeff = np.array([1])
+        proc.add_control(sigmax(), targets=1, label="sx")
+        proc.set_all_coeffs({"sx": np.array([1.])})
+        proc.set_all_tlist(tlist)
         result = proc.run_state(init_state=init_state)
         assert_allclose(
             fidelity(result.states[-1], qubit_states(2, [0, 1, 0, 0])),
@@ -272,7 +276,7 @@ class TestCircuitProcessor:
             0.981852, rtol=1.e-3)
 
         # white random noise
-        proc.noise = []
+        proc.model._noise = []
         white_noise = RandomNoise(0.2, np.random.normal, loc=0.1, scale=0.1)
         proc.add_noise(white_noise)
         result = proc.run_state(init_state=init_state)
@@ -283,9 +287,9 @@ class TestCircuitProcessor:
         """
         N = 2
         proc = Processor(N=N, dims=[2, 3])
-        proc.add_control(tensor(sigmaz(), rand_dm(3, density=1.)))
-        proc.pulses[0].coeff = np.array([1, 2])
-        proc.pulses[0].tlist = np.array([0., 1., 2])
+        proc.add_control(tensor(sigmaz(), rand_dm(3, density=1.)), label="sz0")
+        proc.set_all_coeffs({"sz0": np.array([1, 2])})
+        proc.set_all_tlist(np.array([0., 1., 2]))
         proc.run_state(init_state=tensor([basis(2, 0), basis(3, 1)]))
 
     def testDrift(self):
@@ -313,9 +317,9 @@ class TestCircuitProcessor:
         tlist = np.array([0., np.pi/2.])
         a = destroy(2)
         proc = Processor(N=2)
-        proc.add_control(sigmax(), targets=1)
-        proc.pulses[0].tlist = tlist
-        proc.pulses[0].coeff = np.array([1])
+        proc.add_control(sigmax(), targets=1, label="sx")
+        proc.set_all_coeffs({"sx": np.array([1.])})
+        proc.set_all_tlist(tlist)
         result = proc.run_state(init_state=init_state, solver="mcsolve")
         assert_allclose(
             fidelity(result.states[-1], qubit_states(2, [0, 1, 0, 0])),
@@ -330,11 +334,6 @@ class TestCircuitProcessor:
         result = processor.run_state(basis(2,0), tlist=[0,1])
         assert(len(result.states) == 2)
 
-    def test_pulse_dict(self):
-        processor = Processor(1)
-        processor.add_control(sigmax(), 0, label="test")
-        assert("test" in processor.get_pulse_dict())
-
     def test_repeated_use_of_processor(self):
         processor = Processor(1, t1=1.)
         processor.add_pulse(
@@ -342,3 +341,16 @@ class TestCircuitProcessor:
         result1 = processor.run_state(basis(2, 0), tlist=np.linspace(0, 1, 10))
         result2 = processor.run_state(basis(2, 0), tlist=np.linspace(0, 1, 10))
         assert_allclose(result1.states[-1].full(), result2.states[-1].full())
+
+    def test_pulse_mode(self):
+        processor = Processor(2)
+        processor.add_control(sigmax(), targets=0, label="sx")
+        processor.set_coeffs({"sx": np.array([1., 2., 3.])})
+        processor.set_tlist({"sx": np.array([0., 1., 2., 3.])})
+
+        processor.pulse_mode = "continuous"
+        assert(processor.pulse_mode == "continuous")
+        assert(processor.pulses[0].spline_kind == "cubic")
+        processor.pulse_mode = "discrete"
+        assert(processor.pulse_mode == "discrete")
+        assert(processor.pulses[0].spline_kind == "step_func")

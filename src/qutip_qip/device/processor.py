@@ -512,6 +512,9 @@ class Processor(object):
         """
         self._is_pulses_valid()
         coeffs = np.array(self.get_full_coeffs())
+
+        if not all([isinstance(pulse.label, str) for pulse in self.pulses]):
+            raise NotImplementedError("Only string labels are supported.")
         header = ";".join([str(pulse.label) for pulse in self.pulses])
         if inctime:
             shp = coeffs.T.shape
