@@ -1,7 +1,7 @@
 from collections.abc import Iterable
 import warnings
 from copy import deepcopy
-from typing import Any, List, Tuple
+from typing import Any, List, Tuple, Hashable
 
 import numpy as np
 from scipy.interpolate import CubicSpline
@@ -1177,7 +1177,7 @@ class Model:
         self._drift = []
         self._noise = []
 
-    def get_all_drift(self) -> List[Tuple[Qobj, List[str]]]:
+    def get_all_drift(self) -> List[Tuple[Qobj, List[int]]]:
         """
         Get all the drift Hamiltonians.
 
@@ -1189,13 +1189,13 @@ class Model:
         """
         return self._drift
 
-    def get_control(self, label: Any) -> Tuple[Qobj, List[str]]:
+    def get_control(self, label: Hashable) -> Tuple[Qobj, List[int]]:
         """
         Get the control Hamiltonian corresponding to the label.
 
         Parameters
         ----------
-        label :
+        label : hashable object
             A label that identifies the Hamiltonian.
 
         Returns
@@ -1209,13 +1209,13 @@ class Model:
                 label = _old_index_label_map[label]
         return self._controls[label]
 
-    def get_control_labels(self) -> List[Any]:
+    def get_control_labels(self) -> List[Hashable]:
         """
         Get a list of all available control Hamiltonians.
 
         Returns
         -------
-        label_list : list
+        label_list : list of hashable objects
             A list of hashable objects each corresponds to
             an available control Hamiltonian.
         """
