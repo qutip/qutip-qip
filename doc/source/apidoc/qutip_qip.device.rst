@@ -13,9 +13,13 @@ qutip\_qip.device
    .. autosummary::
 
       Processor
+      Model
       ModelProcessor
       LinearSpinChain
       CircularSpinChain
+      SpinChainModel
       DispersiveCavityQED
+      CavityQEDModel
       SCQubits
+      SCQubitsModel
       OptPulseProcessor
