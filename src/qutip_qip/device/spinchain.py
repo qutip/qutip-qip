@@ -340,7 +340,7 @@ class SpinChainModel(Model):
             {f"sx{m}": f"$\sigma_x^{m}$" for m in range(num_qubits)},
             {f"sz{m}": f"$\sigma_z^{m}$" for m in range(num_qubits)},
             {
-                f"g{m}": f"$\sigma_x^{m}\sigma_x^{m} + \sigma_y^{m}\sigma_y^{m}$"
+                f"g{m}": f"$\sigma_x^{m}\sigma_x^{(m + 1) % num_qubits} + \sigma_y^{m}\sigma_y^{(m + 1) % num_qubits}$"
                 for m in range(num_coupling)
             },
         ]

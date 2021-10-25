@@ -27,7 +27,7 @@ __all__ = ["Processor"]
 class Processor(object):
     """
     The noisy quantum device simulator using QuTiP dynamic solvers.
-    It compiles quantum circuit into a Hamiltonian model and then
+    It compiles quantums circuit into a Hamiltonian model and then
     simulate the time-evolution described by the master equation.
 
     Parameters
@@ -42,7 +42,7 @@ class Processor(object):
 
     spline_kind : str, optional
         Type of the coefficient interpolation. Default is "step_func"
-        Note that they have different requirement for the length of ``coeff``.
+        Note that they have different requirements for the length of ``coeff``.
 
         -"step_func":
         The coefficient will be treated as a step function.
@@ -56,14 +56,15 @@ class Processor(object):
 
     model : :obj:`Model`
         Provide a predefined physical model of the simulated hardware.
-        If other parameters, such as `t1` is given as input, it will overwrite those saved in :obj:`Processor.model.params`.
+        If other parameters, such as `t1` is given as input,
+        it will overwrite those saved in :obj:`Processor.model.params`.
 
     **params:
         - t1 : float or list, optional
             Characterize the amplitude damping for each qubit.
             A list of size `num_qubits` or a float for all qubits.
         - t2 : float or list, optional
-            Characterize the dephasing for each qubit.
+            Characterize the total dephasing for each qubit.
             A list of size `num_qubits` or a float for all qubits.
     """
 
@@ -109,28 +110,26 @@ class Processor(object):
     @property
     def t1(self):
         """
-        Characterize the decoherence of amplitude damping of
-        each qubit.
+        Characterize the total amplitude damping of each qubit.
         :type: float or list
         """
-        return self.params.get("t1", None)
+        return self.model.params.get("t1", None)
 
     @t1.setter
     def t1(self, value):
-        self.params.get("t1", None)
+        self.model.params["t1"] = value
 
     @property
     def t2(self):
         """
-        Characterize the decoherence of dephasing for
-        each qubit.
+        Characterize the total dephasing for each qubit.
         :type: float or list
         """
-        return self.params.get("t2", None)
+        return self.model.params.get("t2", None)
 
     @t2.setter
     def t2(self, value):
-        self.params.get("t2", None)
+        self.model.params["t2"] = value
 
     @property
     def params(self):
@@ -143,10 +142,7 @@ class Processor(object):
     @property
     def noise(self):
         """.coverage"""
-        if hasattr(self.model, "get_noise"):
-            return self.model.get_noise()
-        else:
-            return []
+        return self.get_noise()
 
     @property
     def N(self):
@@ -179,8 +175,6 @@ class Processor(object):
         drift_obj = Drift()
         for qobj, targets in self.model.get_all_drift():
             num_qubits = len(qobj.dims[0])
-            if isinstance(targets, int):
-                targets = [targets]
             drift_obj.add_drift(qobj, targets)
         return drift_obj
 
@@ -195,7 +189,7 @@ class Processor(object):
         """
         Add the drift Hamiltonian to the model.
         The drift Hamiltonians are intrinsic
-        of the quantum system and cannot be controlled by external field.
+        of the quantum system and cannot be controlled by an external field.
 
         Parameters
         ----------
@@ -240,7 +234,8 @@ class Processor(object):
             ``[0,1]``, ``[1,2]`` and ``[2,0]``.
 
         label : str, optional
-            The label (name) of the control Hamiltonian. If ``None``,
+            The hashable label (name) of the control Hamiltonian.
+            If ``None``,
             it will be set to the current number of
             control Hamiltonians in the system.
         """
@@ -257,12 +252,12 @@ class Processor(object):
 
     def get_control(self, label):
         """
-        Get the the control Hamiltonian corresponding to the label.
+        Get the control Hamiltonian corresponding to the label.
 
         Parameters
         ----------
         label :
-            A label that identify the Hamiltonian.
+            A label that identifies the Hamiltonian.
 
         Returns
         -------
@@ -278,7 +273,7 @@ class Processor(object):
         Returns
         -------
         label_list : list
-            A list of hashable objects each corresponds to an availbale control Hamiltonian.
+            A list of hashable objects each corresponds to an available control Hamiltonian.
         """
         return self.model.get_control_labels()
 
@@ -286,7 +281,7 @@ class Processor(object):
         """
         Get the latex string for each Hamiltonian.
         It is used in the method :meth:`.Processor.plot_pulses`.
-        It is a list of dictionary.
+        It is a list of dictionaries.
         In the plot, a different color will be used
         for each dictionary in the list.
 
@@ -309,10 +304,13 @@ class Processor(object):
         noise_list : list
             A list of :obj:`.Noise`.
         """
-        return self.model.get_noise()
+        if hasattr(self.model, "get_noise"):
+            return self.model.get_noise()
+        else:
+            return []
 
     def add_noise(self, noise):
-        """get_noisy_pulses
+        """
         Add a noise object to the processor.
 
         Parameters
@@ -372,12 +370,10 @@ class Processor(object):
 
         Parameters
         ----------
-        coeffs: NumPy arraries, dict or list.
-            - If it is an 1-D array, all the pulses will be set
-              by this tlist.
+        coeffs: NumPy arrays, dict or list.
             - If it is a dict, it should be a map of
-              the label of control Hamiltonians and
-              availablerresponding coefficients.
+              the label of control Hamiltonians and the
+              corresponding coefficients.
               Use :obj:`.Processor.get_control_labels()` to see the
               available Hamiltonians.
             - If it is a list of arrays or a 2D NumPy array,
@@ -401,7 +397,7 @@ class Processor(object):
             )
 
     set_all_coeffs = set_coeffs
-    set_all_coeffs.__doct__ = "Equivalent to :obj:`Processor.set_coeffs`."
+    set_all_coeffs.__doc__ = "Equivalent to :obj:`Processor.set_coeffs`."
 
     def set_tlist(self, tlist):
         """
@@ -411,7 +407,7 @@ class Processor(object):
 
         Parameters
         ----------
-        tlist: dict or list of NumPy arraries.
+        tlist: dict or list of NumPy arrays.
             If it is a dict, it should be a map between pulse label and
             the time sequences.
             If it is a list of arrays or a 2D NumPy array,
@@ -428,7 +424,7 @@ class Processor(object):
             self.pulses[pulse_dict[pulse_label]].tlist = value
 
     set_all_tlist = set_tlist
-    set_all_coeffs.__doct__ = "Equivalent to :obj:`Processor.set_tlist`."
+    set_all_coeffs.__doc__ = "Equivalent to :obj:`Processor.set_tlist`."
 
     def get_full_tlist(self, tol=1.0e-10):
         """
@@ -458,9 +454,9 @@ class Processor(object):
         Return the full coefficients in a 2d matrix form.
         Each row corresponds to one pulse. If the `tlist` are
         different for different pulses, the length of each row
-        will be same as the `full_tlist` (see method
+        will be the same as the `full_tlist` (see method
         `get_full_tlist`). Interpolation is used for
-        adding the missing coefficient according to `spline_kind`.
+        adding the missing coefficients according to `spline_kind`.
 
         Returns
         -------
@@ -669,7 +665,9 @@ class Processor(object):
 
     def find_pulse(self, pulse_name):
         pulse_dict = self.get_pulse_dict()
-        if isinstance(pulse_name, str):
+        if isinstance(pulse_name, int):
+            return self.pulses[pulse_name]
+        else:
             try:
                 return self.pulses[pulse_dict[pulse_name]]
             except (KeyError):
@@ -678,13 +676,6 @@ class Processor(object):
                     "Please define it in the attribute "
                     "`pulse_dict`.".format(pulse_name)
                 )
-        elif isinstance(pulse_name, int):
-            return self.pulses[pulse_name]
-        else:
-            raise TypeError(
-                "pulse_name is either a string or an integer, not "
-                "{}".format(type(pulse_name))
-            )
 
     @property
     def pulse_mode(self):
@@ -1152,9 +1143,8 @@ def _pulse_interpolate(pulse, tlist):
 
 class Model:
     """
-    Template class for a physical model representing a quantum hardware.
-    The concrete model class does not have to inherit from this, as long as
-    the following methods are defined.
+    Template class for a physical model representing quantum hardware.
+    The concrete model class does not have to inherit from this, as long as the following methods are defined.
 
     Parameters
     ----------
@@ -1172,7 +1162,6 @@ class Model:
         The number of component systems.
     dims : list, optional
         The dimension of each component system.
-        Default value is a qubit system of ``dim=[2,2,2,...,2]``.
     params : dict
         Hardware parameters for the model.
     """
@@ -1199,12 +1188,12 @@ class Model:
 
     def get_control(self, label: Any) -> Tuple[Qobj, List[str]]:
         """
-        Get the the control Hamiltonian corresponding to the label.
+        Get the control Hamiltonian corresponding to the label.
 
         Parameters
         ----------
         label :
-            A label that identify the Hamiltonian.
+            A label that identifies the Hamiltonian.
 
         Returns
         -------
@@ -1225,7 +1214,7 @@ class Model:
         -------
         label_list : list
             A list of hashable objects each corresponds to
-            an availbale control Hamiltonian.
+            an available control Hamiltonian.
         """
         return list(self._controls.keys())
 

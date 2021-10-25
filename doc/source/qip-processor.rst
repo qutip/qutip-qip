@@ -24,8 +24,8 @@ Like a real quantum device, the processor is determined by a list of Hamiltonian
 
     processor = Processor(2)
     processor.add_control(sigmaz(), cyclic_permutation=True)  # sigmaz for all qubits
-    processor.pulses[0].coeffs = np.array([[1.0, 1.5, 2.0], [1.8, 1.3, 0.8]])
-    processor.pulses[0].tlist = np.array([0.1, 0.2, 0.4, 0.5])
+    processor.set_coeffs = np.array([[1.0, 1.5, 2.0], [1.8, 1.3, 0.8]])
+    processor.set_tlist = np.array([0.1, 0.2, 0.4, 0.5])
 
 It defines a :math:`\sigma_z` operator on both qubits and a pulse that acts on the first qubit.
 An equivalent approach is using the :meth:`.Processor.add_pulse` method.
@@ -159,19 +159,19 @@ To let it find the optimal pulses, we need to give the parameters for :func:`~qu
 
 
       # Same parameter for all the gates
-      qc = QubitCircuit(N=1)
+      qc = QubitCircuit(1)
       qc.add_gate("SNOT", 0)
 
       num_tslots = 10
       evo_time = 10
-      processor = OptPulseProcessor(N=1, drift=sigmaz())
+      processor = OptPulseProcessor(1, drift=sigmaz())
       processor.add_control(sigmax())
       # num_tslots and evo_time are two keyword arguments
       tlist, coeffs = processor.load_circuit(
       qc, num_tslots=num_tslots, evo_time=evo_time)
 
       # Different parameters for different gates
-      qc = QubitCircuit(N=2)
+      qc = QubitCircuit(2)
       qc.add_gate("SNOT", 0)
       qc.add_gate("SWAP", targets=[0, 1])
       qc.add_gate('CNOT', controls=1, targets=[0])
@@ -212,8 +212,7 @@ It is called implicitly when calling the method
     qc.add_gate("X", targets=1)
 
     processor = LinearSpinChain(2)
-    compiler = SpinChainCompiler(
-        2, params=processor.params, pulse_dict=processor.pulse_dict)
+    compiler = SpinChainCompiler(2, params=processor.params)
     resolved_qc = qc.resolve_gates(["RX", "RZ", "ISWAP"])
     tlists, coeffs = compiler.compile(resolved_qc)
     print(tlists)
@@ -327,11 +326,11 @@ Compared to the approach of Kraus operators, this way of simulating noise is mor
 
 In the simulation, noise can be added to the processor at different levels:
 
-* The decoherence time T1 and T2 can be defined for the processor or for each qubit. When calculating the evolution, the corresponding collapse operators will be added automatically to the solver.
+- The decoherence time T1 and T2 can be defined for the processor or for each qubit. When calculating the evolution, the corresponding collapse operators will be added automatically to the solver.
 
-* The noise of the physical parameters (e.g. detuned frequency) can be simulated by changing the parameters in the model, e.g. laser frequency in cavity QED. (This can only be time-independent since QuTiP open system solver only allows varying coefficients, not varying Hamiltonian operators.)
+- The noise of the physical parameters (e.g. detuned frequency) can be simulated by changing the parameters in the model, e.g. laser frequency in cavity QED. (This can only be time-independent since QuTiP open system solver only allows varying coefficients, not varying Hamiltonian operators.)
 
-* The noise of the pulse intensity can be simulated by modifying the coefficients of the Hamiltonian operators or even adding new Hamiltonians.
+- The noise of the pulse intensity can be simulated by modifying the coefficients of the Hamiltonian operators or even adding new Hamiltonians.
 
 To add noise to a processor, one needs to first define a noise object :class:`.noise.Noise`. The simplest relaxation noise can be defined directly in the processor with relaxation time. Other pre-defined noise can be found as subclasses of  :class:`.noise.Noise`. We can add noise to the simulator with the method :meth:`.Processor.add_noise`.
 
@@ -354,9 +353,9 @@ The first example is a processor with one qubit under rotation around the z-axis
 
     T2 = 5
     processor = Processor(1, t2=T2)
-    processor.add_control(sigmaz())
-    processor.pulses[0].coeff = np.ones(len(tlist))
-    processor.pulses[0].tlist = tlist
+    processor.add_control(sigmaz(), label="sz")
+    processor.set_coeffs({"sz": np.ones(len(tlist))})
+    processor.set_tlist(tlist)
     result = processor.run_state(
         plus_state, e_ops=[a.dag()*a, Hadamard*a.dag()*a*Hadamard])
 
@@ -383,12 +382,12 @@ The second example demonstrates a biased Gaussian noise on the pulse amplitude. 
     from qutip_qip.noise import RandomNoise
 
     # add control Hamiltonians
-    processor = Processor(N=1)
-    processor.add_control(sigmaz(), targets=0)
+    processor = Processor(1)
+    processor.add_control(sigmaz(), targets=0, label="sz")
 
     # define pulse coefficients and tlist for all pulses
-    processor.pulses[0].coeff = np.array([0.3, 0.5, 0. ])
-    processor.set_all_tlist(np.array([0., np.pi/2., 2*np.pi/2, 3*np.pi/2]))
+    processor.set_coeffs({"sz": np.array([0.3, 0.5, 0. ])})
+    processor.set_tlist(np.array([0., np.pi/2., 2*np.pi/2, 3*np.pi/2]))
 
     # define noise, loc and scale are keyword arguments for np.random.normal
     gaussnoise = RandomNoise(

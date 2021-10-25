@@ -45,12 +45,12 @@ class OptPulseProcessor(Processor):
             A list of size `num_qubits` or a float for all qubits.
     """
 
-    def __init__(self, num_qubits, drift=None, dims=None, **params):
+    def __init__(self, num_qubits=None, drift=None, dims=None, **params):
         super(OptPulseProcessor, self).__init__(
             num_qubits, dims=dims, **params
         )
         if drift is not None:
-            self.add_drift(drift, list(range(num_qubits)))
+            self.add_drift(drift, list(range(self.num_qubits)))
         self.spline_kind = "step_func"
 
     def load_circuit(
@@ -77,11 +77,11 @@ class OptPulseProcessor(Processor):
 
         >>> from qutip_qip.circuit import QubitCircuit
         >>> from qutip_qip.device import OptPulseProcessor
-        >>> qc = QubitCircuit(num_qubits=1)
+        >>> qc = QubitCircuit(1)
         >>> qc.add_gate("SNOT", 0)
         >>> num_tslots = 10
         >>> evo_time = 10
-        >>> processor = OptPulseProcessor(num_qubits=1, drift=sigmaz())
+        >>> processor = OptPulseProcessor(1, drift=sigmaz())
         >>> processor.add_control(sigmax())
         >>> # num_tslots and evo_time are two keyword arguments
         >>> tlist, coeffs = processor.load_circuit(\
@@ -91,12 +91,11 @@ class OptPulseProcessor(Processor):
 
         >>> from qutip_qip.circuit import QubitCircuit
         >>> from qutip_qip.device import OptPulseProcessor
-        >>> qc = QubitCircuit(num_qubits=2)
+        >>> qc = QubitCircuit(2)
         >>> qc.add_gate("SNOT", 0)
         >>> qc.add_gate("SWAP", targets=[0, 1])
         >>> qc.add_gate('CNOT', controls=1, targets=[0])
-        >>> processor = OptPulseProcessor(\
-                num_qubits=2, drift=tensor([sigmaz()]*2))
+        >>> processor = OptPulseProcessor(2, drift=tensor([sigmaz()]*2))
         >>> processor.add_control(sigmax(), cyclic_permutation=True)
         >>> processor.add_control(sigmay(), cyclic_permutation=True)
         >>> processor.add_control(tensor([sigmay(), sigmay()]))
