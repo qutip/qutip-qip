@@ -1216,6 +1216,8 @@ class Model:
     def get_control_labels(self) -> List[Hashable]:
         """
         Get a list of all available control Hamiltonians.
+        Optional, required only when plotting the pulses or
+        using the optimal control algorithm.
 
         Returns
         -------
