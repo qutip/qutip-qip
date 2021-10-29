@@ -3,15 +3,16 @@ import os
 from numpy.testing import (assert_, run_module_suite, assert_allclose,
                            assert_equal)
 import numpy as np
+import pytest
 
-from qutip_qip.device import OptPulseProcessor
+from qutip_qip.device import OptPulseProcessor, SpinChainModel
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.qubits import qubit_states
+import qutip
 from qutip import (fidelity, Qobj, tensor, Options,rand_ket, basis,  sigmaz,
                     sigmax, sigmay, identity, destroy)
 from qutip_qip.operations import (cnot, gate_sequence_product,
                                         hadamard_transform, expand_operator)
-
 
 
 class TestOptPulseProcessor:
@@ -100,6 +101,14 @@ class TestOptPulseProcessor:
         result = test.run_state(rho0)
         assert_(fidelity(result.states[-1], rho1) > 1-1.0e-6)
 
-
-if __name__ == "__main__":
-    run_module_suite()
+    def test_with_model(self):
+        model = SpinChainModel(3, setup="linear")
+        processor = OptPulseProcessor(3, model=model)
+        qc = QubitCircuit(3)
+        qc.add_gate("CNOT", 1, 0)
+        qc.add_gate("X", 2)
+        processor.load_circuit(qc, merge_gates=True, num_tslots=10, evo_time=2.0)
+        init_state = qutip.rand_ket(8, dims=[[2, 2, 2], [1, 1, 1]])
+        num_result = processor.run_state(init_state=init_state).states[-1]
+        ideal_result = qc.run(init_state)
+        assert pytest.approx(qutip.fidelity(num_result, ideal_result), 1.0e-6) == 1.0
