@@ -176,16 +176,6 @@ class OptPulseProcessor(Processor):
             if gates is not None and setting_args:
                 kwargs.update(setting_args[gates[prop_ind]])
 
-            # FIXME use model
-            full_drift_ham = sum(
-                [
-                    expand_operator(
-                        qobj, len(self.dims), targets=targets, dims=self.dims
-                    )
-                    for (qobj, targets) in self.model.get_all_drift()
-                ]
-            )
-
             control_labels = self.model.get_control_labels()
             full_ctrls_hams = []
             for label in control_labels:
@@ -195,6 +185,17 @@ class OptPulseProcessor(Processor):
                         qobj, len(self.dims), targets=targets, dims=self.dims
                     )
                 )
+
+            full_drift_ham = sum(
+                [
+                    expand_operator(
+                        qobj, len(self.dims), targets=targets, dims=self.dims
+                    )
+                    for (qobj, targets) in self.model.get_all_drift()
+                ]
+                ,start=Qobj(np.zeros(full_ctrls_hams[0].shape), dims=[self.dims, self.dims])
+            )
+
             result = cpo.optimize_pulse_unitary(
                 full_drift_ham, full_ctrls_hams, U_0, U_targ, **kwargs
             )
