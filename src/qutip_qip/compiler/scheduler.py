@@ -410,6 +410,7 @@ class Scheduler:
         return_cycles_list=False,
         random_shuffle=False,
         repeat_num=0,
+        allow_permutation=True,
     ):
         """
         Schedule a `QubitCircuit`,
@@ -526,8 +527,12 @@ class Scheduler:
 
         # Generate the quantum operations dependency graph.
         instructions_graph = InstructionsGraph(gates)
+        if allow_permutation:
+            commutation_rules = self.commutation_rules
+        else:
+            commutation_rules = lambda *args, **kwargs: False
         instructions_graph.generate_dependency_graph(
-            commuting=self.commutation_rules
+            commuting=commutation_rules
         )
         if self.method == "ALAP":
             instructions_graph.reverse_graph()
