@@ -92,51 +92,35 @@ class InstructionsGraph:
             )
             + 1
         )
-        qubits_instructions_dependency = [[set()] for i in range(num_qubits)]
-        # qubits_instructions_dependency:
-        # instruction dependency for each qubits, a nested list of level 3.
-        # E.g. [
-        #       [{1, }],
-        #       [{0, 1}, {2, }],
-        #       [{0, }]
-        #       ]
-        # means that
-        # Gate0 acts on qubit 1 and 2, gate1 act on qubit0 and qubit1,
-        # but gate0 and gate1 cummute with each other.
-        # Therefore, there is not dependency between gate0 and gate1;
-        # Gate 2 acts on qubit1 and must be executed after gate0 and gate1.
-        # Hence, gate2 will depends on gate0 and gate1.
+        # Build the dependency graph with the constraint that
+        # one qubit can not be acted on by two operations, except if
+        # they commute with each other.
+        qubits_cycle_last = [set() for i in range(num_qubits)]
+        qubits_cycle_current = [set() for i in range(num_qubits)]
 
-        # Generate instruction dependency for each qubit
-        for current_ind, instruction in enumerate(self.nodes):
+        # Generate instruction (gate) dependency for each qubit
+        for next_gate_ind, instruction in enumerate(self.nodes):
             for qubit in instruction.used_qubits:
-                # For each used qubit, find the last dependency gate set.
-                # If the current gate commute with all of them,
-                # add it to the list.
-                # Otherwise,
-                # append a new set with the current gate to the list.
                 dependent = False
-                for dependent_ind in qubits_instructions_dependency[qubit][-1]:
-                    if not commuting(current_ind, dependent_ind, self.nodes):
+                for dependent_ind in qubits_cycle_current[qubit]:
+                    if not commuting(next_gate_ind, dependent_ind, self.nodes):
                         dependent = True
-                if not dependent:
-                    qubits_instructions_dependency[qubit][-1].add(current_ind)
-                else:
-                    qubits_instructions_dependency[qubit].append({current_ind})
+                # Assume that if A, B and C use the same qubit, we have
+                # [A,B]=0, [B,C]=0 -> [A,C]=0.
+                # Then we can conclude that
+                # all gates in the current cycle depends on the previous cycle.
+                if dependent:
+                    self._add_dependency(
+                        qubits_cycle_last[qubit], qubits_cycle_current[qubit]
+                    )
+                    qubits_cycle_last[qubit] = qubits_cycle_current[qubit]
+                    qubits_cycle_current[qubit] = {next_gate_ind}
+                qubits_cycle_current[qubit].add(next_gate_ind)
 
-        # Generate the dependency graph
-        for instructions_cycles in qubits_instructions_dependency:
-            for cycle_ind1 in range(len(instructions_cycles) - 1):
-                for instruction_ind1 in instructions_cycles[cycle_ind1]:
-                    for instruction_ind2 in instructions_cycles[
-                        cycle_ind1 + 1
-                    ]:
-                        self.nodes[instruction_ind1].successors.add(
-                            instruction_ind2
-                        )
-                        self.nodes[instruction_ind2].predecessors.add(
-                            instruction_ind1
-                        )
+        for qubit in range(num_qubits):
+            self._add_dependency(
+                qubits_cycle_last[qubit], qubits_cycle_current[qubit]
+            )
 
         # Find start and end nodes of the graph
         start = []
@@ -148,6 +132,12 @@ class InstructionsGraph:
                 start.append(i)
         self.start = start
         self.end = end
+
+    def _add_dependency(self, gates_set_last, gates_set_current):
+        for instruction_ind1 in gates_set_last:
+            for instruction_ind2 in gates_set_current:
+                self.nodes[instruction_ind1].successors.add(instruction_ind2)
+                self.nodes[instruction_ind2].predecessors.add(instruction_ind1)
 
     def reverse_graph(self):
         """
