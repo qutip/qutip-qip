@@ -151,9 +151,9 @@ class InstructionsGraph:
                 node.predecessors,
             )
             try:
-                self.distance_to_start, self.distance_to_end = (
-                    self.distance_to_end,
-                    self.distance_to_start,
+                node.distance_to_start, node.distance_to_end = (
+                    node.distance_to_end,
+                    node.distance_to_start,
                 )
             except AttributeError:
                 pass
@@ -241,7 +241,7 @@ class InstructionsGraph:
     def compute_distance(self, cycles_list):
         """
         Compute the longest distance of each node
-        to the start and end nodes.
+        to the start and end nodes, including its own time.
         The weight for each dependency arrow is
         the duration of the source instruction
         (which should be 1 for gates schedule).
@@ -251,57 +251,32 @@ class InstructionsGraph:
         the distance to the predecessors (successors) of
         the source (target) node is always calculated
         before the target (source) node.
-
-        Parameters
-        ----------
-        cycles_list: list
-            A `cycles_list` obtained by the method `find_topological_order`.
         """
-        cycles_list = deepcopy(cycles_list)
-
-        # distance to the start node
-        for cycle in cycles_list:
-            for ind in cycle:
-                if not self.nodes[ind].predecessors:
-                    self.nodes[ind].distance_to_start = self.nodes[
-                        ind
-                    ].duration
-                else:
-                    self.nodes[ind].distance_to_start = (
-                        max(
-                            [
-                                self.nodes[predecessor_ind].distance_to_start
-                                for predecessor_ind in self.nodes[
-                                    ind
-                                ].predecessors
-                            ]
-                        )
-                        + self.nodes[ind].duration
-                    )
-
-        # distance to the end node
+        cycles_list = cycles_list.copy()
+        for node in self.nodes:
+            node.distance_to_start = None
+            node.distance_to_end = None
+        self._compute_distance_to_start(cycles_list)
+        self.reverse_graph()
         cycles_list.reverse()
+        self._compute_distance_to_start(cycles_list)
         self.reverse_graph()
-        for cycle in cycles_list:
-            for ind in cycle:
-                if not self.nodes[ind].predecessors:
-                    self.nodes[ind].distance_to_end = self.nodes[ind].duration
-                else:
-                    self.nodes[ind].distance_to_end = (
-                        max(
-                            [
-                                self.nodes[predecessor_ind].distance_to_end
-                                for predecessor_ind in self.nodes[
-                                    ind
-                                ].predecessors
-                            ]
-                        )
-                        + self.nodes[ind].duration
-                    )
-        self.longest_distance = max(
-            [self.nodes[i].distance_to_end for i in self.end]
-        )
-        self.reverse_graph()
+
+    def _compute_distance_to_start(self, cycles_list):
+        """distance to the start node"""
+        for ind in [ind for cycle in cycles_list for ind in cycle]:
+            if not self.nodes[ind].predecessors:
+                self.nodes[ind].distance_to_start = self.nodes[ind].duration
+                continue
+            self.nodes[ind].distance_to_start = (
+                max(
+                    [
+                        self.nodes[p_ind].distance_to_start
+                        for p_ind in self.nodes[ind].predecessors
+                    ]
+                )
+                + self.nodes[ind].duration
+            )
 
     def _compare_priority(self, ind1, ind2):
         """
@@ -315,21 +290,15 @@ class InstructionsGraph:
         ind1, ind2: int
             Indices of nodes.
         """
-        if (
-            self.nodes[ind1].distance_to_end
-            == self.nodes[ind2].distance_to_end
-        ):
-            # lower distance_to_start, higher priority
-            return (
-                self.nodes[ind1].distance_to_start
-                - self.nodes[ind2].distance_to_start
-            )
-        else:
+        return (
             # higher distance_to_end, higher priority
-            return (
-                self.nodes[ind2].distance_to_end
-                - self.nodes[ind1].distance_to_end
-            )
+            self.nodes[ind2].distance_to_end
+            - self.nodes[ind1].distance_to_end
+        ) or (
+            # if same distance_to_end, lower distance_to_start, higher priority
+            self.nodes[ind1].distance_to_start
+            - self.nodes[ind2].distance_to_start
+        )
 
     def add_constraint_dependency(self, constraint_dependency):
         """
@@ -460,7 +429,7 @@ class Scheduler:
             larger search space.
         repeat_num: int, optional
             Repeat the scheduling several times and use the best result.
-            Used together with ``random_shuffle=Ture``.
+            Used together with ``random_shuffle=True``.
 
         Returns
         -------
@@ -514,6 +483,8 @@ class Scheduler:
             gates = circuit.gates
         else:
             gates = circuit
+        if not gates:
+            return []
 
         # Generate the quantum operations dependency graph.
         instructions_graph = InstructionsGraph(gates)
@@ -545,6 +516,8 @@ class Scheduler:
         )
 
         # If we only need gates schedule, we can output the result here.
+        if isinstance(gates[0], Gate):
+            gates_schedule = True
         if gates_schedule or return_cycles_list:
             if self.method == "ALAP":
                 cycles_list.reverse()
@@ -563,20 +536,13 @@ class Scheduler:
         # the start time of each pulse.
         instructions_graph.add_constraint_dependency(constraint_dependency)
         instructions_graph.compute_distance(cycles_list=cycles_list)
+        if self.method == "ALAP":
+            instructions_graph.reverse_graph()
 
         # Output pulse schedule result.
         instruction_start_time = []
-        if self.method == "ASAP":
-            for instruction in instructions_graph.nodes:
-                instruction_start_time.append(
-                    instruction.distance_to_start - instruction.duration
-                )
-        elif self.method == "ALAP":
-            for instruction in instructions_graph.nodes:
-                instruction_start_time.append(
-                    instructions_graph.longest_distance
-                    - instruction.distance_to_start
-                )
+        for instruction in instructions_graph.nodes:
+            instruction_start_time.append(instruction.distance_to_start - instruction.duration)
         return instruction_start_time
 
     def commutation_rules(self, ind1, ind2, instructions):
