@@ -568,27 +568,38 @@ class Scheduler:
         instruction1 = instructions[ind1]
         instruction2 = instructions[ind2]
         if instruction1.name != instruction2.name:
-            instruction1, instruction2 = sorted([instruction1, instruction2], key=lambda instruction: instruction.name)
-            if instruction1.name == "CNOT" and instruction2.name in ("X", "RX"):
+            instruction1, instruction2 = sorted(
+                [instruction1, instruction2],
+                key=lambda instruction: instruction.name,
+            )
+            if instruction1.name == "CNOT" and instruction2.name in (
+                "X",
+                "RX",
+            ):
                 if instruction1.targets == instruction2.targets:
-                    return True
+                    commute = True
                 else:
-                    return False
-            elif instruction1.name == "CNOT" and instruction2.name in ("Z", "RZ"):
+                    commute = False
+            elif instruction1.name == "CNOT" and instruction2.name in (
+                "Z",
+                "RZ",
+            ):
                 if instruction1.controls == instruction2.targets:
-                    return True
+                    commute = True
                 else:
-                    return False
+                    commute = False
             else:
-                return False
+                commute = False
+            return commute
         if (instruction1.controls) and (
             instruction1.controls == instruction2.controls
         ):
-            return True
+            commute = True
         elif instruction1.targets == instruction2.targets:
-            return True
+            commute = True
         else:
-            return False
+            commute = False
+        return commute
 
     def apply_constraint(self, ind1, ind2, instructions):
         """
@@ -612,7 +623,6 @@ def qubit_constraint(ind1, ind2, instructions):
     """
     Determine if two instructions have overlap in the used qubits.
     """
-    # FIXME think about the constraint. replace it with commutation.
     if instructions[ind1].used_qubits & instructions[ind2].used_qubits:
         return False
     else:
