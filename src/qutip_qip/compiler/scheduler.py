@@ -198,45 +198,53 @@ class InstructionsGraph:
         # The method will destruct the graph, therefore we make a copy.
         graph = deepcopy(self.nodes)
         cycles_list = []
-        available_nodes = list(self.start)  # a list of available instructions
-        # pairs of instructions that are limited by hardware constraint
-        constraint_dependency = set()
+        # available_gates: a list of available instructions,
+        # all their dependence has been executed.
+        available_gates = list(self.start)
 
-        while available_nodes:
+        while available_gates:
             if random:
-                shuffle(available_nodes)
+                shuffle(available_gates)
             if priority:
-                available_nodes.sort(key=cmp_to_key(self._compare_priority))
+                available_gates.sort(key=cmp_to_key(self._compare_priority))
             current_cycle = []
             if apply_constraint is None:  # if no constraits
-                current_cycle = deepcopy(available_nodes)
+                current_cycle = deepcopy(available_gates)
             else:  # check if constraits allow the parallelization
-                for node1 in available_nodes:
-                    approval = True
-                    for node2 in current_cycle:
-                        if not apply_constraint(node1, node2, graph):
-                            approval = False
-                            # save the conflicted pairs of instructions
-                            constraint_dependency.add((node2, node1))
-                    if approval:
-                        current_cycle.append(node1)
+                self._add_dependency_among_commuting_gates(
+                    current_cycle, available_gates, apply_constraint
+                )
             # add this cycle to cycles_list
             cycles_list.append(current_cycle)
 
             # update the list of available nodes
             # remove the executed nodes from available_node
             for node in current_cycle:
-                available_nodes.remove(node)
-            # add new nodes to available_nodes
+                available_gates.remove(node)
+            # add new nodes to available_gates
             # if they have no other predecessors
             for node in current_cycle:
                 for successor_ind in graph[node].successors:
                     graph[successor_ind].predecessors.remove(node)
                     if not graph[successor_ind].predecessors:
-                        available_nodes.append(successor_ind)
+                        available_gates.append(successor_ind)
                 graph[node].successors = set()
 
-        return cycles_list, constraint_dependency
+        return cycles_list
+
+    def _add_dependency_among_commuting_gates(
+        self, current_cycle, available_gates, apply_constraint
+    ):
+        for ind2 in available_gates:
+            approval = True
+            for ind1 in current_cycle:
+                if not apply_constraint(ind2, ind1, self.nodes):
+                    approval = False
+                    # save the conflicted pairs of instructions
+                    self.nodes[ind1].successors.add(ind2)
+                    self.nodes[ind2].predecessors.add(ind1)
+            if approval:
+                current_cycle.append(ind2)
 
     def compute_distance(self, cycles_list):
         """
@@ -369,7 +377,6 @@ class Scheduler:
         return_cycles_list=False,
         random_shuffle=False,
         repeat_num=0,
-        allow_permutation=True,
     ):
         """
         Schedule a `QubitCircuit`,
@@ -500,16 +507,13 @@ class Scheduler:
 
         # Schedule without hardware constraints, then
         # use this cycles_list to compute the distance.
-        cycles_list, _ = instructions_graph.find_topological_order(
+        cycles_list = instructions_graph.find_topological_order(
             priority=False, apply_constraint=None, random=random_shuffle
         )
         instructions_graph.compute_distance(cycles_list=cycles_list)
 
         # Schedule again with priority and hardware constraint.
-        (
-            cycles_list,
-            constraint_dependency,
-        ) = instructions_graph.find_topological_order(
+        cycles_list = instructions_graph.find_topological_order(
             priority=True,
             apply_constraint=self.apply_constraint,
             random=random_shuffle,
@@ -534,7 +538,6 @@ class Scheduler:
         # and compute the longest distance to the start node again.
         # The longest distance to the start node determines
         # the start time of each pulse.
-        instructions_graph.add_constraint_dependency(constraint_dependency)
         instructions_graph.compute_distance(cycles_list=cycles_list)
         if self.method == "ALAP":
             instructions_graph.reverse_graph()
@@ -542,7 +545,9 @@ class Scheduler:
         # Output pulse schedule result.
         instruction_start_time = []
         for instruction in instructions_graph.nodes:
-            instruction_start_time.append(instruction.distance_to_start - instruction.duration)
+            instruction_start_time.append(
+                instruction.distance_to_start - instruction.duration
+            )
         return instruction_start_time
 
     def commutation_rules(self, ind1, ind2, instructions):
@@ -572,7 +577,7 @@ class Scheduler:
 
     def apply_constraint(self, ind1, ind2, instructions):
         """
-        Apply hardware constraint to check
+        Apply hardware constraint among the commuting gates to check
         if two instructions can be executed in parallel.
 
         Parameters
@@ -592,6 +597,7 @@ def qubit_constraint(ind1, ind2, instructions):
     """
     Determine if two instructions have overlap in the used qubits.
     """
+    # FIXME think about the constraint. replace it with commutation.
     if instructions[ind1].used_qubits & instructions[ind2].used_qubits:
         return False
     else:
