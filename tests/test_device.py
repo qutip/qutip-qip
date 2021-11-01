@@ -188,7 +188,9 @@ def test_numerical_circuit(circuit, device_class, kwargs, schedule_mode):
     assert _tol > abs(1 - qutip.metrics.fidelity(result.final_state, target))
 
 
-@pytest.mark.parametrize("processor_class", [DispersiveCavityQED, LinearSpinChain, CircularSpinChain, SCQubits])
+@pytest.mark.parametrize(
+    "processor_class",
+    [DispersiveCavityQED, LinearSpinChain, CircularSpinChain, SCQubits])
 def test_pulse_plotting(processor_class):
     try:
         import matplotlib.pyplot as plt

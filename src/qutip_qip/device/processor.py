@@ -273,7 +273,8 @@ class Processor(object):
         Returns
         -------
         label_list : list
-            A list of hashable objects each corresponds to an available control Hamiltonian.
+            A list of hashable objects each corresponds to
+            an available control Hamiltonian.
         """
         return self.model.get_control_labels()
 
@@ -659,7 +660,6 @@ class Processor(object):
         return True
 
     def get_pulse_dict(self):
-        # FIXME
         label_list = {}
         for i, pulse in enumerate(self.pulses):
             if pulse.label is not None:
@@ -742,6 +742,15 @@ class Processor(object):
         num_steps: int, optional
             Number of time steps in the plot.
 
+        pulse_labels: list of dict, optional
+            A map between pulse labels and the labels shown on the y axis.
+            E.g. ``["sx", "sigmax"]``.
+            If not given and ``use_control_latex==False``,
+            the string label defined in each :obj:`.Pulse` is used.
+
+        use_control_latex: bool, optional
+            Use labels defined in ``Processor.model.get_control_latex``.
+
         Returns
         -------
         fig: matplotlib.figure.Figure
@@ -755,10 +764,11 @@ class Processor(object):
         :meth:.Processor.plot_pulses` only works for array_like coefficients.
         """
         if hasattr(self, "get_operators_labels"):
-            warnings.warn("Using the get_operators_labels to provide labels "
-            "for plotting is deprecated. Please use get_control_latex instead.")
-
-        # FIXME fix if pulse is not fully defined.
+            warnings.warn(
+                "Using the get_operators_labels to provide labels "
+                "for plotting is deprecated. "
+                "Please use get_control_latex instead."
+            )
         import matplotlib.pyplot as plt
         import matplotlib.gridspec as gridspec
 
@@ -1151,7 +1161,8 @@ def _pulse_interpolate(pulse, tlist):
 class Model:
     """
     Template class for a physical model representing quantum hardware.
-    The concrete model class does not have to inherit from this, as long as the following methods are defined.
+    The concrete model class does not have to inherit from this,
+    as long as the following methods are defined.
 
     Parameters
     ----------

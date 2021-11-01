@@ -274,8 +274,8 @@ class SCQubitsModel(Model):
         """
         num_qubits = self.num_qubits
         labels = [
-            {f"sx{n}": f"$\sigma_x^{n}$" for n in range(num_qubits)},
-            {f"sy{n}": f"$\sigma_y^{n}$" for n in range(num_qubits)},
+            {f"sx{n}": r"$\sigma_x" + f"^{n}$" for n in range(num_qubits)},
+            {f"sy{n}": r"$\sigma_y" + f"^{n}$" for n in range(num_qubits)},
         ]
         label_zx = {}
         for m in range(num_qubits - 1):

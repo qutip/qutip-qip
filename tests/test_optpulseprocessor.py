@@ -107,8 +107,13 @@ class TestOptPulseProcessor:
         qc = QubitCircuit(3)
         qc.add_gate("CNOT", 1, 0)
         qc.add_gate("X", 2)
-        processor.load_circuit(qc, merge_gates=True, num_tslots=10, evo_time=2.0)
+        processor.load_circuit(
+            qc, merge_gates=True, num_tslots=10, evo_time=2.0
+        )
         init_state = qutip.rand_ket(8, dims=[[2, 2, 2], [1, 1, 1]])
         num_result = processor.run_state(init_state=init_state).states[-1]
         ideal_result = qc.run(init_state)
-        assert pytest.approx(qutip.fidelity(num_result, ideal_result), 1.0e-6) == 1.0
+        assert (
+            pytest.approx(qutip.fidelity(num_result, ideal_result), 1.0e-6)
+            == 1.0
+        )

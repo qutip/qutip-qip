@@ -52,12 +52,16 @@ class TestCircuitProcessor:
         proc2.add_control(sigmaz(), label="sz")
         proc2.add_control(sigmax(), label="sx")
         # TODO generalize to different tlist
-        tlist = np.array([0., 0.1, 0.2, 0.3, 0.4, 0.5])
+        tlist = np.array([0.0, 0.1, 0.2, 0.3, 0.4, 0.5])
         amp1 = np.arange(0, 5, 1)
         amp2 = np.arange(5, 0, -1)
 
-
-        proc.set_all_coeffs({label: amp for label, amp in zip(proc.get_control_labels(), [amp1, amp2])})
+        proc.set_all_coeffs(
+            {
+                label: amp
+                for label, amp in zip(proc.get_control_labels(), [amp1, amp2])
+            }
+        )
         proc.set_all_tlist(tlist)
         proc.save_coeff("qutip_test_CircuitProcessor.txt")
         proc1.read_coeff("qutip_test_CircuitProcessor.txt")
