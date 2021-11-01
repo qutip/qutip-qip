@@ -192,8 +192,11 @@ class OptPulseProcessor(Processor):
                         qobj, len(self.dims), targets=targets, dims=self.dims
                     )
                     for (qobj, targets) in self.model.get_all_drift()
-                ]
-                ,start=Qobj(np.zeros(full_ctrls_hams[0].shape), dims=[self.dims, self.dims])
+                ],
+                Qobj(
+                    np.zeros(full_ctrls_hams[0].shape),
+                    dims=[self.dims, self.dims],
+                ),
             )
 
             result = cpo.optimize_pulse_unitary(
