@@ -133,7 +133,7 @@ class TestCircuitProcessor:
             err_msg="Error in t1 & t2 simulation, "
                     "with t1={} and t2={}".format(t1, t2))
 
-    def testPlot(self):
+    def test_plot(self):
         """
         Test for plotting functions
         """
@@ -147,7 +147,7 @@ class TestCircuitProcessor:
         processor.add_control(sigmaz(), label="sz")
         processor.set_all_coeffs({"sz": np.array([np.sin(t) for t in tlist])})
         processor.set_all_tlist(tlist)
-        fig, _ = processor.plot_pulses()
+        fig, _ = processor.plot_pulses(use_control_latex=False)
         # testing under Xvfb with pytest-xvfb complains if figure windows are
         # left open, so we politely close it:
         plt.close(fig)
@@ -158,8 +158,7 @@ class TestCircuitProcessor:
         processor.add_control(sigmaz(), label="sz")
         processor.set_all_coeffs({"sz": np.array([np.sin(t) for t in tlist])})
         processor.set_all_tlist(tlist)
-        processor.plot_pulses()
-        fig, _ = processor.plot_pulses()
+        fig, _ = processor.plot_pulses(use_control_latex=False)
         # testing under Xvfb with pytest-xvfb complains if figure windows are
         # left open, so we politely close it:
         plt.close(fig)

@@ -99,6 +99,10 @@ class Processor(object):
         """
         return self.model.num_qubits
 
+    @num_qubits.setter
+    def num_qubits(self, value):
+        self.model.num_qubits = value
+
     @property
     def dims(self):
         """
@@ -106,6 +110,10 @@ class Processor(object):
         :type: list
         """
         return self.model.dims
+
+    @dims.setter
+    def dims(self, value):
+        self.model.dims = value
 
     @property
     def t1(self):
@@ -718,6 +726,8 @@ class Processor(object):
         show_axis=False,
         rescale_pulse_coeffs=True,
         num_steps=1000,
+        pulse_labels=None,
+        use_control_latex=True,
     ):
         """
         Plot the ideal pulse coefficients.
@@ -741,6 +751,16 @@ class Processor(object):
 
         num_steps: int, optional
             Number of time steps in the plot.
+        
+        pulse_labels: list of dict, optional
+            A map between pulse labels and the labels shown in the y axis.
+            E.g. ``[{"sx": "sigmax"}]``.
+            Pulses in each dictionary will get a different color.
+            If not given and ``use_control_latex==False``,
+            the string label defined in each :obj:`.Pulse` is used.
+
+        use_control_latex: bool, optional
+            Use labels defined in ``Processor.model.get_control_latex``.
 
         pulse_labels: list of dict, optional
             A map between pulse labels and the labels shown on the y axis.
@@ -756,7 +776,7 @@ class Processor(object):
         fig: matplotlib.figure.Figure
             The `Figure` object for the plot.
 
-        ax: matplotlib.axes._subplots.AxesSubplot
+        axis: list of ``matplotlib.axes._subplots.AxesSubplot``
             The axes for the plot.
 
         Notes
@@ -774,9 +794,33 @@ class Processor(object):
 
         color_list = plt.rcParams["axes.prop_cycle"].by_key()["color"]
 
+        # choose labels
+        if pulse_labels is None:
+            if use_control_latex and \
+                not hasattr(self.model, "get_control_latex"):
+                warnings.warn(
+                    "No method get_control_latex defined in the model. "
+                    "Switch to using the labels defined in each pulse."
+                    "Set use_control_latex=False to turn off the warning."
+                )
+            if use_control_latex:  # use control labels in the model
+                control_labels = deepcopy(self.get_control_latex())
+                pulse_labels = control_labels
+            else:
+                pulse_labels = [
+                    {pulse.label: pulse.label for pulse in self.pulses}
+                ]
+
+        # If it is a nested list instead of a list of dict, we assume that
+        if isinstance(pulse_labels[0], list):
+            for ind, pulse_group in enumerate(pulse_labels):
+                pulse_labels[ind] = {
+                    i: latex for i, latex in enumerate(pulse_group)
+                }
+
         # create a axis for each pulse
         fig = plt.figure(figsize=figsize, dpi=dpi)
-        grids = gridspec.GridSpec(len(self.model.get_control_labels()), 1)
+        grids = gridspec.GridSpec(sum([len(d) for d in pulse_labels]), 1)
         grids.update(wspace=0.0, hspace=0.0)
 
         tlist = np.linspace(0.0, self.get_full_tlist()[-1], num_steps)
@@ -790,7 +834,7 @@ class Processor(object):
 
         pulse_ind = 0
         axis = []
-        for i, label_group in enumerate(self.get_control_latex()):
+        for i, label_group in enumerate(pulse_labels):
             for j, (label, latex_str) in enumerate(label_group.items()):
                 try:
                     pulse = self.find_pulse(label)

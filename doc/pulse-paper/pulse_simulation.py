@@ -27,7 +27,7 @@ solver_result = processor.run_state(
     tlist=plot_time)
 
 mpl.rcParams['axes.prop_cycle'] = mpl.cycler(color=["#1f77b4"]) 
-fig1, ax1 = processor.plot_pulses(figsize=(LINEWIDTH/2, LINEWIDTH/4))
+fig1, ax1 = processor.plot_pulses(figsize=(LINEWIDTH/2, LINEWIDTH/4), use_control_latex=False)
 ax1[0].set_xlim(-0.5, np.pi/2 + 0.5)
 ax1[0].set_ylim(-0.1, 1.1)
 ax1[0].axhline(0)
@@ -39,11 +39,11 @@ fig1.show()
 # continuous pulse
 processor = Processor(1)
 processor.pulse_mode = "continuous"
-processor.add_control(sigmax())
+processor.add_control(sigmax(), label="sigmax")
 tlist = np.linspace(0., np.pi/2, 21)
 coeff = np.array(np.sin(2*tlist) * np.pi/2)
-processor.pulses[0].tlist = tlist
-processor.pulses[0].coeff = coeff
+processor.set_coeffs({"sigmax": coeff})
+processor.set_tlist({"sigmax": tlist})
 solver_result2 = processor.run_state(
     init_state=basis(2, 0),
     tlist=plot_time)
