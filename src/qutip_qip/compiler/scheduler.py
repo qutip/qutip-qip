@@ -363,12 +363,15 @@ class Scheduler:
         i.e. one qubit cannot be used by two gates at the same time.
     """
 
-    def __init__(self, method="ALAP", constraint_functions=None):
+    def __init__(
+        self, method="ALAP", allow_permutation=True, constraint_functions=None
+    ):
         self.method = method
         if constraint_functions is None:
             self.constraint_functions = [qubit_constraint]
         else:
-            return constraint_functions
+            self.constraint_functions = constraint_functions
+        self.allow_permutation = allow_permutation
 
     def schedule(
         self,
@@ -495,7 +498,7 @@ class Scheduler:
 
         # Generate the quantum operations dependency graph.
         instructions_graph = InstructionsGraph(gates)
-        if allow_permutation:
+        if self.allow_permutation:
             commutation_rules = self.commutation_rules
         else:
             commutation_rules = lambda *args, **kwargs: False
@@ -565,7 +568,19 @@ class Scheduler:
         instruction1 = instructions[ind1]
         instruction2 = instructions[ind2]
         if instruction1.name != instruction2.name:
-            return False
+            instruction1, instruction2 = sorted([instruction1, instruction2], key=lambda instruction: instruction.name)
+            if instruction1.name == "CNOT" and instruction2.name in ("X", "RX"):
+                if instruction1.targets == instruction2.targets:
+                    return True
+                else:
+                    return False
+            elif instruction1.name == "CNOT" and instruction2.name in ("Z", "RZ"):
+                if instruction1.controls == instruction2.targets:
+                    return True
+                else:
+                    return False
+            else:
+                return False
         if (instruction1.controls) and (
             instruction1.controls == instruction2.controls
         ):
