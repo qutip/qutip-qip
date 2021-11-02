@@ -308,31 +308,6 @@ class InstructionsGraph:
             - self.nodes[ind2].distance_to_start
         )
 
-    def add_constraint_dependency(self, constraint_dependency):
-        """
-        Add the dependency caused by hardware constraint to the graph.
-
-        Parameters
-        ----------
-        constraint_dependency: list
-            `constraint_dependency` obtained by the method
-            `find_topological_order`.
-        """
-        for ind1, ind2 in constraint_dependency:
-            self.nodes[ind1].successors.add(ind2)
-            self.nodes[ind2].predecessors.add(ind1)
-
-        # Update the start and end nodes of the graph
-        start = []
-        end = []
-        for i, instruction in enumerate(self.nodes):
-            if not instruction.successors:
-                end.append(i)
-            if not instruction.predecessors:
-                start.append(i)
-        self.start = start
-        self.end = end
-
 
 class Scheduler:
     """
