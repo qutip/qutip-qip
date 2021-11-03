@@ -128,7 +128,6 @@ class LinearSpinChain(SpinChain):
             num_qubits,
             correct_global_phase=correct_global_phase,
             model=model,
-            **params,
         )
 
     @property
@@ -193,7 +192,6 @@ class CircularSpinChain(SpinChain):
             num_qubits,
             correct_global_phase=correct_global_phase,
             model=model,
-            **params,
         )
 
     @property

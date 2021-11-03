@@ -59,13 +59,13 @@ class Processor(object):
         If other parameters, such as `t1` is given as input,
         it will overwrite those saved in :obj:`Processor.model.params`.
 
-    **params:
-        - t1 : float or list, optional
-            Characterize the amplitude damping for each qubit.
-            A list of size `num_qubits` or a float for all qubits.
-        - t2 : float or list, optional
-            Characterize the total dephasing for each qubit.
-            A list of size `num_qubits` or a float for all qubits.
+    t1 : float or list, optional
+        Characterize the amplitude damping for each qubit.
+        A list of size `num_qubits` or a float for all qubits.
+
+    t2 : float or list, optional
+        Characterize the total dephasing for each qubit.
+        A list of size `num_qubits` or a float for all qubits.
     """
 
     def __init__(
@@ -75,18 +75,15 @@ class Processor(object):
         spline_kind="step_func",
         model=None,
         N=None,
-        **params
+        t1=None,
+        t2=None,
     ):
         num_qubits = num_qubits if num_qubits is not None else N
         if model is None:
-            self.model = Model(num_qubits=num_qubits, dims=dims, **params)
+            self.model = Model(num_qubits=num_qubits, dims=dims, t1=t1, t2=t2)
         else:
             self.model = model
-            self.model.num_qubits = (
-                num_qubits if num_qubits is not None else self.model.num_qubits
-            )
-            self.model.dims = dims if dims is not None else self.model.dims
-            self.model.params.update(deepcopy(params))
+
         self.pulses = []
         # FIXME # Think about the handling of spline_kind.
         self.spline_kind = spline_kind
@@ -751,7 +748,7 @@ class Processor(object):
 
         num_steps: int, optional
             Number of time steps in the plot.
-        
+
         pulse_labels: list of dict, optional
             A map between pulse labels and the labels shown in the y axis.
             E.g. ``[{"sx": "sigmax"}]``.
@@ -796,8 +793,9 @@ class Processor(object):
 
         # choose labels
         if pulse_labels is None:
-            if use_control_latex and \
-                not hasattr(self.model, "get_control_latex"):
+            if use_control_latex and not hasattr(
+                self.model, "get_control_latex"
+            ):
                 warnings.warn(
                     "No method get_control_latex defined in the model. "
                     "Switch to using the labels defined in each pulse."
@@ -1229,7 +1227,7 @@ class Model:
     """
 
     def __init__(self, num_qubits, dims=None, **params):
-        self.num_qubits = num_qubits
+        self.num_qubits = num_qubits if num_qubits is not None else N
         self.dims = dims if dims is not None else num_qubits * [2]
         self.params = deepcopy(params)
         self._controls = {}
