@@ -7,7 +7,10 @@ from qutip_qip.operations import Gate, gate_sequence_product
 from qutip import process_fidelity, qeye, tracedist
 
 
-def _varify_scheduled_circuit(circuit, gate_cycle_indices):
+def _verify_scheduled_circuit(circuit, gate_cycle_indices):
+    """
+    Compare results between the original and the scheduled circuit.
+    """
     result0 = gate_sequence_product(circuit.propagators())
     scheduled_gate = [[] for i in range(max(gate_cycle_indices) + 1)]
     for i, cycles in enumerate(gate_cycle_indices):
@@ -60,7 +63,7 @@ def test_commutation_rules(circuit, expected_length):
     scheduler = Scheduler("ASAP")
     gate_cycle_indices = scheduler.schedule(circuit)
     assert (max(gate_cycle_indices) + 1) == expected_length
-    assert _varify_scheduled_circuit(circuit, gate_cycle_indices)
+    assert _verify_scheduled_circuit(circuit, gate_cycle_indices)
 
 
 def _circuit1():
@@ -142,7 +145,7 @@ def test_scheduling_gates1(
     )
 
     assert max(gate_cycle_indices) == expected_length
-    _varify_scheduled_circuit(circuit, gate_cycle_indices)
+    _verify_scheduled_circuit(circuit, gate_cycle_indices)
 
 
 # There is some problem with circuit2 on Mac.
@@ -172,7 +175,7 @@ def test_scheduling_gates2(
     )
 
     assert max(gate_cycle_indices) == expected_length
-    _varify_scheduled_circuit(circuit, gate_cycle_indices)
+    _verify_scheduled_circuit(circuit, gate_cycle_indices)
 
 
 @pytest.mark.parametrize(
@@ -204,7 +207,7 @@ def test_scheduling_gates3(
     )
 
     assert max(gate_cycle_indices) == expected_length
-    _varify_scheduled_circuit(circuit, gate_cycle_indices)
+    _verify_scheduled_circuit(circuit, gate_cycle_indices)
 
 
 @pytest.mark.parametrize(
@@ -236,7 +239,7 @@ def test_scheduling_gates4(
     )
 
     assert max(gate_cycle_indices) == expected_length
-    _varify_scheduled_circuit(circuit, gate_cycle_indices)
+    _verify_scheduled_circuit(circuit, gate_cycle_indices)
 
 
 @pytest.mark.parametrize(
