@@ -61,12 +61,12 @@ class SCQubits(ModelProcessor):
 
 class SCQubitsModel(Model):
     """
-    The physical model for superconducting qubits with fixed frequency.
+    The physical model for :obj:`.SCQubits`.
 
     Parameters
     ----------
     num_qubits: int
-        The number of component systems.
+        The number of qubits.
     dims: list, optional
         The dimension of each component system.
         Default value is a qubit system of ``dim=[2,2,2,...,2]``.

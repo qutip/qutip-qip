@@ -132,12 +132,12 @@ class DispersiveCavityQED(ModelProcessor):
 
 class CavityQEDModel(Model):
     """
-    The physical model for a dispersive cavity-QED system.
+    The physical model for :obj:`.DispersiveCavityQED`.
 
     Parameters
     ----------
     num_qubits : int
-        The number of component systems.
+        The number of qubits.
     num_levels : int, optional
         The truncation level of the resonator.
     **params :
@@ -201,7 +201,7 @@ class CavityQEDModel(Model):
 
     def _set_up_controls(self):
         """
-        Generate the Hamiltonians for the spinchain model and save them in the
+        Generate the Hamiltonians for the cavity-qed model and save them in the
         attribute `ctrls`.
 
         Parameters

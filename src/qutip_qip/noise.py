@@ -286,7 +286,7 @@ class RelaxationNoise(Noise):
         T: float or list
             The relaxation time
         N: int
-            The number of component systems.
+            The number of qubits.
 
         Returns
         -------

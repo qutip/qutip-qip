@@ -28,7 +28,7 @@ class ModelProcessor(Processor):
     Parameters
     ----------
     num_qubits: int, optional
-        The number of component systems.
+        The number of qubits.
         It replaces the old API ``N``.
 
     dims: list, optional

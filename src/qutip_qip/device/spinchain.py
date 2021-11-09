@@ -221,12 +221,12 @@ class CircularSpinChain(SpinChain):
 
 class SpinChainModel(Model):
     """
-    Physical model for a spin chain qubits system.
+    Physical model for :obj:`CircularSpinChain` and :obj`LinearSpinChain`.
 
     Parameters
     ----------
     num_qubits: int
-        The number of component systems.
+        The number of qubits.
     setup : str
         "linear" for an open end and "circular" for a closed end chain.
     **params :

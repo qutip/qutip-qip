@@ -33,7 +33,7 @@ class Processor(object):
     Parameters
     ----------
     num_qubits : int, optional
-        The number of component systems.
+        The number of qubits.
         It replaces the old API ``N``.
 
     dims : list, optional
@@ -1208,8 +1208,8 @@ class Model:
 
     Parameters
     ----------
-    num_qubits : int, optional
-        The number of component systems.
+    num_The number of qubits
+        The number of qubits.
     dims : list, optional
         The dimension of each component system.
         Default value is a qubit system of ``dim=[2,2,2,...,2]``.
@@ -1218,8 +1218,8 @@ class Model:
 
     Attributes
     ----------
-    num_qubits : int, optional
-        The number of component systems.
+    num_The number of qubits
+        The number of qubits.
     dims : list, optional
         The dimension of each component system.
     params : dict

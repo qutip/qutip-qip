@@ -27,7 +27,7 @@ class OptPulseProcessor(Processor):
     Parameters
     ----------
     num_qubits : int
-        The number of component systems.
+        The number of qubits.
 
     drift: `:class:`qutip.Qobj`
         The drift Hamiltonian. The size must match the whole quantum system.

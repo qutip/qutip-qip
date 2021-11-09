@@ -92,6 +92,7 @@ def test_define_model_in_processor():
     with pytest.raises(TypeError):
         processor.add_noise("non-noise-object")
 
+
 def test_change_parameters_in_processor():
     processor = LinearSpinChain(0, sx=0.1)
     assert(all(processor.params["sx"] == [0.1]))
