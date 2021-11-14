@@ -7,16 +7,6 @@ import subprocess
 import tempfile
 import warnings
 
-_latex_template = r"""
-\documentclass{standalone}
-\usepackage[braket]{qcircuit}
-\renewcommand{\qswap}{*=<0em>{\times}}
-\begin{document}
-\Qcircuit @C=1cm @R=1cm {
-%s}
-\end{document}
-"""
-
 
 def _run_command(command, *args, **kwargs):
     """
@@ -215,7 +205,7 @@ if _pdflatex is not None:
             try:
                 os.chdir(temporary_dir)
                 with open(filename + ".tex", "w") as file:
-                    file.write(_latex_template % code)
+                    file.write(code)
                 try:
                     _run_command(
                         (_pdflatex, "-interaction", "batchmode", filename)
@@ -225,6 +215,11 @@ if _pdflatex is not None:
                         "pdflatex failed."
                         " Perhaps you do not have it installed, or you are"
                         " missing the LaTeX package 'qcircuit'."
+                    )
+                    message += (
+                        "The latex code is printed below. "
+                        "Please try to compile locally using pdflatex:\n"
+                        + code
                     )
                     raise RuntimeError(message) from e
                 _crop_pdf(filename + ".pdf")

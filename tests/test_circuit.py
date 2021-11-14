@@ -626,10 +626,20 @@ class TestQubitCircuit:
                 np.testing.assert_allclose(probs_initial, probs_final)
                 assert sum(result_cbits[i]) == 1
 
+    _latex_template = r"""
+\documentclass{standalone}
+\usepackage[braket]{qcircuit}
+\renewcommand{\qswap}{*=<0em>{\times}}
+\begin{document}
+\Qcircuit @C=1cm @R=1cm {
+%s}
+\end{document}
+"""
+
     def test_latex_code_teleportation_circuit(self):
         qc = _teleportation_circuit()
         latex = qc.latex_code()
-        assert latex == "\n".join([
+        assert latex == self._latex_template % "\n".join([
             r" & \lstick{c1} &  \qw  &  \qw  &  \qw  &  \qw"
             r"  &  \qw \cwx[4]  &  \qw  &  \qw  &  \ctrl{2}  & \qw \\ ",
             r" & \lstick{c0} &  \qw  &  \qw  &  \qw  &  \qw"
