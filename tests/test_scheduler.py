@@ -10,6 +10,8 @@ from qutip import process_fidelity, qeye, tracedist
 def _verify_scheduled_circuit(circuit, gate_cycle_indices):
     """
     Compare results between the original and the scheduled circuit.
+    The input gate_cycle_indices is the scheduling result,
+    i.e., a list of integers denoting the execution cycle of each gate in the circuit.
     """
     result0 = gate_sequence_product(circuit.propagators())
     scheduled_gate = [[] for i in range(max(gate_cycle_indices) + 1)]
