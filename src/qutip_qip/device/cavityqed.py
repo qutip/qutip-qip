@@ -132,7 +132,8 @@ class DispersiveCavityQED(ModelProcessor):
 
 class CavityQEDModel(Model):
     """
-    The physical model for :obj:`.DispersiveCavityQED`.
+    The physical model for a dispersive cavity-QED processor
+    (:obj:`.DispersiveCavityQED`).
 
     Parameters
     ----------

@@ -221,7 +221,8 @@ class CircularSpinChain(SpinChain):
 
 class SpinChainModel(Model):
     """
-    Physical model for :obj:`CircularSpinChain` and :obj`LinearSpinChain`.
+    The physical model for the spin chian processor
+    (:obj:`CircularSpinChain` and :obj`LinearSpinChain`).
 
     Parameters
     ----------

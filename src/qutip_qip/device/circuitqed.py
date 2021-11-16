@@ -61,7 +61,8 @@ class SCQubits(ModelProcessor):
 
 class SCQubitsModel(Model):
     """
-    The physical model for :obj:`.SCQubits`.
+    The physical model for superconducting-qubit model processor
+    (:obj:`.SCQubits`) with fixed frequency.
 
     Parameters
     ----------
