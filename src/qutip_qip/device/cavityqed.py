@@ -139,7 +139,7 @@ class CavityQEDModel(Model):
     num_qubits : int
         The number of qubits.
     num_levels : int, optional
-        The truncation level of the resonator.
+        The truncation level of the Hilbert space for the resonator.
     **params :
         Keyword arguments for hardware parameters, in the unit of GHz.
         Qubit parameters can either be a float or a list of the length
