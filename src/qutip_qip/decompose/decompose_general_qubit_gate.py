@@ -92,3 +92,17 @@ def _decompose_to_two_level_arrays(input_gate, num_qubits, expand=True):
             compact_U_information.append(U_index_together)
 
         return(compact_U_information)
+
+
+def _create_dict_for_two_level_arrays(two_level_output):
+    """Creates a dictionary with keys for the total number of two-level array
+    output. This will be used by other functions to store information about
+    SWAP, PauliX gates etc.
+    """
+    num_two_level_gates = len(two_level_output)
+
+    # create a reversed list of keys based on total number of two-level gates
+    # ranging from 1 to n where n is the total number of two-level arrays
+    gate_keys = list(range(1, num_two_level_gates+1))[::-1]
+    gate_info_dict = dict.fromkeys(gate_keys)
+    return(gate_info_dict)
