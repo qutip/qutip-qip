@@ -22,13 +22,16 @@ def test_compiling_with_scheduler():
     circuit.add_gate("X", 0)
     circuit.add_gate("X", 1)
     processor = DispersiveCavityQED(2)
+
     processor.load_circuit(circuit, schedule_mode=None)
     tlist = processor.get_full_tlist()
     time_not_scheduled = tlist[-1]-tlist[0]
-    coeffs, tlist = processor.load_circuit(circuit, schedule_mode="ASAP")
+
+    processor.load_circuit(circuit, schedule_mode="ASAP")
     tlist = processor.get_full_tlist()
     time_scheduled1 = tlist[-1]-tlist[0]
-    coeffs, tlist = processor.load_circuit(circuit, schedule_mode="ALAP")
+
+    processor.load_circuit(circuit, schedule_mode="ALAP")
     tlist = processor.get_full_tlist()
     time_scheduled2 = tlist[-1]-tlist[0]
 

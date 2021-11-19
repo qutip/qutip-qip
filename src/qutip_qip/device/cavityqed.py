@@ -15,8 +15,8 @@ from qutip import (
 )
 from ..circuit import QubitCircuit
 from ..operations import Gate
-from .processor import Processor
-from .modelprocessor import ModelProcessor
+from .processor import Processor, Model
+from .modelprocessor import ModelProcessor, _to_array
 from ..operations import expand_operator
 from ..pulse import Pulse
 from ..compiler import GateCompiler, CavityQEDCompiler
@@ -41,147 +41,33 @@ class DispersiveCavityQED(ModelProcessor):
     num_qubits: int
         The number of qubits in the system.
 
+    num_levels: int, optional
+        The number of energy levels in the resonator.
+
     correct_global_phase: float, optional
         Save the global phase, the analytical solution
         will track the global phase.
         It has no effect on the numerical solution.
 
-    num_levels: int, optional
-        The number of energy levels in the resonator.
-
-    t1: list or float, optional
-        Characterize the decoherence of amplitude damping for
-        each qubit. A list of size `num_qubits` or a float for all qubits.
-
-    t2: list of float, optional
-        Characterize the decoherence of dephasing for
-        each qubit. A list of size `num_qubits` or a float for all qubits.
-
     **params:
-        Keyword argument for hardware parameters, in the unit of GHz.
-        Qubit parameters can either be a float or a list of the length
-        ``num_qubits``.
-
-        - ``deltamax``: the pulse strength of sigma-x control, default ``1.0``
-        - ``epsmax``: the pulse strength of sigma-z control, default ``9.5``
-        - ``eps``: the bare transition frequency for each of the qubits,
-          default ``9.5``
-        - ``delta``: the coupling between qubit states, default ``0.0``
-        - ``g``: the coupling strength between the resonator and the qubit,
-          default ``1.0``
-        - ``w0``: the bare frequency of the resonator. Should only be a float,
-          default ``0.01``
-
-        The dressed qubit frequency is `wq` is computed by
-        :math:`w_q=\sqrt{\epsilon^2+\delta^2}`
-
-    Attributes
-    ----------
-    wq: list of float
-        The frequency of the qubits calculated from
-        eps and delta for each qubit.
-
-    Delta: list of float
-        The detuning with respect to w0 calculated
-        from wq and w0 for each qubit.
+        Hardware parameters. See :obj:`CavityQEDModel`.
     """
 
     def __init__(
-        self,
-        num_qubits,
-        correct_global_phase=True,
-        num_levels=10,
-        t1=None,
-        t2=None,
-        **params
+        self, num_qubits, num_levels=10, correct_global_phase=True, **params
     ):
+        model = CavityQEDModel(
+            num_qubits=num_qubits,
+            num_levels=num_levels,
+            **params,
+        )
         super(DispersiveCavityQED, self).__init__(
-            num_qubits, correct_global_phase=correct_global_phase, t1=t1, t2=t2
+            model=model, correct_global_phase=correct_global_phase
         )
         self.correct_global_phase = correct_global_phase
-        self.spline_kind = "step_func"
         self.num_levels = num_levels
-        self.params = {  # default parameters
-            "deltamax": 1.0,
-            "epsmax": 9.5,
-            "w0": 10,
-            "eps": 9.5,
-            "delta": 0.0,
-            "g": 0.01,
-        }
-        if params is not None:
-            self.params.update(params)
-        for key, value in self.params.items():
-            if key != "w0":
-                # if float, make it an array
-                self.params[key] = self.to_array(value, self.num_qubits)
-        self.set_up_params()
-        self.set_up_ops(num_qubits)
-        self.dims = [num_levels] + [2] * num_qubits
-        self.pulse_dict = self.get_pulse_dict()
         self.native_gates = ["SQRTISWAP", "ISWAP", "RX", "RZ"]
-
-    def set_up_ops(self, num_qubits):
-        """
-        Generate the Hamiltonians for the spinchain model and save them in the
-        attribute `ctrls`.
-
-        Parameters
-        ----------
-        num_qubits: int
-            The number of qubits in the system.
-        """
-        # single qubit terms
-        for m in range(num_qubits):
-            self.add_control(
-                2 * np.pi * sigmax(), [m + 1], label="sx" + str(m)
-            )
-        for m in range(num_qubits):
-            self.add_control(
-                2 * np.pi * sigmaz(), [m + 1], label="sz" + str(m)
-            )
-        # coupling terms
-        a = tensor(
-            [destroy(self.num_levels)]
-            + [identity(2) for n in range(num_qubits)]
-        )
-        for n in range(num_qubits):
-            sm = tensor(
-                [identity(self.num_levels)]
-                + [
-                    destroy(2) if m == n else identity(2)
-                    for m in range(num_qubits)
-                ]
-            )
-            self.add_control(
-                2 * np.pi * a.dag() * sm + 2 * np.pi * a * sm.dag(),
-                list(range(num_qubits + 1)),
-                label="g" + str(n),
-            )
-
-    def set_up_params(self):
-        """
-        Compute the qubit frequency and detune.
-        """
-        # backward compatibility
-        self.params["sz"] = self.params["epsmax"]
-        self.params["sx"] = self.params["deltamax"]
-        eps = self.params["eps"]
-        delta = self.params["delta"]
-        w0 = self.params["w0"]
-        g = self.params["g"]
-        # computed
-        self.wq = np.sqrt(eps ** 2 + delta ** 2)
-        self.Delta = self.wq - w0
-
-        # rwa/dispersive regime tests
-        if any(g / (w0 - self.wq) > 0.05):
-            warnings.warn("Not in the dispersive regime")
-
-        if any((w0 - self.wq) / (w0 + self.wq) > 0.05):
-            warnings.warn(
-                "The rotating-wave approximation might not be valid."
-            )
+        self.spline_kind = "step_func"
 
     @property
     def sx_ops(self):
@@ -222,19 +108,6 @@ class DispersiveCavityQED(ModelProcessor):
         """
         return self.coeffs[2 * self.num_qubits : 3 * self.num_qubits]
 
-    def get_operators_labels(self):
-        """
-        Get the labels for each Hamiltonian.
-        It is used in the method method :meth:`.Processor.plot_pulses`.
-        It is a 2-d nested list, in the plot,
-        a different color will be used for each sublist.
-        """
-        return [
-            [r"$\sigma_x^%d$" % n for n in range(self.num_qubits)],
-            [r"$\sigma_z^%d$" % n for n in range(self.num_qubits)],
-            [r"$g_{%d}$" % (n) for n in range(self.num_qubits)],
-        ]
-
     def eliminate_auxillary_modes(self, U):
         """
         Eliminate the auxillary modes like the cavity modes in cqed.
@@ -255,3 +128,153 @@ class DispersiveCavityQED(ModelProcessor):
         )
         self.global_phase = compiler.global_phase
         return tlist, coeff
+
+
+class CavityQEDModel(Model):
+    """
+    The physical model for a dispersive cavity-QED processor
+    (:obj:`.DispersiveCavityQED`).
+
+    Parameters
+    ----------
+    num_qubits : int
+        The number of qubits.
+    num_levels : int, optional
+        The truncation level of the Hilbert space for the resonator.
+    **params :
+        Keyword arguments for hardware parameters, in the unit of GHz.
+        Qubit parameters can either be a float or a list of the length
+        ``num_qubits``.
+
+        - deltamax: float or list, optional
+            The pulse strength of sigma-x control, default ``1.0``.
+        - epsmax: float or list, optional
+            The pulse strength of sigma-z control, default ``9.5``.
+        - eps: float or list, optional
+            The bare transition frequency for each of the qubits,
+            default ``9.5``.
+        - delta : float or list, optional
+            The coupling between qubit states, default ``0.0``.
+        - g : float or list, optional
+            The coupling strength between the resonator and the qubit,
+            default ``1.0``.
+        - w0 : float, optional
+            The bare frequency of the resonator. Should only be a float,
+            default ``0.01``.
+        - t1 : float or list, optional
+            Characterize the amplitude damping for each qubit.
+        - t2 : list of list, optional
+            Characterize the total dephasing for each qubit.
+
+        The dressed qubit frequency is `wq` is computed by
+        :math:`w_q=\sqrt{\epsilon^2+\delta^2}`
+    """
+
+    def __init__(self, num_qubits, num_levels=10, **params):
+        self.num_qubits = num_qubits
+        self.num_levels = num_levels
+        self.dims = [num_levels] + [2] * num_qubits
+        self.params = {  # default parameters
+            "deltamax": 1.0,
+            "epsmax": 9.5,
+            "w0": 10,
+            "eps": 9.5,
+            "delta": 0.0,
+            "g": 0.01,
+        }
+        self.params.update(deepcopy(params))
+        self._drift = []
+        self._controls = self._set_up_controls()
+        self._compute_params()
+        self._noise = []
+
+    def get_all_drift(self):
+        return self._drift
+
+    @property
+    def _old_index_label_map(self):
+        num_qubits = self.num_qubits
+        return (
+            ["sx" + str(i) for i in range(num_qubits)]
+            + ["sz" + str(i) for i in range(num_qubits)]
+            + ["g" + str(i) for i in range(num_qubits)]
+        )
+
+    def _set_up_controls(self):
+        """
+        Generate the Hamiltonians for the cavity-qed model and save them in the
+        attribute `ctrls`.
+
+        Parameters
+        ----------
+        num_qubits: int
+            The number of qubits in the system.
+        """
+        controls = {}
+        num_qubits = self.num_qubits
+        num_levels = self.num_levels
+        # single qubit terms
+        for m in range(num_qubits):
+            controls["sx" + str(m)] = (2 * np.pi * sigmax(), [m + 1])
+        for m in range(num_qubits):
+            controls["sz" + str(m)] = (2 * np.pi * sigmaz(), [m + 1])
+        # coupling terms
+        a = tensor(
+            [destroy(num_levels)] + [identity(2) for n in range(num_qubits)]
+        )
+        for n in range(num_qubits):
+            # FIXME expanded?
+            sm = tensor(
+                [identity(num_levels)]
+                + [
+                    destroy(2) if m == n else identity(2)
+                    for m in range(num_qubits)
+                ]
+            )
+            controls["g" + str(n)] = (
+                2 * np.pi * a.dag() * sm + 2 * np.pi * a * sm.dag(),
+                list(range(num_qubits + 1)),
+            )
+        return controls
+
+    def _compute_params(self):
+        """
+        Compute the qubit frequency and detune.
+        """
+        num_qubits = self.num_qubits
+        w0 = self.params["w0"]  # only one resonator
+        # same parameters for all qubits if it is not a list
+        for name in ["epsmax", "deltamax", "eps", "delta", "g"]:
+            self.params[name] = _to_array(self.params[name], num_qubits)
+
+        # backward compatibility
+        self.params["sz"] = self.params["epsmax"]
+        self.params["sx"] = self.params["deltamax"]
+
+        # computed
+        wq = np.sqrt(self.params["eps"] ** 2 + self.params["delta"] ** 2)
+        self.params["wq"] = wq
+        self.params["Delta"] = wq - w0
+
+        # rwa/dispersive regime tests
+        if any(self.params["g"] / (w0 - wq) > 0.05):
+            warnings.warn("Not in the dispersive regime")
+
+        if any((w0 - wq) / (w0 + wq) > 0.05):
+            warnings.warn(
+                "The rotating-wave approximation might not be valid."
+            )
+
+    def get_control_latex(self):
+        """
+        Get the labels for each Hamiltonian.
+        It is used in the method method :meth:`.Processor.plot_pulses`.
+        It is a 2-d nested list, in the plot,
+        a different color will be used for each sublist.
+        """
+        num_qubits = self.num_qubits
+        return [
+            {f"sx{m}": r"$\sigma_x^" + f"{m}$" for m in range(num_qubits)},
+            {f"sz{m}": r"$\sigma_z^" + f"{m}$" for m in range(num_qubits)},
+            {f"g{m}": f"$g^{m}$" for m in range(num_qubits)},
+        ]

@@ -186,3 +186,21 @@ def test_numerical_circuit(circuit, device_class, kwargs, schedule_mode):
     elif isinstance(device, SCQubits):
         target = _ket_expaned_dims(target, device.dims)
     assert _tol > abs(1 - qutip.metrics.fidelity(result.final_state, target))
+
+
+@pytest.mark.parametrize(
+    "processor_class",
+    [DispersiveCavityQED, LinearSpinChain, CircularSpinChain, SCQubits])
+def test_pulse_plotting(processor_class):
+    try:
+        import matplotlib.pyplot as plt
+    except Exception:
+        return True
+    qc = QubitCircuit(3)
+    qc.add_gate("CNOT", 1, 0)
+    qc.add_gate("X", 1)
+
+    processor = processor_class(3)
+    processor.load_circuit(qc)
+    fig, ax = processor.plot_pulses()
+    plt.close(fig)

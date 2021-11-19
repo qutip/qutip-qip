@@ -8,6 +8,7 @@ from ..operations import globalphase
 from ..circuit import QubitCircuit
 from .processor import Processor
 from ..compiler import GateCompiler
+from ..pulse import Pulse
 
 
 __all__ = ["ModelProcessor"]
@@ -26,48 +27,43 @@ class ModelProcessor(Processor):
 
     Parameters
     ----------
-    num_qubits: int
-        The number of component systems.
+    num_qubits: int, optional
+        The number of qubits.
+        It replaces the old API ``N``.
+
+    dims: list, optional
+        The dimension of each component system.
+        Default value is a qubit system of ``dim=[2,2,2,...,2]``.
 
     correct_global_phase: boolean, optional
         If true, the analytical solution will track the global phase. It
         has no effect on the numerical solution.
 
-    t1: list or float
-        Characterize the decoherence of amplitude damping for
-        each qubit. A list of size `num_qubits` or a float for all qubits.
-
-    t2: list of float
-        Characterize the decoherence of dephasing for
-        each qubit. A list of size `num_qubits` or a float for all qubits.
-
-    Attributes
-    ----------
-    correct_global_phase: float
-        Save the global phase, the analytical solution
-        will track the global phase.
-        It has no effect on the numerical solution.
+    **params:
+        - t1: float or list, optional
+            Characterize the amplitude damping for each qubit.
+            A list of size `num_qubits` or a float for all qubits.
+        - t2: float or list, optional
+            Characterize the total dephasing for each qubit.
+            A list of size `num_qubits` or a float for all qubits.
     """
 
     def __init__(
-        self, num_qubits, correct_global_phase=True, t1=None, t2=None, N=None
+        self,
+        num_qubits=None,
+        dims=None,
+        correct_global_phase=True,
+        model=None,
+        **params
     ):
-        super(ModelProcessor, self).__init__(num_qubits, t1=t1, t2=t2, N=None)
+        super(ModelProcessor, self).__init__(
+            num_qubits=num_qubits, dims=dims, model=model, **params
+        )
         self.correct_global_phase = correct_global_phase
         self.global_phase = 0.0
-        self._params = {}
         self.native_gates = None
         self.transpile_functions = []
         self._default_compiler = None
-
-    def to_array(self, params, num_qubits):
-        """
-        Transfer a parameter to an array.
-        """
-        if isinstance(params, numbers.Real):
-            return np.asarray([params] * num_qubits)
-        elif isinstance(params, Iterable):
-            return np.asarray(params)
 
     def set_up_params(self):
         """
@@ -79,19 +75,6 @@ class ModelProcessor(Processor):
         All parameters will be multiplied by 2*pi for simplicity
         """
         raise NotImplementedError("Parameters should be defined in subclass.")
-
-    @property
-    def params(self):
-        """
-        dict: A Python dictionary contains the name
-        and the value of the parameters
-        in the physical realization, such as laser frequency, detuning etc.
-        """
-        return self._params
-
-    @params.setter
-    def params(self, par):
-        self._params = par
 
     def run_state(
         self, init_state=None, analytical=False, qc=None, states=None, **kwargs
@@ -256,6 +239,16 @@ class ModelProcessor(Processor):
         else:
             raise ValueError("No compiler defined.")
         # Save compiler pulses
-        self.set_all_coeffs(coeffs)
-        self.set_all_tlist(tlist)
+        self.set_coeffs(coeffs)
+        self.set_tlist(tlist)
         return tlist, coeffs
+
+
+def _to_array(params, num_qubits):
+    """
+    Transfer a parameter to an array.
+    """
+    if isinstance(params, numbers.Real):
+        return np.asarray([params] * num_qubits)
+    elif isinstance(params, Iterable):
+        return np.asarray(params)
