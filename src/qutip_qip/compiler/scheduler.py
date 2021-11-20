@@ -99,11 +99,11 @@ class InstructionsGraph:
         qubits_cycle_current = [set() for i in range(num_qubits)]
 
         # Generate instruction (gate) dependency for each qubit
-        for next_gate_ind, instruction in enumerate(self.nodes):
+        for gate_index, instruction in enumerate(self.nodes):
             for qubit in instruction.used_qubits:
                 dependent = False
                 for dependent_ind in qubits_cycle_current[qubit]:
-                    if not commuting(next_gate_ind, dependent_ind, self.nodes):
+                    if not commuting(gate_index, dependent_ind, self.nodes):
                         dependent = True
                 # Assume that if A, B and C use the same qubit, we have
                 # [A,B]=0, [B,C]=0 -> [A,C]=0.
@@ -114,8 +114,9 @@ class InstructionsGraph:
                         qubits_cycle_last[qubit], qubits_cycle_current[qubit]
                     )
                     qubits_cycle_last[qubit] = qubits_cycle_current[qubit]
-                    qubits_cycle_current[qubit] = {next_gate_ind}
-                qubits_cycle_current[qubit].add(next_gate_ind)
+                    qubits_cycle_current[qubit] = {gate_index}
+                else:
+                    qubits_cycle_current[qubit].add(gate_index)
 
         for qubit in range(num_qubits):
             self._add_dependency(
