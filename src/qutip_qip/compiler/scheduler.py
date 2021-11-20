@@ -92,51 +92,36 @@ class InstructionsGraph:
             )
             + 1
         )
-        qubits_instructions_dependency = [[set()] for i in range(num_qubits)]
-        # qubits_instructions_dependency:
-        # instruction dependency for each qubits, a nested list of level 3.
-        # E.g. [
-        #       [{1, }],
-        #       [{0, 1}, {2, }],
-        #       [{0, }]
-        #       ]
-        # means that
-        # Gate0 acts on qubit 1 and 2, gate1 act on qubit0 and qubit1,
-        # but gate0 and gate1 cummute with each other.
-        # Therefore, there is not dependency between gate0 and gate1;
-        # Gate 2 acts on qubit1 and must be executed after gate0 and gate1.
-        # Hence, gate2 will depends on gate0 and gate1.
+        # Build the dependency graph with the constraint that
+        # one qubit can not be acted on by two operations, except if
+        # they commute with each other.
+        qubits_cycle_last = [set() for i in range(num_qubits)]
+        qubits_cycle_current = [set() for i in range(num_qubits)]
 
-        # Generate instruction dependency for each qubit
-        for current_ind, instruction in enumerate(self.nodes):
+        # Generate instruction (gate) dependency for each qubit
+        for gate_index, instruction in enumerate(self.nodes):
             for qubit in instruction.used_qubits:
-                # For each used qubit, find the last dependency gate set.
-                # If the current gate commute with all of them,
-                # add it to the list.
-                # Otherwise,
-                # append a new set with the current gate to the list.
                 dependent = False
-                for dependent_ind in qubits_instructions_dependency[qubit][-1]:
-                    if not commuting(current_ind, dependent_ind, self.nodes):
+                for dependent_ind in qubits_cycle_current[qubit]:
+                    if not commuting(gate_index, dependent_ind, self.nodes):
                         dependent = True
-                if not dependent:
-                    qubits_instructions_dependency[qubit][-1].add(current_ind)
+                # Assume that if A, B and C use the same qubit, we have
+                # [A,B]=0, [B,C]=0 -> [A,C]=0.
+                # Then we can conclude that
+                # all gates in the current cycle depends on the previous cycle.
+                if dependent:
+                    self._add_dependency(
+                        qubits_cycle_last[qubit], qubits_cycle_current[qubit]
+                    )
+                    qubits_cycle_last[qubit] = qubits_cycle_current[qubit]
+                    qubits_cycle_current[qubit] = {gate_index}
                 else:
-                    qubits_instructions_dependency[qubit].append({current_ind})
+                    qubits_cycle_current[qubit].add(gate_index)
 
-        # Generate the dependency graph
-        for instructions_cycles in qubits_instructions_dependency:
-            for cycle_ind1 in range(len(instructions_cycles) - 1):
-                for instruction_ind1 in instructions_cycles[cycle_ind1]:
-                    for instruction_ind2 in instructions_cycles[
-                        cycle_ind1 + 1
-                    ]:
-                        self.nodes[instruction_ind1].successors.add(
-                            instruction_ind2
-                        )
-                        self.nodes[instruction_ind2].predecessors.add(
-                            instruction_ind1
-                        )
+        for qubit in range(num_qubits):
+            self._add_dependency(
+                qubits_cycle_last[qubit], qubits_cycle_current[qubit]
+            )
 
         # Find start and end nodes of the graph
         start = []
@@ -148,6 +133,12 @@ class InstructionsGraph:
                 start.append(i)
         self.start = start
         self.end = end
+
+    def _add_dependency(self, gates_set_last, gates_set_current):
+        for instruction_ind1 in gates_set_last:
+            for instruction_ind2 in gates_set_current:
+                self.nodes[instruction_ind1].successors.add(instruction_ind2)
+                self.nodes[instruction_ind2].predecessors.add(instruction_ind1)
 
     def reverse_graph(self):
         """
@@ -161,9 +152,9 @@ class InstructionsGraph:
                 node.predecessors,
             )
             try:
-                self.distance_to_start, self.distance_to_end = (
-                    self.distance_to_end,
-                    self.distance_to_start,
+                node.distance_to_start, node.distance_to_end = (
+                    node.distance_to_end,
+                    node.distance_to_start,
                 )
             except AttributeError:
                 pass
@@ -208,50 +199,58 @@ class InstructionsGraph:
         # The method will destruct the graph, therefore we make a copy.
         graph = deepcopy(self.nodes)
         cycles_list = []
-        available_nodes = list(self.start)  # a list of available instructions
-        # pairs of instructions that are limited by hardware constraint
-        constraint_dependency = set()
+        # available_gates: a list of available instructions,
+        # all their dependence has been executed.
+        available_gates = list(self.start)
 
-        while available_nodes:
+        while available_gates:
             if random:
-                shuffle(available_nodes)
+                shuffle(available_gates)
             if priority:
-                available_nodes.sort(key=cmp_to_key(self._compare_priority))
+                available_gates.sort(key=cmp_to_key(self._compare_priority))
             current_cycle = []
             if apply_constraint is None:  # if no constraits
-                current_cycle = deepcopy(available_nodes)
+                current_cycle = deepcopy(available_gates)
             else:  # check if constraits allow the parallelization
-                for node1 in available_nodes:
-                    approval = True
-                    for node2 in current_cycle:
-                        if not apply_constraint(node1, node2, graph):
-                            approval = False
-                            # save the conflicted pairs of instructions
-                            constraint_dependency.add((node2, node1))
-                    if approval:
-                        current_cycle.append(node1)
+                self._add_dependency_among_commuting_gates(
+                    current_cycle, available_gates, apply_constraint
+                )
             # add this cycle to cycles_list
             cycles_list.append(current_cycle)
 
             # update the list of available nodes
             # remove the executed nodes from available_node
             for node in current_cycle:
-                available_nodes.remove(node)
-            # add new nodes to available_nodes
+                available_gates.remove(node)
+            # add new nodes to available_gates
             # if they have no other predecessors
             for node in current_cycle:
                 for successor_ind in graph[node].successors:
                     graph[successor_ind].predecessors.remove(node)
                     if not graph[successor_ind].predecessors:
-                        available_nodes.append(successor_ind)
+                        available_gates.append(successor_ind)
                 graph[node].successors = set()
 
-        return cycles_list, constraint_dependency
+        return cycles_list
+
+    def _add_dependency_among_commuting_gates(
+        self, current_cycle, available_gates, apply_constraint
+    ):
+        for ind2 in available_gates:
+            approval = True
+            for ind1 in current_cycle:
+                if not apply_constraint(ind2, ind1, self.nodes):
+                    approval = False
+                    # save the conflicted pairs of instructions
+                    self.nodes[ind1].successors.add(ind2)
+                    self.nodes[ind2].predecessors.add(ind1)
+            if approval:
+                current_cycle.append(ind2)
 
     def compute_distance(self, cycles_list):
         """
         Compute the longest distance of each node
-        to the start and end nodes.
+        to the start and end nodes, including its own time.
         The weight for each dependency arrow is
         the duration of the source instruction
         (which should be 1 for gates schedule).
@@ -261,57 +260,32 @@ class InstructionsGraph:
         the distance to the predecessors (successors) of
         the source (target) node is always calculated
         before the target (source) node.
-
-        Parameters
-        ----------
-        cycles_list: list
-            A `cycles_list` obtained by the method `find_topological_order`.
         """
-        cycles_list = deepcopy(cycles_list)
-
-        # distance to the start node
-        for cycle in cycles_list:
-            for ind in cycle:
-                if not self.nodes[ind].predecessors:
-                    self.nodes[ind].distance_to_start = self.nodes[
-                        ind
-                    ].duration
-                else:
-                    self.nodes[ind].distance_to_start = (
-                        max(
-                            [
-                                self.nodes[predecessor_ind].distance_to_start
-                                for predecessor_ind in self.nodes[
-                                    ind
-                                ].predecessors
-                            ]
-                        )
-                        + self.nodes[ind].duration
-                    )
-
-        # distance to the end node
+        cycles_list = cycles_list.copy()
+        for node in self.nodes:
+            node.distance_to_start = None
+            node.distance_to_end = None
+        self._compute_distance_to_start(cycles_list)
+        self.reverse_graph()
         cycles_list.reverse()
+        self._compute_distance_to_start(cycles_list)
         self.reverse_graph()
-        for cycle in cycles_list:
-            for ind in cycle:
-                if not self.nodes[ind].predecessors:
-                    self.nodes[ind].distance_to_end = self.nodes[ind].duration
-                else:
-                    self.nodes[ind].distance_to_end = (
-                        max(
-                            [
-                                self.nodes[predecessor_ind].distance_to_end
-                                for predecessor_ind in self.nodes[
-                                    ind
-                                ].predecessors
-                            ]
-                        )
-                        + self.nodes[ind].duration
-                    )
-        self.longest_distance = max(
-            [self.nodes[i].distance_to_end for i in self.end]
-        )
-        self.reverse_graph()
+
+    def _compute_distance_to_start(self, cycles_list):
+        """distance to the start node"""
+        for ind in [ind for cycle in cycles_list for ind in cycle]:
+            if not self.nodes[ind].predecessors:
+                self.nodes[ind].distance_to_start = self.nodes[ind].duration
+                continue
+            self.nodes[ind].distance_to_start = (
+                max(
+                    [
+                        self.nodes[p_ind].distance_to_start
+                        for p_ind in self.nodes[ind].predecessors
+                    ]
+                )
+                + self.nodes[ind].duration
+            )
 
     def _compare_priority(self, ind1, ind2):
         """
@@ -325,46 +299,15 @@ class InstructionsGraph:
         ind1, ind2: int
             Indices of nodes.
         """
-        if (
-            self.nodes[ind1].distance_to_end
-            == self.nodes[ind2].distance_to_end
-        ):
-            # lower distance_to_start, higher priority
-            return (
-                self.nodes[ind1].distance_to_start
-                - self.nodes[ind2].distance_to_start
-            )
-        else:
+        return (
             # higher distance_to_end, higher priority
-            return (
-                self.nodes[ind2].distance_to_end
-                - self.nodes[ind1].distance_to_end
-            )
-
-    def add_constraint_dependency(self, constraint_dependency):
-        """
-        Add the dependency caused by hardware constraint to the graph.
-
-        Parameters
-        ----------
-        constraint_dependency: list
-            `constraint_dependency` obtained by the method
-            `find_topological_order`.
-        """
-        for ind1, ind2 in constraint_dependency:
-            self.nodes[ind1].successors.add(ind2)
-            self.nodes[ind2].predecessors.add(ind1)
-
-        # Update the start and end nodes of the graph
-        start = []
-        end = []
-        for i, instruction in enumerate(self.nodes):
-            if not instruction.successors:
-                end.append(i)
-            if not instruction.predecessors:
-                start.append(i)
-        self.start = start
-        self.end = end
+            self.nodes[ind2].distance_to_end
+            - self.nodes[ind1].distance_to_end
+        ) or (
+            # if same distance_to_end, lower distance_to_start, higher priority
+            self.nodes[ind1].distance_to_start
+            - self.nodes[ind2].distance_to_start
+        )
 
 
 class Scheduler:
@@ -396,12 +339,15 @@ class Scheduler:
         i.e. one qubit cannot be used by two gates at the same time.
     """
 
-    def __init__(self, method="ALAP", constraint_functions=None):
+    def __init__(
+        self, method="ALAP", allow_permutation=True, constraint_functions=None
+    ):
         self.method = method
         if constraint_functions is None:
             self.constraint_functions = [qubit_constraint]
         else:
-            return constraint_functions
+            self.constraint_functions = constraint_functions
+        self.allow_permutation = allow_permutation
 
     def schedule(
         self,
@@ -469,7 +415,7 @@ class Scheduler:
             larger search space.
         repeat_num: int, optional
             Repeat the scheduling several times and use the best result.
-            Used together with ``random_shuffle=Ture``.
+            Used together with ``random_shuffle=True``.
 
         Returns
         -------
@@ -523,33 +469,38 @@ class Scheduler:
             gates = circuit.gates
         else:
             gates = circuit
+        if not gates:
+            return []
 
         # Generate the quantum operations dependency graph.
         instructions_graph = InstructionsGraph(gates)
+        if self.allow_permutation:
+            commutation_rules = self.commutation_rules
+        else:
+            commutation_rules = lambda *args, **kwargs: False
         instructions_graph.generate_dependency_graph(
-            commuting=self.commutation_rules
+            commuting=commutation_rules
         )
         if self.method == "ALAP":
             instructions_graph.reverse_graph()
 
         # Schedule without hardware constraints, then
         # use this cycles_list to compute the distance.
-        cycles_list, _ = instructions_graph.find_topological_order(
+        cycles_list = instructions_graph.find_topological_order(
             priority=False, apply_constraint=None, random=random_shuffle
         )
         instructions_graph.compute_distance(cycles_list=cycles_list)
 
         # Schedule again with priority and hardware constraint.
-        (
-            cycles_list,
-            constraint_dependency,
-        ) = instructions_graph.find_topological_order(
+        cycles_list = instructions_graph.find_topological_order(
             priority=True,
             apply_constraint=self.apply_constraint,
             random=random_shuffle,
         )
 
         # If we only need gates schedule, we can output the result here.
+        if isinstance(gates[0], Gate):
+            gates_schedule = True
         if gates_schedule or return_cycles_list:
             if self.method == "ALAP":
                 cycles_list.reverse()
@@ -566,22 +517,16 @@ class Scheduler:
         # and compute the longest distance to the start node again.
         # The longest distance to the start node determines
         # the start time of each pulse.
-        instructions_graph.add_constraint_dependency(constraint_dependency)
         instructions_graph.compute_distance(cycles_list=cycles_list)
+        if self.method == "ALAP":
+            instructions_graph.reverse_graph()
 
         # Output pulse schedule result.
         instruction_start_time = []
-        if self.method == "ASAP":
-            for instruction in instructions_graph.nodes:
-                instruction_start_time.append(
-                    instruction.distance_to_start - instruction.duration
-                )
-        elif self.method == "ALAP":
-            for instruction in instructions_graph.nodes:
-                instruction_start_time.append(
-                    instructions_graph.longest_distance
-                    - instruction.distance_to_start
-                )
+        for instruction in instructions_graph.nodes:
+            instruction_start_time.append(
+                instruction.distance_to_start - instruction.duration
+            )
         return instruction_start_time
 
     def commutation_rules(self, ind1, ind2, instructions):
@@ -599,19 +544,42 @@ class Scheduler:
         instruction1 = instructions[ind1]
         instruction2 = instructions[ind2]
         if instruction1.name != instruction2.name:
-            return False
+            instruction1, instruction2 = sorted(
+                [instruction1, instruction2],
+                key=lambda instruction: instruction.name,
+            )
+            if instruction1.name == "CNOT" and instruction2.name in (
+                "X",
+                "RX",
+            ):
+                if instruction1.targets == instruction2.targets:
+                    commute = True
+                else:
+                    commute = False
+            elif instruction1.name == "CNOT" and instruction2.name in (
+                "Z",
+                "RZ",
+            ):
+                if instruction1.controls == instruction2.targets:
+                    commute = True
+                else:
+                    commute = False
+            else:
+                commute = False
+            return commute
         if (instruction1.controls) and (
             instruction1.controls == instruction2.controls
         ):
-            return True
+            commute = True
         elif instruction1.targets == instruction2.targets:
-            return True
+            commute = True
         else:
-            return False
+            commute = False
+        return commute
 
     def apply_constraint(self, ind1, ind2, instructions):
         """
-        Apply hardware constraint to check
+        Apply hardware constraint among the commuting gates to check
         if two instructions can be executed in parallel.
 
         Parameters
