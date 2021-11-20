@@ -34,7 +34,7 @@ def test_two_level_full_output(num_qubits):
     assert np.isclose(fidelity_of_input_output, 1.0)
 
 
-@pytest.mark.parametrize("num_qubits", [2, 3, 4, 5, 6])
+@pytest.mark.parametrize("num_qubits", [2, 3, 4, 5])
 def test_empty_dict_of_two_level_arrays(num_qubits):
     """ Check if empty dictionary is of the same length as the two-level array
     output.

@@ -2,7 +2,7 @@ import numpy as np
 import cmath
 from qutip import Qobj
 from qutip_qip.decompose._utility import (
-    check_gate,
+    check_gate, _binary_sequence, _gray_code_sequence
 )
 
 
@@ -106,3 +106,63 @@ def _create_dict_for_two_level_arrays(two_level_output):
     gate_keys = list(range(1, num_two_level_gates+1))[::-1]
     gate_info_dict = dict.fromkeys(gate_keys)
     return(gate_info_dict)
+
+
+def _partial_gray_code(num_qubits, two_level_output):
+    """Returns a dictionary of partial gray code sequence for each two-level
+    array."""
+
+    # create empty dict
+    gate_key_dict = _create_dict_for_two_level_arrays(two_level_output)
+
+    # create a list of non-trivial indices in two level array output
+    two_level_indices = []
+    for i in range(len(two_level_output)):
+        two_level_indices.append(two_level_output[i][0])
+
+    # gray code sequence output as indices of binary sequence and strings
+    # respectively
+    gray_code_index = _gray_code_sequence(num_qubits, 'index_values')
+    gray_code_string = _gray_code_sequence(num_qubits)
+
+    # get the partial gray code sequence
+    for i in range(len(two_level_indices)):
+        partial_gray_code = []
+        ind1 = two_level_indices[i][0]
+        ind2 = two_level_indices[i][1]
+
+        ind1_pos_in_gray_code = gray_code_index.index(ind1)
+        ind2_pos_in_gray_code = gray_code_index.index(ind2)
+
+        if ind1_pos_in_gray_code > ind2_pos_in_gray_code:
+            partial_gray_code = [ind2_pos_in_gray_code, ind1_pos_in_gray_code]
+        else:
+            partial_gray_code = [ind1_pos_in_gray_code, ind2_pos_in_gray_code]
+
+        gate_key_dict[len(two_level_indices)-i] = gray_code_string[
+            partial_gray_code[0]:partial_gray_code[1]+1]
+
+    return(gate_key_dict)
+
+
+def _split_partial_gray_code(gate_key_dict):
+    """Splits the output of gray code sequence into n-bit Toffoli and
+    two-level array gate of interest.
+    The output is a list of dictionary of n-bit toffoli and another dictionary
+    for the gate needing to be decomposed.
+
+    When the decomposed gates are added to the circuit, n-bit toffoli will be
+    used twice - once in the correct order it is and then in a reversed order.
+    """
+    n_bit_toffoli_dict = {}
+    two_level_of_int = {}
+    for key in gate_key_dict.keys():
+        if len(gate_key_dict[key]) > 2:
+            key_value = gate_key_dict[key]
+            two_level_of_int[key] = [key_value[-1], key_value[-2]]
+            n_bit_toffoli_dict[key] = key_value[0:-2]
+        else:
+            two_level_of_int[key] = gate_key_dict[key]
+            n_bit_toffoli_dict[key] = None
+    output_of_separated_gray_code = [n_bit_toffoli_dict, two_level_of_int]
+    return(output_of_separated_gray_code)
