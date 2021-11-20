@@ -955,10 +955,9 @@ class Processor(object):
         final_qu.args.update(args)
 
         # bring all c_ops to the same tlist, won't need it in QuTiP 5
-        full_tlist = self.get_full_tlist()
         temp = []
         for c_op in c_ops:
-            temp.append(_merge_qobjevo([c_op], full_tlist))
+            temp.append(_merge_qobjevo([c_op], final_qu.tlist))
         c_ops = temp
 
         if noisy:
