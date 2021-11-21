@@ -1807,7 +1807,7 @@ class QubitCircuit:
                 code += r" & %s" % rows[m][n]
             code += r" & \qw \\ " + "\n"
 
-        return code
+        return _latex_template % code
 
     # This slightly convoluted dance with the conversion formats is because
     # image conversion has optional dependencies.  We always want the `png` and
@@ -1866,6 +1866,17 @@ class QubitCircuit:
 
         for op in self.gates:
             op._to_qasm(qasm_out)
+
+
+_latex_template = r"""
+\documentclass{standalone}
+\usepackage[braket]{qcircuit}
+\renewcommand{\qswap}{*=<0em>{\times}}
+\begin{document}
+\Qcircuit @C=1cm @R=1cm {
+%s}
+\end{document}
+"""
 
 
 class CircuitResult:
