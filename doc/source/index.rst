@@ -38,6 +38,12 @@ qutip-qip: QuTiP quantum information processing
 
 .. toctree::
     :maxdepth: 2
+    :caption: Changelog
+
+    changelog.rst
+
+.. toctree::
+    :maxdepth: 2
     :caption: API documentation
 
     _apidoc/qutip_qip.rst
