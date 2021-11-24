@@ -1,8 +1,43 @@
 .. _changelog:
 
 **********
-Change Log
+Changelog
 **********
+Version 0.2.0 (Nov 26, 2021)
+++++++++++++++++++++++++++++
+This release adds a few new features to the pulse-level simulator.
+
+PRs are collected `https://github.com/qutip/qutip-qip/milestone/3?closed=1 <https://github.com/qutip/qutip-qip/milestone/3?closed=1>`_.
+
+Improvements
+------------
+- **MAJOR** Add the :obj:`.Model` class that represents the physical model including hardware parameters, control and drift Hamiltonians and noise objects. (`#105 <https://github.com/qutip/qutip-qip/pull/105>`_)
+- Separate the gate definition from the QubitCircuit.propagators method (`#83 <https://github.com/qutip/qutip-qip/pull/83>`_)
+- Support different pulse shapes. (`#85 <https://github.com/qutip/qutip-qip/pull/85>`_)
+- Use autosummary to generate a summary of API docs. (`#103 <https://github.com/qutip/qutip-qip/pull/103>`_)
+- Improve the scheduling algorithm. (`#105 <https://github.com/qutip/qutip-qip/pull/105>`_)
+
+.. note:: 
+    Compatibility Note: The behaviour of ``Processor.pulses`` changes significantly from version 0.1 to version 0.2. In 0.1, if no control coefficients are added, `pulses` contains a list of partially initialized :obj:`.Pulse` objects. They include control Hamiltonians but have no coefficients or tlist. This behaviour has changed. From 0.2, the list only includes controls that have non-trivial dynamics. To inspect the available control Hamiltonians, please use :obj:`.Processor.get_control` and :obj:`.Processor.get_control_labels`.
+
+
+Version 0.1.2 (Nov 25, 2021)
+++++++++++++++++++++++++++++
+This micro release adds more thorough documentation for the project and fixes a few bugs in :obj:`.QubitCircuit` and :obj:`.Processor`.
+
+PRs are collected at `https://github.com/qutip/qutip-qip/milestone/4?closed=1 <https://github.com/qutip/qutip-qip/milestone/4?closed=1>`_.
+
+Improvements
+------------
+- Efficient Hadamard transform. (`#103 <https://github.com/qutip/qutip-qip/pull/103>`_)
+- Make circuit latex code accessible in `QubitCircuit`. (`#108 <https://github.com/qutip/qutip-qip/pull/108>`_)
+
+
+Bug Fixes
+----------
+- Fix the leaking noise objects in `Processor`. (`#89 <https://github.com/qutip/qutip-qip/pull/89>`_)
+- Fix a bug in time-dependent collapse operators in  `Processor`. (`#107 <https://github.com/qutip/qutip-qip/pull/107>`_)
+
 
 Version 0.1.1 (July 28, 2021)
 +++++++++++++++++++++++++++++
