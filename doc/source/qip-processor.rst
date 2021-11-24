@@ -395,12 +395,16 @@ The second example demonstrates a biased Gaussian noise on the pulse amplitude. 
     processor.add_noise(gaussnoise)
 
     # Plot the ideal pulse
-    fig1, axis1 = processor.plot_pulses(title="Original control amplitude", figsize=(5,3))
+    fig1, axis1 = processor.plot_pulses(
+        title="Original control amplitude", figsize=(5,3),
+        use_control_latex=False)
 
     # Plot the noisy pulse
     qobjevo, _ = processor.get_qobjevo(noisy=True)
     noisy_coeff = qobjevo.to_list()[1][1] + qobjevo.to_list()[2][1]
-    fig2, axis2 = processor.plot_pulses(title="Noisy control amplitude", figsize=(5,3))
+    fig2, axis2 = processor.plot_pulses(
+        title="Noisy control amplitude", figsize=(5,3),
+        use_control_latex=False)
     axis2[0].step(qobjevo.tlist, noisy_coeff)
 
 
