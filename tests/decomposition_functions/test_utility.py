@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from qutip import Qobj, qeye
-from qutip_qip.decompose._utility import (
+from qutip_qip._decompose._utility import (
     check_gate,
 )
 

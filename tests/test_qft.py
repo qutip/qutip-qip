@@ -50,5 +50,15 @@ class TestQFT:
             for i in range(phases, phases + swaps):
                 assert_string_equal(circuit.gates[i].name, "SWAP")
 
+    def testQFTGateSequenceWithCNOT(self):
+        """
+        qft: Inspect swap gates added to gate sequences if
+        it is decomposed into cnot.
+        """
+        for N in range(1, 6):
+            circuit = qft_gate_sequence(N, swapping=False, to_cnot=True)
+
+        assert not any([gate.name == "CPHASE" for gate in circuit.gates])
+
 if __name__ == "__main__":
     run_module_suite()

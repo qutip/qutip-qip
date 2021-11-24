@@ -4,9 +4,10 @@ This module provides the circuit implementation for Quantum Fourier Transform.
 
 
 import numpy as np
-from ..operations import snot, cphase, swap
+from ..operations import Gate, snot, cphase, swap
 from ..circuit import QubitCircuit
 from qutip import Qobj
+from qutip_qip._decompose import decompose_one_qubit_gate
 
 
 __all__ = ["qft", "qft_steps", "qft_gate_sequence"]
@@ -78,7 +79,7 @@ def qft_steps(N=1, swapping=True):
     return U_step_list
 
 
-def qft_gate_sequence(N=1, swapping=True):
+def qft_gate_sequence(N=1, swapping=True, to_cnot=False):
     """
     Quantum Fourier Transform operator on N qubits returning the gate sequence.
 
@@ -105,16 +106,42 @@ def qft_gate_sequence(N=1, swapping=True):
     else:
         for i in range(N):
             for j in range(i):
-                qc.add_gate(
-                    "CPHASE",
-                    targets=[j],
-                    controls=[i],
-                    arg_label=r"{\pi/2^{%d}}" % (i - j),
-                    arg_value=np.pi / (2 ** (i - j)),
-                )
+                if not to_cnot:
+                    qc.add_gate(
+                        "CPHASE",
+                        targets=[j],
+                        controls=[i],
+                        arg_label=r"{\pi/2^{%d}}" % (i - j),
+                        arg_value=np.pi / (2 ** (i - j)),
+                    )
+                else:
+                    decomposed_gates = _cphase_to_cnot(
+                        [j], [i], np.pi / (2 ** (i - j))
+                    )
+                    qc.gates.extend(decomposed_gates)
             qc.add_gate("SNOT", targets=[i])
         if swapping:
             for i in range(N // 2):
                 qc.add_gate("SWAP", targets=[N - i - 1, i])
-
     return qc
+
+
+def _cphase_to_cnot(targets, controls, arg_value):
+    rotation = Qobj([[1.0, 0.0], [0.0, np.exp(1.0j * arg_value)]])
+    decomposed_gates = list(
+        decompose_one_qubit_gate(rotation, method="ZYZ_PauliX")
+    )
+    new_gates = []
+    gate = decomposed_gates[0]
+    gate.targets = targets
+    new_gates.append(gate)
+    new_gates.append(Gate("CNOT", targets=targets, controls=controls))
+    gate = decomposed_gates[4]
+    gate.targets = targets
+    new_gates.append(gate)
+    new_gates.append(Gate("CNOT", targets=targets, controls=controls))
+    new_gates.append(Gate("RZ", targets=controls, arg_value=arg_value / 2))
+    gate = decomposed_gates[7]
+    gate.arg_value += arg_value / 4
+    new_gates.append(gate)
+    return new_gates

@@ -38,7 +38,7 @@ qutip-qip: QuTiP quantum information processing
 
 .. toctree::
     :maxdepth: 2
-    :caption: Change log
+    :caption: Changelog
 
     changelog.rst
 

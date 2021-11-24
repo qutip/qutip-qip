@@ -17,7 +17,6 @@ Simulation based on operator-state multiplication.
    qutip_qip.circuit
    qutip_qip.operations
    qutip_qip.qubits
-   qutip_qip.decompose
    qutip_qip.qasm
 
 Pulse-level simulation
