@@ -4,9 +4,9 @@ import pytest
 
 from qutip import (
     tensor, qeye, sigmaz, sigmax, sigmay, destroy, identity, QobjEvo,
-    fidelity, basis
+    fidelity, basis, sigmam
     )
-from qutip_qip.device import Processor, SCQubits
+from qutip_qip.device import Processor, SCQubits, LinearSpinChain
 from qutip_qip.noise import (
     RelaxationNoise, DecoherenceNoise, ControlAmpNoise, RandomNoise,
     ZZCrossTalk, Noise)
@@ -49,6 +49,22 @@ class TestNoise:
         assert_allclose(c_ops[0].ops[0].coeff, coeff*2)
         assert_allclose(c_ops[0].tlist, tlist)
         assert_allclose(c_ops[1].ops[0].qobj, tensor(qeye(2), sigmax()))
+
+    def test_collapse_with_different_tlist(self):
+        """
+        Test if there are errors raised because of wrong tlist handling.
+        """
+        qc = QubitCircuit(1)
+        qc.add_gate("X", 0)
+        proc = LinearSpinChain(1)
+        proc.load_circuit(qc)
+        tlist = np.linspace(0, 30., 100)
+        coeff = tlist * 0.1
+        noise = DecoherenceNoise(
+            sigmam(), targets=0,
+            coeff=coeff, tlist=tlist)
+        proc.add_noise(noise)
+        proc.run_state(basis(2, 0))
 
     def test_relaxation_noise(self):
         """
