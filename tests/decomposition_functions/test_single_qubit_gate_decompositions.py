@@ -5,12 +5,12 @@ import pytest
 from qutip import (
     Qobj, average_gate_fidelity, rand_unitary, sigmax, sigmay, sigmaz
 )
-from qutip_qip.decompose.decompose_single_qubit_gate import (
+from qutip_qip._decompose.decompose_single_qubit_gate import (
     _ZYZ_rotation,
     _ZXZ_rotation,
     _ZYZ_pauli_X,
 )
-from qutip_qip.decompose import decompose_one_qubit_gate
+from qutip_qip._decompose import decompose_one_qubit_gate
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations.gates import snot, sqrtnot
 

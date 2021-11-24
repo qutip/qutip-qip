@@ -7,7 +7,7 @@ import numpy as np
 from ..operations import Gate, snot, cphase, swap
 from ..circuit import QubitCircuit
 from qutip import Qobj
-from ..decompose import decompose_one_qubit_gate
+from qutip_qip._decompose import decompose_one_qubit_gate
 
 
 __all__ = ["qft", "qft_steps", "qft_gate_sequence"]

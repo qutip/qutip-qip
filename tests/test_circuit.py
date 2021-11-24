@@ -14,7 +14,7 @@ from qutip_qip.operations import (
     _para_gates
 )
 
-from qutip_qip.decompose.decompose_single_qubit_gate import _ZYZ_rotation
+from qutip_qip._decompose.decompose_single_qubit_gate import _ZYZ_rotation
 
 import qutip as qp
 
