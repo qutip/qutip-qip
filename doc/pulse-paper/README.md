@@ -8,8 +8,9 @@ The following table summarizes the sections in the paper and the corresponding c
 
 | Section | Code example |
 | ----------- | ----------- |
-| Appendix A | `pulse_simulation.py` |
-| Appendix B | `dj_algorithm.py` |
+| Section 4 | `main_example.py`|
+| Appendix A | `dj_algorithm.py` |
 | Fig.4 and Appendix C | `customize.py` |
-| Fig.5 in Section 4 | `decoherence.py` |
-| Appendix D | `deutsch_jozsa.qasm` and `deutsch_jozsa-qasm.py` |
+| Fig.5 | `decoherence.py` |
+| Section 5 | `deutsch_jozsa.qasm` and `deutsch_jozsa-qasm.py` |
+| Appendix B | `qft.py` |
