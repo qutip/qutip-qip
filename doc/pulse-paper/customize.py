@@ -10,49 +10,37 @@ try:
     global_setup(fontsize=10)
 except:
     pass
+plt.rcParams.update({"text.usetex": False, "font.size": 10})
 from joblib import Parallel, delayed  # for parallel simulations
-
 import numpy as np
 from qutip import sigmax, sigmay, sigmaz, basis, qeye, tensor, Qobj, fock_dm
 from qutip_qip.circuit import QubitCircuit, Gate
-from qutip_qip.device import ModelProcessor
+from qutip_qip.device import ModelProcessor, Model
 from qutip_qip.compiler import GateCompiler, Instruction
 from qutip import Options
 from qutip_qip.noise import Noise
 
 
-class MyProcessor(ModelProcessor):
-    """Custom processor built using ModelProcessor as the base class.
+class MyModel(Model):
+    """A custom Hamiltonian model with sigmax and sigmay control."""
+    def get_control(self, label):
+        """
+        Get an avaliable control Hamiltonian.
+        For instance, sigmax control on the zeroth qubits is labeld "sx0".
 
-    This custom processor will inherit all the methods of the base class 
-    such as setting up of the T1 and T2 decoherence rates in the simulations.
+        Args:
+            label (str): The label of the Hamiltonian
 
-    In addition, it is possible to write your own functions to add control
-    pulses.
-
-    Args:
-        num_qubits (int): Number of qubits in the processor.
-        t1, t2 (float or list): The T1 and T2 decoherence rates for the
-                                qubit. If it is a list, then it is assumed that
-                                each element of the list corresponds to the rates
-                                for each of the qubits.
-    """
-
-    def __init__(self, num_qubits, t1=None, t2=None):
-        super().__init__(num_qubits, t1=t1, t2=t2)
-        self.pulse_mode = "discrete"  # set the control pulse as discrete or continuous.
-        self.set_up_ops()  # set up the available Hamiltonians.
-        self.dims = [2] * num_qubits  # dimension of the quantum system.
-        self.num_qubits = num_qubits
-        self.native_gates = ["RX", "RY"]
-
-    def set_up_ops(self):
-        """Sets up the single qubit control operators for each qubit."""
-        for m in range(self.num_qubits):
-            self.add_control(2 * np.pi * sigmax() / 2, m, label="sx" + str(m))
-        for m in range(self.num_qubits):
-            self.add_control(2 * np.pi * sigmay() / 2, m, label="sy" + str(m))
-
+        Returns:
+            The Hamiltonian and target qubits as a tuple (qutip.Qobj, list).
+        """
+        targets = int(label[2:])
+        if label[:2] == "sx":
+            return 2 * np.pi * sigmax() / 2, [targets]
+        elif label[:2] == "sy":
+            return 2 * np.pi * sigmax() / 2, [targets]
+        else:
+            raise NotImplementError("Unknown control.")
 
 class MyCompiler(GateCompiler):
     """Custom compiler for generating pulses from gates using the base class 
@@ -87,10 +75,11 @@ class MyCompiler(GateCompiler):
             to implement a gate containing the control pulses.                                               
         """
         pulse_info = [
+            # (control label, coeff)
             ("sx" + str(gate.targets[0]), np.cos(phase) * coeff),
             ("sy" + str(gate.targets[0]), np.sin(phase) * coeff),
         ]
-        return [Instruction(gate, tlist, pulse_info)]
+        return [Instruction(gate, tlist=tlist, pulse_info=pulse_info)]
 
     def single_qubit_gate_compiler(self, gate, args):
         """Compiles single qubit gates to pulses.
@@ -133,7 +122,8 @@ circuit = QubitCircuit(1)
 circuit.add_gate("RX", targets=0, arg_value=np.pi / 2)
 circuit.add_gate("Z", targets=0)
 
-myprocessor = MyProcessor(1)
+myprocessor = ModelProcessor(model=MyModel(num_qubits))
+myprocessor.native_gates = ["RX", "RY"]
 
 mycompiler = MyCompiler(num_qubits, {"pulse_amplitude": 0.02})
 
@@ -141,9 +131,10 @@ myprocessor.load_circuit(circuit, compiler=mycompiler)
 result = myprocessor.run_state(basis(2, 0))
 
 fig, ax = myprocessor.plot_pulses(
-    figsize=(LINEWIDTH * 0.7, LINEWIDTH / 2 * 0.7), dpi=200
+    figsize=(LINEWIDTH * 0.7, LINEWIDTH / 2 * 0.7), dpi=200,
+    use_control_latex=False
 )
-ax[-1].set_xlabel("Time")
+ax[-1].set_xlabel("$t$")
 fig.tight_layout()
 fig.savefig("custom_compiler_pulse.pdf")
 fig.show()
@@ -166,8 +157,8 @@ class ClassicalCrossTalk(Noise):
             systematic_noise: A Pulse object (not used in this example). 
         """
         for i, pulse in enumerate(pulses):
-            if "sx" or "sy" not in pulse.label:
-                pass  # filter out other pulses, e.g. drift
+            if "sx" not in pulse.label and "sy" not in pulse.label:
+                continue  # filter out other pulses, e.g. drift
             target = pulse.targets[0]
             if target != 0:  # add pulse to the left neighbour
                 pulses[i].add_control_noise(
@@ -197,7 +188,7 @@ def single_crosstalk_simulation(num_gates):
                                       solver methods such as mesolve.
     """
     num_qubits = 2  # Qubit-0 is the target qubit. Qubit-1 suffers from crosstalk.
-    myprocessor = MyProcessor(num_qubits)
+    myprocessor = ModelProcessor(model=MyModel(num_qubits))
     # Add qubit frequency detuning 1.852MHz for the second qubit.
     myprocessor.add_drift(2 * np.pi * (sigmaz() + 1) / 2 * 1.852, targets=1)
     myprocessor.native_gates = None  # Remove the native gates
@@ -228,7 +219,6 @@ def single_crosstalk_simulation(num_gates):
     return result
 
 
-num_qubits = 2
 num_sample = 2
 # num_sample = 1600
 fidelity = []
@@ -247,31 +237,32 @@ for num_gates in num_gates_list:
 # Recorded result
 num_gates_list = [250, 500, 750, 1000, 1250, 1500]
 data_y = [
-    0.9577285560461476,
-    0.9384849070716464,
-    0.9230217713086177,
-    0.9062344084919285,
-    0.889009550855518,
-    0.8749290612064392,
+    0.9566768747558925,
+    0.9388905075892828,
+    0.9229470389282218,
+    0.9075513000339529,
+    0.8941659320508855,
+    0.8756519016627652
 ]
+
 data_y_error = [
-    0.000431399017208067,
-    0.0008622091914303468,
-    0.0012216267555118497,
-    0.001537120153687202,
-    0.0018528957172559654,
-    0.0020169257334183596,
+    0.00042992029265330223,
+    0.0008339882813741004,
+    0.0012606632769758602,
+    0.0014643550337816722,
+    0.0017695604671714809,
+    0.0020964978542167617
 ]
 
 
-def linear(x, a):
+def rb_curve(x, a):
     return (1 / 2 + np.exp(-2 * a * x) / 2) * 0.975
 
 
-pos, cov = curve_fit(linear, num_gates_list, data_y, p0=[0.001])
+pos, cov = curve_fit(rb_curve, num_gates_list, data_y, p0=[0.001])
 
 xline = np.linspace(0, 1700, 200)
-yline = linear(xline, *pos)
+yline = rb_curve(xline, *pos)
 
 fig, ax = plt.subplots(figsize=(LINEWIDTH, 0.65 * LINEWIDTH), dpi=200)
 ax.errorbar(
