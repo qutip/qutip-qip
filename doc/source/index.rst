@@ -4,9 +4,9 @@
     :align: center
     :width: 5in
 
-***********************************************
-qutip-qip: QuTiP quantum information processing
-***********************************************
+*********************************************************
+qutip-qip |version|: QuTiP quantum information processing
+*********************************************************
 
 .. toctree::
     :maxdepth: 2
