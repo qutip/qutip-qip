@@ -65,10 +65,11 @@ to test the code in the documentation.
 
 Testing
 ------------
-To test the installation from a download of the source code, run from the `qutip-qip` directory
+To test the installation, choose the correct branch that matches with the version, e.g., `qutip-qip-0.2.X` for version 0.2. Then download the source code and run from the `qutip-qip` directory
 ```
 pytest tests
 ```
+
 Citing `qutip-qip`
 ------------
 If you use `qutip-qip` in your research, the  [*preprint*](https://arxiv.org/abs/2105.09902) can be cited as
