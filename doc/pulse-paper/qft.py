@@ -97,12 +97,13 @@ simulation_time = [0.007144343852996826,
  11.539598500728607,
  31.34040207862854]
 
-fig, ax = plt.subplots(figsize=(LINEWIDTH, LINEWIDTH/3*2), dpi=200)
-ax.plot(range(1, 11), compiling_time, "-s", markersize=4, label="solver")
-ax.plot(range(1, 11), simulation_time, "-D", markersize=4, label="compiling")
+fig, ax = plt.subplots(figsize=(TEXTWIDTH, LINEWIDTH/3*2), dpi=200)
+ax.plot(range(1, 11), compiling_time, "-s", markersize=4, label=r"Compiler (\texttt{Processor.load\_circuit)}")
+ax.plot(range(1, 11), simulation_time, "-D", markersize=4, label=r"Solver (\texttt{Processor.run\_state})")
 ax.set_ylabel("Simulation time [s]")
 ax.set_xlabel("Number of qubits")
 ax.set_yscale("log")
+ax.set_ylim((ax.get_ylim()[0], 150))
 ax.legend()
 fig.tight_layout()
 fig.savefig("runtime.pdf")
