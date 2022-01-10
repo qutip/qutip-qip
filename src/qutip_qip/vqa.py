@@ -9,13 +9,21 @@ def sample_bitstring_from_state(state):
     Uses probability amplitudes from state in computational
     basis to sample a bitstring.
     E.g. the state 1/sqrt(2) * (|0> + |1>)
-    would return 0 and 1 with equal probability
+    would return 0 and 1 with equal probability.
     """
     n_qbits = int(np.log2(state.shape[0]))
     outcome_indices = [i for i in range(2**n_qbits)]
     probs = [abs(i.item())**2 for i in state]
     outcome_index = np.random.choice(outcome_indices, p=probs)
     return format(outcome_index, f'0{n_qbits}b')
+def highest_prob_bitstring(state):
+    """
+    Returns the bitstring associated with the
+    highest probability amplitude state (computational basis).
+    """
+    n_qbits = int(np.log2(state.shape[0]))
+    index = np.argmax(abs(state))
+    return format(index, f'0{n_qbits}b')
 
 class VQA:
     def __init__(self):
@@ -85,7 +93,7 @@ class VQA:
         if self.cost_method == "BITSTRING":
             if self.cost_func == None:
                 raise ValueError("self.cost_func not specified")
-            return self.cost_func(sample_bitstring_from_state(final_state))
+            return self.cost_func(highest_prob_bitstring(final_state))
         elif self.cost_method == "STATE":
             raise Exception("NOT IMPLEMENTED")
         elif self.cost_method == "OBSERVABLE":
@@ -106,7 +114,9 @@ class VQA:
                 method='COBYLA'
                 )
         thetas = res.x
-        print(res)
+        final_state = self.get_final_state(thetas)
+        result = Optimization_Result(res, final_state)
+        return result
         
     def export_image(self, filename="circuit.png"):
         circ = self.construct_circuit([1])
@@ -137,3 +147,21 @@ class VQA_Block:
                 # TODO: raise better exception?
                 raise TypeError("No parameter given")
             return (-1j * theta * self.operator).expm()
+
+class Optimization_Result:
+    def __init__(self, res, final_state):
+        """
+        res : scipy optimisation result object
+        """
+        self.res = res
+        self.thetas = res.x
+        self.min_cost = res.fun
+        self.nfev = res.nfev
+        self.final_state = final_state
+    def get_top_bitstring(self):
+        return "|" + highest_prob_bitstring(self.final_state) + ">"
+    def __str__(self):
+        return "Optimization Result:\n" +             \
+                f"\tMinimum cost: {self.min_cost}\n" +  \
+                f"\tNumber of function evaluations: {self.nfev}\n" + \
+                f"\tThetas found: {self.thetas}"
