@@ -96,7 +96,18 @@ class VQA:
                 raise ValueError("self.cost_observable not specified")
             cost = state.dag() * self.cost_observable * state
             return abs(cost[0].item())
-
+    def optimise_parameters(self):
+        # TODO: initialise this better
+        INITIAL_PARAM = 1
+        thetas = [INITIAL_PARAM for i in range(self.get_free_parameters())]
+        res = minimize(
+                self.evaluate_parameters, 
+                thetas,
+                method='COBYLA'
+                )
+        thetas = res.x
+        print(res)
+        
     def export_image(self, filename="circuit.png"):
         circ = self.construct_circuit([1])
         f = open(filename, 'wb+')
