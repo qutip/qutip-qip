@@ -1,5 +1,5 @@
 import numpy as np
-from qutip import basis, tensor
+from qutip import basis, tensor, Qobj
 from qutip.qip.circuit import QubitCircuit, Gate, Measurement
 from qutip_qip.operations import *
 from scipy.optimize import minimize
@@ -39,7 +39,7 @@ class VQA:
         self.cost_observable = None
     def add_block(self, block):
         if not block.name:
-            block.name = "U" + len(self.blocks)
+            block.name = "U" + str(len(self.blocks))
         if block.name in list(map(lambda b: b.name, self.blocks)):
             raise ValueError("Duplicate Block name in self.blocks")
         self.blocks.append(block)
@@ -62,7 +62,9 @@ class VQA:
         circ.user_gates = self.user_gates
         for layer_num in range(self.n_layers):
             for block in self.blocks:
-                if block.is_unitary:
+                if block.is_native_gate:
+                    circ.add_gate(block.operator, targets=block.targets)
+                elif block.is_unitary:
                     circ.add_gate(block.name, targets=[i for i in range(self.n_qubits)])
                 else:
                     # TODO: arg_value not properly set
@@ -121,7 +123,7 @@ class VQA:
     def export_image(self, filename="circuit.png"):
         circ = self.construct_circuit([1])
         f = open(filename, 'wb+')
-        f.write(circ.png.data)
+        f.write(circ.png)
         f.close()
         print(f"Image saved to ./{filename}")
 
@@ -133,12 +135,22 @@ class VQA_Block:
     specified by the user. In the case that a Unitary
     is given, there is no associated circuit parameter
     for the block.
+    If the operator is given as a string, it assumed
+    to reference a default qutip_qip.operations gate.
     A "layer" is given by the product of all blocks.
     """
-    def __init__(self, operator, is_unitary=False, name=None):
+    def __init__(self, operator, is_unitary=False, name=None, targets=None):
         self.operator = operator
         self.is_unitary = is_unitary
         self.name = name
+        self.targets = targets
+        self.is_native_gate = isinstance(operator, str)
+        if self.is_native_gate:
+            if targets == None:
+                raise ValueError("Targets must be specified for native gates")
+        else:
+            if not isinstance(operator, Qobj):
+                raise ValueError("Operator given was neither a gate name nor Qobj")
     def get_unitary(self, theta=None):
         if self.is_unitary:
             return self.operator
