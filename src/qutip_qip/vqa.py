@@ -3,6 +3,7 @@ from qutip import basis, tensor, Qobj
 from qutip.qip.circuit import QubitCircuit, Gate, Measurement
 from qutip_qip.operations import *
 from scipy.optimize import minimize
+from qutip_qip.qaoa import state_probs_plot
 
 def sample_bitstring_from_state(state):
     """
@@ -26,15 +27,14 @@ def highest_prob_bitstring(state):
     return format(index, f'0{n_qbits}b')
 
 class VQA:
-    def __init__(self):
+    def __init__(self, n_qubits, n_layers=1, cost_method="BITSTRING"):
         # defaults for now
-        self.n_layers = 1
+        self.n_qubits = n_qubits
+        self.n_layers = n_layers
         self.blocks = []
-        self.n_qubits = 2
         self.user_gates = {}
-        user_gates = {}
         self._cost_methods = ["OBSERVABLE", "STATE", "BITSTRING"]
-        self.cost_method = "BITSTRING"
+        self.cost_method = cost_method
         self.cost_func = None
         self.cost_observable = None
     def add_block(self, block):
@@ -43,9 +43,7 @@ class VQA:
         if block.name in list(map(lambda b: b.name, self.blocks)):
             raise ValueError("Duplicate Block name in self.blocks")
         self.blocks.append(block)
-        # TODO: allow for inbuilt qutip gates
         self.user_gates[block.name] = lambda theta=None: block.get_unitary(theta)
-        #print(self.user_gates)
     def get_free_parameters(self):
         """
         Computes the number of free parameters required
@@ -56,19 +54,36 @@ class VQA:
         num_params : int
             number of free parameters
         """
-        return len(list(filter(lambda b: not b.is_unitary, self.blocks)))
+        initial_free_params = len(list(filter(
+            lambda b: 
+                not (b.is_unitary or b.is_native_gate) 
+                and b.initial,
+            self.blocks
+            )))
+        layer_free_params = len(list(filter(
+            lambda b: 
+                not (b.is_unitary or b.is_native_gate) 
+                and not b.initial,
+            self.blocks
+            ))) * self.n_layers
+
+        return initial_free_params + layer_free_params
+ 
     def construct_circuit(self, thetas):
         circ = QubitCircuit(self.n_qubits)
         circ.user_gates = self.user_gates
+        i = 0
         for layer_num in range(self.n_layers):
             for block in self.blocks:
+                if block.initial and layer_num > 0:
+                    continue
                 if block.is_native_gate:
                     circ.add_gate(block.operator, targets=block.targets)
                 elif block.is_unitary:
                     circ.add_gate(block.name, targets=[i for i in range(self.n_qubits)])
                 else:
-                    # TODO: arg_value not properly set
-                    circ.add_gate(block.name, arg_value=thetas[0], targets=[i for i in range(self.n_qubits)])
+                    circ.add_gate(block.name, arg_value=thetas[i], targets=[i for i in range(self.n_qubits)])
+                    i += 1
         return circ
     def get_initial_state(self):
         """
@@ -104,7 +119,8 @@ class VQA:
             """
             if self.cost_observable == None:
                 raise ValueError("self.cost_observable not specified")
-            cost = state.dag() * self.cost_observable * state
+            #print(self.cost_observable)
+            cost = final_state.dag() * self.cost_observable * final_state
             return abs(cost[0].item())
     def optimise_parameters(self):
         # TODO: initialise this better
@@ -139,12 +155,13 @@ class VQA_Block:
     to reference a default qutip_qip.operations gate.
     A "layer" is given by the product of all blocks.
     """
-    def __init__(self, operator, is_unitary=False, name=None, targets=None):
+    def __init__(self, operator, is_unitary=False, name=None, targets=None, initial=False):
         self.operator = operator
         self.is_unitary = is_unitary
         self.name = name
         self.targets = targets
         self.is_native_gate = isinstance(operator, str)
+        self.initial = initial
         if self.is_native_gate:
             if targets == None:
                 raise ValueError("Targets must be specified for native gates")
@@ -176,4 +193,6 @@ class Optimization_Result:
         return "Optimization Result:\n" +             \
                 f"\tMinimum cost: {self.min_cost}\n" +  \
                 f"\tNumber of function evaluations: {self.nfev}\n" + \
-                f"\tThetas found: {self.thetas}"
+                f"\tParameters found: {self.thetas}"
+    def plot(self, S):
+        state_probs_plot(self.final_state, S)
