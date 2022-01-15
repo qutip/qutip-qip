@@ -38,7 +38,7 @@ class MyModel(Model):
         if label[:2] == "sx":
             return 2 * np.pi * sigmax() / 2, [targets]
         elif label[:2] == "sy":
-            return 2 * np.pi * sigmax() / 2, [targets]
+            return 2 * np.pi * sigmay() / 2, [targets]
         else:
             raise NotImplementError("Unknown control.")
 
@@ -181,7 +181,7 @@ def single_crosstalk_simulation(num_gates):
     """ A single simulation, with num_gates representing the number of rotations.
 
     Args:
-        num_gates (int): The random number of gates to add in the simulation.
+        num_gates (int): The number of random gates to add in the simulation.
 
     Returns:
         result (qutip.solver.Result): A qutip Result object obtained from any of the
