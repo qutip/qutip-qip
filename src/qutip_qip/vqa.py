@@ -122,10 +122,16 @@ class VQA:
             #print(self.cost_observable)
             cost = final_state.dag() * self.cost_observable * final_state
             return abs(cost[0].item())
-    def optimise_parameters(self):
-        # TODO: initialise this better
-        INITIAL_PARAM = 1
-        thetas = [INITIAL_PARAM for i in range(self.get_free_parameters())]
+    def optimize_parameters(self, initial_guess=None):
+        n_free_params = self.get_free_parameters()
+        default_initial = 1
+        if initial_guess == None:
+            thetas = [default_initial for i in range(n_free_params)]
+        else:
+            if not len(initial_guess) == n_free_params:
+                raise ValueError(f"Expected {n_free_params} initial \
+                        parameters, but got {len(initial_guess)}.")
+            thetas = initial_guess
         res = minimize(
                 self.evaluate_parameters, 
                 thetas,
