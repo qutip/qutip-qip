@@ -150,6 +150,48 @@ class VQA:
         print(f"Image saved to ./{filename}")
 
 
+class Parameterized_Hamiltonian:
+    def __init__(self, H, M):
+        """
+        For N parameters and L Hamiltonian terms,
+
+        Parameters
+        ----------
+        H: numpy array
+            a 1xL vector of Hamiltonian terms
+        M: numpy array
+            a L x (N+1) masking matrix
+                    
+        """
+        self.L = len(H)
+        self.H = np.array(H)
+        if not M.ndim == 2:
+            raise ValueError("M was not a two-dimensional array (not a matrix)")
+        if not M.shape[0] == self.L:
+            raise ValueError("M should be of shape  L x (N+1)")
+        self.M = M
+        # number of free parameters
+        self.N = M.shape[1] - 1
+    def get_thetas(self, params):
+        thetas = [1] + [i for i in params]
+        if not len(thetas) == (self.N + 1):
+            raise ValueError(f"Thetas should be of length {self.N + 1} but was {len(thetas)}")
+        return np.array(thetas).reshape(self.N + 1, 1)
+    def get_hamiltonian(self, params):
+        thetas = self.get_thetas(params)
+        """
+        We want H x (M x thetas)
+        But H is an array of matrices rather than scalars,
+        and I don't know how to deal with this nicely. For
+        now, I'll take the element-wise multiplication of 
+        H, which is (1xL) with (M x thetas) which is (Lx1).
+        We then take the sum of the elements of H
+        """
+        prod = (self.M @ thetas).reshape(self.L, 1, 1)
+        return sum(self.H * prod) 
+
+
+
 class VQA_Block:
     """
     A "Block" is a constitutent part of a "layer".
