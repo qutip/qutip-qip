@@ -135,12 +135,37 @@ class VQA:
         res = minimize(
                 self.evaluate_parameters, 
                 thetas,
-                method='COBYLA'
+                method='BFGS',
                 )
         thetas = res.x
         final_state = self.get_final_state(thetas)
         result = Optimization_Result(res, final_state)
         return result
+    
+    def construct_jacobian(self, thetas):
+        
+        thetas_ind = 0
+        final_state = self.get_final_state(thetas)
+        jacobian = []
+        for i, block in enumerate(filter(
+                lambda b: not (b.is_unitary or b.is_native_gate),
+                self.blocks
+                )):
+            jacobian.append(self.get_partial_cost_derivative(block, final_state, thetas[i]))
+        return np.array(jacobian)
+
+    def get_partial_cost_derivative(self, block, final_state, theta):
+        if self.cost_observable == None:
+            raise ValueError("self.cost_observable not defined")
+        obs = self.cost_observable
+        H = block.operator
+        # TODO: check QuTiP implements correct multiplication order here
+        U_pos = (1j * theta * H).expm()
+        U_neg = (-1j * theta * H).expm()
+        block_deriv = \
+                final_state.dag() * 1j * U_pos * obs * final_state \
+            +   final_state.dag() * -1j * obs * U_neg * final_state
+        return block_deriv[0].item()
         
     def export_image(self, filename="circuit.png"):
         circ = self.construct_circuit([1])
@@ -160,7 +185,9 @@ class Parameterized_Hamiltonian:
         H: numpy array
             a 1xL vector of Hamiltonian terms
         M: numpy array
-            a L x (N+1) masking matrix
+            a L x (N+1) masking matrix. Each entry (m, n) corresponds
+            to the weight of the (n+1)'th parameter acting on the
+            m'th term of H.
                     
         """
         self.L = len(H)
@@ -189,8 +216,6 @@ class Parameterized_Hamiltonian:
         """
         prod = (self.M @ thetas).reshape(self.L, 1, 1)
         return sum(self.H * prod) 
-
-
 
 class VQA_Block:
     """
@@ -224,6 +249,7 @@ class VQA_Block:
                 # TODO: raise better exception?
                 raise TypeError("No parameter given")
             return (-1j * theta * self.operator).expm()
+
 
 class Optimization_Result:
     def __init__(self, res, final_state):
