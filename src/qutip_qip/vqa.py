@@ -3,7 +3,7 @@ from qutip import basis, tensor, Qobj
 from qutip.qip.circuit import QubitCircuit, Gate, Measurement
 from qutip_qip.operations import *
 from scipy.optimize import minimize
-from qutip_qip.qaoa import state_probs_plot
+import matplotlib.pyplot as plt
 
 def sample_bitstring_from_state(state):
     """
@@ -122,20 +122,22 @@ class VQA:
             #print(self.cost_observable)
             cost = final_state.dag() * self.cost_observable * final_state
             return abs(cost[0].item())
-    def optimize_parameters(self, initial_guess=None):
+    def optimize_parameters(self, initial_guess=None, method="COBYLA", use_jac=False):
         n_free_params = self.get_free_parameters()
         default_initial = 1
         if initial_guess == None:
             thetas = [default_initial for i in range(n_free_params)]
         else:
             if not len(initial_guess) == n_free_params:
-                raise ValueError(f"Expected {n_free_params} initial \
-                        parameters, but got {len(initial_guess)}.")
+                raise ValueError(f"Expected {n_free_params} initial" \
+                        +f" parameters, but got {len(initial_guess)}.")
             thetas = initial_guess
+        jac = self.construct_jacobian if use_jac else None
         res = minimize(
                 self.evaluate_parameters, 
                 thetas,
-                method='BFGS',
+                method=method,
+                jac=jac
                 )
         thetas = res.x
         final_state = self.get_final_state(thetas)
@@ -143,15 +145,19 @@ class VQA:
         return result
     
     def construct_jacobian(self, thetas):
-        
-        thetas_ind = 0
         final_state = self.get_final_state(thetas)
         jacobian = []
-        for i, block in enumerate(filter(
-                lambda b: not (b.is_unitary or b.is_native_gate),
-                self.blocks
-                )):
-            jacobian.append(self.get_partial_cost_derivative(block, final_state, thetas[i]))
+        
+        i = 0
+        for layer_num in range(self.n_layers):
+            for block in filter(
+                    lambda b: not (b.is_unitary or b.is_native_gate),
+                    self.blocks):
+                if block.initial and layer_num > 0:
+                    continue
+                jacobian.append(self.get_partial_cost_derivative(block, final_state, thetas[i]))
+                i += 1
+
         return np.array(jacobian)
 
     def get_partial_cost_derivative(self, block, final_state, theta):
@@ -165,7 +171,7 @@ class VQA:
         block_deriv = \
                 final_state.dag() * 1j * U_pos * obs * final_state \
             +   final_state.dag() * -1j * obs * U_neg * final_state
-        return block_deriv[0].item()
+        return abs(block_deriv[0].item())
         
     def export_image(self, filename="circuit.png"):
         circ = self.construct_circuit([1])
@@ -269,4 +275,31 @@ class Optimization_Result:
                 f"\tNumber of function evaluations: {self.nfev}\n" + \
                 f"\tParameters found: {self.thetas}"
     def plot(self, S):
-        state_probs_plot(self.final_state, S)
+        state_probs_plot(self.final_state, S, self.min_cost)
+
+def label_to_sets(S, bitstring):
+    S1 = []
+    S2 = []
+    for i, c in enumerate(bitstring.strip('|').strip('>')):
+        if c == '0':
+            S1.append(S[i])
+        else:
+            S2.append(S[i])
+    return (str(S1) + ' ' + str(S2)).replace('[', '{').replace(']', '}')
+
+def state_probs_plot(state, S=None, min_cost=''):
+    import itertools
+    n_qbits = int(np.log2(state.shape[0]))
+    probs = [abs(i.item())**2 for i in state]
+    bitstrings = ["|" + format(i, f'0{n_qbits}b') + ">"   \
+            for i in range(2**n_qbits)]
+    labels = [label_to_sets(S, bitstring) for bitstring in bitstrings]
+    barplot = plt.bar([i for i in range(2**n_qbits)], \
+            probs, tick_label=labels, width=0.8)
+    plt.xticks(rotation=30)
+    plt.tight_layout()
+    plt.xlabel('Measurement outcome')
+    plt.ylabel('Probability')
+    plt.title(f"Measurement Outcomes after Optimisation. Cost: {round(min_cost, 2)}")
+    plt.tight_layout()
+    plt.show()
