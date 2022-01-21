@@ -1,5 +1,5 @@
 import numpy as np
-from qutip import basis, tensor, Qobj
+from qutip import basis, tensor, Qobj, qeye
 from qutip.qip.circuit import QubitCircuit, Gate, Measurement
 from qutip_qip.operations import *
 from scipy.optimize import minimize
@@ -13,19 +13,19 @@ def sample_bitstring_from_state(state):
     E.g. the state 1/sqrt(2) * (|0> + |1>)
     would return 0 and 1 with equal probability.
     """
-    n_qbits = int(np.log2(state.shape[0]))
-    outcome_indices = [i for i in range(2**n_qbits)]
+    n_qubits = int(np.log2(state.shape[0]))
+    outcome_indices = [i for i in range(2**n_qubits)]
     probs = [abs(i.item())**2 for i in state]
     outcome_index = np.random.choice(outcome_indices, p=probs)
-    return format(outcome_index, f'0{n_qbits}b')
+    return format(outcome_index, f'0{n_qubits}b')
 def highest_prob_bitstring(state):
     """
     Returns the bitstring associated with the
     highest probability amplitude state (computational basis).
     """
-    n_qbits = int(np.log2(state.shape[0]))
+    n_qubits = int(np.log2(state.shape[0]))
     index = np.argmax(abs(state))
-    return format(index, f'0{n_qbits}b')
+    return format(index, f'0{n_qubits}b')
 
 class VQA:
     def __init__(self, n_qubits, n_layers=1, cost_method="BITSTRING"):
@@ -135,7 +135,7 @@ class VQA:
                 raise ValueError(f"Expected {n_free_params} initial" \
                         +f" parameters, but got {len(initial_guess)}.")
             thetas = initial_guess
-        jac = self.construct_jacobian if use_jac else None
+        jac = self.get_frechet_derivatives if use_jac else None
         res = minimize(
                 self.evaluate_parameters, 
                 thetas,
@@ -175,6 +175,38 @@ class VQA:
                 final_state.dag() * 1j * U_pos * obs * final_state \
             +   final_state.dag() * -1j * obs * U_neg * final_state
         return abs(block_deriv[0].item())
+    def get_frechet_derivatives(self, thetas):
+        circ = self.construct_circuit(thetas)
+        from qutip.qip.operations.gates import gate_sequence_product
+        from scipy.linalg import expm_frechet
+        U = gate_sequence_product(circ.propagators()) 
+        U_dag = U.dag()
+        # Note to self. This U is correct - 
+        '''
+        Now compute frechet_derivates of with respect to each 
+        matrix direction. Loop through each vqa_block that is 
+        not (is_unitary or is_native_gate)
+        '''
+
+        # TODO: fix this for initial blocks, same way as construct_jacobian
+
+        obs = self.cost_observable
+        init = self.get_initial_state()
+        jacobian = []
+        i = 0
+        for block in self.blocks:
+            if not (block.is_unitary or block.is_native_gate):
+                direction = block.get_unitary(thetas[i])
+                dU = expm_frechet(U, direction, compute_expm=False)
+                dU_dag = expm_frechet(U.dag(), direction, compute_expm=False)
+
+                dCost = (init.dag()*dU_dag * obs * U*init) + \
+                        (init.dag() * U_dag * obs * dU * init)
+                jacobian.append(dCost[0].item())
+                i +=1
+        print(jacobian)
+        return jacobian
+
         
     def export_image(self, filename="circuit.png"):
         circ = self.construct_circuit([1])
@@ -240,6 +272,8 @@ class VQA_Block:
         if self.is_unitary:
             return self.operator
         else:
+            if self.is_native_gate:
+                breakpoint()
             if theta == None:
                 # TODO: raise better exception?
                 raise TypeError("No parameter given")
@@ -278,12 +312,12 @@ def label_to_sets(S, bitstring):
 
 def state_probs_plot(state, S=None, min_cost=''):
     import itertools
-    n_qbits = int(np.log2(state.shape[0]))
+    n_qubits = int(np.log2(state.shape[0]))
     probs = [abs(i.item())**2 for i in state]
-    bitstrings = ["|" + format(i, f'0{n_qbits}b') + ">"   \
-            for i in range(2**n_qbits)]
+    bitstrings = ["|" + format(i, f'0{n_qubits}b') + ">"   \
+            for i in range(2**n_qubits)]
     labels = [label_to_sets(S, bitstring) for bitstring in bitstrings]
-    barplot = plt.bar([i for i in range(2**n_qbits)], \
+    barplot = plt.bar([i for i in range(2**n_qubits)], \
             probs, tick_label=labels, width=0.8)
     plt.xticks(rotation=30)
     plt.tight_layout()
