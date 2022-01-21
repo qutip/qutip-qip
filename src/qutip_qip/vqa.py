@@ -4,6 +4,7 @@ from qutip.qip.circuit import QubitCircuit, Gate, Measurement
 from qutip_qip.operations import *
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
+import random
 
 def sample_bitstring_from_state(state):
     """
@@ -122,11 +123,13 @@ class VQA:
             #print(self.cost_observable)
             cost = final_state.dag() * self.cost_observable * final_state
             return abs(cost[0].item())
-    def optimize_parameters(self, initial_guess=None, method="COBYLA", use_jac=False):
+    def optimize_parameters(self, initial_guess=None, method="COBYLA", use_jac=False, initialization="random"):
         n_free_params = self.get_free_parameters()
-        default_initial = 1
         if initial_guess == None:
-            thetas = [default_initial for i in range(n_free_params)]
+            if initialization == "random":
+                thetas = [random.random() for i in range(n_free_params)]
+            elif initialization == "ones":
+                thetas = [1 for i in range(n_free_params)]
         else:
             if not len(initial_guess) == n_free_params:
                 raise ValueError(f"Expected {n_free_params} initial" \
@@ -182,46 +185,32 @@ class VQA:
 
 
 class Parameterized_Hamiltonian:
-    def __init__(self, H, M):
+    def __init__(self, parameterized_terms=[], constant_term=None):
         """
-        For N parameters and L Hamiltonian terms,
-
         Parameters
         ----------
-        H: numpy array
-            a 1xL vector of Hamiltonian terms
-        M: numpy array
-            a L x (N+1) masking matrix. Each entry (m, n) corresponds
-            to the weight of the (n+1)'th parameter acting on the
-            m'th term of H.
-                    
+        parameterized_terms: list of Qobj
+            Hamiltonian terms which each require a unique parameter
+        constant_term: Qobj
+            Hamiltonian term which does not require parameters.
         """
-        self.L = len(H)
-        self.H = np.array(H)
-        if not M.ndim == 2:
-            raise ValueError("M was not a two-dimensional array (not a matrix)")
-        if not M.shape[0] == self.L:
-            raise ValueError("M should be of shape  L x (N+1)")
-        self.M = M
-        # number of free parameters
-        self.N = M.shape[1] - 1
+        self.p_terms = parameterized_terms
+        self.c_term = constant_term
+        self.N = len(parameterized_terms)
+        if not len(self.p_terms) and not len(self.c_terms):
+            raise ValueError("Parameterized Hamiltonian " \
+                    + "initialised with no terms given")
     def get_thetas(self, params):
-        thetas = [1] + [i for i in params]
-        if not len(thetas) == (self.N + 1):
-            raise ValueError(f"Thetas should be of length {self.N + 1} but was {len(thetas)}")
-        return np.array(thetas).reshape(self.N + 1, 1)
+        thetas = [i for i in params]
+        return thetas
     def get_hamiltonian(self, params):
-        thetas = self.get_thetas(params)
-        """
-        We want H x (M x thetas)
-        But H is an array of matrices rather than scalars,
-        and I don't know how to deal with this nicely. For
-        now, I'll take the element-wise multiplication of 
-        H, which is (1xL) with (M x thetas) which is (Lx1).
-        We then take the sum of the elements of H
-        """
-        prod = (self.M @ thetas).reshape(self.L, 1, 1)
-        return sum(self.H * prod) 
+        if not len(params) == self.N:
+            raise ValueError(f"params should be of length {self.N} but was {len(params)}")
+
+        # Match each p_term with a parameter
+        H_tot = sum(param * H for param, H in zip(self.p_terms, params)) \
+           + (self.c_term if self.c_term else 0)
+        return H_tot
 
 class VQA_Block:
     """
