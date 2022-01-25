@@ -3,6 +3,7 @@ from qutip import basis, tensor, Qobj, qeye
 from qutip.qip.circuit import QubitCircuit, Gate, Measurement
 from qutip_qip.operations import *
 from scipy.optimize import minimize
+from scipy.linalg import expm_frechet
 import matplotlib.pyplot as plt
 import random
 
@@ -38,6 +39,11 @@ class VQA:
         self.cost_method = cost_method
         self.cost_func = None
         self.cost_observable = None
+    def get_gets(self):
+        """
+        TODO: return single list of blocks (same block can appear more than once)
+        that can be easily iterated over.
+        """
     def add_block(self, block):
         if not block.name:
             block.name = "U" + str(len(self.blocks))
@@ -70,7 +76,7 @@ class VQA:
 
         return initial_free_params + layer_free_params
  
-    def construct_circuit(self, thetas):
+    def construct_circuit(self, angles):
         circ = QubitCircuit(self.n_qubits)
         circ.user_gates = self.user_gates
         i = 0
@@ -83,7 +89,7 @@ class VQA:
                 elif block.is_unitary:
                     circ.add_gate(block.name, targets=[i for i in range(self.n_qubits)])
                 else:
-                    circ.add_gate(block.name, arg_value=thetas[i], targets=[i for i in range(self.n_qubits)])
+                    circ.add_gate(block.name, arg_value=angles[i], targets=[i for i in range(self.n_qubits)])
                     i += 1
         return circ
     def get_initial_state(self):
@@ -94,20 +100,20 @@ class VQA:
         for i in range(self.n_qubits - 1):
             initial_state = tensor(initial_state, basis(2, 0))
         return initial_state
-    def get_final_state(self, thetas):
+    def get_final_state(self, angles):
         """
         Returns final state of circuit from initial state
         """
-        circ = self.construct_circuit(thetas)
+        circ = self.construct_circuit(angles)
         initial_state = self.get_initial_state()
         final_state = circ.run(initial_state)
         return final_state
-    def evaluate_parameters(self, thetas):
+    def evaluate_parameters(self, angles):
         """
         Constructs a circuit with given parameters
         and returns a cost from evaluating the circuit
         """
-        final_state = self.get_final_state(thetas)
+        final_state = self.get_final_state(angles)
         if self.cost_method == "BITSTRING":
             if self.cost_func == None:
                 raise ValueError("self.cost_func not specified")
@@ -123,32 +129,37 @@ class VQA:
             #print(self.cost_observable)
             cost = final_state.dag() * self.cost_observable * final_state
             return abs(cost[0].item())
-    def optimize_parameters(self, initial_guess=None, method="COBYLA", use_jac=False, initialization="random"):
+    def optimize_parameters(self, initial_guess=None, method="COBYLA", use_jac=False, initialization="random", frechet=False, do_nothing=False):
         n_free_params = self.get_free_parameters()
         if initial_guess == None:
             if initialization == "random":
-                thetas = [random.random() for i in range(n_free_params)]
+                angles = [random.random() for i in range(n_free_params)]
             elif initialization == "ones":
-                thetas = [1 for i in range(n_free_params)]
+                angles = [1 for i in range(n_free_params)]
         else:
             if not len(initial_guess) == n_free_params:
                 raise ValueError(f"Expected {n_free_params} initial" \
                         +f" parameters, but got {len(initial_guess)}.")
-            thetas = initial_guess
-        jac = self.get_frechet_derivatives if use_jac else None
-        res = minimize(
-                self.evaluate_parameters, 
-                thetas,
-                method=method,
-                jac=jac
-                )
-        thetas = res.x
-        final_state = self.get_final_state(thetas)
+            angles = initial_guess
+        jac = self.construct_jacobian if use_jac else None
+        if frechet:
+            jac = self.get_frechet_derivatives if use_jac else None
+        if not do_nothing:
+            res = minimize(
+                    self.evaluate_parameters, 
+                    angles,
+                    method=method,
+                    jac=jac
+                    )
+            angles = res.x
+        if do_nothing:
+            return self.evaluate_parameters(angles)
+        final_state = self.get_final_state(angles)
         result = Optimization_Result(res, final_state)
         return result
     
-    def construct_jacobian(self, thetas):
-        final_state = self.get_final_state(thetas)
+    def construct_jacobian(self, angles):
+        final_state = self.get_final_state(angles)
         jacobian = []
         
         i = 0
@@ -158,7 +169,7 @@ class VQA:
                     self.blocks):
                 if block.initial and layer_num > 0:
                     continue
-                jacobian.append(self.get_partial_cost_derivative(block, final_state, thetas[i]))
+                jacobian.append(self.get_partial_cost_derivative(block, final_state, angles[i]))
                 i += 1
 
         return np.array(jacobian)
@@ -175,12 +186,48 @@ class VQA:
                 final_state.dag() * 1j * U_pos * obs * final_state \
             +   final_state.dag() * -1j * obs * U_neg * final_state
         return abs(block_deriv[0].item())
-    def get_frechet_derivatives(self, thetas):
-        circ = self.construct_circuit(thetas)
+
+    def get_unitary_products(self, propagators, angles):
+        """ To modify a unitary at the k'th position, 
+        i.e U_k(theta), given N unitaries in the product,
+        one could do
+        U_prods_back[N - 1 - k] * U_k(theta) * U_prods[k - 1]
+        """
         from qutip.qip.operations.gates import gate_sequence_product
-        from scipy.linalg import expm_frechet
-        U = gate_sequence_product(circ.propagators()) 
-        U_dag = U.dag()
+        U_prods = [qeye([2 for _ in range(self.n_qubits)])]
+        U_prods_back = [qeye([2 for _ in range(self.n_qubits)])]
+        for i in range(0, len(propagators)):
+            U_prods.append(propagators[i] * U_prods[-1])
+            U_prods_back.append(U_prods_back[-1] * propagators[-i-1])
+        prod = gate_sequence_product(propagators)
+        breakpoint()
+        return U_prods, U_prods_back
+
+    def compute_jac(self, angles):
+        circ = self.construct_circuit(angles)
+        propagators = circ.propagators()
+        U_prods, U_prods_back = self.get_unitary_products(angles)
+        from qutip.qip.operations.gates import gate_sequence_product
+        N = len(U_prods) - 1
+        breakpoint()
+        def modify_unitary(k, U):
+            return U_prods_back[N - 1 - k] * U * U_prods[k - 1]
+        jacobian = []
+
+
+
+    def get_frechet_derivatives(self, angles):
+        U_prods, U_prods_back = self.get_unitary_products(angles)
+        circ = self.construct_circuit(angles)
+        from qutip.qip.operations.gates import gate_sequence_product
+        #U = gate_sequence_product(circ.propagators()) 
+        #U_dag = U.dag()
+        N = len(U_prods) - 1
+        breakpoint()
+        def modify_unitary(k, U):
+            return U_prods_back[N - 1 - k] * U * U_prods[k - 1]
+
+
         # Note to self. This U is correct - 
         '''
         Now compute frechet_derivates of with respect to each 
@@ -196,15 +243,15 @@ class VQA:
         i = 0
         for block in self.blocks:
             if not (block.is_unitary or block.is_native_gate):
-                direction = block.get_unitary(thetas[i])
+                direction = block.get_unitary(angles[i])
                 dU = expm_frechet(U, direction, compute_expm=False)
                 dU_dag = expm_frechet(U.dag(), direction, compute_expm=False)
 
                 dCost = (init.dag()*dU_dag * obs * U*init) + \
                         (init.dag() * U_dag * obs * dU * init)
-                jacobian.append(dCost[0].item())
+                #print(dCost[0].item())
+                jacobian.append(abs(dCost[0].item()))
                 i +=1
-        print(jacobian)
         return jacobian
 
         
@@ -232,9 +279,9 @@ class Parameterized_Hamiltonian:
         if not len(self.p_terms) and not len(self.c_terms):
             raise ValueError("Parameterized Hamiltonian " \
                     + "initialised with no terms given")
-    def get_thetas(self, params):
-        thetas = [i for i in params]
-        return thetas
+    def get_angles(self, params):
+        angles = [i for i in params]
+        return angles
     def get_hamiltonian(self, params):
         if not len(params) == self.N:
             raise ValueError(f"params should be of length {self.N} but was {len(params)}")
@@ -262,6 +309,9 @@ class VQA_Block:
         self.targets = targets
         self.is_native_gate = isinstance(operator, str)
         self.initial = initial
+        self.n_parameters = 0
+        if not self.is_unitary and not self.is_native_gate:
+            self.n_parameters = 1
         if self.is_native_gate:
             if targets == None:
                 raise ValueError("Targets must be specified for native gates")
@@ -286,7 +336,7 @@ class Optimization_Result:
         res : scipy optimisation result object
         """
         self.res = res
-        self.thetas = res.x
+        self.angles = res.x
         self.min_cost = res.fun
         self.nfev = res.nfev
         self.final_state = final_state
@@ -296,7 +346,7 @@ class Optimization_Result:
         return "Optimization Result:\n" +             \
                 f"\tMinimum cost: {self.min_cost}\n" +  \
                 f"\tNumber of function evaluations: {self.nfev}\n" + \
-                f"\tParameters found: {self.thetas}"
+                f"\tParameters found: {self.angles}"
     def plot(self, S):
         state_probs_plot(self.final_state, S, self.min_cost)
 
