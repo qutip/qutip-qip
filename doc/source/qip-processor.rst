@@ -4,51 +4,122 @@
 Pulse-level circuit simulation
 ******************************
 
-Modelling quantum hardware with Processor
-=========================================
+This documentation page is adapted from the publication :cite:`Li2022pulselevelnoisy` under `CC BY 4.0 <https://creativecommons.org/licenses/by/4.0/>`_.
 
-Based on the open system solver, :class:`.Processor` in the :mod:`qutip_qip` module simulates quantum circuits at the level of time evolution. One can consider the processor as a simulator of a quantum device, on which the quantum circuit is to be implemented.
+Overview
+========
+
+Based on the open system solver, :class:`.Processor` in the :mod:`qutip_qip` module simulates quantum circuits at the level of time evolution. One can consider the processor as an emulator of a quantum device, on which the quantum circuit is to be implemented.
 
 The procedure is illustrated in the figure below.
-It first compiles circuit into a Hamiltonian model, adds noisy dynamics and then uses the QuTiP open time evolution solvers to simulation the evolution.
+It first compiles the circuit into a Hamiltonian model, adds noisy dynamics and then uses the QuTiP open time evolution solvers to simulate the evolution.
 
-.. image:: /figures//illustration.png
+.. figure:: /figures//illustration.jpg
+    :scale: 40%
+    :align: center
 
-Like a real quantum device, the processor is determined by a list of Hamiltonians, i.e. the control pulses driving the evolution. Given the intensity of the control pulses and the corresponding time slices for each pulse, the evolution is then computed. A control pulse is characterized by :class:`.pulse.Pulse`, consisting of the control Hamiltonian, the targets qubit, the pulse coefficients and the time sequence. We can either use the coefficients as a step function or with cubic spline. For step function, ``tlist`` specifies the start and the end of each pulse and thus is one element longer than the ``coeffs``. One example of defining the control pulse coefficients and the time array is as follows:
+    Illustration of the workflow :cite:`Li2022pulselevelnoisy`.
 
+In the following, we illustrate our framework with an example simulating a 3-qubit Deutsch-Jozsa algorithm on a chain of spin qubits.
+We will work through this example and explain briefly the workflow and all the main modules.
 .. testcode::
 
     import numpy as np
-    from qutip import sigmaz
-    from qutip_qip.device import Processor
+    from qutip import basis
+    from qutip_qip.circuit import QubitCircuit
+    from qutip_qip.device import LinearSpinChain
 
-    processor = Processor(2)
-    processor.add_control(sigmaz(), cyclic_permutation=True)  # sigmaz for all qubits
-    processor.set_coeffs = np.array([[1.0, 1.5, 2.0], [1.8, 1.3, 0.8]])
-    processor.set_tlist = np.array([0.1, 0.2, 0.4, 0.5])
+    # Define a circuit
+    qc = QubitCircuit(3)
+    qc.add_gate("X", targets=2)
+    qc.add_gate("SNOT", targets=0)
+    qc.add_gate("SNOT", targets=1)
+    qc.add_gate("SNOT", targets=2)
 
-It defines a :math:`\sigma_z` operator on both qubits and a pulse that acts on the first qubit.
-An equivalent approach is using the :meth:`.Processor.add_pulse` method.
+    # Oracle function f(x)
+    qc.add_gate("CNOT", controls=0, targets=2)
+    qc.add_gate("CNOT", controls=1, targets=2)
 
-.. testcode::
+    qc.add_gate("SNOT", targets=0)
+    qc.add_gate("SNOT", targets=1)
 
-    from qutip_qip.pulse import Pulse
+    # Run gate-level simulation
+    init_state = basis([2,2,2], [0,0,0])
+    ideal_result = qc.run(init_state)
 
-    processor = Processor(2)
-    coeff=np.array([0.1, 0.2, 0.4, 0.5])
-    tlist=np.array([[1.0, 1.5, 2.0], [1.8, 1.3, 0.8]])
-    pulse = Pulse(sigmaz(), targets=0, coeff=coeff, tlist=tlist)
-    processor.add_pulse(pulse)
+    # Run pulse-level simulation
+    processor = LinearSpinChain(num_qubits=3, sx=0.25, t2=30)
+    processor.load_circuit(qc)
+    tlist = np.linspace(0, 20, 300)
+    result = processor.run_state(init_state, tlist=tlist)
 
-One can also use choose the ``pulse_mode`` attribute of :class:`.Processor`
-between ``"discrete"`` and ``"continuous"``.
+In the above example, we first define a Deutsch-Jozsa circuit, and then run the simulation first at the gate-level.
+We then choose the spin chain model for the underlying physical system, which is a subclass of :obj:`.Processor`.
+We provide the number of qubits and the :math:`\sigma_x` drive strength 0.25MHz.
+The other parameters, such as the interaction strength, are set to be the default value.
+The decoherence noise can also be added by specifying the coherence times (:math:`T_1` and :math:`T_2`) which we discuss hereafter.
 
-.. note::
+By initializing this processor with the hardware parameters, a Hamiltonian model for a spin chain system is generated, including the drift and control Hamiltonians.
+The Hamiltonian model is represented by the :obj:`.Model` class and is saved as an attribute of the initialized processor. In addition, the :obj:`.Processor` can also hold simulation configurations such as whether to use a cubic spline interpolation for the pulse coefficients. Such configurations are not directly part of the model but nevertheless could be important for the pulse-level simulation.
 
-   If the coefficients represent discrete pulse, the length of each array is 1 element shorter than ``tlist``. If it is supposed to be a continuous function, the length should be the same as ``tlist``.
+Next, we provide the circuit to the processor through the method :obj:`.LinearSpinChain.load_circuit`.
+The processor will first decompose the gates in the circuit into native gates that can be implemented directly on the specified hardware model.
+Each gate in the circuit is then mapped to the control coefficients and driving Hamiltonians according to the :obj:`.GateCompiler` defined for a specific model.
+A :obj:`.Scheduler` is used to explore the possibility of executing several pulses in parallel.
+
+With a pulse-level description of the circuit generated and saved in the processor, we can now run the simulation by
+The :obj:`.Processor.run_state` method first builds a Lindblad model including all the defined noise models (none in this example, but options are discussed below) and then calls a QuTiP solver to simulate the time evolution.
+One can pass solver parameters as keyword arguments to the method, e.g., ``tlist`` (time sequence for intermediate results), ``e_ops`` (measurement observables) and ``options`` (solver options).
+In the example above, we record the intermediate state at the time steps given by ``tlist``.
+The returned result is a :class:`~qutip.solver.Result` object, which, depending on the solver options, contains the final state, intermediate states and the expectation value.
+This allows one to extract all information that the solvers in QuTiP provide.
+
+Theory
+======
+
+Down to the physical level, quantum hardware, on which a circuit is executed, is described by quantum theory.
+The dynamics of the system that realizes a unitary gate in quantum circuit is characterized by the time evolution of the quantum system.
+For isolated or open quantum systems, we consider both unitary time evolution and open quantum dynamics.
+The latter can be simulated either by solving the master equation or sampling Monte Carlo trajectories.
+Here, we briefly describe those methods as well as the corresponding solvers available in QuTiP.
+
+For a closed quantum system, the dynamics is determined by the Hamiltonian and the initial state.
+From the perspective of controlling a quantum system, the Hamiltonian is divided into the non-controllable drift :math:`H_{\rm{d}}` (which may be time dependent) and controllable terms combined as :math:`H_{\rm{c}}` to give the full system Hamiltonian
+
+.. _the control Hamiltonian:
+
+.. math::
+
+    H(t) = H_{\rm{d}}(t) + H_{\rm{c}}(t) = H_{\rm{d}}(t) + \sum_j c_j(t) H_j,
+
+where the :math:`H_j` describe the effects of available physical controls on the system that can be modulated by the time-dependent control coefficients :math:`c_j(t)`, by which one drives the system to realize the desired unitary gates.
+
+The unitary :math:`U` that is applied to the quantum system driven by the Hamiltonian :math:`H(t)` is a solution to the Schrödinger operator equation
+
+.. math::
+
+    i \hbar \frac{\partial U(t)}{\partial t}
+    = H(t) U(t)
+    .
+
+By choosing :math:`H(t)` that implements the desired unitaries (the quantum circuit) we obtain a pulse-level description of the circuit in the form of `the control Hamiltonian`_. 
+The choice of the solver depends on the parametrization of the control coefficients :math:`c_j(t)`. 
+The parameters of :math:`c_j(t)` may be determined through theoretical models or automated through control optimisation, as introduced later.
 
 
-The above example shows the framework and the most essential part of the simulator's API. So far, it looks like just a wrapper for the open system solvers. However, based on this, we can implement different physical realizations. They differ mainly in how to find the control pulse for a quantum circuit, which gives birth to different sub-classes:
+Processor and Model
+===================
+
+The :obj:`.Processor` class handles the routine of a pulse-level simulation.
+It connects different modules and works as the main API interface, as the figure below illustrates.
+
+.. figure:: /figures//structure.jpg
+    :scale: 40%
+    :align: center
+
+    Code structure :cite:`Li2022pulselevelnoisy`.
+
+We provide a few predefined processors with Hamiltonian models and compilers routines. They differ mainly in how to find the control pulse for a quantum circuit, which gives birth to different sub-classes:
 
 | Processor
 | ├── ModelProcessor
@@ -57,8 +128,7 @@ The above example shows the framework and the most essential part of the simulat
 | │   └── SpinChain
 | └── OptPulseProcessor
 
-In general, there are two ways to find the control pulses. The first one, :class:`.ModelProcessor`, is more experiment-oriented and based on physical models. A universal set of
-gates is defined in the processor as well as the pulse implementing them in this particular physical model. This is usually the case where control pulses realizing those gates are well known and can be concatenated to realize the whole quantum circuits. Two realizations have already been implemented: the spin chain and the Cavity QED model for quantum computing. In those models, the driving Hamiltonians are predefined. Another approach, based on the optimal control module in QuTiP (http://qutip.org/docs/latest/guide/guide-control.html), is called :class:`.OptPulseProcessor`. In this subclass, one only defines the available Hamiltonians in their system. The processor then uses algorithms to find the optimal control pulses that realize the desired unitary evolution.
+In general, there are two ways to find the control pulses. The first one, :class:`.ModelProcessor`, is more experiment-oriented and based on physical models. An initialized processor has a :obj:`Processor.model` attributes that save the control Hamiltonians. This is usually the case where control pulses realising those gates are well known and can be concatenated to realize the whole quantum circuits. Three realizations have already been implemented: the spin chain, the Cavity QED and the circuit QED model. In those models, the driving Hamiltonians are predefined, saved in the corresponding :obj:`.Model` object. Another approach, based on the `optimal control module in QuTiP <http://qutip.org/docs/latest/guide/guide-control.html>`_, is called :class:`.OptPulseProcessor`. In this subclass, one only defines the available Hamiltonians in their system. The processor then uses algorithms to find the optimal control pulses that realize the desired unitary evolution.
 
 Despite this difference, the logic behind all processors is the same:
 
@@ -66,74 +136,68 @@ Despite this difference, the logic behind all processors is the same:
 
 * The control pulse coefficients and time slices are either specified by the user or calculated by the method :meth:`.Processor.load_circuit`, which takes a :class:`.QubitCircuit` and find the control pulse for this evolution.
 
-* The processor calculates the evolution using the QuTiP solvers. Collapse operators can be added to simulate decoherence. The method :meth:`.Processor.run_state` returns a object :class:`qutip.solver.Result`.
+* The processor calculates the evolution using the QuTiP solvers. Collapse operators can be added to simulate decoherence. The method :meth:`.Processor.run_state` returns a object :class:`~qutip.solver.Result`.
 
 It is also possible to calculate the evolution analytically with matrix exponentiation by setting ``analytical=True``. A list of the matrices representing the gates is returned just like for :meth:`.QubitCircuit.propagators`. However, this does not consider the collapse operators or other noise. As the system size gets larger, this approach will become very inefficient.
 
 In the following, we describe the predefined subclasses for :class:`.Processor`:
 
-**SpinChain**
+SpinChain
+---------
 
 :class:`.LinearSpinChain` and :class:`.CircularSpinChain` are quantum computing models based on the spin chain realization. The control Hamiltonians are :math:`\sigma_x`, :math:`\sigma_z` and :math:`\sigma_x \sigma_x + \sigma_y \sigma_y`. This processor will first decompose the gate into the universal gate set with ISWAP or SQRTISWAP as two-qubit gates, resolve them into quantum gates of adjacent qubits and then calculate the pulse coefficients.
 
-An example of simulating a simple circuit is shown below:
-
-.. testcode::
-
-    from qutip import basis
-    from qutip_qip.circuit import QubitCircuit
-    from qutip_qip.device import LinearSpinChain
-
-    qc = QubitCircuit(2)
-    qc.add_gate("X", targets=0)
-    qc.add_gate("X", targets=1)
-    processor = LinearSpinChain(2)
-    processor.load_circuit(qc)
-    result = processor.run_state(basis([2,2], [0,0]))
-    print(result.states[-1].tidyup(1.0e-6))
-
-.. testoutput::
-    :options: +NORMALIZE_WHITESPACE
-
-    Quantum object: dims = [[2, 2], [1, 1]], shape = (4, 1), type = ket
-    Qobj data =
-    [[ 0.]
-    [ 0.]
-    [ 0.]
-    [-1.]]
-
-We can also visualize the pulses implementing this circuit:
+In the following example we plot the compiled Deutsche Jozsa algorithm:
 
 .. plot::
+    :context: reset
 
-    from qutip import basis
+    # Deutsch-Jozsa algorithm
     from qutip_qip.circuit import QubitCircuit
-    from qutip_qip.device import LinearSpinChain
+    qc = QubitCircuit(3)
+    qc.add_gate("X", targets=2)
+    qc.add_gate("SNOT", targets=0)
+    qc.add_gate("SNOT", targets=1)
+    qc.add_gate("SNOT", targets=2)
 
-    qc = QubitCircuit(2)
-    qc.add_gate("X", targets=0)
-    qc.add_gate("X", targets=1)
-    processor = LinearSpinChain(2)
-    processor.load_circuit(qc)
-    fig, axis = processor.plot_pulses()
+    # Oracle function f(x)
+    qc.add_gate("CNOT", controls=0, targets=2)
+    qc.add_gate("CNOT", controls=1, targets=2)
+
+    qc.add_gate("SNOT", targets=0)
+    qc.add_gate("SNOT", targets=1)
+
+    from qutip_qip.device import LinearSpinChain
+    spinchain_processor = LinearSpinChain(num_qubits=3, t2=30)  # T2 = 30
+    spinchain_processor.load_circuit(qc)
+    fig, ax = spinchain_processor.plot_pulses(figsize=(8, 5))
     fig.show()
 
-**Superconducting qubits**
+Superconducting qubits
+----------------------
+
+.. _superconducting qubits:
 
 For the :class:`.SCQubits` model, the qubit is simulated by a three-level system, where the qubit subspace is defined as the ground state and the first excited state.
 The three-level representation will capture the leakage of the population out of the qubit subspace during single-qubit gates.
 The single-qubit control is generated by two orthogonal quadratures :math:`a + a^{\dagger}` and :math:`i(a - a^{\dagger})`, truncated to a three-level operator.
 Same as the Spin Chain model, the superconducting qubits are aligned in a 1 D structure and the interaction is only possible between adjacent qubits.
-As an example, the default interaction is implemented as a Cross Resonant pulses.
-Parameters for the interaction strength are taken from [1]_ [2]_.
+As an example, the default interaction is implemented as a Cross Resonant pulse.
+Parameters for the interaction strength are taken from :cite:`magesan2020effective`:cite:`blais2021circuit`.
 
-.. [1] Easwar Magesan and Jay M. Gambetta.Effective hamiltonian models of the cross-resonance gate. *Phys. Rev. A*, 101:052308, 2020.
+.. plot::
+    :context: close-figs
 
-.. [2] Blais A, Grimsmo A L, Girvin S M, et al. Circuit quantum electrodynamics[J]. *arXiv preprint arXiv:2005.12667*, 2020.
+    from qutip_qip.device import SCQubits
+    scqubits_processor = SCQubits(num_qubits=3)
+    scqubits_processor.load_circuit(qc)
+    fig, ax = scqubits_processor.plot_pulses(figsize=(8, 5))
+    fig.show()
 
-**DispersiveCavityQED**
+DispersiveCavityQED
+-------------------
 
-Same as above, :class:`.DispersiveCavityQED` is a simulator based on Cavity Quantum Electrodynamics. The workflow is similar to the one for the spin chain, except that the component systems are a multi-level cavity and a qubits system. The control Hamiltonians are the single-qubit rotation together with the qubits-cavity interaction :math:`a^{\dagger} \sigma^{-} + a \sigma^{+}`. The device parameters including the cavity frequency, qubits frequency, detuning and interaction strength etc.
+Same as above, :class:`.DispersiveCavityQED` is a simulator based on Cavity Quantum Electrodynamics. The workflow is similar to the one for the spin chain, except that the component systems are a multi-level cavity and a qubits system. The control Hamiltonians are the single-qubit rotation together with the qubits-cavity interaction :math:`a^{\dagger} \sigma^{-} + a \sigma^{+}`. The device parameters include the cavity frequency, qubits frequency, detuning and interaction strength etc.
 
 .. note::
 
@@ -142,7 +206,8 @@ Same as above, :class:`.DispersiveCavityQED` is a simulator based on Cavity Quan
    hence including the cavity.
    To obtain the circuit result, one needs to first trace out the cavity state.
 
-**OptPulseProcessor**
+OptPulseProcessor
+-----------------
 
 The :class:`.OptPulseProcessor` uses the function in :func:`~qutip.control.pulseoptim.optimize_pulse_unitary` in the optimal control module to find the control pulses. The Hamiltonian includes a drift part and a control part and only the control part will be optimized. The unitary evolution follows
 
@@ -152,41 +217,20 @@ The :class:`.OptPulseProcessor` uses the function in :func:`~qutip.control.pulse
 
 To let it find the optimal pulses, we need to give the parameters for :func:`~qutip.control.pulseoptim.optimize_pulse_unitary` as keyword arguments to :meth:`.OptPulseProcessor.load_circuit`. Usually, the minimal requirements are the evolution time ``evo_time`` and the number of time slices ``num_tslots`` for each gate. Other parameters can also be given in the keyword arguments. For available choices, see :func:`~qutip.control.pulseoptim.optimize_pulse_unitary`. It is also possible to specify different parameters for different gates, as shown in the following example:
 
-.. testcode::
+.. plot::
+    :context: close-figs
 
-      from qutip_qip.device import OptPulseProcessor
-      from qutip import sigmaz, sigmax, sigmay, tensor
-
-
-      # Same parameter for all the gates
-      qc = QubitCircuit(1)
-      qc.add_gate("SNOT", 0)
-
-      num_tslots = 10
-      evo_time = 10
-      processor = OptPulseProcessor(1, drift=sigmaz())
-      processor.add_control(sigmax())
-      # num_tslots and evo_time are two keyword arguments
-      tlist, coeffs = processor.load_circuit(
-      qc, num_tslots=num_tslots, evo_time=evo_time)
-
-      # Different parameters for different gates
-      qc = QubitCircuit(2)
-      qc.add_gate("SNOT", 0)
-      qc.add_gate("SWAP", targets=[0, 1])
-      qc.add_gate('CNOT', controls=1, targets=[0])
-
-      processor = OptPulseProcessor(N=2, drift=tensor([sigmaz()]*2))
-      processor.add_control(sigmax(), cyclic_permutation=True)
-      processor.add_control(sigmay(), cyclic_permutation=True)
-      processor.add_control(tensor([sigmay(), sigmay()]))
-
-      setting_args = {"SNOT": {"num_tslots": 10, "evo_time": 1},
-                      "SWAP": {"num_tslots": 30, "evo_time": 3},
-                      "CNOT": {"num_tslots": 30, "evo_time": 3}}
-
-      tlist, coeffs = processor.load_circuit(
-                      qc, setting_args=setting_args, merge_gates=False)
+    from qutip_qip.device import OptPulseProcessor, SpinChainModel
+    setting_args = {"SNOT": {"num_tslots": 6, "evo_time": 2},
+                    "X": {"num_tslots": 1, "evo_time": 0.5},
+                    "CNOT": {"num_tslots": 12, "evo_time": 5}}
+    opt_processor = OptPulseProcessor(
+        num_qubits=3, model=SpinChainModel(3, setup="linear"))
+    opt_processor.load_circuit(  # Provide parameters for the algorithm
+        qc, setting_args=setting_args, merge_gates=False,
+        verbose=True, amp_ubound=5, amp_lbound=0)
+    fig, ax = opt_processor.plot_pulses(figsize=(8, 5))
+    fig.show()
 
 Compiler and scheduler
 ======================
@@ -194,103 +238,43 @@ Compiler and scheduler
 Compiler
 --------
 
-In order to simulate quantum circuits at the level of time evolution.
-We need to first compile the circuit into the Hamiltonian model, i.e.
-the control pulses.
-Hence each :class:`.Processor` has a corresponding
-:class:`.compiler.GateCompiler` class.
-The compiler takes a :class:`.QubitCircuit`
-and returns the compiled ``tlist`` and ``coeffs``.
-It is called implicitly when calling the method
-:class:`.Processor.run_state`.
+A compiler converts the quantum circuit to the corresponding pulse-level controls :math:`c_j(t)H_j` on the quantum hardware.
+In the framework, it is defined as an instance of the :obj:`.GateCompiler` class.
+The compilation procedure is achieved through the following steps.
 
-.. testcode::
+First, each quantum gate is decomposed into the native gates (e.g., rotation over :math:`x`, :math:`y` axes and the CNOT gate), using the existing decomposition scheme in QuTiP.
+If a gate acts on two qubits that are not physically connected, like in the chain model and superconducting qubit model, SWAP gates are added to match the topology before the decomposition. Currently, only 1-dimensional chain structures are supported.
 
-    from qutip_qip.compiler import SpinChainCompiler
-    qc = QubitCircuit(2)
-    qc.add_gate("X", targets=0)
-    qc.add_gate("X", targets=1)
+Next, the compiler maps each quantum gate to a pulse-level control description.
+It takes the hardware parameter defined in the Hamiltonian model and computes the pulse duration and strength to implement the gate.
+A pulse scheduler is then used to explore the possibility of executing multiple quantum gates in parallel.
 
-    processor = LinearSpinChain(2)
-    compiler = SpinChainCompiler(2, params=processor.params)
-    resolved_qc = qc.resolve_gates(["RX", "RZ", "ISWAP"])
-    tlists, coeffs = compiler.compile(resolved_qc)
-    print(tlists)
-    print(coeffs)
+In the end, the compiler returns a time-dependent pulse coefficient :math:`c_j(t)` for each control Hamiltonian :math:`H_j`.
+They contain the full information to implement the circuit and are saved in the processor.
+The coefficient :math:`c_j(t)` is represented by two NumPy arrays, one for the control amplitude and the other for the time sequence.
+For a continuous pulse, a cubic spline is used to approximate the coefficient.
+This allows the use of compiled Cython code in QuTiP to achieve better performance.
 
-**Output**
+For the predefined physical models described in the previous subsection, the corresponding compilers are also included and they will be used when calling the method :obj:`.Processor.load_circuit`.
 
-.. testoutput::
-    :options: +NORMALIZE_WHITESPACE
-
-    {'sx0': array([0., 1.]), 'sx1': array([0., 1., 2.])}   
-    {'sx0': array([0.25]), 'sx1': array([0.  , 0.25])} 
-
-Here we first use :meth:`.QubitCircuit.resolve_gates`
-to decompose the X gate to its natural gate on Spin Chain model,
-the rotation over X-axis.
-We pass the hardware parameters of the :class:`.SpinChain` model, ``processor.params``, as well as a map between the pulse name and pulse index ``pulse_dict`` to the compiler.
-The latter one allows one to address the pulse more conveniently in the compiler.
-
-The compiler returns a list of ``tlist`` and ``coeff``, corresponding to each pulse.
-The first pulse starts from ``t=0`` and ends at ``t=1``, with the strengh :math:`\pi/2`.
-The second one is turned on from ``t=1`` to ``t=2`` with the same strength.
-The compiled pulse here is different from what is shown in the plot
-in the previous subsection because the scheduler is turned off by default.
+.. Note::
+    It is expected that the output of the compiler will change after the official release of qutip-v5.
+    The use of the new ``Coefficient`` class will allow more flexibility and improve performance.
+    Therefore, we recommend to not parse the compiled result themselves but use :obj:`.Processor.set_tlist` and :obj:`.Processor.set_coeffs` instead.
 
 Scheduler
 ---------
 
-The scheduler is implemented in the class :class:`.compiler.Scheduler`,
-based on the idea of https://doi.org/10.1117/12.666419.
-It schedules the order of quantum gates and instructions for the
-shortest execution time.
-It works not only for quantum gates but also for pulse implementation of gates
-(:class:`.compiler.Instruction`) with varying pulse duration.
+The scheduling of a circuit consists of an important part of the compilation.
+Without it, the gates will be executed one by one and many qubits will be idling during the circuit execution, which increases the execution time and reduces the fidelity.
+In the framework, the scheduler is used after the control coefficient of each gate is computed.
+It runs a scheduling algorithm to determine the starting time of each gate while keeping the result correct.
 
-The scheduler first generates a quantum gates dependency graph,
-containing information about which gates have to be executed before some other gates.
-The graph preserves the mobility of the gates,
-i.e. commuting gates are not dependent on each other, even if they use the same qubits.
-Next, it computes the longest distance of each node to the start and end nodes.
-The distance for each dependency arrow is defined by the execution time of the instruction
-(By default, it is 1 for all gates).
-This is used as a priority measure in the next step.
-The gate with a longer distance to the end node and a shorter distance to the start node has higher priority.
-In the last step, it uses a list-schedule algorithm with hardware constraint and
-priority and returns a list of cycles for gates/instructions.
-Since the algorithm is heuristics, sometimes it does not find the optimal solution.
-Hence, we offer an option that randomly shuffles the commuting gates and
-repeats the scheduling a few times to get a better result.
+The heuristic scheduling algorithm we provide offers two different modes: ASAP (as soon as possible) and ALAP (as late as possible).
+In addition, one can choose whether permutation among commuting gates is allowed to achieve a shorter execution time.
+The scheduler implemented here does not take the hardware architecture into consideration and assumes that the connectivity in the provided circuit matches with the hardware at this step.
 
-.. testcode::
-
-    from qutip_qip.circuit import QubitCircuit
-    from qutip_qip.compiler import Scheduler
-    circuit = QubitCircuit(7)
-    circuit.add_gate("SNOT", 3)  # gate0
-    circuit.add_gate("CZ", 5, 3)  # gate1
-    circuit.add_gate("CZ", 4, 3)  # gate2
-    circuit.add_gate("CZ", 2, 3)  # gate3
-    circuit.add_gate("CZ", 6, 5)  # gate4
-    circuit.add_gate("CZ", 2, 6)  # gate5
-    circuit.add_gate("ISWAP", [0, 2])  # gate6
-    scheduler = Scheduler("ASAP")
-    result = scheduler.schedule(circuit, gates_schedule=True)
-    print(result)
-
-**Output**
-
-.. testoutput::
-
-    [0, 1, 3, 2, 2, 3, 4]
-
-The result shows the scheduling order of each gate in the original circuit.
-
-For pulse schedule, or scheduling gates with different duration,
-one will need to wrap the :class:`.Gate` object with :class:`.compiler.instruction` object,
-with a parameter `duration`.
-The result will then be the start time of each instruction.
+In predefined processors, the scheduler runs automatically when loading a circuit and hence there is no action necessary from the side of the user.
 
 Pulse shape
 -----------
@@ -310,73 +294,42 @@ The method :obj:`.GateCompiler.generate_pulse_shape` allows one to generate puls
     ax.set_xlabel("Time")
     fig.show()
 
-For predefined compilers, the compiled pulse shape can also be configured by the key word ``"shape"`` and ``"num_samples"`` in the dictionary attribute :attr:`.GateCompiler.args`
+For predefined compilers, the compiled pulse shape can also be configured by the keyword ``"shape"`` and ``"num_samples"`` in the dictionary attribute :attr:`.GateCompiler.args`
 or the ``args`` parameter of :obj:`.GateCompiler.compile`.
 
 Noise Simulation
 ================
 
-In the common way of QIP simulation, where evolution is carried out by gate matrix product, the noise is usually simulated with bit flipping and sign flipping errors.
-The typical approaches are either applying bit/sign flipping gate probabilistically
-or applying Kraus operators representing different noisy channels (e.g. amplitude damping, dephasing) after each unitary gate evolution. In the case of a single qubit, they have the same effect and the parameters in the Kraus operators are exactly the probability of a flipping error happens during the gate operation time.
+.. _noise:
 
-Since the processor simulates the state evolution at the level of the driving Hamiltonian, there is no way to apply an error operator to the continuous-time evolution. Instead, the error is added to the pulses (coherent control error) or the collapse operators (Lindblad error) contributing to the evolution. Mathematically, this is no different from adding an error channel probabilistically (it is actually how :func:`qutip.mcsolve` works internally). The collapse operator for single-qubit amplitude damping and dephasing are exactly the destroying operator and the sign-flipping operator. One just needs to choose the correct coefficients for them to simulate the noise, e.g. the relaxation time T1 and dephasing time T2. Because it is based on the open system evolution instead of abstract operators, this simulation is closer to the physical implementation and requires less pre-analysis of the system.
+The :obj:`Noise` module allows one to add control and decoherence noise following the Lindblad description of open quantum systems.
+Compared to the gate-based simulator, this provides a more practical and straightforward way to describe the noise.
+In the current framework, noise can be added at different layers of the simulation, allowing one to focus on the dynamics of the dominant noise, while representing other noise, such as single-qubit relaxation, as collapse operators for efficiency.
+Depending on the problem studied, one can devote the computing resources to the most relevant type of noise.
 
-Compared to the approach of Kraus operators, this way of simulating noise is more computationally expensive. If you only want to simulate the decoherence of single-qubit relaxation and the relaxation time is much longer than the gate duration, there is no need to go through all the calculations. However, this simulator is closer to the real experiment and, therefore, more convenient in some cases, such as when coherent noise or correlated noise exist. For instance, a pulse on one qubit might affect the neighbouring qubits, the evolution is still unitary but the gate fidelity will decrease. It is not always easy or even possible to define a noisy gate matrix. In our simulator, it can be done by defining a :class:`.noise.ControlAmpNoise` (Control Amplitude Noise).
+Apart from imperfections in the Hamiltonian model and circuit compilation, the :obj:`Noise` class in the current framework defines deviations of the real physical dynamics from the compiled one.
+It takes the compiled pulse-level description of the circuit (see also `Pulse representation`_) and adds noise elements to it, which allows defining noise that is correlated to the compiled pulses.
+In the following, we detail the three different noise models already available in the current framework.
 
-In the simulation, noise can be added to the processor at different levels:
+Noise in the hardware model
+---------------------------
 
-- The decoherence time T1 and T2 can be defined for the processor or for each qubit. When calculating the evolution, the corresponding collapse operators will be added automatically to the solver.
+The Hamiltonian model defined in the :obj:`.Model` class may contain intrinsic imperfections of the system and hence the compiled ideal pulse does not implement the ideal unitary gate.
+Therefore, building a realistic Hamiltonian model usually already introduces noise to the simulation.
+An example is the `superconducting qubits`_, where the physical qubit is represented by a multi-level system.
+Since the second excitation level is only weakly detuned from the qubit transition frequency, the population may leak out of the qubit subspace.
+Another example is an always-on ZZ type cross-talk induced by interaction with higher levels of the physical qubits :cite:`mundada2019suppression`, which is also implemented for the superconducting qubit model.
 
-- The noise of the physical parameters (e.g. detuned frequency) can be simulated by changing the parameters in the model, e.g. laser frequency in cavity QED. (This can only be time-independent since QuTiP open system solver only allows varying coefficients, not varying Hamiltonian operators.)
+Control noise
+-------------
 
-- The noise of the pulse intensity can be simulated by modifying the coefficients of the Hamiltonian operators or even adding new Hamiltonians.
+The control noise, as the name suggests, arises from imperfect control of the quantum system, such as distortion in the pulse amplitude or frequency drift.
+The simplest example is the random amplitude noise on the control coefficient :math:`c_j(t)` in `the control Hamiltonian`_.
 
-To add noise to a processor, one needs to first define a noise object :class:`.noise.Noise`. The simplest relaxation noise can be defined directly in the processor with relaxation time. Other pre-defined noise can be found as subclasses of  :class:`.noise.Noise`. We can add noise to the simulator with the method :meth:`.Processor.add_noise`.
-
-Below, we show two examples.
-
-The first example is a processor with one qubit under rotation around the z-axis and relaxation time :math:`T_2=5`. We measure the population of the :math:`\left| + \right\rangle` state and observe the Ramsey signal:
-
-.. plot::
-
-    import numpy as np
-    import matplotlib.pyplot as plt
-    from qutip import sigmaz, destroy, basis
-    from qutip_qip.device import Processor
-    from qutip_qip.operations import snot
-
-    a = destroy(2)
-    Hadamard = snot()
-    plus_state = (basis(2,1) + basis(2,0)).unit()
-    tlist = np.arange(0.00, 20.2, 0.2)
-
-    T2 = 5
-    processor = Processor(1, t2=T2)
-    processor.add_control(sigmaz(), label="sz")
-    processor.set_coeffs({"sz": np.ones(len(tlist))})
-    processor.set_tlist(tlist)
-    result = processor.run_state(
-        plus_state, e_ops=[a.dag()*a, Hadamard*a.dag()*a*Hadamard])
-
-    fig, ax = plt.subplots()
-    # detail about length of tlist needs to be fixed
-    ax.plot(tlist[:-1], result.expect[1][:-1], '.', label="simulation")
-    ax.plot(tlist[:-1], np.exp(-1./T2*tlist[:-1])*0.5 + 0.5, label="theory")
-    ax.set_xlabel("t")
-    ax.set_ylabel("Ramsey signal")
-    ax.legend()
-    ax.set_title("Relaxation T2=5")
-    ax.grid()
-    fig.tight_layout()
-    fig.show()
-
-The second example demonstrates a biased Gaussian noise on the pulse amplitude. For visualization purposes, we plot the noisy pulse intensity instead of the state fidelity. The three pulses can, for example, be a zyz-decomposition of an arbitrary single-qubit gate:
+The following example demonstrates a biased Gaussian noise on the pulse amplitude. For visualization purposes, we plot the noisy pulse intensity instead of the state fidelity. The three pulses can, for example, be a zyz-decomposition of an arbitrary single-qubit gate:
 
 .. plot::
 
-    import numpy as np
-    import matplotlib.pyplot as plt
     from qutip import sigmaz, sigmay
     from qutip_qip.device import Processor
     from qutip_qip.noise import RandomNoise
@@ -407,30 +360,94 @@ The second example demonstrates a biased Gaussian noise on the pulse amplitude. 
         use_control_latex=False)
     axis2[0].step(qobjevo.tlist, noisy_coeff)
 
+Lindblad noise
+--------------
+
+The Lindblad noise originates from the coupling of the quantum system with the environment (e.g., a thermal bath) and leads to loss of information.
+It is simulated by collapse operators and results in non-unitary dynamics :cite:`breuer2002theory`:cite:`lidar2019lecture`.
+
+The most commonly used type of Lindblad noise is decoherence, characterized by the coherence time :math:`T_1` and :math:`T_2` (dephasing).
+For the sake of convenience, one only needs to provide the parameter ``t1``, ``t2`` to the processor and the corresponding operators will be generated automatically.
+Both can be either a number that specifies one coherence time for all qubits or a list of numbers, each corresponding to one qubit.
+
+For :math:`T_1`, the operator is defined as :math:`a/\sqrt{T_1}` with :math:`a` the destruction operator.
+For :math:`T_2`, the operator is defined as :math:`a^{\dagger}a\sqrt{2/T_2^*}`, where :math:`T_2^*` is the pure dephasing time given by :math:`1/T_2^*=1/T_2-1/(2T_1)`.
+In the case of qubits, i.e., a two-level system, the destruction operator :math:`a` is truncated to a two-level operator and is consistent with the Lindblad equation.
+Constant :math:`T_1` and :math:`T_2` can be provided directly when initializing the :obj:`.Processor`.
+Custom collapse operators, including time-dependent ones, can be defined through :obj:`.DecoherenceNoise`.
+For instance, the following code defines a collapse operator using :obj:`~qutip.sigmam()` and increases linearly as time:
+
+.. testcode::
+
+    from qutip_qip.device import LinearSpinChain
+    from qutip_qip.noise import DecoherenceNoise
+    tlist = np.linspace(0, 30., 100)
+    coeff = tlist * 0.01
+    noise = DecoherenceNoise(
+        sigmam(), targets=0,
+        coeff=coeff, tlist=tlist)
+    processor = LinearSpinChain(1)
+    processor.add_noise(noise)
+
+Similar to the control noise, the Lindblad noise can also depend on the control coefficient.
+
+Pulse representation
+====================
+
+.. _Pulse representation:
+
+As discussed before, in this simulation framework, we compile the circuit into pulse-level controls and simulate the time evolution of the physical qubits.
+In this subsection, we describe how the dynamics is represented internally in the workflow, which is useful for understanding the simulation process as well as defining custom pulse-dependent noise.
+
+A control pulse, together with the noise associated with it, is represented by a class instance of :obj:`.Pulse`.
+When an ideal control is compiled and returned to the processor, it is saved as an initialized :obj:`.Pulse`, equivalent to the following code:
+
+.. testcode:: [pulse]
+
+    from qutip_qip.pulse import Pulse
+    coeff = np.array([1.])
+    tlist = np.array([0., np.pi])
+    pulse = Pulse(
+        sigmax()/2, targets=0, tlist=tlist,
+        coeff=coeff, label="pi-pulse")
+
+This code defines a :math:`\pi`-pulse implemented using the term :math:`\sigma_x` in the Hamiltonian that flips the zeroth qubit specified by the argument ``targets``. The pulse needs to be applied for the duration :math:`\pi` specified by the variable ``tlist``. The parameters ``coeff`` and ``tlist`` together describe the control coefficient.
+Together with the provided Hamiltonian and target qubits, an instance of :obj:`.Pulse` determines the dynamics of one control term.
+
+.. note::
+
+   If the coefficients represent discrete pulse, the length of each array is 1 element shorter than ``tlist``. If it is supposed to be a continuous function, the length should be the same as ``tlist``.
+
+With a :obj:`.Pulse` initialized with the ideal control, one can define several types of noise, including the Lindblad or control noise as described in the `noise`_ section.
+An example of adding a noisy Hamiltonian as control noise through the method :obj:`.Pulse.add_control_noise` is given below:
+
+.. testcode:: [pulse]
+
+    pulse.add_control_noise(
+        sigmaz(), targets=[0], tlist=tlist,
+        coeff=coeff * 0.05)
+
+The above code snippet adds a Hamiltonian term :math:`\sigma_z`, which can, for instance, be interpreted as a frequency drift.
+Similarly, collapse operators depending on a specific control pulse can be added by the method :obj:`.Pulse.add_lindblad_noise`.
+
+In addition to a constant pulse, the control pulse and noise can also be provided as continuous functions. In this case, both ``tlist`` and ``coeff`` are given as NumPy arrays and a cubic spline is used to interpolate the continuous pulse coefficient.
+This allows using the compiled Cython version of the QuTiP solvers that have a much better performance than using a Python function for the coefficient.
+The option is provided as a keyword argument ``spline_kind="cubic"`` when initializing :obj:`.Pulse`.
+Similarly, the interpolation method can also be defined for :obj:`.Processor` using the same signature.
+
 
 Customize the simulator
 =======================
 
-The number of predefined physical models and compilers are limited.
-However, it is designed for easy customization and one can easily build customized model and compiling routines.
-For guide and examples, please refer to the tutorial notebooks
-at http://qutip.org/tutorials.html
+As it is impractical to include every physical platform, we provide an interface that allows one to customize the simulators.
+In particular, the modular architecture allows one to conveniently overwrite existing modules for customization.
 
-The workflow of the simulator
-=============================
+To define a customized hardware model, the minimal requirements are a set of available control Hamiltonians :math:`H_j`, and a compiler, i.e., the mapping between native gates and control coefficients :math:`c_j`.
+One can either modify an existing subclass or write one from scratch by creating a subclass of the two parent classes :obj:`.Model` and :obj:`.GateCompiler`.
+Since different subclasses share the same interface, different models and compilers can also be combined to build new processors.
 
-The following plot demonstrates the workflow of the simulator.
+Moreover, this customization is not limited to Hamiltonian models and compiler routines.
+In principle, measurement can be defined as a customized quantum gate and the measurement statistics can be extracted from the obtained density matrix.
+A new type of noise can also be implemented by defining a new :obj:`.Noise` subclass, which takes the compiled ideal :obj:`.Pulse` and adds noisy dynamics on top of it.
 
-.. image:: /figures//workflow.png
-
-The core of the simulator is :class:`.Processor`,
-which characterizes the quantum hardware of interest,
-containing the information such as the non-controllable drift Hamiltonian and
-the control Hamiltonian.
-Apart from the ideal system representing the qubits, one can also define
-hardware-dependent or pulse-dependent noise in :class:`.noise.Noise`.
-It describes how noisy terms such as imperfect control
-and decoherence can be added once the ideal control pulse is defined.
-When loading a quantum circuit, a :class:`.compiler.GateCompiler` compiles the circuit into a sequence of control pulse signals and schedule the pulse for parallel execution.
-For each control Hamiltonian, a :class:`.pulse.Pulse` instance is created that including the ideal evolution and associated noise.
-They will then be sent to the QuTiP solvers for the computation.
+For examples, please refer to the `tutorial notebooks <http://qutip.org/tutorials.html>`_.
