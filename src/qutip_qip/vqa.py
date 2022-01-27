@@ -66,20 +66,22 @@ class VQA:
         num_params : int
             number of free parameters
         """
-        initial_free_params = len(list(filter(
-            lambda b: 
-                not (b.is_unitary or b.is_native_gate) 
-                and b.initial,
-            self.blocks
+        initial_blocks = list(filter(
+            lambda b: b.initial, self.blocks
+            ))
+        layer_blocks = list(filter(
+            lambda b: not b.initial, self.blocks
+            ))
+
+        n_initial_params = sum(list(map(
+            lambda b: b.get_free_parameters(), initial_blocks
             )))
-        layer_free_params = len(list(filter(
-            lambda b: 
-                not (b.is_unitary or b.is_native_gate) 
-                and not b.initial,
-            self.blocks
+
+        n_layer_params = sum(list(map(
+            lambda b: b.get_free_parameters(), layer_blocks
             ))) * self.n_layers
 
-        return initial_free_params + layer_free_params
+        return n_initial_params + n_layer_params 
  
     def construct_circuit(self, angles):
         circ = QubitCircuit(self.n_qubits)
@@ -92,9 +94,9 @@ class VQA:
                 if block.is_native_gate:
                     circ.add_gate(block.operator, targets=block.targets)
                 elif block.is_unitary:
-                    circ.add_gate(block.name, targets=[i for i in range(self.n_qubits)])
+                    circ.add_gate(block.name, targets=[k for k in range(self.n_qubits)])
                 else:
-                    circ.add_gate(block.name, arg_value=angles[i], targets=[i for i in range(self.n_qubits)])
+                    circ.add_gate(block.name, arg_value=angles[i], targets=[k for k in range(self.n_qubits)])
                     i += 1
         return circ
     def get_initial_state(self):
@@ -134,32 +136,74 @@ class VQA:
             #print(self.cost_observable)
             cost = final_state.dag() * self.cost_observable * final_state
             return abs(cost[0].item())
-    def optimize_parameters(self, initial_guess=None, method="COBYLA", use_jac=False, frechet=False, initialization="random", do_nothing=False):
+    def optimize_parameters(
+            self, initial="random", method="COBYLA", use_jac=False,
+            frechet=False, initialization="random", do_nothing=False,
+            layer_by_layer=False):
+
         self.frechet = frechet
+        """
+        Set initial circuit parameters
+        """
         n_free_params = self.get_free_parameters()
-        if initial_guess == None:
-            if initialization == "random":
+        if isinstance(initial, str):
+            if initial == "random":
                 angles = [random.random() for i in range(n_free_params)]
-            elif initialization == "ones":
+            elif initial == "ones":
                 angles = [1 for i in range(n_free_params)]
-        else:
-            if not len(initial_guess) == n_free_params:
+            else:
+                raise ValueError("Invalid initial condition string")
+        elif isinstance(initial, list) \
+                or isinstance(initial, np.ndarray):
+            if len(initial) != n_free_params:
                 raise ValueError(f"Expected {n_free_params} initial" \
-                        +f" parameters, but got {len(initial_guess)}.")
-            angles = initial_guess
+                        +f" parameters, but got {len(initial)}.")
+            angles = initial
+        else:
+            raise ValueError("Initial conditions were neither a list of"
+                    " values, nor a string specifying initialization.")
+
         if do_nothing:
             return self.evaluate_parameters(angles)
 
         jac = self.compute_jac if use_jac else None
 
-        res = minimize(
-                self.evaluate_parameters, 
-                angles,
-                method=method,
-                jac=jac,
-                options={'disp': False}
-                )
-        angles = res.x
+        """
+        Run scipy minimization method.
+        Train parameters either layer-by-layer,
+        or all at once
+        """
+        if layer_by_layer:
+            max_layers = self.n_layers
+            n_params = 0
+            params = []
+            for l in range(1, max_layers+1):
+                self.n_layers = l
+                n_tot = self.get_free_parameters()
+                # subset initialization parameters
+                init = angles[n_params:n_tot]
+                layer = lambda a, p: self.evaluate_parameters(np.append(p, a))
+                if use_jac:
+                    layer_jac = lambda a, p: self.compute_jac(
+                            np.append(p, a), list(range(n_params, n_tot))
+                            )
+                else:
+                    layer_jac = None
+                res = minimize(
+                        layer, init, args=(params), method=method, jac=layer_jac
+                        )
+                params = np.append(params, res.x)
+                n_params += n_tot - n_params
+            angles = params
+        else:
+            res = minimize(
+                    self.evaluate_parameters, 
+                    angles,
+                    method=method,
+                    jac=jac,
+                    options={'disp': False}
+                    )
+            angles = res.x
         final_state = self.get_final_state(angles)
         result = Optimization_Result(res, final_state)
         return result
@@ -188,7 +232,9 @@ class VQA:
                 + (init.dag() * U.dag()) * O * (dU * init)
         return dCost[0].item().real
 
-    def compute_jac(self, angles):
+    def compute_jac(self, angles, indices_to_compute=None):
+        if indices_to_compute is None:
+            indices_to_compute = [i for i in range(len(angles))]
         from qutip.qip.operations.gates import gate_sequence_product
         circ = self.construct_circuit(angles)
         propagators = circ.propagators()
@@ -202,12 +248,13 @@ class VQA:
         i = 0
         for k, block in enumerate(self.get_block_series()):
             if block.n_parameters > 0:
-                if self.frechet:
-                    dBlock = block.get_unitary_frechet_derivative(angles[i])
-                else:
-                    dBlock = block.get_unitary_derivative(angles[i])
-                dU = modify_unitary(k, dBlock)
-                jacobian.append(self.block_cost(U, dU))
+                if i in indices_to_compute:
+                    if self.frechet:
+                        dBlock = block.get_unitary_frechet_derivative(angles[i])
+                    else:
+                        dBlock = block.get_unitary_derivative(angles[i])
+                    dU = modify_unitary(k, dBlock)
+                    jacobian.append(self.block_cost(U, dU))
                 i += 1
         return np.array(jacobian)
         
@@ -266,6 +313,7 @@ class VQA_Block:
         self.is_native_gate = isinstance(operator, str)
         self.initial = initial
         self.n_parameters = 0
+        self.fixed_parameters = []
         if not self.is_unitary and not self.is_native_gate:
             self.n_parameters = 1
         if self.is_native_gate:
@@ -274,12 +322,19 @@ class VQA_Block:
         else:
             if not isinstance(operator, Qobj):
                 raise ValueError("Operator given was neither a gate name nor Qobj")
+    def fix_parameters(angles):
+        if len(angles) != self.n_parameters:
+            raise ValueError(f"Expected {self.n_parameters} fixed parameters"
+                    " but received {len(angles)}")
+        self.fixed_parameters = angles
+    def get_free_parameters(self):
+        return self.n_parameters - len(self.fixed_parameters)
     def get_unitary(self, angle=None):
         if self.is_unitary:
             return self.operator
         else:
             if self.is_native_gate:
-                breakpoint()
+                raise TypeError("Can't compute unitary of native gate")
             if angle == None:
                 # TODO: raise better exception?
                 raise TypeError("No parameter given")
