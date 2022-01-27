@@ -9,7 +9,7 @@ from qutip import (
 
 
 from qutip_qip.decompose.decompose_general_qubit_gate import (
-    _decompose_to_two_level_arrays, _create_dict_for_two_level_arrays)
+    _decompose_to_two_level_arrays, _create_dict_for_two_level_arrays, _partial_gray_code)
 
 
 @pytest.mark.parametrize("num_qubits", [2, 3, 4, 5, 6])
@@ -43,4 +43,16 @@ def test_empty_dict_of_two_level_arrays(num_qubits):
     array_decompose = _decompose_to_two_level_arrays(
         input_gate, num_qubits, expand=False)
     empty_dict_output = _create_dict_for_two_level_arrays(array_decompose)
+    assert np.equal(len(empty_dict_output), len(array_decompose))
+
+
+@pytest.mark.parametrize("num_qubits", [2, 3, 4, 5])
+def test_empty_dict_of_two_level_arrays(num_qubits):
+    """ Check if split gray code output is of the same length as the two-level array
+    output.
+    """
+    input_gate = rand_unitary(2**num_qubits, dims=[[2] * num_qubits] * 2)
+    array_decompose = _decompose_to_two_level_arrays(
+        input_gate, num_qubits, expand=False)
+    empty_dict_output = _partial_gray_code(num_qubits, array_decompose)
     assert np.equal(len(empty_dict_output), len(array_decompose))

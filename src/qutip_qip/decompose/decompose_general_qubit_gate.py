@@ -110,7 +110,9 @@ def _create_dict_for_two_level_arrays(two_level_output):
 
 def _partial_gray_code(num_qubits, two_level_output):
     """Returns a dictionary of partial gray code sequence for each two-level
-    array."""
+    array.
+    
+    The input is when output from decomposition array output is non-expanded."""
 
     # create empty dict
     gate_key_dict = _create_dict_for_two_level_arrays(two_level_output)
@@ -148,11 +150,15 @@ def _partial_gray_code(num_qubits, two_level_output):
 def _split_partial_gray_code(gate_key_dict):
     """Splits the output of gray code sequence into n-bit Toffoli and
     two-level array gate of interest.
+
     The output is a list of dictionary of n-bit toffoli and another dictionary
-    for the gate needing to be decomposed.
+    for the gate needing to be decomposed. 
 
     When the decomposed gates are added to the circuit, n-bit toffoli will be
     used twice - once in the correct order it is and then in a reversed order.
+
+    For cases where there is only 1 step in the gray code sequence, first dictionary
+    will be empty and second will need a decomposition scheme.
     """
     n_bit_toffoli_dict = {}
     two_level_of_int = {}
