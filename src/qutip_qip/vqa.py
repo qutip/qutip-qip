@@ -305,10 +305,6 @@ class Parameterized_Hamiltonian:
             raise ValueError("Parameterized Hamiltonian "
                              "initialised with no terms given")
 
-    def get_angles(self, params):
-        angles = [i for i in params]
-        return angles
-
     def get_hamiltonian(self, params):
         if not len(params) == self.N:
             raise ValueError(f"params should be of length {self.N} but was "
@@ -337,25 +333,29 @@ class VQA_Block:
         self.is_unitary = is_unitary
         self.name = name
         self.targets = targets
-        self.is_native_gate = isinstance(operator, str)
         self.initial = initial
-        self.n_parameters = 0
         self.fixed_parameters = []
-        if not self.is_unitary and not self.is_native_gate:
-            self.n_parameters = 1
-        if self.is_native_gate:
+        self.is_native_gate = False
+        self.n_parameters = 0
+
+        if isinstance(operator, Qobj):
+            if not self.is_unitary:
+                self.n_parameters = 1
+        elif isinstance(operator, str):
+            self.is_native_gate = True
             if targets is None:
                 raise ValueError("Targets must be specified for native gates")
+        elif isinstance(operator, Parameterized_Hamiltonian):
+            self.n_parameters = operator.N
+        elif isinstance(operator, types.FunctionType):
+            if not isinstance(operator(1), Qobj):
+                raise ValueError("Provided function does not return "
+                                 "a Qobj")
+            self.n_parameters = 1
         else:
-            if not isinstance(operator, Qobj):
-                if isinstance(operator, types.FunctionType):
-                    if not isinstance(operator(1), Qobj):
-                        raise ValueError("Provided function does not return "
-                                         "a Qobj")
-                    self.n_parameters = 1
-                else:
-                    raise ValueError("Operator given was neither a gate name "
-                                     "nor Qobj")
+            raise ValueError("operator should be either: Qobj | function which"
+                             " returns Qobj | Parameterized_Hamiltonian"
+                             " instance | string referring to gate.")
 
     def fix_parameters(self, angles):
         if len(angles) != self.n_parameters:
@@ -369,6 +369,8 @@ class VQA_Block:
     def get_unitary(self, angle=None):
         if self.is_unitary:
             if isinstance(self.operator, types.FunctionType):
+                if angle is None:
+                    raise ValueError("No parameter given")
                 return self.operator(angle)
             else:
                 return self.operator
@@ -376,25 +378,35 @@ class VQA_Block:
             if self.is_native_gate:
                 raise TypeError("Can't compute unitary of native gate")
             if angle is None:
-                raise TypeError("No parameter given")
-            return (-1j * angle * self.operator).expm()
+                raise ValueError("No parameter given")
+            if isinstance(self.operator, Parameterized_Hamiltonian):
+                return (-1j * self.operator.get_hamiltonian([angle])).expm()
+            else:
+                return (-1j * angle * self.operator).expm()
 
     def get_unitary_derivative(self, angle):
         if self.is_unitary or self.is_native_gate:
             raise ValueError("Can only take derivative of block "
                              "specified by Hamiltonians")
-        return self.get_unitary(angle) * -1j * self.operator
+        if isinstance(self.operator, Parameterized_Hamiltonian):
+            return self.get_unitary_frechet_derivative(angle)
+        else:
+            return self.get_unitary(angle) * -1j * self.operator
 
-    def get_unitary_frechet_derivative(self, angle):
+    def get_unitary_frechet_derivative(self, angle, term_index=0):
         if self.is_unitary or self.is_native_gate:
             raise ValueError("Can only take frechet derivative of block "
                              "specified by Hamiltonians")
         # TODO: impement for fully parameterised Hamiltonian
-        arg = self.operator * angle * -1j
-        direction = self.operator * -1j
+        if isinstance(self.operator, Parameterized_Hamiltonian):
+            arg = -1j * self.operator.get_hamiltonian([angle])
+            direction = -1j * self.operator.p_terms[term_index]
+        else:
+            arg = -1j * self.operator * angle
+            direction = -1j * self.operator
         return Qobj(
                 expm_frechet(arg, direction, compute_expm=False),
-                dims=self.operator.dims)
+                dims=direction.dims)
 
 
 class Optimization_Result:
@@ -417,8 +429,8 @@ class Optimization_Result:
                 f"\tNumber of function evaluations: {self.nfev}\n" + \
                 f"\tParameters found: {self.angles}"
 
-    def plot(self, S):
-        state_probs_plot(self.final_state, S, self.min_cost)
+    def plot(self, S, label_sets=False):
+        state_probs_plot(self.final_state, S, self.min_cost, label_sets)
 
 
 def label_to_sets(S, bitstring):
@@ -432,14 +444,14 @@ def label_to_sets(S, bitstring):
     return (str(S1) + ' ' + str(S2)).replace('[', '{').replace(']', '}')
 
 
-def state_probs_plot(state, S=None, min_cost=''):
+def state_probs_plot(state, S=None, min_cost='', label_sets=False):
     n_qubits = int(np.log2(state.shape[0]))
     probs = [abs(i.item())**2 for i in state]
     bitstrings = ["|" + format(i, f'0{n_qubits}b') + ">"
                   for i in range(2**n_qubits)]
     labels = [label_to_sets(S, bitstring) for bitstring in bitstrings]
     plt.bar([i for i in range(2**n_qubits)],
-            probs, tick_label=labels, width=0.8)
+            probs, tick_label=labels if label_sets else bitstrings, width=0.8)
     plt.xticks(rotation=30)
     plt.tight_layout()
     plt.xlabel('Measurement outcome')
