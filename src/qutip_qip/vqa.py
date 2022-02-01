@@ -16,11 +16,11 @@ def sample_bitstring_from_state(state):
 
     Parameters
     ----------
-    state : Qobj
+    state: Qobj
 
     Returns
     -------
-    bitstring : str
+    bitstring: str
         Formatted binary string with length corresponding to
         dimension of input state
 
@@ -46,12 +46,35 @@ def highest_prob_bitstring(state):
 
 class VQA:
     """
-    A sort of wrapper over ``QuantumCircuit``. Accepts
-    ``VQA_Block`` elements instead of ``Gate`` elements, which allows
+    Optimizes free parameters to generate ``QuantumCircuit`` instances 
+    based on Variational Quantum Algorithms.
+    Accepts ``VQA_Block`` elements instead of ``Gate`` elements, which allows
     for easy parameterization of user-defined circuit elements.
     Includes methods for parameter optimization and generators of 
     ``QuantumCircuit`` instances.
+
+    Parameters
+    ----------
+    n_qubits: int
+        number of qubits used by the algorithm
+    n_layers: int, optional
+        number of layers used by the algorihtm
+    cost_method: str
+        method used to compute the cost of an instance of the circuit
+        constructed by fixing its free parameters. Can be one of `OBSERVABLE`,
+        `BITSTRING` or `STATE`.
+
+        1.  If `OBSERVABLE` is set, then the attribute ``VQA.cost_observable`` 
+            needs to be specified as a ``Qobj``. The cost of the circuit is
+            the expectation value of this observable in the final state.
+        2.  If `STATE` is set, then ``VQA.cost_func`` needs to be specified
+            as a callable that takes in a quantum state, as a ``Qobj``, and
+            returns a float.
+        3.  If `BITSTRING` is set, then ``VQA.cost_func`` needs to be 
+            specified as a callable that takes in a bitstring and returns
+            a float.
     """
+
     def __init__(self, n_qubits, n_layers=1, cost_method="OBSERVABLE"):
         self.n_qubits = n_qubits
         self.n_layers = n_layers
@@ -99,7 +122,7 @@ class VQA:
 
         Returns
         -------
-        num_params : int
+        num_params: int
             Number of free circuit parameters
         """
         initial_blocks = list(filter(lambda b: b.initial, self.blocks))
@@ -123,12 +146,12 @@ class VQA:
 
         Parameters
         ----------
-        angles : list of float
+        angles: list of float
             A list of dimension (n,) for n free parameters in the circuit
 
         Returns
         -------
-        circ : QuantumCircuit
+        circ: QuantumCircuit
         """
         circ = QubitCircuit(self.n_qubits)
         circ.user_gates = self.user_gates
@@ -152,7 +175,7 @@ class VQA:
         """
         Returns
         -------
-        initial_state : Qobj
+        initial_state: Qobj
             Initial circuit state
         """
         initial_state = basis(2, 0)
@@ -166,12 +189,12 @@ class VQA:
 
         Parameters
         ----------
-        angles : list of float
+        angles: list of float
             A list of dimension (n,) for n free parameters in the circuit
 
         Returns
-        ------
-        final_state : Qobj
+        -------
+        final_state: Qobj
             Final state of the circuit after evaluation
         """
         circ = self.construct_circuit(angles)
@@ -186,12 +209,12 @@ class VQA:
 
         Parameters
         ----------
-        angles : list of float
+        angles: list of float
             A list of dimension (n,) for n free parameters in the circuit
 
         Returns
         -------
-        cost : float
+        cost: float
         """
         final_state = self.get_final_state(angles)
         if self.cost_method == "BITSTRING":
@@ -227,36 +250,39 @@ class VQA:
 
         Parameters
         ----------
-        initial : str, optional
+        initial: str or list of floats, optional
             Initialization method for the free parameters.
-            "random" will randomize initial free parameters between 0 and 1,
-            "ones" will set each initial free parameter to a value of 1.
+            If a list of floats of dimensions (n,) for n free parameters
+            in the circuit is given, then these are taken to be the initial
+            conditions for the optimizer. Otherwise if a string is given:
+            1. "random" will randomize initial free parameters between 0 and 1,
+            2. "ones" will set each initial free parameter to a value of 1.
             Defaults to "random"
-        method : str or callable, optional
+        method: str or callable, optional
             Method to give to ``scipy.optimize.minimize``
-        use_jac : bool, optional
+        use_jac: bool, optional
             Whether to compute the jacobian or not. If computed, it will be
             passed to the optimizer chosen by ``method``, regardless of if 
             the method is gradient-based or not.
-        frechet : bool, optional
+        frechet: bool, optional
             Replaces all derivative calculations with the Frechet derivative
             of the exponential function, ``scipy.linalg.expm_frechet``.
             Note that derivatives of unitaries generated by 
             ``Parameterized_Hamiltonian`` are always calculated with the 
             Frechet derivative.
-        do_nothing : bool, optional
+        do_nothing: bool, optional
             For debugging and benchmarking purposes, perform no operation
             during optimization, and simply retain the initial free parameters.
-        layer_by_layer : bool, optional
+        layer_by_layer: bool, optional
             Grow the circuit from a single layer, to ``VQA.n_layers``, at each 
             step holding the parameters found for previous layers fixed.
-        bounds : sequence or `scipy.optimize.Bounds`, optional
+        bounds: sequence or `scipy.optimize.Bounds`, optional
             Bounds to be passed to the optimizer. Either
 
             1. Instance of `scipy.optimize.Bounds`
             2. Sequence of ``(min, max)`` tuples corresponding to each
                free parameter.
-        constraints : list of `Constraint`
+        constraints: list of `Constraint`
             See `scipy.optimize.minimize` documentation.
         """
 
@@ -351,9 +377,9 @@ class VQA:
 
         Returns
         -------
-        U_prods : list of Qobj
+        U_prods: list of Qobj
             Ordered list of [identity, U_0, U_1, ... U_N]
-        U_prods_back : list of Qobj
+        U_prods_back: list of Qobj
             Ordered list of [identity, U_N, U_{N-1}, ... U_0]
         """
         U_prods = [qeye([2 for _ in range(self.n_qubits)])]
@@ -373,14 +399,14 @@ class VQA:
 
         Parameters
         ----------
-        U : Qobj
+        U: Qobj
             Block unitary
-        dU : Qobj
+        dU: Qobj
             Partial derivative of U with respect to its parameter
 
         Returns
         -------
-        dCost : float
+        dCost: float
             Partial derivative of cost with respect to block's parameter
         """
         if self.cost_observable is None:
@@ -399,15 +425,15 @@ class VQA:
 
         Parameters
         ----------
-        angles : list of float
+        angles: list of float
             Circuit free parameters
-        indicies_to_compute : list of int, optional
+        indicies_to_compute: list of int, optional
             Block indices for which to use in computing the jacobian.
             By default, this is every index (every block).
 
         Returns
         -------
-        jac : (n,) numpy array of floats
+        jac: (n,) numpy array of floats
         """
         if indices_to_compute is None:
             indices_to_compute = list(range(len(angles)))
@@ -444,7 +470,7 @@ class VQA:
 
         Parameters
         ----------
-        filename : str, optional
+        filename: str, optional
             The name of the exported file
         """
         circ = self.construct_circuit(
@@ -458,6 +484,9 @@ class VQA:
 
 class Parameterized_Hamiltonian:
     """
+    Hamiltonian with 0 or more parameterized terms.
+    In general, computes a unitary as U = e^{H_0 + p_1 * H_1 + P_2 * H_2 + ...}
+
     Parameters
     ----------
     parameterized_terms: list of Qobj
@@ -465,6 +494,7 @@ class Parameterized_Hamiltonian:
     constant_term: Qobj
         Hamiltonian term which does not require parameters.
     """
+
     def __init__(self, parameterized_terms=[], constant_term=None):
         self.p_terms = parameterized_terms
         self.c_term = constant_term
@@ -495,24 +525,24 @@ class VQA_Block:
 
     Parameters
     ----------
-    operator : Qobj or Callable or str
+    operator: Qobj or Callable or str
         If given as a Qobj, assumed to be a Hamiltonian with a single
         global parameter.
         If given as a Callable, assumed to take in a parameter, and return
         a unitary operator.
         If given as a str, assumed to reference a native QuTiP gate from
         ``qutip_qip.operations``
-    is_unitary : bool, optional
+    is_unitary: bool, optional
         Specifies that the operator  was already in Unitary form,
         and does not need to be exponentiated, or take a parameter.
-    name : str, optional
+    name: str, optional
         Name of the block. This will be used in the custom
         ``user_gates`` dict of the circuit. If not provided,
         a name will be generated as "U"+str(len(VQA.blocks)).
-    targets : list of int, optional
+    targets: list of int, optional
         The qubits targetted by the gate. By default, applied
         to all qubits.
-    initial : bool, optional
+    initial: bool, optional
         Whether or not to repeat this block in layers. For example,
         this should be false if this block is only used for
         circuit initialization.
@@ -572,7 +602,7 @@ class VQA_Block:
 
         Parameters
         ----------
-        angle : float, optional
+        angle: float, optional
             Block free parameter. Required if the block has a free parameter.
         """
         if self.is_unitary:
@@ -593,6 +623,20 @@ class VQA_Block:
                 return (-1j * angle * self.operator).expm()
 
     def get_unitary_derivative(self, angle):
+        """
+        Compute the derivative of the block's unitary with respect to its
+        free parameter, assuming it is of the form e^{-i * theta * H} 
+        for a free parameter theta.
+
+        Parameters
+        ----------
+        angle: float
+            the block's free parameter
+
+        Returns
+        -------
+        derivative: float
+        """
         if self.is_unitary or self.is_native_gate:
             raise ValueError(
                 "Can only take derivative of block "
@@ -604,6 +648,23 @@ class VQA_Block:
             return self.get_unitary(angle) * -1j * self.operator
 
     def get_unitary_frechet_derivative(self, angle, term_index=0):
+        """
+        Compute the derivative of the block's unitary with respect
+        to a free parameter, using the Frechet derivative of 
+        the exponential function.
+
+        Parameters
+        ----------
+        angle: float
+            the free parameter to take derivative with respect to
+        term_index: int, optional
+            Parameterized Hamiltonian term that specifies the matrix
+            direction in which to take the derivative.
+
+        Returns
+        -------
+        derivative: float
+        """
         if self.is_unitary or self.is_native_gate:
             raise ValueError(
                 "Can only take frechet derivative of block "
@@ -628,14 +689,12 @@ class Optimization_Result:
 
     Parameters
     ----------
-    res : scipy results instance
-    final_state : Qobj
+    res: scipy results instance
+    final_state: Qobj
         Final state of the circuit after optimization.
     """
+
     def __init__(self, res, final_state):
-        """
-        res : scipy optimisation result object
-        """
         self.res = res
         self.angles = res.x
         self.min_cost = res.fun
@@ -659,7 +718,7 @@ class Optimization_Result:
 
         Parameters
         ----------
-        S : list of float, optional
+        S: list of float, optional
             The problem instance, in the case of a combinatorial
             optimization problem.
         label_sets: bool, optional
@@ -671,7 +730,8 @@ class Optimization_Result:
             Only plot the ten highest-probability states.
         """
         state_probs_plot(
-                self.final_state, S, self.min_cost, label_sets, top_ten)
+            self.final_state, S, self.min_cost, label_sets, top_ten
+        )
 
 
 def label_to_sets(S, bitstring):
@@ -681,13 +741,13 @@ def label_to_sets(S, bitstring):
 
     Parameters
     ----------
-    S : list of float
+    S: list of float
         Problem instance
-    bitstring : str
+    bitstring: str
 
     Returns
     -------
-    sets : str
+    sets: str
         String representation the two sets.
     """
     s1 = []
@@ -700,20 +760,18 @@ def label_to_sets(S, bitstring):
     return (str(s1) + " " + str(s2)).replace("[", "{").replace("]", "}")
 
 
-def state_probs_plot(state,
-                     S=None,
-                     min_cost="",
-                     label_sets=False,
-                     top_ten=False):
+def state_probs_plot(
+    state, S=None, min_cost="", label_sets=False, top_ten=False
+):
     """
     Plot probability amplitudes of each measurement
     outcome of a state.
 
     Parameters
     ----------
-    S : list of float, optional
+    S: list of float, optional
         Problem instance
-    min_cost : str, optional
+    min_cost: str, optional
         The minimum cost found by optimization
     label_sets: bool, optional
         Replace bitstring labels with sets referring to the inferred
