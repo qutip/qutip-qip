@@ -19,7 +19,7 @@ It offers two different approaches for simulating quantum circuits, one with :cl
 Citing
 ===========
 
-If you use ``qutip.qip`` in your research, cite the `preprint <https://arxiv.org/abs/2105.09902>`_
+If you use ``qutip.qip`` in your research, please cite the `article <https://quantum-journal.org/papers/q-2022-01-24-630>`_
 as
 
 .. code-block:: text
@@ -32,10 +32,16 @@ copy-pasted using :
 
 .. code-block:: text
 
-  @misc{li2021pulselevel,
-        title={Pulse-level noisy quantum circuits with QuTiP},
-        author={Boxi Li and Shahnawaz Ahmed and Sidhant Saraogi and Neill Lambert and Franco Nori and Alexander Pitchford and Nathan Shammah},
-        year={2021},
-        eprint={2105.09902},
-        archivePrefix={arXiv},
-        primaryClass={quant-ph}}
+    @article{Li2022pulselevelnoisy,
+        doi = {10.22331/q-2022-01-24-630},
+        url = {https://doi.org/10.22331/q-2022-01-24-630},
+        title = {Pulse-level noisy quantum circuits with {Q}u{T}i{P}},
+        author = {Li, Boxi and Ahmed, Shahnawaz and Saraogi, Sidhant and Lambert, Neill and Nori, Franco and Pitchford, Alexander and Shammah, Nathan},
+        journal = {{Quantum}},
+        issn = {2521-327X},
+        publisher = {{Verein zur F{\"{o}}rderung des Open Access Publizierens in den Quantenwissenschaften}},
+        volume = {6},
+        pages = {630},
+        month = jan,
+        year = {2022}
+    }

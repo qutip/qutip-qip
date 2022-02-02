@@ -36,7 +36,7 @@ Documentation and tutorials
 The documentation of `qutip-qip` updated to the latest development version is hosted at [qutip-qip.readthedocs.io/](https://qutip-qip.readthedocs.io/en/stable/).
 Tutorials related to using quantum gates and circuits in `qutip-qip` can be found [*here*](https://qutip.org/tutorials#quantum-information-processing) and those related to using noise simulators areavailable at [*this link*](https://qutip.org/tutorials#nisq). 
 
-Code examples used in the preprint [*Pulse-level noisy quantum circuits with QuTiP*](https://arxiv.org/abs/2105.09902), updated for the latest code version, are hosted in [this folder](https://github.com/qutip/qutip-qip/tree/master/doc/pulse-paper).
+Code examples used in the article [*Pulse-level noisy quantum circuits with QuTiP*](https://quantum-journal.org/papers/q-2022-01-24-630), updated for the latest code version, are hosted in [this folder](https://github.com/qutip/qutip-qip/tree/master/doc/pulse-paper).
 
 Installation from source
 ------------------------
@@ -72,16 +72,21 @@ pytest tests
 
 Citing `qutip-qip`
 ------------
-If you use `qutip-qip` in your research, the  [*preprint*](https://arxiv.org/abs/2105.09902) can be cited as
+If you use `qutip-qip` in your research, please cite the [article](https://quantum-journal.org/papers/q-2022-01-24-630) as
 
 ```bibtex
-@misc{li2021pulselevel,
-      title={Pulse-level noisy quantum circuits with QuTiP},
-      author={Boxi Li and Shahnawaz Ahmed and Sidhant Saraogi and Neill Lambert and Franco Nori and Alexander Pitchford and Nathan Shammah},
-      year={2021},
-      eprint={2105.09902},
-      archivePrefix={arXiv},
-      primaryClass={quant-ph}
+@article{Li2022pulselevelnoisy,
+  doi = {10.22331/q-2022-01-24-630},
+  url = {https://doi.org/10.22331/q-2022-01-24-630},
+  title = {Pulse-level noisy quantum circuits with {Q}u{T}i{P}},
+  author = {Li, Boxi and Ahmed, Shahnawaz and Saraogi, Sidhant and Lambert, Neill and Nori, Franco and Pitchford, Alexander and Shammah, Nathan},
+  journal = {{Quantum}},
+  issn = {2521-327X},
+  publisher = {{Verein zur F{\"{o}}rderung des Open Access Publizierens in den Quantenwissenschaften}},
+  volume = {6},
+  pages = {630},
+  month = jan,
+  year = {2022}
 }
 ```
 Support
