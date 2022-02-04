@@ -47,7 +47,7 @@ def test_empty_dict_of_two_level_arrays(num_qubits):
 
 
 @pytest.mark.parametrize("num_qubits", [2, 3, 4, 5])
-def test_empty_dict_of_two_level_arrays(num_qubits):
+def test_len_partial_grey_code(num_qubits):
     """ Check if split gray code output is of the same length as the two-level array
     output.
     """
@@ -56,3 +56,19 @@ def test_empty_dict_of_two_level_arrays(num_qubits):
         input_gate, num_qubits, expand=False)
     empty_dict_output = _partial_gray_code(num_qubits, array_decompose)
     assert np.equal(len(empty_dict_output), len(array_decompose))
+
+
+@pytest.mark.parametrize("num_qubits", [2, 3, 4, 5])
+def test_keys_partial_grey_code(num_qubits):
+    """ Check if dictionary keys are consistent in partial grey code.
+
+    The keys are for all two-level gates describing the decomposition and
+    are in a reversed order. 
+    """
+    input_gate = rand_unitary(2**num_qubits, dims=[[2] * num_qubits] * 2)
+    array_decompose = _decompose_to_two_level_arrays(
+        input_gate, num_qubits, expand=False)
+    dict_output = _partial_gray_code(num_qubits, array_decompose)
+    gate_key_list = list(_partial_gray_code(num_qubits, array_decompose).keys())
+    correct_gate_key_list = list(range(1,len(array_decompose)+1)[::-1])
+    assert gate_key_list == correct_gate_key_list
