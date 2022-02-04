@@ -2,7 +2,9 @@ import numpy as np
 import cmath
 from qutip import Qobj
 from qutip_qip.decompose._utility import (
-    check_gate, _binary_sequence, _gray_code_sequence
+    check_gate,
+    _binary_sequence,
+    _gray_code_sequence,
 )
 
 
@@ -26,12 +28,12 @@ def _decompose_to_two_level_arrays(input_gate, num_qubits, expand=True):
     # Calculate the two level numpy arrays
     array_list = []
     index_list = []
-    for i in range(2**num_qubits):
-        for j in range(i+1, 2**num_qubits):
+    for i in range(2 ** num_qubits):
+        for j in range(i + 1, 2 ** num_qubits):
             new_index = [i, j]
             index_list.append(new_index)
 
-    for i in range(len(index_list)-1):
+    for i in range(len(index_list) - 1):
         index_1, index_2 = index_list[i]
 
         # Values of single qubit U forming the two level unitary
@@ -40,15 +42,16 @@ def _decompose_to_two_level_arrays(input_gate, num_qubits, expand=True):
         b = input_array[index_2][index_1]
         b_star = np.conj(b)
         norm_constant = cmath.sqrt(
-            np.absolute(a*a_star)+np.absolute(b*b_star))
+            np.absolute(a * a_star) + np.absolute(b * b_star)
+        )
 
         # Create identity array and then replace with above values for
         # index_1 and index_2
-        U_two_level = np.identity(2**num_qubits, dtype=complex)
-        U_two_level[index_1][index_1] = a_star/norm_constant
-        U_two_level[index_2][index_1] = b/norm_constant
-        U_two_level[index_1][index_2] = b_star/norm_constant
-        U_two_level[index_2][index_2] = -a/norm_constant
+        U_two_level = np.identity(2 ** num_qubits, dtype=complex)
+        U_two_level[index_1][index_1] = a_star / norm_constant
+        U_two_level[index_2][index_1] = b / norm_constant
+        U_two_level[index_1][index_2] = b_star / norm_constant
+        U_two_level[index_2][index_2] = -a / norm_constant
 
         # Change input by multiplying by above two-level
         input_array = np.dot(U_two_level, input_array)
@@ -65,9 +68,10 @@ def _decompose_to_two_level_arrays(input_gate, num_qubits, expand=True):
         array_list_with_qobj = []
         for i in reversed(range(len(index_list))):
             U_two_level_array = array_list[i]
-            array_list_with_qobj.append(Qobj(
-                U_two_level_array, dims=[[2] * num_qubits] * 2))
-        return(array_list_with_qobj)
+            array_list_with_qobj.append(
+                Qobj(U_two_level_array, dims=[[2] * num_qubits] * 2)
+            )
+        return array_list_with_qobj
     else:
         compact_U_information = []
         for i in reversed(range(len(index_list))):
@@ -86,12 +90,11 @@ def _decompose_to_two_level_arrays(input_gate, num_qubits, expand=True):
             U_non_trivial[1][0] = U_two_level[index_2][index_1]
             U_non_trivial[0][1] = U_two_level[index_1][index_2]
             U_non_trivial[1][1] = U_two_level[index_2][index_2]
-            U_index_together.append(
-                Qobj(U_non_trivial, dims=[[2] * 1] * 2))
+            U_index_together.append(Qobj(U_non_trivial, dims=[[2] * 1] * 2))
 
             compact_U_information.append(U_index_together)
 
-        return(compact_U_information)
+        return compact_U_information
 
 
 def _create_dict_for_two_level_arrays(two_level_output):
@@ -103,15 +106,15 @@ def _create_dict_for_two_level_arrays(two_level_output):
 
     # create a reversed list of keys based on total number of two-level gates
     # ranging from 1 to n where n is the total number of two-level arrays
-    gate_keys = list(range(1, num_two_level_gates+1))[::-1]
+    gate_keys = list(range(1, num_two_level_gates + 1))[::-1]
     gate_info_dict = dict.fromkeys(gate_keys)
-    return(gate_info_dict)
+    return gate_info_dict
 
 
 def _partial_gray_code(num_qubits, two_level_output):
     """Returns a dictionary of partial gray code sequence for each two-level
     array.
-    
+
     The input is when output from decomposition array output is non-expanded."""
 
     # create empty dict
@@ -124,7 +127,7 @@ def _partial_gray_code(num_qubits, two_level_output):
 
     # gray code sequence output as indices of binary sequence and strings
     # respectively
-    gray_code_index = _gray_code_sequence(num_qubits, 'index_values')
+    gray_code_index = _gray_code_sequence(num_qubits, "index_values")
     gray_code_string = _gray_code_sequence(num_qubits)
 
     # get the partial gray code sequence
@@ -141,10 +144,11 @@ def _partial_gray_code(num_qubits, two_level_output):
         else:
             partial_gray_code = [ind1_pos_in_gray_code, ind2_pos_in_gray_code]
 
-        gate_key_dict[len(two_level_indices)-i] = gray_code_string[
-            partial_gray_code[0]:partial_gray_code[1]+1]
+        gate_key_dict[len(two_level_indices) - i] = gray_code_string[
+            partial_gray_code[0] : partial_gray_code[1] + 1
+        ]
 
-    return(gate_key_dict)
+    return gate_key_dict
 
 
 def _split_partial_gray_code(gate_key_dict):
@@ -152,7 +156,7 @@ def _split_partial_gray_code(gate_key_dict):
     two-level array gate of interest.
 
     The output is a list of dictionary of n-bit toffoli and another dictionary
-    for the gate needing to be decomposed. 
+    for the gate needing to be decomposed.
 
     When the decomposed gates are added to the circuit, n-bit toffoli will be
     used twice - once in the correct order it is and then in a reversed order.
@@ -171,4 +175,4 @@ def _split_partial_gray_code(gate_key_dict):
             two_level_of_int[key] = gate_key_dict[key]
             n_bit_toffoli_dict[key] = None
     output_of_separated_gray_code = [n_bit_toffoli_dict, two_level_of_int]
-    return(output_of_separated_gray_code)
+    return output_of_separated_gray_code

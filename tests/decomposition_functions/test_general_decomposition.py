@@ -33,8 +33,8 @@ def test_two_level_full_output(num_qubits):
 
 @pytest.mark.parametrize("num_qubits", [2, 3, 4, 5])
 def test_empty_dict_of_two_level_arrays(num_qubits):
-    """Check if empty dictionary is of the same length as the two-level array
-    output.
+    """Check if empty dictionary is of the same length as
+    the two-level array output.
     """
     input_gate = rand_unitary(2 ** num_qubits, dims=[[2] * num_qubits] * 2)
     array_decompose = _decompose_to_two_level_arrays(
@@ -46,8 +46,8 @@ def test_empty_dict_of_two_level_arrays(num_qubits):
 
 @pytest.mark.parametrize("num_qubits", [2, 3, 4, 5])
 def test_len_partial_grey_code(num_qubits):
-    """Check if split gray code output is of the same length as the two-level array
-    output.
+    """Check if split gray code output is of the same length
+    as the two-level array output.
     """
     input_gate = rand_unitary(2 ** num_qubits, dims=[[2] * num_qubits] * 2)
     array_decompose = _decompose_to_two_level_arrays(
@@ -134,3 +134,4 @@ def test_three_qubit_partial_grey_code_output():
         1: ["000", "001"],
     }
     assert func_output == expected_output
+
