@@ -130,7 +130,7 @@ class SCQubitsModel(Model):
             destroy_op = destroy(self.dims[m])
             coeff = 2 * np.pi * self.params["alpha"][m] / 2.0
             self._drift.append(
-                (coeff * destroy_op.dag() ** 2 * destroy_op ** 2, [m])
+                (coeff * destroy_op.dag() ** 2 * destroy_op**2, [m])
             )
 
     @property

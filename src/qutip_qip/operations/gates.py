@@ -1356,7 +1356,7 @@ shape = [2, 2], type = oper, isHerm = False
 
     """
     data = np.exp(1.0j * theta) * sp.eye(
-        2 ** N, 2 ** N, dtype=complex, format="csr"
+        2**N, 2**N, dtype=complex, format="csr"
     )
     return Qobj(data, dims=[[2] * N, [2] * N])
 
@@ -1706,7 +1706,7 @@ def qubit_clifford_group(N=None, target=0):
 
     X = sigmax()
     S = phasegate(np.pi / 2)
-    E = H * (S ** 3) * w ** 3
+    E = H * (S**3) * w**3
 
     for op in map(
         partial(reduce, mul),
