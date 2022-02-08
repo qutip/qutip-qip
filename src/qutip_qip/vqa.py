@@ -410,9 +410,11 @@ class VQA:
             Partial derivative of cost with respect to block's parameter
         """
         if self.cost_observable is None:
-            raise NotImplementedError("cost_derivative function only "
-                                      "implemented for observable cost "
-                                      "functions")
+            raise NotImplementedError(
+                "cost_derivative function only "
+                "implemented for observable cost "
+                "functions"
+            )
         init = self.get_initial_state()
         obs = self.cost_observable
         dCost = (init.dag() * dU.dag()) * obs * (U * init) + (
@@ -544,7 +546,7 @@ class VQABlock:
         to all qubits.
     initial: bool, optional
         Whether or not to repeat this block in layers. For example,
-        this should be false if this block is only used for
+        this should be True if this block is only used for
         circuit initialization.
     """
 
