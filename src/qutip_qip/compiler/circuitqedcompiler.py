@@ -56,10 +56,10 @@ class SCQubitsCompiler(GateCompiler):
         td = 2.4384880692912567
         sigma = 1 / 6 * td  # 3 sigma
         tlist = np.linspace(0, td, 1000)
-        max_pulse = 1 - np.exp(-((0 - td / 2) ** 2) / 2 / sigma ** 2)
+        max_pulse = 1 - np.exp(-((0 - td / 2) ** 2) / 2 / sigma**2)
         coeff = (
-            np.exp(-((tlist - td / 2) ** 2) / 2 / sigma ** 2)
-            - np.exp(-((0 - td / 2) ** 2) / 2 / sigma ** 2)
+            np.exp(-((tlist - td / 2) ** 2) / 2 / sigma**2)
+            - np.exp(-((0 - td / 2) ** 2) / 2 / sigma**2)
         ) / max_pulse
         return tlist, coeff
 

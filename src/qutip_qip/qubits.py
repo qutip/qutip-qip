@@ -31,7 +31,7 @@ def qubit_states(N=1, states=[0]):
 
     return tensor(
         [
-            alpha * basis(2, 1) + sqrt(1 - alpha ** 2) * basis(2, 0)
+            alpha * basis(2, 1) + sqrt(1 - alpha**2) * basis(2, 0)
             for alpha in state_list
         ]
     )
