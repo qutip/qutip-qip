@@ -31,7 +31,7 @@ def qft(N=1):
     if N < 1:
         raise ValueError("Minimum value of N can be 1")
 
-    N2 = 2 ** N
+    N2 = 2**N
     phase = 2.0j * np.pi / N2
     arr = np.arange(N2)
     L, M = np.meshgrid(arr, arr)
