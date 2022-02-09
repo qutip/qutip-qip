@@ -1,3 +1,4 @@
+"""Variational Quantum Algorithms generation and optimization"""
 import types
 import random
 import numpy as np
