@@ -88,7 +88,6 @@ if _pdfcrop is not None:
         _force_remove(filename)
         os.rename(temporary, filename)
 
-
 else:
 
     def _crop_pdf(_):
@@ -247,7 +246,6 @@ if _pdflatex is not None:
                 # on Windows, but it doesn't hurt on POSIX).
                 os.chdir(previous_dir)
         return out
-
 
 else:
 
