@@ -32,25 +32,22 @@ class TestVQABlock:
         block = VQABlock(lambda t: (t*-1j*qutip.sigmax()).expm())
         assert block.get_unitary([angle]) == \
                (-1j * angle * qutip.sigmax()).expm()
-        
+
 
 class TestVQA:
     """
     Test class for the VQA class
     """
-    def test_n_qubits_input(self):
+    @pytest.mark.parametrize("n", [[[0, 1], [1.5, 1]], [[1, 0], [1, 1.5]]])
+    def test_initialization_bad_input(self, n):
+        """
+        Test numerical inputs for initializing VQA
+        """
         vqa = VQA(n_qubits=1, n_layers=1)
         with pytest.raises(ValueError):
-            vqa = VQA(n_qubits=0, n_layers=1)
+            vqa = VQA(n_qubits=n[0][0], n_layers=n[0][1])
         with pytest.raises(TypeError):
-            vqa = VQA(n_qubits=1.5, n_layers=1)
-
-    def test_n_layers_input(self):
-        vqa = VQA(n_qubits=1, n_layers=1)
-        with pytest.raises(ValueError):
-            vqa = VQA(n_qubits=1, n_layers=0)
-        with pytest.raises(TypeError):
-            vqa = VQA(n_qubits=1, n_layers=1.5)
+            vqa = VQA(n_qubits=n[1][0], n_layers=n[1][1])
 
     @pytest.mark.parametrize("method", ["OBSERVABLE", "STATE", "BITSTRING"])
     def test_cost_methods(self, method):
@@ -74,7 +71,7 @@ class TestVQACircuit:
         vqa.add_block(block)
         final_state = vqa.get_final_state([])
         assert final_state == qutip.basis(2, 1)
-        
+
     def test_parameterized_circuit(self):
         block = VQABlock(qutip.sigmax())
         vqa = VQA(n_qubits=1)
