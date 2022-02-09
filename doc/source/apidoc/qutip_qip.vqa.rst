@@ -18,7 +18,7 @@
       Optimization_Result
       Parameterized_Hamiltonian
       VQA
-      VQA_Block
+      VQABlock
    
    
 
