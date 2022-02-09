@@ -27,7 +27,7 @@ __all__ = ["Processor"]
 class Processor(object):
     """
     The noisy quantum device simulator using QuTiP dynamic solvers.
-    It compiles quantums circuit into a Hamiltonian model and then
+    It compiles quantum circuit into a Hamiltonian model and then
     simulate the time-evolution described by the master equation.
 
     Parameters

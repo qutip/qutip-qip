@@ -28,7 +28,7 @@ __all__ = ["DispersiveCavityQED"]
 class DispersiveCavityQED(ModelProcessor):
     """
     The processor based on the physical implementation of
-    a dispersive cavity QED system.
+    a dispersive cavity QED system (:obj:`.CavityQEDModel`).
     The available Hamiltonian of the system is predefined.
     For a given pulse amplitude matrix, the processor can
     calculate the state evolution under the given control pulse,
@@ -134,22 +134,59 @@ class CavityQEDModel(Model):
     """
     The physical model for a dispersive cavity-QED processor
     (:obj:`.DispersiveCavityQED`).
+    It is a qubits-resonator model that describes a system composed of
+    a single resonator and a few qubits connected to it.
+    The coupling is kept small so that the resonator is rarely
+    excited but acts only as a mediator for entanglement generation.
+    The single-qubit control Hamiltonians used are
+    :math:`\sigma_x` and :math:`\sigma_z`.
+    The dynamics between the resonator and the qubits is captured by
+    the Tavis-Cummings Hamiltonian,
+    :math:`\propto\sum_j a^\dagger \sigma_j^{-} + a \sigma_j^{+}`,
+    where :math:`a`, :math:`a^\dagger` are
+    the destruction and creation operators of the resonator,
+    while :math:`\sigma_j^{-}`, :math:`\sigma_j^{+}` are those of each qubit.
+    The control of the qubit-resonator coupling depends on
+    the physical implementation, but in the most general case
+    we have single and multi-qubit control in the form
+
+    .. math::
+
+        H=
+        \\sum_{j=0}^{N-1}
+        \\epsilon^{\\rm{max}}_{j}(t) \\sigma^x_{j} +
+        \\Delta^{\\rm{max}}_{j}(t) \\sigma^z_{j} +
+        J_{j}(t)
+        (a^\\dagger \\sigma^{-}_{j} + a \\sigma^{+}_{j}).
+
+    The effective qubit-qubit coupling is computed by the
+
+    .. math::
+
+        J = \\frac{g_j g_{j+1}}{2}(\\frac{1}{\\Delta_j} +
+        \\frac{1}{\\Delta_{j+1}}),
+
+    with :math:`\\Delta=w_q-w_0`
+    and the dressed qubit frequency :math:`w_q` defined as
+    :math:`w_q=\sqrt{\epsilon^2+\delta^2}`.
 
     Parameters
     ----------
     num_qubits : int
-        The number of qubits.
+        The number of qubits :math:`N`.
     num_levels : int, optional
         The truncation level of the Hilbert space for the resonator.
     **params :
         Keyword arguments for hardware parameters, in the unit of GHz.
         Qubit parameters can either be a float or a list of the length
-        ``num_qubits``.
+        :math:`N`.
 
         - deltamax: float or list, optional
-            The pulse strength of sigma-x control, default ``1.0``.
+            The pulse strength of sigma-x control,
+            :math:`\\Delta^{\\rm{max}}`, default ``1.0``.
         - epsmax: float or list, optional
-            The pulse strength of sigma-z control, default ``9.5``.
+            The pulse strength of sigma-z control,
+            :math:`\\epsilon^{\\rm{max}}`, default ``9.5``.
         - eps: float or list, optional
             The bare transition frequency for each of the qubits,
             default ``9.5``.
@@ -159,15 +196,13 @@ class CavityQEDModel(Model):
             The coupling strength between the resonator and the qubit,
             default ``1.0``.
         - w0 : float, optional
-            The bare frequency of the resonator. Should only be a float,
-            default ``0.01``.
+            The bare frequency of the resonator :math:`w_0`.
+            Should only be a float, default ``0.01``.
         - t1 : float or list, optional
             Characterize the amplitude damping for each qubit.
         - t2 : list of list, optional
             Characterize the total dephasing for each qubit.
 
-        The dressed qubit frequency is `wq` is computed by
-        :math:`w_q=\sqrt{\epsilon^2+\delta^2}`
     """
 
     def __init__(self, num_qubits, num_levels=10, **params):
