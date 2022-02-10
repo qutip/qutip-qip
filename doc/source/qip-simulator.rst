@@ -1,8 +1,8 @@
 .. _qip_simulator:
 
-*********************************
-Operator-level circuit simulation
-*********************************
+*****************************
+Gate-level circuit simulation
+*****************************
 
 Run a quantum circuit
 =====================
