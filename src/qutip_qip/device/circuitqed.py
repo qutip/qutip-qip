@@ -62,7 +62,8 @@ class SCQubitsModel(Model):
     """
     The physical model for superconducting-qubit model processor
     (:obj:`.SCQubits`) with fixed frequency.
-    Each qubit is simulated by a multi-level Duffing model,
+    Each qubit is simulated by a multi-level Duffing model
+    :cite:`koch2007charge`,
     in which the qubit subspace is provided by the ground state
     and the first excited state.
     By default, the creation and annihilation operators are
