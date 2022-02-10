@@ -134,7 +134,7 @@ class CavityQEDModel(Model):
     """
     The physical model for a dispersive cavity-QED processor
     (:obj:`.DispersiveCavityQED`).
-    It is a qubits-resonator model that describes a system composed of
+    It is a qubit-resonator model that describes a system composed of
     a single resonator and a few qubits connected to it.
     The coupling is kept small so that the resonator is rarely
     excited but acts only as a mediator for entanglement generation.
@@ -163,7 +163,7 @@ class CavityQEDModel(Model):
 
     .. math::
 
-        J = \\frac{g_j g_{j+1}}{2}(\\frac{1}{\\Delta_j} +
+        J_j = \\frac{g_j g_{j+1}}{2}(\\frac{1}{\\Delta_j} +
         \\frac{1}{\\Delta_{j+1}}),
 
     with :math:`\\Delta=w_q-w_0`
