@@ -1,11 +1,11 @@
-numpy==1.21.0
-scipy==1.5.3
+numpy==1.21
+scipy==1.5
 qutip==4.6
-cython==0.29.21
-sphinx==3.5.2
+cython==0.29
+sphinx==3.5
 sphinx_rtd_theme==0.5.1
 readthedocs-sphinx-search==0.1.0rc3
-numpydoc==1.1.0
-matplotlib==3.3.4
+numpydoc==1.1
+matplotlib==3.3
 docutils==0.16
 sphinxcontrib-bibtex==2.4
