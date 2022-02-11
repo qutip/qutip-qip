@@ -1,6 +1,6 @@
 numpy==1.21.0
 scipy==1.5.3
-qutip==4.6.0
+qutip==4.6
 cython==0.29.21
 sphinx==3.5.2
 sphinx_rtd_theme==0.5.1
