@@ -140,7 +140,7 @@ class SCQubitsModel(Model):
 
     def __init__(self, num_qubits, dims=None, zz_crosstalk=False, **params):
         self.num_qubits = num_qubits
-        self.dims = dims
+        self.dims = dims if dims is not None else [3] * num_qubits
         self.params = {
             "wq": np.array(
                 ((5.15, 5.09) * int(np.ceil(self.num_qubits / 2)))[
