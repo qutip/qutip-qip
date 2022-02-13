@@ -142,13 +142,13 @@ class Pulse:
     noise and the lindblad noise. The later two are lists of
     noisy evolution dynamics.
     Each dynamic element is characterized by four variables:
-    ``1`qobj``, ``targets``, ``tlist`` and ``coeff``.
+    ``qobj``, ``targets``, ``tlist`` and ``coeff``.
 
     See examples for different construction behavior.
 
     Parameters
     ----------
-    qobj : :class:'qutip.Qobj'
+    qobj : :class:`qutip.Qobj`
         The Hamiltonian of the ideal pulse.
     targets: list
         target qubits of the ideal pulse
@@ -285,7 +285,7 @@ class Pulse:
 
         Parameters
         ----------
-        qobj: :class:'qutip.Qobj'
+        qobj: :class:`qutip.Qobj`
             The Hamiltonian of the pulse.
         targets: list
             target qubits of the pulse
@@ -316,7 +316,7 @@ class Pulse:
 
         Parameters
         ----------
-        qobj: :class:'qutip.Qobj'
+        qobj: :class:`qutip.Qobj`
             The collapse operator of the lindblad noise.
         targets: list
             target qubits of the collapse operator
@@ -505,7 +505,7 @@ class Drift:
 
         Parameters
         ----------
-        qobj: :class:'qutip.Qobj'
+        qobj: :class:`qutip.Qobj`
             The collapse operator of the lindblad noise.
         targets: list
             target qubits of the collapse operator
