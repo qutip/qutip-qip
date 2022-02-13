@@ -26,6 +26,46 @@ class SCQubitsCompiler(GateCompiler):
         +-----------------+-----------------------+
         |``params``       | Hardware Parameters   |
         +-----------------+-----------------------+
+
+    Parameters
+    ----------
+    num_qubits: int
+        The number of qubits in the system.
+
+    params: dict
+        A Python dictionary contains the name and the value of the parameters.
+        See :meth:`.SCQubitsModel` for the definition.
+
+    Attributes
+    ----------
+    num_qubits: int
+        The number of the component systems.
+
+    params: dict
+        A Python dictionary contains the name and the value of the parameters,
+        such as laser frequency, detuning etc.
+
+    gate_compiler: dict
+        The Python dictionary in the form of {gate_name: decompose_function}.
+        It saves the decomposition scheme for each gate.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from qutip_qip.circuit import QubitCircuit
+    >>> from qutip_qip.device import ModelProcessor, SCQubitsModel
+    >>> from qutip_qip.compiler import SCQubitsCompiler
+    >>>
+    >>> qc = QubitCircuit(2)
+    >>> qc.add_gate("CNOT", targets=0, controls=1)
+    >>>
+    >>> model = SCQubitsModel(2)
+    >>> processor = ModelProcessor(model=model)
+    >>> compiler = SCQubitsCompiler(2, params=model.params)
+    >>> processor.load_circuit(qc, compiler=compiler);  # doctest: +SKIP
+
+    Notice that the above example is equivalent to using directly
+    the :obj:`.SCQubits`.
     """
 
     def __init__(self, num_qubits, params):
