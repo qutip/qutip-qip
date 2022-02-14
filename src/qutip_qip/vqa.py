@@ -733,8 +733,8 @@ class OptimizationResult:
         Returns
         -------
         bitstring: str
-            bitstring in the form :math:`|x_0x_1...x_n>` where each x_i is '0' or '1'
-            and n is the number of qubits of the system.
+            bitstring in the form :math:`|x_0x_1...x_n>` where each
+            :math:`x_i` is 0 or 1 and n is the number of qubits of the system.
         """
         return "|" + self._highest_prob_bitstring(self.final_state) + ">"
 
@@ -758,8 +758,8 @@ class OptimizationResult:
         label_sets: bool, optional
             Replace bitstring labels with sets referring to the inferred
             output of the combinatorial optimization problem. For example
-            a bitstring :math:`|010>` would produce a set with the first and last
-            elements of S, and one with the second element of S.
+            a bitstring :math:`|010>` would produce a set with the first and
+            last elements of S, and one with the second element of S.
         top_ten: bool, optional
             Only plot the ten highest-probability states.
         """
@@ -808,8 +808,8 @@ class OptimizationResult:
         label_sets: bool, optional
             Replace bitstring labels with sets referring to the inferred
             output of the combinatorial optimization problem. For example
-            a bitstring :math:`|010>` would produce a set with the first and last
-            elements of S, and one with the second element of S.
+            a bitstring :math:`|010>` would produce a set with the first and
+            last elements of S, and one with the second element of S.
         top_ten: bool, optional
             Only plot the ten highest-probability states.
         """
