@@ -7,7 +7,6 @@ from qutip.qip.circuit import QubitCircuit
 from scipy.optimize import minimize
 from scipy.linalg import expm_frechet
 from qutip.qip.operations.gates import gate_sequence_product
-import matplotlib.pyplot as plt
 
 
 class VQA:
@@ -814,6 +813,7 @@ class OptimizationResult:
         top_ten: bool, optional
             Only plot the ten highest-probability states.
         """
+        import matplotlib.pyplot as plt
         n_qubits = int(np.log2(state.shape[0]))
         probs = [abs(i.item()) ** 2 for i in state]
         bitstrings = [
