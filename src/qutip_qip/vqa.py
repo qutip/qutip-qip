@@ -200,8 +200,8 @@ class VQA:
         would return 0 and 1 with equal probability.
         """
         n_qubits = int(np.log2(state.shape[0]))
-        outcome_indices = list(range(2 ** n_qubits))
-        probs = [abs(i.item()) ** 2 for i in state]
+        outcome_indices = list(range(2**n_qubits))
+        probs = [abs(i.item())**2 for i in state]
         outcome_index = np.random.choice(outcome_indices, p=probs)
         return format(outcome_index, f"0{n_qubits}b")
 
@@ -733,7 +733,7 @@ class OptimizationResult:
         Returns
         -------
         bitstring: str
-            bitstring in the form |x_0x_1...x_n> where each x_i is '0' or '1'
+            bitstring in the form :math:`|x_0x_1...x_n>` where each x_i is '0' or '1'
             and n is the number of qubits of the system.
         """
         return "|" + self._highest_prob_bitstring(self.final_state) + ">"
@@ -758,7 +758,7 @@ class OptimizationResult:
         label_sets: bool, optional
             Replace bitstring labels with sets referring to the inferred
             output of the combinatorial optimization problem. For example
-            a bitstring "|010>" would produce a set with the first and last
+            a bitstring :math:`|010>` would produce a set with the first and last
             elements of S, and one with the second element of S.
         top_ten: bool, optional
             Only plot the ten highest-probability states.
@@ -808,17 +808,17 @@ class OptimizationResult:
         label_sets: bool, optional
             Replace bitstring labels with sets referring to the inferred
             output of the combinatorial optimization problem. For example
-            a bitstring "|010>" would produce a set with the first and last
+            a bitstring :math:`|010>` would produce a set with the first and last
             elements of S, and one with the second element of S.
         top_ten: bool, optional
             Only plot the ten highest-probability states.
         """
         import matplotlib.pyplot as plt
         n_qubits = int(np.log2(state.shape[0]))
-        probs = [abs(i.item()) ** 2 for i in state]
+        probs = [abs(i.item())**2 for i in state]
         bitstrings = [
             "|" + format(i, f"0{n_qubits}b") + ">"
-            for i in range(2 ** n_qubits)
+            for i in range(2**n_qubits)
         ]
         if top_ten and len(probs) > 10:
             tenth_highest = sorted(probs)[-10]
