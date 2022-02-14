@@ -201,7 +201,7 @@ class VQA:
         """
         n_qubits = int(np.log2(state.shape[0]))
         outcome_indices = list(range(2**n_qubits))
-        probs = [abs(i.item())**2 for i in state]
+        probs = [abs(i.item()) ** 2 for i in state]
         outcome_index = np.random.choice(outcome_indices, p=probs)
         return format(outcome_index, f"0{n_qubits}b")
 
@@ -814,8 +814,9 @@ class OptimizationResult:
             Only plot the ten highest-probability states.
         """
         import matplotlib.pyplot as plt
+
         n_qubits = int(np.log2(state.shape[0]))
-        probs = [abs(i.item())**2 for i in state]
+        probs = [abs(i.item()) ** 2 for i in state]
         bitstrings = [
             "|" + format(i, f"0{n_qubits}b") + ">"
             for i in range(2**n_qubits)
