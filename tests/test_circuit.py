@@ -480,7 +480,7 @@ class TestQubitCircuit:
         """
         Test for circuit with N-level system.
         """
-        mat3 = rand_dm(3, density=1.)
+        mat3 = qp.rand_unitary_haar(3)
 
         def controlled_mat3(arg_value):
             """
@@ -495,7 +495,13 @@ class TestQubitCircuit:
         qc.user_gates = {"CTRLMAT3": controlled_mat3}
         qc.add_gate("CTRLMAT3", targets=[1, 0], arg_value=1)
         props = qc.propagators()
-        np.testing.assert_allclose(mat3, ptrace(props[0], 0) - 1)
+        final_fid = qp.average_gate_fidelity(mat3, ptrace(props[0], 0) - 1)
+        assert pytest.approx(final_fid, 1.0e-6) == 1
+
+        init_state = basis([3, 2], [0, 1])
+        result = qc.run(init_state)
+        final_fid = qp.fidelity(result, props[0] * init_state)
+        assert pytest.approx(final_fid, 1.0e-6) == 1.
 
     @pytest.mark.repeat(10)
     def test_run_teleportation(self):

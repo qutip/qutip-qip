@@ -6,7 +6,7 @@ qutip\_qip package
    :maxdepth: 1
 
 
-Operator-level simulation
+Gate-level simulation
 -------------------------
 Simulation based on operator-state multiplication.
 

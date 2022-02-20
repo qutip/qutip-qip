@@ -57,6 +57,8 @@ extensions = ['sphinx.ext.mathjax',
               'sphinx.ext.viewcode',
               'sphinx.ext.ifconfig',
               'sphinx.ext.napoleon',
+              'sphinxcontrib.bibtex',
+              'sphinx.ext.intersphinx',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -172,3 +174,14 @@ napoleon_use_admonition_for_notes = True
 # and should not be overwritten.
 # autosummary_generate = True
 autosummary_imported_members = True
+
+# -- Options for biblatex ---------------------------------------
+
+bibtex_bibfiles = ['references.bib']
+bibtex_default_style = 'unsrt'
+
+# -- Options for intersphinx ---------------------------------------
+
+intersphinx_mapping = {
+    'qutip': ('https://qutip.org/docs/latest/', None),
+}

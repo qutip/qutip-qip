@@ -349,6 +349,52 @@ class GateCompiler(object):
         ``Processor.pulse_mode`` to ``"continuous"``.
         Notice that finite number of sampling points will also make
         the total integral of the coefficients slightly deviate from ``area``.
+
+        Examples
+        --------
+        .. plot::
+            :context: reset
+
+            from qutip_qip.compiler import GateCompiler
+            import numpy as np
+            compiler = GateCompiler()
+            coeff, tlist= compiler.generate_pulse_shape(
+                "hann",  # Scipy Hann window
+                1000,  # 100 sampling point
+                maximum=3.,
+                # Notice that 2 pi is added to H by qutip solvers.
+                area= 1.,
+            )
+
+        We can plot the generated pulse shape:
+
+        .. plot::
+            :context: close-figs
+
+            import matplotlib.pyplot as plt
+            plt.plot(tlist, coeff)
+            plt.show()
+
+        The pulse is normalized to fit the area. Notice that due to
+        the finite number of sampling points, it is not exactly 1.
+
+        .. testsetup::
+
+            from qutip_qip.compiler import GateCompiler
+            import numpy as np
+            compiler = GateCompiler()
+            coeff, tlist= compiler.generate_pulse_shape(
+                "hann",  # Scipy Hann window
+                1000,  # 100 sampling point
+                maximum=3.,
+                # Notice that 2 pi is added to H by qutip solvers.
+                area= 1.,
+            )
+
+        .. doctest::
+
+            >>> round(np.trapz(coeff, tlist), 2)
+            1.0
         """
         coeff, tlist = _normalized_window(shape, num_samples)
         sign = np.sign(area)

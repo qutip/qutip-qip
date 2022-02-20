@@ -134,13 +134,15 @@ fig3.savefig("transmon_pulse.pdf")
 fig3.show()
 
 
-plt.rcParams.update({"text.usetex": False})
-
+plt.rcParams.update({"text.usetex": False, "font.size": 9})
 # Plot hinton
 from qutip import hinton
 fig4, ax4 = plt.subplots(figsize=(LINEWIDTH*0.9, LINEWIDTH*0.7), dpi=200)
 first_two_qubits = result1.states[-1].ptrace([0,1])
-_, ax4 = hinton(first_two_qubits, ax=ax4)
+_, ax4 = hinton(
+    first_two_qubits, ax=ax4,
+    xlabels=['$|00\\rangle$', '$|01\\rangle$', '$|10\\rangle$', '$|11\\rangle$'],
+    ylabels=['$|00\\rangle$', '$|01\\rangle$', '$|10\\rangle$', '$|11\\rangle$'])
 fig4.savefig("hinton.pdf")
 fig4.show()
 
@@ -150,7 +152,7 @@ for state in result1.states:
     tmp = state.ptrace([0,1])
     tmp = basis([2,2], [0,0]).dag() * tmp * basis([2,2], [0,0])
     expect.append(np.real(tmp[0, 0]))
-# fig5, ax5 = plt.subplots(figsize=(LINEWIDTH*0.7, LINEWIDTH*0.7*0.6), dpi=200)
+
 fig5, ax5 = plt.subplots(figsize=(LINEWIDTH, LINEWIDTH*0.7), dpi=200)
 ax5.plot(t_record, expect, color="slategrey")
 ax5.set_ylabel(r"Population of $|00\rangle$")
