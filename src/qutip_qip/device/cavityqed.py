@@ -51,6 +51,37 @@ class DispersiveCavityQED(ModelProcessor):
 
     **params:
         Hardware parameters. See :obj:`CavityQEDModel`.
+
+    Examples
+    --------
+
+    .. testcode::
+
+        import numpy as np
+        import qutip
+        from qutip_qip.circuit import QubitCircuit
+        from qutip_qip.device import DispersiveCavityQED
+
+        qc = QubitCircuit(2)
+        qc.add_gate("RX", 0, arg_value=np.pi)
+        qc.add_gate("RY", 1, arg_value=np.pi)
+        qc.add_gate("ISWAP", [1, 0])
+
+        processor = DispersiveCavityQED(2, g=0.1)
+        processor.load_circuit(qc)
+        result = processor.run_state(
+            qutip.basis([10, 2, 2], [0, 0, 0]),
+            options=qutip.Options(nsteps=5000))
+        final_qubit_state = result.states[-1].ptrace([1, 2])
+        print(round(qutip.fidelity(
+            final_qubit_state,
+            qc.run(qutip.basis([2, 2], [0, 0]))
+        ), 4))
+
+    .. testoutput::
+
+        0.9994
+
     """
 
     def __init__(

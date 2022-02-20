@@ -38,6 +38,26 @@ class SCQubits(ModelProcessor):
         If ZZ cross-talk is included.
     **params:
         Hardware parameters. See :obj:`SCQubitsModel`.
+
+    Examples
+    --------
+
+    .. testcode::
+
+        import numpy as np
+        import qutip
+        from qutip_qip.circuit import QubitCircuit
+        from qutip_qip.device import SCQubits
+
+        qc = QubitCircuit(2)
+        qc.add_gate("RZ", 0, arg_value=np.pi)
+        qc.add_gate("RY", 1, arg_value=np.pi)
+        qc.add_gate("CNOT", targets=0, controls=1)
+
+        processor = SCQubits(2)
+        processor.load_circuit(qc)
+        init_state = qutip.basis([3, 3], [0, 0])
+        result = processor.run_state(init_state)
     """
 
     def __init__(self, num_qubits, dims=None, zz_crosstalk=False, **params):
@@ -140,7 +160,7 @@ class SCQubitsModel(Model):
 
     def __init__(self, num_qubits, dims=None, zz_crosstalk=False, **params):
         self.num_qubits = num_qubits
-        self.dims = dims
+        self.dims = dims if dims is not None else [3] * num_qubits
         self.params = {
             "wq": np.array(
                 ((5.15, 5.09) * int(np.ceil(self.num_qubits / 2)))[
