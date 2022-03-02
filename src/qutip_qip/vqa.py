@@ -771,9 +771,7 @@ class OptimizationResult:
                 s2.append(S[i])
         return (str(s1) + " " + str(s2)).replace("[", "{").replace("]", "}")
 
-    def plot(
-        self, S=None, label_sets=False, top_ten=False, display=True
-    ):
+    def plot(self, S=None, label_sets=False, top_ten=False, display=True):
         """
         Plot probability amplitudes of each measurement
         outcome of a state.
