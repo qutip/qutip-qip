@@ -10,6 +10,7 @@ class TestVQABlock:
     """
     Test class for the VQABlock class
     """
+
     def test_initial(self):
         block = VQABlock(qutip.sigmax())
         assert block.get_unitary([1]) == (-1j * qutip.sigmax()).expm()
@@ -17,27 +18,32 @@ class TestVQABlock:
     @pytest.mark.parametrize("angle", [1, 2, 3])
     def test_parameterization(self, angle):
         block = VQABlock(qutip.sigmax())
-        assert block.get_unitary([angle]) \
-               == (-1j * angle * qutip.sigmax()).expm()
+        assert (
+            block.get_unitary([angle]) == (-1j * angle * qutip.sigmax()).expm()
+        )
         assert block.get_free_parameters() == 1
         block = VQABlock(qutip.sigmaz())
-        assert block.get_unitary([angle]) \
-               == (-1j * angle * qutip.sigmaz()).expm()
+        assert (
+            block.get_unitary([angle]) == (-1j * angle * qutip.sigmaz()).expm()
+        )
         block = VQABlock(qutip.sigmay())
-        assert block.get_unitary([angle]) == \
-               (-1j * angle * qutip.sigmay()).expm()
+        assert (
+            block.get_unitary([angle]) == (-1j * angle * qutip.sigmay()).expm()
+        )
 
     @pytest.mark.parametrize("angle", [1, 2, 3])
     def test_unitary_function(self, angle):
-        block = VQABlock(lambda t: (t*-1j*qutip.sigmax()).expm())
-        assert block.get_unitary([angle]) == \
-               (-1j * angle * qutip.sigmax()).expm()
+        block = VQABlock(lambda t: (t * -1j * qutip.sigmax()).expm())
+        assert (
+            block.get_unitary([angle]) == (-1j * angle * qutip.sigmax()).expm()
+        )
 
 
 class TestVQA:
     """
     Test class for the VQA class
     """
+
     @pytest.mark.parametrize("n", [[[0, 1], [1.5, 1]], [[1, 0], [1, 1.5]]])
     def test_initialization_bad_input(self, n):
         """
@@ -63,6 +69,7 @@ class TestVQACircuit:
     """
     Test class for circuits made from the VQA and VQABlock combination
     """
+
     def test_initialize(self):
         block = VQABlock(qutip.sigmax(), is_unitary=True)
         vqa = VQA(n_qubits=1)
@@ -78,7 +85,7 @@ class TestVQACircuit:
         final_state = vqa.get_final_state([0])
         assert final_state == qutip.basis(2, 0)
         vqa.add_block(block)
-        final_state = vqa.get_final_state([np.pi/2])
+        final_state = vqa.get_final_state([np.pi / 2])
         assert final_state == qutip.Qobj([[0], [-1j]])
 
     def test_trivial_optimization(self):
@@ -92,9 +99,9 @@ class TestVQACircuit:
         vqa.add_block(block)
         # try to reach the |1> state from the |0> state
         vqa.cost_func = lambda s: 1 - s.overlap(qutip.basis(2, 1)).real
-        res = vqa.optimize_parameters(initial=[np.pi/2])
+        res = vqa.optimize_parameters(initial=[np.pi / 2])
         assert res.get_top_bitstring() == "|1>"
-    
+
     def test_layer_by_layer(self):
         """
         tests trivial optimization going layer-by-layer
@@ -103,7 +110,9 @@ class TestVQACircuit:
         block = VQABlock(qutip.sigmax())
         vqa.add_block(block)
         vqa.cost_func = lambda s: 1 - s.overlap(qutip.basis(2, 1)).real
-        res = vqa.optimize_parameters(initial=[np.pi/2, 0, 0, 0], layer_by_layer=True)
+        res = vqa.optimize_parameters(
+            initial=[np.pi / 2, 0, 0, 0], layer_by_layer=True
+        )
         assert res.get_top_bitstring() == "|1>"
 
     @pytest.mark.parametrize("use_jac", [True, False])
@@ -117,13 +126,11 @@ class TestVQACircuit:
         # try to reach the |1> state from the |0> state
         vqa.cost_observable = qutip.sigmaz()
         res = vqa.optimize_parameters(
-                initial=[np.pi/2 + 0.2],
-                method="BFGS",
-                use_jac=use_jac
-                )
+            initial=[np.pi / 2 + 0.2], method="BFGS", use_jac=use_jac
+        )
         assert res.get_top_bitstring() == "|1>"
         # check we actually found the function minimum
-        assert round(res.res.x[0], 2) == round(np.pi/2, 2)
+        assert round(res.res.x[0], 2) == round(np.pi / 2, 2)
 
     def test_parameterized_hamiltonian_blocks(self):
         """
@@ -132,33 +139,28 @@ class TestVQACircuit:
         """
         # Hamiltonian that looks like (t_1*X  +  t_2*Z)
         block = VQABlock(
-                ParameterizedHamiltonian([qutip.sigmax(), qutip.sigmaz()])
-                )
+            ParameterizedHamiltonian([qutip.sigmax(), qutip.sigmaz()])
+        )
         vqa = VQA(n_qubits=1, n_layers=2)
         vqa.add_block(block)
         # Do (pi/2*X + 0*Z) and then (0*X + pi/2*Z)
-        final_state = vqa.get_final_state([np.pi/2, 0, 0, np.pi/2])
+        final_state = vqa.get_final_state([np.pi / 2, 0, 0, np.pi / 2])
         # expect |1>
         assert final_state == qutip.basis(2, 1)
-    
+
     def test_parameterized_hamiltonian_frechet_derivative(self):
         """
         Test gradient-based optimization on parameterized Hamiltonian blocks
         """
         vqa = VQA(n_qubits=1)
         vqa.cost_observable = qutip.sigmaz()
-        block = VQABlock(
-                ParameterizedHamiltonian([qutip.sigmax()])
-                )
+        block = VQABlock(ParameterizedHamiltonian([qutip.sigmax()]))
         vqa.add_block(block)
         res = vqa.optimize_parameters(
-                initial=[np.pi/2 + 0.2],
-                method="BFGS",
-                use_jac=True
-                )
+            initial=[np.pi / 2 + 0.2], method="BFGS", use_jac=True
+        )
         assert res.get_top_bitstring() == "|1>"
 
-    
     @pytest.mark.parametrize("todo", [False, True])
     def test_plot(self, todo):
         """
@@ -170,18 +172,19 @@ class TestVQACircuit:
         except Exception:
             return True
         vqa = VQA(n_qubits=4, n_layers=1, cost_method="STATE")
-        vqa.add_block(VQABlock('X', targets=[0]))
-        vqa.add_block(VQABlock('X', targets=[1]))
-        vqa.add_block(VQABlock('X', targets=[2]))
-        vqa.add_block(VQABlock('X', targets=[3]))
+        vqa.add_block(VQABlock("X", targets=[0]))
+        vqa.add_block(VQABlock("X", targets=[1]))
+        vqa.add_block(VQABlock("X", targets=[2]))
+        vqa.add_block(VQABlock("X", targets=[3]))
         vqa.cost_func = lambda s: 0
         res = vqa.optimize_parameters()
         res.plot(top_ten=todo, display=False)
+
     def test_bitstring_cost(self):
         "Check the bitstring sampling function"
         vqa = VQA(n_qubits=1, cost_method="BITSTRING")
         vqa.add_block(VQABlock(qutip.sigmax()))
         # target the |1> state by giving the "1" string a cost of 0
         vqa.cost_func = lambda s: 1 - int(s)
-        res = vqa.optimize_parameters(initial=[np.pi/2 + 1e-3])
+        res = vqa.optimize_parameters(initial=[np.pi / 2 + 1e-3])
         assert res.get_top_bitstring() == "|1>"
