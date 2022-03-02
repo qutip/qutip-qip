@@ -746,27 +746,6 @@ class OptimizationResult:
             + f"\tParameters found: {self.angles}"
         )
 
-    def plot(self, S=None, label_sets=False, top_ten=False):
-        """
-        Plot the measurement outcome probabilities after optimization
-
-        Parameters
-        ----------
-        S: list of float, optional
-            The problem instance, in the case of a combinatorial
-            optimization problem.
-        label_sets: bool, optional
-            Replace bitstring labels with sets referring to the inferred
-            output of the combinatorial optimization problem. For example
-            a bitstring :math:`|010>` would produce a set with the first and
-            last elements of S, and one with the second element of S.
-        top_ten: bool, optional
-            Only plot the ten highest-probability states.
-        """
-        self.state_probs_plot(
-            self.final_state, S, self.min_cost, label_sets, top_ten
-        )
-
     def _label_to_sets(self, S, bitstring):
         """
         Convert bitstring to string representation of
@@ -792,8 +771,8 @@ class OptimizationResult:
                 s2.append(S[i])
         return (str(s1) + " " + str(s2)).replace("[", "{").replace("]", "}")
 
-    def state_probs_plot(
-        self, state, S=None, min_cost="", label_sets=False, top_ten=False
+    def plot(
+        self, S=None, label_sets=False, top_ten=False, display=True
     ):
         """
         Plot probability amplitudes of each measurement
@@ -812,8 +791,16 @@ class OptimizationResult:
             last elements of S, and one with the second element of S.
         top_ten: bool, optional
             Only plot the ten highest-probability states.
+        display: bool, optional
+            Display the plot with the pyplot plot.show() method
         """
-        import matplotlib.pyplot as plt
+        try:
+            import matplotlib.pyplot as plt
+        except Exception:
+            print("could not import matplotlib.pyplot")
+            quit()
+        state = self.final_state
+        min_cost = self.min_cost
 
         n_qubits = int(np.log2(state.shape[0]))
         probs = [abs(i.item()) ** 2 for i in state]
@@ -822,11 +809,11 @@ class OptimizationResult:
             for i in range(2**n_qubits)
         ]
         if top_ten and len(probs) > 10:
-            tenth_highest = sorted(probs)[-10]
+            threshold = sorted(probs)[-11]
             top_probs = []
             top_bitstrings = []
             for i, prob in enumerate(probs):
-                if prob >= tenth_highest:
+                if prob > threshold:
                     top_probs.append(prob)
                     top_bitstrings.append(bitstrings[i])
             bitstrings = top_bitstrings
@@ -850,4 +837,5 @@ class OptimizationResult:
             f"Cost: {round(min_cost, 2)}"
         )
         plt.tight_layout()
-        plt.show()
+        if display:
+            plt.show()
