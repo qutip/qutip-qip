@@ -114,6 +114,6 @@ class TestOptPulseProcessor:
         num_result = processor.run_state(init_state=init_state).states[-1]
         ideal_result = qc.run(init_state)
         assert (
-            pytest.approx(qutip.fidelity(num_result, ideal_result), 1.0e-6)
+            pytest.approx(qutip.fidelity(num_result, ideal_result), 1.0e-5)
             == 1.0
         )
