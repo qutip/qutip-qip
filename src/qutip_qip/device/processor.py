@@ -27,8 +27,19 @@ __all__ = ["Processor"]
 class Processor(object):
     """
     The noisy quantum device simulator using QuTiP dynamic solvers.
-    It compiles quantums circuit into a Hamiltonian model and then
+    It compiles quantum circuit into a Hamiltonian model and then
     simulate the time-evolution described by the master equation.
+
+    .. note::
+
+        This is an abstract class that includes the general API but
+        has no concrete physical model implemented.
+        In particular, it provides a series of low-level APIs that allow
+        direct modification of the Hamiltonian model and control pulses,
+        which can usually be achieved automatically using :obj:`.Model`
+        and build-in workflows.
+        They provides more flexibility but are not always the most
+        elegant approaches.
 
     Parameters
     ----------
@@ -221,7 +232,8 @@ class Processor(object):
         self, qobj, targets=None, cyclic_permutation=False, label=None
     ):
         """
-        Add a control Hamiltonian to the model.
+        Add a control Hamiltonian to the model. The new control Hamiltonian
+        is saved in the :obj:`.Processor.model` attributes.
 
         Parameters
         ----------
@@ -243,6 +255,21 @@ class Processor(object):
             If ``None``,
             it will be set to the current number of
             control Hamiltonians in the system.
+
+        Examples
+        --------
+        >>> import qutip
+        >>> from qutip_qip.device import Processor
+        >>> processor = Processor(1)
+        >>> processor.add_control(qutip.sigmax(), 0, label="sx")
+        >>> processor.get_control_labels()
+        ['sx']
+        >>> processor.get_control("sx") # doctest: +NORMALIZE_WHITESPACE
+        (Quantum object: dims = [[2], [2]], shape = (2, 2),
+        type = oper, isherm = True
+        Qobj data =
+        [[0. 1.]
+        [1. 0.]], [0])
         """
         targets = self._unify_targets(qobj, targets)
         if label is None:
@@ -268,6 +295,19 @@ class Processor(object):
         -------
         control_hamiltonian : tuple
             The control Hamiltonian in the form of ``(qobj, targets)``.
+
+        Examples
+        --------
+        >>> from qutip_qip.device import LinearSpinChain
+        >>> processor = LinearSpinChain(1)
+        >>> processor.get_control_labels()
+        ['sx0', 'sz0']
+        >>> processor.get_control('sz0') # doctest: +NORMALIZE_WHITESPACE
+        (Quantum object: dims = [[2], [2]], shape = (2, 2),
+        type = oper, isherm = True
+        Qobj data =
+        [[ 6.28318531  0.        ]
+        [ 0.         -6.28318531]], 0)
         """
         return self.model.get_control(label)
 
@@ -403,7 +443,6 @@ class Processor(object):
             )
 
     set_all_coeffs = set_coeffs
-    set_all_coeffs.__doc__ = "Equivalent to :obj:`Processor.set_coeffs`."
 
     def set_tlist(self, tlist):
         """
@@ -430,7 +469,6 @@ class Processor(object):
             self.pulses[pulse_dict[pulse_label]].tlist = value
 
     set_all_tlist = set_tlist
-    set_all_coeffs.__doc__ = "Equivalent to :obj:`Processor.set_tlist`."
 
     def get_full_tlist(self, tol=1.0e-10):
         """

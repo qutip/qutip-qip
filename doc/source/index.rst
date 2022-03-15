@@ -49,6 +49,11 @@ qutip-qip |version|: QuTiP quantum information processing
 
     apidoc.rst
 
+.. toctree::
+    :caption: Bibliography
+
+    bibliography.rst
+
 Indices and tables
 ==================
 

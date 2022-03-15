@@ -102,6 +102,7 @@ class SpinChain(ModelProcessor):
 class LinearSpinChain(SpinChain):
     """
     Spin chain model with open-end topology.
+    For the control Hamiltonian please refer to :obj:`SpinChainModel`.
 
     Parameters
     ----------
@@ -115,6 +116,32 @@ class LinearSpinChain(SpinChain):
 
     **params:
         Hardware parameters. See :obj:`.SpinChainModel`.
+
+    Examples
+    --------
+
+    .. testcode::
+
+        import numpy as np
+        import qutip
+        from qutip_qip.circuit import QubitCircuit
+        from qutip_qip.device import LinearSpinChain
+
+        qc = QubitCircuit(2)
+        qc.add_gate("RX", 0, arg_value=np.pi)
+        qc.add_gate("RY", 1, arg_value=np.pi)
+        qc.add_gate("ISWAP", [1, 0])
+
+        processor = LinearSpinChain(2, g=0.1, t1=300)
+        processor.load_circuit(qc)
+        init_state = qutip.basis([2, 2], [0, 0])
+        result = processor.run_state(init_state)
+        print(round(qutip.fidelity(result.states[-1], qc.run(init_state)), 4))
+
+    .. testoutput::
+
+        0.994
+
     """
 
     def __init__(
@@ -159,6 +186,7 @@ class CircularSpinChain(SpinChain):
     """
     Spin chain model with circular topology. See :class:`.SpinChain`
     for details.
+    For the control Hamiltonian please refer to :obj:`SpinChainModel`.
 
     Parameters
     ----------
@@ -172,6 +200,31 @@ class CircularSpinChain(SpinChain):
 
     **params:
         Hardware parameters. See :obj:`.SpinChainModel`.
+
+    Examples
+    --------
+
+    .. testcode::
+
+        import numpy as np
+        import qutip
+        from qutip_qip.circuit import QubitCircuit
+        from qutip_qip.device import CircularSpinChain
+
+        qc = QubitCircuit(2)
+        qc.add_gate("RX", 0, arg_value=np.pi)
+        qc.add_gate("RY", 1, arg_value=np.pi)
+        qc.add_gate("ISWAP", [1, 0])
+
+        processor = CircularSpinChain(2, g=0.1, t1=300)
+        processor.load_circuit(qc)
+        init_state = qutip.basis([2, 2], [0, 0])
+        result = processor.run_state(init_state)
+        print(round(qutip.fidelity(result.states[-1], qc.run(init_state)), 4))
+
+    .. testoutput::
+
+        0.994
     """
 
     def __init__(
@@ -222,12 +275,28 @@ class CircularSpinChain(SpinChain):
 class SpinChainModel(Model):
     """
     The physical model for the spin chian processor
-    (:obj:`CircularSpinChain` and :obj`LinearSpinChain`).
+    (:obj:`CircularSpinChain` and :obj:`LinearSpinChain`).
+    The interaction is only possible between adjacent qubits.
+    The single-qubit control Hamiltonians are :math:`\\sigma_j^x`$`,
+    :math:`\\sigma_j^z`, while the interaction is realized by
+    the exchange Hamiltonian
+    :math:`\\sigma^x_{j}\\sigma^x_{j+1}+\\sigma^y_{j}\\sigma^y_{j+1}`.
+    The overall Hamiltonian model is written as:
+
+    .. math::
+
+        H=
+        \\sum_{j=0}^{N-1}
+        \\Omega^x_{j}(t) \\sigma^x_{j} +
+        \\Omega^z_{j}(t) \\sigma^z_{j} + \\sum_{j=0}^{N-2}
+        g_{j}(t)
+        (\\sigma^x_{j}\\sigma^x_{j+1}+
+        \\sigma^y_{j}\\sigma^y_{j+1}).
 
     Parameters
     ----------
     num_qubits: int
-        The number of qubits.
+        The number of qubits, :math:`N`.
     setup : str
         "linear" for an open end and "circular" for a closed end chain.
     **params :
@@ -237,14 +306,16 @@ class SpinChainModel(Model):
         for each qubits.
 
         - sx : float or list, optional
-            The pulse strength of sigma-x control, default ``0.25``.
+            The pulse strength of sigma-x control, :math:`\\Omega^x`,
+            default ``0.25``.
         - sz : float or list, optional
-            The pulse strength of sigma-z control, default ``1.0``.
+            The pulse strength of sigma-z control, :math:`\\Omega^z`,
+            default ``1.0``.
         - sxsy : float or list, optional
-            The pulse strength for the exchange interaction,
+            The pulse strength for the exchange interaction, :math:`g`,
             default ``0.1``.
             It should be either a float or an array of the length
-            ``num_qubits-1`` for the linear setup or ``num_qubits`` for
+            :math:`N-1` for the linear setup or :math:`N` for
             the circular setup.
         - t1 : float or list, optional
             Characterize the amplitude damping for each qubit.

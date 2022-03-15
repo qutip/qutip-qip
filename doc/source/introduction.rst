@@ -19,13 +19,12 @@ It offers two different approaches for simulating quantum circuits, one with :cl
 Citing
 ===========
 
-If you use ``qutip.qip`` in your research, please cite the `article <https://quantum-journal.org/papers/q-2022-01-24-630>`_
+If you use ``qutip-qip`` in your research, please cite the `article <https://quantum-journal.org/papers/q-2022-01-24-630>`_
 as
 
 .. code-block:: text
 
-  Boxi Li, Shahnawaz Ahmed, Sidhant Saraogi, Neill Lambert, Franco Nori, Alexander Pitchford, & Nathan Shammah. (2021). Pulse-level noisy quantum circuits with QuTiP.
-
+    Boxi Li, Shahnawaz Ahmed, Sidhant Saraogi, Neill Lambert, Franco Nori, Alexander Pitchford, & Nathan Shammah. (2022). Pulse-level noisy quantum circuits with QuTiP. Quantum, 6, 630.
 
 The bibtex can be downloaded directly :download:`here<qutip_qip.bib>` or
 copy-pasted using :
