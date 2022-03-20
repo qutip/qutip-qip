@@ -149,7 +149,7 @@ Gate name                           Description
 "S"                   Single-qubit rotation or Z90
 "T"                   Square root of S gate
 "SQRTNOT"             Square root of NOT gate
-"SNOT"                Hardmard gate
+"SNOT"                Hadamard gate
 "PHASEGATE"           Add a phase one the state 1
 "CRX"                 Controlled rotation around x axis
 "CRY"                 Controlled rotation around y axis
