@@ -200,7 +200,7 @@ class VQA:
         would return 0 and 1 with equal probability.
         """
         n_qubits = int(np.log2(state.shape[0]))
-        outcome_indices = list(range(2**n_qubits))
+        outcome_indices = list(range(2 ** n_qubits))
         probs = [abs(i.item()) ** 2 for i in state]
         outcome_index = np.random.choice(outcome_indices, p=probs)
         return format(outcome_index, f"0{n_qubits}b")
@@ -237,6 +237,8 @@ class VQA:
                 raise ValueError("self.cost_observable not specified")
             else:
                 return expect(self.cost_observable, final_state)
+        else:
+            raise ValueError(f"Unrecognised cost method: {self.cost_method}")
 
     def optimize_parameters(
         self,
@@ -804,7 +806,7 @@ class OptimizationResult:
         probs = [abs(i.item()) ** 2 for i in state]
         bitstrings = [
             "|" + format(i, f"0{n_qubits}b") + ">"
-            for i in range(2**n_qubits)
+            for i in range(2 ** n_qubits)
         ]
         if top_ten and len(probs) > 10:
             threshold = sorted(probs)[-11]
