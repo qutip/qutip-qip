@@ -15,39 +15,10 @@ from copy import deepcopy
 from . import circuit_latex as _latex
 from .operations import (
     Gate,
-    rx,
-    ry,
-    rz,
-    sqrtnot,
-    snot,
-    phasegate,
-    x_gate,
-    y_gate,
-    z_gate,
-    cy_gate,
-    cz_gate,
-    s_gate,
-    t_gate,
-    cs_gate,
-    qasmu_gate,
-    ct_gate,
-    cphase,
-    cnot,
-    csign,
-    berkeley,
-    swapalpha,
-    swap,
-    iswap,
-    sqrtswap,
-    sqrtiswap,
-    fredkin,
-    toffoli,
-    controlled_gate,
-    globalphase,
     expand_operator,
     gate_sequence_product,
+    GATE_CLASS_MAP,
 )
-from .operations.gates import GATE_CLASS_MAP
 from qutip import basis, ket2dm, qeye
 from qutip import Qobj
 from qutip.measurement import measurement_statistics
