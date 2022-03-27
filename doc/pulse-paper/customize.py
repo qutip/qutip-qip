@@ -17,7 +17,7 @@ from qutip import sigmax, sigmay, sigmaz, basis, qeye, tensor, Qobj, fock_dm
 from qutip_qip.circuit import QubitCircuit, Gate
 from qutip_qip.device import ModelProcessor, Model
 from qutip_qip.compiler import GateCompiler, Instruction
-from qutip import Options
+from qutip import Options, fidelity
 from qutip_qip.noise import Noise
 
 
@@ -94,6 +94,7 @@ class MyCompiler(GateCompiler):
         # gate.arg_value is the rotation angle
         tlist = np.abs(gate.arg_value) / self.params["pulse_amplitude"]
         coeff = self.params["pulse_amplitude"] * np.sign(gate.arg_value)
+        coeff /= 2 * np.pi
         if gate.name == "RX":
             return self.generate_pulse(gate, tlist, coeff, phase=0.0)
         elif gate.name == "RY":
@@ -112,6 +113,7 @@ class MyCompiler(GateCompiler):
         # gate.arg_value is the pulse phase
         tlist = self.params["duration"]
         coeff = self.params["pulse_amplitude"]
+        coeff /= 2 * np.pi
         return self.generate_pulse(gate, tlist, coeff, phase=gate.arg_value)
 
 
@@ -121,6 +123,7 @@ num_qubits = 1
 circuit = QubitCircuit(1)
 circuit.add_gate("RX", targets=0, arg_value=np.pi / 2)
 circuit.add_gate("Z", targets=0)
+result1 = circuit.run(basis(2, 0))
 
 myprocessor = ModelProcessor(model=MyModel(num_qubits))
 myprocessor.native_gates = ["RX", "RY"]
@@ -128,7 +131,8 @@ myprocessor.native_gates = ["RX", "RY"]
 mycompiler = MyCompiler(num_qubits, {"pulse_amplitude": 0.02})
 
 myprocessor.load_circuit(circuit, compiler=mycompiler)
-result = myprocessor.run_state(basis(2, 0))
+result2 = myprocessor.run_state(basis(2, 0)).states[-1]
+assert(abs(fidelity(result1, result2) - 1) < 1.e-5)
 
 fig, ax = myprocessor.plot_pulses(
     figsize=(LINEWIDTH * 0.7, LINEWIDTH / 2 * 0.7), dpi=200,
