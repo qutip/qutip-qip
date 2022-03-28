@@ -1028,14 +1028,14 @@ class CNOT(_OneControlledGate, TwoQubitGate):
         return cnot()
 
 
-class CZ(_OneControlledGate):
+class CSIGN(_OneControlledGate):
     """
     Controlled Z gate.
 
     Examples
     --------
-    >>> from qutip_qip.operations import CZ
-    >>> CZ(1, 0).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> from qutip_qip.operations import CSIGN
+    >>> CSIGN(1, 0).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims = [[2, 2], [2, 2]], shape = (4, 4), type = oper, isherm = True
     Qobj data =
     [[ 1.  0.  0.  0.]
@@ -1058,8 +1058,8 @@ class CZ(_OneControlledGate):
         return csign()
 
 
-CSIGN = CZ
-CSIGN.__doc__ = "CSIGN"
+CZ = CSIGN
+CZ.__doc__ = CZ.__doc__
 
 
 class CPHASE(_OneControlledGate):
