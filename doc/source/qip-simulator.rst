@@ -14,12 +14,12 @@ examples of circuit evolution. We take a circuit from
 .. testcode::
 
     from qutip_qip.circuit import QubitCircuit
-    from qutip_qip.operations import (Gate, controlled_gate,
-                                            hadamard_transform)
+    from qutip_qip.operations import (
+        Gate, controlled_gate, hadamard_transform)
     def controlled_hadamard():
         # Controlled Hadamard
         return controlled_gate(
-            hadamard_transform(1), 2, control=0, target=1, control_value=1)
+            hadamard_transform(1), controls=0, targets=1, control_value=1)
     qc = QubitCircuit(N=3, num_cbits=3)
     qc.user_gates = {"cH": controlled_hadamard}
     qc.add_gate("QASMU", targets=[0], arg_value=[1.91063, 0, 0])
