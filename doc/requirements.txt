@@ -1,8 +1,8 @@
 numpy==1.21
-scipy==1.5
+scipy==1.7
 qutip==4.6
 cython==0.29
-sphinx==3.5
+sphinx==4.5
 sphinx_rtd_theme==0.5.1
 readthedocs-sphinx-search==0.1.0rc3
 numpydoc==1.1
