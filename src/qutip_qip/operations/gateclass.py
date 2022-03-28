@@ -929,11 +929,11 @@ class FREDKIN(Gate):
 
 class ControlledGate(Gate):
     def __init__(
-        self, targets, controls, control_value, target_gate, **kwargs
+        self, controls, targets, control_value, target_gate, **kwargs
     ):
         super().__init__(
-            targets=targets,
             controls=controls,
+            targets=targets,
             control_value=control_value,
             target_gate=target_gate,
             **kwargs,
@@ -974,11 +974,11 @@ class _OneControlledGate(ControlledGate, TwoQubitGate):
     """
     This class allows correctly generating the gate instance
     when a redundant control_value is given, e.g.
-    ``CNOT(1, 0, control_value=1)``,
+    ``CNOT(0, 1, control_value=1)``,
     and raise an error if it is 0.
     """
 
-    def __init__(self, targets, controls, target_gate, **kwargs):
+    def __init__(self, controls, targets, target_gate, **kwargs):
         _control_value = kwargs.get("control_value", None)
         if _control_value is not None:
             if (isinstance(_control_value, int) and _control_value != 1) or (
@@ -997,14 +997,14 @@ class _OneControlledGate(ControlledGate, TwoQubitGate):
         )
 
 
-class CNOT(_OneControlledGate, TwoQubitGate):
+class CNOT(_OneControlledGate):
     """
     CNOT gate.
 
     Examples
     --------
     >>> from qutip_qip.operations import CNOT
-    >>> CNOT(1, 0).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> CNOT(0, 1).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims = [[2, 2], [2, 2]], shape = (4, 4), type = oper, isherm = True
     Qobj data =
     [[1. 0. 0. 0.]
@@ -1013,7 +1013,7 @@ class CNOT(_OneControlledGate, TwoQubitGate):
      [0. 0. 1. 0.]]
     """
 
-    def __init__(self, targets=1, controls=0, **kwargs):
+    def __init__(self, controls, targets, **kwargs):
         self.target_gate = X
         super().__init__(
             targets=targets,
@@ -1035,7 +1035,7 @@ class CSIGN(_OneControlledGate):
     Examples
     --------
     >>> from qutip_qip.operations import CSIGN
-    >>> CSIGN(1, 0).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> CSIGN(0, 1).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims = [[2, 2], [2, 2]], shape = (4, 4), type = oper, isherm = True
     Qobj data =
     [[ 1.  0.  0.  0.]
@@ -1044,7 +1044,7 @@ class CSIGN(_OneControlledGate):
      [ 0.  0.  0. -1.]]
     """
 
-    def __init__(self, targets=1, controls=0, **kwargs):
+    def __init__(self, controls, targets, **kwargs):
         self.target_gate = Z
         super().__init__(
             targets=targets,
@@ -1078,7 +1078,7 @@ class CPHASE(_OneControlledGate):
     Examples
     --------
     >>> from qutip_qip.operations import CPHASE
-    >>> CPHASE(1, 0, np.pi/2).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> CPHASE(0, 1, np.pi/2).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims = [[2, 2], [2, 2]], shape = (4, 4), type = oper, isherm = False
     Qobj data =
     [[1.+0.j 0.+0.j 0.+0.j 0.+0.j]
@@ -1086,9 +1086,8 @@ class CPHASE(_OneControlledGate):
      [0.+0.j 0.+0.j 1.+0.j 0.+0.j]
      [0.+0.j 0.+0.j 0.+0.j 0.+1.j]]
     """
-
     def __init__(
-        self, targets, controls, arg_value, control_value=1, **kwargs
+        self, controls, targets, arg_value, control_value=1, **kwargs
     ):
         self.target_gate = RZ
         super().__init__(
