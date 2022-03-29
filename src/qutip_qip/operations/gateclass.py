@@ -1086,6 +1086,7 @@ class CPHASE(_OneControlledGate):
      [0.+0.j 0.+0.j 1.+0.j 0.+0.j]
      [0.+0.j 0.+0.j 0.+0.j 0.+1.j]]
     """
+
     def __init__(
         self, controls, targets, arg_value, control_value=1, **kwargs
     ):

@@ -6,7 +6,10 @@ import numpy as np
 import qutip
 from qutip_qip.operations import gates
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import X, Y, Z, RX, RY, RZ, H, SQRTNOT, S, T, QASMU, CNOT, CPHASE, ISWAP, SWAP, CZ, SQRTSWAP, SQRTISWAP, SWAPALPHA, SWAPALPHA, MS, TOFFOLI, FREDKIN, BERKELEY
+from qutip_qip.operations import (
+    X, Y, Z, RX, RY, RZ, H, SQRTNOT, S, T, QASMU, CNOT, CPHASE, ISWAP, SWAP,
+    CZ, SQRTSWAP, SQRTISWAP, SWAPALPHA, SWAPALPHA, MS, TOFFOLI, FREDKIN,
+    BERKELEY)
 
 def _permutation_id(permutation):
     return str(len(permutation)) + "-" + "".join(map(str, permutation))
