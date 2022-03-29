@@ -5,7 +5,8 @@ import itertools
 import numpy as np
 import qutip
 from qutip_qip.operations import gates
-
+from qutip_qip.circuit import QubitCircuit
+from qutip_qip.operations import X, Y, Z, RX, RY, RZ, H, SQRTNOT, S, T, QASMU, CNOT, CPHASE, ISWAP, SWAP, CZ, SQRTSWAP, SQRTISWAP, SWAPALPHA, SWAPALPHA, MS, TOFFOLI, FREDKIN, BERKELEY
 
 def _permutation_id(permutation):
     return str(len(permutation)) + "-" + "".join(map(str, permutation))
@@ -332,3 +333,60 @@ class Test_expand_operator:
                                          targets=targets, dims=dimensions)
             assert test.dims == expected.dims
             np.testing.assert_allclose(test.full(), expected.full())
+
+def test_gates_class():
+    init_state = qutip.rand_ket(8, dims=[[2, 2, 2], [1, 1, 1]])
+
+    circuit1 = QubitCircuit(3)
+    circuit1.add_gate("X", 1)
+    circuit1.add_gate("Y", 1)
+    circuit1.add_gate("Z", 2)
+    circuit1.add_gate("RX", 0, arg_value=np.pi/4)
+    circuit1.add_gate("RY", 0, arg_value=np.pi/4)
+    circuit1.add_gate("RZ", 1, arg_value=np.pi/4)
+    circuit1.add_gate("H", 0)
+    circuit1.add_gate("SQRTNOT", 0)
+    circuit1.add_gate("S", 2)
+    circuit1.add_gate("T", 1)
+    circuit1.add_gate("QASMU", 0, arg_value=(np.pi/4, np.pi/4, np.pi/4))
+    circuit1.add_gate("CNOT", controls=0, targets=1)
+    circuit1.add_gate("CPHASE", controls=0, targets=1, arg_value=np.pi/4)
+    circuit1.add_gate("SWAP", [0, 1])
+    circuit1.add_gate("ISWAP", [2, 1])
+    circuit1.add_gate("CZ", controls=0, targets=2)
+    circuit1.add_gate("SQRTSWAP", [2, 0])
+    circuit1.add_gate("SQRTISWAP", [0, 1])
+    circuit1.add_gate("SWAPALPHA", [1, 2], arg_value=np.pi/4)
+    circuit1.add_gate("MS", [1, 0], arg_value=np.pi/4)
+    circuit1.add_gate("TOFFOLI", [2, 0, 1])
+    circuit1.add_gate("FREDKIN", [0, 1, 2])
+    circuit1.add_gate("BERKELEY", [1, 0])
+    result1 = circuit1.run(init_state)
+
+    circuit2 = QubitCircuit(3)
+    circuit2.add_gate(X(1))
+    circuit2.add_gate(Y(1))
+    circuit2.add_gate(Z(2))
+    circuit2.add_gate(RX(0, np.pi/4))
+    circuit2.add_gate(RY(0, np.pi/4))
+    circuit2.add_gate(RZ(1, np.pi/4))
+    circuit2.add_gate(H(0))
+    circuit2.add_gate(SQRTNOT(0))
+    circuit2.add_gate(S(2))
+    circuit2.add_gate(T(1))
+    circuit2.add_gate(QASMU(0, (np.pi/4, np.pi/4, np.pi/4)))
+    circuit2.add_gate(CNOT(0, 1))
+    circuit2.add_gate(CPHASE(0, 1, np.pi/4))
+    circuit2.add_gate(SWAP([0, 1]))
+    circuit2.add_gate(ISWAP([2, 1]))
+    circuit2.add_gate(CZ(0, 2))
+    circuit2.add_gate(SQRTSWAP([2, 0]))
+    circuit2.add_gate(SQRTISWAP([0, 1]))
+    circuit2.add_gate(SWAPALPHA([1, 2], np.pi/4))
+    circuit2.add_gate(MS([1, 0], np.pi/4))
+    circuit2.add_gate(TOFFOLI([2, 0, 1]))
+    circuit2.add_gate(FREDKIN([0, 1, 2]))
+    circuit2.add_gate(BERKELEY([1, 0]))
+    result2 = circuit2.run(init_state)
+
+    assert pytest.approx(qutip.fidelity(result1, result2), 1.0e-6) == 1
