@@ -54,13 +54,13 @@ jobs:
 
     - name: Install QuTiP from PyPI
       if: ${{ ! startsWith( matrix.qutip-version, '@') }}
-      run: pip install 'qutip${{ matrix.qutip-version }}'
+      run: python -m pip install 'qutip${{ matrix.qutip-version }}'
 
     - name: Install QuTiP from GitHub
+      if: ${{ startsWith( matrix.qutip-version, '@') }}
       run: |
         python -m pip install numpy scipy cython
-      if: ${{ startsWith( matrix.qutip-version, '@') }}
-      run: pip install 'git+https://github.com/qutip/qutip.git${{ matrix.qutip-version }}'
+        python -m pip install 'git+https://github.com/qutip/qutip.git${{ matrix.qutip-version }}'
 
     - name: Install qutip-qip
       # Installing in-place so that coveralls can locate the source code.
