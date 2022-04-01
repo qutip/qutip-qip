@@ -564,7 +564,7 @@ class Drift:
     def get_full_tlist(self):
         """
         Return the full tlist of the pulses and noise.
-        It means that if different `tlist`s are present, they will be merged
+        It means that if different ``tlist``s are present, they will be merged
         to one with all time points stored in a sorted array.
         Returns
         -------
