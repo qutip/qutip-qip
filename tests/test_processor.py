@@ -343,16 +343,16 @@ class TestCircuitProcessor:
     def testChooseSolver(self):
         # setup and fidelity without noise
         init_state = qubit_states(2, [0, 0, 0, 0])
-        tlist = np.array([0., np.pi/2.])
+        tlist = np.linspace(0., np.pi/2., 10)
         a = destroy(2)
-        proc = Processor(N=2)
+        proc = Processor(N=2, t2=100)
         proc.add_control(sigmax(), targets=1, label="sx")
-        proc.set_all_coeffs({"sx": np.array([1.])})
+        proc.set_all_coeffs({"sx": np.array([1.] * len(tlist))})
         proc.set_all_tlist(tlist)
-        result = proc.run_state(init_state=init_state, solver="mcsolve")
-        assert_allclose(
-            fidelity(result.states[-1], qubit_states(2, [0, 1, 0, 0])),
-            1, rtol=1.e-7)
+        observerable = tensor([qutip.qeye(2), qutip.sigmax()])
+        result1 = proc.run_state(
+            init_state=init_state, solver="mcsolve", e_ops=observerable)
+        assert result1.solver == "mcsolve"
 
     def test_no_saving_intermidiate_state(self):
         processor = Processor(1)
