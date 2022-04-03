@@ -68,6 +68,7 @@ class MyCompiler(GateCompiler):  # compiler class
         self.args.update({"params": params})
 
 
+
 spline_kind = [
     pytest.param("step_func", id = "discrete"),
     pytest.param("cubic", id = "continuos"),

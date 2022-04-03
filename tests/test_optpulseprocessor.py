@@ -20,6 +20,7 @@ if parse_version(qutip.__version__) < parse_version('5.dev'):
 else:
     from qutip import SolverOptions
 
+
 class TestOptPulseProcessor:
     def test_simple_hadamard(self):
         """

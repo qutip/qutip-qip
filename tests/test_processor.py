@@ -205,13 +205,13 @@ class TestCircuitProcessor:
         processor.set_all_tlist(tlist)
 
         ideal_qobjevo, _ = processor.get_qobjevo(noisy=False)
-        assert_(not ideal_qobjevo.args["_step_func_coeff"])
+        assert ("_step_func_coeff" not in ideal_qobjevo.args)
         noisy_qobjevo, c_ops = processor.get_qobjevo(noisy=True)
-        assert_(not noisy_qobjevo.args["_step_func_coeff"])
+        assert ("_step_func_coeff" not in noisy_qobjevo.args)
         processor.t1 = 100.
         processor.add_noise(ControlAmpNoise(coeff=coeff, tlist=tlist))
         noisy_qobjevo, c_ops = processor.get_qobjevo(noisy=True)
-        assert_(not noisy_qobjevo.args["_step_func_coeff"])
+        assert ("_step_func_coeff" not in noisy_qobjevo.args)
 
     @pytest.mark.skipif(
         parse_version(qutip.__version__) >= parse_version('5.dev'),
@@ -265,10 +265,8 @@ class TestCircuitProcessor:
         processor.add_noise(amp_noise)
         noisy_qobjevo, c_ops = processor.get_qobjevo(
             args={"test": True}, noisy=True)
-        assert_(not noisy_qobjevo.args["_step_func_coeff"],
-                msg="Spline type not correctly passed on")
-        assert_(noisy_qobjevo.args["test"],
-                msg="Arguments not correctly passed on")
+        assert ("_step_func_coeff" not in noisy_qobjevo.args)
+        assert noisy_qobjevo.args["test"]
         assert_equal(len(noisy_qobjevo.ops), 2)
         assert_equal(sigmaz(), noisy_qobjevo.ops[0].qobj)
         assert_allclose(coeff, noisy_qobjevo.ops[0].coeff, rtol=1.e-10)
@@ -332,7 +330,7 @@ class TestCircuitProcessor:
         tlist = np.array([0., np.pi, 2*np.pi, 3*np.pi])
         processor.add_pulse(Pulse(None, None, tlist, False))
         ideal_qobjevo, _ = processor.get_qobjevo(noisy=True)
-        assert_equal(ideal_qobjevo.cte, sigmax() / 2)
+        assert_equal(ideal_qobjevo(0), sigmax() / 2)
 
         init_state = basis(2)
         propagators = processor.run_analytically()

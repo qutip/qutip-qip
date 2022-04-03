@@ -20,58 +20,51 @@ if parse_version(qutip.__version__) >= parse_version('5.dev'):
 else:
     is_qutip5 = False
 
+
 class TestNoise:
     def test_decoherence_noise(self):
         """
         Test for the decoherence noise
         """
-        tlist = np.array([1, 2, 3, 4, 5, 6])
-        coeff = np.array([1, 1, 1, 1, 1, 1])
+        tlist = np.array([0, 1, 2, 3, 4, 5, 6])
+        coeff = np.array([1, 1, 1, 1, 1, 1, 1])
 
         # Time-dependent
         decnoise = DecoherenceNoise(
             sigmaz(), coeff=coeff, tlist=tlist, targets=[1])
         dims = [2] * 2
-        pulses, systematic_noise = decnoise.get_noisy_pulses(dims=dims)
+        systematic_noise = Pulse(
+            None, None, label="systematic_noise",
+            spline_kind="step_func")
+        pulses, systematic_noise = decnoise.get_noisy_pulses(
+            systematic_noise=systematic_noise, dims=dims)
         noisy_qu, c_ops = systematic_noise.get_noisy_qobjevo(dims=dims)
         assert_allclose(
-            c_ops[0].ops[0].qobj.full(),
+            c_ops[0](0).full(),
             tensor(qeye(2), sigmaz()).full()
         )
-        if is_qutip5:
-            array_to_check = c_ops[0].ops[0].coeff.array
-        else:
-            array_to_check = c_ops[0].ops[0].coeff
-        assert_allclose(array_to_check, coeff)
-        assert_allclose(c_ops[0].tlist, tlist)
 
         # Time-independent and all qubits
         decnoise = DecoherenceNoise(sigmax(), all_qubits=True)
         pulses, systematic_noise = decnoise.get_noisy_pulses(dims=dims)
         noisy_qu, c_ops = systematic_noise.get_noisy_qobjevo(dims=dims)
-        c_ops = [qu.cte for qu in c_ops]
+        c_ops = [qu(0) for qu in c_ops]
         assert_(tensor([qeye(2), sigmax()]) in c_ops)
         assert_(tensor([sigmax(), qeye(2)]) in c_ops)
 
         # Time-denpendent and all qubits
         decnoise = DecoherenceNoise(
             sigmax(), all_qubits=True, coeff=coeff*2, tlist=tlist)
-        pulses, systematic_noise = decnoise.get_noisy_pulses(dims=dims)
+        systematic_noise = Pulse(
+            None, None, label="systematic_noise",
+            spline_kind="step_func")
+        pulses, systematic_noise = decnoise.get_noisy_pulses(
+            systematic_noise=systematic_noise, dims=dims)
         noisy_qu, c_ops = systematic_noise.get_noisy_qobjevo(dims=dims)
-        assert_allclose(
-            c_ops[0].ops[0].qobj.full(),
-            tensor(sigmax(), qeye(2)).full()
-        )
-        if is_qutip5:
-            array_to_check = c_ops[0].ops[0].coeff.array
-        else:
-            array_to_check = c_ops[0].ops[0].coeff
-        assert_allclose(array_to_check, coeff*2)
-        assert_allclose(c_ops[0].tlist, tlist)
-        assert_allclose(
-            c_ops[1].ops[0].qobj.full(),
-            tensor(qeye(2), sigmax()).full()
-        )
+        assert_allclose(c_ops[0](0).full(),
+                        tensor(sigmax(), qeye(2)).full() * 2)
+        assert_allclose(c_ops[1](0).full(),
+                        tensor(qeye(2), sigmax()).full() * 2)
 
     def test_collapse_with_different_tlist(self):
         """
@@ -103,7 +96,7 @@ class TestNoise:
         noisy_qu, c_ops = systematic_noise.get_noisy_qobjevo(dims=dims)
         assert_(len(c_ops) == 3)
         assert_allclose(
-            c_ops[1].cte.full(),
+            c_ops[1](0).full(),
             tensor([qeye(2), a, qeye(2)]).full()
         )
 
