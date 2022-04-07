@@ -44,25 +44,30 @@ In the absence of specification, a VQA block will assume any :class:`~.Qobj` it 
 
 .. testcode::
 
-    from qutip_qip.vqa import VQABlock
+    from qutip_qip.vqa import VQA, VQABlock
     from qutip import tensor, sigmax
+
+    VQA_circuit = VQA(n_qubits=1, n_layers=1)
 
     R_x_block = VQABlock(
       sigmax() / 2, name="R_x(\\theta)"
     )
 
-
-We can add this block to our ``VQA_circuit`` with the :meth:`.VQA.add_block` method. Calling the :meth:`.VQA.export_image` method will allow us to see the effects of adding this block.
-
-.. testcode::
-   
     VQA_circuit.add_block(R_x_block)
 
     VQA_circuit.export_image("circ.png")
 
 **Output**:
 
+.. testoutput::
+  :options: +NORMALIZE_WHITESPACE
+
+  Image saved to ./circ.png
+
 .. image:: /figures/vqa_circuit_with_x.png
+
+We added our block to the ``VQA_circuit`` with the :meth:`.VQA.add_block` method. Calling the :meth:`.VQA.export_image` method renders an image of our circuit in its current form.
+   
 
 --------------
 
@@ -107,7 +112,7 @@ Below, we run an optimization on a toy circuit, tuning a parameterized :math:`x`
           )
 
   # Access the SciPy results to output the parameter found
-  print(f'{result.res.x=}')
+  print(f'Parameter found: {round(result.res.x[0], 2)}')
   result.plot()
 
 **Output**:
@@ -115,7 +120,7 @@ Below, we run an optimization on a toy circuit, tuning a parameterized :math:`x`
 .. testoutput::
   :options: +NORMALIZE_WHITESPACE
 
-  result.res.x=array([3.14159265])
+  Parameter found: 3.14
 
 .. image:: /figures/vqa_circuit_optimization_output.png
 
