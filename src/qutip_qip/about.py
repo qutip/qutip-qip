@@ -8,8 +8,8 @@ import qutip
 
 def about():
     """
-    About box for QuTiP QIP. Gives version numbers for QuTiP, QuTiP QIP, NumPy, SciPy, Cython,
-    and MatPlotLib.
+    About box for QuTiP QIP. Gives version numbers for QuTiP, QuTiP QIP, NumPy,
+    SciPy, Cython, and MatPlotLib.
     """
     qutip.about("qutip_qip")
 
