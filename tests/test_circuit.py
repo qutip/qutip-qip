@@ -694,11 +694,11 @@ class TestQubitCircuit:
         qc.add_measurement("M0", targets=0, classical_store=0)
         exp = \
             ' &  &  \\qw \\cwx[1]  & \\qw \\\\ \n &  &  \\meter & \\qw \\\\ \n'
-        assert qc.latex_code() == exp
+        assert qc.latex_code() == self._latex_template % exp
 
     def test_latex_code_non_reversed(self):
         qc = QubitCircuit(1, num_cbits=1, reverse_states=False)
         qc.add_measurement("M0", targets=0, classical_store=0)
         exp = ' &  &  \\meter & \\qw \\\\ \n &  ' + \
               '&  \\qw \\cwx[-1]  & \\qw \\\\ \n'
-        assert qc.latex_code() == exp
+        assert qc.latex_code() == self._latex_template % exp
