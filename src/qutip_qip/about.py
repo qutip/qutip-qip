@@ -1,7 +1,7 @@
 """
 Command line output of information on QuTiP QIP and dependencies.
 """
-__all__ = ['about']
+__all__ = ["about"]
 
 import qutip
 
