@@ -55,18 +55,10 @@ In the absence of specification, a VQA block will assume any :class:`~.Qobj` it 
 
     VQA_circuit.add_block(R_x_block)
 
-    VQA_circuit.export_image("circ.png")
 
-**Output**:
-
-.. testoutput::
-  :options: +NORMALIZE_WHITESPACE
-
-  Image saved to ./circ.png
+We added our block to the ``VQA_circuit`` with the :meth:`.VQA.add_block` method. Calling the :meth:`.VQA.export_image` method renders an image of our circuit in its current form:
 
 .. image:: /figures/vqa_circuit_with_x.png
-
-We added our block to the ``VQA_circuit`` with the :meth:`.VQA.add_block` method. Calling the :meth:`.VQA.export_image` method renders an image of our circuit in its current form.
    
 
 --------------
