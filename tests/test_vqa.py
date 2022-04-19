@@ -3,7 +3,12 @@ import functools
 import itertools
 import numpy as np
 import qutip
-from qutip_qip.vqa import VQA, VQABlock, ParameterizedHamiltonian
+from qutip_qip.vqa import (
+    VQA,
+    VQABlock,
+    ParameterizedHamiltonian,
+    OptimizationResult,
+)
 
 
 class TestVQABlock:
@@ -78,6 +83,21 @@ class TestVQACircuit:
         vqa.add_block(block)
         final_state = vqa.get_final_state([])
         assert final_state == qutip.basis(2, 1)
+
+    def test_layer_repetitions(self):
+        """
+        tests layers are ordered and repeated correctly
+        """
+        vqa = VQA(n_qubits=1, n_layers=3)
+        initial_block = VQABlock(qutip.sigmax(), initial=True)
+        h_block = VQABlock("SNOT", targets=[0])
+        vqa.add_block(initial_block)
+        vqa.add_block(h_block)
+        # Expect [X, H, H, H] for the three layers
+        blocks = vqa.get_block_series()
+        assert blocks[0] == initial_block
+        for i in range(1, 4):
+            assert blocks[i].name == h_block.name
 
     def test_parameterized_circuit(self):
         block = VQABlock(qutip.sigmax())
@@ -172,10 +192,8 @@ class TestVQACircuit:
         except Exception:
             return True
         vqa = VQA(n_qubits=4, n_layers=1, cost_method="STATE")
-        vqa.add_block(VQABlock("X", targets=[0]))
-        vqa.add_block(VQABlock("X", targets=[1]))
-        vqa.add_block(VQABlock("X", targets=[2]))
-        vqa.add_block(VQABlock("X", targets=[3]))
+        for i in range(4):
+            vqa.add_block(VQABlock("X", targets=[i]))
         vqa.cost_func = lambda s: 0
         res = vqa.optimize_parameters()
         res.plot(top_ten=todo, display=False)
@@ -188,3 +206,45 @@ class TestVQACircuit:
         vqa.cost_func = lambda s: 1 - int(s)
         res = vqa.optimize_parameters(initial=[np.pi / 2 + 1e-3])
         assert res.get_top_bitstring() == "|1>"
+
+    def test_optimization_errors(self):
+        """
+        Tests for value errors relating to optimization procedure
+        """
+        vqa = VQA(n_qubits=1)
+        vqa.add_block(VQABlock(qutip.sigmax()))
+        vqa.cost_observable = qutip.sigmax()
+        with pytest.raises(ValueError):
+            # Invalid initialization string
+            res = vqa.optimize_parameters(initial="something else")
+        with pytest.raises(ValueError):
+            # Incorrect number of parameters
+            res = vqa.optimize_parameters(initial=[1, 1])
+        # Valid initialization string
+        res = vqa.optimize_parameters(initial="ones")
+        assert res is not None
+
+
+class TestOptimizationResult:
+    """
+    Test class for the OptimizationResult class
+    """
+
+    def test_label_to_sets(self):
+        """
+        Test partitioning a set of elements based on a bitstring.
+        e.g. [1, 2, 3] with the bitstring |010> should become 
+        '{1, 3} {2}'.
+        """
+        # Fake scipy res object
+        class fakeRes:
+            pass
+
+        fakeScipyRes = fakeRes()
+        fakeRes.x = [1]
+        fakeRes.fun = None
+        fakeRes.nfev = None
+        # Problem instance
+        S = [1, 2, 3]
+        result = OptimizationResult(fakeScipyRes, qutip.basis(8, 1))
+        assert result._label_to_sets(S, "|010>") == "{1, 3} {2}"
