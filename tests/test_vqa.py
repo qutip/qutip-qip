@@ -233,7 +233,7 @@ class TestOptimizationResult:
     def test_label_to_sets(self):
         """
         Test partitioning a set of elements based on a bitstring.
-        e.g. [1, 2, 3] with the bitstring |010> should become 
+        e.g. [1, 2, 3] with the bitstring |010> should become
         '{1, 3} {2}'.
         """
         # Fake scipy res object
