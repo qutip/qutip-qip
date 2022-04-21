@@ -269,7 +269,7 @@ class VQA:
             in the circuit is given, then these are taken to be the initial
             conditions for the optimizer. Otherwise if a string is given:
 
-            * (Default) "random" will randomize initial free parameters 
+            * (Default) "random" will randomize initial free parameters
               between 0 and 1.
 
             * "ones" will set each initial free parameter to a value of 1.
