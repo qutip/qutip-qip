@@ -268,9 +268,12 @@ class VQA:
             If a list of floats of dimensions (n,) for n free parameters
             in the circuit is given, then these are taken to be the initial
             conditions for the optimizer. Otherwise if a string is given:
-                * (Default) "random" will randomize initial free parameters
-                  between 0 and 1,
-                * "ones" will set each initial free parameter to a value of 1.
+
+            * (Default) "random" will randomize initial free parameters 
+              between 0 and 1.
+
+            * "ones" will set each initial free parameter to a value of 1.
+
         method: str or callable, optional
             Method to give to ``scipy.optimize.minimize``
         use_jac: bool, optional
