@@ -4,6 +4,11 @@
 Variational Quantum Algorithms
 ******************************
 
+Implemented by `Ben Braham <https://benbraham.com>`_ as part of a `Unitary Fund microgrant <https://unitary.fund/grants.html>`_.
+
+Overview
+========
+
 Variational Quantum Algorithms (VQAs) are a hybrid quantum-classical optimization algorithm in which an objective function (usually encoded by a parameterized quantum circuit) is evaluated by quantum computation, and the parameters of this function are updated using classical optimization methods. Such algorithms have been proposed for use in NISQ-era quantum computers as they typically scale well with the number of available qubits, and can function without high fault-tolerance.
 
 In QuTiP, VQAs are represented by a parameterized quantum circuit, and include methods for defining a cost function for the circuit, and finding parameters that minimize this cost.
@@ -84,36 +89,36 @@ The :class:`.OptimizationResult` class provides information about the completed 
 
 Below, we run an optimization on a toy circuit, tuning a parameterized :math:`x`-rotation gate to try to maximise the probability amplitude of the :math:`|1\rangle` state.
 
-.. testcode::
+.. plot::
+  :context:
 
-  from qutip_qip.vqa import VQA, VQABlock
-  from qutip import sigmax, sigmaz
+  >>> from qutip_qip.vqa import VQA, VQABlock
+  >>> from qutip import sigmax, sigmaz
+  >>> circ = VQA(n_qubits=1, cost_method="OBSERVABLE")
 
-  circ = VQA(n_qubits=1, cost_method="OBSERVABLE")
-  # Our cost function will be  <psi(t)| sigma_z |psi(t)>
-  circ.cost_observable = sigmaz()
+  Picking the Pauli Z operator as our cost observable, our circuit's cost function will be: :math:`\langle\psi(t)| \sigma_z | \psi(t)\rangle`
 
-  # Our circuit is just an x-rotation gate: e^{-i * t/2 * X}
-  circ.add_block(
-          VQABlock(sigmax() / 2)
-          )
+  >>> circ.cost_observable = sigmaz()
 
-  # Optimize with the SciPy in-built BFGS method
-  result = circ.optimize_parameters(
-          method="BFGS", use_jac=True
-          )
 
-  # Access the SciPy results to output the parameter found
-  print(f'Parameter found: {round(result.res.x[0], 2)}')
-  result.plot()
+  Adding a Pauli X operator as a block to the circuit, the operation of the entire circuit becomes: :math:`e^{-i t X /2}`.
 
-**Output**:
 
-.. testoutput::
-  :options: +NORMALIZE_WHITESPACE
+  >>> circ.add_block(VQABlock(sigmax() / 2))
 
-  Parameter found: 3.14
+  We can now try to find a minimum in our cost function using the SciPy in-built BFGS method. We set bounds to limit the method to parameters :math:`0 \leq t \leq 4`.
 
-.. image:: /figures/vqa_circuit_optimization_output.png
+  >>> result = circ.optimize_parameters(method="BFGS", use_jac=True, bounds=[0, 4])
+
+  Accessing `result.res.x`, we have the array of parameters found during optimization. In our case, we only had one free parameter, so we examine the first element of this array.
+
+  >>> angle = round(result.res.x[0], 2)
+  >>> print(f"Angle found: {angle}")
+  Angle found: 3.14
+
+  Finally, we can plot our the measurement outcome probabilities of our circuit after optimization.
+
+  >>> result.plot()
+
 
 In this simple example, our optimization found that (neglecting phase) :math:`R_x(\pi) |0\rangle = |1\rangle`. Of course, this very basic usage generalizes to circuits on multiple qubits, with more complicated cost functions and optimization procedures.
