@@ -254,7 +254,6 @@ class VQA:
         initial="random",
         method="COBYLA",
         use_jac=False,
-        do_nothing=False,
         layer_by_layer=False,
         bounds=None,
         constraints=(),
@@ -269,9 +268,9 @@ class VQA:
             If a list of floats of dimensions (n,) for n free parameters
             in the circuit is given, then these are taken to be the initial
             conditions for the optimizer. Otherwise if a string is given:
-            1. "random" will randomize initial free parameters between 0 and 1,
-            2. "ones" will set each initial free parameter to a value of 1.
-            Defaults to "random"
+                * (Default) "random" will randomize initial free parameters
+                  between 0 and 1,
+                * "ones" will set each initial free parameter to a value of 1.
         method: str or callable, optional
             Method to give to ``scipy.optimize.minimize``
         use_jac: bool, optional
@@ -282,9 +281,6 @@ class VQA:
             ``ParameterizedHamiltonian`` are calculated with the
             Frechet derivative of the exponential function,
             using ``scipy.linalg.expm_frechet``.
-        do_nothing: bool, optional
-            For debugging and benchmarking purposes, perform no operation
-            during optimization, and simply retain the initial free parameters.
         layer_by_layer: bool, optional
             Grow the circuit from a single layer, to ``VQA.n_layers``, at each
             step holding the parameters found for previous layers fixed.
@@ -319,10 +315,6 @@ class VQA:
                 "Initial conditions were neither a list of values"
                 " nor a string specifying initialization."
             )
-
-        # Return early if do_nothing flag was passed
-        if do_nothing:
-            return self.evaluate_parameters(angles)
 
         # Function for computing jacobian
         jac = self.compute_jac if use_jac else None
