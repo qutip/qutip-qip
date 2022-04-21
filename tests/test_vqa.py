@@ -26,7 +26,7 @@ class TestVQABlock:
         assert (
             block.get_unitary([angle]) == (-1j * angle * qutip.sigmax()).expm()
         )
-        assert block.get_free_parameters() == 1
+        assert block.get_free_parameters_num() == 1
         block = VQABlock(qutip.sigmaz())
         assert (
             block.get_unitary([angle]) == (-1j * angle * qutip.sigmaz()).expm()

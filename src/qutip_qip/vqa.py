@@ -87,13 +87,13 @@ class VQA:
         if not block.name:
             block.name = "U" + str(len(self.blocks))
         if block.name in list(map(lambda b: b.name, self.blocks)):
-            raise ValueError("Duplicate Block name in self.blocks")
+            raise ValueError("Duplicate Block name in blocks dict")
         self.blocks.append(block)
         self.user_gates[block.name] = lambda angles=None: block.get_unitary(
             angles
         )
 
-    def get_free_parameters(self):
+    def get_free_parameters_num(self):
         """
         Compute the number of free parameters required
         to evaluate the circuit.
@@ -107,11 +107,11 @@ class VQA:
         layer_blocks = list(filter(lambda b: not b.initial, self.blocks))
 
         n_initial_params = sum(
-            list(map(lambda b: b.get_free_parameters(), initial_blocks))
+            list(map(lambda b: b.get_free_parameters_num(), initial_blocks))
         )
 
         n_layer_params = (
-            sum(list(map(lambda b: b.get_free_parameters(), layer_blocks)))
+            sum(list(map(lambda b: b.get_free_parameters_num(), layer_blocks)))
             * self.n_layers
         )
 
@@ -141,7 +141,7 @@ class VQA:
                 if block.is_native_gate:
                     circ.add_gate(block.operator, targets=block.targets)
                 else:
-                    n = block.get_free_parameters()
+                    n = block.get_free_parameters_num()
                     circ.add_gate(
                         block.name,
                         targets=list(range(self.n_qubits)),
@@ -222,19 +222,28 @@ class VQA:
         final_state = self.get_final_state(angles)
         if self.cost_method == "BITSTRING":
             if self.cost_func is None:
-                raise ValueError("self.cost_func not specified")
+                raise ValueError(
+                    "To use BITSTRING as the cost method, please"
+                    " specify the attribute cost_func"
+                )
             else:
                 return self.cost_func(
                     self._sample_bitstring_from_state(final_state)
                 )
         elif self.cost_method == "STATE":
             if self.cost_func is None:
-                raise ValueError("self.cost_func not specified")
+                raise ValueError(
+                    "To use STATE as the cost method, please"
+                    " specify the attribute cost_func"
+                )
             else:
                 return self.cost_func(final_state)
         elif self.cost_method == "OBSERVABLE":
             if self.cost_observable is None:
-                raise ValueError("self.cost_observable not specified")
+                raise ValueError(
+                    "To use OBSERVABLE as the cost method, please"
+                    " specify the attribute cost_observable"
+                )
             else:
                 return expect(self.cost_observable, final_state)
         else:
@@ -289,7 +298,7 @@ class VQA:
             See `scipy.optimize.minimize` documentation.
         """
 
-        n_free_params = self.get_free_parameters()
+        n_free_params = self.get_free_parameters_num()
         # Set initial circuit parameters
         if isinstance(initial, str):
             if initial == "random":
@@ -326,7 +335,7 @@ class VQA:
             for layer_num in range(1, max_layers + 1):
                 print(f"Optimizing layer {layer_num}/{max_layers}")
                 self.n_layers = layer_num
-                n_tot = self.get_free_parameters()
+                n_tot = self.get_free_parameters_num()
                 # subset initialization parameters
                 init = angles[n_params:n_tot]
 
@@ -457,7 +466,7 @@ class VQA:
         jacobian = []
         i = 0
         for k, block in enumerate(self.get_block_series()):
-            n_params = block.get_free_parameters()
+            n_params = block.get_free_parameters_num()
             if n_params > 0:
                 if i in indices_to_compute:
                     dBlock = block.get_unitary_derivative(
@@ -478,7 +487,7 @@ class VQA:
             The name of the exported file
         """
         circ = self.construct_circuit(
-            [1 for _ in range(self.get_free_parameters())]
+            [1 for _ in range(self.get_free_parameters_num())]
         )
         f = open(filename, "wb+")
         f.write(circ.png.data)
@@ -579,7 +588,7 @@ class VQABlock:
             self.n_parameters = operator.N
         elif isinstance(operator, types.FunctionType):
             if not isinstance(operator(1), Qobj):
-                raise ValueError("Provided function does not return " "a Qobj")
+                raise ValueError("Provided function does not return a Qobj")
             self.n_parameters = 1
         else:
             raise ValueError(
@@ -588,7 +597,7 @@ class VQABlock:
                 " instance | string referring to gate."
             )
 
-    def get_free_parameters(self):
+    def get_free_parameters_num(self):
         return self.n_parameters
 
     def get_unitary(self, angles=None):
@@ -601,9 +610,9 @@ class VQABlock:
             Block free parameters. Required if the block has free parameters.
         """
         if angles is not None:
-            if len(angles) != self.get_free_parameters():
+            if len(angles) != self.get_free_parameters_num():
                 raise ValueError(
-                    f"Expected {self.get_free_parameters()} angles"
+                    f"Expected {self.get_free_parameters_num()} angles"
                     f" but got {len(angles)}."
                 )
         if self.is_native_gate:

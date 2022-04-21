@@ -70,7 +70,7 @@ Optimisation Loop
 After specifying a cost method and function to the :class:`.VQA` instance, there are various options for optimization of the free circuit parameters. Calling :meth:`.VQA.optimize_parameters` will begin the optimization process and return an :class:`.OptimizationResult` instance. By default, the method will randomize initial parameters, and use the non-gradient-based ``COBYLA`` method for parameter optimization. Users can specify:
 
 
-  * **Initial parameters**. Given as a list, with length corresponding to the number of free parameters in the circuit. The number of free parameters can be computed automatically with the :meth:`.VQA.get_free_parameters` method. Alternatively, the string 'zeros' will initialize all parameters as 0; and 'random' will initialize parameters randomly between 0 and 1. Defaults to 'random'.
+  * **Initial parameters**. Given as a list, with length corresponding to the number of free parameters in the circuit. The number of free parameters can be computed automatically with the :meth:`.VQA.get_free_parameters_num` method. Alternatively, the string 'zeros' will initialize all parameters as 0; and 'random' will initialize parameters randomly between 0 and 1. Defaults to 'random'.
 
   * **Optimization method**. This can be a string referring to a pre-defined ``SciPy`` method `listed here <https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html>`_, or a callable function.
 
