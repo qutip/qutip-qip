@@ -319,9 +319,6 @@ class VQA:
                 " nor a string specifying initialization."
             )
 
-        # Function for computing jacobian
-        jac = self.compute_jac if use_jac else None
-
         # Run the scipy minimization function
         if layer_by_layer:
             max_layers = self.n_layers
@@ -363,7 +360,7 @@ class VQA:
                 self.evaluate_parameters,
                 angles,
                 method=method,
-                jac=jac,
+                jac=self.compute_jac if use_jac else None,
                 bounds=bounds,
                 constraints=constraints,
                 options={"disp": False},
