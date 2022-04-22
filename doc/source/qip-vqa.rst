@@ -106,9 +106,9 @@ Below, we run an optimization on a toy circuit, tuning a parameterized :math:`x`
 
   >>> circ.add_block(VQABlock(sigmax() / 2))
 
-  We can now try to find a minimum in our cost function using the SciPy in-built BFGS method.
+  We can now try to find a minimum in our cost function using the SciPy in-built L-BFGS-B (L-BFGS with box constraints) method. We specify the bounds so that our parameter is :math:`0 \leq t \leq 4`.
 
-  >>> result = circ.optimize_parameters(method="BFGS", use_jac=True)
+  >>> result = circ.optimize_parameters(method="L-BFGS-B", use_jac=True, bounds=[[0, 4]])
 
   Accessing `result.res.x`, we have the array of parameters found during optimization. In our case, we only had one free parameter, so we examine the first element of this array.
 
