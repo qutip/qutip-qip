@@ -2072,15 +2072,6 @@ class QubitCircuit:
             with open(os.path.join(file_path, file_name +'.'+ file_type),'wb') as f:
                 f.write(self._raw_png())
         alpha_value = "on" if alpha else "off"
-        # _latex._CONVERTER_CONFIGURATIONS.append(
-        #     _latex._ConverterConfiguration(
-        #         "custom_png",
-        #         "ImageMagick",
-        #         ["magick", "convert"],
-        #         arguments=("-density", dpi,"-alpha"),alpha_value,
-        #         binary=True,
-        #     )
-        # )
 
     def _raw_svg(self):
         return _latex.image_from_latex(self.latex_code(), "svg")
