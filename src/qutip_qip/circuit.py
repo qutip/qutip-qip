@@ -2057,6 +2057,9 @@ class QubitCircuit:
     def _raw_png(self):
         return _latex.image_from_latex(self.latex_code(), "png")
 
+    def _raw_img(self,file_type="png",density_dpi=100):
+        return _latex.image_from_latex(self.latex_code(), file_type, density_dpi)
+
     if "png" in _latex.CONVERTERS:
         _repr_png_ = _raw_png
 
@@ -2067,11 +2070,9 @@ class QubitCircuit:
         """
         return DisplayImage(self._raw_png(), embed=True)
 
-    def draw(self,file_type="png",dpi=100,file_name="exported_pic",file_path="",alpha=False):
-        if alpha and dpi==100:
-            with open(os.path.join(file_path, file_name +'.'+ file_type),'wb') as f:
-                f.write(self._raw_png())
-        alpha_value = "on" if alpha else "off"
+    def draw(self,file_type="png",density_dpi=100,file_name="exported_pic",file_path=""):
+        with open(os.path.join(file_path, file_name +'.'+ file_type),'wb') as f:
+            f.write(self._raw_img(file_type,density_dpi))
 
     def _raw_svg(self):
         return _latex.image_from_latex(self.latex_code(), "svg")

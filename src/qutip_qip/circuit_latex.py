@@ -169,10 +169,39 @@ for configuration in _CONVERTER_CONFIGURATIONS:
     else:
         _MISSING_CONVERTERS[configuration.file_type] = configuration.dependency
 
+def convert_to_img_with_dpi(file_stem,file_type,dpi):
+    """
+    # Use this function when the user wants to export png with custom dpi density.
+    # Called from image_from_latex when dpi is not 100(used by default converter)
+    Convert a file located in the current directory named `<file_stem>.pdf` to `<file_stem>.png`
+    with density value dpi
+
+    Parameters
+    ----------
+    file_stem : str
+        The basename of the PDF file to be converted.
+    dpi : int/float
+        image density in dots per inch
+    """
+    for configuration in _CONVERTER_CONFIGURATIONS:
+        if configuration.file_type==file_type:
+            break
+    if configuration.file_type!=file_type:
+        raise ValueError(
+            "".join(["Unknown output format: '", file_type, "'."])
+        )
+    configuration.arguments = ("-density", str(dpi))
+
+    in_file = file_stem + ".pdf"
+    out_file = file_stem + "." + configuration.file_type
+
+    _run_command((configuration.executables, *configuration.arguments, in_file, out_file))
+    with open(out_file, "rb") as file:
+        return file.read()
 
 if _pdflatex is not None:
 
-    def image_from_latex(code, file_type="png"):
+    def image_from_latex(code, file_type="png",dpi=100):
         """
         Convert the LaTeX `code` into an image format, defined by the
         `file_type`.  Returns a string or bytes object, depending on whether
@@ -240,7 +269,10 @@ if _pdflatex is not None:
                     raise ValueError(
                         "".join(["Unknown output format: '", file_type, "'."])
                     )
-                out = CONVERTERS[file_type](filename)
+                if file_type=="png" and dpi!=100:
+                    out = convert_to_img_with_dpi(filename,file_type,dpi)
+                else:
+                    out = CONVERTERS[file_type](filename)
             finally:
                 # Leave the temporary directory before it is removed (necessary
                 # on Windows, but it doesn't hurt on POSIX).
