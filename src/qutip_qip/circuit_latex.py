@@ -169,12 +169,13 @@ for configuration in _CONVERTER_CONFIGURATIONS:
     else:
         _MISSING_CONVERTERS[configuration.file_type] = configuration.dependency
 
-def convert_to_img_with_dpi(file_stem,file_type,dpi):
+
+def convert_to_img_with_dpi(file_stem, file_type, dpi):
     """
-    # Use this function when the user wants to export png with custom dpi density.
-    # Called from image_from_latex when dpi is not 100(used by default converter)
-    Convert a file located in the current directory named `<file_stem>.pdf` to `<file_stem>.png`
-    with density value dpi
+    # Use this function when user wants to export image with density in dpi.
+    # Called from image_from_latex when dpi is not 100(default converter).
+    Convert a file located in the current directory named `<file_stem>.pdf` 
+    to `<file_stem>.png` with density value dots per inch.
 
     Parameters
     ----------
@@ -184,16 +185,16 @@ def convert_to_img_with_dpi(file_stem,file_type,dpi):
         image density in dots per inch
     """
     for configuration in _CONVERTER_CONFIGURATIONS:
-        if configuration.file_type==file_type:
+        if configuration.file_type == file_type:
             break
-    if configuration.file_type!=file_type:
+    if configuration.file_type != file_type:
         raise ValueError(
             "".join(["Unknown output format: '", file_type, "'."])
         )
     which = _find_system_command(configuration.executables)
     if which is None:
         return None
-    if file_type=="png":
+    if file_type == "png":
         arguments = ("-density", str(dpi))
     else:
         arguments = ()
@@ -204,9 +205,10 @@ def convert_to_img_with_dpi(file_stem,file_type,dpi):
     with open(out_file, "rb") as file:
         return file.read()
 
+
 if _pdflatex is not None:
 
-    def image_from_latex(code, file_type="png",dpi=100):
+    def image_from_latex(code, file_type="png", dpi=100):
         """
         Convert the LaTeX `code` into an image format, defined by the
         `file_type`.  Returns a string or bytes object, depending on whether
@@ -274,8 +276,8 @@ if _pdflatex is not None:
                     raise ValueError(
                         "".join(["Unknown output format: '", file_type, "'."])
                     )
-                if file_type=="png" and dpi!=100:
-                    out = convert_to_img_with_dpi(filename,file_type,dpi)
+                if file_type == "png" and dpi != 100:
+                    out = convert_to_img_with_dpi(filename, file_type, dpi)
                 else:
                     out = CONVERTERS[file_type](filename)
             finally:
