@@ -2088,7 +2088,7 @@ class QubitCircuit:
             mode = "wb"
             image_data = self._raw_img(file_type, density_dpi)
         with open(os.path.join(
-                    file_path, 
+                    file_path,
                     file_name + '.' + file_type
                     ), mode) as f:
             f.write(image_data)
