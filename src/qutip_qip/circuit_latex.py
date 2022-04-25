@@ -174,7 +174,7 @@ def convert_to_img_with_dpi(file_stem, file_type, dpi):
     """
     # Use this function when user wants to export image with density in dpi.
     # Called from image_from_latex when dpi is not 100(default converter).
-    Convert a file located in the current directory named `<file_stem>.pdf` 
+    Convert a file located in the current directory named `<file_stem>.pdf`
     to `<file_stem>.png` with density value dots per inch.
 
     Parameters
