@@ -190,12 +190,17 @@ def convert_to_img_with_dpi(file_stem,file_type,dpi):
         raise ValueError(
             "".join(["Unknown output format: '", file_type, "'."])
         )
-    configuration.arguments = ("-density", str(dpi))
-
+    which = _find_system_command(configuration.executables)
+    if which is None:
+        return None
+    if file_type=="png":
+        arguments = ("-density", str(dpi))
+    else:
+        arguments = ()
     in_file = file_stem + ".pdf"
     out_file = file_stem + "." + configuration.file_type
 
-    _run_command((configuration.executables, *configuration.arguments, in_file, out_file))
+    _run_command((which, *arguments, in_file, out_file))
     with open(out_file, "rb") as file:
         return file.read()
 
