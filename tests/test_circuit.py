@@ -1,4 +1,6 @@
 import pytest
+import os
+import shutil
 import numpy as np
 from pathlib import Path
 
@@ -702,3 +704,32 @@ class TestQubitCircuit:
         exp = ' &  &  \\meter & \\qw \\\\ \n &  ' + \
               '&  \\qw \\cwx[-1]  & \\qw \\\\ \n'
         assert qc.latex_code() == self._latex_template % exp
+
+    @pytest.mark.skipif(
+                shutil.which("pdflatex") is None,
+                reason="requires pdflatex"
+                )
+    def test_export_image(self):
+
+        def cleanup(*img_files):
+            for img_file in img_files:
+                if img_file in os.listdir('.'):
+                    os.remove(img_file)
+
+        file_png_200 = "exported_pic_200.png"
+        file_png_400 = "exported_pic_400.png"
+        file_svg = "exported_pic.svg"
+        cleanup(file_png_200, file_png_400, file_svg)
+
+        qc = QubitCircuit(2, reverse_states=False)
+        qc.add_gate("CSIGN", controls=[0], targets=[1])
+        qc.draw("png", 200, file_png_200.split('.')[0], "")
+        qc.draw("png", 400.5, file_png_400.split('.')[0], "")
+        qc.draw("svg", 450, file_svg.split('.')[0], "")
+
+        assert file_png_200 in os.listdir('.')
+        assert file_png_400 in os.listdir('.')
+        assert os.stat(file_png_200).st_size < os.stat(file_png_400).st_size
+        assert file_svg in os.listdir('.')
+
+        cleanup(file_png_200, file_png_400, file_svg)

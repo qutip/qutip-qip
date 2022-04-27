@@ -154,9 +154,9 @@ def _make_converter(configuration):
         """
         in_file = file_stem + ".pdf"
         out_file = file_stem + "." + configuration.file_type
-        if '-density' in configuration.arguments:
+        if "-density" in configuration.arguments:
             arguments = list(configuration.arguments)
-            arguments[arguments.index("-density")+1] = str(density_dpi)
+            arguments[arguments.index("-density") + 1] = str(density_dpi)
         else:
             arguments = configuration.arguments
         _run_command((which, *arguments, in_file, out_file))
