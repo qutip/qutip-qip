@@ -2059,8 +2059,8 @@ class QubitCircuit:
 
     def _raw_img(self, file_type="png", density_dpi=100):
         return _latex.image_from_latex(
-                self.latex_code(), file_type, density_dpi
-                )
+            self.latex_code(), file_type, density_dpi
+        )
 
     if "png" in _latex.CONVERTERS:
         _repr_png_ = _raw_png

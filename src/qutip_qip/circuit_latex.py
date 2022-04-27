@@ -139,7 +139,7 @@ def _make_converter(configuration):
         return None
     mode = "rb" if configuration.binary else "r"
 
-    def converter(file_stem):
+    def converter(file_stem, density_dpi = 100):
         """
         Convert a file located in the current directory named `<file_stem>.pdf`
         to an image format with the name `<file_stem>.xxx`, where `xxx` is
@@ -149,10 +149,17 @@ def _make_converter(configuration):
         ----------
         file_stem : str
             The basename of the PDF file to be converted.
+        density_dpi : int/float
+            Image density in dots per inch. Ignored for SVG.
         """
         in_file = file_stem + ".pdf"
         out_file = file_stem + "." + configuration.file_type
-        _run_command((which, *configuration.arguments, in_file, out_file))
+        if '-density' in configuration.arguments:
+            arguments = list(configuration.arguments)
+            arguments[arguments.index("-density")+1] = str(density_dpi)
+        else:
+            arguments = configuration.arguments
+        _run_command((which, *arguments, in_file, out_file))
         with open(out_file, mode) as file:
             return file.read()
 
@@ -169,41 +176,6 @@ for configuration in _CONVERTER_CONFIGURATIONS:
     else:
         _MISSING_CONVERTERS[configuration.file_type] = configuration.dependency
 
-
-def convert_to_img_with_dpi(file_stem, file_type, dpi):
-    """
-    # Use this function when user wants to export image with density in dpi.
-    # Called from image_from_latex when dpi is not 100(default converter).
-    Convert a file located in the current directory named `<file_stem>.pdf`
-    to `<file_stem>.png` with density value dots per inch.
-
-    Parameters
-    ----------
-    file_stem : str
-        The basename of the PDF file to be converted.
-    dpi : int/float
-        image density in dots per inch
-    """
-    for configuration in _CONVERTER_CONFIGURATIONS:
-        if configuration.file_type == file_type:
-            break
-    if configuration.file_type != file_type:
-        raise ValueError(
-            "".join(["Unknown output format: '", file_type, "'."])
-        )
-    which = _find_system_command(configuration.executables)
-    if which is None:
-        return None
-    if file_type == "png":
-        arguments = ("-density", str(dpi))
-    else:
-        arguments = ()
-    in_file = file_stem + ".pdf"
-    out_file = file_stem + "." + configuration.file_type
-
-    _run_command((which, *arguments, in_file, out_file))
-    with open(out_file, "rb") as file:
-        return file.read()
 
 
 if _pdflatex is not None:
@@ -276,10 +248,7 @@ if _pdflatex is not None:
                     raise ValueError(
                         "".join(["Unknown output format: '", file_type, "'."])
                     )
-                if file_type == "png" and dpi != 100:
-                    out = convert_to_img_with_dpi(filename, file_type, dpi)
-                else:
-                    out = CONVERTERS[file_type](filename)
+                out = CONVERTERS[file_type](filename, dpi)
             finally:
                 # Leave the temporary directory before it is removed (necessary
                 # on Windows, but it doesn't hurt on POSIX).
