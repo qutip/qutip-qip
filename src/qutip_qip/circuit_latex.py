@@ -139,7 +139,7 @@ def _make_converter(configuration):
         return None
     mode = "rb" if configuration.binary else "r"
 
-    def converter(file_stem, density_dpi = 100):
+    def converter(file_stem, density_dpi=100):
         """
         Convert a file located in the current directory named `<file_stem>.pdf`
         to an image format with the name `<file_stem>.xxx`, where `xxx` is
@@ -175,7 +175,6 @@ for configuration in _CONVERTER_CONFIGURATIONS:
         CONVERTERS[configuration.file_type] = converter
     else:
         _MISSING_CONVERTERS[configuration.file_type] = configuration.dependency
-
 
 
 if _pdflatex is not None:
