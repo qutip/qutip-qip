@@ -139,7 +139,7 @@ def _make_converter(configuration):
         return None
     mode = "rb" if configuration.binary else "r"
 
-    def converter(file_stem, density_dpi=100):
+    def converter(file_stem, dpi=100):
         """
         Convert a file located in the current directory named `<file_stem>.pdf`
         to an image format with the name `<file_stem>.xxx`, where `xxx` is
@@ -149,14 +149,14 @@ def _make_converter(configuration):
         ----------
         file_stem : str
             The basename of the PDF file to be converted.
-        density_dpi : int/float
+        dpi : int/float
             Image density in dots per inch. Ignored for SVG.
         """
         in_file = file_stem + ".pdf"
         out_file = file_stem + "." + configuration.file_type
         if "-density" in configuration.arguments:
             arguments = list(configuration.arguments)
-            arguments[arguments.index("-density") + 1] = str(density_dpi)
+            arguments[arguments.index("-density") + 1] = str(dpi)
         else:
             arguments = configuration.arguments
         _run_command((which, *arguments, in_file, out_file))
