@@ -2056,9 +2056,7 @@ class QubitCircuit:
     # because IPython tried to do something behind their back.
 
     def _raw_img(self, file_type="png", dpi=100):
-        return _latex.image_from_latex(
-            self.latex_code(), file_type, dpi
-        )
+        return _latex.image_from_latex(self.latex_code(), file_type, dpi)
 
     if "png" in _latex.CONVERTERS:
         _repr_png_ = _raw_img
