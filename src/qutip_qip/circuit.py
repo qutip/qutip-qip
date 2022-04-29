@@ -2055,7 +2055,6 @@ class QubitCircuit:
     # conversion is available, so the user doesn't get exceptions on display
     # because IPython tried to do something behind their back.
 
-
     def _raw_img(self, file_type="png", dpi=100):
         return _latex.image_from_latex(
             self.latex_code(), file_type, dpi
@@ -2119,7 +2118,6 @@ class QubitCircuit:
             os.path.join(file_path, file_name + "." + file_type), mode
         ) as f:
             f.write(image_data)
-
 
     def _to_qasm(self, qasm_out):
         """
