@@ -155,7 +155,7 @@ class VQA:
         """
         Returns
         -------
-        initial_state: :obj:`.Qobj`
+        initial_state: :obj:`qutip.Qobj`
             Initial circuit state
         """
         initial_state = basis(2, 0)
@@ -174,7 +174,7 @@ class VQA:
 
         Returns
         -------
-        final_state: :obj:`.Qobj`.
+        final_state: :obj:`qutip.Qobj`.
             Final state of the circuit after evaluation
         """
         circ = self.construct_circuit(angles)
@@ -189,7 +189,7 @@ class VQA:
 
         Parameters
         ----------
-        state: :obj:`.Qobj`
+        state: :obj:`qutip.Qobj`
 
         Returns
         -------
@@ -296,6 +296,11 @@ class VQA:
                free parameter.
         constraints: list of `Constraint`
             See `scipy.optimize.minimize` documentation.
+
+        Returns
+        -------
+        result: :obj:`.OptimizationResult`
+            The optimized angles and final state.
         """
 
         n_free_params = self.get_free_parameters_num()
@@ -381,9 +386,9 @@ class VQA:
 
         Returns
         -------
-        U_prods: list of :obj:`.Qobj`
+        U_prods: list of :obj:`qutip.Qobj`
             Ordered list of [identity, U_0, U_1, ... U_N]
-        U_prods_back: list of :obj:`.Qobj`
+        U_prods_back: list of :obj:`qutip.Qobj`
             Ordered list of [identity, U_N, U_{N-1}, ... U_0]
         """
         U_prods = [qeye([2 for _ in range(self.num_qubits)])]
@@ -403,9 +408,9 @@ class VQA:
 
         Parameters
         ----------
-        U: :obj:`.Qobj`
+        U: :obj:`qutip.Qobj`
             Block unitary
-        dU: :obj:`.Qobj`
+        dU: :obj:`qutip.Qobj`
             Partial derivative of U with respect to its parameter
 
         Returns
@@ -496,9 +501,9 @@ class ParameterizedHamiltonian:
 
     Parameters
     ----------
-    parameterized_terms: list of :obj:`.Qobj`
+    parameterized_terms: list of :obj:`qutip.Qobj`
         Hamiltonian terms which each require a unique parameter
-    constant_term: :obj:`.Qobj`
+    constant_term: :obj:`qutip.Qobj`
         Hamiltonian term which does not require parameters.
     """
 
@@ -533,9 +538,9 @@ class VQABlock:
 
     Parameters
     ----------
-    operator: :obj:`.Qobj` or Callable or str
-        If given as a :obj:`.Qobj`, assumed to be a Hamiltonian with a single
-        global parameter.
+    operator: :obj:`qutip.Qobj` or Callable or str
+        If given as a :obj:`qutip.Qobj`, assumed to be a Hamiltonian with
+        a single global parameter.
         If given as a Callable, assumed to take in a parameter, and return
         a unitary operator.
         If given as a str, assumed to reference a native QuTiP gate from
@@ -713,7 +718,7 @@ class OptimizationResult:
     Parameters
     ----------
     res: scipy results instance
-    final_state: :obj:`.Qobj`
+    final_state: :obj:`qutip.Qobj`
         Final state of the circuit after optimization.
     """
 
