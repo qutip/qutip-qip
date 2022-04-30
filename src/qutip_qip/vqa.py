@@ -641,16 +641,21 @@ class VQABlock:
 
         return (-1j * angles[0] * self.operator).expm()
 
-    def get_unitary_derivative(self, angles):
+    def get_unitary_derivative(self, angles, term_index=0):
         """
         Compute the derivative of the block's unitary with respect to its
         free parameter, assuming it is of the form :math:`e^{-i \\theta H}`
-        for a free parameter theta.
+        for a free parameter theta. If the block's operator is a
+        :obj:`ParameterizedHamiltonian`, use the Frechet derivative of the
+        exponential function.
 
         Parameters
         ----------
         angle: list of float
             free parameters to take derivatives with respect to
+        term_index: int, optional
+            Index of Parameterized Hamiltonian term that specifies the matrix
+            direction in which to take the derivative.
 
         Returns
         -------
@@ -662,53 +667,18 @@ class VQABlock:
                 "by Hamiltonians or ParameterizedHamiltonian instances."
             )
         if isinstance(self.operator, ParameterizedHamiltonian):
-            return self.get_unitary_frechet_derivative(angles)
-        else:
-            if len(angles) != 1:
-                raise ValueError(
-                    "Expected a single angle for non-"
-                    "ParameterizedHamiltonian instance."
-                )
-            return self.get_unitary(angles) * -1j * self.operator
-
-    def get_unitary_frechet_derivative(self, angles, term_index=0):
-        """
-        Compute the derivative of the block's unitary with respect
-        to a free parameter, using the Frechet derivative of
-        the exponential function.
-
-        Parameters
-        ----------
-        angles: list of float
-            the free parameters to take derivatives with respect to
-        term_index: int, optional
-            Index of Parameterized Hamiltonian term that specifies the matrix
-            direction in which to take the derivative.
-
-        Returns
-        -------
-        derivative: float
-        """
-        if self.is_unitary or self.is_native_gate:
-            raise ValueError(
-                "Can only take frechet derivative of block "
-                "specified by Hamiltonians"
-            )
-        if isinstance(self.operator, ParameterizedHamiltonian):
             arg = -1j * self.operator.get_hamiltonian(angles)
             direction = -1j * self.operator.p_terms[term_index]
-        else:
-            if len(angles) != 1:
-                raise ValueError(
-                    "Expected a single angle for non-"
-                    "ParameterizedHamiltonian instance."
-                )
-            arg = -1j * self.operator * angles[0]
-            direction = -1j * self.operator
-        return Qobj(
-            expm_frechet(arg, direction, compute_expm=False),
-            dims=direction.dims,
-        )
+            return Qobj(
+                expm_frechet(arg, direction, compute_expm=False),
+                dims=direction.dims,
+            )
+        if len(angles) != 1:
+            raise ValueError(
+                "Expected a single angle for non-"
+                "ParameterizedHamiltonian instance."
+            )
+        return self.get_unitary(angles) * -1j * self.operator
 
 
 class OptimizationResult:
