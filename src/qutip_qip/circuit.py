@@ -6,6 +6,8 @@ from itertools import product
 import numbers
 import warnings
 import inspect
+import os
+from functools import partialmethod
 
 import numpy as np
 from copy import deepcopy
@@ -2053,31 +2055,67 @@ class QubitCircuit:
     # conversion is available, so the user doesn't get exceptions on display
     # because IPython tried to do something behind their back.
 
-    def _raw_png(self):
-        return _latex.image_from_latex(self.latex_code(), "png")
+    def _raw_img(self, file_type="png", dpi=100):
+        return _latex.image_from_latex(self.latex_code(), file_type, dpi)
 
     if "png" in _latex.CONVERTERS:
-        _repr_png_ = _raw_png
+        _repr_png_ = _raw_img
+
+    if "svg" in _latex.CONVERTERS:
+        _repr_svg_ = partialmethod(_raw_img, file_type="svg", dpi=None)
 
     @property
     def png(self):
         """
         Return the png file
         """
-        return DisplayImage(self._raw_png(), embed=True)
-
-    def _raw_svg(self):
-        return _latex.image_from_latex(self.latex_code(), "svg")
-
-    if "svg" in _latex.CONVERTERS:
-        _repr_svg_ = _raw_svg
+        return DisplayImage(self._repr_png_(), embed=True)
 
     @property
     def svg(self):
         """
         Return the svg file
         """
-        return DisplaySVG(self._raw_svg())
+        return DisplaySVG(self._repr_svg_())
+
+    def draw(
+        self,
+        file_type="png",
+        dpi=None,
+        file_name="exported_pic",
+        file_path="",
+    ):
+        """
+        Export circuit object as an image file in a supported format.
+
+        Parameters
+        ----------
+        file_type : Provide a supported image file_type eg: "svg"/"png".
+                   Default : "png".
+
+        dpi : Image density in Dots per inch(dpi)
+            Applicable for PNG, NA for SVG.
+            Default : None, though it's set to 100 internally for PNG
+
+        file_name : Filename of the exported image.
+                    Default : "exported_pic"
+
+        file_path : Path to which the file has to be exported.
+                    Default : ""
+                    Note : User should have write access to the location.
+        """
+
+        if file_type == "svg":
+            mode = "w"
+        else:
+            mode = "wb"
+            if file_type == "png" and not dpi:
+                dpi = 100
+        image_data = self._raw_img(file_type, dpi)
+        with open(
+            os.path.join(file_path, file_name + "." + file_type), mode
+        ) as f:
+            f.write(image_data)
 
     def _to_qasm(self, qasm_out):
         """
