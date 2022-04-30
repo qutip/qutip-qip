@@ -19,17 +19,17 @@ Constructing a VQA circuit
 
 The :class:`.VQA` class allows for the construction of a parameterized circuit from :class:`.VQABlock` instances, which act as the gates of the circuit. In the most basic instance, a :class:`.VQA` should have:
 
-====================  =================================================
+====================  ==================================================
 Property                           Description
-====================  =================================================
-``n_qubits``          Positive integer number of qubits for the circuit 
-``n_layers``          Positive integer number of repetitions of the 
-                      layered elements of the circuit
+====================  ==================================================
+``num_qubits``        Positive integer number of qubits for the circuit.
+``num_layers``        Positive integer number of repetitions of the 
+                      layered elements of the circuit.
 ``cost_method``       String referring to the method used to
                       evaluate the circuit's cost.
 
                       Either "OBSERVABLE", "BITSTRING", or "STATE".
-====================  =================================================
+====================  ==================================================
 
 For example:
 
@@ -38,8 +38,8 @@ For example:
     from qutip_qip.vqa import VQA
 
     VQA_circuit = VQA(
-                n_qubits=1,
-                n_layers=1,
+                num_qubits=1,
+                num_layers=1,
                 cost_method="OBSERVABLE",
             )
 
@@ -52,7 +52,7 @@ In the absence of specification, a VQA block takes a :class:`~.Qobj` as the Hami
     from qutip_qip.vqa import VQA, VQABlock
     from qutip import tensor, sigmax
 
-    VQA_circuit = VQA(n_qubits=1, n_layers=1)
+    VQA_circuit = VQA(num_qubits=1, num_layers=1)
 
     R_x_block = VQABlock(
       sigmax() / 2, name="R_x(\\theta)"
@@ -81,7 +81,7 @@ After specifying a cost method and function to the :class:`.VQA` instance, there
 
   * **Jacobian computation**. A flag will tell the optimization method to compute the Jacobian at each step, which is passed to the optimizer so that it can use gradient information.
 
-  * **Layer-by-layer training**. Optimize parameters for the circuit with only a single layer, and hold these fixed while adding additional layers, up to ``VQA.n_layers``.
+  * **Layer-by-layer training**. Optimize parameters for the circuit with only a single layer, and hold these fixed while adding additional layers, up to ``VQA.num_layers``.
 
   * **Bounds and constraints**. To be passed to the optimizer.
 
@@ -94,7 +94,7 @@ Below, we run an optimization on a toy circuit, tuning a parameterized :math:`x`
 
   >>> from qutip_qip.vqa import VQA, VQABlock
   >>> from qutip import sigmax, sigmaz
-  >>> circ = VQA(n_qubits=1, cost_method="OBSERVABLE")
+  >>> circ = VQA(num_qubits=1, cost_method="OBSERVABLE")
 
   Picking the Pauli Z operator as our cost observable, our circuit's cost function will be: :math:`\langle\psi(t)| \sigma_z | \psi(t)\rangle`
 

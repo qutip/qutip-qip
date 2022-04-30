@@ -54,20 +54,20 @@ class TestVQA:
         """
         Test numerical inputs for initializing VQA
         """
-        vqa = VQA(n_qubits=1, n_layers=1)
+        vqa = VQA(num_qubits=1, num_layers=1)
         with pytest.raises(ValueError):
-            vqa = VQA(n_qubits=n[0][0], n_layers=n[0][1])
+            vqa = VQA(num_qubits=n[0][0], num_layers=n[0][1])
         with pytest.raises(TypeError):
-            vqa = VQA(n_qubits=n[1][0], n_layers=n[1][1])
+            vqa = VQA(num_qubits=n[1][0], num_layers=n[1][1])
 
     @pytest.mark.parametrize("method", ["OBSERVABLE", "STATE", "BITSTRING"])
     def test_cost_methods(self, method):
-        vqa = VQA(n_qubits=1, n_layers=1, cost_method=method)
+        vqa = VQA(num_qubits=1, num_layers=1, cost_method=method)
 
     @pytest.mark.parametrize("method", ["Something else", 1, [0]])
     def test_invalid_cost_methods(self, method):
         with pytest.raises(ValueError):
-            vqa = VQA(n_qubits=1, n_layers=1, cost_method=method)
+            vqa = VQA(num_qubits=1, num_layers=1, cost_method=method)
 
 
 class TestVQACircuit:
@@ -77,7 +77,7 @@ class TestVQACircuit:
 
     def test_initialize(self):
         block = VQABlock(qutip.sigmax(), is_unitary=True)
-        vqa = VQA(n_qubits=1)
+        vqa = VQA(num_qubits=1)
         final_state = vqa.get_final_state([])
         assert final_state == qutip.basis(2, 0)
         vqa.add_block(block)
@@ -88,7 +88,7 @@ class TestVQACircuit:
         """
         tests layers are ordered and repeated correctly
         """
-        vqa = VQA(n_qubits=1, n_layers=3)
+        vqa = VQA(num_qubits=1, num_layers=3)
         initial_block = VQABlock(qutip.sigmax(), initial=True)
         h_block = VQABlock("SNOT", targets=[0])
         vqa.add_block(initial_block)
@@ -101,7 +101,7 @@ class TestVQACircuit:
 
     def test_parameterized_circuit(self):
         block = VQABlock(qutip.sigmax())
-        vqa = VQA(n_qubits=1)
+        vqa = VQA(num_qubits=1)
         final_state = vqa.get_final_state([0])
         assert final_state == qutip.basis(2, 0)
         vqa.add_block(block)
@@ -115,7 +115,7 @@ class TestVQACircuit:
         """
         block = VQABlock(qutip.sigmax())
         # test the STATE type of cost function
-        vqa = VQA(n_qubits=1, cost_method="STATE")
+        vqa = VQA(num_qubits=1, cost_method="STATE")
         vqa.add_block(block)
         # try to reach the |1> state from the |0> state
         vqa.cost_func = lambda s: 1 - s.overlap(qutip.basis(2, 1)).real
@@ -126,7 +126,7 @@ class TestVQACircuit:
         """
         tests trivial optimization going layer-by-layer
         """
-        vqa = VQA(n_qubits=1, cost_method="STATE", n_layers=4)
+        vqa = VQA(num_qubits=1, cost_method="STATE", num_layers=4)
         block = VQABlock(qutip.sigmax())
         vqa.add_block(block)
         vqa.cost_func = lambda s: 1 - s.overlap(qutip.basis(2, 1)).real
@@ -141,7 +141,7 @@ class TestVQACircuit:
         test bfgs optimizer, starting from a close initial guess
         """
         block = VQABlock(qutip.sigmax())
-        vqa = VQA(n_qubits=1, cost_method="OBSERVABLE")
+        vqa = VQA(num_qubits=1, cost_method="OBSERVABLE")
         vqa.add_block(block)
         # try to reach the |1> state from the |0> state
         vqa.cost_observable = qutip.sigmaz()
@@ -161,7 +161,7 @@ class TestVQACircuit:
         block = VQABlock(
             ParameterizedHamiltonian([qutip.sigmax(), qutip.sigmaz()])
         )
-        vqa = VQA(n_qubits=1, n_layers=2)
+        vqa = VQA(num_qubits=1, num_layers=2)
         vqa.add_block(block)
         # Do (pi/2*X + 0*Z) and then (0*X + pi/2*Z)
         final_state = vqa.get_final_state([np.pi / 2, 0, 0, np.pi / 2])
@@ -172,7 +172,7 @@ class TestVQACircuit:
         """
         Test gradient-based optimization on parameterized Hamiltonian blocks
         """
-        vqa = VQA(n_qubits=1)
+        vqa = VQA(num_qubits=1)
         vqa.cost_observable = qutip.sigmaz()
         block = VQABlock(ParameterizedHamiltonian([qutip.sigmax()]))
         vqa.add_block(block)
@@ -191,7 +191,7 @@ class TestVQACircuit:
             import matplotlib.pyplot as plt
         except Exception:
             return True
-        vqa = VQA(n_qubits=4, n_layers=1, cost_method="STATE")
+        vqa = VQA(num_qubits=4, num_layers=1, cost_method="STATE")
         for i in range(4):
             vqa.add_block(VQABlock("X", targets=[i]))
         vqa.cost_func = lambda s: 0
@@ -200,7 +200,7 @@ class TestVQACircuit:
 
     def test_bitstring_cost(self):
         "Check the bitstring sampling function"
-        vqa = VQA(n_qubits=1, cost_method="BITSTRING")
+        vqa = VQA(num_qubits=1, cost_method="BITSTRING")
         vqa.add_block(VQABlock(qutip.sigmax()))
         # target the |1> state by giving the "1" string a cost of 0
         vqa.cost_func = lambda s: 1 - int(s)
@@ -211,7 +211,7 @@ class TestVQACircuit:
         """
         Tests for value errors relating to optimization procedure
         """
-        vqa = VQA(n_qubits=1)
+        vqa = VQA(num_qubits=1)
         vqa.add_block(VQABlock(qutip.sigmax()))
         vqa.cost_observable = qutip.sigmax()
         with pytest.raises(ValueError):

@@ -20,9 +20,9 @@ class VQA:
 
     Parameters
     ----------
-    n_qubits: int
+    num_qubits: int
         number of qubits used by the algorithm
-    n_layers: int, optional
+    num_layers: int, optional
         number of layers used by the algorihtm
     cost_method: str
         method used to compute the cost of an instance of the circuit
@@ -40,9 +40,9 @@ class VQA:
             a float.
     """
 
-    def __init__(self, n_qubits, n_layers=1, cost_method="OBSERVABLE"):
-        self.n_qubits = n_qubits
-        self.n_layers = n_layers
+    def __init__(self, num_qubits, num_layers=1, cost_method="OBSERVABLE"):
+        self.num_qubits = num_qubits
+        self.num_layers = num_layers
         self.blocks = []
         self.user_gates = {}
         self._cost_methods = ["OBSERVABLE", "STATE", "BITSTRING"]
@@ -50,13 +50,13 @@ class VQA:
         self.cost_func = None
         self.cost_observable = None
 
-        if self.n_qubits < 1:
+        if self.num_qubits < 1:
             raise ValueError("Expected 1 or more qubits")
-        if not isinstance(self.n_qubits, int):
+        if not isinstance(self.num_qubits, int):
             raise TypeError("Expected an integer number of qubits")
-        if self.n_layers < 1:
+        if self.num_layers < 1:
             raise ValueError("Expected 1 or more layer")
-        if not isinstance(self.n_layers, int):
+        if not isinstance(self.num_layers, int):
             raise TypeError("Expected an integer number of layers")
         if self.cost_method not in self._cost_methods:
             raise ValueError(
@@ -70,7 +70,7 @@ class VQA:
         from first applied to last applied.
         """
         blocks = [*self.blocks]
-        for _ in range(1, self.n_layers):
+        for _ in range(1, self.num_layers):
             for block in list(filter(lambda b: not b.initial, self.blocks)):
                 blocks.append(block)
         return blocks
@@ -112,7 +112,7 @@ class VQA:
 
         n_layer_params = (
             sum(list(map(lambda b: b.get_free_parameters_num(), layer_blocks)))
-            * self.n_layers
+            * self.num_layers
         )
 
         return n_initial_params + n_layer_params
@@ -131,10 +131,10 @@ class VQA:
         -------
         circ: QuantumCircuit
         """
-        circ = QubitCircuit(self.n_qubits)
+        circ = QubitCircuit(self.num_qubits)
         circ.user_gates = self.user_gates
         i = 0
-        for layer_num in range(self.n_layers):
+        for layer_num in range(self.num_layers):
             for block in self.blocks:
                 if block.initial and layer_num > 0:
                     continue
@@ -144,7 +144,7 @@ class VQA:
                     n = block.get_free_parameters_num()
                     circ.add_gate(
                         block.name,
-                        targets=list(range(self.n_qubits)),
+                        targets=list(range(self.num_qubits)),
                         arg_value=angles[i : i + n] if n > 0 else None,
                     )
                     i += n
@@ -158,7 +158,7 @@ class VQA:
             Initial circuit state
         """
         initial_state = basis(2, 0)
-        for _ in range(self.n_qubits - 1):
+        for _ in range(self.num_qubits - 1):
             initial_state = tensor(initial_state, basis(2, 0))
         return initial_state
 
@@ -199,11 +199,11 @@ class VQA:
         E.g. the state 1/sqrt(2) * (|0> + |1>)
         would return 0 and 1 with equal probability.
         """
-        n_qubits = int(np.log2(state.shape[0]))
-        outcome_indices = list(range(2**n_qubits))
+        num_qubits = int(np.log2(state.shape[0]))
+        outcome_indices = list(range(2**num_qubits))
         probs = [abs(i.item()) ** 2 for i in state]
         outcome_index = np.random.choice(outcome_indices, p=probs)
-        return format(outcome_index, f"0{n_qubits}b")
+        return format(outcome_index, f"0{num_qubits}b")
 
     def evaluate_parameters(self, angles):
         """
@@ -285,7 +285,7 @@ class VQA:
             Frechet derivative of the exponential function,
             using ``scipy.linalg.expm_frechet``.
         layer_by_layer: bool, optional
-            Grow the circuit from a single layer, to ``VQA.n_layers``, at each
+            Grow the circuit from a single layer, to ``VQA.num_layers``, at each
             step holding the parameters found for previous layers fixed.
         bounds: sequence or `scipy.optimize.Bounds`, optional
             Bounds to be passed to the optimizer. Either
@@ -321,12 +321,12 @@ class VQA:
 
         # Run the scipy minimization function
         if layer_by_layer:
-            max_layers = self.n_layers
+            max_layers = self.num_layers
             n_params = 0
             params = []
             for layer_num in range(1, max_layers + 1):
                 print(f"Optimizing layer {layer_num}/{max_layers}")
-                self.n_layers = layer_num
+                self.num_layers = layer_num
                 n_tot = self.get_free_parameters_num()
                 # subset initialization parameters
                 init = angles[n_params:n_tot]
@@ -385,8 +385,8 @@ class VQA:
         U_prods_back: list of Qobj
             Ordered list of [identity, U_N, U_{N-1}, ... U_0]
         """
-        U_prods = [qeye([2 for _ in range(self.n_qubits)])]
-        U_prods_back = [qeye([2 for _ in range(self.n_qubits)])]
+        U_prods = [qeye([2 for _ in range(self.num_qubits)])]
+        U_prods_back = [qeye([2 for _ in range(self.num_qubits)])]
         for i, _ in enumerate(propagators):
             U_prods.append(propagators[i] * U_prods[-1])
             U_prods_back.append(U_prods_back[-1] * propagators[-i - 1])
@@ -503,16 +503,17 @@ class ParameterizedHamiltonian:
     def __init__(self, parameterized_terms=[], constant_term=None):
         self.p_terms = parameterized_terms
         self.c_term = constant_term
-        self.N = len(parameterized_terms)
+        self.num_parameters = len(parameterized_terms)
         if len(self.p_terms) == 0 and self.c_term is None:
             raise ValueError(
                 "Parameterized Hamiltonian " "initialised with no terms given"
             )
 
     def get_hamiltonian(self, params):
-        if not len(params) == self.N:
+        if not len(params) == self.num_parameters:
             raise ValueError(
-                f"params should be of length {self.N} but was " "{len(params)}"
+                f"params should be of length {self.num_parameters}"
+                f"but was {len(params)}"
             )
 
         # Match each p_term with a parameter
@@ -567,21 +568,21 @@ class VQABlock:
         self.targets = targets
         self.initial = initial
         self.is_native_gate = False
-        self.n_parameters = 0
+        self.num_parameters = 0
 
         if isinstance(operator, Qobj):
             if not self.is_unitary:
-                self.n_parameters = 1
+                self.num_parameters = 1
         elif isinstance(operator, str):
             self.is_native_gate = True
             if targets is None:
                 raise ValueError("Targets must be specified for native gates")
         elif isinstance(operator, ParameterizedHamiltonian):
-            self.n_parameters = operator.N
+            self.num_parameters = operator.num_parameters
         elif isinstance(operator, types.FunctionType):
             if not isinstance(operator(1), Qobj):
                 raise ValueError("Provided function does not return a Qobj")
-            self.n_parameters = 1
+            self.num_parameters = 1
         else:
             raise ValueError(
                 "operator should be either: Qobj | function which"
@@ -590,7 +591,7 @@ class VQABlock:
             )
 
     def get_free_parameters_num(self):
-        return self.n_parameters
+        return self.num_parameters
 
     def get_unitary(self, angles=None):
         """
@@ -724,9 +725,9 @@ class OptimizationResult:
         Return the bitstring associated with the
         highest probability amplitude measurement state.
         """
-        n_qubits = int(np.log2(state.shape[0]))
+        num_qubits = int(np.log2(state.shape[0]))
         index = np.argmax(abs(state))
-        return format(index, f"0{n_qubits}b")
+        return format(index, f"0{num_qubits}b")
 
     def get_top_bitstring(self):
         """
@@ -803,11 +804,11 @@ class OptimizationResult:
         state = self.final_state
         min_cost = self.min_cost
 
-        n_qubits = int(np.log2(state.shape[0]))
+        num_qubits = int(np.log2(state.shape[0]))
         probs = [abs(i.item()) ** 2 for i in state]
         bitstrings = [
-            "|" + format(i, f"0{n_qubits}b") + ">"
-            for i in range(2**n_qubits)
+            "|" + format(i, f"0{num_qubits}b") + ">"
+            for i in range(2**num_qubits)
         ]
         if top_ten and len(probs) > 10:
             threshold = sorted(probs)[-11]
