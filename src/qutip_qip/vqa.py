@@ -11,12 +11,12 @@ from qutip.qip.operations.gates import gate_sequence_product
 
 class VQA:
     """
-    Optimizes free parameters to generate ``QuantumCircuit`` instances
+    Optimizes free parameters to generate :obj:`.QubitCircuit` instances
     based on Variational Quantum Algorithms.
-    Accepts ``VQABlock`` elements instead of ``Gate`` elements, which allows
-    for easy parameterization of user-defined circuit elements.
+    Accepts :obj:`.VQABlock` elements instead of :obj:`.Gate` elements,
+    which allows for easy parameterization of user-defined circuit elements.
     Includes methods for parameter optimization and generators of
-    ``QuantumCircuit`` instances.
+    :obj:`.QubitCircuit` instances.
 
     Parameters
     ----------
@@ -29,13 +29,14 @@ class VQA:
         constructed by fixing its free parameters. Can be one of `OBSERVABLE`,
         `BITSTRING` or `STATE`.
 
-        1.  If `OBSERVABLE` is set, then the attribute ``VQA.cost_observable``
-            needs to be specified as a ``Qobj``. The cost of the circuit is
-            the expectation value of this observable in the final state.
-        2.  If `STATE` is set, then ``VQA.cost_func`` needs to be specified
+        #.  If `OBSERVABLE` is set, then the attribute
+            ``VQA.cost_observable`` needs to be specified as a ``Qobj``.
+            The cost of the circuit is the expectation value of this observable
+            in the final state.
+        #.  If `STATE` is set, then ``VQA.cost_func`` needs to be specified
             as a callable that takes in a quantum state, as a ``Qobj``, and
             returns a float.
-        3.  If `BITSTRING` is set, then ``VQA.cost_func`` needs to be
+        #.  If `BITSTRING` is set, then ``VQA.cost_func`` needs to be
             specified as a callable that takes in a bitstring and returns
             a float.
     """
@@ -77,7 +78,7 @@ class VQA:
 
     def add_block(self, block):
         """
-        Append a VQABlock instance to the circuit, and update the
+        Append a :obj:`.VQABlock` instance to the circuit, and update the
         user_gates dictionary if necessary.
 
         Parameters
@@ -129,7 +130,7 @@ class VQA:
 
         Returns
         -------
-        circ: QuantumCircuit
+        circ: :obj:`.QubitCircuit`
         """
         circ = QubitCircuit(self.num_qubits)
         circ.user_gates = self.user_gates
@@ -154,7 +155,7 @@ class VQA:
         """
         Returns
         -------
-        initial_state: Qobj
+        initial_state: :obj:`.Qobj`
             Initial circuit state
         """
         initial_state = basis(2, 0)
@@ -173,7 +174,7 @@ class VQA:
 
         Returns
         -------
-        final_state: Qobj
+        final_state: :obj:`.Qobj`.
             Final state of the circuit after evaluation
         """
         circ = self.construct_circuit(angles)
@@ -188,7 +189,7 @@ class VQA:
 
         Parameters
         ----------
-        state: Qobj
+        state: :obj:`.Qobj`
 
         Returns
         -------
@@ -285,13 +286,13 @@ class VQA:
             Frechet derivative of the exponential function,
             using ``scipy.linalg.expm_frechet``.
         layer_by_layer: bool, optional
-            Grow the circuit from a single layer, to ``VQA.num_layers``, at each
-            step holding the parameters found for previous layers fixed.
+            Grow the circuit from a single layer to ``VQA.num_layers``. At each
+            step, hold the parameters found for previous layers fixed.
         bounds: sequence or `scipy.optimize.Bounds`, optional
             Bounds to be passed to the optimizer. Either
 
-            1. Instance of `scipy.optimize.Bounds`
-            2. Sequence of ``(min, max)`` tuples corresponding to each
+            #. Instance of `scipy.optimize.Bounds`
+            #. Sequence of ``(min, max)`` tuples corresponding to each
                free parameter.
         constraints: list of `Constraint`
             See `scipy.optimize.minimize` documentation.
@@ -380,9 +381,9 @@ class VQA:
 
         Returns
         -------
-        U_prods: list of Qobj
+        U_prods: list of :obj:`.Qobj`
             Ordered list of [identity, U_0, U_1, ... U_N]
-        U_prods_back: list of Qobj
+        U_prods_back: list of :obj:`.Qobj`
             Ordered list of [identity, U_N, U_{N-1}, ... U_0]
         """
         U_prods = [qeye([2 for _ in range(self.num_qubits)])]
@@ -402,9 +403,9 @@ class VQA:
 
         Parameters
         ----------
-        U: Qobj
+        U: :obj:`.Qobj`
             Block unitary
-        dU: Qobj
+        dU: :obj:`.Qobj`
             Partial derivative of U with respect to its parameter
 
         Returns
@@ -490,13 +491,14 @@ class VQA:
 class ParameterizedHamiltonian:
     """
     Hamiltonian with 0 or more parameterized terms.
-    In general, computes a unitary as U = e^{H_0 + p_1 * H_1 + P_2 * H_2 + ...}
+    In general, computes a unitary as
+    :math:`U = e^{H_0 + p_1 H_1 + P_2 H_2 + \\dots}`
 
     Parameters
     ----------
-    parameterized_terms: list of Qobj
+    parameterized_terms: list of :obj:`.Qobj`
         Hamiltonian terms which each require a unique parameter
-    constant_term: Qobj
+    constant_term: :obj:`.Qobj`
         Hamiltonian term which does not require parameters.
     """
 
@@ -525,14 +527,14 @@ class ParameterizedHamiltonian:
 
 class VQABlock:
     """
-    Component of a ``VQA``. Can return a unitary, and take
-    derivatives of its own unitary. Forms a ``Gate`` in the
-    ``QuantumCircuit`` generated by the ``VQA``.
+    Component of a :obj:`.VQA`. Can return a unitary, and take
+    derivatives of its own unitary. Forms a :obj:`.Gate` in the
+    :obj:`.QubitCircuit` generated by the :obj:`.VQA`.
 
     Parameters
     ----------
-    operator: Qobj or Callable or str
-        If given as a Qobj, assumed to be a Hamiltonian with a single
+    operator: :obj:`.Qobj` or Callable or str
+        If given as a :obj:`.Qobj`, assumed to be a Hamiltonian with a single
         global parameter.
         If given as a Callable, assumed to take in a parameter, and return
         a unitary operator.
@@ -635,7 +637,7 @@ class VQABlock:
     def get_unitary_derivative(self, angles):
         """
         Compute the derivative of the block's unitary with respect to its
-        free parameter, assuming it is of the form e^{-i * theta * H}
+        free parameter, assuming it is of the form :math:`e^{-i \\theta H}`
         for a free parameter theta.
 
         Parameters
@@ -704,12 +706,12 @@ class VQABlock:
 
 class OptimizationResult:
     """
-    Class for results of VQA optimization loop.
+    Class for results of :obj:`.VQA` optimization loop.
 
     Parameters
     ----------
     res: scipy results instance
-    final_state: Qobj
+    final_state: :obj:`.Qobj`
         Final state of the circuit after optimization.
     """
 
