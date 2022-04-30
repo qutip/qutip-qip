@@ -582,8 +582,6 @@ class VQABlock:
         elif isinstance(operator, ParameterizedHamiltonian):
             self.num_parameters = operator.num_parameters
         elif isinstance(operator, types.FunctionType):
-            if not isinstance(operator(1), Qobj):
-                raise ValueError("Provided function does not return a Qobj")
             self.num_parameters = 1
         else:
             raise ValueError(
@@ -604,35 +602,39 @@ class VQABlock:
         angles: list of float, optional
             Block free parameters. Required if the block has free parameters.
         """
-        if angles is not None:
-            if len(angles) != self.get_free_parameters_num():
-                raise ValueError(
-                    f"Expected {self.get_free_parameters_num()} angles"
-                    f" but got {len(angles)}."
-                )
+        # Qobj unitary or zero-parmeters function returning Qobj unitary
+        if angles is None:
+            if self.is_unitary:
+                return self.operator
+            raise ValueError("No angles were given and block was not unitary")
+
+        if len(angles) != self.get_free_parameters_num():
+            raise ValueError(
+                f"Expected {self.get_free_parameters_num()} angles"
+                f" but got {len(angles)}."
+            )
+
+        # Case where the operator is a string referring to an existing gate.
         if self.is_native_gate:
             raise TypeError("Can't compute unitary of native gate")
+        # Function returning Qobj unitary
         if isinstance(self.operator, types.FunctionType):
-            return self.operator(angles[0])
-        if self.is_unitary:
-            if isinstance(self.operator, types.FunctionType):
-                return self.operator(angles[0])
-            else:
-                return self.operator
-        else:
-            if angles is None:
-                raise ValueError("No parameter given")
-
+            # In the future, this could be generalized to multiple angles
+            unitary = self.operator(angles[0])
+            if not isinstance(unitary, Qobj):
+                raise TypeError("Provided function does not return Qobj")
+            return unitary
+        # ParameterizedHamiltonian instance
         if isinstance(self.operator, ParameterizedHamiltonian):
             return (-1j * self.operator.get_hamiltonian(angles)).expm()
-        else:
-            if len(angles) != 1:
-                raise ValueError(
-                    "Expected one angle for singly-parameterized"
-                    " Hamiltonian."
-                )
-            else:
-                return (-1j * angles[0] * self.operator).expm()
+
+        # If there's no other specification, treat operator as Hamiltonian
+        if len(angles) != 1:
+            raise ValueError(
+                "Expected one angle for singly-parameterized Hamiltonian."
+            )
+
+        return (-1j * angles[0] * self.operator).expm()
 
     def get_unitary_derivative(self, angles):
         """
