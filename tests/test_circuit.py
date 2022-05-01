@@ -709,27 +709,20 @@ class TestQubitCircuit:
                 shutil.which("pdflatex") is None,
                 reason="requires pdflatex"
                 )
-    def test_export_image(self):
-
-        def cleanup(*img_files):
-            for img_file in img_files:
-                if img_file in os.listdir('.'):
-                    os.remove(img_file)
-
-        file_png_200 = "exported_pic_200.png"
-        file_png_400 = "exported_pic_400.png"
-        file_svg = "exported_pic.svg"
-        cleanup(file_png_200, file_png_400, file_svg)
-
+    def test_export_image(self, in_temporary_directory):
+        from qutip_qip import circuit_latex
         qc = QubitCircuit(2, reverse_states=False)
         qc.add_gate("CSIGN", controls=[0], targets=[1])
-        qc.draw("png", 200, file_png_200.split('.')[0], "")
-        qc.draw("png", 400.5, file_png_400.split('.')[0], "")
-        qc.draw("svg", 450, file_svg.split('.')[0], "")
 
-        assert file_png_200 in os.listdir('.')
-        assert file_png_400 in os.listdir('.')
-        assert os.stat(file_png_200).st_size < os.stat(file_png_400).st_size
-        assert file_svg in os.listdir('.')
-
-        cleanup(file_png_200, file_png_400, file_svg)
+        if "png" in circuit_latex.CONVERTERS:
+            file_png200 = "exported_pic_200.png"
+            file_png400 = "exported_pic_400.png"
+            qc.draw("png", 200, file_png200.split('.')[0], "")
+            qc.draw("png", 400.5, file_png400.split('.')[0], "")
+            assert file_png200 in os.listdir('.')
+            assert file_png400 in os.listdir('.')
+            assert os.stat(file_png200).st_size < os.stat(file_png400).st_size
+        if "svg" in circuit_latex.CONVERTERS:
+            file_svg = "exported_pic.svg"
+            qc.draw("svg", file_svg.split('.')[0], "")
+            assert file_svg in os.listdir('.')
