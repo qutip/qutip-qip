@@ -705,6 +705,10 @@ class TestQubitCircuit:
               '&  \\qw \\cwx[-1]  & \\qw \\\\ \n'
         assert qc.latex_code() == self._latex_template % exp
 
+    @pytest.mark.skipif(
+                shutil.which("pdflatex") is None,
+                reason="requires pdflatex"
+                )
     def test_export_image(self, in_temporary_directory):
         from qutip_qip import circuit_latex
         qc = QubitCircuit(2, reverse_states=False)
