@@ -722,7 +722,7 @@ class TestQubitCircuit:
             assert file_png200 in os.listdir('.')
             assert file_png400 in os.listdir('.')
             assert os.stat(file_png200).st_size < os.stat(file_png400).st_size
-        elif "svg" in circuit_latex.CONVERTERS:
+        if "svg" in circuit_latex.CONVERTERS:
             file_svg = "exported_pic.svg"
             qc.draw("svg", file_svg.split('.')[0], "")
             assert file_svg in os.listdir('.')
