@@ -2,7 +2,7 @@
 Changelog
 *********
 
-Version 0.2.1 (Feb 20, 2021)
+Version 0.2.1 (Feb 20, 2022)
 ++++++++++++++++++++++++++++
 
 This release includes a revision of the documentation and adds more code examples in the API doc strings.
