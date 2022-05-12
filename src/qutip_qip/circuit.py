@@ -343,7 +343,8 @@ class QubitCircuit:
         arg_label: string
             Label for gate representation.
         index : list
-            Positions to add the gate.
+            Positions to add the gate. Each index in the supplied list refers
+            to a position in the original list of gates.
         classical_controls : int or list of int, optional
             indices of classical bits to control gate on.
         control_value : int, optional
@@ -378,7 +379,10 @@ class QubitCircuit:
             self.gates.append(gate)
 
         else:
-            for position in index:
+            # NOTE: Every insertion shifts the indices in the original list of
+            #       gates by an additional position to the right.
+            shifted_inds = np.sort(index) + np.arange(len(index))
+            for position in shifted_inds:
                 gate = Gate(
                     name,
                     targets=targets,
