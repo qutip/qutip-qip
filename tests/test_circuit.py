@@ -505,7 +505,7 @@ class TestQubitCircuit:
         def customer_gate1(arg_values):
             mat = np.zeros((4, 4), dtype=np.complex128)
             mat[0, 0] = mat[1, 1] = 1.
-            mat[2:4, 2:4] = gates.rx(arg_values)
+            mat[2:4, 2:4] = gates.rx(arg_values).full()
             return Qobj(mat, dims=[[2, 2], [2, 2]])
 
         def customer_gate2():
@@ -520,9 +520,9 @@ class TestQubitCircuit:
         qc.add_gate("T1", targets=[1])
         props = qc.propagators()
         result1 = tensor(identity(2), customer_gate1(np.pi/2))
-        np.testing.assert_allclose(props[0], result1)
+        np.testing.assert_allclose(props[0].full(), result1.full())
         result2 = tensor(identity(2), customer_gate2(), identity(2))
-        np.testing.assert_allclose(props[1], result2)
+        np.testing.assert_allclose(props[1].full(), result2.full())
 
     def test_N_level_system(self):
         """
@@ -647,7 +647,7 @@ class TestQubitCircuit:
         U_2 = gate_sequence_product(U_list_expanded, left_to_right=True,
                                     expand=False)
 
-        np.testing.assert_allclose(U_1, U_2)
+        np.testing.assert_allclose(U_1.full(), U_2.full())
 
     def test_wstate(self):
 

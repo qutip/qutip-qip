@@ -429,7 +429,10 @@ class VQA:
         dCost = (init.dag() * dU.dag()) * obs * (U * init) + (
             init.dag() * U.dag()
         ) * obs * (dU * init)
-        return dCost[0].item().real
+        if isinstance(dCost, Qobj):  # qutip version < 5
+            return np.real(dCost.full().item())
+        else:  # qutip version >= 5
+            return np.real(dCost)
 
     def compute_jac(self, angles, indices_to_compute=None):
         """
@@ -670,7 +673,7 @@ class VQABlock:
             arg = -1j * self.operator.get_hamiltonian(angles)
             direction = -1j * self.operator.p_terms[term_index]
             return Qobj(
-                expm_frechet(arg, direction, compute_expm=False),
+                expm_frechet(arg.full(), direction.full(), compute_expm=False),
                 dims=direction.dims,
             )
         if len(angles) != 1:
@@ -705,7 +708,7 @@ class OptimizationResult:
         highest probability amplitude measurement state.
         """
         num_qubits = int(np.log2(state.shape[0]))
-        index = np.argmax(abs(state))
+        index = np.argmax(abs(state.full()))
         return format(index, f"0{num_qubits}b")
 
     def get_top_bitstring(self):
