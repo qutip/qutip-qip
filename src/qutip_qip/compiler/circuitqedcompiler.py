@@ -1,6 +1,6 @@
 import numpy as np
 
-from ..circuit import Gate
+from ..operations import Gate
 from ..compiler import GateCompiler, Instruction
 
 
