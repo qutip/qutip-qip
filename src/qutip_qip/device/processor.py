@@ -1,3 +1,4 @@
+from packaging.version import parse as parse_version
 from collections.abc import Iterable
 import warnings
 from copy import deepcopy
@@ -19,6 +20,12 @@ from ..noise import (
     process_noise,
 )
 from ..pulse import Pulse, Drift, _merge_qobjevo, _fill_coeff
+
+
+if parse_version(qutip.__version__) >= parse_version("5.dev"):
+    is_qutip5 = True
+else:
+    is_qutip5 = False
 
 
 __all__ = ["Processor"]
@@ -536,7 +543,7 @@ class Processor(object):
                 )
             elif self.spline_kind == "cubic":
                 coeffs_list.append(
-                    _fill_coeff(pulse.coeff, pulse.tlist, full_tlist, {})
+                    _fill_coeff(pulse.coeff, pulse.tlist, full_tlist)
                 )
             else:
                 raise ValueError("Unknown spline kind.")
@@ -936,6 +943,7 @@ class Processor(object):
             t1=self.t1,
             t2=self.t2,
             device_noise=device_noise,
+            spline_kind=self.spline_kind,
         )
         if drift:
             drift_obj = self._get_drift_obj()
@@ -990,13 +998,17 @@ class Processor(object):
             qu_list.append(qu)
 
         final_qu = _merge_qobjevo(qu_list)
-        final_qu.args.update(args)
+        if is_qutip5:
+            final_qu.arguments(args)
+        else:
+            final_qu.args.update(args)
 
         # bring all c_ops to the same tlist, won't need it in QuTiP 5
-        temp = []
-        for c_op in c_ops:
-            temp.append(_merge_qobjevo([c_op], final_qu.tlist))
-        c_ops = temp
+        if not parse_version(qutip.__version__) >= parse_version("5.dev"):
+            temp = []
+            for c_op in c_ops:
+                temp.append(_merge_qobjevo([c_op], final_qu.tlist))
+            c_ops = temp
 
         if noisy:
             return final_qu, c_ops
@@ -1181,7 +1193,9 @@ class Processor(object):
             tlist = kwargs["tlist"]
             del kwargs["tlist"]
         else:
-            tlist = noisy_qobjevo.tlist
+            # TODO, this can be simplified further, tlist in the solver only
+            # determines the time step for intermediate result.
+            tlist = self.get_full_tlist()
         if solver == "mesolve":
             evo_result = mesolve(
                 H=noisy_qobjevo, rho0=init_state, tlist=tlist, **kwargs

@@ -3,7 +3,7 @@ import scipy
 import pytest
 from math import sqrt
 from qutip_qip.circuit import Measurement
-from qutip import (Qobj, basis, isequal, ket2dm,
+from qutip import (Qobj, basis, ket2dm,
                     sigmax, sigmay, sigmaz, identity, tensor, rand_ket)
 from qutip.measurement import (measure_povm, measurement_statistics_povm,
                                 measure_observable,
@@ -34,7 +34,10 @@ def test_measurement_comp_basis():
         np.testing.assert_allclose(probabilities_state, probabilities_dm)
         np.testing.assert_allclose(probabilities_state, probabilities_i)
         for j, final_state in enumerate(final_states):
-            np.testing.assert_allclose(final_dms[j], ket2dm(final_state))
+            np.testing.assert_allclose(
+                final_dms[j].full(),
+                ket2dm(final_state).full()
+            )
 
 
 @pytest.mark.parametrize("index", [0, 1])

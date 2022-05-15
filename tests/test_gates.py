@@ -1,3 +1,4 @@
+from copy import deepcopy
 import pytest
 import functools
 import itertools
@@ -13,20 +14,6 @@ def _permutation_id(permutation):
 def _infidelity(a, b):
     """Infidelity between two kets."""
     return 1 - abs(a.overlap(b))
-
-
-def _remove_global_phase(qobj):
-    """
-    Return a new Qobj with the gauge fixed for the global phase.  Explicitly,
-    we set the first non-zero element to be purely real-positive.
-    """
-    flat = qobj.full().flat.copy()
-    for phase in flat:
-        if phase != 0:
-            # Fix the gauge for any global phase.
-            flat = flat * np.exp(-1j * np.angle(phase))
-            break
-    return qutip.Qobj(flat.reshape(qobj.shape), dims=qobj.dims)
 
 
 def _make_random_three_qubit_gate():
@@ -139,8 +126,8 @@ class TestExplicitForm:
         pytest.param(gates.qrot, 2, id="Rabi rotation"),
     ])
     def test_zero_rotations_are_identity(self, gate, n_angles):
-        np.testing.assert_allclose(np.eye(2), gate(*([0]*n_angles)),
-                                   atol=1e-15)
+        np.testing.assert_allclose(
+            np.eye(2), gate(*([0]*n_angles)).full(), atol=1e-15)
 
 
 class TestCliffordGroup:
@@ -155,11 +142,12 @@ class TestCliffordGroup:
         assert len(self.clifford) == 24
 
     def test_all_elements_different(self):
-        clifford = [_remove_global_phase(gate) for gate in self.clifford]
+        clifford = [gate for gate in self.clifford]
         for i, gate in enumerate(clifford):
             for other in clifford[i+1:]:
                 # Big tolerance because we actually want to test the inverse.
-                assert not np.allclose(gate.full(), other.full(), atol=1e-3)
+                fid = qutip.average_gate_fidelity(gate, other)
+                assert not np.allclose(fid, 1., atol=1e-3)
 
     @pytest.mark.parametrize("gate", gates.qubit_clifford_group())
     def test_gate_normalises_pauli_group(self, gate):
@@ -170,12 +158,12 @@ class TestCliffordGroup:
         # Assert that each Clifford gate maps the set of Pauli gates back onto
         # itself (though not necessarily in order).  This condition is no
         # stronger than simply considering each (gate, Pauli) pair separately.
-        pauli_gates = [_remove_global_phase(x) for x in self.pauli]
-        normalised = [_remove_global_phase(gate * pauli * gate.dag())
-                      for pauli in self.pauli]
+        pauli_gates = deepcopy(self.pauli)
+        normalised = [gate * pauli * gate.dag() for pauli in self.pauli]
         for gate in normalised:
             for i, pauli in enumerate(pauli_gates):
-                if np.allclose(gate.full(), pauli.full(), atol=1e-10):
+                # if np.allclose(gate.full(), pauli.full(), atol=1e-10):
+                if np.allclose(qutip.average_gate_fidelity(gate, pauli), 1):
                     del pauli_gates[i]
                     break
         assert len(pauli_gates) == 0
