@@ -11,6 +11,7 @@ from qutip_qip.operations import (
     CZ, SQRTSWAP, SQRTISWAP, SWAPALPHA, SWAPALPHA, MS, TOFFOLI, FREDKIN,
     BERKELEY)
 
+
 def _permutation_id(permutation):
     return str(len(permutation)) + "-" + "".join(map(str, permutation))
 

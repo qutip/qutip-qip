@@ -95,7 +95,7 @@ __all__ = [
 
 
 class Gate:
-    """
+    r"""
     Base class for a quantum gate,
     concrete gate classes need to be defined as subclasses.
 
