@@ -703,11 +703,11 @@ class TestQubitCircuit:
                 reason="requires pdflatex"
                 )
     def test_export_image(self, in_temporary_directory):
-        from qutip_qip import circuit_latex
+        from qutip_qip import circuit
         qc = QubitCircuit(2, reverse_states=False)
         qc.add_gate("CSIGN", controls=[0], targets=[1])
 
-        if "png" in circuit_latex.CONVERTERS:
+        if "png" in circuit.CONVERTERS:
             file_png200 = "exported_pic_200.png"
             file_png400 = "exported_pic_400.png"
             qc.draw("png", 200, file_png200.split('.')[0], "")
@@ -715,7 +715,7 @@ class TestQubitCircuit:
             assert file_png200 in os.listdir('.')
             assert file_png400 in os.listdir('.')
             assert os.stat(file_png200).st_size < os.stat(file_png400).st_size
-        if "svg" in circuit_latex.CONVERTERS:
+        if "svg" in circuit.CONVERTERS:
             file_svg = "exported_pic.svg"
             qc.draw("svg", file_svg.split('.')[0], "")
             assert file_svg in os.listdir('.')

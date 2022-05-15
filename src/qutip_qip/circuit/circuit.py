@@ -13,7 +13,7 @@ import numpy as np
 from copy import deepcopy
 
 from . import circuit_latex as _latex
-from .operations import (
+from ..operations import (
     Gate,
     expand_operator,
     gate_sequence_product,
@@ -36,7 +36,8 @@ except ImportError:
         return data
 
 
-__all__ = ["QubitCircuit", "Measurement", "CircuitResult", "CircuitSimulator"]
+__all__ = [
+    "Gate", "QubitCircuit", "Measurement", "CircuitResult", "CircuitSimulator"]
 
 
 class Measurement:
