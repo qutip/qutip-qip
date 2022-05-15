@@ -179,55 +179,6 @@ class TestQubitCircuit:
         assert qc.gates[6].targets == [5]
         assert qc.gates[5].arg_value == 1.570796
 
-        # Test Exceptions  # Global phase is not included
-        for gate in _single_qubit_gates:
-            if gate not in _para_gates:
-                # No target
-                pytest.raises(ValueError, qc.add_gate, gate, None, None)
-                # Multiple targets
-                pytest.raises(ValueError, qc.add_gate, gate, [0, 1, 2], None)
-                # With control
-                pytest.raises(ValueError, qc.add_gate, gate, [0], [1])
-            else:
-                # No target
-                pytest.raises(ValueError, qc.add_gate, gate, None, None, 1)
-                # Multiple targets
-                pytest.raises(ValueError, qc.add_gate, gate, [0, 1, 2], None, 1)
-                # With control
-                pytest.raises(ValueError, qc.add_gate, gate, [0], [1], 1)
-        for gate in _ctrl_gates:
-            if gate not in _para_gates:
-                # No target
-                pytest.raises(ValueError, qc.add_gate, gate, None, [1])
-                # No control
-                pytest.raises(ValueError, qc.add_gate, gate, [0], None)
-            else:
-                # No target
-                pytest.raises(ValueError, qc.add_gate, gate, None, [1], 1)
-                # No control
-                pytest.raises(ValueError, qc.add_gate, gate, [0], None, 1)
-        for gate in _swap_like:
-            if gate not in _para_gates:
-                # Single target
-                pytest.raises(ValueError, qc.add_gate, gate, [0], None)
-                # With control
-                pytest.raises(ValueError, qc.add_gate, gate, [0, 1], [3])
-            else:
-                # Single target
-                pytest.raises(ValueError, qc.add_gate, gate, [0], None, 1)
-                # With control
-                pytest.raises(ValueError, qc.add_gate, gate, [0, 1], [3], 1)
-        for gate in _fredkin_like:
-            # Single target
-            pytest.raises(ValueError, qc.add_gate, gate, [0], [2])
-            # No control
-            pytest.raises(ValueError, qc.add_gate, gate, [0, 1], None)
-        for gate in _toffoli_like:
-            # No target
-            pytest.raises(ValueError, qc.add_gate, gate, None, [1, 2])
-            # Single control
-            pytest.raises(ValueError, qc.add_gate, gate, [0], [1])
-
         dummy_gate1 = Gate("DUMMY1")
         inds = [1, 3, 4, 6]
         qc.add_gate(dummy_gate1, index=inds)
