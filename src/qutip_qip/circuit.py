@@ -47,7 +47,7 @@ from .operations import (
     expand_operator,
     gate_sequence_product,
 )
-from .operations.gates import _gate_label
+from .operations.gates import _gate_label, _single_qubit_gates
 from qutip import basis, ket2dm, qeye
 from qutip import Qobj
 from qutip.measurement import measurement_statistics
@@ -280,7 +280,7 @@ class QubitCircuit:
 
         Parameters
         ----------
-        name: string
+        measurement: string
             Measurement name. If name is an instance of `Measuremnent`,
             parameters are unpacked and added.
         targets: list
@@ -438,20 +438,7 @@ class QubitCircuit:
         arg_label : string
             Label for gate representation.
         """
-        if name not in [
-            "RX",
-            "RY",
-            "RZ",
-            "SNOT",
-            "SQRTNOT",
-            "PHASEGATE",
-            "X",
-            "Y",
-            "Z",
-            "S",
-            "T",
-            "QASMU",
-        ]:
+        if name not in _single_qubit_gates:
             raise ValueError("%s is not a single qubit gate" % name)
 
         if qubits is not None:
@@ -482,7 +469,7 @@ class QubitCircuit:
                 )
                 self.gates.append(gate)
 
-    def add_circuit(self, qc, start=0):
+    def add_circuit(self, qc, start=0, overwrite_user_gates=False):
         """
         Adds a block of a qubit circuit to the main circuit.
         Globalphase gates are not added.
@@ -497,94 +484,43 @@ class QubitCircuit:
         if self.N - start < qc.N:
             raise NotImplementedError("Targets exceed number of qubits.")
 
+        # Inherit the user gates
+        for user_gate in qc.user_gates:
+            if user_gate in self.user_gates and not overwrite_user_gates:
+                continue
+            self.user_gates[user_gate] = qc.user_gates[user_gate]
+
         for circuit_op in qc.gates:
 
             if isinstance(circuit_op, Gate):
-                gate = circuit_op
 
-                if gate.name in [
-                    "RX",
-                    "RY",
-                    "RZ",
-                    "SNOT",
-                    "SQRTNOT",
-                    "PHASEGATE",
-                    "QASMU",
-                ]:
-                    self.add_gate(
-                        gate.name,
-                        gate.targets[0] + start,
-                        None,
-                        gate.arg_value,
-                        gate.arg_label,
-                    )
-                elif gate.name in ["X", "Y", "Z", "S", "T"]:
-                    self.add_gate(
-                        gate.name,
-                        gate.targets[0] + start,
-                        None,
-                        None,
-                        gate.arg_label,
-                    )
-                elif gate.name in [
-                    "CPHASE",
-                    "CNOT",
-                    "CSIGN",
-                    "CRX",
-                    "CRY",
-                    "CRZ",
-                    "CY",
-                    "CZ",
-                    "CS",
-                    "CT",
-                ]:
-                    self.add_gate(
-                        gate.name,
-                        gate.targets[0] + start,
-                        gate.controls[0] + start,
-                        gate.arg_value,
-                        gate.arg_label,
-                    )
-                elif gate.name in [
-                    "BERKELEY",
-                    "SWAPalpha",
-                    "SWAP",
-                    "ISWAP",
-                    "SQRTSWAP",
-                    "SQRTISWAP",
-                ]:
-                    self.add_gate(
-                        gate.name,
-                        [gate.targets[0] + start, gate.targets[1] + start],
-                    )
-                elif gate.name in ["TOFFOLI"]:
-                    self.add_gate(
-                        gate.name,
-                        gate.targets[0] + start,
-                        [gate.controls[0] + start, gate.controls[1] + start],
-                        None,
-                        None,
-                    )
-                elif gate.name in ["FREDKIN"]:
-                    self.add_gate(
-                        gate.name,
-                        [gate.targets[0] + start, gate.targets[1] + start],
-                        gate.controls + start,
-                        None,
-                        None,
-                    )
-                elif gate.name in self.user_gates:
-                    self.add_gate(
-                        gate.name,
-                        targets=gate.targets,
-                        arg_value=gate.arg_value,
-                    )
-            else:
-                measurement = circuit_op
+                if circuit_op.targets is not None:
+                    tar = [target + start for target in circuit_op.targets]
+                else:
+                    tar = None
+                if circuit_op.controls is not None:
+                    ctrl = [control + start for control in circuit_op.controls]
+                else:
+                    ctrl = None
+
+                self.add_gate(
+                    circuit_op.name,
+                    targets=tar,
+                    controls=ctrl,
+                    arg_value=circuit_op.arg_value,
+                )
+            elif isinstance(circuit_op, Measurement):
                 self.add_measurement(
-                    measurement.name,
-                    targets=[measurement.targets[0] + start],
-                    classical_store=measurement.classical_store,
+                    circuit_op.name,
+                    targets=[target + start for target in circuit_op.targets],
+                    classical_store=circuit_op.classical_store,
+                )
+            else:
+                raise TypeError(
+                    "The circuit to be added contains unknown \
+                    operator {}".format(
+                        circuit_op
+                    )
                 )
 
     def remove_gate_or_measurement(

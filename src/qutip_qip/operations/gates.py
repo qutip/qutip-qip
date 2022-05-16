@@ -117,7 +117,7 @@ _fredkin_like = ["FREDKIN"]
 
 class Gate:
     """
-    Representation of a quantum gate, with its required parametrs, and target
+    Representation of a quantum gate, with its required parameters, and target
     and control qubits.
 
     Parameters
