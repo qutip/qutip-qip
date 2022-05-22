@@ -29,7 +29,6 @@ jobs:
     - name: Upload to Coveralls
       env:
         GITHUB_TOKEN: ${{ secrets.github_token }}
-        COVERALLS_FLAG_NAME: ${{ matrix.qutip-version }}
         COVERALLS_PARALLEL: true
       run: coveralls --service=github
 
@@ -73,7 +72,6 @@ jobs:
     - name: Upload to Coveralls
       env:
         GITHUB_TOKEN: ${{ secrets.github_token }}
-        COVERALLS_FLAG_NAME: ${{ matrix.qutip-version }}
         COVERALLS_PARALLEL: true
       run: coveralls --service=github
 
