@@ -155,7 +155,7 @@ class Gate:
         Create a gate with specified parameters.
         """
 
-        self.name = name
+        self.name = name if name is not None else self.__class__.__name__
         self.targets = None
         self.controls = None
         self.classical_controls = None
@@ -417,7 +417,6 @@ class X(SingleQubitGate):
 
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
-        self.name = "X"
         self.latex_str = r"X"
 
     def get_compact_qobj(self):
@@ -440,7 +439,6 @@ class Y(SingleQubitGate):
 
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
-        self.name = "Y"
         self.latex_str = r"Y"
 
     def get_compact_qobj(self):
@@ -463,7 +461,6 @@ class Z(SingleQubitGate):
 
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
-        self.name = "Z"
         self.latex_str = r"Z"
 
     def get_compact_qobj(self):
@@ -486,7 +483,6 @@ class RX(SingleQubitGate):
 
     def __init__(self, targets, arg_value, **kwargs):
         super().__init__(targets=targets, arg_value=arg_value, **kwargs)
-        self.name = "RX"
         self.latex_str = r"R_x"
 
     def get_compact_qobj(self):
@@ -509,7 +505,6 @@ class RY(SingleQubitGate):
 
     def __init__(self, targets, arg_value, **kwargs):
         super().__init__(targets=targets, arg_value=arg_value, **kwargs)
-        self.name = "RY"
         self.latex_str = r"R_y"
 
     def get_compact_qobj(self):
@@ -532,7 +527,6 @@ class RZ(SingleQubitGate):
 
     def __init__(self, targets, arg_value, **kwargs):
         super().__init__(targets=targets, arg_value=arg_value, **kwargs)
-        self.name = "RZ"
         self.latex_str = r"R_z"
 
     def get_compact_qobj(self):
@@ -555,7 +549,6 @@ class H(SingleQubitGate):
 
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
-        self.name = "SNOT"
         self.latex_str = r"{\rm H}"
 
     def get_compact_qobj(self):
@@ -582,11 +575,10 @@ class SQRTNOT(SingleQubitGate):
 
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
-        self.name = "SQRTNOT"
+        self.latex_str = r"\sqrt{\rm NOT}"
 
     def get_compact_qobj(self):
         return sqrtnot()
-        self.latex_str = r"\sqrt{\rm NOT}"
 
 
 class S(SingleQubitGate):
@@ -605,7 +597,6 @@ class S(SingleQubitGate):
 
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
-        self.name = "S"
         self.latex_str = r"{\rm S}"
 
     def get_compact_qobj(self):
@@ -628,7 +619,6 @@ class T(SingleQubitGate):
 
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
-        self.name = "T"
         self.latex_str = r"{\rm T}"
 
     def get_compact_qobj(self):
@@ -654,7 +644,6 @@ class QASMU(SingleQubitGate):
 
     def __init__(self, targets, arg_value=None, **kwargs):
         super().__init__(targets=targets, arg_value=arg_value, **kwargs)
-        self.name = "QASMU"
         self.latex_str = r"{\rm QASM-U}"
 
     def get_compact_qobj(self):
@@ -690,7 +679,6 @@ class SWAP(TwoQubitGate):
 
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
-        self.name = "SWAP"
         self.latex_str = r"{\rm SWAP}"
 
     def get_compact_qobj(self):
@@ -715,7 +703,6 @@ class ISWAP(TwoQubitGate):
 
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
-        self.name = "ISWAP"
         self.latex_str = r"{i}{\rm SWAP}"
 
     def get_compact_qobj(self):
@@ -740,7 +727,6 @@ class SQRTSWAP(TwoQubitGate):
 
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
-        self.name = "SQRTSWAP"
         self.latex_str = r"\sqrt{\rm SWAP}"
 
     def get_compact_qobj(self):
@@ -765,7 +751,6 @@ class SQRTISWAP(TwoQubitGate):
 
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
-        self.name = "SQRTISWAP"
         self.latex_str = r"\sqrt{{i}\rm SWAP}"
 
     def get_compact_qobj(self):
@@ -799,7 +784,6 @@ class BERKELEY(TwoQubitGate):
 
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
-        self.name = "BERKELEY"
         self.latex_str = r"{\rm BERKELEY}"
 
     def get_compact_qobj(self):
@@ -833,7 +817,6 @@ class SWAPALPHA(TwoQubitGate):
 
     def __init__(self, targets, arg_value, **kwargs):
         super().__init__(targets=targets, arg_value=arg_value, **kwargs)
-        self.name = "SWAPALPHA"
         self.latex_str = r"{\rm SWAPALPHA}"
 
     def get_compact_qobj(self):
@@ -867,7 +850,6 @@ class MS(TwoQubitGate):
 
     def __init__(self, targets, arg_value, **kwargs):
         super().__init__(targets=targets, arg_value=arg_value, **kwargs)
-        self.name = "MS"
         self.latex_str = r"{\rm MS}"
 
     def get_compact_qobj(self):
@@ -896,7 +878,6 @@ class TOFFOLI(Gate):
 
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
-        self.name = "TOFFOLI"
         self.latex_str = r"{\rm TOFFOLI}"
 
     def get_compact_qobj(self):
@@ -925,7 +906,6 @@ class FREDKIN(Gate):
 
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
-        self.name = "FREDKIN"
         self.latex_str = r"{\rm FREDKIN}"
 
     def get_compact_qobj(self):
@@ -1019,7 +999,6 @@ class CNOT(_OneControlledGate):
             target_gate=self.target_gate,
             **kwargs,
         )
-        self.name = "CNOT"
         self.latex_str = r"{\rm CNOT}"
 
     def get_compact_qobj(self):
@@ -1050,7 +1029,6 @@ class CZ(_OneControlledGate):
             target_gate=self.target_gate,
             **kwargs,
         )
-        self.name = "CZ"
 
     def get_compact_qobj(self):
         return csign()
@@ -1080,7 +1058,6 @@ class CSIGN(_OneControlledGate):
             target_gate=self.target_gate,
             **kwargs,
         )
-        self.name = "CSIGN"
 
     def get_compact_qobj(self):
         return csign()
@@ -1122,7 +1099,6 @@ class CPHASE(_OneControlledGate):
             target_gate=self.target_gate,
             **kwargs,
         )
-        self.name = "CPHASE"
 
     def get_compact_qobj(self):
         return cphase(self.arg_value)
