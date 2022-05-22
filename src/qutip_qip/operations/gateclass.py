@@ -110,13 +110,16 @@ class Gate:
         can be accessed when generating the `:obj:qutip.Qobj`.
     classical_controls : int or list of int, optional
         Indices of classical bits to control the unitary operator.
-    control_value : int or (int, int), optional
+    control_value : int, optional
         The decimal value of controlling bits for executing
         the unitary operator on the target qubits.
-        If the gate is only quantum controlled or classically controlled,
-        it could be given as an integer,
-        If both are used, it should be a tuple where the first one is quantum
-        and the second one the classical.
+        E.g. if the gate should be executed when the zero-th bit is 1,
+        ``controll_value=1``;
+        If the gate should be executed when the first two bits are 0 and 1,
+        ``controll_value=3``.
+    classical_control_values : int, optional
+        The decimal value of controlling classical bits for executing
+        the unitary operator on the target qubits.
         E.g. if the gate should be executed when the zero-th bit is 1,
         ``controll_value=1``;
         If the gate should be executed when the first two bits are 0 and 1,
@@ -144,6 +147,7 @@ class Gate:
         arg_value=None,
         control_value=None,
         classical_controls=None,
+        classical_control_value=None,
         arg_label=None,
         **kwargs,
     ):
@@ -155,7 +159,6 @@ class Gate:
         self.targets = None
         self.controls = None
         self.classical_controls = None
-        self.control_value = None
 
         if not isinstance(targets, Iterable) and targets is not None:
             self.targets = [targets]
@@ -176,6 +179,7 @@ class Gate:
             self.classical_controls = classical_controls
 
         self.control_value = control_value
+        self.classical_control_value = classical_control_value
         self.arg_value = arg_value
         self.arg_label = arg_label
         self.latex_str = r"U"
@@ -212,13 +216,14 @@ class Gate:
     def __str__(self):
         str_name = (
             "Gate(%s, targets=%s, controls=%s,"
-            " classical controls=%s, control_value=%s)"
+            " classical controls=%s, control_value=%s, classical_control_value=%s)"
         ) % (
             self.name,
             self.targets,
             self.controls,
             self.classical_controls,
             self.control_value,
+            self.classical_control_value,
         )
         return str_name
 
@@ -951,11 +956,6 @@ class ControlledGate(Gate):
         ).latex_str
 
     def get_compact_qobj(self):
-        quantum_control_value = (
-            self.control_value[0]
-            if isinstance(self.control_value, Iterable)
-            else self.control_value
-        )
         return controlled_gate(
             U=self.target_gate(
                 targets=self.targets, **self.kwargs
@@ -966,7 +966,7 @@ class ControlledGate(Gate):
                     len(self.controls), len(self.targets) + len(self.controls)
                 )
             ),
-            control_value=quantum_control_value,
+            control_value=self.control_value,
         )
 
 
@@ -981,14 +981,12 @@ class _OneControlledGate(ControlledGate, TwoQubitGate):
     def __init__(self, controls, targets, target_gate, **kwargs):
         _control_value = kwargs.get("control_value", None)
         if _control_value is not None:
-            if (isinstance(_control_value, int) and _control_value != 1) or (
-                isinstance(_control_value, Iterable) and _control_value[0] != 1
-            ):
+            if _control_value != 1:
                 raise ValueError(
                     f"{self.__class__.__name__} must has control_value=1"
                 )
         else:
-            kwargs["control_value"] = [1]
+            kwargs["control_value"] = 1
         super().__init__(
             targets=targets,
             controls=controls,

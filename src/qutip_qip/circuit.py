@@ -296,6 +296,7 @@ class QubitCircuit:
         index=None,
         classical_controls=None,
         control_value=None,
+        classical_control_value=None,
     ):
         """
         Adds a gate with specified parameters to the circuit.
@@ -338,6 +339,7 @@ class QubitCircuit:
                 arg_label=arg_label,
                 classical_controls=classical_controls,
                 control_value=control_value,
+                classical_control_value=classical_control_value,
             )
 
         if index is None:
@@ -373,6 +375,7 @@ class QubitCircuit:
         arg_label=None,
         classical_controls=None,
         control_value=None,
+        classical_control_value=None,
     ):
         """
         Adds a single qubit gate with specified parameters on a variable
@@ -403,6 +406,7 @@ class QubitCircuit:
                     arg_label=arg_label,
                     classical_controls=classical_controls,
                     control_value=control_value,
+                    classical_control_value=classical_control_value,
                 )
                 self.gates.append(gate)
 
@@ -417,6 +421,7 @@ class QubitCircuit:
                     arg_label=arg_label,
                     classical_controls=classical_controls,
                     control_value=control_value,
+                    classical_control_value=classical_control_value,
                 )
                 self.gates.append(gate)
 
