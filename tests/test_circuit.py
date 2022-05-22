@@ -399,7 +399,7 @@ class TestQubitCircuit:
 
         assert qc.gates[8].name == "T"
         assert qc.gates[7].name == "S"
-        assert qc.gates[6].name == "CSIGN"
+        assert qc.gates[6].name == "CZ"
         assert qc.gates[5].name == "CT"
         assert qc.gates[4].name == "Z"
         assert qc.gates[3].name == "CS"

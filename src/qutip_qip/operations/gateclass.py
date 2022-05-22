@@ -1026,9 +1026,39 @@ class CNOT(_OneControlledGate):
         return cnot()
 
 
+class CZ(_OneControlledGate):
+    """
+    Controlled Z gate. Identical to the CSIGN gate.
+
+    Examples
+    --------
+    >>> from qutip_qip.operations import CZ
+    >>> CSIGN(0, 1).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
+    Quantum object: dims = [[2, 2], [2, 2]], shape = (4, 4), type = oper, isherm = True
+    Qobj data =
+    [[ 1.  0.  0.  0.]
+     [ 0.  1.  0.  0.]
+     [ 0.  0.  1.  0.]
+     [ 0.  0.  0. -1.]]
+    """
+
+    def __init__(self, controls, targets, **kwargs):
+        self.target_gate = Z
+        super().__init__(
+            targets=targets,
+            controls=controls,
+            target_gate=self.target_gate,
+            **kwargs,
+        )
+        self.name = "CZ"
+
+    def get_compact_qobj(self):
+        return csign()
+
+
 class CSIGN(_OneControlledGate):
     """
-    Controlled Z gate.
+    Controlled CSIGN gate. Identical to the CZ gate.
 
     Examples
     --------
@@ -1054,10 +1084,6 @@ class CSIGN(_OneControlledGate):
 
     def get_compact_qobj(self):
         return csign()
-
-
-CZ = CSIGN
-CZ.__doc__ = CZ.__doc__
 
 
 class CPHASE(_OneControlledGate):
