@@ -7,21 +7,29 @@ on:
 
 jobs:
   test:
-    runs-on: ${{ matrix.settings.os }}
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        settings: |
-          [{os: ubuntu-latest, qutip-version: '@dev.major', python-version: '3.6'}, \
-          {os: windows-latest, qutip-version: '==4.6.*', python-version: '3.8'}, \
-          {os: macOS-latest, qutip-version: '@master', python-version: '3.9'}, \
-          {os: ubuntu-latest, qutip-version: '', python-version: '3.7'}]
+        include:
+          - os: ubuntu-latest
+            qutip-version: '@dev.major'
+            python-version: '3.6'
+          - os: windows-latest
+            qutip-version: '==4.6.*'
+            python-version: '3.8'
+          - os: macOS-latest
+            qutip-version: '@master'
+            python-version: '3.9'
+          - os: ubuntu-latest
+            qutip-version: ''
+            python-version: '3.7'
 
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: ${{ matrix.settings.python-version }}
+        python-version: ${{ matrix.python-version }}
 
     - name: Install dependencies
       run: |
@@ -29,14 +37,14 @@ jobs:
         python -m pip install pytest pytest-cov coveralls
 
     - name: Install QuTiP from PyPI
-      if: ${{ matrix.settings.qutip-version != '' }} & ${{ ! startsWith( matrix.settings.qutip-version, '@') }}
-      run: python -m pip install 'qutip${{ matrix.settings.qutip-version }}'
+      if: ${{ matrix.qutip-version != '' }} & ${{ ! startsWith( matrix.qutip-version, '@') }}
+      run: python -m pip install 'qutip${{ matrix.qutip-version }}'
 
     - name: Install QuTiP from GitHub
-      if: ${{ startsWith( matrix.settings.qutip-version, '@') }}
+      if: ${{ startsWith( matrix.qutip-version, '@') }}
       run: |
         python -m pip install numpy scipy cython
-        python -m pip install 'git+https://github.com/qutip/qutip.git${{ matrix.settings.qutip-version }}'
+        python -m pip install 'git+https://github.com/qutip/qutip.git${{ matrix.qutip-version }}'
 
     - name: Install qutip-qip
       # Installing in-place so that coveralls can locate the source code.
