@@ -3,10 +3,10 @@ import types
 import random
 import numpy as np
 from qutip import basis, tensor, Qobj, qeye, expect
-from qutip.qip.circuit import QubitCircuit
+from qutip_qip.circuit import QubitCircuit
 from scipy.optimize import minimize
 from scipy.linalg import expm_frechet
-from qutip.qip.operations.gates import gate_sequence_product
+from qutip_qip.operations.gates import gate_sequence_product
 
 
 class VQA:
