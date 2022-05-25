@@ -11,9 +11,7 @@ from qutip import (tensor, Qobj, ptrace, rand_ket, fock_dm, basis,
                    rand_dm, bell_state, ket2dm, identity, sigmax)
 from qutip_qip.qasm import read_qasm
 from qutip_qip.operations import (
-    Gate, gates, gate_sequence_product,
-    _ctrl_gates, _single_qubit_gates, _swap_like, _toffoli_like, _fredkin_like,
-    _para_gates
+    Gate, gates, gate_sequence_product
 )
 
 from qutip_qip.decompose.decompose_single_qubit_gate import _ZYZ_rotation
@@ -180,55 +178,6 @@ class TestQubitCircuit:
         assert qc.gates[6].name == "RY"
         assert qc.gates[6].targets == [5]
         assert qc.gates[5].arg_value == 1.570796
-
-        # Test Exceptions  # Global phase is not included
-        for gate in _single_qubit_gates:
-            if gate not in _para_gates:
-                # No target
-                pytest.raises(ValueError, qc.add_gate, gate, None, None)
-                # Multiple targets
-                pytest.raises(ValueError, qc.add_gate, gate, [0, 1, 2], None)
-                # With control
-                pytest.raises(ValueError, qc.add_gate, gate, [0], [1])
-            else:
-                # No target
-                pytest.raises(ValueError, qc.add_gate, gate, None, None, 1)
-                # Multiple targets
-                pytest.raises(ValueError, qc.add_gate, gate, [0, 1, 2], None, 1)
-                # With control
-                pytest.raises(ValueError, qc.add_gate, gate, [0], [1], 1)
-        for gate in _ctrl_gates:
-            if gate not in _para_gates:
-                # No target
-                pytest.raises(ValueError, qc.add_gate, gate, None, [1])
-                # No control
-                pytest.raises(ValueError, qc.add_gate, gate, [0], None)
-            else:
-                # No target
-                pytest.raises(ValueError, qc.add_gate, gate, None, [1], 1)
-                # No control
-                pytest.raises(ValueError, qc.add_gate, gate, [0], None, 1)
-        for gate in _swap_like:
-            if gate not in _para_gates:
-                # Single target
-                pytest.raises(ValueError, qc.add_gate, gate, [0], None)
-                # With control
-                pytest.raises(ValueError, qc.add_gate, gate, [0, 1], [3])
-            else:
-                # Single target
-                pytest.raises(ValueError, qc.add_gate, gate, [0], None, 1)
-                # With control
-                pytest.raises(ValueError, qc.add_gate, gate, [0, 1], [3], 1)
-        for gate in _fredkin_like:
-            # Single target
-            pytest.raises(ValueError, qc.add_gate, gate, [0], [2])
-            # No control
-            pytest.raises(ValueError, qc.add_gate, gate, [0, 1], None)
-        for gate in _toffoli_like:
-            # No target
-            pytest.raises(ValueError, qc.add_gate, gate, None, [1, 2])
-            # Single control
-            pytest.raises(ValueError, qc.add_gate, gate, [0], [1])
 
         dummy_gate1 = Gate("DUMMY1")
         inds = [1, 3, 4, 6]
@@ -417,21 +366,6 @@ class TestQubitCircuit:
         """
         qc = QubitCircuit(2)
         pytest.raises(ValueError, qc.add_gate, gate, targets=[1], controls=[0])
-
-    @pytest.mark.parametrize('gate', ['CY', 'CZ', 'CS', 'CT'])
-    def test_exceptions_controlled(self, gate):
-        """
-        Text exceptions are thrown correctly for inadequate inputs
-        """
-        qc = QubitCircuit(2)
-        '''
-        pytest.raises(ValueError, qc.add_gate, gate,
-                    targets=[1], controls=[0])
-        '''
-
-        pytest.raises(ValueError, qc.add_gate, gate,
-                      targets=[1])
-        pytest.raises(ValueError, qc.add_gate, gate)
 
     def test_globalphase_gate_propagators(self):
         qc = QubitCircuit(2)
