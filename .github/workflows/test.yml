@@ -10,50 +10,29 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macOS-latest]
+        include:
+          - os: ubuntu-latest
+            qutip-version: '@dev.major'
+            python-version: '3.6'
+          - os: windows-latest
+            qutip-version: '==4.6.*'
+            python-version: '3.10'
+          - os: macOS-latest
+            qutip-version: '==4.7.*'
+            python-version: '3.9'
+          - os: ubuntu-latest
+            qutip-version: ''
+            python-version: '3.7'
 
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: 3.9
-    - name: Install qutip-qip
-      run: |
-        python -m pip install --upgrade pip
-        pip install -e .[tests]
-    - name: Test with pytest and generate coverage report
-      run: |
-        pip install pytest-cov coveralls
-        pytest tests --strict-markers --cov=qutip_qip --cov-report=
-    - name: Upload to Coveralls
-      env:
-        GITHUB_TOKEN: ${{ secrets.github_token }}
-        COVERALLS_FLAG_NAME: ${{ matrix.qutip-version }}
-        COVERALLS_PARALLEL: true
-      run: coveralls --service=github
-
-  test-qutip-support:
-    # test for qutip master branch
-    runs-on: ubuntu-latest
-
-    strategy:
-        matrix:
-            qutip-version: ['==4.6.*', '==4.7.*', '@dev.major']
-
-    steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.6
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install pytest pytest-cov coveralls
+        python-version: ${{ matrix.python-version }}
 
     - name: Install QuTiP from PyPI
-      if: ${{ ! startsWith( matrix.qutip-version, '@') }}
+      if: ${{ matrix.qutip-version != '' && ! startsWith( matrix.qutip-version, '@') }}
       run: python -m pip install 'qutip${{ matrix.qutip-version }}'
 
     - name: Install QuTiP from GitHub
@@ -73,7 +52,6 @@ jobs:
     - name: Upload to Coveralls
       env:
         GITHUB_TOKEN: ${{ secrets.github_token }}
-        COVERALLS_FLAG_NAME: ${{ matrix.qutip-version }}
         COVERALLS_PARALLEL: true
       run: coveralls --service=github
 
@@ -103,7 +81,7 @@ jobs:
 
   finalise:
     name: Finalise coverage reporting
-    needs: [test, test-qutip-support]
+    needs: [test]
     runs-on: ubuntu-latest
     container: python:3-slim
     steps:
