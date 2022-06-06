@@ -6,13 +6,13 @@ import numpy as np
 import pytest
 
 from qutip_qip.device import OptPulseProcessor, SpinChainModel
-from qutip_qip.circuit import QubitCircuit
+from qutip_qip.circuit import QubitCircuit, gate_sequence_product
 from qutip_qip.qubits import qubit_states
 import qutip
 from qutip import (fidelity, Qobj, tensor, rand_ket, basis,  sigmaz,
                     sigmax, sigmay, identity, destroy)
-from qutip_qip.operations import (cnot, gate_sequence_product,
-                                        hadamard_transform, expand_operator)
+from qutip_qip.operations import (
+    cnot, hadamard_transform, expand_operator)
 import qutip
 from packaging.version import parse as parse_version
 if parse_version(qutip.__version__) < parse_version('5.dev'):

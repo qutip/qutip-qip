@@ -5,12 +5,12 @@ import numpy as np
 from pathlib import Path
 
 
-from qutip_qip.circuit import (QubitCircuit, CircuitSimulator)
+from qutip_qip.circuit import (QubitCircuit, CircuitSimulator, gate_sequence_product)
 from qutip import (tensor, Qobj, ptrace, rand_ket, fock_dm, basis,
                    rand_dm, bell_state, ket2dm, identity, sigmax)
 from qutip_qip.qasm import read_qasm
 from qutip_qip.operations import (
-    Gate, gates, gate_sequence_product, Measurement
+    Gate, gates, Measurement
 )
 
 from qutip_qip.decompose.decompose_single_qubit_gate import _ZYZ_rotation
@@ -102,9 +102,9 @@ class TestQubitCircuit:
     def testresolve(self, gate_from, gate_to, targets, controls):
         qc1 = QubitCircuit(2)
         qc1.add_gate(gate_from, targets=targets, controls=controls)
-        U1 = gates.gate_sequence_product(qc1.propagators())
+        U1 = gate_sequence_product(qc1.propagators())
         qc2 = qc1.resolve_gates(basis=gate_to)
-        U2 = gates.gate_sequence_product(qc2.propagators())
+        U2 = gate_sequence_product(qc2.propagators())
         assert _op_dist(U1, U2) < 1e-12
 
     def testSNOTdecompose(self):
@@ -114,9 +114,9 @@ class TestQubitCircuit:
         """
         qc1 = QubitCircuit(1)
         qc1.add_gate("SNOT", targets=0)
-        U1 = gates.gate_sequence_product(qc1.propagators())
+        U1 = gate_sequence_product(qc1.propagators())
         qc2 = qc1.resolve_gates()
-        U2 = gates.gate_sequence_product(qc2.propagators())
+        U2 = gate_sequence_product(qc2.propagators())
         assert _op_dist(U1, U2) < 1e-12
 
     def testFREDKINdecompose(self):
@@ -126,9 +126,9 @@ class TestQubitCircuit:
         """
         qc1 = QubitCircuit(3)
         qc1.add_gate("FREDKIN", targets=[0, 1], controls=[2])
-        U1 = gates.gate_sequence_product(qc1.propagators())
+        U1 = gate_sequence_product(qc1.propagators())
         qc2 = qc1.resolve_gates()
-        U2 = gates.gate_sequence_product(qc2.propagators())
+        U2 = gate_sequence_product(qc2.propagators())
         assert _op_dist(U1, U2) < 1e-12
 
     def testadjacentgates(self):
@@ -138,10 +138,10 @@ class TestQubitCircuit:
         """
         qc1 = QubitCircuit(3)
         qc1.add_gate("ISWAP", targets=[0, 2])
-        U1 = gates.gate_sequence_product(qc1.propagators())
+        U1 = gate_sequence_product(qc1.propagators())
         qc0 = qc1.adjacent_gates()
         qc2 = qc0.resolve_gates(basis="ISWAP")
-        U2 = gates.gate_sequence_product(qc2.propagators())
+        U2 = gate_sequence_product(qc2.propagators())
         assert _op_dist(U1, U2) < 1e-12
 
     def test_add_gate(self):

@@ -6,9 +6,9 @@ import numpy as np
 
 from qutip import Qobj, identity, tensor, mesolve
 import qutip.control.pulseoptim as cpo
-from ..circuit import QubitCircuit
+from ..circuit import QubitCircuit, gate_sequence_product
 from .processor import Processor
-from ..operations import gate_sequence_product, expand_operator
+from ..operations import expand_operator
 
 
 __all__ = ["OptPulseProcessor"]

@@ -6,7 +6,7 @@ from qutip import basis, tensor, Qobj, qeye, expect
 from qutip_qip.circuit import QubitCircuit
 from scipy.optimize import minimize
 from scipy.linalg import expm_frechet
-from qutip_qip.operations.gates import gate_sequence_product
+from .circuit import gate_sequence_product
 
 
 class VQA:

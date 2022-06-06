@@ -67,7 +67,6 @@ qutip\_qip.operations
       gate_expand_1toN
       gate_expand_2toN
       gate_expand_3toN
-      gate_sequence_product
       globalphase
       hadamard_transform
       iswap

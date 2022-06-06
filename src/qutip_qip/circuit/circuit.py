@@ -16,10 +16,13 @@ from ..operations import (
     Gate,
     Measurement,
     expand_operator,
-    gate_sequence_product,
     GATE_CLASS_MAP,
 )
-from .circuitsimulator import CircuitSimulator, CircuitResult
+from .circuitsimulator import (
+    CircuitSimulator,
+    CircuitResult,
+    gate_sequence_product,
+)
 from qutip import basis, Qobj
 
 

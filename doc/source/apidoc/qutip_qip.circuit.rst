@@ -6,7 +6,6 @@ qutip\_qip.circuit
 .. automodule:: qutip_qip.circuit
    :members:
    :show-inheritance:
-   :imported-members:
 
    .. rubric:: Classes
 
@@ -15,3 +14,4 @@ qutip\_qip.circuit
       QubitCircuit
       CircuitResult
       CircuitSimulator
+      gate_sequence_product
