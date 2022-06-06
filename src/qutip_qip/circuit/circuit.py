@@ -36,8 +36,6 @@ except ImportError:
 
 
 __all__ = [
-    "Gate",  # compatibility
-    "Measurement",  # compatibility
     "QubitCircuit",
     "CircuitResult",
 ]

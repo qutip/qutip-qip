@@ -718,3 +718,7 @@ class TestQubitCircuit:
             file_svg = "exported_pic.svg"
             qc.draw("svg", file_svg.split('.')[0], "")
             assert file_svg in os.listdir('.')
+
+### TODO raise deprecation warning for this.
+# Make them available for backward compatibility.
+from qutip_qip.circuit import Gate, Measurement
