@@ -23,12 +23,12 @@ def test_qasm_errors(filename, error, error_message):
 
 
 def check_gate_defn(gate, gate_name, targets, controls=None,
-                    classical_controls=None, control_value=None):
+                    classical_controls=None, classical_control_value=None):
     assert gate.name == gate_name
     assert gate.targets == targets
     assert gate.controls == controls
     assert gate.classical_controls == classical_controls
-    assert gate.control_value == control_value
+    assert gate.classical_control_value == classical_control_value
 
 
 def check_measurement_defn(gate, gate_name, targets, classical_store):

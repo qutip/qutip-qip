@@ -13,6 +13,40 @@ qutip\_qip.operations
    .. autosummary::
    
       Gate
+      GATE_CLASS_MAP
+      X
+      Y
+      Z
+      RX
+      RY
+      RZ
+      H
+      SNOT
+      SQRTNOT
+      S
+      T
+      QASMU
+      SWAP
+      ISWAP
+      CNOT
+      SQRTSWAP
+      SQRTISWAP
+      BERKELEY
+      SWAPALPHA
+      MS
+      TOFFOLI
+      FREDKIN
+      CNOT
+      CSIGN
+      CRX
+      CRY
+      CRZ
+      CY
+      CX
+      CZ
+      CS
+      CT
+      CPHASE
 
    .. rubric:: Functions
 

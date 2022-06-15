@@ -15,39 +15,10 @@ from copy import deepcopy
 from . import circuit_latex as _latex
 from .operations import (
     Gate,
-    rx,
-    ry,
-    rz,
-    sqrtnot,
-    snot,
-    phasegate,
-    x_gate,
-    y_gate,
-    z_gate,
-    cy_gate,
-    cz_gate,
-    s_gate,
-    t_gate,
-    cs_gate,
-    qasmu_gate,
-    ct_gate,
-    cphase,
-    cnot,
-    csign,
-    berkeley,
-    swapalpha,
-    swap,
-    iswap,
-    sqrtswap,
-    sqrtiswap,
-    fredkin,
-    toffoli,
-    controlled_gate,
-    globalphase,
     expand_operator,
     gate_sequence_product,
+    GATE_CLASS_MAP,
 )
-from .operations.gates import _gate_label
 from qutip import basis, ket2dm, qeye
 from qutip import Qobj
 from qutip.measurement import measurement_statistics
@@ -141,9 +112,11 @@ class Measurement:
         else:
             raise ValueError("target is not valid")
 
-        return measurement_statistics(
-            state, measurement_ops, targets=self.targets
-        )
+        measurement_ops = [
+            expand_operator(op, N=n, targets=self.targets)
+            for op in measurement_ops
+        ]
+        return measurement_statistics(state, measurement_ops)
 
     def __str__(self):
         str_name = ("Measurement(%s, target=%s, classical_store=%s)") % (
@@ -280,7 +253,7 @@ class QubitCircuit:
 
         Parameters
         ----------
-        name: string
+        measurement: string
             Measurement name. If name is an instance of `Measuremnent`,
             parameters are unpacked and added.
         targets: list
@@ -325,6 +298,7 @@ class QubitCircuit:
         index=None,
         classical_controls=None,
         control_value=None,
+        classical_control_value=None,
     ):
         """
         Adds a gate with specified parameters to the circuit.
@@ -343,7 +317,8 @@ class QubitCircuit:
         arg_label: string
             Label for gate representation.
         index : list
-            Positions to add the gate.
+            Positions to add the gate. Each index in the supplied list refers
+            to a position in the original list of gates.
         classical_controls : int or list of int, optional
             indices of classical bits to control gate on.
         control_value : int, optional
@@ -353,41 +328,30 @@ class QubitCircuit:
             2 ** len(classical_controls) - 1
             (i.e. all classical controls are 1).
         """
-        if isinstance(gate, Gate):
-            name = gate.name
-            targets = gate.targets
-            controls = gate.controls
-            arg_value = gate.arg_value
-            arg_label = gate.arg_label
-            classical_controls = gate.classical_controls
-            control_value = gate.control_value
-
-        else:
-            name = gate
-
-        if index is None:
-            gate = Gate(
-                name,
+        if not isinstance(gate, Gate):
+            if gate in GATE_CLASS_MAP:
+                gate_class = GATE_CLASS_MAP[gate]
+            else:
+                gate_class = Gate
+            gate = gate_class(
+                name=gate,
                 targets=targets,
                 controls=controls,
                 arg_value=arg_value,
                 arg_label=arg_label,
                 classical_controls=classical_controls,
                 control_value=control_value,
+                classical_control_value=classical_control_value,
             )
+
+        if index is None:
             self.gates.append(gate)
 
         else:
-            for position in index:
-                gate = Gate(
-                    name,
-                    targets=targets,
-                    controls=controls,
-                    arg_value=arg_value,
-                    arg_label=arg_label,
-                    classical_controls=classical_controls,
-                    control_value=control_value,
-                )
+            # NOTE: Every insertion shifts the indices in the original list of
+            #       gates by an additional position to the right.
+            shifted_inds = np.sort(index) + np.arange(len(index))
+            for position in shifted_inds:
                 self.gates.insert(position, gate)
 
     def add_gates(self, gates):
@@ -413,6 +377,7 @@ class QubitCircuit:
         arg_label=None,
         classical_controls=None,
         control_value=None,
+        classical_control_value=None,
     ):
         """
         Adds a single qubit gate with specified parameters on a variable
@@ -434,32 +399,16 @@ class QubitCircuit:
         arg_label : string
             Label for gate representation.
         """
-        if name not in [
-            "RX",
-            "RY",
-            "RZ",
-            "SNOT",
-            "SQRTNOT",
-            "PHASEGATE",
-            "X",
-            "Y",
-            "Z",
-            "S",
-            "T",
-            "QASMU",
-        ]:
-            raise ValueError("%s is not a single qubit gate" % name)
-
         if qubits is not None:
             for _, i in enumerate(qubits):
-                gate = Gate(
-                    name,
+                gate = GATE_CLASS_MAP[name](
                     targets=qubits[i],
                     controls=None,
                     arg_value=arg_value,
                     arg_label=arg_label,
                     classical_controls=classical_controls,
                     control_value=control_value,
+                    classical_control_value=classical_control_value,
                 )
                 self.gates.append(gate)
 
@@ -467,18 +416,18 @@ class QubitCircuit:
             if end is None:
                 end = self.N - 1
             for i in range(start, end + 1):
-                gate = Gate(
-                    name,
+                gate = GATE_CLASS_MAP[name](
                     targets=i,
                     controls=None,
                     arg_value=arg_value,
                     arg_label=arg_label,
                     classical_controls=classical_controls,
                     control_value=control_value,
+                    classical_control_value=classical_control_value,
                 )
                 self.gates.append(gate)
 
-    def add_circuit(self, qc, start=0):
+    def add_circuit(self, qc, start=0, overwrite_user_gates=False):
         """
         Adds a block of a qubit circuit to the main circuit.
         Globalphase gates are not added.
@@ -493,94 +442,43 @@ class QubitCircuit:
         if self.N - start < qc.N:
             raise NotImplementedError("Targets exceed number of qubits.")
 
+        # Inherit the user gates
+        for user_gate in qc.user_gates:
+            if user_gate in self.user_gates and not overwrite_user_gates:
+                continue
+            self.user_gates[user_gate] = qc.user_gates[user_gate]
+
         for circuit_op in qc.gates:
 
             if isinstance(circuit_op, Gate):
-                gate = circuit_op
 
-                if gate.name in [
-                    "RX",
-                    "RY",
-                    "RZ",
-                    "SNOT",
-                    "SQRTNOT",
-                    "PHASEGATE",
-                    "QASMU",
-                ]:
-                    self.add_gate(
-                        gate.name,
-                        gate.targets[0] + start,
-                        None,
-                        gate.arg_value,
-                        gate.arg_label,
-                    )
-                elif gate.name in ["X", "Y", "Z", "S", "T"]:
-                    self.add_gate(
-                        gate.name,
-                        gate.targets[0] + start,
-                        None,
-                        None,
-                        gate.arg_label,
-                    )
-                elif gate.name in [
-                    "CPHASE",
-                    "CNOT",
-                    "CSIGN",
-                    "CRX",
-                    "CRY",
-                    "CRZ",
-                    "CY",
-                    "CZ",
-                    "CS",
-                    "CT",
-                ]:
-                    self.add_gate(
-                        gate.name,
-                        gate.targets[0] + start,
-                        gate.controls[0] + start,
-                        gate.arg_value,
-                        gate.arg_label,
-                    )
-                elif gate.name in [
-                    "BERKELEY",
-                    "SWAPalpha",
-                    "SWAP",
-                    "ISWAP",
-                    "SQRTSWAP",
-                    "SQRTISWAP",
-                ]:
-                    self.add_gate(
-                        gate.name,
-                        [gate.targets[0] + start, gate.targets[1] + start],
-                    )
-                elif gate.name in ["TOFFOLI"]:
-                    self.add_gate(
-                        gate.name,
-                        gate.targets[0] + start,
-                        [gate.controls[0] + start, gate.controls[1] + start],
-                        None,
-                        None,
-                    )
-                elif gate.name in ["FREDKIN"]:
-                    self.add_gate(
-                        gate.name,
-                        [gate.targets[0] + start, gate.targets[1] + start],
-                        gate.controls + start,
-                        None,
-                        None,
-                    )
-                elif gate.name in self.user_gates:
-                    self.add_gate(
-                        gate.name,
-                        targets=gate.targets,
-                        arg_value=gate.arg_value,
-                    )
-            else:
-                measurement = circuit_op
+                if circuit_op.targets is not None:
+                    tar = [target + start for target in circuit_op.targets]
+                else:
+                    tar = None
+                if circuit_op.controls is not None:
+                    ctrl = [control + start for control in circuit_op.controls]
+                else:
+                    ctrl = None
+
+                self.add_gate(
+                    circuit_op.name,
+                    targets=tar,
+                    controls=ctrl,
+                    arg_value=circuit_op.arg_value,
+                )
+            elif isinstance(circuit_op, Measurement):
                 self.add_measurement(
-                    measurement.name,
-                    targets=[measurement.targets[0] + start],
-                    classical_store=measurement.classical_store,
+                    circuit_op.name,
+                    targets=[target + start for target in circuit_op.targets],
+                    classical_store=circuit_op.classical_store,
+                )
+            else:
+                raise TypeError(
+                    "The circuit to be added contains unknown \
+                    operator {}".format(
+                        circuit_op
+                    )
                 )
 
     def remove_gate_or_measurement(
@@ -1945,13 +1843,12 @@ class QubitCircuit:
                                     r" \multigate{%d}{%s} "
                                     % (
                                         len(gate.targets) - 1,
-                                        _gate_label(gate.name, gate.arg_label),
+                                        _gate_label(gate),
                                     )
                                 )
                             else:
                                 col.append(
-                                    r" \ghost{%s} "
-                                    % (_gate_label(gate.name, gate.arg_label))
+                                    r" \ghost{%s} " % (_gate_label(gate))
                                 )
 
                         elif gate.name == "CNOT":
@@ -1967,10 +1864,7 @@ class QubitCircuit:
                         elif gate.name == "TOFFOLI":
                             col.append(r" \targ ")
                         else:
-                            col.append(
-                                r" \gate{%s} "
-                                % _gate_label(gate.name, gate.arg_label)
-                            )
+                            col.append(r" \gate{%s} " % _gate_label(gate))
 
                     elif gate.controls and n in gate.controls:
                         control_tag = (-1 if self.reverse_states else 1) * (
@@ -1994,14 +1888,11 @@ class QubitCircuit:
                                 r" \multigate{%d}{%s} "
                                 % (
                                     self.N - 1,
-                                    _gate_label(gate.name, gate.arg_label),
+                                    _gate_label(gate),
                                 )
                             )
                         else:
-                            col.append(
-                                r" \ghost{%s} "
-                                % (_gate_label(gate.name, gate.arg_label))
-                            )
+                            col.append(r" \ghost{%s} " % (_gate_label(gate)))
                     else:
                         col.append(r" \qw ")
 
@@ -2151,6 +2042,13 @@ _latex_template = r"""
 %s}
 \end{document}
 """
+
+
+def _gate_label(gate):
+    gate_label = gate.latex_str
+    if gate.arg_label is not None:
+        return r"%s(%s)" % (gate_label, arg_label)
+    return r"%s" % gate_label
 
 
 class CircuitResult:
