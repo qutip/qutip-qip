@@ -18,13 +18,13 @@ The circuit is characterized by registers and gates:
   and the argument ``num_cbits`` (optional) specifies the number of classical bits available for measurement
   and control.
 
-- **Gates**: Each quantum gate is saved as a class object :class:`.Gate`
+- **Gates**: Each quantum gate is saved as a class object :class:`~.operations.Gate`
   with information such as gate name, target qubits and arguments.
   Gates can also be controlled on a classical bit by specifying the register number
   with the argument ``classical_controls``.
 
 - **Measurements**: We can also carry out measurements on individual qubit (both in the middle and at the end of the circuit).
-  Each measurement is saved as a class object :class:`.Measurement` with parameters such as `targets`,
+  Each measurement is saved as a class object :class:`~.operations.Measurement` with parameters such as `targets`,
   the target qubit on which the measurement will be carried out, and `classical_store`,
   the index of the classical register which stores the result of the measurement.
 
@@ -135,7 +135,7 @@ can be achieved with the argument ``expand=False`` specified to the
 Gates
 =====
 
-The pre-defined gates for the class :class:`.Gate` are shown in the table below:
+The pre-defined gates for the class :class:`~.operations.Gate` are shown in the table below:
 
 ====================  ========================================
 Gate name                           Description

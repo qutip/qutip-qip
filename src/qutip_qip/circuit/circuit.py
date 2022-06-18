@@ -200,9 +200,9 @@ class QubitCircuit:
 
         Parameters
         ----------
-        gate: string or :class:`.Gate`
-            Gate name. If gate is an instance of :class:`.Gate`, parameters are
-            unpacked and added.
+        gate: string or :class:`~.operations.Gate`
+            Gate name. If gate is an instance of :class:`~.operations.Gate`,
+            parameters are unpacked and added.
         targets: list
             Gate targets.
         controls: list
