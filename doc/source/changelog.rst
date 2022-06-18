@@ -8,6 +8,7 @@ Version 0.2.2 (June 20, 2022)
 Improvements
 ------------
 - Correct the spelling of Hadamard. (`#132 <https://github.com/qutip/qutip-qip/pull/132>`_)
+- Support the `dev.major` branch of `qutip`. (`#136 <https://github.com/qutip/qutip-qip/pull/136>`_)
 - Export circuit plots as png with dpi. (`#139 <https://github.com/qutip/qutip-qip/pull/139>`_)
 
 Bug Fixes
