@@ -5,12 +5,12 @@ import numpy as np
 from pathlib import Path
 
 
-from qutip_qip.circuit import (QubitCircuit, CircuitSimulator, gate_sequence_product)
+from qutip_qip.circuit import (QubitCircuit, CircuitSimulator)
 from qutip import (tensor, Qobj, ptrace, rand_ket, fock_dm, basis,
                    rand_dm, bell_state, ket2dm, identity, sigmax)
 from qutip_qip.qasm import read_qasm
 from qutip_qip.operations import (
-    Gate, gates, Measurement
+    Gate, gates, Measurement, gate_sequence_product
 )
 
 from qutip_qip.decompose.decompose_single_qubit_gate import _ZYZ_rotation

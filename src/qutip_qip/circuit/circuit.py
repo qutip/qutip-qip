@@ -17,11 +17,11 @@ from ..operations import (
     Measurement,
     expand_operator,
     GATE_CLASS_MAP,
+    gate_sequence_product,
 )
 from .circuitsimulator import (
     CircuitSimulator,
     CircuitResult,
-    gate_sequence_product,
 )
 from qutip import basis, Qobj
 

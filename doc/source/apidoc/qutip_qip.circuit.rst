@@ -14,4 +14,3 @@ qutip\_qip.circuit
       QubitCircuit
       CircuitResult
       CircuitSimulator
-      gate_sequence_product

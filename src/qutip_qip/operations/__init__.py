@@ -17,12 +17,3 @@ def _add_deprecation(fun, msg):
         return fun(*args, **kwargs)
 
     return newfun
-
-
-import qutip_qip.circuit.circuitsimulator as circuitsimulator
-
-gate_sequence_product = _add_deprecation(
-    circuitsimulator.gate_sequence_product,
-    "The function gate_sequence_product has been moved to qutip_qip.circuit."
-    "Please use update the import statement.\n",
-)

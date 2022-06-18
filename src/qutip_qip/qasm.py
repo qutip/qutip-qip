@@ -8,12 +8,13 @@ import warnings
 from math import pi
 import numpy as np
 
-from .circuit import QubitCircuit, gate_sequence_product
+from .circuit import QubitCircuit
 from .operations import (
     controlled_gate,
     qasmu_gate,
     rz,
     snot,
+    gate_sequence_product,
 )
 
 

@@ -8,11 +8,12 @@ from ..operations import (
     Gate,
     Measurement,
     expand_operator,
+    gate_sequence_product,
 )
 from qutip import basis, ket2dm, Qobj, tensor
 
 
-__all__ = ["CircuitSimulator", "CircuitResult", "gate_sequence_product"]
+__all__ = ["CircuitSimulator", "CircuitResult"]
 
 
 def _flatten(lst):
@@ -242,41 +243,6 @@ def _gate_sequence_product_with_expansion(U_list, left_to_right=True):
             U_overall = U_overall * U
 
     return U_overall
-
-
-def gate_sequence_product(
-    U_list, left_to_right=True, inds_list=None, expand=False
-):
-    """
-    Calculate the overall unitary matrix for a given list of unitary operations.
-
-    Parameters
-    ----------
-    U_list: list
-        List of gates implementing the quantum circuit.
-
-    left_to_right: Boolean, optional
-        Check if multiplication is to be done from left to right.
-
-    inds_list: list of list of int, optional
-        If expand=True, list of qubit indices corresponding to U_list
-        to which each unitary is applied.
-
-    expand: Boolean, optional
-        Check if the list of unitaries need to be expanded to full dimension.
-
-    Returns
-    -------
-    U_overall : qobj
-        Unitary matrix corresponding to U_list.
-
-    overall_inds : list of int, optional
-        List of qubit indices on which U_overall applies.
-    """
-    if expand:
-        return _gate_sequence_product(U_list, inds_list)
-    else:
-        return _gate_sequence_product_with_expansion(U_list, left_to_right)
 
 
 class CircuitSimulator:

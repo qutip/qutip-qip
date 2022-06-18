@@ -53,6 +53,7 @@ __all__ = [
     "gate_expand_3toN",
     "qubit_clifford_group",
     "expand_operator",
+    "gate_sequence_product",
 ]
 
 
@@ -1467,3 +1468,43 @@ def expand_operator(oper, N, targets, dims=None, cyclic_permutation=False):
         new_order[ind] = rest_qubits[i]
     id_list = [identity(dims[i]) for i in rest_pos]
     return tensor([oper] + id_list).permute(new_order)
+
+
+def gate_sequence_product(
+    U_list, left_to_right=True, inds_list=None, expand=False
+):
+    """
+    Calculate the overall unitary matrix for a given list of unitary operations.
+
+    Parameters
+    ----------
+    U_list: list
+        List of gates implementing the quantum circuit.
+
+    left_to_right: Boolean, optional
+        Check if multiplication is to be done from left to right.
+
+    inds_list: list of list of int, optional
+        If expand=True, list of qubit indices corresponding to U_list
+        to which each unitary is applied.
+
+    expand: Boolean, optional
+        Check if the list of unitaries need to be expanded to full dimension.
+
+    Returns
+    -------
+    U_overall : qobj
+        Unitary matrix corresponding to U_list.
+
+    overall_inds : list of int, optional
+        List of qubit indices on which U_overall applies.
+    """
+    from ..circuit.circuitsimulator import (
+        _gate_sequence_product,
+        _gate_sequence_product_with_expansion,
+    )
+
+    if expand:
+        return _gate_sequence_product(U_list, inds_list)
+    else:
+        return _gate_sequence_product_with_expansion(U_list, left_to_right)

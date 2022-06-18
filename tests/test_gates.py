@@ -394,8 +394,3 @@ def test_gates_class():
     result2 = circuit2.run(init_state)
 
     assert pytest.approx(qutip.fidelity(result1, result2), 1.0e-6) == 1
-
-def test_deprecation():
-    from qutip_qip.operations import gate_sequence_product
-    with pytest.warns(DeprecationWarning):
-        gate_sequence_product([qutip.sigmax()])
