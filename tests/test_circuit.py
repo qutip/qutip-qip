@@ -719,6 +719,8 @@ class TestQubitCircuit:
             qc.draw("svg", file_svg.split('.')[0], "")
             assert file_svg in os.listdir('.')
 
-### TODO raise deprecation warning for this.
-# Make them available for backward compatibility.
-from qutip_qip.circuit import Gate, Measurement
+    def test_deprecation_warning(self):
+        # Make them available for backward compatibility.
+        with pytest.warns(DeprecationWarning):
+            from qutip_qip.circuit import Gate, Measurement
+            Gate("X", 0)
