@@ -12,6 +12,12 @@ from qutip_qip.operations import Gate, gate_sequence_product
 from qutip_qip.device import (DispersiveCavityQED, LinearSpinChain,
                                 CircularSpinChain, SCQubits)
 
+from packaging.version import parse as parse_version
+if parse_version(qutip.__version__) < parse_version('5.dev'):
+    from qutip import Options as SolverOptions
+else:
+    from qutip import SolverOptions
+
 _tol = 3.e-2
 
 _x = Gate("X", targets=[0])
@@ -120,7 +126,7 @@ def test_numerical_evolution(
         init_state = _ket_expaned_dims(state, device.dims)
     else:
         init_state = state
-    options = qutip.Options(store_final_state=True, nsteps=50_000)
+    options = SolverOptions(store_final_state=True, nsteps=50_000)
     result = device.run_state(init_state=init_state,
                               analytical=False,
                               options=options)
@@ -177,7 +183,7 @@ def test_numerical_circuit(circuit, device_class, kwargs, schedule_mode):
         init_state = _ket_expaned_dims(state, device.dims)
     else:
         init_state = state
-    options = qutip.Options(store_final_state=True, nsteps=50_000)
+    options = SolverOptions(store_final_state=True, nsteps=50_000)
     result = device.run_state(init_state=init_state,
                               analytical=False,
                               options=options)

@@ -1,4 +1,6 @@
 import pytest
+import os
+import shutil
 import numpy as np
 from pathlib import Path
 
@@ -228,10 +230,66 @@ class TestQubitCircuit:
             # Single control
             pytest.raises(ValueError, qc.add_gate, gate, [0], [1])
 
+        dummy_gate1 = Gate("DUMMY1")
+        inds = [1, 3, 4, 6]
+        qc.add_gate(dummy_gate1, index=inds)
+
+        # Test adding gates at multiple (sorted) indices at once.
+        # NOTE: Every insertion shifts the indices in the original list of
+        #       gates by an additional position to the right.
+        expected_gate_names = [
+            'CNOT',     # 0
+            'DUMMY1',   # 1
+            'SWAP',     # 2
+            'TOFFOLI',  # 3
+            'DUMMY1',   # 4
+            'SWAP',     # 5
+            'DUMMY1',   # 6
+            'SNOT',     # 7
+            'RY',       # 8
+            'DUMMY1',   # 9
+            'RY',       # 10
+        ]
+        actual_gate_names = [gate.name for gate in qc.gates]
+        assert actual_gate_names == expected_gate_names
+
+        dummy_gate2 = Gate("DUMMY2")
+        inds = [11, 0]
+        qc.add_gate(dummy_gate2, index=inds)
+
+        # Test adding gates at multiple (unsorted) indices at once.
+        expected_gate_names = [
+            'DUMMY2',   # 0
+            'CNOT',     # 1
+            'DUMMY1',   # 2
+            'SWAP',     # 3
+            'TOFFOLI',  # 4
+            'DUMMY1',   # 5
+            'SWAP',     # 6
+            'DUMMY1',   # 7
+            'SNOT',     # 8
+            'RY',       # 9
+            'DUMMY1',   # 10
+            'RY',       # 11
+            'DUMMY2',   # 12
+        ]
+        actual_gate_names = [gate.name for gate in qc.gates]
+        assert actual_gate_names == expected_gate_names
+
     def test_add_circuit(self):
         """
         Addition of a circuit to a `QubitCircuit`
         """
+
+        def customer_gate1(arg_values):
+            mat = np.zeros((4, 4), dtype=np.complex128)
+            mat[0, 0] = mat[1, 1] = 1.
+            mat[2:4, 2:4] = gates.rx(arg_values)
+            return Qobj(mat, dims=[[2, 2], [2, 2]])
+
+        qc = QubitCircuit(6)
+        qc.user_gates = {"CTRLRX": customer_gate1}
+
         qc = QubitCircuit(6)
         qc.add_gate("CNOT", targets=[1], controls=[0])
         test_gate = Gate("SWAP", targets=[1, 4])
@@ -241,6 +299,7 @@ class TestQubitCircuit:
         qc.add_gate(test_gate, index=[3])
         qc.add_measurement("M0", targets=[0], classical_store=[1])
         qc.add_1q_gate("RY", start=4, end=5, arg_value=1.570796)
+        qc.add_gate("CTRLRX", targets=[1, 2], arg_value=np.pi/2)
 
         qc1 = QubitCircuit(6)
 
@@ -248,6 +307,9 @@ class TestQubitCircuit:
 
         # Test if all gates and measurements are added
         assert len(qc1.gates) == len(qc.gates)
+
+        # Test if the definitions of user gates are added
+        assert qc1.user_gates == qc.user_gates
 
         for i in range(len(qc1.gates)):
             assert (qc1.gates[i].name
@@ -283,6 +345,10 @@ class TestQubitCircuit:
                     qc.gates[i].controls is not None):
                 assert (qc2.gates[i].controls[0]
                         == qc.gates[i].controls[0]+2)
+
+        # Test exception when the operators to be added are not gates or measurements
+        qc.gates[-1] = 0
+        pytest.raises(TypeError, qc2.add_circuit, qc)
 
     def test_add_state(self):
         """
@@ -457,7 +523,7 @@ class TestQubitCircuit:
         def customer_gate1(arg_values):
             mat = np.zeros((4, 4), dtype=np.complex128)
             mat[0, 0] = mat[1, 1] = 1.
-            mat[2:4, 2:4] = gates.rx(arg_values)
+            mat[2:4, 2:4] = gates.rx(arg_values).full()
             return Qobj(mat, dims=[[2, 2], [2, 2]])
 
         def customer_gate2():
@@ -472,9 +538,9 @@ class TestQubitCircuit:
         qc.add_gate("T1", targets=[1])
         props = qc.propagators()
         result1 = tensor(identity(2), customer_gate1(np.pi/2))
-        np.testing.assert_allclose(props[0], result1)
+        np.testing.assert_allclose(props[0].full(), result1.full())
         result2 = tensor(identity(2), customer_gate2(), identity(2))
-        np.testing.assert_allclose(props[1], result2)
+        np.testing.assert_allclose(props[1].full(), result2.full())
 
     def test_N_level_system(self):
         """
@@ -520,7 +586,6 @@ class TestQubitCircuit:
 
         teleportation_sim_results = teleportation_sim.run(state)
         state_final = teleportation_sim_results.get_final_states(0)
-        probability = teleportation_sim_results.get_probabilities(0)
 
         final_measurement = Measurement("start", targets=[2])
         _, final_probabilities = final_measurement.measurement_comp_basis(state_final)
@@ -600,7 +665,7 @@ class TestQubitCircuit:
         U_2 = gate_sequence_product(U_list_expanded, left_to_right=True,
                                     expand=False)
 
-        np.testing.assert_allclose(U_1, U_2)
+        np.testing.assert_allclose(U_1.full(), U_2.full())
 
     def test_wstate(self):
 
@@ -609,10 +674,6 @@ class TestQubitCircuit:
         qc = read_qasm(filepath)
 
         rand_state = rand_ket(2)
-        wstate = (tensor(basis(2, 0), basis(2, 0), basis(2, 1))
-                  + tensor(basis(2, 0), basis(2, 1), basis(2, 0))
-                  + tensor(basis(2, 1), basis(2, 0), basis(2, 0))).unit()
-
         state = tensor(tensor(basis(2, 0), basis(2, 0), basis(2, 0)),
                        rand_state)
 
@@ -688,3 +749,39 @@ class TestQubitCircuit:
         final_output = valid_input.compute_unitary()
         assert(isinstance(final_output, Qobj))
         assert(final_output == correct_result)
+
+    def test_latex_code(self):
+        qc = QubitCircuit(1, num_cbits=1, reverse_states=True)
+        qc.add_measurement("M0", targets=0, classical_store=0)
+        exp = \
+            ' &  &  \\qw \\cwx[1]  & \\qw \\\\ \n &  &  \\meter & \\qw \\\\ \n'
+        assert qc.latex_code() == self._latex_template % exp
+
+    def test_latex_code_non_reversed(self):
+        qc = QubitCircuit(1, num_cbits=1, reverse_states=False)
+        qc.add_measurement("M0", targets=0, classical_store=0)
+        exp = ' &  &  \\meter & \\qw \\\\ \n &  ' + \
+              '&  \\qw \\cwx[-1]  & \\qw \\\\ \n'
+        assert qc.latex_code() == self._latex_template % exp
+
+    @pytest.mark.skipif(
+                shutil.which("pdflatex") is None,
+                reason="requires pdflatex"
+                )
+    def test_export_image(self, in_temporary_directory):
+        from qutip_qip import circuit_latex
+        qc = QubitCircuit(2, reverse_states=False)
+        qc.add_gate("CSIGN", controls=[0], targets=[1])
+
+        if "png" in circuit_latex.CONVERTERS:
+            file_png200 = "exported_pic_200.png"
+            file_png400 = "exported_pic_400.png"
+            qc.draw("png", 200, file_png200.split('.')[0], "")
+            qc.draw("png", 400.5, file_png400.split('.')[0], "")
+            assert file_png200 in os.listdir('.')
+            assert file_png400 in os.listdir('.')
+            assert os.stat(file_png200).st_size < os.stat(file_png400).st_size
+        if "svg" in circuit_latex.CONVERTERS:
+            file_svg = "exported_pic.svg"
+            qc.draw("svg", file_svg.split('.')[0], "")
+            assert file_svg in os.listdir('.')
