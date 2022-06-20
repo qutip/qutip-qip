@@ -43,29 +43,25 @@ def gauss_dist(t, sigma, amplitude, duration):
     return amplitude/np.sqrt(2*np.pi) /sigma*np.exp(-0.5*((t-duration/2)/sigma)**2)
 
 
-def gauss_rx_compiler(gate, args):
-    """
-    Compiler for the RX gate
-    """
-    targets = gate.targets  # target qubit
-    parameters = args["params"]
-    h_x2pi = parameters["sx"][targets[0]]  # find the coupling strength for the target qubit
-    amplitude = gate.arg_value / 2. / 0.9973 #  0.9973 is just used to compensate the finite pulse duration so that the total area is fixed
-    gate_sigma = h_x2pi / np.sqrt(2*np.pi)
-    duration = 6 * gate_sigma
-    tlist = np.linspace(0, duration, 100)
-    coeff = gauss_dist(tlist, gate_sigma, amplitude, duration) / np.pi / 2
-    pulse_info = [("sx" + str(targets[0]), coeff)]  #  save the information in a tuple (pulse_name, coeff)
-    return [Instruction(gate, tlist, pulse_info)]
-
-
 from qutip_qip.compiler import GateCompiler
 class MyCompiler(GateCompiler):  # compiler class
     def __init__(self, num_qubits, params):
         super(MyCompiler, self).__init__(num_qubits, params=params)
         # pass our compiler function as a compiler for RX (rotation around X) gate.
-        self.gate_compiler["RX"] = gauss_rx_compiler
+        self.gate_compiler["RX"] = self.rx_compiler
         self.args.update({"params": params})
+
+    def rx_compiler(self, gate, args):
+        targets = gate.targets
+        coeff, tlist = self.generate_pulse_shape(
+            "hann",
+            1000,
+            maximum=args["params"]["sx"][targets[0]],
+            # The operator is Pauli Z/X/Y, without 1/2.
+            area=gate.arg_value / 2.0 / np.pi * 0.5,
+        )
+        pulse_info = [("sx" + str(targets[0]), coeff)]
+        return [Instruction(gate, tlist, pulse_info)]
 
 
 spline_kind = [
@@ -87,11 +83,12 @@ def test_compiler_with_continous_pulse(spline_kind, schedule_mode):
     circuit.add_gate("X", targets=0)
 
     processor = CircularSpinChain(num_qubits)
+    processor.spline_kind = spline_kind
     gauss_compiler = MyCompiler(num_qubits, processor.params)
     processor.load_circuit(
         circuit, schedule_mode = schedule_mode, compiler=gauss_compiler)
     result = processor.run_state(init_state = basis([2,2], [0,0]))
-    assert(abs(fidelity(result.states[-1],basis([2,2],[0,1])) - 1) < 1.e-6)
+    assert(abs(fidelity(result.states[-1],basis([2,2],[0,1])) - 1) < 1.e-5)
 
 
 def rx_compiler_without_pulse_dict(gate, args):

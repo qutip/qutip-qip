@@ -139,7 +139,7 @@ def _make_converter(configuration):
         return None
     mode = "rb" if configuration.binary else "r"
 
-    def converter(file_stem):
+    def converter(file_stem, dpi=100):
         """
         Convert a file located in the current directory named `<file_stem>.pdf`
         to an image format with the name `<file_stem>.xxx`, where `xxx` is
@@ -149,10 +149,17 @@ def _make_converter(configuration):
         ----------
         file_stem : str
             The basename of the PDF file to be converted.
+        dpi : int/float
+            Image density in dots per inch. Ignored for SVG.
         """
         in_file = file_stem + ".pdf"
         out_file = file_stem + "." + configuration.file_type
-        _run_command((which, *configuration.arguments, in_file, out_file))
+        if "-density" in configuration.arguments:
+            arguments = list(configuration.arguments)
+            arguments[arguments.index("-density") + 1] = str(dpi)
+        else:
+            arguments = configuration.arguments
+        _run_command((which, *arguments, in_file, out_file))
         with open(out_file, mode) as file:
             return file.read()
 
@@ -172,7 +179,7 @@ for configuration in _CONVERTER_CONFIGURATIONS:
 
 if _pdflatex is not None:
 
-    def image_from_latex(code, file_type="png"):
+    def image_from_latex(code, file_type="png", dpi=100):
         """
         Convert the LaTeX `code` into an image format, defined by the
         `file_type`.  Returns a string or bytes object, depending on whether
@@ -240,7 +247,7 @@ if _pdflatex is not None:
                     raise ValueError(
                         "".join(["Unknown output format: '", file_type, "'."])
                     )
-                out = CONVERTERS[file_type](filename)
+                out = CONVERTERS[file_type](filename, dpi)
             finally:
                 # Leave the temporary directory before it is removed (necessary
                 # on Windows, but it doesn't hurt on POSIX).

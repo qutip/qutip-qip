@@ -22,7 +22,13 @@ __all__ = [
 
 
 def process_noise(
-    pulses, noise_list, dims, t1=None, t2=None, device_noise=False
+    pulses,
+    noise_list,
+    dims,
+    t1=None,
+    t2=None,
+    device_noise=False,
+    spline_kind=None,
 ):
     """
     Apply noise to the input list of pulses. It does not modify the input
@@ -55,7 +61,9 @@ def process_noise(
     """
     noise_list = noise_list.copy()
     noisy_pulses = deepcopy(pulses)
-    systematic_noise = Pulse(None, None, label="systematic_noise")
+    systematic_noise = Pulse(
+        None, None, label="systematic_noise", spline_kind=spline_kind
+    )
 
     if (t1 is not None) or (t2 is not None):
         noise_list.append(RelaxationNoise(t1, t2))

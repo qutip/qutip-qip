@@ -25,7 +25,7 @@ def check_gate(gate, num_qubits):
     """
     if not isinstance(gate, Qobj):
         raise TypeError("The input matrix is not a Qobj.")
-    if not gate.check_isunitary():
+    if not gate.isunitary:
         raise ValueError("Input is not unitary.")
     if gate.dims != [[2] * num_qubits] * 2:
         raise ValueError(f"Input is not a unitary on {num_qubits} qubits.")
