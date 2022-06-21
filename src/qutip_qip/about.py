@@ -1,18 +1,20 @@
 """
 Command line output of information on QuTiP QIP and dependencies.
 """
-__all__ = ["about"]
 
-import qutip
+import qutip_qip
+import os
+import inspect
 
 
 def about():
     """
-    About box for QuTiP QIP. Gives version numbers for QuTiP, QuTiP QIP, NumPy,
-    SciPy, Cython, and MatPlotLib.
+    About box for QuTiP QIP.
     """
-    qutip.about("qutip_qip")
-
-
-if __name__ == "__main__":
-    about()
+    title = "QuTiP QIP: QuTiP Quantum Information Processing"
+    lines = []
+    lines.append("=" * len(title))
+    lines.append("QuTiP QIP Version: %s" % qutip_qip.__version__)
+    qutip_qip_install_path = os.path.dirname(inspect.getsourcefile(qutip_qip))
+    lines.append("Installation path: %s" % qutip_qip_install_path)
+    return title, lines
