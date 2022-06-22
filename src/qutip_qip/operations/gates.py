@@ -1020,7 +1020,7 @@ def qubit_clifford_group(N=None, target=0):
     (http://www.mathstat.dal.ca/~selinger/newsynth/).
 
     Parameters
-    -----------
+    ----------
 
     N : int or None
         Number of qubits on which each operator is to be defined

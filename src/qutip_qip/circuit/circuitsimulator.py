@@ -699,7 +699,7 @@ class CircuitResult:
             Indicates i-th state to be returned.
 
         Returns
-        ----------
+        -------
         final_states: Qobj or list of Qobj.
             List of output kets or density matrices.
         """

@@ -62,10 +62,10 @@ class CavityQEDCompiler(GateCompiler):
     >>> compiler = CavityQEDCompiler(2, params=model.params)
     >>> processor.load_circuit(
     ...     qc, compiler=compiler)  # doctest: +NORMALIZE_WHITESPACE
-    ({'sz0': array([   0.        , 2500.        , 2500.01315789]),
-    'sz1': array([   0.        , 2500.        , 2500.01315789]),
-    'g0': array([   0.        , 2500.        , 2500.01315789]),
-    'g1': array([   0.        , 2500.        , 2500.01315789])},
+    ({'sz0': array([   0.        , 2500.        , 2500.01316]),
+    'sz1': array([   0.        , 2500.        , 2500.01316]),
+    'g0': array([   0.        , 2500.        , 2500.01316]),
+    'g1': array([   0.        , 2500.        , 2500.01316])},
     {'sz0': array([-0.5, -9.5]),
     'sz1': array([-0.5, -9.5]),
     'g0': array([0.01, 0.  ]),

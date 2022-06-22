@@ -229,14 +229,10 @@ gate function returning a :class:`qutip.Qobj` and save it in the attribute ``use
 
   Quantum object: dims = [[2, 2], [2, 2]], shape = (4, 4), type = oper, isherm = False
   Qobj data =
-  [[1.        +0.j         0.        +0.j         0.        +0.j
-    0.        +0.j        ]
-   [0.        +0.j         1.        +0.j         0.        +0.j
-    0.        +0.j        ]
-   [0.        +0.j         0.        +0.j         0.70710678+0.j
-    0.        -0.70710678j]
-   [0.        +0.j         0.        +0.j         0.        -0.70710678j
-    0.70710678+0.j        ]]
+    [[1.     +0.j      0.     +0.j      0.     +0.j      0.     +0.j     ] 
+     [0.     +0.j      1.     +0.j      0.     +0.j      0.     +0.j     ] 
+     [0.     +0.j      0.     +0.j      0.70711+0.j      0.     -0.70711j] 
+     [0.     +0.j      0.     +0.j      0.     -0.70711j 0.70711+0.j     ]]
 
 .. testcode::
 
@@ -250,14 +246,10 @@ gate function returning a :class:`qutip.Qobj` and save it in the attribute ``use
 
   Quantum object: dims = [[2, 2], [2, 2]], shape = (4, 4), type = oper, isherm = False
   Qobj data =
-  [[1.        +0.j         0.        +0.j         0.        +0.j
-    0.        +0.j        ]
-   [0.        +0.j         0.70710678+0.j         0.        +0.j
-    0.        -0.70710678j]
-   [0.        +0.j         0.        +0.j         1.        +0.j
-    0.        +0.j        ]
-   [0.        +0.j         0.        -0.70710678j 0.        +0.j
-    0.70710678+0.j        ]]
+  [[1.     +0.j      0.     +0.j      0.     +0.j      0.     +0.j     ]
+   [0.     +0.j      0.70711+0.j      0.     +0.j      0.     -0.70711j]
+   [0.     +0.j      0.     +0.j      1.     +0.j      0.     +0.j     ]
+   [0.     +0.j      0.     -0.70711j 0.     +0.j      0.70711+0.j     ]]
 
 
 .. testcode::
