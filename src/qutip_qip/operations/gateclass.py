@@ -477,8 +477,8 @@ class RX(SingleQubitGate):
     >>> RX(0, 3.14159/2).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims = [[2], [2]], shape = (2, 2), type = oper, isherm = False
     Qobj data =
-    [[0.70710725+0.j         0.        -0.70710631j]
-     [0.        -0.70710631j 0.70710725+0.j        ]]
+    [[0.70711+0.j      0.     -0.70711j]
+     [0.     -0.70711j 0.70711+0.j     ]]
     """
 
     def __init__(self, targets, arg_value, **kwargs):
@@ -499,8 +499,8 @@ class RY(SingleQubitGate):
     >>> RY(0, 3.14159/2).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims = [[2], [2]], shape = (2, 2), type = oper, isherm = False
     Qobj data =
-    [[ 0.70710725 -0.70710631]
-     [ 0.70710631  0.70710725]]
+    [[ 0.70711 -0.70711]
+     [ 0.70711  0.70711]]
     """
 
     def __init__(self, targets, arg_value, **kwargs):
@@ -521,8 +521,8 @@ class RZ(SingleQubitGate):
     >>> RZ(0, 3.14159/2).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims = [[2], [2]], shape = (2, 2), type = oper, isherm = False
     Qobj data =
-    [[0.70710725-0.70710631j 0.        +0.j        ]
-     [0.        +0.j         0.70710725+0.70710631j]]
+    [[0.70711-0.70711j 0.     +0.j     ]
+     [0.     +0.j      0.70711+0.70711j]]
     """
 
     def __init__(self, targets, arg_value, **kwargs):
@@ -543,8 +543,8 @@ class H(SingleQubitGate):
     >>> H(0).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims = [[2], [2]], shape = (2, 2), type = oper, isherm = True
     Qobj data =
-    [[ 0.70710678  0.70710678]
-     [ 0.70710678 -0.70710678]]
+    [[ 0.70711  0.70711]
+     [ 0.70711 -0.70711]]
     """
 
     def __init__(self, targets, **kwargs):
@@ -613,8 +613,8 @@ class T(SingleQubitGate):
     >>> T(0).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims = [[2], [2]], shape = (2, 2), type = oper, isherm = False
     Qobj data =
-    [[1. +0.j  0.        +0.j     ]
-     [0. +0.j  0.70710678+0.70710678j]]
+    [[1.     +0.j      0.     +0.j     ]
+     [0.     +0.j      0.70711+0.70711j]]
     """
 
     def __init__(self, targets, **kwargs):
@@ -743,10 +743,10 @@ class SQRTISWAP(TwoQubitGate):
     >>> SQRTISWAP([0, 1]).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims = [[2, 2], [2, 2]], shape = (4, 4), type = oper, isherm = False
     Qobj data =
-    [[1.        +0.j         0.        +0.j         0.        +0.j         0.        +0.j        ]
-     [0.        +0.j         0.70710678+0.j         0.        +0.70710678j 0.        +0.j        ]
-     [0.        +0.j         0.        +0.70710678j 0.70710678+0.j         0.        +0.j        ]
-     [0.        +0.j         0.        +0.j         0.        +0.j         1.        +0.j        ]]
+    [[1.     +0.j      0.     +0.j      0.     +0.j      0.     +0.j     ]
+     [0.     +0.j      0.70711+0.j      0.     +0.70711j 0.     +0.j     ]
+     [0.     +0.j      0.     +0.70711j 0.70711+0.j      0.     +0.j     ]
+     [0.     +0.j      0.     +0.j      0.     +0.j      1.     +0.j     ]]
     """
 
     def __init__(self, targets, **kwargs):
@@ -776,10 +776,10 @@ class BERKELEY(TwoQubitGate):
     >>> BERKELEY([0, 1]).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims = [[2, 2], [2, 2]], shape = (4, 4), type = oper, isherm = False
     Qobj data =
-    [[0.92387953+0.j         0.        +0.j         0.        +0.j         0.        +0.38268343j]
-     [0.        +0.j         0.38268343+0.j         0.        +0.92387953j 0.        +0.j        ]
-     [0.        +0.j         0.        +0.92387953j 0.38268343+0.j         0.        +0.j        ]
-     [0.        +0.38268343j 0.        +0.j         0.        +0.j         0.92387953+0.j        ]]
+    [[0.92388+0.j      0.     +0.j      0.     +0.j      0.     +0.38268j]
+     [0.     +0.j      0.38268+0.j      0.     +0.92388j 0.     +0.j     ]
+     [0.     +0.j      0.     +0.92388j 0.38268+0.j      0.     +0.j     ]
+     [0.     +0.38268j 0.     +0.j      0.     +0.j      0.92388+0.j     ]]
     """
 
     def __init__(self, targets, **kwargs):
@@ -842,10 +842,10 @@ class MS(TwoQubitGate):
     >>> MS([0, 1], np.pi/2).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims = [[2, 2], [2, 2]], shape = (4, 4), type = oper, isherm = False
     Qobj data =
-    [[0.70710678+0.j         0.        +0.j         0.        +0.j         0.        -0.70710678j]
-     [0.        +0.j         0.70710678+0.j         0.        -0.70710678j 0.        +0.j        ]
-     [0.        +0.j         0.        -0.70710678j 0.70710678+0.j         0.        +0.j        ]
-     [0.        -0.70710678j 0.        +0.j         0.        +0.j         0.70710678+0.j        ]]
+    [[0.70711+0.j      0.     +0.j      0.     +0.j      0.     -0.70711j]
+     [0.     +0.j      0.70711+0.j      0.     -0.70711j 0.     +0.j     ]
+     [0.     +0.j      0.     -0.70711j 0.70711+0.j      0.     +0.j     ]
+     [0.     -0.70711j 0.     +0.j      0.     +0.j      0.70711+0.j     ]]
     """
 
     def __init__(self, targets, arg_value, **kwargs):
