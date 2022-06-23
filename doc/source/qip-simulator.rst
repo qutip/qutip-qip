@@ -87,7 +87,7 @@ outputs, we can use the :meth:`.QubitCircuit.run_statistics` function:
     probabilities = result.get_probabilities()
 
     for state, probability in zip(states, probabilities):
-        print("State:\n{}\nwith probability {}".format(state, probability))
+        print("State:\n{}\nwith probability {:.5f}".format(state, probability))
 
 **Output**:
 
@@ -105,7 +105,7 @@ outputs, we can use the :meth:`.QubitCircuit.run_statistics` function:
    [0.]
    [0.]
    [0.]]
-  with probability 0.3333325705416881
+  with probability 0.33333
   State:
   Quantum object: dims = [[2, 2, 2], [1, 1, 1]], shape = (8, 1), type = ket
   Qobj data =
@@ -117,7 +117,7 @@ outputs, we can use the :meth:`.QubitCircuit.run_statistics` function:
    [0.]
    [0.]
    [0.]]
-  with probability 0.3333325705416881
+  with probability 0.33333
   State:
   Quantum object: dims = [[2, 2, 2], [1, 1, 1]], shape = (8, 1), type = ket
   Qobj data =
@@ -129,7 +129,7 @@ outputs, we can use the :meth:`.QubitCircuit.run_statistics` function:
    [0.]
    [0.]
    [0.]]
-  with probability 0.33333485891662384
+  with probability 0.33333
 
 The function returns a :class:`~.Result` object which contains
 the output states.
