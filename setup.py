@@ -95,7 +95,7 @@ if __name__ == "__main__":
         version=options['version'],
         entry_points={
             'qutip.about': [
-                'qutip_qip = qutip_qip:about'
+                'qutip_qip = qutip_qip:_about'
             ]
         }
     )
