@@ -313,8 +313,8 @@ class Processor(object):
         (Quantum object: dims = [[2], [2]], shape = (2, 2),
         type = oper, isherm = True
         Qobj data =
-        [[ 6.28318531  0.        ]
-        [ 0.         -6.28318531]], 0)
+        [[ 6.28319  0.     ]
+         [ 0.      -6.28319]], 0)
         """
         return self.model.get_control(label)
 
