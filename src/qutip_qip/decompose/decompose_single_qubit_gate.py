@@ -7,7 +7,7 @@ from qutip_qip.decompose._utility import (
     MethodError,
 )
 
-from qutip_qip.circuit import Gate
+from qutip_qip.operations import Gate
 
 
 __all__ = ["decompose_one_qubit_gate"]

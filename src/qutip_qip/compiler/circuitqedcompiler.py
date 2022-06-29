@@ -1,6 +1,6 @@
 import numpy as np
 
-from ..circuit import Gate
+from ..operations import Gate
 from ..compiler import GateCompiler, Instruction
 
 
@@ -109,7 +109,7 @@ class SCQubitsCompiler(GateCompiler):
 
         Parameters
         ----------
-        gate : :obj:`.Gate`:
+        gate : :obj:`~.operations.Gate`:
             The quantum gate to be compiled.
         op_label : str
             Label of the corresponding control Hamiltonian.
@@ -142,7 +142,7 @@ class SCQubitsCompiler(GateCompiler):
 
         Parameters
         ----------
-        gate : :obj:`.Gate`:
+        gate : :obj:`~.operations.Gate`:
             The quantum gate to be compiled.
         args : dict
             The compilation configuration defined in the attributes
@@ -162,7 +162,7 @@ class SCQubitsCompiler(GateCompiler):
 
         Parameters
         ----------
-        gate : :obj:`.Gate`:
+        gate : :obj:`~.operations.Gate`:
             The quantum gate to be compiled.
         args : dict
             The compilation configuration defined in the attributes
@@ -185,7 +185,7 @@ class SCQubitsCompiler(GateCompiler):
 
         Parameters
         ----------
-        gate : :obj:`.Gate`:
+        gate : :obj:`~.operations.Gate`:
             The quantum gate to be compiled.
         args : dict
             The compilation configuration defined in the attributes

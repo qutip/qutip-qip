@@ -45,7 +45,6 @@ from .gates import (
     controlled_gate,
     globalphase,
     expand_operator,
-    gate_sequence_product,
 )
 
 __all__ = [

@@ -15,4 +15,3 @@ qutip\_qip.circuit
       QubitCircuit
       CircuitResult
       CircuitSimulator
-      Measurement   
