@@ -997,9 +997,9 @@ class QasmOutput:
 
         Parameters
         ----------
-        curr_gate: :class:`.Gate`
+        curr_gate: :class:`~.operations.Gate`
             QuTiP gate which needs to be resolved into component gates.
-        gates_lst: list of :class:`.Gate`
+        gates_lst: list of :class:`~.operations.Gate`
             list of gate that constitute QASM definition of self.
         """
 
@@ -1052,7 +1052,7 @@ class QasmOutput:
 
         Parameters
         ----------
-        gate: :class:`.Gate`
+        gate: :class:`~.operations.Gate`
             QuTiP gate which needs to be resolved into component gates.
 
         """
@@ -1074,7 +1074,7 @@ class QasmOutput:
 
         Parameters
         ----------
-        gate: :class:`.Gate`
+        gate: :class:`~.operations.Gate`
             QuTiP gate which needs to be defined in QASM format.
         """
 

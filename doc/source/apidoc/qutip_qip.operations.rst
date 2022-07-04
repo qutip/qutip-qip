@@ -13,6 +13,7 @@ qutip\_qip.operations
    .. autosummary::
    
       Gate
+      Measurement
       GATE_CLASS_MAP
       X
       Y

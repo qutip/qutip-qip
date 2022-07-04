@@ -2,7 +2,7 @@ import numpy as np
 import scipy
 import pytest
 from math import sqrt
-from qutip_qip.circuit import Measurement
+from qutip_qip.operations import Measurement
 from qutip import (Qobj, basis, ket2dm,
                     sigmax, sigmay, sigmaz, identity, tensor, rand_ket)
 from qutip.measurement import (measure_povm, measurement_statistics_povm,

@@ -103,7 +103,7 @@ class GateCompiler(object):
         Parameters
         ----------
         circuit: :class:`.QubitCircuit` or list of
-            :class:`.Gate`
+            :class:`~.operations.Gate`
             A list of elementary gates that can be implemented in the
             corresponding hardware.
             The gate names have to be in `gate_compiler`.
