@@ -195,7 +195,7 @@ class SCQubitsModel(Model):
         num_qubits = self.num_qubits
         return (
             ["sx" + str(i) for i in range(num_qubits)]
-            + ["sz" + str(i) for i in range(num_qubits)]
+            + ["sy" + str(i) for i in range(num_qubits)]
             + ["zx" + str(i) + str(i + 1) for i in range(num_qubits)]
             + ["zx" + str(i + 1) + str(i) for i in range(num_qubits)]
         )

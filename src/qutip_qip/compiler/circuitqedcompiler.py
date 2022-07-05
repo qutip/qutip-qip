@@ -83,26 +83,6 @@ class SCQubitsCompiler(GateCompiler):
             "params": self.params,
         }
 
-    def _normalized_gauss_pulse(self):
-        """
-        Return a truncated and normalize Gaussian curve.
-        The returned pulse is truncated from a Gaussian distribution with
-        -3*sigma < t < 3*sigma.
-        The amplitude is shifted so that the pulse start from 0.
-        In addition, the pulse is normalized so that
-        the total integral area is 1.
-        """
-        #  td normalization so that the total integral area is 1
-        td = 2.4384880692912567
-        sigma = 1 / 6 * td  # 3 sigma
-        tlist = np.linspace(0, td, 1000)
-        max_pulse = 1 - np.exp(-((0 - td / 2) ** 2) / 2 / sigma**2)
-        coeff = (
-            np.exp(-((tlist - td / 2) ** 2) / 2 / sigma**2)
-            - np.exp(-((0 - td / 2) ** 2) / 2 / sigma**2)
-        ) / max_pulse
-        return tlist, coeff
-
     def _rotation_compiler(self, gate, op_label, param_label, args):
         """
         Single qubit rotation compiler.
@@ -205,12 +185,7 @@ class SCQubitsCompiler(GateCompiler):
         result += self.gate_compiler[gate1.name](gate1, args)
 
         zx_coeff = self.params["zx_coeff"][q1]
-        tlist, coeff = self._normalized_gauss_pulse()
-        amplitude = zx_coeff
         area = 1 / 2
-        sign = np.sign(amplitude) * np.sign(area)
-        tlist = tlist / amplitude * area * sign
-        coeff = coeff * amplitude * sign
         coeff, tlist = self.generate_pulse_shape(
             args["shape"], args["num_samples"], maximum=zx_coeff, area=area
         )
