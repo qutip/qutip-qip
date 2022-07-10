@@ -220,6 +220,11 @@ class SCQubitsModel(Model):
             op = destroy_op * (-1.0j) + destroy_op.dag() * 1.0j
             controls["sy" + str(m)] = (2 * np.pi / 2 * op, [m])
 
+        for m in range(num_qubits):
+            destroy_op = destroy(dims[m])
+            op = destroy_op.dag() * destroy_op
+            controls["sz" + str(m)] = (2 * np.pi * op, [m])
+
         for m in range(num_qubits - 1):
             # For simplicity, we neglect leakage in two-qubit gates.
             d1 = dims[m]
@@ -334,6 +339,7 @@ class SCQubitsModel(Model):
         labels = [
             {f"sx{n}": r"$\sigma_x" + f"^{n}$" for n in range(num_qubits)},
             {f"sy{n}": r"$\sigma_y" + f"^{n}$" for n in range(num_qubits)},
+            {f"sz{n}": r"$\sigma_z" + f"^{n}$" for n in range(num_qubits)},
         ]
         label_zx = {}
         for m in range(num_qubits - 1):

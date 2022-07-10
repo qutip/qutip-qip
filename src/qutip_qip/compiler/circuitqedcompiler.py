@@ -79,8 +79,9 @@ class SCQubitsCompiler(GateCompiler):
         )
         self.args = {  # Default configuration
             "shape": "hann",
-            "num_samples": 1000,
+            "num_samples": 101,
             "params": self.params,
+            "DRAG": True,
         }
 
     def _rotation_compiler(self, gate, op_label, param_label, args):
@@ -113,8 +114,33 @@ class SCQubitsCompiler(GateCompiler):
             maximum=self.params[param_label][targets[0]],
             area=gate.arg_value / 2.0 / np.pi,
         )
-        pulse_info = [(op_label + str(targets[0]), coeff)]
+        if args["DRAG"]:
+            pulse_info = self._drag_pulse(op_label, coeff, tlist, targets[0])
+        else:
+            pulse_info = [(op_label + str(targets[0]), coeff)]
         return [Instruction(gate, tlist, pulse_info)]
+
+    def _drag_pulse(self, op_label, coeff, tlist, target):
+        dt_coeff = np.gradient(coeff, tlist[1] - tlist[0]) / 2 / np.pi
+        # Y-DRAG
+        alpha = self.params["alpha"][target]
+        y_drag = -dt_coeff / alpha
+        # Z-DRAG
+        z_drag = -(coeff**2) / alpha + (np.sqrt(2) ** 2 * coeff**2) / (
+            4 * alpha
+        )
+        # X-DRAG
+        coeff += -(coeff**3 / (4 * alpha**2))
+
+        pulse_info = [
+            (op_label + str(target), coeff),
+            ("sz" + str(target), z_drag),
+        ]
+        if op_label == "sx":
+            pulse_info.append(("sy" + str(target), y_drag))
+        elif op_label == "sy":
+            pulse_info.append(("sx" + str(target), -y_drag))
+        return pulse_info
 
     def ry_compiler(self, gate, args):
         """
