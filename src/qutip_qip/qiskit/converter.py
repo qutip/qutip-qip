@@ -27,6 +27,8 @@ _map_controlled_gates = {
     "cp": "CPHASE",
 }
 
+_ignore_gates = ["id", "barrier"]
+
 
 def _make_user_gate(unitary, inst):
     """
@@ -62,6 +64,10 @@ def qiskit_to_qutip(qiskit_circ):
     for i, qubit in enumerate(qiskit_circ.qubits):
         qubit_map[qubit] = i
 
+    clbit_map = {}
+    for i, clbit in enumerate(qiskit_circ.clbits):
+        clbit_map[clbit] = i
+
     qutip_circ = QubitCircuit(
         N=qiskit_circ.num_qubits, num_cbits=qiskit_circ.num_clbits
     )
@@ -70,22 +76,39 @@ def qiskit_to_qutip(qiskit_circ):
         inst = gate[0]
         inst_name = inst.name
         qregs = gate[1]
+        cregs = gate[2]
 
+        # setting the argument values according
+        # to the required qutip_qip format
+        arg_value = None if not inst.params else inst.params
+        if not inst.params:
+            arg_value = None
+        elif len(inst.params) == 1:
+            arg_value = inst.params[0]
+        else:
+            arg_value = inst.params
+
+        # add the corresponding gate in qutip_qip
         if inst_name in _map_gates.keys():
-            arg_value = None if not inst.params else inst.params[0]
             qutip_circ.add_gate(
                 _map_gates[inst_name],
                 targets=[qubit_map[qreg] for qreg in qregs],
                 arg_value=arg_value,
             )
         elif inst_name in _map_controlled_gates.keys():
-            arg_value = None if not inst.params else inst.params[0]
             qutip_circ.add_gate(
                 _map_controlled_gates[inst_name],
                 controls=[qubit_map[qregs[0]]],
-                targets=[qubit_map[qreg] for qreg in qregs[1:]],
+                targets=[qubit_map[qreg]
+                         for qreg in qregs[1:]],
                 arg_value=arg_value,
             )
+        elif inst_name == "measure":
+            qutip_circ.add_measurement("measure", targets=[
+                                       qubit_map[qreg] for qreg in qregs], classical_store=clbit_map[cregs[0]])
+
+        elif inst_name in _ignore_gates:
+            pass
         else:
             unitary = np.array(Operator(inst))
             qutip_circ.user_gates[inst_name] = _make_user_gate(unitary, inst)
