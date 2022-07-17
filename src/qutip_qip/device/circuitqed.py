@@ -27,6 +27,9 @@ class SCQubits(ModelProcessor):
     for simplicity, we only use a ZX Hamiltonian for
     the two-qubit interaction.
 
+    See the mathematical details in
+    :obj:`.SCQubitsCompiler` and :obj:`.SCQubitsModel`.
+
     Parameters
     ----------
     num_qubits: int

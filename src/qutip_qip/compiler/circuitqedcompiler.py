@@ -8,7 +8,7 @@ __all__ = ["SCQubitsCompiler"]
 
 
 class SCQubitsCompiler(GateCompiler):
-    """
+    r"""
     Compiler for :class:`.SCQubits`.
     Compiled pulse strength is in the unit of GHz.
 
@@ -26,6 +26,22 @@ class SCQubitsCompiler(GateCompiler):
         +-----------------+-----------------------+
         |``params``       | Hardware Parameters   |
         +-----------------+-----------------------+
+
+    For single-qubit gate, we apply the DRAG correction :cite:`motzoi2013`
+
+    .. math::
+
+        \Omega^{x} &= \Omega_0 - \frac{\Omega_0^3}{4 \alpha^2}
+
+        \Omega^{y} &= - \dot{\Omega}_0 / \alpha
+
+        \Omega^{z} &= - \Omega_0**2 / \alpha + \frac{2  \Omega_0^2)}{
+            4 \alpha
+        }
+
+    where :math:`\Omega_0` is the original shape of the pulse.
+    Notice that the :math:`\Omega_0` and its first derivative
+    should be 0 from the starts and the end.
 
     Parameters
     ----------
