@@ -14,11 +14,11 @@ class Job(JobV1):
         Unique ID identifying a job.
 
     result : qiskit.result.Result
-        The result of a simulation run. 
+        The result of a simulation run.
     """
 
     def __init__(self, backend, job_id, result):
-        # super().__init__(backend, job_id)
+        super().__init__(backend, job_id)
         self._result = result
 
     def submit(self):

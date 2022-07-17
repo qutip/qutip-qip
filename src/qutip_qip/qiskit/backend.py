@@ -1,12 +1,13 @@
-from sre_parse import State
 from qutip import tensor, basis
 import numpy as np
 import uuid
+import random
 
 from qutip_qip.operations.gateclass import Z
 from .job import Job
 from .converter import qiskit_to_qutip
 from qiskit.providers import BackendV1, Options
+from qiskit.providers.models import BackendConfiguration, QasmBackendConfiguration
 from qiskit.result import Result
 from qiskit.result.models import ExperimentResult, ExperimentResultData
 from qiskit.quantum_info import Statevector
@@ -20,16 +21,16 @@ class QiskitSimulatorBase(BackendV1):
     def __init__(self, configuration=None, provider=None, **fields):
         pass
 
-    def run(self, circuit, **backend_options):
+    def run(self, qiskit_circuit, **backend_options):
         """
         Simulates a circuit on the required backend.
 
         Parameters
         ----------
-        circuit : QuantumCircuit
+        qiskit_circuit : QuantumCircuit
             The qiskit circuit to be simulated.
         """
-        qutip_circ = qiskit_to_qutip(circuit)
+        qutip_circ = qiskit_to_qutip(qiskit_circuit)
         job_id = str(uuid.uuid4())
         job = Job(
             backend=self,
@@ -45,15 +46,31 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
     circuit simulation using qutip_qip's CircuitSimulator.
     """
 
+    MAX_QUBITS_MEMORY = 10
     _configuration = {
         "backend_name": "circuit_simulator",
         "backend_version": "0.1",
+        "n_qubits": MAX_QUBITS_MEMORY,
+        "url": "https://github.com/qutip/qutip-qip",
+        "simulator": True,
+        "local": True,
+        "conditional": False,
+        "open_pulse": False,
+        "memory": False,
+        "max_shots": 1,
+        "coupling_map": None,
+        "description": "A qutip-qip based operator-level circuit simulator.",
+        "basis_gates": [],
+        "gates": [],
     }
 
     def __init__(self, configuration=None, provider=None, **fields):
-        super().__init__(configuration=configuration, provider=provider, **fields)
+        super().__init__(configuration=(
+            configuration or BackendConfiguration.from_dict(
+                self._configuration)
+        ), provider=provider, **fields)
 
-    def _parse_results(self, statevector, statistics, job_id, circuit):
+    def _parse_results(self, statistics, job_id, qutip_circuit):
         """
         Returns a parsed object of type qiskit.result.Result
         for the CircuitSimulator
@@ -71,7 +88,7 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
         job_id : str
             Unique ID identifying a job.
 
-        circuit : QubitCircuit
+        qutip_circuit : QubitCircuit
             The circuit being simulated
         """
         counts = {}
@@ -85,6 +102,11 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
                     statistics.probabilities[i], 3)
         else:
             counts = None
+
+        statevector = random.choices(
+            statistics.final_states,
+            weights=statistics.probabilities
+        )[0]
 
         exp_res_data = ExperimentResultData(
             counts=counts,
@@ -100,7 +122,7 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
         result = Result(
             backend_name=self._configuration["backend_name"],
             backend_version=self._configuration["backend_version"],
-            qobj_id=id(circuit),
+            qobj_id=id(qutip_circuit),
             job_id=job_id,
             success=True,
             results=[exp_res],
@@ -108,7 +130,7 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
 
         return result
 
-    def _run_job(self, job_id, circuit):
+    def _run_job(self, job_id, qutip_circuit):
         """
         Run a QubitCircuit on the CircuitSimulator.
 
@@ -117,21 +139,19 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
         job_id : str
             Unique ID identifying a job.
 
-        circuit : QubitCircuit
+        qutip_circuit : QubitCircuit
             The circuit obtained after conversion
             from QuantumCircuit to QubitCircuit. 
         """
         zero_state = basis(2, 0)
-        for i in range(circuit.N - 1):
+        for _ in range(qutip_circuit.N - 1):
             zero_state = tensor(zero_state, basis(2, 0))
 
-        statevector = circuit.run(state=zero_state)
-        statistics = circuit.run_statistics(state=zero_state)
+        statistics = qutip_circuit.run_statistics(state=zero_state)
 
-        return self._parse_results(statevector=statevector,
-                                   statistics=statistics,
+        return self._parse_results(statistics=statistics,
                                    job_id=job_id,
-                                   circuit=circuit)
+                                   qutip_circuit=qutip_circuit)
 
     @classmethod
     def _default_options(cls):

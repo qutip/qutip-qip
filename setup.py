@@ -93,4 +93,7 @@ if __name__ == "__main__":
     # keep here are ones that we have done some compile-time processing on.
     setup(
         version=options['version'],
+        extras_require={
+            'qiskit': ['qiskit>=0.36.2']
+        }
     )
