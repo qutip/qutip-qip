@@ -4,13 +4,20 @@ import uuid
 import random
 
 from qutip_qip.operations.gateclass import Z
+from qutip_qip.circuit import QubitCircuit
+from qutip_qip.circuit.circuitsimulator import CircuitResult
+
 from .job import Job
 from .converter import qiskit_to_qutip
 from qiskit.providers import BackendV1, Options
-from qiskit.providers.models import BackendConfiguration, QasmBackendConfiguration
+from qiskit.providers.models import (
+    BackendConfiguration,
+    QasmBackendConfiguration,
+)
 from qiskit.result import Result
 from qiskit.result.models import ExperimentResult, ExperimentResultData
 from qiskit.quantum_info import Statevector
+from qiskit.circuit import QuantumCircuit
 
 
 class QiskitSimulatorBase(BackendV1):
@@ -21,7 +28,7 @@ class QiskitSimulatorBase(BackendV1):
     def __init__(self, configuration=None, provider=None, **fields):
         pass
 
-    def run(self, qiskit_circuit, **backend_options):
+    def run(self, qiskit_circuit: QuantumCircuit, **backend_options) -> Job:
         """
         Simulates a circuit on the required backend.
 
@@ -65,12 +72,21 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
     }
 
     def __init__(self, configuration=None, provider=None, **fields):
-        super().__init__(configuration=(
-            configuration or BackendConfiguration.from_dict(
-                self._configuration)
-        ), provider=provider, **fields)
+        super().__init__(
+            configuration=(
+                configuration
+                or BackendConfiguration.from_dict(self._configuration)
+            ),
+            provider=provider,
+            **fields
+        )
 
-    def _parse_results(self, statistics, job_id, qutip_circuit):
+    def _parse_results(
+        self,
+        statistics: CircuitResult,
+        job_id: str,
+        qutip_circuit: QubitCircuit,
+    ) -> Result:
         """
         Returns a parsed object of type qiskit.result.Result
         for the CircuitSimulator
@@ -99,25 +115,20 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
         if statistics.cbits[0] is not None:
             for i, count in enumerate(statistics.cbits):
                 counts[convert_to_hex(count)] = round(
-                    statistics.probabilities[i], 3)
+                    statistics.probabilities[i], 3
+                )
         else:
             counts = None
 
         statevector = random.choices(
-            statistics.final_states,
-            weights=statistics.probabilities
+            statistics.final_states, weights=statistics.probabilities
         )[0]
 
         exp_res_data = ExperimentResultData(
-            counts=counts,
-            statevector=Statevector(data=np.array(statevector))
+            counts=counts, statevector=Statevector(data=np.array(statevector))
         )
 
-        exp_res = ExperimentResult(
-            shots=1,
-            success=True,
-            data=exp_res_data
-        )
+        exp_res = ExperimentResult(shots=1, success=True, data=exp_res_data)
 
         result = Result(
             backend_name=self._configuration["backend_name"],
@@ -130,7 +141,7 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
 
         return result
 
-    def _run_job(self, job_id, qutip_circuit):
+    def _run_job(self, job_id: str, qutip_circuit: QubitCircuit) -> Result:
         """
         Run a QubitCircuit on the CircuitSimulator.
 
@@ -149,9 +160,9 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
 
         statistics = qutip_circuit.run_statistics(state=zero_state)
 
-        return self._parse_results(statistics=statistics,
-                                   job_id=job_id,
-                                   qutip_circuit=qutip_circuit)
+        return self._parse_results(
+            statistics=statistics, job_id=job_id, qutip_circuit=qutip_circuit
+        )
 
     @classmethod
     def _default_options(cls):

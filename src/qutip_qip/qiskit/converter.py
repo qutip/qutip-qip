@@ -4,6 +4,8 @@ import numpy as np
 from qutip import Qobj
 import warnings
 
+from qiskit.circuit import QuantumCircuit, Instruction
+
 _map_gates = {
     "p": "PHASEGATE",
     "x": "X",
@@ -31,7 +33,7 @@ _map_controlled_gates = {
 _ignore_gates = ["id", "barrier"]
 
 
-def _make_user_gate(unitary, instruction):
+def _make_user_gate(unitary, instruction: Instruction):
     """
     Returns a user defined gate from a unitary matrix.
 
@@ -47,14 +49,13 @@ def _make_user_gate(unitary, instruction):
     def user_gate():
         return Qobj(
             unitary,
-            dims=[[2] * instruction.num_qubits,
-                  [2] * instruction.num_qubits]
+            dims=[[2] * instruction.num_qubits, [2] * instruction.num_qubits],
         )
 
     return user_gate
 
 
-def _get_qutip_index(qiskit_index, total_qubits):
+def _get_qutip_index(qiskit_index: int, total_qubits: int) -> int:
     """
     Map the bit index from qiskit to qutip.
 
@@ -64,7 +65,7 @@ def _get_qutip_index(qiskit_index, total_qubits):
     return total_qubits - 1 - qiskit_index
 
 
-def qiskit_to_qutip(qiskit_circuit):
+def qiskit_to_qutip(qiskit_circuit: QuantumCircuit) -> QubitCircuit:
     """
     Convert a QuantumCircuit from qiskit to qutip_qip's QubitCircuit.
 
@@ -81,12 +82,14 @@ def qiskit_to_qutip(qiskit_circuit):
     qubit_map = {}
     for qiskit_index, qubit in enumerate(qiskit_circuit.qubits):
         qubit_map[qubit] = _get_qutip_index(
-            qiskit_index, qiskit_circuit.num_qubits)
+            qiskit_index, qiskit_circuit.num_qubits
+        )
 
     clbit_map = {}
     for qiskit_index, clbit in enumerate(qiskit_circuit.clbits):
         clbit_map[clbit] = _get_qutip_index(
-            qiskit_index, qiskit_circuit.num_clbits)
+            qiskit_index, qiskit_circuit.num_clbits
+        )
 
     qutip_circuit = QubitCircuit(
         N=qiskit_circuit.num_qubits, num_cbits=qiskit_circuit.num_clbits
@@ -101,7 +104,11 @@ def qiskit_to_qutip(qiskit_circuit):
 
         # setting the gate argument values according
         # to the required qutip_qip format
-        arg_value = None if not qiskit_instruction.params else qiskit_instruction.params
+        arg_value = (
+            None
+            if not qiskit_instruction.params
+            else qiskit_instruction.params
+        )
         if not qiskit_instruction.params:
             arg_value = None
         elif len(qiskit_instruction.params) == 1:
@@ -121,8 +128,7 @@ def qiskit_to_qutip(qiskit_circuit):
             qutip_circuit.add_gate(
                 _map_controlled_gates[qiskit_instruction.name],
                 controls=[qubit_map[qiskit_qregs[0]]],
-                targets=[qubit_map[qreg]
-                         for qreg in qiskit_qregs[1:]],
+                targets=[qubit_map[qreg] for qreg in qiskit_qregs[1:]],
                 arg_value=arg_value,
             )
 
@@ -130,7 +136,7 @@ def qiskit_to_qutip(qiskit_circuit):
             qutip_circuit.add_measurement(
                 "measure",
                 targets=[qubit_map[qreg] for qreg in qiskit_qregs],
-                classical_store=clbit_map[qiskit_cregs[0]]
+                classical_store=clbit_map[qiskit_cregs[0]],
             )
 
         elif qiskit_instruction.name in _ignore_gates:
@@ -143,11 +149,12 @@ This gate will be simulated using it's corresponding unitary matrix."
             )
 
             unitary = np.array(Operator(qiskit_instruction))
-            qutip_circuit.user_gates[qiskit_instruction.name] = _make_user_gate(
-                unitary, qiskit_instruction)
+            qutip_circuit.user_gates[
+                qiskit_instruction.name
+            ] = _make_user_gate(unitary, qiskit_instruction)
             qutip_circuit.add_gate(
-                qiskit_instruction.name, targets=[
-                    qubit_map[qreg] for qreg in qiskit_qregs]
+                qiskit_instruction.name,
+                targets=[qubit_map[qreg] for qreg in qiskit_qregs],
             )
 
     return qutip_circuit
