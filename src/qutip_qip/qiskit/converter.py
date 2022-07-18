@@ -86,7 +86,7 @@ def qiskit_to_qutip(qiskit_circuit):
     clbit_map = {}
     for qiskit_index, clbit in enumerate(qiskit_circuit.clbits):
         clbit_map[clbit] = _get_qutip_index(
-            qiskit_index, qiskit_circuit.num_qubits)
+            qiskit_index, qiskit_circuit.num_clbits)
 
     qutip_circuit = QubitCircuit(
         N=qiskit_circuit.num_qubits, num_cbits=qiskit_circuit.num_clbits
