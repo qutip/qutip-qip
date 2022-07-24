@@ -301,16 +301,16 @@ class GateCompiler(object):
     ):
         idling_tlist = []
         if pulse_mode == "continuous":
-            # We add sufficient number of zeros at the begining
+            # We add sufficient number of zeros at the beginning
             # and the end of the idling to prevent wrong cubic spline.
             if start_time - last_pulse_time > 3 * step_size:
                 idling_tlist1 = np.linspace(
                     last_pulse_time + step_size / 5,
                     last_pulse_time + step_size,
-                    5,
+                    10,
                 )
                 idling_tlist2 = np.linspace(
-                    start_time - step_size, start_time, 5
+                    start_time - step_size, start_time, 10
                 )
                 idling_tlist.extend([idling_tlist1, idling_tlist2])
             else:
@@ -433,6 +433,14 @@ _default_window_t_max = {
     "cosine": np.pi / 2.0,
 }
 
+# Analytically implementing the pulse shape because the Scipy version
+# subjects more to the finite sampling error under interpolation.
+# More analytical shape can be added here.
+_analytical_window = {
+    "hann": lambda t: 1 / 2 - 1 / 2 * np.cos(2 * np.pi * t),
+    "hamming": lambda t: 0.54 - 0.46 * np.cos(2 * np.pi * t),
+}
+
 
 def _normalized_window(shape, num_samples):
     """
@@ -445,6 +453,9 @@ def _normalized_window(shape, num_samples):
     t_max = _default_window_t_max.get(shape, None)
     if t_max is None:
         raise ValueError(f"Window function {shape} is not supported.")
-    coeff = signal.windows.get_window(shape, num_samples)
     tlist = np.linspace(0, t_max, num_samples)
+    if shape in _analytical_window:
+        coeff = _analytical_window["hann"](tlist)
+    else:
+        coeff = signal.windows.get_window(shape, num_samples)
     return coeff, tlist

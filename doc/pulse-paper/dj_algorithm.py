@@ -123,11 +123,6 @@ ax3[9].set_ylabel(r"$\Omega^{\rm{cr}2}_{1}$")
 ax3[9].set_xlabel(r"$t$")
 
 full_tlist = scqubits_processor.get_full_tlist()
-two_qubit_gate_region = np.array([[0, 6, -18], [0, 6, -4], [0, 9, -4], [0, 6, -18], [0, 6, -4], [0, 11, -4], [0, 6, -18], [0, 6, -4], [0, 6, -4]]) * 500
-for i, (point1, point2, point3) in enumerate(two_qubit_gate_region):
-    vmin, vmax = ax3[i].get_ylim()
-    ax3[i].fill_between([full_tlist[point2], full_tlist[point3]], [vmin ,vmin],  [vmax, vmax], color="lightgray", alpha=0.5)
-    ax3[i].vlines([full_tlist[point2], full_tlist[point3]], vmin, vmax, "gray", "--", linewidth=0.8, alpha=0.5)
 
 fig3.tight_layout()
 fig3.savefig("transmon_pulse.pdf")
