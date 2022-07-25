@@ -1,4 +1,5 @@
 from qiskit.providers import JobV1, JobStatus
+from qiskit.result import Result
 
 
 class Job(JobV1):
@@ -7,8 +8,9 @@ class Job(JobV1):
 
     Parameters
     ----------
-    backend : Union[QiskitCircuitSimulator]
-        The backend used to simulate a circuit in the job.
+    backend : QiskitCircuitSimulator
+        The backend used to simulate a
+        circuit in the job.
 
     job_id : str
         Unique ID identifying a job.
@@ -17,9 +19,10 @@ class Job(JobV1):
         The result of a simulation run.
     """
 
-    def __init__(self, backend, job_id, result):
+    def __init__(self, backend, job_id: str, result: Result, warnings=[]):
         super().__init__(backend, job_id)
         self._result = result
+        self._warnings = warnings
 
     def submit(self):
         """Submit the job to the backend for execution."""
@@ -32,3 +35,11 @@ class Job(JobV1):
     def result(self):
         """Return the job's result"""
         return self._result
+
+    def warnings(self):
+        """Display the warnings encountered while execution"""
+        if not self._warnings:
+            print("Executed with no warnings.")
+        else:
+            for warning in self._warnings:
+                print(warning)

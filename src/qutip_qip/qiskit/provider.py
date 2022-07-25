@@ -4,7 +4,12 @@ from .backend import QiskitCircuitSimulator
 
 class Provider(ProviderV1):
     """
-    Provides access to qutip_qip based qiskit backends. 
+    Provides access to qutip_qip based qiskit backends.
+
+    Attributes
+    ----------
+    name: str
+        Name of the provider
     """
 
     def __init__(self):
@@ -13,7 +18,20 @@ class Provider(ProviderV1):
         self.name = "qutip_provider"
         self._backends = {"circuit_simulator": QiskitCircuitSimulator()}
 
-    def backends(self, name=None, filters=None, **kwargs):
+    def backends(self, name: str = None, filters=None, **kwargs) -> list:
+        """
+        Returns the available backends
+
+        Parameters
+        ----------
+        name: str
+            Name of required backend
+
+        Returns
+        -------
+        list
+            List of available backends
+        """
         backends = list(self._backends.values())
         if name:
             try:

@@ -1,23 +1,26 @@
+from email.header import Header
 from qutip import tensor, basis
 import numpy as np
 import uuid
 import random
+from qutip_qip import circuit
 
 from qutip_qip.operations.gateclass import Z
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.circuit.circuitsimulator import CircuitResult
 
 from .job import Job
-from .converter import qiskit_to_qutip
+from .converter import convert_qiskit_circuit
 from qiskit.providers import BackendV1, Options
 from qiskit.providers.models import (
     BackendConfiguration,
     QasmBackendConfiguration,
 )
-from qiskit.result import Result
+from qiskit.result import Result, Counts
 from qiskit.result.models import ExperimentResult, ExperimentResultData
 from qiskit.quantum_info import Statevector
 from qiskit.circuit import QuantumCircuit
+from qiskit.qobj import QobjExperimentHeader
 
 
 class QiskitSimulatorBase(BackendV1):
@@ -36,13 +39,20 @@ class QiskitSimulatorBase(BackendV1):
         ----------
         qiskit_circuit : QuantumCircuit
             The qiskit circuit to be simulated.
+
+        Result
+        ------
+        qutip_qip.qiskit.job.Job
+            Job that stores results and execution data
         """
-        qutip_circ = qiskit_to_qutip(qiskit_circuit)
+        qutip_circ = convert_qiskit_circuit(qiskit_circuit)
         job_id = str(uuid.uuid4())
         job = Job(
             backend=self,
             job_id=job_id,
             result=self._run_job(job_id, qutip_circ),
+            warnings=qutip_circ._warnings if hasattr(
+                qutip_circ, "_warnings") else []
         )
         return job
 
@@ -51,6 +61,8 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
     """
     Qiskit backend dealing with operator-level
     circuit simulation using qutip_qip's CircuitSimulator.
+
+
     """
 
     MAX_QUBITS_MEMORY = 10
@@ -93,9 +105,6 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
 
         Parameters
         ----------
-        statevector : qutip.qobj.Qobj
-            The result obtained by running a circuit on CircuitSimulator
-
         statistics : qutip_qip.circuit.
                     circuitsimulator.CircuitResult
             The result obtained from `run_statistics` on
@@ -106,6 +115,11 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
 
         qutip_circuit : QubitCircuit
             The circuit being simulated
+
+        Returns
+        -------
+        qiskit.result.Result
+            Result of the simulation
         """
         counts = {}
 
@@ -114,9 +128,8 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
 
         if statistics.cbits[0] is not None:
             for i, count in enumerate(statistics.cbits):
-                counts[convert_to_hex(count)] = round(
-                    statistics.probabilities[i], 3
-                )
+                counts[convert_to_hex(count)] = statistics.probabilities[i]
+            counts = Counts(counts)
         else:
             counts = None
 
@@ -128,7 +141,14 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
             counts=counts, statevector=Statevector(data=np.array(statevector))
         )
 
-        exp_res = ExperimentResult(shots=1, success=True, data=exp_res_data)
+        header = QobjExperimentHeader.from_dict({
+            "name": qutip_circuit.name if hasattr(
+                qutip_circuit, "name") else "",
+            "n_qubits": qutip_circuit.N,
+        })
+
+        exp_res = ExperimentResult(shots=1, success=True, data=exp_res_data,
+                                   header=header)
 
         result = Result(
             backend_name=self._configuration["backend_name"],
@@ -152,12 +172,14 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
 
         qutip_circuit : QubitCircuit
             The circuit obtained after conversion
-            from QuantumCircuit to QubitCircuit. 
-        """
-        zero_state = basis(2, 0)
-        for _ in range(qutip_circuit.N - 1):
-            zero_state = tensor(zero_state, basis(2, 0))
+            from QuantumCircuit to QubitCircuit.
 
+        Returns
+        -------
+        qiskit.result.Result
+            Result of the simulation
+        """
+        zero_state = basis([2]*qutip_circuit.N, [0]*qutip_circuit.N)
         statistics = qutip_circuit.run_statistics(state=zero_state)
 
         return self._parse_results(
