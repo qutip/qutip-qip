@@ -7,8 +7,11 @@ try:
     from qiskit import QuantumCircuit
     from qiskit.providers.aer import AerSimulator
     from qutip_qip.qiskit import Provider
-    from qutip_qip.qiskit.converter import convert_qiskit_circuit, _get_qutip_index
-except:
+    from qutip_qip.qiskit.converter import (
+        convert_qiskit_circuit,
+        _get_qutip_index,
+    )
+except ImportError:
     pass
 
 
@@ -26,20 +29,26 @@ class TestConverter:
     def _compare_args(self, req_gate, res_gate):
         """Compare parameters of two gates"""
         res_arg = (
-            res_gate.arg_value if type(
+            (
                 res_gate.arg_value
-            ) is list or type(
-                res_gate.arg_value
-            ) is tuple else [res_gate.arg_value]
-        ) if res_gate.arg_value else []
+                if type(res_gate.arg_value) is list
+                or type(res_gate.arg_value) is tuple
+                else [res_gate.arg_value]
+            )
+            if res_gate.arg_value
+            else []
+        )
 
         req_arg = (
-            req_gate.arg_value if type(
+            (
                 req_gate.arg_value
-            ) is list or type(
-                req_gate.arg_value
-            ) is tuple else [req_gate.arg_value]
-        ) if req_gate.arg_value else []
+                if type(req_gate.arg_value) is list
+                or type(req_gate.arg_value) is tuple
+                else [req_gate.arg_value]
+            )
+            if req_gate.arg_value
+            else []
+        )
 
         if len(req_arg) != len(res_arg):
             return False
@@ -56,11 +65,8 @@ class TestConverter:
             return False
 
         if req_gate.name == "measure":
-            check_condition = (
-                req_gate.classical_store
-                == _get_qutip_index(
-                    res_gate.classical_store, result_circuit.num_cbits
-                )
+            check_condition = req_gate.classical_store == _get_qutip_index(
+                res_gate.classical_store, result_circuit.num_cbits
             )
         else:
             # todo: correct for float error in arg_value
@@ -71,8 +77,9 @@ class TestConverter:
             )
             req_controls = req_gate.controls if req_gate.controls else None
 
-            check_condition = (res_controls == req_controls) and self._compare_args(
-                req_gate, res_gate)
+            check_condition = (
+                res_controls == req_controls
+            ) and self._compare_args(req_gate, res_gate)
 
         return check_condition
 
@@ -148,13 +155,13 @@ class TestSimulator:
         qutip_backend = provider.get_backend("circuit_simulator")
         qutip_job = qutip_backend.run(qiskit_circuit)
         qutip_result = qutip_job.result()
-        qutip_sv = qutip_result.data()['statevector']
+        qutip_sv = qutip_result.data()["statevector"]
 
-        qiskit_backend = AerSimulator(method='statevector')
+        qiskit_backend = AerSimulator(method="statevector")
         qiskit_circuit.save_state()
         qiskit_job = qiskit_backend.run(qiskit_circuit)
         qiskit_result = qiskit_job.result()
-        qiskit_sv = qiskit_result.data()['statevector']
+        qiskit_sv = qiskit_result.data()["statevector"]
 
         assert_allclose(qutip_sv, qiskit_sv)
 

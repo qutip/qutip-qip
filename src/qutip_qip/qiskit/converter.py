@@ -67,11 +67,8 @@ def _get_qutip_index(bit_index: Union[int, list], total_bits: int) -> int:
 
     """
 
-    if type(bit_index) == type([]):
-        return [
-            _get_qutip_index(bit, total_bits)
-            for bit in bit_index
-        ]
+    if isinstance(bit_index, list):
+        return [_get_qutip_index(bit, total_bits) for bit in bit_index]
     else:
         return total_bits - 1 - bit_index
 
@@ -144,7 +141,8 @@ def convert_qiskit_circuit(qiskit_circuit: QuantumCircuit) -> QubitCircuit:
                 # The 0th bit is the control bit in qiskit by
                 # convention, in case of a controlled operation
                 controls=_get_mapped_bits(
-                    [qiskit_qregs[0]], bit_map=qubit_map),
+                    [qiskit_qregs[0]], bit_map=qubit_map
+                ),
                 targets=_get_mapped_bits(qiskit_qregs[1:], bit_map=qubit_map),
                 arg_value=arg_value,
             )

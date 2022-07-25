@@ -51,8 +51,9 @@ class QiskitSimulatorBase(BackendV1):
             backend=self,
             job_id=job_id,
             result=self._run_job(job_id, qutip_circ),
-            warnings=qutip_circ._warnings if hasattr(
-                qutip_circ, "_warnings") else []
+            warnings=qutip_circ._warnings
+            if hasattr(qutip_circ, "_warnings")
+            else [],
         )
         return job
 
@@ -141,14 +142,18 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
             counts=counts, statevector=Statevector(data=np.array(statevector))
         )
 
-        header = QobjExperimentHeader.from_dict({
-            "name": qutip_circuit.name if hasattr(
-                qutip_circuit, "name") else "",
-            "n_qubits": qutip_circuit.N,
-        })
+        header = QobjExperimentHeader.from_dict(
+            {
+                "name": qutip_circuit.name
+                if hasattr(qutip_circuit, "name")
+                else "",
+                "n_qubits": qutip_circuit.N,
+            }
+        )
 
-        exp_res = ExperimentResult(shots=1, success=True, data=exp_res_data,
-                                   header=header)
+        exp_res = ExperimentResult(
+            shots=1, success=True, data=exp_res_data, header=header
+        )
 
         result = Result(
             backend_name=self._configuration["backend_name"],
@@ -179,7 +184,7 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
         qiskit.result.Result
             Result of the simulation
         """
-        zero_state = basis([2]*qutip_circuit.N, [0]*qutip_circuit.N)
+        zero_state = basis([2] * qutip_circuit.N, [0] * qutip_circuit.N)
         statistics = qutip_circuit.run_statistics(state=zero_state)
 
         return self._parse_results(
