@@ -30,8 +30,11 @@ class QiskitSimulatorBase(BackendV1):
 
     def __init__(self, configuration=None, provider=None, **fields):
         super().__init__(configuration=configuration, provider=provider)
+        self.options.set_validator(
+            "shots", (1, self.configuration().max_shots)
+        )
 
-    def run(self, qiskit_circuit: QuantumCircuit, **backend_options) -> Job:
+    def run(self, qiskit_circuit: QuantumCircuit, **run_options) -> Job:
         """
         Simulates a circuit on the required backend.
 
@@ -40,20 +43,36 @@ class QiskitSimulatorBase(BackendV1):
         qiskit_circuit : QuantumCircuit
             The qiskit circuit to be simulated.
 
+        **run_options:
+            Additional run options for the backend.
+
+            Valid options are:
+
+            shots : int
+                Number of times to perform the simulation
+            allow_custom_gate: bool
+                Allow conversion of circuit using unitary matrices
+                for custom gates.
+
         Result
         ------
         qutip_qip.qiskit.job.Job
             Job that stores results and execution data
         """
-        allow_custom_gate = (
-            backend_options["allow_custom_gate"]
-            if "allow_custom_gate" in backend_options
-            else self.configuration().allow_custom_gate
+        # configure the options
+        self.set_options(
+            shots=run_options["shots"]
+            if "shots" in run_options
+            else self._default_options().shots,
+            allow_custom_gate=run_options["allow_custom_gate"]
+            if "allow_custom_gate" in run_options
+            else self._default_options().allow_custom_gate,
         )
         qutip_circ = convert_qiskit_circuit(
-            qiskit_circuit, allow_custom_gate=allow_custom_gate
+            qiskit_circuit, allow_custom_gate=self.options.allow_custom_gate
         )
         job_id = str(uuid.uuid4())
+
         job = Job(
             backend=self,
             job_id=job_id,
@@ -81,12 +100,11 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
         "conditional": False,
         "open_pulse": False,
         "memory": False,
-        "max_shots": 1,
+        "max_shots": int(1e6),
         "coupling_map": None,
         "description": "A qutip-qip based operator-level circuit simulator.",
         "basis_gates": [],
         "gates": [],
-        "allow_custom_gate": True,
     }
 
     def __init__(self, configuration=None, provider=None, **fields):
@@ -99,6 +117,31 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
         super().__init__(
             configuration=configuration, provider=provider, **fields
         )
+
+    def _sample_shots(self, count_probs: dict) -> Counts:
+        """
+        Sample measurements from a given probability distribution
+
+        Parameters
+        ----------
+        count_probs: dict
+            Probability distribution corresponding
+            to different classical outputs.
+
+        Returns
+        -------
+        qiskit.result.Counts
+            Returns the Counts object sampled according to
+            the given probabilities and configured shots.
+        """
+        shots = self.options.shots
+        samples = random.choices(
+            list(count_probs.keys()), list(count_probs.values()), k=shots
+        )
+        counts = dict.fromkeys(count_probs.keys(), 0)
+        for sample in samples:
+            counts[sample] += 1
+        return Counts(counts)
 
     def _parse_results(
         self,
@@ -128,17 +171,19 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
         qiskit.result.Result
             Result of the simulation
         """
-        counts = {}
+        count_probs = {}
+        counts = None
 
         def convert_to_hex(count):
             return hex(int("".join(str(i) for i in count), 2))
 
         if statistics.cbits[0] is not None:
             for i, count in enumerate(statistics.cbits):
-                counts[convert_to_hex(count)] = statistics.probabilities[i]
-            counts = Counts(counts)
-        else:
-            counts = None
+                count_probs[convert_to_hex(count)] = statistics.probabilities[
+                    i
+                ]
+            # sample the shots from obtained probabilities
+            counts = self._sample_shots(count_probs)
 
         statevector = random.choices(
             statistics.final_states, weights=statistics.probabilities
@@ -158,7 +203,10 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
         )
 
         exp_res = ExperimentResult(
-            shots=1, success=True, data=exp_res_data, header=header
+            shots=self.options.shots,
+            success=True,
+            data=exp_res_data,
+            header=header,
         )
 
         result = Result(
@@ -202,4 +250,4 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
         """
         Default options for the backend. To be updated.
         """
-        return Options()
+        return Options(shots=1024, allow_custom_gate=True)
