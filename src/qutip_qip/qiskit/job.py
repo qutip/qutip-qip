@@ -19,10 +19,9 @@ class Job(JobV1):
         The result of a simulation run.
     """
 
-    def __init__(self, backend, job_id: str, result: Result, warnings=[]):
+    def __init__(self, backend, job_id: str, result: Result):
         super().__init__(backend, job_id)
         self._result = result
-        self._warnings = warnings
 
     def submit(self):
         """Submit the job to the backend for execution."""
@@ -35,11 +34,3 @@ class Job(JobV1):
     def result(self):
         """Return the job's result"""
         return self._result
-
-    def warnings(self):
-        """Display the warnings encountered while execution"""
-        if not self._warnings:
-            print("Executed with no warnings.")
-        else:
-            for warning in self._warnings:
-                print(warning)

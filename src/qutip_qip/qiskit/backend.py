@@ -29,7 +29,7 @@ class QiskitSimulatorBase(BackendV1):
     """
 
     def __init__(self, configuration=None, provider=None, **fields):
-        pass
+        super().__init__(configuration=configuration, provider=provider)
 
     def run(self, qiskit_circuit: QuantumCircuit, **backend_options) -> Job:
         """
@@ -45,15 +45,19 @@ class QiskitSimulatorBase(BackendV1):
         qutip_qip.qiskit.job.Job
             Job that stores results and execution data
         """
-        qutip_circ = convert_qiskit_circuit(qiskit_circuit)
+        allow_custom_gate = (
+            backend_options["allow_custom_gate"]
+            if "allow_custom_gate" in backend_options
+            else self.configuration().allow_custom_gate
+        )
+        qutip_circ = convert_qiskit_circuit(
+            qiskit_circuit, allow_custom_gate=allow_custom_gate
+        )
         job_id = str(uuid.uuid4())
         job = Job(
             backend=self,
             job_id=job_id,
             result=self._run_job(job_id, qutip_circ),
-            warnings=qutip_circ._warnings
-            if hasattr(qutip_circ, "_warnings")
-            else [],
         )
         return job
 
@@ -67,7 +71,7 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
     """
 
     MAX_QUBITS_MEMORY = 10
-    _configuration = {
+    _DEFAULT_CONFIGURATION = {
         "backend_name": "circuit_simulator",
         "backend_version": "0.1",
         "n_qubits": MAX_QUBITS_MEMORY,
@@ -82,16 +86,18 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
         "description": "A qutip-qip based operator-level circuit simulator.",
         "basis_gates": [],
         "gates": [],
+        "allow_custom_gate": True,
     }
 
     def __init__(self, configuration=None, provider=None, **fields):
+
+        if configuration is None:
+            configuration = QasmBackendConfiguration.from_dict(
+                QiskitCircuitSimulator._DEFAULT_CONFIGURATION
+            )
+
         super().__init__(
-            configuration=(
-                configuration
-                or BackendConfiguration.from_dict(self._configuration)
-            ),
-            provider=provider,
-            **fields
+            configuration=configuration, provider=provider, **fields
         )
 
     def _parse_results(
@@ -156,8 +162,8 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
         )
 
         result = Result(
-            backend_name=self._configuration["backend_name"],
-            backend_version=self._configuration["backend_version"],
+            backend_name=self.configuration().backend_name,
+            backend_version=self.configuration().backend_version,
             qobj_id=id(qutip_circuit),
             job_id=job_id,
             success=True,

@@ -3,8 +3,8 @@ from qiskit.quantum_info import Operator
 import numpy as np
 from qutip import Qobj
 from typing import Union
-
-from qiskit.circuit import QuantumCircuit, Instruction
+import qiskit
+from qiskit.circuit import QuantumCircuit
 
 _map_gates = {
     "p": "PHASEGATE",
@@ -33,7 +33,9 @@ _map_controlled_gates = {
 _ignore_gates = ["id", "barrier"]
 
 
-def _make_user_gate(unitary: np.ndarray, instruction: Instruction):
+def _make_user_gate(
+    unitary: np.ndarray, qiskit_instruction: qiskit.circuit.Instruction
+):
     """
     Returns a user defined gate from a unitary matrix.
 
@@ -42,14 +44,17 @@ def _make_user_gate(unitary: np.ndarray, instruction: Instruction):
     unitary : numpy.ndarray
         The unitary matrix describing the gate.
 
-    instruction : qiskit.circuit.Instruction
+    qiskit_instruction : qiskit.circuit.Instruction
         Qiskit instruction containing info about the gate.
     """
 
     def user_gate():
         return Qobj(
             unitary,
-            dims=[[2] * instruction.num_qubits, [2] * instruction.num_qubits],
+            dims=[
+                [2] * qiskit_instruction.num_qubits,
+                [2] * qiskit_instruction.num_qubits,
+            ],
         )
 
     return user_gate
@@ -77,7 +82,9 @@ def _get_mapped_bits(bits: Union[list, tuple], bit_map: dict) -> list:
     return [bit_map[bit] for bit in bits]
 
 
-def convert_qiskit_circuit(qiskit_circuit: QuantumCircuit) -> QubitCircuit:
+def convert_qiskit_circuit(
+    qiskit_circuit: QuantumCircuit, allow_custom_gate=True
+) -> QubitCircuit:
     """
     Convert a QuantumCircuit from qiskit to qutip_qip's QubitCircuit.
 
@@ -85,6 +92,11 @@ def convert_qiskit_circuit(qiskit_circuit: QuantumCircuit) -> QubitCircuit:
     ----------
     qiskit_circuit : QuantumCircuit
         QuantumCircuit to be converted to QubitCircuit.
+
+    all_custom_gate : bool
+        If False, this function will raise an error if
+        gate conversion is done using a custom gate's
+        unitary matrix.
 
     Returns
     -------
@@ -107,9 +119,7 @@ def convert_qiskit_circuit(qiskit_circuit: QuantumCircuit) -> QubitCircuit:
         N=qiskit_circuit.num_qubits, num_cbits=qiskit_circuit.num_clbits
     )
 
-    # initialise an attribute to store warnings
     qutip_circuit.name = qiskit_circuit.name
-    qutip_circuit._warnings = []
 
     for qiskit_gate in qiskit_circuit.data:
         # qiskit_gate stores info about the gate, target
@@ -158,10 +168,12 @@ def convert_qiskit_circuit(qiskit_circuit: QuantumCircuit) -> QubitCircuit:
             pass
 
         else:
-            qutip_circuit._warnings.append(
-                f"Conversion warning: {qiskit_instruction.name} is not a \
-gate in qutip_qip. This gate will be simulated using it's corresponding unitary matrix."
-            )
+            if not allow_custom_gate:
+                raise Exception(
+                    f"Conversion Error: {qiskit_instruction.name} is not a \
+gate in qutip_qip. To simulate this gate using it's corresponding \
+unitary matrix, set allow_custom_gate=True."
+                )
 
             unitary = np.array(Operator(qiskit_instruction))
             qutip_circuit.user_gates[
