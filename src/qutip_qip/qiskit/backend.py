@@ -3,6 +3,7 @@ from qutip import tensor, basis
 import numpy as np
 import uuid
 import random
+from collections import Counter
 from qutip_qip import circuit
 
 from qutip_qip.operations.gateclass import Z
@@ -138,10 +139,7 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
         samples = random.choices(
             list(count_probs.keys()), list(count_probs.values()), k=shots
         )
-        counts = dict.fromkeys(count_probs.keys(), 0)
-        for sample in samples:
-            counts[sample] += 1
-        return Counts(counts)
+        return Counts(Counter(samples))
 
     def _parse_results(
         self,

@@ -1,5 +1,6 @@
 import pytest
 import numpy as np
+import random
 from numpy.testing import assert_allclose
 from qutip_qip.circuit import QubitCircuit
 
@@ -182,3 +183,46 @@ class TestSimulator:
         circ2.h(0)
         circ2.cx(0, 1)
         self._compare_results(circ2)
+
+    def test_allow_custom_gate(self):
+        """
+        Asserts whether execution will fail on running a circuit
+        with a custom sub-circuit with the option allow_custom_gate=False
+        """
+        with pytest.raises(RuntimeError):
+            circ = QuantumCircuit(2, 2)
+            circ.h(0)
+            # make a custom sub-circuit
+            sub_circ = QuantumCircuit(1)
+            sub_circ.x(0)
+            my_gate = sub_circ.to_gate()
+            circ.append(my_gate, [1])
+
+            provider = Provider()
+
+            qutip_backend = provider.get_backend("circuit_simulator")
+            # running this with allow_custom_gate=False should raise
+            # a RuntimeError due to the custom sub-circuit
+            qutip_backend.run(circ, allow_custom_gate=False)
+
+    def test_measurements(self):
+        """
+        Tests measurements by setting a predefined seed to
+        obtain predetermined results.
+        """
+        random.seed(1)
+        predefined_counts = {"0": 233, "11": 267, "10": 254, "1": 270}
+
+        circ = QuantumCircuit(2, 2)
+        circ.h(0)
+        circ.h(1)
+        circ.measure(0, 0)
+        circ.measure(1, 1)
+
+        provider = Provider()
+
+        qutip_backend = provider.get_backend("circuit_simulator")
+        qutip_job = qutip_backend.run(circ)
+        qutip_result = qutip_job.result()
+
+        assert qutip_result.get_counts(circ) == predefined_counts

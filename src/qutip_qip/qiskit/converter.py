@@ -169,8 +169,8 @@ def convert_qiskit_circuit(
 
         else:
             if not allow_custom_gate:
-                raise Exception(
-                    f"Conversion Error: {qiskit_instruction.name} is not a \
+                raise RuntimeError(
+                    f"{qiskit_instruction.name} is not a \
 gate in qutip_qip. To simulate this gate using it's corresponding \
 unitary matrix, set allow_custom_gate=True."
                 )
