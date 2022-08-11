@@ -1,3 +1,4 @@
+from packaging.version import parse as parse_version
 from collections.abc import Iterable
 import warnings
 from copy import deepcopy
@@ -21,6 +22,12 @@ from ..noise import (
 from ..pulse import Pulse, Drift, _merge_qobjevo, _fill_coeff
 
 
+if parse_version(qutip.__version__) >= parse_version("5.dev"):
+    is_qutip5 = True
+else:
+    is_qutip5 = False
+
+
 __all__ = ["Processor"]
 
 
@@ -29,6 +36,17 @@ class Processor(object):
     The noisy quantum device simulator using QuTiP dynamic solvers.
     It compiles quantum circuit into a Hamiltonian model and then
     simulate the time-evolution described by the master equation.
+
+    .. note::
+
+        This is an abstract class that includes the general API but
+        has no concrete physical model implemented.
+        In particular, it provides a series of low-level APIs that allow
+        direct modification of the Hamiltonian model and control pulses,
+        which can usually be achieved automatically using :obj:`.Model`
+        and build-in workflows.
+        They provides more flexibility but are not always the most
+        elegant approaches.
 
     Parameters
     ----------
@@ -221,7 +239,8 @@ class Processor(object):
         self, qobj, targets=None, cyclic_permutation=False, label=None
     ):
         """
-        Add a control Hamiltonian to the model.
+        Add a control Hamiltonian to the model. The new control Hamiltonian
+        is saved in the :obj:`.Processor.model` attributes.
 
         Parameters
         ----------
@@ -243,6 +262,21 @@ class Processor(object):
             If ``None``,
             it will be set to the current number of
             control Hamiltonians in the system.
+
+        Examples
+        --------
+        >>> import qutip
+        >>> from qutip_qip.device import Processor
+        >>> processor = Processor(1)
+        >>> processor.add_control(qutip.sigmax(), 0, label="sx")
+        >>> processor.get_control_labels()
+        ['sx']
+        >>> processor.get_control("sx") # doctest: +NORMALIZE_WHITESPACE
+        (Quantum object: dims = [[2], [2]], shape = (2, 2),
+        type = oper, isherm = True
+        Qobj data =
+        [[0. 1.]
+        [1. 0.]], [0])
         """
         targets = self._unify_targets(qobj, targets)
         if label is None:
@@ -268,6 +302,19 @@ class Processor(object):
         -------
         control_hamiltonian : tuple
             The control Hamiltonian in the form of ``(qobj, targets)``.
+
+        Examples
+        --------
+        >>> from qutip_qip.device import LinearSpinChain
+        >>> processor = LinearSpinChain(1)
+        >>> processor.get_control_labels()
+        ['sx0', 'sz0']
+        >>> processor.get_control('sz0') # doctest: +NORMALIZE_WHITESPACE
+        (Quantum object: dims = [[2], [2]], shape = (2, 2),
+        type = oper, isherm = True
+        Qobj data =
+        [[ 6.28319  0.     ]
+         [ 0.      -6.28319]], 0)
         """
         return self.model.get_control(label)
 
@@ -403,7 +450,6 @@ class Processor(object):
             )
 
     set_all_coeffs = set_coeffs
-    set_all_coeffs.__doc__ = "Equivalent to :obj:`Processor.set_coeffs`."
 
     def set_tlist(self, tlist):
         """
@@ -430,7 +476,6 @@ class Processor(object):
             self.pulses[pulse_dict[pulse_label]].tlist = value
 
     set_all_tlist = set_tlist
-    set_all_coeffs.__doc__ = "Equivalent to :obj:`Processor.set_tlist`."
 
     def get_full_tlist(self, tol=1.0e-10):
         """
@@ -498,7 +543,7 @@ class Processor(object):
                 )
             elif self.spline_kind == "cubic":
                 coeffs_list.append(
-                    _fill_coeff(pulse.coeff, pulse.tlist, full_tlist, {})
+                    _fill_coeff(pulse.coeff, pulse.tlist, full_tlist)
                 )
             else:
                 raise ValueError("Unknown spline kind.")
@@ -898,6 +943,7 @@ class Processor(object):
             t1=self.t1,
             t2=self.t2,
             device_noise=device_noise,
+            spline_kind=self.spline_kind,
         )
         if drift:
             drift_obj = self._get_drift_obj()
@@ -952,13 +998,17 @@ class Processor(object):
             qu_list.append(qu)
 
         final_qu = _merge_qobjevo(qu_list)
-        final_qu.args.update(args)
+        if is_qutip5:
+            final_qu.arguments(args)
+        else:
+            final_qu.args.update(args)
 
         # bring all c_ops to the same tlist, won't need it in QuTiP 5
-        temp = []
-        for c_op in c_ops:
-            temp.append(_merge_qobjevo([c_op], final_qu.tlist))
-        c_ops = temp
+        if not parse_version(qutip.__version__) >= parse_version("5.dev"):
+            temp = []
+            for c_op in c_ops:
+                temp.append(_merge_qobjevo([c_op], final_qu.tlist))
+            c_ops = temp
 
         if noisy:
             return final_qu, c_ops
@@ -1143,7 +1193,9 @@ class Processor(object):
             tlist = kwargs["tlist"]
             del kwargs["tlist"]
         else:
-            tlist = noisy_qobjevo.tlist
+            # TODO, this can be simplified further, tlist in the solver only
+            # determines the time step for intermediate result.
+            tlist = self.get_full_tlist()
         if solver == "mesolve":
             evo_result = mesolve(
                 H=noisy_qobjevo, rho0=init_state, tlist=tlist, **kwargs

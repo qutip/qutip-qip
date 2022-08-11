@@ -1,6 +1,6 @@
 import numbers
 from collections.abc import Iterable
-from itertools import product, chain
+from itertools import product
 from functools import partial, reduce
 from operator import mul
 
@@ -11,11 +11,10 @@ from copy import deepcopy
 import numpy as np
 import scipy.sparse as sp
 
+import qutip
 from qutip import Qobj, identity, qeye, sigmax, sigmay, sigmaz, tensor, fock_dm
 
-
 __all__ = [
-    "Gate",
     "rx",
     "ry",
     "rz",
@@ -49,423 +48,13 @@ __all__ = [
     "controlled_gate",
     "globalphase",
     "hadamard_transform",
-    "gate_sequence_product",
     "gate_expand_1toN",
     "gate_expand_2toN",
     "gate_expand_3toN",
     "qubit_clifford_group",
     "expand_operator",
-    "_single_qubit_gates",
-    "_para_gates",
-    "_ctrl_gates",
-    "_swap_like",
-    "_toffoli_like",
-    "_fredkin_like",
+    "gate_sequence_product",
 ]
-
-
-_single_qubit_gates = [
-    "RX",
-    "RY",
-    "RZ",
-    "SNOT",
-    "SQRTNOT",
-    "PHASEGATE",
-    "X",
-    "Y",
-    "Z",
-    "S",
-    "T",
-    "QASMU",
-]
-_para_gates = [
-    "RX",
-    "RY",
-    "RZ",
-    "CPHASE",
-    "SWAPalpha",
-    "PHASEGATE",
-    "GLOBALPHASE",
-    "CRX",
-    "CRY",
-    "CRZ",
-    "QASMU",
-]
-_ctrl_gates = [
-    "CNOT",
-    "CSIGN",
-    "CRX",
-    "CRY",
-    "CRZ",
-    "CY",
-    "CZ",
-    "CS",
-    "CT",
-    "CPHASE",
-]
-_swap_like = [
-    "SWAP",
-    "ISWAP",
-    "SQRTISWAP",
-    "SQRTSWAP",
-    "BERKELEY",
-    "SWAPalpha",
-]
-_toffoli_like = ["TOFFOLI"]
-_fredkin_like = ["FREDKIN"]
-
-
-class Gate:
-    """
-    Representation of a quantum gate, with its required parametrs, and target
-    and control qubits.
-
-    Parameters
-    ----------
-    name : string
-        Gate name.
-    targets : list or int
-        Gate targets.
-    controls : list or int
-        Gate controls.
-    arg_value : float
-        Argument value(phi).
-    arg_label : string
-        Label for gate representation.
-    classical_controls : int or list of int, optional
-        indices of classical bits to control gate on.
-    control_value : int, optional
-        value of classical bits to control on, the classical controls are
-        interpreted as an integer with lowest bit being the first one.
-        If not specified, then the value is interpreted to be
-        2 ** len(classical_controls) - 1 (i.e. all classical controls are 1).
-    """
-
-    def __init__(
-        self,
-        name,
-        targets=None,
-        controls=None,
-        arg_value=None,
-        arg_label=None,
-        classical_controls=None,
-        control_value=None,
-    ):
-        """
-        Create a gate with specified parameters.
-        """
-
-        self.name = name
-        self.targets = None
-        self.controls = None
-        self.classical_controls = None
-        self.control_value = None
-
-        if not isinstance(targets, Iterable) and targets is not None:
-            self.targets = [targets]
-        else:
-            self.targets = targets
-
-        if not isinstance(controls, Iterable) and controls is not None:
-            self.controls = [controls]
-        else:
-            self.controls = controls
-
-        if (
-            not isinstance(classical_controls, Iterable)
-            and classical_controls is not None
-        ):
-            self.classical_controls = [classical_controls]
-        else:
-            self.classical_controls = classical_controls
-
-        if control_value is not None and control_value < 2 ** len(
-            classical_controls
-        ):
-            self.control_value = control_value
-
-        for ind_list in [self.targets, self.controls, self.classical_controls]:
-            if isinstance(ind_list, Iterable):
-                all_integer = all(
-                    [isinstance(ind, numbers.Integral) for ind in ind_list]
-                )
-                if not all_integer:
-                    raise ValueError("Index of a qubit must be an integer")
-
-        if name in _single_qubit_gates:
-            if self.targets is None or len(self.targets) != 1:
-                raise ValueError("Gate %s requires one target" % name)
-            if self.controls:
-                raise ValueError("Gate %s cannot have a control" % name)
-        elif name in _swap_like:
-            if (self.targets is None) or (len(self.targets) != 2):
-                raise ValueError("Gate %s requires two targets" % name)
-            if self.controls:
-                raise ValueError("Gate %s cannot have a control" % name)
-        elif name in _ctrl_gates:
-            if self.targets is None or len(self.targets) != 1:
-                raise ValueError("Gate %s requires one target" % name)
-            if self.controls is None or len(self.controls) != 1:
-                raise ValueError("Gate %s requires one control" % name)
-        elif name in _fredkin_like:
-            if self.targets is None or len(self.targets) != 2:
-                raise ValueError("Gate %s requires one target" % name)
-            if self.controls is None or len(self.controls) != 1:
-                raise ValueError("Gate %s requires two control" % name)
-        elif name in _toffoli_like:
-            if self.targets is None or len(self.targets) != 1:
-                raise ValueError("Gate %s requires one target" % name)
-            if self.controls is None or len(self.controls) != 2:
-                raise ValueError("Gate %s requires two control" % name)
-
-        if name in _para_gates:
-            if arg_value is None:
-                raise ValueError("Gate %s requires an argument value" % name)
-        else:
-            if (name in _GATE_NAME_TO_LABEL) and (arg_value is not None):
-                raise ValueError("Gate %s does not take argument value" % name)
-
-        self.arg_value = arg_value
-        self.arg_label = arg_label
-
-    def get_all_qubits(self):
-        """
-        Return a list of all qubits that the gate operator
-        acts on.
-        The list concatenates the two lists representing
-        the controls and the targets qubits while retains the order.
-
-        Returns
-        -------
-        targets_list : list of int
-            A list of all qubits, including controls and targets.
-        """
-        if self.controls is not None:
-            return self.controls + self.targets
-        if self.targets is not None:
-            return self.targets
-        else:
-            # Special case: the global phase gate
-            return []
-
-    def __str__(self):
-        str_name = (
-            "Gate(%s, targets=%s, controls=%s,"
-            " classical controls=%s, control_value=%s)"
-        ) % (
-            self.name,
-            self.targets,
-            self.controls,
-            self.classical_controls,
-            self.control_value,
-        )
-        return str_name
-
-    def __repr__(self):
-        return str(self)
-
-    def _repr_latex_(self):
-        return str(self)
-
-    def _to_qasm(self, qasm_out):
-        """
-        Pipe output of gate signature and application to QasmOutput object.
-
-        Parameters
-        ----------
-        qasm_out: QasmOutput
-            object to store QASM output.
-        """
-
-        qasm_gate = qasm_out.qasm_name(self.name)
-
-        if not qasm_gate:
-            error_str = "{} gate's qasm defn is not specified".format(
-                self.name
-            )
-            raise NotImplementedError(error_str)
-
-        if self.classical_controls:
-            err_msg = "Exporting controlled gates is not implemented yet."
-            raise NotImplementedError(err_msg)
-        else:
-            qasm_out.output(
-                qasm_out._qasm_str(
-                    qasm_gate, self.controls, self.targets, self.arg_value
-                )
-            )
-
-    def get_compact_qobj(self):
-        """
-        Get the compact :class:`qutip.Qobj` representation of the gate
-        operator, ignoring the controls and targets.
-        In the unitary representation,
-        it always assumes that the first few qubits are controls,
-        then targets.
-
-        Returns
-        -------
-        qobj : :obj:`qutip.Qobj`
-            The compact gate operator as a unitary matrix.
-        """
-        # TODO This will be moved to each sub-class of Gate
-        if self.name == "RX":
-            qobj = rx(self.arg_value)
-        elif self.name == "RY":
-            qobj = ry(self.arg_value)
-        elif self.name == "RZ":
-            qobj = rz(self.arg_value)
-        elif self.name == "X":
-            qobj = x_gate()
-        elif self.name == "Y":
-            qobj = y_gate()
-        elif self.name == "CY":
-            qobj = cy_gate()
-        elif self.name == "Z":
-            qobj = z_gate()
-        elif self.name == "CZ":
-            qobj = cz_gate()
-        elif self.name == "T":
-            qobj = t_gate()
-        elif self.name == "CT":
-            qobj = ct_gate()
-        elif self.name == "S":
-            qobj = s_gate()
-        elif self.name == "CS":
-            qobj = cs_gate()
-        elif self.name == "SQRTNOT":
-            qobj = sqrtnot()
-        elif self.name == "SNOT":
-            qobj = snot()
-        elif self.name == "PHASEGATE":
-            qobj = phasegate(self.arg_value)
-        elif self.name == "QASMU":
-            qobj = qasmu_gate(self.arg_value)
-        elif self.name == "CRX":
-            qobj = controlled_gate(rx(self.arg_value))
-        elif self.name == "CRY":
-            qobj = controlled_gate(ry(self.arg_value))
-        elif self.name == "CRZ":
-            qobj = controlled_gate(rz(self.arg_value))
-        elif self.name == "CPHASE":
-            qobj = cphase(self.arg_value)
-        elif self.name == "CNOT":
-            qobj = cnot()
-        elif self.name == "CSIGN":
-            qobj = csign()
-        elif self.name == "BERKELEY":
-            qobj = berkeley()
-        elif self.name == "SWAPalpha":
-            qobj = swapalpha(self.arg_value)
-        elif self.name == "SWAP":
-            qobj = swap()
-        elif self.name == "ISWAP":
-            qobj = iswap()
-        elif self.name == "SQRTSWAP":
-            qobj = sqrtswap()
-        elif self.name == "SQRTISWAP":
-            qobj = sqrtiswap()
-        elif self.name == "FREDKIN":
-            qobj = fredkin()
-        elif self.name == "TOFFOLI":
-            qobj = toffoli()
-        elif self.name == "IDLE":
-            qobj = qeye(2)
-        elif self.name == "GLOBALPHASE":
-            raise NotImplementedError(
-                "Globalphase gate has no compack qobj representation."
-            )
-        else:
-            raise NotImplementedError(f"{self.name} is an unknown gate.")
-        return qobj
-
-    def get_qobj(self, num_qubits=None, dims=None):
-        """
-        Get the :class:`qutip.Qobj` representation of the gate operator.
-        The operator is expanded to the full Herbert space according to
-        the controls and targets qubits defined for the gate.
-
-        Parameters
-        ----------
-        num_qubits : int, optional
-            The number of qubits.
-            If not given, use the minimal number of qubits required
-            by the target and control qubits.
-        dims : list, optional
-            A list representing the dimensions of each quantum system.
-            If not given, it is assumed to be an all-qubit system.
-
-        Returns
-        -------
-        qobj : :obj:`qutip.Qobj`
-            The compact gate operator as a unitary matrix.
-        """
-        if self.name == "GLOBALPHASE":
-            if num_qubits is not None:
-                return globalphase(self.arg_value, num_qubits)
-            else:
-                raise ValueError(
-                    "The number of qubits must be provided for "
-                    "global phase gates."
-                )
-
-        all_targets = self.get_all_qubits()
-        if num_qubits is None:
-            num_qubits = max(all_targets)
-        return expand_operator(
-            self.get_compact_qobj(),
-            N=num_qubits,
-            targets=all_targets,
-            dims=dims,
-        )
-
-
-_GATE_NAME_TO_LABEL = {
-    "X": r"X",
-    "Y": r"Y",
-    "CY": r"C_y",
-    "Z": r"Z",
-    "CZ": r"C_z",
-    "S": r"S",
-    "CS": r"C_s",
-    "T": r"T",
-    "CT": r"C_t",
-    "RX": r"R_x",
-    "RY": r"R_y",
-    "RZ": r"R_z",
-    "CRX": r"R_x",
-    "CRY": r"R_y",
-    "CRZ": r"R_z",
-    "SQRTNOT": r"\sqrt{\rm NOT}",
-    "SNOT": r"{\rm H}",
-    "PHASEGATE": r"{\rm PHASE}",
-    "QASMU": r"{\rm QASM-U}",
-    "CPHASE": r"{\rm R}",
-    "CNOT": r"{\rm CNOT}",
-    "CSIGN": r"{\rm Z}",
-    "BERKELEY": r"{\rm BERKELEY}",
-    "SWAPalpha": r"{\rm SWAPalpha}",
-    "SWAP": r"{\rm SWAP}",
-    "ISWAP": r"{i}{\rm SWAP}",
-    "SQRTSWAP": r"\sqrt{\rm SWAP}",
-    "SQRTISWAP": r"\sqrt{{i}\rm SWAP}",
-    "FREDKIN": r"{\rm FREDKIN}",
-    "TOFFOLI": r"{\rm TOFFOLI}",
-    "GLOBALPHASE": r"{\rm Ph}",
-}
-
-
-def _gate_label(name, arg_label):
-
-    if name in _GATE_NAME_TO_LABEL:
-        gate_label = _GATE_NAME_TO_LABEL[name]
-    else:
-        warnings.warn("Unknown gate %s" % name)
-        gate_label = name
-
-    if arg_label:
-        return r"%s(%s)" % (gate_label, arg_label)
-    return r"%s" % gate_label
 
 
 #
@@ -1294,41 +883,59 @@ def rotation(op, phi, N=None, target=0):
     return (-1j * op * phi / 2).expm()
 
 
-def controlled_gate(U, N=2, control=0, target=1, control_value=1):
+def controlled_gate(
+    U,
+    controls=0,
+    targets=1,
+    N=None,
+    control_value=1,
+):
     """
     Create an N-qubit controlled gate from a single-qubit gate U with the given
     control and target qubits.
 
     Parameters
     ----------
-    U : Qobj
-        Arbitrary single-qubit gate.
-
-    N : integer
-        The number of qubits in the target space.
-
-    control : integer
+    U : :class:`qutip.Qobj`
+        An arbitrary unitary gate.
+    controls : list of int
         The index of the first control qubit.
-
-    target : integer
+    targets : list of int
         The index of the target qubit.
-
-    control_value : integer (1)
-        The state of the control qubit that activates the gate U.
+    N : int
+        The total number of qubits.
+    control_value : int
+        The decimal value of the controlled qubits that activates the gate U.
 
     Returns
     -------
     result : qobj
         Quantum object representing the controlled-U gate.
-
     """
+    # Compatibility
+    if not isinstance(targets, Iterable):
+        controls = [controls]
+    if not isinstance(targets, Iterable):
+        targets = [targets]
+    num_controls = len(controls)
+    num_targets = len(U.dims[0])
+    N = num_controls + num_targets if N is None else N
 
-    if [N, control, target] == [2, 0, 1]:
-        return tensor(fock_dm(2, control_value), U) + tensor(
-            fock_dm(2, 1 - control_value), identity(2)
-        )
-    U2 = controlled_gate(U, control_value=control_value)
-    return gate_expand_2toN(U2, N=N, control=control, target=target)
+    # First, assume that the last qubit is the target and control qubits are
+    # in the increasing order.
+    # The control_value is the location of this unitary.
+    block_matrices = [np.array([[1, 0], [0, 1]])] * 2**num_controls
+    block_matrices[control_value] = U.full()
+    from scipy.linalg import block_diag  # move this to the top of the file
+
+    result = block_diag(*block_matrices)
+    result = Qobj(result, dims=[[2] * (num_controls + num_targets)] * 2)
+
+    # Expand it to N qubits and permute qubits labelling
+    if controls + targets == list(range(N)):
+        return result
+    else:
+        return expand_operator(result, N, targets=controls + targets)
 
 
 def globalphase(theta, N=1):
@@ -1393,270 +1000,6 @@ def hadamard_transform(N=1):
     return tensor([H] * N)
 
 
-def _flatten(lst):
-    """
-    Helper to flatten lists.
-    """
-
-    return [item for sublist in lst for item in sublist]
-
-
-def _mult_sublists(tensor_list, overall_inds, U, inds):
-    """
-    Calculate the revised indices and tensor list by multiplying a new unitary
-    U applied to inds.
-
-    Parameters
-    ----------
-    tensor_list : list of Qobj
-        List of gates (unitaries) acting on disjoint qubits.
-
-    overall_inds : list of list of int
-        List of qubit indices corresponding to each gate in tensor_list.
-
-    U: Qobj
-        Unitary to be multiplied with the the unitary specified by tensor_list.
-
-    inds: list of int
-        List of qubit indices corresponding to U.
-
-    Returns
-    -------
-    tensor_list_revised: list of Qobj
-        List of gates (unitaries) acting on disjoint qubits incorporating U.
-
-    overall_inds_revised: list of list of int
-        List of qubit indices corresponding to each gate in tensor_list_revised.
-
-    Examples
-    --------
-
-    First, we get some imports out of the way,
-
-    >>> from qutip_qip.operations.gates import _mult_sublists
-    >>> from qutip_qip.operations.gates import x_gate, y_gate, toffoli, z_gate
-
-    Suppose we have a unitary list of already processed gates,
-    X, Y, Z applied on qubit indices 0, 1, 2 respectively and
-    encounter a new TOFFOLI gate on qubit indices (0, 1, 3).
-
-    >>> tensor_list = [x_gate(), y_gate(), z_gate()]
-    >>> overall_inds = [[0], [1], [2]]
-    >>> U = toffoli()
-    >>> U_inds = [0, 1, 3]
-
-    Then, we can use _mult_sublists to produce a new list of unitaries by
-    multiplying TOFFOLI (and expanding) only on the qubit indices involving
-    TOFFOLI gate (and any multiplied gates).
-
-    >>> U_list, overall_inds = _mult_sublists(tensor_list, overall_inds, U, U_inds)
-    >>> np.testing.assert_allclose(U_list[0]) == z_gate())
-    >>> toffoli_xy = toffoli() * tensor(x_gate(), y_gate(), identity(2))
-    >>> np.testing.assert_allclose(U_list[1]), toffoli_xy)
-    >>> overall_inds = [[2], [0, 1, 3]]
-    """
-
-    tensor_sublist = []
-    inds_sublist = []
-
-    tensor_list_revised = []
-    overall_inds_revised = []
-
-    for sub_inds, sub_U in zip(overall_inds, tensor_list):
-        if len(set(sub_inds).intersection(inds)) > 0:
-            tensor_sublist.append(sub_U)
-            inds_sublist.append(sub_inds)
-        else:
-            overall_inds_revised.append(sub_inds)
-            tensor_list_revised.append(sub_U)
-
-    inds_sublist = _flatten(inds_sublist)
-    U_sublist = tensor(tensor_sublist)
-
-    revised_inds = list(set(inds_sublist).union(set(inds)))
-    N = len(revised_inds)
-
-    sorted_positions = sorted(range(N), key=lambda key: revised_inds[key])
-    ind_map = {ind: pos for ind, pos in zip(revised_inds, sorted_positions)}
-
-    U_sublist = expand_operator(
-        U_sublist, N, [ind_map[ind] for ind in inds_sublist]
-    )
-    U = expand_operator(U, N, [ind_map[ind] for ind in inds])
-
-    U_sublist = U * U_sublist
-    inds_sublist = revised_inds
-
-    overall_inds_revised.append(inds_sublist)
-    tensor_list_revised.append(U_sublist)
-
-    return tensor_list_revised, overall_inds_revised
-
-
-def _expand_overall(tensor_list, overall_inds):
-    """
-    Tensor unitaries in tensor list and then use expand_operator to rearrange
-    them appropriately according to the indices in overall_inds.
-    """
-
-    U_overall = tensor(tensor_list)
-    overall_inds = _flatten(overall_inds)
-    U_overall = expand_operator(U_overall, len(overall_inds), overall_inds)
-    overall_inds = sorted(overall_inds)
-    return U_overall, overall_inds
-
-
-def _gate_sequence_product(U_list, ind_list):
-    """
-    Calculate the overall unitary matrix for a given list of unitary operations
-    that are still of original dimension.
-
-    Parameters
-    ----------
-    U_list : list of Qobj
-        List of gates(unitaries) implementing the quantum circuit.
-
-    ind_list : list of list of int
-        List of qubit indices corresponding to each gate in tensor_list.
-
-    Returns
-    -------
-    U_overall : qobj
-        Unitary matrix corresponding to U_list.
-
-    overall_inds : list of int
-        List of qubit indices on which U_overall applies.
-
-    Examples
-    --------
-
-    First, we get some imports out of the way,
-
-    >>> from qutip_qip.operations.gates import _gate_sequence_product
-    >>> from qutip_qip.operations.gates import x_gate, y_gate, toffoli, z_gate
-
-    Suppose we have a circuit with gates X, Y, Z, TOFFOLI
-    applied on qubit indices 0, 1, 2 and [0, 1, 3] respectively.
-
-    >>> tensor_lst = [x_gate(), y_gate(), z_gate(), toffoli()]
-    >>> overall_inds = [[0], [1], [2], [0, 1, 3]]
-
-    Then, we can use _gate_sequence_product to produce a single unitary
-    obtained by multiplying unitaries in the list using heuristic methods
-    to reduce the size of matrices being multiplied.
-
-    >>> U_list, overall_inds = _gate_sequence_product(tensor_lst, overall_inds)
-    """
-    num_qubits = len(set(chain(*ind_list)))
-    sorted_inds = sorted(set(_flatten(ind_list)))
-    ind_list = [[sorted_inds.index(ind) for ind in inds] for inds in ind_list]
-
-    U_overall = 1
-    overall_inds = []
-
-    for i, (U, inds) in enumerate(zip(U_list, ind_list)):
-
-        # when the tensor_list covers the full dimension of the circuit, we
-        # expand the tensor_list to a unitary and call _gate_sequence_product
-        # recursively on the rest of the U_list.
-        if len(overall_inds) == 1 and len(overall_inds[0]) == num_qubits:
-            U_overall, overall_inds = _expand_overall(
-                tensor_list, overall_inds
-            )
-            U_left, rem_inds = _gate_sequence_product(U_list[i:], ind_list[i:])
-            U_left = expand_operator(U_left, num_qubits, rem_inds)
-            return U_left * U_overall, [
-                sorted_inds[ind] for ind in overall_inds
-            ]
-
-        # special case for first unitary in the list
-        if U_overall == 1:
-            U_overall = U_overall * U
-            overall_inds = [ind_list[0]]
-            tensor_list = [U_overall]
-            continue
-
-        # case where the next unitary interacts on some subset of qubits
-        # with the unitaries already in tensor_list.
-        elif len(set(_flatten(overall_inds)).intersection(set(inds))) > 0:
-            tensor_list, overall_inds = _mult_sublists(
-                tensor_list, overall_inds, U, inds
-            )
-
-        # case where the next unitary does not interact with any unitary in
-        # tensor_list
-        else:
-            overall_inds.append(inds)
-            tensor_list.append(U)
-
-    U_overall, overall_inds = _expand_overall(tensor_list, overall_inds)
-
-    return U_overall, [sorted_inds[ind] for ind in overall_inds]
-
-
-def _gate_sequence_product_with_expansion(U_list, left_to_right=True):
-    """
-    Calculate the overall unitary matrix for a given list of unitary operations.
-
-    Parameters
-    ----------
-    U_list : list
-        List of gates(unitaries) implementing the quantum circuit.
-
-    left_to_right : Boolean
-        Check if multiplication is to be done from left to right.
-
-    Returns
-    -------
-    U_overall : qobj
-        Unitary matrix corresponding to U_list.
-    """
-
-    U_overall = 1
-    for U in U_list:
-        if left_to_right:
-            U_overall = U * U_overall
-        else:
-            U_overall = U_overall * U
-
-    return U_overall
-
-
-def gate_sequence_product(
-    U_list, left_to_right=True, inds_list=None, expand=False
-):
-    """
-    Calculate the overall unitary matrix for a given list of unitary operations.
-
-    Parameters
-    ----------
-    U_list: list
-        List of gates implementing the quantum circuit.
-
-    left_to_right: Boolean, optional
-        Check if multiplication is to be done from left to right.
-
-    inds_list: list of list of int, optional
-        If expand=True, list of qubit indices corresponding to U_list
-        to which each unitary is applied.
-
-    expand: Boolean, optional
-        Check if the list of unitaries need to be expanded to full dimension.
-
-    Returns
-    -------
-    U_overall : qobj
-        Unitary matrix corresponding to U_list.
-
-    overall_inds : list of int, optional
-        List of qubit indices on which U_overall applies.
-    """
-    if expand:
-        return _gate_sequence_product(U_list, inds_list)
-    else:
-        return _gate_sequence_product_with_expansion(U_list, left_to_right)
-
-
 def _powers(op, N):
     """
     Generator that yields powers of an operator `op`,
@@ -1677,7 +1020,7 @@ def qubit_clifford_group(N=None, target=0):
     (http://www.mathstat.dal.ca/~selinger/newsynth/).
 
     Parameters
-    -----------
+    ----------
 
     N : int or None
         Number of qubits on which each operator is to be defined
@@ -2043,7 +1386,7 @@ def _targets_to_list(targets, oper=None, N=None):
     if not isinstance(targets, Iterable):
         targets = [targets]
     if not all([isinstance(t, numbers.Integral) for t in targets]):
-        raise TypeError("targets should be " "an integer or a list of integer")
+        raise TypeError("targets should be an integer or a list of integer")
     # if targets has correct length
     if oper is not None:
         req_num = len(oper.dims[0])
@@ -2125,3 +1468,43 @@ def expand_operator(oper, N, targets, dims=None, cyclic_permutation=False):
         new_order[ind] = rest_qubits[i]
     id_list = [identity(dims[i]) for i in rest_pos]
     return tensor([oper] + id_list).permute(new_order)
+
+
+def gate_sequence_product(
+    U_list, left_to_right=True, inds_list=None, expand=False
+):
+    """
+    Calculate the overall unitary matrix for a given list of unitary operations.
+
+    Parameters
+    ----------
+    U_list: list
+        List of gates implementing the quantum circuit.
+
+    left_to_right: Boolean, optional
+        Check if multiplication is to be done from left to right.
+
+    inds_list: list of list of int, optional
+        If expand=True, list of qubit indices corresponding to U_list
+        to which each unitary is applied.
+
+    expand: Boolean, optional
+        Check if the list of unitaries need to be expanded to full dimension.
+
+    Returns
+    -------
+    U_overall : qobj
+        Unitary matrix corresponding to U_list.
+
+    overall_inds : list of int, optional
+        List of qubit indices on which U_overall applies.
+    """
+    from ..circuit.circuitsimulator import (
+        _gate_sequence_product,
+        _gate_sequence_product_with_expansion,
+    )
+
+    if expand:
+        return _gate_sequence_product(U_list, inds_list)
+    else:
+        return _gate_sequence_product_with_expansion(U_list, left_to_right)

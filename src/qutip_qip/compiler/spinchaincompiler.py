@@ -35,7 +35,7 @@ class SpinChainCompiler(GateCompiler):
 
     params: dict
         A Python dictionary contains the name and the value of the parameters.
-        See :meth:`.SpinChain.set_up_params` for the definition.
+        See :obj:`.SpinChainModel` for the definition.
 
     setup: string
         "linear" or "circular" for two sub-classes.
@@ -70,6 +70,28 @@ class SpinChainCompiler(GateCompiler):
 
     global_phase: bool
         Record of the global phase change and will be returned.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from qutip_qip.circuit import QubitCircuit
+    >>> from qutip_qip.device import ModelProcessor, SpinChainModel
+    >>> from qutip_qip.compiler import SpinChainCompiler
+    >>>
+    >>> qc = QubitCircuit(2)
+    >>> qc.add_gate("RX", 0, arg_value=np.pi)
+    >>> qc.add_gate("RZ", 1, arg_value=np.pi)
+    >>>
+    >>> model = SpinChainModel(2, "linear", g=0.1)
+    >>> processor = ModelProcessor(model=model)
+    >>> compiler = SpinChainCompiler(2, params=model.params, setup="linear")
+    >>> processor.load_circuit(
+    ...     qc, compiler=compiler) # doctest: +NORMALIZE_WHITESPACE
+    ({'sx0': array([0., 1.]), 'sz1': array([0.  , 0.25, 1.  ])},
+    {'sx0': array([0.25]), 'sz1': array([1., 0.])})
+
+    Notice that the above example is equivalent to using directly
+    the :obj:`.LinearSpinChain`.
     """
 
     def __init__(
@@ -101,7 +123,7 @@ class SpinChainCompiler(GateCompiler):
 
         Parameters
         ----------
-        gate : :obj:`.Gate`:
+        gate : :obj:`~.operations.Gate`:
             The quantum gate to be compiled.
         op_label : str
             Label of the corresponding control Hamiltonian.
@@ -135,7 +157,7 @@ class SpinChainCompiler(GateCompiler):
 
         Parameters
         ----------
-        gate : :obj:`.Gate`:
+        gate : :obj:`~.operations.Gate`:
             The quantum gate to be compiled.
         args : dict
             The compilation configuration defined in the attributes
@@ -155,7 +177,7 @@ class SpinChainCompiler(GateCompiler):
 
         Parameters
         ----------
-        gate : :obj:`.Gate`:
+        gate : :obj:`~.operations.Gate`:
             The quantum gate to be compiled.
         args : dict
             The compilation configuration defined in the attributes
@@ -190,7 +212,7 @@ class SpinChainCompiler(GateCompiler):
 
         Parameters
         ----------
-        gate : :obj:`.Gate`:
+        gate : :obj:`~.operations.Gate`:
             The quantum gate to be compiled.
         args : dict
             The compilation configuration defined in the attributes

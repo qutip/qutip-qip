@@ -14,12 +14,12 @@ examples of circuit evolution. We take a circuit from
 .. testcode::
 
     from qutip_qip.circuit import QubitCircuit
-    from qutip_qip.operations import (Gate, controlled_gate,
-                                            hadamard_transform)
+    from qutip_qip.operations import (
+        Gate, controlled_gate, hadamard_transform)
     def controlled_hadamard():
         # Controlled Hadamard
         return controlled_gate(
-            hadamard_transform(1), 2, control=0, target=1, control_value=1)
+            hadamard_transform(1), controls=0, targets=1, control_value=1)
     qc = QubitCircuit(N=3, num_cbits=3)
     qc.user_gates = {"cH": controlled_hadamard}
     qc.add_gate("QASMU", targets=[0], arg_value=[1.91063, 0, 0])
@@ -54,14 +54,14 @@ method.
 
   Quantum object: dims = [[2, 2, 2], [1, 1, 1]], shape = (8, 1), type = ket
   Qobj data =
-  [[0.        ]
-   [0.57734961]
-   [0.57734961]
-   [0.        ]
-   [0.57735159]
-   [0.        ]
-   [0.        ]
-   [0.        ]]
+  [[0.     ]
+   [0.57735]
+   [0.57735]
+   [0.     ]
+   [0.57735]
+   [0.     ]
+   [0.     ]
+   [0.     ]]
 
 
 As expected, the state returned is indeed the required W-state.
@@ -87,7 +87,7 @@ outputs, we can use the :meth:`.QubitCircuit.run_statistics` function:
     probabilities = result.get_probabilities()
 
     for state, probability in zip(states, probabilities):
-        print("State:\n{}\nwith probability {}".format(state, probability))
+        print("State:\n{}\nwith probability {:.5f}".format(state, probability))
 
 **Output**:
 
@@ -105,7 +105,7 @@ outputs, we can use the :meth:`.QubitCircuit.run_statistics` function:
    [0.]
    [0.]
    [0.]]
-  with probability 0.3333325705416881
+  with probability 0.33333
   State:
   Quantum object: dims = [[2, 2, 2], [1, 1, 1]], shape = (8, 1), type = ket
   Qobj data =
@@ -117,7 +117,7 @@ outputs, we can use the :meth:`.QubitCircuit.run_statistics` function:
    [0.]
    [0.]
    [0.]]
-  with probability 0.3333325705416881
+  with probability 0.33333
   State:
   Quantum object: dims = [[2, 2, 2], [1, 1, 1]], shape = (8, 1), type = ket
   Qobj data =
@@ -129,7 +129,7 @@ outputs, we can use the :meth:`.QubitCircuit.run_statistics` function:
    [0.]
    [0.]
    [0.]]
-  with probability 0.33333485891662384
+  with probability 0.33333
 
 The function returns a :class:`~.Result` object which contains
 the output states.
@@ -178,14 +178,14 @@ The :class:`.CircuitSimulator` class also enables stepping through the circuit:
 
   Quantum object: dims = [[2, 2, 2], [1, 1, 1]], shape = (8, 1), type = ket
   Qobj data =
-  [[0.57735159]
-   [0.        ]
-   [0.        ]
-   [0.        ]
-   [0.81649565]
-   [0.        ]
-   [0.        ]
-   [0.        ]]
+  [[0.57735]
+   [0.     ]
+   [0.     ]
+   [0.     ]
+   [0.8165 ]
+   [0.     ]
+   [0.     ]
+   [0.     ]]
 
 This only executes one gate in the circuit and
 allows for a better understanding of how the state evolution takes place.
@@ -210,22 +210,14 @@ precomputes the product of the unitaries (in between the measurements):
 
   [Quantum object: dims = [[2, 2, 2], [2, 2, 2]], shape = (8, 8), type = oper, isherm = False
     Qobj data =
-    [[ 0.          0.57734961  0.         -0.57734961  0.          0.40824922
-       0.         -0.40824922]
-     [ 0.57734961  0.         -0.57734961  0.          0.40824922  0.
-      -0.40824922  0.        ]
-     [ 0.57734961  0.          0.57734961  0.          0.40824922  0.
-       0.40824922  0.        ]
-     [ 0.          0.57734961  0.          0.57734961  0.          0.40824922
-       0.          0.40824922]
-     [ 0.57735159  0.          0.          0.         -0.81649565  0.
-       0.          0.        ]
-     [ 0.          0.57735159  0.          0.          0.         -0.81649565
-       0.          0.        ]
-     [ 0.          0.          0.57735159  0.          0.          0.
-      -0.81649565  0.        ]
-     [ 0.          0.          0.          0.57735159  0.          0.
-       0.         -0.81649565]],
+    [[ 0.       0.57735  0.      -0.57735  0.       0.40825  0.      -0.40825]     
+     [ 0.57735  0.      -0.57735  0.       0.40825  0.      -0.40825  0.     ]     
+     [ 0.57735  0.       0.57735  0.       0.40825  0.       0.40825  0.     ]     
+     [ 0.       0.57735  0.       0.57735  0.       0.40825  0.       0.40825]     
+     [ 0.57735  0.       0.       0.      -0.8165   0.       0.       0.     ]     
+     [ 0.       0.57735  0.       0.       0.      -0.8165   0.       0.     ]     
+     [ 0.       0.       0.57735  0.       0.       0.      -0.8165   0.     ]     
+     [ 0.       0.       0.       0.57735  0.       0.       0.      -0.8165 ]],
        Measurement(M0, target=[0], classical_store=0),
        Measurement(M1, target=[1], classical_store=1),
        Measurement(M2, target=[2], classical_store=2)]
@@ -274,22 +266,14 @@ just by measurement on the first qubit:
 
     Quantum object: dims = [[2, 2, 2], [2, 2, 2]], shape = (8, 8), type = oper, isherm = True
     Qobj data =
-    [[0.         0.         0.         0.         0.         0.
-      0.         0.        ]
-     [0.         0.33333257 0.         0.         0.         0.
-      0.         0.        ]
-     [0.         0.         0.33333257 0.         0.         0.
-      0.         0.        ]
-     [0.         0.         0.         0.         0.         0.
-      0.         0.        ]
-     [0.         0.         0.         0.         0.33333486 0.
-      0.         0.        ]
-     [0.         0.         0.         0.         0.         0.
-      0.         0.        ]
-     [0.         0.         0.         0.         0.         0.
-      0.         0.        ]
-     [0.         0.         0.         0.         0.         0.
-      0.         0.        ]]
+    [[0.      0.      0.      0.      0.      0.      0.      0.     ]
+     [0.      0.33333 0.      0.      0.      0.      0.      0.     ]
+     [0.      0.      0.33333 0.      0.      0.      0.      0.     ]
+     [0.      0.      0.      0.      0.      0.      0.      0.     ]
+     [0.      0.      0.      0.      0.33333 0.      0.      0.     ]
+     [0.      0.      0.      0.      0.      0.      0.      0.     ]
+     [0.      0.      0.      0.      0.      0.      0.      0.     ]
+     [0.      0.      0.      0.      0.      0.      0.      0.     ]]
 
 We are left with a mixed state.
 

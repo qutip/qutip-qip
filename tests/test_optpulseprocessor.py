@@ -9,10 +9,16 @@ from qutip_qip.device import OptPulseProcessor, SpinChainModel
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.qubits import qubit_states
 import qutip
-from qutip import (fidelity, Qobj, tensor, Options,rand_ket, basis,  sigmaz,
+from qutip import (fidelity, Qobj, tensor, rand_ket, basis,  sigmaz,
                     sigmax, sigmay, identity, destroy)
-from qutip_qip.operations import (cnot, gate_sequence_product,
-                                        hadamard_transform, expand_operator)
+from qutip_qip.operations import (
+    cnot, hadamard_transform, expand_operator, gate_sequence_product)
+import qutip
+from packaging.version import parse as parse_version
+if parse_version(qutip.__version__) < parse_version('5.dev'):
+    from qutip import Options as SolverOptions
+else:
+    from qutip import SolverOptions
 
 
 class TestOptPulseProcessor:
@@ -69,7 +75,7 @@ class TestOptPulseProcessor:
         rho0 = qubit_states(3, [1, 1, 1])
         rho1 = qubit_states(3, [1, 1, 0])
         result = test.run_state(
-            rho0, options=Options(store_states=True))
+            rho0, options=SolverOptions(store_states=True))
         assert_(fidelity(result.states[-1], rho1) > 1-1.0e-6)
 
     def test_multi_gates(self):
@@ -114,6 +120,6 @@ class TestOptPulseProcessor:
         num_result = processor.run_state(init_state=init_state).states[-1]
         ideal_result = qc.run(init_state)
         assert (
-            pytest.approx(qutip.fidelity(num_result, ideal_result), 1.0e-6)
+            pytest.approx(qutip.fidelity(num_result, ideal_result), 1.0e-5)
             == 1.0
         )

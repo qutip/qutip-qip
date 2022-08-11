@@ -13,42 +13,58 @@ from qutip_qip.noise import (
 from qutip_qip.pulse import Pulse, Drift
 from qutip_qip.circuit import QubitCircuit
 
+import qutip
+from packaging.version import parse as parse_version
+if parse_version(qutip.__version__) >= parse_version('5.dev'):
+    is_qutip5 = True
+else:
+    is_qutip5 = False
+
 
 class TestNoise:
     def test_decoherence_noise(self):
         """
         Test for the decoherence noise
         """
-        tlist = np.array([1, 2, 3, 4, 5, 6])
-        coeff = np.array([1, 1, 1, 1, 1, 1])
+        tlist = np.array([0, 1, 2, 3, 4, 5, 6])
+        coeff = np.array([1, 1, 1, 1, 1, 1, 1])
 
         # Time-dependent
         decnoise = DecoherenceNoise(
             sigmaz(), coeff=coeff, tlist=tlist, targets=[1])
         dims = [2] * 2
-        pulses, systematic_noise = decnoise.get_noisy_pulses(dims=dims)
+        systematic_noise = Pulse(
+            None, None, label="systematic_noise",
+            spline_kind="step_func")
+        pulses, systematic_noise = decnoise.get_noisy_pulses(
+            systematic_noise=systematic_noise, dims=dims)
         noisy_qu, c_ops = systematic_noise.get_noisy_qobjevo(dims=dims)
-        assert_allclose(c_ops[0].ops[0].qobj, tensor(qeye(2), sigmaz()))
-        assert_allclose(c_ops[0].ops[0].coeff, coeff)
-        assert_allclose(c_ops[0].tlist, tlist)
+        assert_allclose(
+            c_ops[0](0).full(),
+            tensor(qeye(2), sigmaz()).full()
+        )
 
         # Time-independent and all qubits
         decnoise = DecoherenceNoise(sigmax(), all_qubits=True)
         pulses, systematic_noise = decnoise.get_noisy_pulses(dims=dims)
         noisy_qu, c_ops = systematic_noise.get_noisy_qobjevo(dims=dims)
-        c_ops = [qu.cte for qu in c_ops]
+        c_ops = [qu(0) for qu in c_ops]
         assert_(tensor([qeye(2), sigmax()]) in c_ops)
         assert_(tensor([sigmax(), qeye(2)]) in c_ops)
 
         # Time-denpendent and all qubits
         decnoise = DecoherenceNoise(
             sigmax(), all_qubits=True, coeff=coeff*2, tlist=tlist)
-        pulses, systematic_noise = decnoise.get_noisy_pulses(dims=dims)
+        systematic_noise = Pulse(
+            None, None, label="systematic_noise",
+            spline_kind="step_func")
+        pulses, systematic_noise = decnoise.get_noisy_pulses(
+            systematic_noise=systematic_noise, dims=dims)
         noisy_qu, c_ops = systematic_noise.get_noisy_qobjevo(dims=dims)
-        assert_allclose(c_ops[0].ops[0].qobj, tensor(sigmax(), qeye(2)))
-        assert_allclose(c_ops[0].ops[0].coeff, coeff*2)
-        assert_allclose(c_ops[0].tlist, tlist)
-        assert_allclose(c_ops[1].ops[0].qobj, tensor(qeye(2), sigmax()))
+        assert_allclose(c_ops[0](0).full(),
+                        tensor(sigmax(), qeye(2)).full() * 2)
+        assert_allclose(c_ops[1](0).full(),
+                        tensor(qeye(2), sigmax()).full() * 2)
 
     def test_collapse_with_different_tlist(self):
         """
@@ -79,7 +95,10 @@ class TestNoise:
             dims=dims, systematic_noise=systematic_noise)
         noisy_qu, c_ops = systematic_noise.get_noisy_qobjevo(dims=dims)
         assert_(len(c_ops) == 3)
-        assert_allclose(c_ops[1].cte, tensor([qeye(2), a, qeye(2)]))
+        assert_allclose(
+            c_ops[1](0).full(),
+            tensor([qeye(2), a, qeye(2)]).full()
+        )
 
         # no relaxation
         dims = [2] * 2
@@ -116,7 +135,10 @@ class TestNoise:
         connoise = ControlAmpNoise(coeff=coeff, tlist=tlist)
         noisy_pulses, systematic_noise = \
             connoise.get_noisy_pulses(pulses=pulses)
-        assert_allclose(pulses[0].coherent_noise[0].qobj, sigmaz())
+        assert_allclose(
+            pulses[0].coherent_noise[0].qobj.full(),
+            sigmaz().full()
+        )
         assert_allclose(noisy_pulses[0].coherent_noise[0].coeff, coeff)
 
     def test_random_noise(self):
@@ -137,8 +159,11 @@ class TestNoise:
             dt=0.1, rand_gen=np.random.normal, loc=mean, scale=std)
         noisy_pulses, systematic_noise = \
             gaussnoise.get_noisy_pulses(pulses=pulses)
-        assert_allclose(noisy_pulses[2].qobj, sigmay())
-        assert_allclose(noisy_pulses[1].coherent_noise[0].qobj, sigmax())
+        assert_allclose(noisy_pulses[2].qobj.full(), sigmay().full())
+        assert_allclose(
+            noisy_pulses[1].coherent_noise[0].qobj.full(),
+            sigmax().full()
+        )
         assert_allclose(
             len(noisy_pulses[0].coherent_noise[0].tlist),
             len(noisy_pulses[0].coherent_noise[0].coeff))

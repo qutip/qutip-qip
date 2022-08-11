@@ -102,6 +102,7 @@ class SpinChain(ModelProcessor):
 class LinearSpinChain(SpinChain):
     """
     Spin chain model with open-end topology.
+    For the control Hamiltonian please refer to :obj:`SpinChainModel`.
 
     Parameters
     ----------
@@ -115,6 +116,32 @@ class LinearSpinChain(SpinChain):
 
     **params:
         Hardware parameters. See :obj:`.SpinChainModel`.
+
+    Examples
+    --------
+
+    .. testcode::
+
+        import numpy as np
+        import qutip
+        from qutip_qip.circuit import QubitCircuit
+        from qutip_qip.device import LinearSpinChain
+
+        qc = QubitCircuit(2)
+        qc.add_gate("RX", 0, arg_value=np.pi)
+        qc.add_gate("RY", 1, arg_value=np.pi)
+        qc.add_gate("ISWAP", [1, 0])
+
+        processor = LinearSpinChain(2, g=0.1, t1=300)
+        processor.load_circuit(qc)
+        init_state = qutip.basis([2, 2], [0, 0])
+        result = processor.run_state(init_state)
+        print(round(qutip.fidelity(result.states[-1], qc.run(init_state)), 4))
+
+    .. testoutput::
+
+        0.994
+
     """
 
     def __init__(
@@ -159,6 +186,7 @@ class CircularSpinChain(SpinChain):
     """
     Spin chain model with circular topology. See :class:`.SpinChain`
     for details.
+    For the control Hamiltonian please refer to :obj:`SpinChainModel`.
 
     Parameters
     ----------
@@ -172,6 +200,31 @@ class CircularSpinChain(SpinChain):
 
     **params:
         Hardware parameters. See :obj:`.SpinChainModel`.
+
+    Examples
+    --------
+
+    .. testcode::
+
+        import numpy as np
+        import qutip
+        from qutip_qip.circuit import QubitCircuit
+        from qutip_qip.device import CircularSpinChain
+
+        qc = QubitCircuit(2)
+        qc.add_gate("RX", 0, arg_value=np.pi)
+        qc.add_gate("RY", 1, arg_value=np.pi)
+        qc.add_gate("ISWAP", [1, 0])
+
+        processor = CircularSpinChain(2, g=0.1, t1=300)
+        processor.load_circuit(qc)
+        init_state = qutip.basis([2, 2], [0, 0])
+        result = processor.run_state(init_state)
+        print(round(qutip.fidelity(result.states[-1], qc.run(init_state)), 4))
+
+    .. testoutput::
+
+        0.994
     """
 
     def __init__(

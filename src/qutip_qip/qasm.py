@@ -526,7 +526,7 @@ class QasmProcessor:
         regs,
         args=None,
         classical_controls=None,
-        control_value=None,
+        classical_control_value=None,
     ):
         """
         Add any gates that are pre-defined in qiskit-style exported
@@ -544,7 +544,7 @@ class QasmProcessor:
             value of args supplied to the gate.
         classical_controls : list of int, optional
             indices of classical bits to control gate on.
-        control_value : int, optional
+        classical_control_value : int, optional
             value of classical bits to control on, the classical controls are
             interpreted as an integer with lowest bit being the first one.
             If not specified, then the value is interpreted to be
@@ -576,7 +576,7 @@ class QasmProcessor:
                 targets=regs[0],
                 arg_value=args,
                 classical_controls=classical_controls,
-                control_value=control_value,
+                classical_control_value=classical_control_value,
             )
         elif name == "u2":
             qc.add_gate(
@@ -584,7 +584,7 @@ class QasmProcessor:
                 targets=regs[0],
                 arg_value=args,
                 classical_controls=classical_controls,
-                control_value=control_value,
+                classical_control_value=classical_control_value,
             )
         elif name == "u1":
             qc.add_gate(
@@ -592,7 +592,7 @@ class QasmProcessor:
                 targets=regs[0],
                 arg_value=args,
                 classical_controls=classical_controls,
-                control_value=control_value,
+                classical_control_value=classical_control_value,
             )
         elif name == "cz":
             qc.add_gate(
@@ -600,7 +600,7 @@ class QasmProcessor:
                 targets=regs[1],
                 controls=regs[0],
                 classical_controls=classical_controls,
-                control_value=control_value,
+                classical_control_value=classical_control_value,
             )
         elif name == "cy":
             qc.add_gate(
@@ -608,14 +608,14 @@ class QasmProcessor:
                 targets=regs[1],
                 controls=regs[0],
                 classical_controls=classical_controls,
-                control_value=control_value,
+                classical_control_value=classical_control_value,
             )
         elif name == "ch":
             qc.add_gate(
                 "ch",
                 targets=regs,
                 classical_controls=classical_controls,
-                control_value=control_value,
+                classical_control_value=classical_control_value,
             )
         elif name == "ccx":
             qc.add_gate(
@@ -623,7 +623,7 @@ class QasmProcessor:
                 targets=regs[2],
                 controls=regs[:2],
                 classical_controls=classical_controls,
-                control_value=control_value,
+                classical_control_value=classical_control_value,
             )
         elif name == "crz":
             qc.add_gate(
@@ -632,7 +632,7 @@ class QasmProcessor:
                 controls=regs[0],
                 arg_value=args,
                 classical_controls=classical_controls,
-                control_value=control_value,
+                classical_control_value=classical_control_value,
             )
         elif name == "cu1":
             qc.add_gate(
@@ -641,7 +641,7 @@ class QasmProcessor:
                 controls=regs[0],
                 arg_value=args,
                 classical_controls=classical_controls,
-                control_value=control_value,
+                classical_control_value=classical_control_value,
             )
         elif name == "cu3":
             qc.add_gate(
@@ -649,7 +649,7 @@ class QasmProcessor:
                 targets=[regs[0], regs[1]],
                 arg_value=args,
                 classical_controls=classical_controls,
-                control_value=control_value,
+                classical_control_value=classical_control_value,
             )
         if name == "cx":
             qc.add_gate(
@@ -657,7 +657,7 @@ class QasmProcessor:
                 targets=int(regs[1]),
                 controls=int(regs[0]),
                 classical_controls=classical_controls,
-                control_value=control_value,
+                classical_control_value=classical_control_value,
             )
         elif name in gate_name_map_1q:
             if args == []:
@@ -667,7 +667,7 @@ class QasmProcessor:
                 targets=regs[0],
                 arg_value=args,
                 classical_controls=classical_controls,
-                control_value=control_value,
+                classical_control_value=classical_control_value,
             )
 
     def _add_predefined_gates(
@@ -677,7 +677,7 @@ class QasmProcessor:
         com_regs,
         com_args,
         classical_controls=None,
-        control_value=None,
+        classical_control_value=None,
     ):
         """
         Add any gates that are pre-defined and/or inbuilt
@@ -695,7 +695,7 @@ class QasmProcessor:
             value of args supplied to the gate.
         classical_controls : list of int, optional
             indices of classical bits to control gate on.
-        control_value : int, optional
+        classical_control_value : int, optional
             value of classical bits to control on, the classical controls are
             interpreted as an integer with lowest bit being the first one.
             If not specified, then the value is interpreted to be
@@ -709,7 +709,7 @@ class QasmProcessor:
                 targets=int(com_regs[1]),
                 controls=int(com_regs[0]),
                 classical_controls=classical_controls,
-                control_value=control_value,
+                classical_control_value=classical_control_value,
             )
         elif name == "U":
             qc.add_gate(
@@ -717,11 +717,16 @@ class QasmProcessor:
                 targets=int(com_regs[0]),
                 arg_value=[float(arg) for arg in com_args],
                 classical_controls=classical_controls,
-                control_value=control_value,
+                classical_control_value=classical_control_value,
             )
         elif name in self.qiskitgates and self.mode == "qiskit":
             self._add_qiskit_gates(
-                qc, name, com_regs, com_args, classical_controls, control_value
+                qc,
+                name,
+                com_regs,
+                com_args,
+                classical_controls,
+                classical_control_value,
             )
 
     def _gate_add(
@@ -730,7 +735,7 @@ class QasmProcessor:
         command,
         custom_gates,
         classical_controls=None,
-        control_value=None,
+        classical_control_value=None,
     ):
         """
         Add gates to :class:`.QubitCircuit` from processed tokens,
@@ -746,7 +751,7 @@ class QasmProcessor:
             dictionary of user gates defined for qutip
         classical_controls : int or list of int, optional
             indices of classical bits to control gate on.
-        control_value : int, optional
+        classical_control_value : int, optional
             value of classical bits to control on, the classical controls are
             interpreted as an integer with lowest bit being the first one.
             If not specified, then the value is interpreted to be
@@ -788,7 +793,7 @@ class QasmProcessor:
                     regs,
                     args,
                     classical_controls=classical_controls,
-                    control_value=control_value,
+                    classical_control_value=classical_control_value,
                 )
             else:
                 if not isinstance(regs, list):
@@ -797,7 +802,7 @@ class QasmProcessor:
                     gate_name,
                     targets=regs,
                     classical_controls=classical_controls,
-                    control_value=control_value,
+                    classical_control_value=classical_control_value,
                 )
 
     def _final_pass(self, qc):
@@ -829,11 +834,15 @@ class QasmProcessor:
                     )
                 )
                 # adds classically controlled gates to the QubitCircuit
-                cbit_reg, control_value = command[2].split("==")
+                cbit_reg, classical_control_value = command[2].split("==")
                 cbit_inds = self.cbit_regs[cbit_reg]
-                control_value = int(control_value)
+                classical_control_value = int(classical_control_value)
                 self._gate_add(
-                    qc, command[4:], custom_gates, cbit_inds, control_value
+                    qc,
+                    command[4:],
+                    custom_gates,
+                    cbit_inds,
+                    classical_control_value,
                 )
             else:
                 err = "QASM: {} is not a valid QASM command.".format(
@@ -988,9 +997,9 @@ class QasmOutput:
 
         Parameters
         ----------
-        curr_gate: :class:`.Gate`
+        curr_gate: :class:`~.operations.Gate`
             QuTiP gate which needs to be resolved into component gates.
-        gates_lst: list of :class:`.Gate`
+        gates_lst: list of :class:`~.operations.Gate`
             list of gate that constitute QASM definition of self.
         """
 
@@ -1043,7 +1052,7 @@ class QasmOutput:
 
         Parameters
         ----------
-        gate: :class:`.Gate`
+        gate: :class:`~.operations.Gate`
             QuTiP gate which needs to be resolved into component gates.
 
         """
@@ -1065,7 +1074,7 @@ class QasmOutput:
 
         Parameters
         ----------
-        gate: :class:`.Gate`
+        gate: :class:`~.operations.Gate`
             QuTiP gate which needs to be defined in QASM format.
         """
 

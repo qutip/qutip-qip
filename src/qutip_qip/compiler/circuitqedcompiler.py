@@ -1,6 +1,6 @@
 import numpy as np
 
-from ..circuit import Gate
+from ..operations import Gate
 from ..compiler import GateCompiler, Instruction
 
 
@@ -8,7 +8,7 @@ __all__ = ["SCQubitsCompiler"]
 
 
 class SCQubitsCompiler(GateCompiler):
-    """
+    r"""
     Compiler for :class:`.SCQubits`.
     Compiled pulse strength is in the unit of GHz.
 
@@ -26,6 +26,62 @@ class SCQubitsCompiler(GateCompiler):
         +-----------------+-----------------------+
         |``params``       | Hardware Parameters   |
         +-----------------+-----------------------+
+
+    For single-qubit gate, we apply the DRAG correction :cite:`motzoi2013`
+
+    .. math::
+
+        \Omega^{x} &= \Omega_0 - \frac{\Omega_0^3}{4 \alpha^2}
+
+        \Omega^{y} &= - \dot{\Omega}_0 / \alpha
+
+        \Omega^{z} &= - \Omega_0**2 / \alpha + \frac{2  \Omega_0^2)}{
+            4 \alpha
+        }
+
+    where :math:`\Omega_0` is the original shape of the pulse.
+    Notice that the :math:`\Omega_0` and its first derivative
+    should be 0 from the starts and the end.
+
+    Parameters
+    ----------
+    num_qubits: int
+        The number of qubits in the system.
+
+    params: dict
+        A Python dictionary contains the name and the value of the parameters.
+        See :meth:`.SCQubitsModel` for the definition.
+
+    Attributes
+    ----------
+    num_qubits: int
+        The number of the component systems.
+
+    params: dict
+        A Python dictionary contains the name and the value of the parameters,
+        such as laser frequency, detuning etc.
+
+    gate_compiler: dict
+        The Python dictionary in the form of {gate_name: decompose_function}.
+        It saves the decomposition scheme for each gate.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from qutip_qip.circuit import QubitCircuit
+    >>> from qutip_qip.device import ModelProcessor, SCQubitsModel
+    >>> from qutip_qip.compiler import SCQubitsCompiler
+    >>>
+    >>> qc = QubitCircuit(2)
+    >>> qc.add_gate("CNOT", targets=0, controls=1)
+    >>>
+    >>> model = SCQubitsModel(2)
+    >>> processor = ModelProcessor(model=model)
+    >>> compiler = SCQubitsCompiler(2, params=model.params)
+    >>> processor.load_circuit(qc, compiler=compiler);  # doctest: +SKIP
+
+    Notice that the above example is equivalent to using directly
+    the :obj:`.SCQubits`.
     """
 
     def __init__(self, num_qubits, params):
@@ -39,29 +95,10 @@ class SCQubitsCompiler(GateCompiler):
         )
         self.args = {  # Default configuration
             "shape": "hann",
-            "num_samples": 1000,
+            "num_samples": 101,
             "params": self.params,
+            "DRAG": True,
         }
-
-    def _normalized_gauss_pulse(self):
-        """
-        Return a truncated and normalize Gaussian curve.
-        The returned pulse is truncated from a Gaussian distribution with
-        -3*sigma < t < 3*sigma.
-        The amplitude is shifted so that the pulse start from 0.
-        In addition, the pulse is normalized so that
-        the total integral area is 1.
-        """
-        #  td normalization so that the total integral area is 1
-        td = 2.4384880692912567
-        sigma = 1 / 6 * td  # 3 sigma
-        tlist = np.linspace(0, td, 1000)
-        max_pulse = 1 - np.exp(-((0 - td / 2) ** 2) / 2 / sigma**2)
-        coeff = (
-            np.exp(-((tlist - td / 2) ** 2) / 2 / sigma**2)
-            - np.exp(-((0 - td / 2) ** 2) / 2 / sigma**2)
-        ) / max_pulse
-        return tlist, coeff
 
     def _rotation_compiler(self, gate, op_label, param_label, args):
         """
@@ -69,7 +106,7 @@ class SCQubitsCompiler(GateCompiler):
 
         Parameters
         ----------
-        gate : :obj:`.Gate`:
+        gate : :obj:`~.operations.Gate`:
             The quantum gate to be compiled.
         op_label : str
             Label of the corresponding control Hamiltonian.
@@ -93,8 +130,33 @@ class SCQubitsCompiler(GateCompiler):
             maximum=self.params[param_label][targets[0]],
             area=gate.arg_value / 2.0 / np.pi,
         )
-        pulse_info = [(op_label + str(targets[0]), coeff)]
+        if args["DRAG"]:
+            pulse_info = self._drag_pulse(op_label, coeff, tlist, targets[0])
+        else:
+            pulse_info = [(op_label + str(targets[0]), coeff)]
         return [Instruction(gate, tlist, pulse_info)]
+
+    def _drag_pulse(self, op_label, coeff, tlist, target):
+        dt_coeff = np.gradient(coeff, tlist[1] - tlist[0]) / 2 / np.pi
+        # Y-DRAG
+        alpha = self.params["alpha"][target]
+        y_drag = -dt_coeff / alpha
+        # Z-DRAG
+        z_drag = -(coeff**2) / alpha + (np.sqrt(2) ** 2 * coeff**2) / (
+            4 * alpha
+        )
+        # X-DRAG
+        coeff += -(coeff**3 / (4 * alpha**2))
+
+        pulse_info = [
+            (op_label + str(target), coeff),
+            ("sz" + str(target), z_drag),
+        ]
+        if op_label == "sx":
+            pulse_info.append(("sy" + str(target), y_drag))
+        elif op_label == "sy":
+            pulse_info.append(("sx" + str(target), -y_drag))
+        return pulse_info
 
     def ry_compiler(self, gate, args):
         """
@@ -102,7 +164,7 @@ class SCQubitsCompiler(GateCompiler):
 
         Parameters
         ----------
-        gate : :obj:`.Gate`:
+        gate : :obj:`~.operations.Gate`:
             The quantum gate to be compiled.
         args : dict
             The compilation configuration defined in the attributes
@@ -122,7 +184,7 @@ class SCQubitsCompiler(GateCompiler):
 
         Parameters
         ----------
-        gate : :obj:`.Gate`:
+        gate : :obj:`~.operations.Gate`:
             The quantum gate to be compiled.
         args : dict
             The compilation configuration defined in the attributes
@@ -145,7 +207,7 @@ class SCQubitsCompiler(GateCompiler):
 
         Parameters
         ----------
-        gate : :obj:`.Gate`:
+        gate : :obj:`~.operations.Gate`:
             The quantum gate to be compiled.
         args : dict
             The compilation configuration defined in the attributes
@@ -165,12 +227,7 @@ class SCQubitsCompiler(GateCompiler):
         result += self.gate_compiler[gate1.name](gate1, args)
 
         zx_coeff = self.params["zx_coeff"][q1]
-        tlist, coeff = self._normalized_gauss_pulse()
-        amplitude = zx_coeff
         area = 1 / 2
-        sign = np.sign(amplitude) * np.sign(area)
-        tlist = tlist / amplitude * area * sign
-        coeff = coeff * amplitude * sign
         coeff, tlist = self.generate_pulse_shape(
             args["shape"], args["num_samples"], maximum=zx_coeff, area=area
         )

@@ -51,6 +51,37 @@ class DispersiveCavityQED(ModelProcessor):
 
     **params:
         Hardware parameters. See :obj:`CavityQEDModel`.
+
+    Examples
+    --------
+
+    .. testcode::
+
+        import numpy as np
+        import qutip
+        from qutip_qip.circuit import QubitCircuit
+        from qutip_qip.device import DispersiveCavityQED
+
+        qc = QubitCircuit(2)
+        qc.add_gate("RX", 0, arg_value=np.pi)
+        qc.add_gate("RY", 1, arg_value=np.pi)
+        qc.add_gate("ISWAP", [1, 0])
+
+        processor = DispersiveCavityQED(2, g=0.1)
+        processor.load_circuit(qc)
+        result = processor.run_state(
+            qutip.basis([10, 2, 2], [0, 0, 0]),
+            options=qutip.Options(nsteps=5000))
+        final_qubit_state = result.states[-1].ptrace([1, 2])
+        print(round(qutip.fidelity(
+            final_qubit_state,
+            qc.run(qutip.basis([2, 2], [0, 0]))
+        ), 4))
+
+    .. testoutput::
+
+        0.9994
+
     """
 
     def __init__(
@@ -116,7 +147,14 @@ class DispersiveCavityQED(ModelProcessor):
             [basis(self.num_levels, 0)]
             + [identity(2) for n in range(self.num_qubits)]
         )
-        return psi_proj.dag() * U * psi_proj
+        result = psi_proj.dag() * U * psi_proj
+        # In qutip 5 multiplication of matrices
+        # with dims [[1, 2], [2, 2]] and [[2, 2], [1, 2]]
+        # will give a result of
+        # dims [[1, 2], [1, 2]] instead of [[2], [2]].
+        if result.dims[0][0] == 1:
+            result = result.ptrace(list(range(len(self.dims)))[1:])
+        return result
 
     def load_circuit(self, qc, schedule_mode="ASAP", compiler=None):
         if compiler is None:

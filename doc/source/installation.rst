@@ -24,7 +24,7 @@ Prerequisites
 This package is built upon QuTiP, of which the installation guide can be found at on `QuTiP Installation <http://qutip.org/docs/latest/installation.html>`_.
 The only difference is that C++ compilers are not required here
 since there is no run-time compiling for qutip-qip.
-The minimal Python version supported is Python 3.6.
+The minimal Python version supported is Python 3.7.
 
 
 In particular, following packages are necessary for running qutip-qip

@@ -1,9 +1,15 @@
+from copy import deepcopy
 import pytest
 import functools
 import itertools
 import numpy as np
 import qutip
 from qutip_qip.operations import gates
+from qutip_qip.circuit import QubitCircuit
+from qutip_qip.operations import (
+    X, Y, Z, RX, RY, RZ, H, SQRTNOT, S, T, QASMU, CNOT, CPHASE, ISWAP, SWAP,
+    CZ, SQRTSWAP, SQRTISWAP, SWAPALPHA, SWAPALPHA, MS, TOFFOLI, FREDKIN,
+    BERKELEY)
 
 
 def _permutation_id(permutation):
@@ -13,20 +19,6 @@ def _permutation_id(permutation):
 def _infidelity(a, b):
     """Infidelity between two kets."""
     return 1 - abs(a.overlap(b))
-
-
-def _remove_global_phase(qobj):
-    """
-    Return a new Qobj with the gauge fixed for the global phase.  Explicitly,
-    we set the first non-zero element to be purely real-positive.
-    """
-    flat = qobj.full().flat.copy()
-    for phase in flat:
-        if phase != 0:
-            # Fix the gauge for any global phase.
-            flat = flat * np.exp(-1j * np.angle(phase))
-            break
-    return qutip.Qobj(flat.reshape(qobj.shape), dims=qobj.dims)
 
 
 def _make_random_three_qubit_gate():
@@ -139,8 +131,8 @@ class TestExplicitForm:
         pytest.param(gates.qrot, 2, id="Rabi rotation"),
     ])
     def test_zero_rotations_are_identity(self, gate, n_angles):
-        np.testing.assert_allclose(np.eye(2), gate(*([0]*n_angles)),
-                                   atol=1e-15)
+        np.testing.assert_allclose(
+            np.eye(2), gate(*([0]*n_angles)).full(), atol=1e-15)
 
 
 class TestCliffordGroup:
@@ -155,11 +147,12 @@ class TestCliffordGroup:
         assert len(self.clifford) == 24
 
     def test_all_elements_different(self):
-        clifford = [_remove_global_phase(gate) for gate in self.clifford]
+        clifford = [gate for gate in self.clifford]
         for i, gate in enumerate(clifford):
             for other in clifford[i+1:]:
                 # Big tolerance because we actually want to test the inverse.
-                assert not np.allclose(gate.full(), other.full(), atol=1e-3)
+                fid = qutip.average_gate_fidelity(gate, other)
+                assert not np.allclose(fid, 1., atol=1e-3)
 
     @pytest.mark.parametrize("gate", gates.qubit_clifford_group())
     def test_gate_normalises_pauli_group(self, gate):
@@ -170,12 +163,12 @@ class TestCliffordGroup:
         # Assert that each Clifford gate maps the set of Pauli gates back onto
         # itself (though not necessarily in order).  This condition is no
         # stronger than simply considering each (gate, Pauli) pair separately.
-        pauli_gates = [_remove_global_phase(x) for x in self.pauli]
-        normalised = [_remove_global_phase(gate * pauli * gate.dag())
-                      for pauli in self.pauli]
+        pauli_gates = deepcopy(self.pauli)
+        normalised = [gate * pauli * gate.dag() for pauli in self.pauli]
         for gate in normalised:
             for i, pauli in enumerate(pauli_gates):
-                if np.allclose(gate.full(), pauli.full(), atol=1e-10):
+                # if np.allclose(gate.full(), pauli.full(), atol=1e-10):
+                if np.allclose(qutip.average_gate_fidelity(gate, pauli), 1):
                     del pauli_gates[i]
                     break
         assert len(pauli_gates) == 0
@@ -344,3 +337,60 @@ class Test_expand_operator:
                                          targets=targets, dims=dimensions)
             assert test.dims == expected.dims
             np.testing.assert_allclose(test.full(), expected.full())
+
+def test_gates_class():
+    init_state = qutip.rand_ket(8, dims=[[2, 2, 2], [1, 1, 1]])
+
+    circuit1 = QubitCircuit(3)
+    circuit1.add_gate("X", 1)
+    circuit1.add_gate("Y", 1)
+    circuit1.add_gate("Z", 2)
+    circuit1.add_gate("RX", 0, arg_value=np.pi/4)
+    circuit1.add_gate("RY", 0, arg_value=np.pi/4)
+    circuit1.add_gate("RZ", 1, arg_value=np.pi/4)
+    circuit1.add_gate("H", 0)
+    circuit1.add_gate("SQRTNOT", 0)
+    circuit1.add_gate("S", 2)
+    circuit1.add_gate("T", 1)
+    circuit1.add_gate("QASMU", 0, arg_value=(np.pi/4, np.pi/4, np.pi/4))
+    circuit1.add_gate("CNOT", controls=0, targets=1)
+    circuit1.add_gate("CPHASE", controls=0, targets=1, arg_value=np.pi/4)
+    circuit1.add_gate("SWAP", [0, 1])
+    circuit1.add_gate("ISWAP", [2, 1])
+    circuit1.add_gate("CZ", controls=0, targets=2)
+    circuit1.add_gate("SQRTSWAP", [2, 0])
+    circuit1.add_gate("SQRTISWAP", [0, 1])
+    circuit1.add_gate("SWAPALPHA", [1, 2], arg_value=np.pi/4)
+    circuit1.add_gate("MS", [1, 0], arg_value=np.pi/4)
+    circuit1.add_gate("TOFFOLI", [2, 0, 1])
+    circuit1.add_gate("FREDKIN", [0, 1, 2])
+    circuit1.add_gate("BERKELEY", [1, 0])
+    result1 = circuit1.run(init_state)
+
+    circuit2 = QubitCircuit(3)
+    circuit2.add_gate(X(1))
+    circuit2.add_gate(Y(1))
+    circuit2.add_gate(Z(2))
+    circuit2.add_gate(RX(0, np.pi/4))
+    circuit2.add_gate(RY(0, np.pi/4))
+    circuit2.add_gate(RZ(1, np.pi/4))
+    circuit2.add_gate(H(0))
+    circuit2.add_gate(SQRTNOT(0))
+    circuit2.add_gate(S(2))
+    circuit2.add_gate(T(1))
+    circuit2.add_gate(QASMU(0, (np.pi/4, np.pi/4, np.pi/4)))
+    circuit2.add_gate(CNOT(0, 1))
+    circuit2.add_gate(CPHASE(0, 1, np.pi/4))
+    circuit2.add_gate(SWAP([0, 1]))
+    circuit2.add_gate(ISWAP([2, 1]))
+    circuit2.add_gate(CZ(0, 2))
+    circuit2.add_gate(SQRTSWAP([2, 0]))
+    circuit2.add_gate(SQRTISWAP([0, 1]))
+    circuit2.add_gate(SWAPALPHA([1, 2], np.pi/4))
+    circuit2.add_gate(MS([1, 0], np.pi/4))
+    circuit2.add_gate(TOFFOLI([2, 0, 1]))
+    circuit2.add_gate(FREDKIN([0, 1, 2]))
+    circuit2.add_gate(BERKELEY([1, 0]))
+    result2 = circuit2.run(init_state)
+
+    assert pytest.approx(qutip.fidelity(result1, result2), 1.0e-6) == 1

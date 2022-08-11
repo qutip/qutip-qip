@@ -27,6 +27,9 @@ class SCQubits(ModelProcessor):
     for simplicity, we only use a ZX Hamiltonian for
     the two-qubit interaction.
 
+    See the mathematical details in
+    :obj:`.SCQubitsCompiler` and :obj:`.SCQubitsModel`.
+
     Parameters
     ----------
     num_qubits: int
@@ -38,6 +41,26 @@ class SCQubits(ModelProcessor):
         If ZZ cross-talk is included.
     **params:
         Hardware parameters. See :obj:`SCQubitsModel`.
+
+    Examples
+    --------
+
+    .. testcode::
+
+        import numpy as np
+        import qutip
+        from qutip_qip.circuit import QubitCircuit
+        from qutip_qip.device import SCQubits
+
+        qc = QubitCircuit(2)
+        qc.add_gate("RZ", 0, arg_value=np.pi)
+        qc.add_gate("RY", 1, arg_value=np.pi)
+        qc.add_gate("CNOT", targets=0, controls=1)
+
+        processor = SCQubits(2)
+        processor.load_circuit(qc)
+        init_state = qutip.basis([3, 3], [0, 0])
+        result = processor.run_state(init_state)
     """
 
     def __init__(self, num_qubits, dims=None, zz_crosstalk=False, **params):
@@ -140,7 +163,7 @@ class SCQubitsModel(Model):
 
     def __init__(self, num_qubits, dims=None, zz_crosstalk=False, **params):
         self.num_qubits = num_qubits
-        self.dims = dims
+        self.dims = dims if dims is not None else [3] * num_qubits
         self.params = {
             "wq": np.array(
                 ((5.15, 5.09) * int(np.ceil(self.num_qubits / 2)))[
@@ -175,7 +198,7 @@ class SCQubitsModel(Model):
         num_qubits = self.num_qubits
         return (
             ["sx" + str(i) for i in range(num_qubits)]
-            + ["sz" + str(i) for i in range(num_qubits)]
+            + ["sy" + str(i) for i in range(num_qubits)]
             + ["zx" + str(i) + str(i + 1) for i in range(num_qubits)]
             + ["zx" + str(i + 1) + str(i) for i in range(num_qubits)]
         )
@@ -199,6 +222,11 @@ class SCQubitsModel(Model):
             destroy_op = destroy(dims[m])
             op = destroy_op * (-1.0j) + destroy_op.dag() * 1.0j
             controls["sy" + str(m)] = (2 * np.pi / 2 * op, [m])
+
+        for m in range(num_qubits):
+            destroy_op = destroy(dims[m])
+            op = destroy_op.dag() * destroy_op
+            controls["sz" + str(m)] = (2 * np.pi * op, [m])
 
         for m in range(num_qubits - 1):
             # For simplicity, we neglect leakage in two-qubit gates.
@@ -314,6 +342,7 @@ class SCQubitsModel(Model):
         labels = [
             {f"sx{n}": r"$\sigma_x" + f"^{n}$" for n in range(num_qubits)},
             {f"sy{n}": r"$\sigma_y" + f"^{n}$" for n in range(num_qubits)},
+            {f"sz{n}": r"$\sigma_z" + f"^{n}$" for n in range(num_qubits)},
         ]
         label_zx = {}
         for m in range(num_qubits - 1):

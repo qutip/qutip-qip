@@ -13,7 +13,7 @@ class Instruction:
 
     Parameters
     ----------
-    gate: :class:`.Gate`
+    gate: :class:`~.operations.Gate`
         The quantum gate.
     duration: list, optional
         The execution time needed for the instruction.

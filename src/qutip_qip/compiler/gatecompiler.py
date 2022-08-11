@@ -103,7 +103,7 @@ class GateCompiler(object):
         Parameters
         ----------
         circuit: :class:`.QubitCircuit` or list of
-            :class:`.Gate`
+            :class:`~.operations.Gate`
             A list of elementary gates that can be implemented in the
             corresponding hardware.
             The gate names have to be in `gate_compiler`.
@@ -209,6 +209,7 @@ class GateCompiler(object):
         Concatenate compiled pulses coefficients and tlist for each pulse.
         If there is idling time, add zeros properly to prevent wrong spline.
         """
+        min_step_size = np.inf
         # Concatenate tlist and coeffs for each control pulses
         compiled_tlist = [[] for tmp in range(num_controls)]
         compiled_coeffs = [[] for tmp in range(num_controls)]
@@ -223,6 +224,7 @@ class GateCompiler(object):
                     step_size,
                     pulse_mode,
                 ) = self._process_gate_pulse(start_time, tlist, coeff)
+                min_step_size = min(step_size, min_step_size)
 
                 if abs(last_pulse_time) < step_size * 1.0e-6:  # if first pulse
                     compiled_tlist[pulse_ind].append([0.0])
@@ -246,6 +248,18 @@ class GateCompiler(object):
                 last_pulse_time = execution_time[-1]
                 compiled_tlist[pulse_ind].append(execution_time)
                 compiled_coeffs[pulse_ind].append(coeffs)
+
+        final_time = np.max([tlist[-1] for tlist in compiled_tlist])
+        for pulse_ind in range(num_controls):
+            if not compiled_tlist[pulse_ind]:
+                continue
+            last_pulse_time = compiled_tlist[pulse_ind][-1][-1]
+            if np.abs(final_time - last_pulse_time) > min_step_size * 1.0e-6:
+                idling_tlist = self._process_idling_tlist(
+                    pulse_mode, final_time, last_pulse_time, min_step_size
+                )
+                compiled_tlist[pulse_ind].append(idling_tlist)
+                compiled_coeffs[pulse_ind].append(np.zeros(len(idling_tlist)))
 
         for i in range(num_controls):
             if not compiled_coeffs[i]:
@@ -287,16 +301,16 @@ class GateCompiler(object):
     ):
         idling_tlist = []
         if pulse_mode == "continuous":
-            # We add sufficient number of zeros at the begining
+            # We add sufficient number of zeros at the beginning
             # and the end of the idling to prevent wrong cubic spline.
             if start_time - last_pulse_time > 3 * step_size:
                 idling_tlist1 = np.linspace(
                     last_pulse_time + step_size / 5,
                     last_pulse_time + step_size,
-                    5,
+                    10,
                 )
                 idling_tlist2 = np.linspace(
-                    start_time - step_size, start_time, 5
+                    start_time - step_size, start_time, 10
                 )
                 idling_tlist.extend([idling_tlist1, idling_tlist2])
             else:
@@ -349,6 +363,52 @@ class GateCompiler(object):
         ``Processor.pulse_mode`` to ``"continuous"``.
         Notice that finite number of sampling points will also make
         the total integral of the coefficients slightly deviate from ``area``.
+
+        Examples
+        --------
+        .. plot::
+            :context: reset
+
+            from qutip_qip.compiler import GateCompiler
+            import numpy as np
+            compiler = GateCompiler()
+            coeff, tlist= compiler.generate_pulse_shape(
+                "hann",  # Scipy Hann window
+                1000,  # 100 sampling point
+                maximum=3.,
+                # Notice that 2 pi is added to H by qutip solvers.
+                area= 1.,
+            )
+
+        We can plot the generated pulse shape:
+
+        .. plot::
+            :context: close-figs
+
+            import matplotlib.pyplot as plt
+            plt.plot(tlist, coeff)
+            plt.show()
+
+        The pulse is normalized to fit the area. Notice that due to
+        the finite number of sampling points, it is not exactly 1.
+
+        .. testsetup::
+
+            from qutip_qip.compiler import GateCompiler
+            import numpy as np
+            compiler = GateCompiler()
+            coeff, tlist= compiler.generate_pulse_shape(
+                "hann",  # Scipy Hann window
+                1000,  # 100 sampling point
+                maximum=3.,
+                # Notice that 2 pi is added to H by qutip solvers.
+                area= 1.,
+            )
+
+        .. doctest::
+
+            >>> round(np.trapz(coeff, tlist), 2)
+            1.0
         """
         coeff, tlist = _normalized_window(shape, num_samples)
         sign = np.sign(area)
@@ -373,6 +433,14 @@ _default_window_t_max = {
     "cosine": np.pi / 2.0,
 }
 
+# Analytically implementing the pulse shape because the Scipy version
+# subjects more to the finite sampling error under interpolation.
+# More analytical shape can be added here.
+_analytical_window = {
+    "hann": lambda t: 1 / 2 - 1 / 2 * np.cos(2 * np.pi * t),
+    "hamming": lambda t: 0.54 - 0.46 * np.cos(2 * np.pi * t),
+}
+
 
 def _normalized_window(shape, num_samples):
     """
@@ -385,6 +453,9 @@ def _normalized_window(shape, num_samples):
     t_max = _default_window_t_max.get(shape, None)
     if t_max is None:
         raise ValueError(f"Window function {shape} is not supported.")
-    coeff = signal.windows.get_window(shape, num_samples)
     tlist = np.linspace(0, t_max, num_samples)
+    if shape in _analytical_window:
+        coeff = _analytical_window["hann"](tlist)
+    else:
+        coeff = signal.windows.get_window(shape, num_samples)
     return coeff, tlist

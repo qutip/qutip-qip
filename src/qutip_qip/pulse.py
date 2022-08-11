@@ -1,7 +1,9 @@
 """Pulse representation of a quantum circuit."""
+from packaging.version import parse as parse_version
 import numpy as np
 from scipy.interpolate import CubicSpline
 
+import qutip
 from qutip import QobjEvo, Qobj, identity
 from .operations import expand_operator
 
@@ -71,17 +73,26 @@ class _EvoElement:
             else:
                 qu = QobjEvo(mat * 0.0, tlist=self.tlist)
         else:
-            if spline_kind == "step_func":
-                args = {"_step_func_coeff": True}
+            if spline_kind == "cubic":
+                qu = QobjEvo(
+                    [mat, self.coeff],
+                    tlist=self.tlist,
+                )
+            elif spline_kind == "step_func":
                 if len(self.coeff) == len(self.tlist) - 1:
                     self.coeff = np.concatenate([self.coeff, [0.0]])
-            elif spline_kind == "cubic":
-                args = {"_step_func_coeff": False}
+                if parse_version(qutip.__version__) >= parse_version("5.dev"):
+                    qu = QobjEvo([mat, self.coeff], tlist=self.tlist, order=0)
+                else:
+                    qu = QobjEvo(
+                        [mat, self.coeff],
+                        tlist=self.tlist,
+                        args={"_step_func_coeff": True},
+                    )
             else:
                 # The spline will follow other pulses or
                 # use the default value of QobjEvo
-                args = {}
-            qu = QobjEvo([mat, self.coeff], tlist=self.tlist, args=args)
+                raise ValueError("The pulse has an unknown spline type.")
         return qu
 
     def get_qobjevo(self, spline_kind, dims):
@@ -142,13 +153,13 @@ class Pulse:
     noise and the lindblad noise. The later two are lists of
     noisy evolution dynamics.
     Each dynamic element is characterized by four variables:
-    ``1`qobj``, ``targets``, ``tlist`` and ``coeff``.
+    ``qobj``, ``targets``, ``tlist`` and ``coeff``.
 
     See examples for different construction behavior.
 
     Parameters
     ----------
-    qobj : :class:'qutip.Qobj'
+    qobj : :class:`qutip.Qobj`
         The Hamiltonian of the ideal pulse.
     targets: list
         target qubits of the ideal pulse
@@ -227,7 +238,13 @@ class Pulse:
     """
 
     def __init__(
-        self, qobj, targets, tlist=None, coeff=None, spline_kind=None, label=""
+        self,
+        qobj,
+        targets,
+        tlist=None,
+        coeff=None,
+        spline_kind="step_func",
+        label="",
     ):
         self.spline_kind = spline_kind
         self.ideal_pulse = _EvoElement(qobj, targets, tlist, coeff)
@@ -285,7 +302,7 @@ class Pulse:
 
         Parameters
         ----------
-        qobj: :class:'qutip.Qobj'
+        qobj: :class:`qutip.Qobj`
             The Hamiltonian of the pulse.
         targets: list
             target qubits of the pulse
@@ -316,7 +333,7 @@ class Pulse:
 
         Parameters
         ----------
-        qobj: :class:'qutip.Qobj'
+        qobj: :class:`qutip.Qobj`
             The collapse operator of the lindblad noise.
         targets: list
             target qubits of the collapse operator
@@ -505,7 +522,7 @@ class Drift:
 
         Parameters
         ----------
-        qobj: :class:'qutip.Qobj'
+        qobj: :class:`qutip.Qobj`
             The collapse operator of the lindblad noise.
         targets: list
             target qubits of the collapse operator
@@ -550,6 +567,13 @@ class Drift:
         """
         return self.get_ideal_qobjevo(dims), []
 
+    def get_full_tlist(self):
+        """
+        Drift has no tlist, this is just a place holder to keep it unified
+        with :class:`.Pulse`. It returns None.
+        """
+        return None
+
 
 def _find_common_tlist(qobjevo_list, tol=1.0e-10):
     """
@@ -569,22 +593,20 @@ def _find_common_tlist(qobjevo_list, tol=1.0e-10):
     return full_tlist
 
 
-########################################################################
-# These functions are moved here from qutip_qip.device.processor.py
-########################################################################
-
-
 def _merge_qobjevo(qobjevo_list, full_tlist=None):
     """
     Combine a list of `:class:qutip.QobjEvo` into one,
     different tlist will be merged.
     """
-    # TODO This method can be eventually integrated into QobjEvo, for
-    # which a more thorough test is required
-
     # no qobjevo
     if not qobjevo_list:
         raise ValueError("qobjevo_list is empty.")
+
+    # In qutip5 this can be done automatically.
+    if parse_version(qutip.__version__) >= parse_version("5.dev"):
+        return sum(
+            [op for op in qobjevo_list if isinstance(op, (Qobj, QobjEvo))]
+        )
 
     if full_tlist is None:
         full_tlist = _find_common_tlist(qobjevo_list)
@@ -620,7 +642,6 @@ def _fill_coeff(old_coeffs, old_tlist, full_tlist, args=None, tol=1.0e-10):
     """
     Make a step function coefficients compatible with a longer ``tlist`` by
     filling the empty slot with the nearest left value.
-
     The returned ``coeff`` always have the same size as the ``tlist``.
     If `step_func`, the last element is 0.
     """

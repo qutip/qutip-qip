@@ -143,6 +143,8 @@ import numpy as np
 import os
 import warnings
 warnings.filterwarnings("ignore")
+import numpy as np
+np.set_printoptions(precision=5)
 os_nt = {}
 '''.format(os_nt)
 
@@ -172,7 +174,7 @@ napoleon_use_admonition_for_notes = True
 # lots of functions/classes like qutip_qip.operations. However, pay
 # attention that some api docs files are adjusted manually for better illustration
 # and should not be overwritten.
-# autosummary_generate = True
+autosummary_generate = False
 autosummary_imported_members = True
 
 # -- Options for biblatex ---------------------------------------

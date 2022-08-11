@@ -17,7 +17,7 @@ def qubit_states(N=1, states=[0]):
         Initial state of each qubit.
 
     Returns
-    ----------
+    -------
     qstates : Qobj
         List of qubits.
 

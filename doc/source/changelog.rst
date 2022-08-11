@@ -1,8 +1,38 @@
-.. _changelog:
-
-**********
+*********
 Changelog
-**********
+*********
+
+Version 0.2.2 (June 20, 2022)
++++++++++++++++++++++++++++++
+
+Improvements
+------------
+- Correct the spelling of Hadamard. (`#132 <https://github.com/qutip/qutip-qip/pull/132>`_)
+- Support the `dev.major` branch of `qutip`. (`#136 <https://github.com/qutip/qutip-qip/pull/136>`_)
+- Export circuit plots as png with dpi. (`#139 <https://github.com/qutip/qutip-qip/pull/139>`_)
+
+Bug Fixes
+---------
+- Fix Circuit Plotting for non-reversed states. (`#137 <https://github.com/qutip/qutip-qip/pull/137>`_)
+- Fix add_gate behavior when supplied multiple indices. (`#142 <https://github.com/qutip/qutip-qip/pull/142>`_)
+- Quantum circuits inherit user gates from add_circuit. (`#144 <https://github.com/qutip/qutip-qip/pull/144>`_)
+
+
+Version 0.2.1 (Feb 20, 2022)
+++++++++++++++++++++++++++++
+
+This release includes a revision of the documentation and adds more code examples in the API doc strings.
+
+Bug Fixes
+---------
+- Remove the check on the initial state dimension in ``QubitCircuit.run()`` (`#127 <https://github.com/qutip/qutip-qip/pull/127>`_)
+
+Improvements
+------------
+-  Rewrite the documentation for the pulse-level simulation. (`#121 <https://github.com/qutip/qutip-qip/pull/121>`_)
+-  Add more code examples in the doc strings. (`#126 <https://github.com/qutip/qutip-qip/pull/126>`_)
+
+
 Version 0.2.0 (Nov 26, 2021)
 ++++++++++++++++++++++++++++
 This release adds a few new features to the pulse-level simulator.
