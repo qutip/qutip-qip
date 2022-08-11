@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from base64 import b64decode
 from enum import Enum, auto
+from operator import mod
 import os
 from tempfile import NamedTemporaryFile
 from typing import Union, overload, TYPE_CHECKING
@@ -11,23 +12,18 @@ if TYPE_CHECKING:
     from typing_extensions import Literal
 
 try:
-    import pyqir_generator as pqg
-except ImportError:
-    try:
-        import pyqir.generator as pqg
-    except ImportError as ex:
-        raise ImportError("qutip.qip.qir depends on PyQIR") from ex
+    import pyqir.generator as pqg
+except ImportError as ex:
+    raise ImportError("qutip.qip.qir depends on PyQIR") from ex
 
 try:
-    import pyqir_parser as pqp
-except ImportError:
-    try:
-        import pyqir.pyqir_parser as pqp
-    except ImportError as ex:
-        raise ImportError("qutip.qip.qir depends on PyQIR") from ex
+    import pyqir.parser as pqp
+except ImportError as ex:
+    raise ImportError("qutip.qip.qir depends on PyQIR") from ex
 
 
-from qutip_qip.circuit import Gate, Measurement, QubitCircuit
+from qutip_qip.circuit import QubitCircuit
+from qutip_qip.operations import Gate, Measurement
 
 __all__ = [
     "circuit_to_qir",
@@ -85,61 +81,72 @@ def circuit_to_qir(circuit, format, module_name = "qutip_circuit"):
         further before generating QIR.
     :param module_name: The name of the module to be emitted.
     """
+    # Define as an inner function to make it easier to call from conditional
+    # branches.
+    def append_operation(module: pqg.SimpleModule, builder: pqg.BasicQisBuilder, op: Gate):
+        if op.classical_controls:
+            result = op.classical_controls[0]
+            value = "zero" if op.classical_control_value == 0 else "one"
+            # Pull off the first control and recurse.
+            op_with_less_controls = Gate(**op.__dict__)
+            op_with_less_controls.classical_controls = op_with_less_controls.classical_controls[1:]
+            branch_body = {value: (lambda: append_operation(module, builder, op_with_less_controls))}
+            builder.if_result(module.results[result], **branch_body)
+            return
+
+        if op.controls:
+            if op.name not in ("CNOT", "CZ") or len(op.controls) != 1:
+                raise NotImplementedError(
+                    "Arbitrary controlled quantum operations are not yet supported."
+                )
+
+        if op.name == "X":
+            builder.x(module.qubits[op.targets[0]])
+        elif op.name == "Y":
+            builder.y(module.qubits[op.targets[0]])
+        elif op.name == "Z":
+            builder.z(module.qubits[op.targets[0]])
+        elif op.name == "S":
+            builder.s(module.qubits[op.targets[0]])
+        elif op.name == "T":
+            builder.t(module.qubits[op.targets[0]])
+        elif op.name == "SNOT":
+            builder.h(module.qubits[op.targets[0]])
+        elif op.name == "CNOT":
+            builder.cx(module.qubits[op.controls[0]], module.qubits[op.targets[0]])
+        elif op.name == "RX":
+            builder.rx(op.control_value, module.qubits[op.targets[0]])
+        elif op.name == "RY":
+            builder.ry(op.control_value, module.qubits[op.targets[0]])
+        elif op.name == "RZ":
+            builder.rz(op.control_value, module.qubits[op.targets[0]])
+        elif op.name in ("CRZ", "TOFFOLI"):
+            raise NotImplementedError(
+                "Decomposition of CRZ and Toffoli gates into base " +
+                "profile instructions is not yet implemented."
+            )
+        else:
+            raise ValueError(
+                f"Gate {op.name} not supported by the basic QIR builder, " +
+                "and may require a custom declaration."
+            )
     fmt = QirFormat.ensure(format)
 
-    builder = pqg.QirBuilder(module_name)
-
-    builder.add_quantum_register(QREG, circuit.N)
-    if circuit.num_cbits:
-        builder.add_classical_register(CREG, circuit.num_cbits)
+    module = pqg.SimpleModule(module_name, circuit.N, circuit.num_cbits or 0)
+    builder = pqg.BasicQisBuilder(module.builder)
 
     for op in circuit.gates:
         # If we have a QuTiP gate, then we need to convert it into one of
         # the reserved operation names in the QIR base profile's quantum
         # instruction set (QIS).
         if isinstance(op, Gate):
-            # PyQIR does not yet have branching support. Once that feature
-            # is added, we'll need to translate control lines into branching
-            # like `if creg0 { op(qreg0); }`.
-            if op.classical_controls:
-                raise NotImplementedError("Classical controls are not yet implemented.")
-
             # TODO: Validate indices.
-            if op.name == "X":
-                builder.x(f"{QREG}{op.targets[0]}")
-            elif op.name == "Y":
-                builder.y(f"{QREG}{op.targets[0]}")
-            elif op.name == "Z":
-                builder.z(f"{QREG}{op.targets[0]}")
-            elif op.name == "S":
-                builder.s(f"{QREG}{op.targets[0]}")
-            elif op.name == "T":
-                builder.t(f"{QREG}{op.targets[0]}")
-            elif op.name == "SNOT":
-                builder.h(f"{QREG}{op.targets[0]}")
-            elif op.name == "CNOT":
-                builder.cx(f"{QREG}{op.controls[0]}", f"{QREG}{op.targets[0]}")
-            elif op.name == "RX":
-                builder.rx(op.control_value, f"{QREG}{op.targets[0]}")
-            elif op.name == "RY":
-                builder.ry(op.control_value, f"{QREG}{op.targets[0]}")
-            elif op.name == "RZ":
-                builder.rz(op.control_value, f"{QREG}{op.targets[0]}")
-            elif op.name in ("CRZ", "TOFFOLI"):
-                raise NotImplementedError(
-                    "Decomposition of CRZ and Toffoli gates into base " +
-                    "profile instructions is not yet implemented."
-                )
-            else:
-                raise ValueError(
-                    f"Gate {op.name} not supported by the QIR base profile, " +
-                    "and may require a custom declaration."
-                )
+            append_operation(module, builder, op)
 
         elif isinstance(op, Measurement):
             # TODO: Validate indices.
             if op.name == "Z":
-                builder.m(f"{QREG}{op.targets[0]}", f"{CREG}{op.classical_store}")
+                builder.m(module.qubits[op.targets[0]], module.results[op.classical_store])
             else:
                 raise ValueError(
                     f"Measurement kind {op.name} not supported by the QIR " +
@@ -153,11 +160,11 @@ def circuit_to_qir(circuit, format, module_name = "qutip_circuit"):
             )
 
     if fmt == QirFormat.TEXT:
-        return builder.get_ir_string()
+        return module.ir()
     elif fmt == QirFormat.BITCODE:
-        return b64decode(builder.get_bitcode_base64_string())
+        return module.bitcode()
     elif fmt == QirFormat.MODULE:
-        bitcode = b64decode(builder.get_bitcode_base64_string())
+        bitcode = module.bitcode()
         f = NamedTemporaryFile(suffix='.bc', delete=False)
         try:
             f.write(bitcode)
