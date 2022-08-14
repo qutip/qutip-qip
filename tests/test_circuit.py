@@ -524,7 +524,7 @@ class TestQubitCircuit:
         _, final_probabilities = final_measurement.measurement_comp_basis(state_final)
 
         np.testing.assert_allclose(initial_probabilities, final_probabilities)
-    
+
     def test_classical_control(self):
         qc = QubitCircuit(1, num_cbits=2)
         qc.add_gate(
