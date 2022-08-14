@@ -554,13 +554,26 @@ class CircuitSimulator:
             state after one evolution step.
         """
 
+        def _decimal_to_binary(decimal, length):
+            binary = [int(s) for s in "{0:#b}".format(decimal)[2:]]
+            return [0] * (length - len(binary)) + binary
+
         op = self.ops[self.op_index]
         if isinstance(op, Measurement):
             self._apply_measurement(op)
         elif isinstance(op, tuple):
             operation, U = op
             apply_gate = all(
-                [self.cbits[i] for i in operation.classical_controls]
+                [
+                    self.cbits[cbit_index] == control_value
+                    for cbit_index, control_value in zip(
+                        operation.classical_controls,
+                        _decimal_to_binary(
+                            operation.classical_control_value,
+                            len(operation.classical_controls),
+                        ),
+                    )
+                ]
             )
             if apply_gate:
                 if self.precompute_unitary:
