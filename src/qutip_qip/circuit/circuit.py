@@ -1209,5 +1209,5 @@ _latex_template = r"""
 def _gate_label(gate):
     gate_label = gate.latex_str
     if gate.arg_label is not None:
-        return r"%s(%s)" % (gate_label, arg_label)
+        return r"%s(%s)" % (gate_label, gate.arg_label)
     return r"%s" % gate_label
