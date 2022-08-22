@@ -346,7 +346,10 @@ class Test_expand_operator:
             np.testing.assert_allclose(test.full(), expected.full())
 
 def test_gates_class():
-    init_state = qutip.rand_ket(8, dims=[[2, 2, 2], [1, 1, 1]])
+    if parse_version(qutip.__version__) < parse_version('5.dev'):
+        init_state = qutip.rand_ket(8, dims=[[2, 2, 2], [1, 1, 1]])
+    else:
+        init_state = qutip.rand_ket([2,2,2])
 
     circuit1 = QubitCircuit(3)
     circuit1.add_gate("X", 1)
