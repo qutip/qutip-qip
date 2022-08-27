@@ -1,10 +1,5 @@
 from qiskit.providers.provider import ProviderV1
-from .backend import (
-    QiskitCircuitSimulator,
-    QiskitLinearSpinChainSimulator,
-    QiskitCircularSpinChainSimulator,
-    QiskitDispersiveCavityQEDSimulator,
-)
+from .backend import QiskitCircuitSimulator, QiskitPulseSimulator
 
 
 class Provider(ProviderV1):
@@ -23,9 +18,7 @@ class Provider(ProviderV1):
         self.name = "qutip_provider"
         self._backends = {
             QiskitCircuitSimulator.BACKEND_NAME: QiskitCircuitSimulator(),
-            QiskitLinearSpinChainSimulator.BACKEND_NAME: QiskitLinearSpinChainSimulator(),
-            QiskitCircularSpinChainSimulator.BACKEND_NAME: QiskitCircularSpinChainSimulator(),
-            QiskitDispersiveCavityQEDSimulator.BACKEND_NAME: QiskitDispersiveCavityQEDSimulator(),
+            QiskitPulseSimulator.BACKEND_NAME: QiskitPulseSimulator(),
         }
 
     def backends(self, name: str = None, filters=None, **kwargs) -> list:

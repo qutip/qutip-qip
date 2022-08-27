@@ -3,7 +3,7 @@ import numbers
 
 import numpy as np
 
-from qutip import Qobj, QobjEvo, tensor, mesolve
+from qutip import Qobj, QobjEvo, tensor, mesolve, basis
 from ..operations import globalphase
 from ..circuit import QubitCircuit
 from .processor import Processor
@@ -242,6 +242,22 @@ class ModelProcessor(Processor):
         self.set_coeffs(coeffs)
         self.set_tlist(tlist)
         return tlist, coeffs
+
+    def _get_density_matrix(self, result):
+        density_matrix = None
+        if len(result.states):
+            density_matrix = result.states[-1]
+            # if answer is in ket form, convert
+            # to density matrix with outer product
+            if density_matrix.type == "ket":
+                density_matrix = density_matrix * density_matrix.dag()
+        return density_matrix
+
+    def _generate_initial_state(self):
+        return basis([2] * self.num_qubits, [0] * self.num_qubits)
+
+    def _truncate_final_state(self, final_state):
+        return self._get_density_matrix(final_state)
 
 
 def _to_array(params, num_qubits):
