@@ -8,11 +8,7 @@ import qiskit
 from qutip import basis
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.circuit.circuitsimulator import CircuitResult
-from qutip_qip.device import (
-    LinearSpinChain,
-    CircularSpinChain,
-    DispersiveCavityQED,
-)
+from qutip_qip.device import Processor
 
 from .job import Job
 from .converter import convert_qiskit_circuit
@@ -58,7 +54,7 @@ class QiskitSimulatorBase(BackendV1):
             Valid options are:
 
             shots : int
-                Number of times to perform the simulation
+                Number of times to sample the results.
             allow_custom_gate: bool
                 Allow conversion of circuit using unitary matrices
                 for custom gates.
@@ -129,8 +125,6 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
     """
     Qiskit backend dealing with operator-level
     circuit simulation using qutip_qip's CircuitSimulator.
-
-
     """
 
     MAX_QUBITS_MEMORY = 10
@@ -263,7 +257,16 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
     @classmethod
     def _default_options(cls):
         """
-        Default options for the backend. To be updated.
+        Default options for the backend.
+
+        Options
+        -------
+        shots : int
+            Number of times to sample the results.
+
+        allow_custom_gate : bool
+            Allow conversion of circuit using unitary matrices
+            for custom gates.
         """
         return Options(shots=1024, allow_custom_gate=True)
 
@@ -271,6 +274,17 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
 class QiskitPulseSimulator(QiskitSimulatorBase):
     """
     Qiskit backend dealing with pulse-level simulation.
+
+    Parameters
+    ----------
+    processor : qutip_qip.device.Processor
+        The processor model to be used for simulation. Processor object to
+        be provided after initialising it with the required parameters.
+
+    Attributes
+    ----------
+    processor : qutip_qip.device.Processor
+        The processor model to be used for simulation.
     """
 
     processor = None
@@ -288,12 +302,14 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
         "memory": False,
         "max_shots": int(1e6),
         "coupling_map": None,
-        "description": "A qutip-qip based pulse-level simulator based on the LinearSpinChain model.",
+        "description": "A qutip-qip based pulse-level simulator based on the open system solver.",
         "basis_gates": [],
         "gates": [],
     }
 
-    def __init__(self, processor, configuration=None, provider=None, **fields):
+    def __init__(
+        self, processor: Processor, configuration=None, provider=None, **fields
+    ):
 
         self.processor = processor
         super().__init__(
@@ -385,7 +401,7 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
         qiskit.result.Result
             Result of the simulation
         """
-        zero_state = self.processor._generate_initial_state()
+        zero_state = self.processor._generate_init_state()
 
         self.processor.load_circuit(qutip_circuit)
         result = self.processor.run_state(zero_state)
@@ -401,6 +417,11 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
     @classmethod
     def _default_options(cls):
         """
-        Default options for the backend. To be updated.
+        Default options for the backend.
+
+        Options
+        -------
+        shots : int
+            Number of times to sample the results.
         """
         return Options(shots=1024)

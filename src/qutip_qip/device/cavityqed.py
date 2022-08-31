@@ -165,13 +165,19 @@ class DispersiveCavityQED(ModelProcessor):
         self.global_phase = compiler.global_phase
         return tlist, coeff
 
-    def _generate_initial_state(self):
+    def _generate_init_state(self):
+        """
+        Generate zero state based on num_levels.
+        """
         return basis(
             [self.num_levels] + [2] * self.num_qubits,
             [0] + [0] * self.num_qubits,
         )
 
     def _truncate_final_state(self, final_state):
+        """
+        Truncate the final state to get rid of the cavity subsystem.
+        """
         density_matrix = self._get_density_matrix(final_state)
         return density_matrix.ptrace(range(1, len(density_matrix.dims[0])))
 

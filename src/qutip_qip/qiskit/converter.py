@@ -18,6 +18,7 @@ _map_gates = {
     "ry": "RY",
     "rz": "RZ",
     "swap": "SWAP",
+    "u": "QASMU",
 }
 
 _map_controlled_gates = {

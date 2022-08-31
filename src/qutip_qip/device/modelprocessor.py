@@ -244,6 +244,9 @@ class ModelProcessor(Processor):
         return tlist, coeffs
 
     def _get_density_matrix(self, result):
+        """
+        Convert a processor result to a density matrix.
+        """
         density_matrix = None
         if len(result.states):
             density_matrix = result.states[-1]
@@ -253,10 +256,18 @@ class ModelProcessor(Processor):
                 density_matrix = density_matrix * density_matrix.dag()
         return density_matrix
 
-    def _generate_initial_state(self):
+    def _generate_init_state(self):
+        """
+        Generate the zero state
+        """
         return basis([2] * self.num_qubits, [0] * self.num_qubits)
 
     def _truncate_final_state(self, final_state):
+        """
+        Truncate the final state according to the processor
+        model (useful in child classes like DispersiveCavityQED
+        where a modified function can be defined).
+        """
         return self._get_density_matrix(final_state)
 
 
