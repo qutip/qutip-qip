@@ -88,9 +88,7 @@ class DispersiveCavityQED(ModelProcessor):
         self, num_qubits, num_levels=10, correct_global_phase=True, **params
     ):
         model = CavityQEDModel(
-            num_qubits=num_qubits,
-            num_levels=num_levels,
-            **params,
+            num_qubits=num_qubits, num_levels=num_levels, **params
         )
         super(DispersiveCavityQED, self).__init__(
             model=model, correct_global_phase=correct_global_phase
@@ -166,6 +164,22 @@ class DispersiveCavityQED(ModelProcessor):
         )
         self.global_phase = compiler.global_phase
         return tlist, coeff
+
+    def _generate_init_state(self):
+        """
+        Generate zero state based on num_levels.
+        """
+        return basis(
+            [self.num_levels] + [2] * self.num_qubits,
+            [0] + [0] * self.num_qubits,
+        )
+
+    def _truncate_final_state(self, final_state):
+        """
+        Truncate the final state to get rid of the cavity subsystem.
+        """
+        density_matrix = self._get_density_matrix(final_state)
+        return density_matrix.ptrace(range(1, len(density_matrix.dims[0])))
 
 
 class CavityQEDModel(Model):

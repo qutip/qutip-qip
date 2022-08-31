@@ -3,11 +3,19 @@ import numpy as np
 import random
 from numpy.testing import assert_allclose
 from qutip_qip.circuit import QubitCircuit
+from qutip_qip.device import (
+    LinearSpinChain,
+    CircularSpinChain,
+    DispersiveCavityQED,
+)
 
 try:
     from qiskit import QuantumCircuit
     from qiskit.providers.aer import AerSimulator
-    from qutip_qip.qiskit import Provider
+    from qutip_qip.qiskit.provider import (
+        QiskitCircuitSimulator,
+        QiskitPulseSimulator,
+    )
     from qutip_qip.qiskit.converter import (
         convert_qiskit_circuit,
         _get_qutip_index,
@@ -150,22 +158,6 @@ class TestSimulator:
     gives correct results.
     """
 
-    def _compare_results(self, qiskit_circuit: QuantumCircuit):
-        provider = Provider()
-
-        qutip_backend = provider.get_backend("circuit_simulator")
-        qutip_job = qutip_backend.run(qiskit_circuit)
-        qutip_result = qutip_job.result()
-        qutip_sv = qutip_result.data()["statevector"]
-
-        qiskit_backend = AerSimulator(method="statevector")
-        qiskit_circuit.save_state()
-        qiskit_job = qiskit_backend.run(qiskit_circuit)
-        qiskit_result = qiskit_job.result()
-        qiskit_sv = qiskit_result.data()["statevector"]
-
-        assert_allclose(qutip_sv, qiskit_sv)
-
     def test_circuit_simulator(self):
         """
         Test whether the circuit_simulator matches the
@@ -198,9 +190,7 @@ class TestSimulator:
             my_gate = sub_circ.to_gate()
             circ.append(my_gate, [1])
 
-            provider = Provider()
-
-            qutip_backend = provider.get_backend("circuit_simulator")
+            qutip_backend = QiskitCircuitSimulator()
             # running this with allow_custom_gate=False should raise
             # a RuntimeError due to the custom sub-circuit
             qutip_backend.run(circ, allow_custom_gate=False)
@@ -219,10 +209,73 @@ class TestSimulator:
         circ.measure(0, 0)
         circ.measure(1, 1)
 
-        provider = Provider()
-
-        qutip_backend = provider.get_backend("circuit_simulator")
+        qutip_backend = QiskitCircuitSimulator()
         qutip_job = qutip_backend.run(circ)
         qutip_result = qutip_job.result()
 
         assert qutip_result.get_counts(circ) == predefined_counts
+
+    def test_lsc_simulator(self):
+        """
+        Test whether the pulse backend based on the LinearSpinChain model
+        matches predefined correct results.
+        """
+        circ, predefined_counts = self._init_pulse_test()
+
+        result = self._run_pulse_processor(LinearSpinChain(num_qubits=2), circ)
+        assert result.get_counts() == predefined_counts
+
+    def test_csc_simulator(self):
+        """
+        Test whether the pulse backend based on the CircularSpinChain model
+        matches predefined correct results.
+        """
+        circ, predefined_counts = self._init_pulse_test()
+
+        result = self._run_pulse_processor(
+            CircularSpinChain(num_qubits=2), circ
+        )
+        assert result.get_counts() == predefined_counts
+
+    def test_cavityqed_simulator(self):
+        """
+        Test whether the pulse backend based on the DispersiveCavityQED
+        model matches predefined correct results.
+        """
+        circ, predefined_counts = self._init_pulse_test()
+
+        result = self._run_pulse_processor(
+            DispersiveCavityQED(num_qubits=2, num_levels=10), circ
+        )
+        assert result.get_counts() == predefined_counts
+
+    def _compare_results(self, qiskit_circuit: QuantumCircuit):
+
+        qutip_backend = QiskitCircuitSimulator()
+        qutip_job = qutip_backend.run(qiskit_circuit)
+        qutip_result = qutip_job.result()
+        qutip_sv = qutip_result.data()["statevector"]
+
+        qiskit_backend = AerSimulator(method="statevector")
+        qiskit_circuit.save_state()
+        qiskit_job = qiskit_backend.run(qiskit_circuit)
+        qiskit_result = qiskit_job.result()
+        qiskit_sv = qiskit_result.data()["statevector"]
+
+        assert_allclose(qutip_sv, qiskit_sv)
+
+    def _run_pulse_processor(self, processor, circ):
+        qutip_backend = QiskitPulseSimulator(processor)
+        qutip_job = qutip_backend.run(circ)
+        return qutip_job.result()
+
+    def _init_pulse_test(self):
+        random.seed(1)
+
+        circ = QuantumCircuit(2, 2)
+        circ.h(0)
+        circ.h(1)
+
+        predefined_counts = {"0": 233, "11": 267, "1": 254, "10": 270}
+
+        return circ, predefined_counts

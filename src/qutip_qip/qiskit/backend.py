@@ -8,11 +8,7 @@ import qiskit
 from qutip import basis
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.circuit.circuitsimulator import CircuitResult
-from qutip_qip.device import (
-    LinearSpinChain,
-    CircularSpinChain,
-    DispersiveCavityQED,
-)
+from qutip_qip.device import Processor
 
 from .job import Job
 from .converter import convert_qiskit_circuit
@@ -58,7 +54,7 @@ class QiskitSimulatorBase(BackendV1):
             Valid options are:
 
             shots : int
-                Number of times to perform the simulation
+                Number of times to sample the results.
             allow_custom_gate: bool
                 Allow conversion of circuit using unitary matrices
                 for custom gates.
@@ -129,8 +125,6 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
     """
     Qiskit backend dealing with operator-level
     circuit simulation using qutip_qip's CircuitSimulator.
-
-
     """
 
     MAX_QUBITS_MEMORY = 10
@@ -263,31 +257,64 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
     @classmethod
     def _default_options(cls):
         """
-        Default options for the backend. To be updated.
+        Default options for the backend.
+
+        Options
+        -------
+        shots : int
+            Number of times to sample the results.
+
+        allow_custom_gate : bool
+            Allow conversion of circuit using unitary matrices
+            for custom gates.
         """
         return Options(shots=1024, allow_custom_gate=True)
 
 
-class QiskitPulseSimulatorBase(QiskitSimulatorBase):
+class QiskitPulseSimulator(QiskitSimulatorBase):
     """
-    Base class for pulse level simulators.
+    Qiskit backend dealing with pulse-level simulation.
+
+    Parameters
+    ----------
+    processor : qutip_qip.device.Processor
+        The processor model to be used for simulation. Processor object to
+        be provided after initialising it with the required parameters.
+
+    Attributes
+    ----------
+    processor : qutip_qip.device.Processor
+        The processor model to be used for simulation.
     """
 
-    def __init__(self, configuration=None, provider=None, **fields):
+    processor = None
+    MAX_QUBITS_MEMORY = 10
+    BACKEND_NAME = "pulse_simulator"
+    _DEFAULT_CONFIGURATION = {
+        "backend_name": BACKEND_NAME,
+        "backend_version": "0.1",
+        "n_qubits": MAX_QUBITS_MEMORY,
+        "url": "https://github.com/qutip/qutip-qip",
+        "simulator": True,
+        "local": True,
+        "conditional": False,
+        "open_pulse": False,
+        "memory": False,
+        "max_shots": int(1e6),
+        "coupling_map": None,
+        "description": "A qutip-qip based pulse-level simulator based on the open system solver.",
+        "basis_gates": [],
+        "gates": [],
+    }
 
+    def __init__(
+        self, processor: Processor, configuration=None, provider=None, **fields
+    ):
+
+        self.processor = processor
         super().__init__(
             configuration=configuration, provider=provider, **fields
         )
-
-    def _get_density_matrix(self, solver_result):
-        density_matrix = None
-        if len(solver_result.states):
-            density_matrix = solver_result.states[-1]
-            # if answer is in ket form, convert
-            # to density matrix with outer product
-            if density_matrix.type == "ket":
-                density_matrix = density_matrix * density_matrix.dag()
-        return density_matrix
 
     def _parse_results(
         self,
@@ -356,48 +383,9 @@ class QiskitPulseSimulatorBase(QiskitSimulatorBase):
 
         return result
 
-
-class QiskitLinearSpinChainSimulator(QiskitPulseSimulatorBase):
-    """
-    Qiskit backend dealing with pulse-level
-    simulation using the LinearSpinChain model.
-    """
-
-    MAX_QUBITS_MEMORY = 10
-    BACKEND_NAME = "lsc_simulator"
-    _DEFAULT_CONFIGURATION = {
-        "backend_name": BACKEND_NAME,
-        "backend_version": "0.1",
-        "n_qubits": MAX_QUBITS_MEMORY,
-        "url": "https://github.com/qutip/qutip-qip",
-        "t1": None,
-        "t2": None,
-        "simulator": True,
-        "local": True,
-        "conditional": False,
-        "open_pulse": False,
-        "memory": False,
-        "max_shots": int(1e6),
-        "coupling_map": None,
-        "description": "A qutip-qip based pulse-level simulator based on the LinearSpinChain model.",
-        "basis_gates": [],
-        "gates": [],
-    }
-
-    def __init__(
-        self, t1=None, t2=None, configuration=None, provider=None, **fields
-    ):
-
-        self._DEFAULT_CONFIGURATION["t1"] = t1
-        self._DEFAULT_CONFIGURATION["t2"] = t2
-
-        super().__init__(
-            configuration=configuration, provider=provider, **fields
-        )
-
     def _run_job(self, job_id: str, qutip_circuit: QubitCircuit) -> Result:
         """
-        Run a QubitCircuit on the LinearSpinChain Pulse Simulator.
+        Run a QubitCircuit on the Pulse Simulator.
 
         Parameters
         ----------
@@ -413,18 +401,15 @@ class QiskitLinearSpinChainSimulator(QiskitPulseSimulatorBase):
         qiskit.result.Result
             Result of the simulation
         """
-        zero_state = basis([2] * qutip_circuit.N, [0] * qutip_circuit.N)
-        noise = {}
-        if self.configuration().t1 is not None:
-            noise["t1"] = self.configuration().t1
-        if self.configuration().t2 is not None:
-            noise["t2"] = self.configuration().t2
-        processor = LinearSpinChain(num_qubits=qutip_circuit.N, **noise)
-        processor.load_circuit(qutip_circuit)
-        result = processor.run_state(zero_state)
+        zero_state = self.processor._generate_init_state()
+
+        self.processor.load_circuit(qutip_circuit)
+        result = self.processor.run_state(zero_state)
+
+        density_matrix = self.processor._truncate_final_state(result)
 
         return self._parse_results(
-            density_matrix=self._get_density_matrix(result),
+            density_matrix=density_matrix,
             job_id=job_id,
             qutip_circuit=qutip_circuit,
         )
@@ -432,188 +417,11 @@ class QiskitLinearSpinChainSimulator(QiskitPulseSimulatorBase):
     @classmethod
     def _default_options(cls):
         """
-        Default options for the backend. To be updated.
-        """
-        return Options(shots=1024)
+        Default options for the backend.
 
-
-class QiskitCircularSpinChainSimulator(QiskitPulseSimulatorBase):
-    """
-    Qiskit backend dealing with pulse-level
-    simulation using the CircularSpinChain model.
-    """
-
-    MAX_QUBITS_MEMORY = 10
-    BACKEND_NAME = "csc_simulator"
-
-    _DEFAULT_CONFIGURATION = {
-        "backend_name": BACKEND_NAME,
-        "backend_version": "0.1",
-        "n_qubits": MAX_QUBITS_MEMORY,
-        "url": "https://github.com/qutip/qutip-qip",
-        "t1": None,
-        "t2": None,
-        "simulator": True,
-        "local": True,
-        "conditional": False,
-        "open_pulse": False,
-        "memory": False,
-        "max_shots": int(1e6),
-        "coupling_map": None,
-        "description": "A qutip-qip based pulse-level simulator based on the CircularSpinChain model.",
-        "basis_gates": [],
-        "gates": [],
-    }
-
-    def __init__(
-        self, t1=None, t2=None, configuration=None, provider=None, **fields
-    ):
-
-        self._DEFAULT_CONFIGURATION["t1"] = t1
-        self._DEFAULT_CONFIGURATION["t2"] = t2
-        super().__init__(
-            configuration=configuration, provider=provider, **fields
-        )
-
-    def _run_job(self, job_id: str, qutip_circuit: QubitCircuit) -> Result:
-        """
-        Run a QubitCircuit on the CircularSpinChain Pulse Simulator.
-
-        Parameters
-        ----------
-        job_id : str
-            Unique ID identifying a job.
-
-        qutip_circuit : QubitCircuit
-            The circuit obtained after conversion
-            from QuantumCircuit to QubitCircuit.
-
-        Returns
+        Options
         -------
-        qiskit.result.Result
-            Result of the simulation
-        """
-        zero_state = basis([2] * qutip_circuit.N, [0] * qutip_circuit.N)
-        noise = {}
-        if self.configuration().t1 is not None:
-            noise["t1"] = self.configuration().t1
-        if self.configuration().t2 is not None:
-            noise["t2"] = self.configuration().t2
-        processor = CircularSpinChain(num_qubits=qutip_circuit.N, **noise)
-        processor.load_circuit(qutip_circuit)
-        result = processor.run_state(zero_state)
-
-        return self._parse_results(
-            density_matrix=self._get_density_matrix(result),
-            job_id=job_id,
-            qutip_circuit=qutip_circuit,
-        )
-
-    @classmethod
-    def _default_options(cls):
-        """
-        Default options for the backend. To be updated.
-        """
-        return Options(shots=1024)
-
-
-class QiskitDispersiveCavityQEDSimulator(QiskitPulseSimulatorBase):
-    """
-    Qiskit backend dealing with pulse-level
-    simulation using the DispersiveCavityQED model.
-    """
-
-    MAX_QUBITS_MEMORY = 10
-    BACKEND_NAME = "cavity_qed_simulator"
-
-    _DEFAULT_CONFIGURATION = {
-        "backend_name": BACKEND_NAME,
-        "backend_version": "0.1",
-        "n_qubits": MAX_QUBITS_MEMORY,
-        "url": "https://github.com/qutip/qutip-qip",
-        "t1": None,
-        "t2": None,
-        "num_levels": 10,
-        "simulator": True,
-        "local": True,
-        "conditional": False,
-        "open_pulse": False,
-        "memory": False,
-        "max_shots": int(1e6),
-        "coupling_map": None,
-        "description": "A qutip-qip based pulse-level simulator based on the DispersiveCavityQED model.",
-        "basis_gates": [],
-        "gates": [],
-    }
-
-    def __init__(
-        self,
-        num_levels=10,
-        t1=None,
-        t2=None,
-        configuration=None,
-        provider=None,
-        **fields
-    ):
-
-        self._DEFAULT_CONFIGURATION["num_levels"] = num_levels
-        self._DEFAULT_CONFIGURATION["t1"] = t1
-        self._DEFAULT_CONFIGURATION["t2"] = t2
-        super().__init__(
-            configuration=configuration, provider=provider, **fields
-        )
-
-    def _run_job(self, job_id: str, qutip_circuit: QubitCircuit) -> Result:
-        """
-        Run a QubitCircuit on the DispersiveCavityQED Pulse Simulator.
-
-        Parameters
-        ----------
-        job_id : str
-            Unique ID identifying a job.
-
-        qutip_circuit : QubitCircuit
-            The circuit obtained after conversion
-            from QuantumCircuit to QubitCircuit.
-
-        Returns
-        -------
-        qiskit.result.Result
-            Result of the simulation
-        """
-        noise = {}
-        if self.configuration().t1 is not None:
-            noise["t1"] = self.configuration().t1
-        if self.configuration().t2 is not None:
-            noise["t2"] = self.configuration().t2
-        processor = DispersiveCavityQED(
-            num_qubits=qutip_circuit.N,
-            num_levels=self.configuration().num_levels,
-            **noise
-        )
-        zero_state = basis(
-            [processor.num_levels] + [2] * qutip_circuit.N,
-            [0] + [0] * qutip_circuit.N,
-        )
-        processor.load_circuit(qutip_circuit)
-        result = processor.run_state(zero_state)
-
-        density_matrix = self._get_density_matrix(result)
-
-        # we partial trace out the cavity system
-        ptraced_density_matrix = density_matrix.ptrace(
-            range(1, len(density_matrix.dims[0]))
-        )
-
-        return self._parse_results(
-            density_matrix=ptraced_density_matrix,
-            job_id=job_id,
-            qutip_circuit=qutip_circuit,
-        )
-
-    @classmethod
-    def _default_options(cls):
-        """
-        Default options for the backend. To be updated.
+        shots : int
+            Number of times to sample the results.
         """
         return Options(shots=1024)
