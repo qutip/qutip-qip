@@ -116,7 +116,12 @@ class TestOptPulseProcessor:
         processor.load_circuit(
             qc, merge_gates=True, num_tslots=10, evo_time=2.0
         )
-        init_state = qutip.rand_ket(8, dims=[[2, 2, 2], [1, 1, 1]])
+
+        if parse_version(qutip.__version__) < parse_version('5.dev'):
+            init_state = qutip.rand_ket(8, dims=[[2, 2, 2], [1, 1, 1]])
+        else:
+            init_state = qutip.rand_ket([2, 2, 2])
+
         num_result = processor.run_state(init_state=init_state).states[-1]
         ideal_result = qc.run(init_state)
         assert (
