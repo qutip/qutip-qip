@@ -257,8 +257,9 @@ class ModelProcessor(Processor):
         Returns
         -------
         qutip.Qobj
-            Return the initial state with the dimensions of the processor model.
-            If initial_circuit_state was not provided, return the zero state.  
+            Return the initial state with the dimensions
+            of the processor model. If initial_circuit_state
+            was not provided, return the zero state.
         """
         if init_circuit_state is None:
             return basis([2] * self.num_qubits, [0] * self.num_qubits)
@@ -277,7 +278,7 @@ class ModelProcessor(Processor):
         Returns
         -------
         qutip.Qobj
-            Return the final state with the dimensions of the circuit.  
+            Return the final state with the dimensions of the circuit.
         """
         return final_processor_state
 
