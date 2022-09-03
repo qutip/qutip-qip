@@ -16,7 +16,7 @@ from qiskit.providers import BackendV1, Options
 from qiskit.providers.models import QasmBackendConfiguration
 from qiskit.result import Result, Counts
 from qiskit.result.models import ExperimentResult, ExperimentResultData
-from qiskit.quantum_info import Statevector
+from qiskit.quantum_info import Statevector, DensityMatrix
 from qiskit.circuit import QuantumCircuit
 from qiskit.qobj import QobjExperimentHeader
 
@@ -119,6 +119,19 @@ class QiskitSimulatorBase(BackendV1):
             list(count_probs.keys()), list(count_probs.values()), k=shots
         )
         return Counts(Counter(samples))
+
+    def _get_probabilities(self, state):
+        """
+        Given a state, return an array of corresponding probabilities.
+        """
+        if state.type == "oper":
+            # diagonal elements of a density matrix are
+            # the probabilities
+            return state.diag()
+
+        # squares of coefficients are the probabilities
+        # for a ket vector
+        return np.array([np.abs(coef) ** 2 for coef in state])
 
 
 class QiskitCircuitSimulator(QiskitSimulatorBase):
@@ -317,10 +330,7 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
         )
 
     def _parse_results(
-        self,
-        density_matrix: qutip.Qobj,
-        job_id: str,
-        qutip_circuit: QubitCircuit,
+        self, final_state: qutip.Qobj, job_id: str, qutip_circuit: QubitCircuit
     ) -> qiskit.result.Result:
         """
         Returns a parsed object of type qiskit.result.Result
@@ -347,14 +357,19 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
         counts = None
 
         # calculate probabilities of required states
-        if density_matrix:
-            for i, prob in enumerate(density_matrix.diag()):
+        if final_state:
+            for i, prob in enumerate(self._get_probabilities(final_state)):
                 if not np.isclose(prob, 0):
                     count_probs[hex(i)] = prob
             # sample the shots from obtained probabilities
             counts = self._sample_shots(count_probs)
 
-        exp_res_data = ExperimentResultData(counts=counts)
+        exp_res_data = ExperimentResultData(
+            counts=counts,
+            statevector=Statevector(data=np.array(final_state))
+            if final_state.type == "ket"
+            else DensityMatrix(data=np.array(final_state)),
+        )
 
         header = QobjExperimentHeader.from_dict(
             {
@@ -401,17 +416,15 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
         qiskit.result.Result
             Result of the simulation
         """
-        zero_state = self.processor._generate_init_state()
+        zero_state = self.processor.generate_init_processor_state()
 
         self.processor.load_circuit(qutip_circuit)
         result = self.processor.run_state(zero_state)
 
-        density_matrix = self.processor._truncate_final_state(result)
+        final_state = self.processor.get_final_circuit_state(result.states[-1])
 
         return self._parse_results(
-            density_matrix=density_matrix,
-            job_id=job_id,
-            qutip_circuit=qutip_circuit,
+            final_state=final_state, job_id=job_id, qutip_circuit=qutip_circuit
         )
 
     @classmethod

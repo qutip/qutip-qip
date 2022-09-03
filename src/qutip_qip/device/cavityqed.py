@@ -165,21 +165,47 @@ class DispersiveCavityQED(ModelProcessor):
         self.global_phase = compiler.global_phase
         return tlist, coeff
 
-    def _generate_init_state(self):
+    def generate_init_processor_state(
+        self, init_circuit_state: Qobj = None
+    ) -> Qobj:
         """
-        Generate zero state based on num_levels.
-        """
-        return basis(
-            [self.num_levels] + [2] * self.num_qubits,
-            [0] + [0] * self.num_qubits,
-        )
+        Generate the initial state with the dimensions of the DispersiveCavityQED processor.
 
-    def _truncate_final_state(self, final_state):
+        Parameters
+        ----------
+        init_circuit_state : qutip.Qobj
+            Initial state provided with the dimensions of the circuit.
+
+        Returns
+        -------
+        qutip.Qobj
+            Return the initial state with the dimensions of the DispersiveCavityQED processor model.
+            If initial_circuit_state was not provided, return the zero state.
         """
-        Truncate the final state to get rid of the cavity subsystem.
+        if init_circuit_state is None:
+            return basis(
+                [self.num_levels] + [2] * self.num_qubits,
+                [0] + [0] * self.num_qubits,
+            )
+        return tensor(basis(self.num_levels, 0), init_circuit_state)
+
+    def get_final_circuit_state(self, final_processor_state: Qobj) -> Qobj:
         """
-        density_matrix = self._get_density_matrix(final_state)
-        return density_matrix.ptrace(range(1, len(density_matrix.dims[0])))
+        Truncate the final processor state to get rid of the cavity subsystem.
+
+        Parameters
+        ----------
+        final_processor_state : qutip.Qobj
+            State provided with the dimensions of the DispersiveCavityQED processor model.
+
+        Returns
+        -------
+        qutip.Qobj
+            Return the truncated final state with the dimensions of the circuit.
+        """
+        return final_processor_state.ptrace(
+            range(1, len(final_processor_state.dims[0]))
+        )
 
 
 class CavityQEDModel(Model):

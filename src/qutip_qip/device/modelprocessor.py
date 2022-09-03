@@ -243,32 +243,43 @@ class ModelProcessor(Processor):
         self.set_tlist(tlist)
         return tlist, coeffs
 
-    def _get_density_matrix(self, result):
+    def generate_init_processor_state(
+        self, init_circuit_state: Qobj = None
+    ) -> Qobj:
         """
-        Convert a processor result to a density matrix.
-        """
-        density_matrix = None
-        if len(result.states):
-            density_matrix = result.states[-1]
-            # if answer is in ket form, convert
-            # to density matrix with outer product
-            if density_matrix.type == "ket":
-                density_matrix = density_matrix * density_matrix.dag()
-        return density_matrix
+        Generate the initial state with the dimensions of the processor.
 
-    def _generate_init_state(self):
-        """
-        Generate the zero state
-        """
-        return basis([2] * self.num_qubits, [0] * self.num_qubits)
+        Parameters
+        ----------
+        init_circuit_state : qutip.Qobj
+            Initial state provided with the dimensions of the circuit.
 
-    def _truncate_final_state(self, final_state):
+        Returns
+        -------
+        qutip.Qobj
+            Return the initial state with the dimensions of the processor model.
+            If initial_circuit_state was not provided, return the zero state.  
         """
-        Truncate the final state according to the processor
-        model (useful in child classes like DispersiveCavityQED
-        where a modified function can be defined).
+        if init_circuit_state is None:
+            return basis([2] * self.num_qubits, [0] * self.num_qubits)
+        return init_circuit_state
+
+    def get_final_circuit_state(self, final_processor_state: Qobj) -> Qobj:
         """
-        return self._get_density_matrix(final_state)
+        Convert the state with the dimensions of the processor model to
+        a final state with the dimensions of the circuit.
+
+        Parameters
+        ----------
+        final_processor_state : qutip.Qobj
+            State provided with the dimensions of the processor model.
+
+        Returns
+        -------
+        qutip.Qobj
+            Return the final state with the dimensions of the circuit.  
+        """
+        return final_processor_state
 
 
 def _to_array(params, num_qubits):
