@@ -479,7 +479,7 @@ class TestQubitCircuit:
         """
         Test for circuit with N-level system.
         """
-        mat3 = qp.rand_unitary_haar(3)
+        mat3 = qp.rand_unitary(3)
 
         def controlled_mat3(arg_value):
             """
