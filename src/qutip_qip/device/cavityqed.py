@@ -103,21 +103,21 @@ class DispersiveCavityQED(ModelProcessor):
         """
         list: A list of sigmax Hamiltonians for each qubit.
         """
-        return self.ctrls[0 : self.num_qubits]
+        return self.ctrls[0: self.num_qubits]
 
     @property
     def sz_ops(self):
         """
         list: A list of sigmaz Hamiltonians for each qubit.
         """
-        return self.ctrls[self.num_qubits : 2 * self.num_qubits]
+        return self.ctrls[self.num_qubits: 2 * self.num_qubits]
 
     @property
     def cavityqubit_ops(self):
         """
         list: A list of interacting Hamiltonians between cavity and each qubit.
         """
-        return self.ctrls[2 * self.num_qubits : 3 * self.num_qubits]
+        return self.ctrls[2 * self.num_qubits: 3 * self.num_qubits]
 
     @property
     def sx_u(self):
@@ -127,7 +127,7 @@ class DispersiveCavityQED(ModelProcessor):
     @property
     def sz_u(self):
         """array-like: Pulse matrix for sigmaz Hamiltonians."""
-        return self.coeffs[self.num_qubits : 2 * self.num_qubits]
+        return self.coeffs[self.num_qubits: 2 * self.num_qubits]
 
     @property
     def g_u(self):
@@ -135,7 +135,7 @@ class DispersiveCavityQED(ModelProcessor):
         array-like: Pulse matrix for interacting Hamiltonians
         between cavity and each qubit.
         """
-        return self.coeffs[2 * self.num_qubits : 3 * self.num_qubits]
+        return self.coeffs[2 * self.num_qubits: 3 * self.num_qubits]
 
     def eliminate_auxillary_modes(self, U):
         """
@@ -173,12 +173,12 @@ class DispersiveCavityQED(ModelProcessor):
 
         Parameters
         ----------
-        init_circuit_state : qutip.Qobj
+        init_circuit_state : :class:`qutip.Qobj`
             Initial state provided with the dimensions of the circuit.
 
         Returns
         -------
-        qutip.Qobj
+        :class:`qutip.Qobj`
             Return the initial state with the dimensions of the DispersiveCavityQED processor model.
             If initial_circuit_state was not provided, return the zero state.
         """
@@ -195,12 +195,12 @@ class DispersiveCavityQED(ModelProcessor):
 
         Parameters
         ----------
-        final_processor_state : qutip.Qobj
+        final_processor_state : :class:`qutip.Qobj`
             State provided with the dimensions of the DispersiveCavityQED processor model.
 
         Returns
         -------
-        qutip.Qobj
+        :class:`qutip.Qobj`
             Return the truncated final state with the dimensions of the circuit.
         """
         return final_processor_state.ptrace(

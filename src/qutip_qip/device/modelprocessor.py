@@ -164,7 +164,7 @@ class ModelProcessor(Processor):
             t_idx_len = int(np.floor(dt_list[n] / dt))
             mm = 0
             for m in range(len(ctrls)):
-                u[mm, t_start : (t_start + t_idx_len)] = (
+                u[mm, t_start: (t_start + t_idx_len)] = (
                     np.ones(t_idx_len) * coeffs[n, m]
                 )
                 mm += 1
@@ -251,12 +251,12 @@ class ModelProcessor(Processor):
 
         Parameters
         ----------
-        init_circuit_state : qutip.Qobj
+        init_circuit_state : :class:`qutip.Qobj`
             Initial state provided with the dimensions of the circuit.
 
         Returns
         -------
-        qutip.Qobj
+        :class:`qutip.Qobj`
             Return the initial state with the dimensions
             of the processor model. If initial_circuit_state
             was not provided, return the zero state.
@@ -268,16 +268,16 @@ class ModelProcessor(Processor):
     def get_final_circuit_state(self, final_processor_state: Qobj) -> Qobj:
         """
         Convert the state with the dimensions of the processor model to
-        a final state with the dimensions of the circuit.
+        a state with the dimensions of the circuit.
 
         Parameters
         ----------
-        final_processor_state : qutip.Qobj
+        final_processor_state : :class:`qutip.Qobj`
             State provided with the dimensions of the processor model.
 
         Returns
         -------
-        qutip.Qobj
+        :class:`qutip.Qobj`
             Return the final state with the dimensions of the circuit.
         """
         return final_processor_state

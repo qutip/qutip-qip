@@ -23,6 +23,7 @@ qutip-qip |version|: QuTiP quantum information processing
     qip-simulator.rst
     qip-processor.rst
     qip-vqa.rst
+    qip-qiskit.rst
 
 .. toctree::
     :maxdepth: 2
