@@ -1,3 +1,5 @@
+"""Class for a running job."""
+
 from qiskit.providers import JobV1, JobStatus
 from qiskit.result import Result
 
@@ -8,14 +10,14 @@ class Job(JobV1):
 
     Parameters
     ----------
-    backend : QiskitCircuitSimulator
+    backend : :class:`.QiskitCircuitSimulator`
         The backend used to simulate a
         circuit in the job.
 
     job_id : str
         Unique ID identifying a job.
 
-    result : qiskit.result.Result
+    result : :class:`qiskit.result.Result`
         The result of a simulation run.
     """
 

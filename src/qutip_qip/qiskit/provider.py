@@ -1,3 +1,5 @@
+"""Provider for the simulator backends."""
+
 from qiskit.providers.provider import ProviderV1
 from .backend import QiskitCircuitSimulator, QiskitPulseSimulator
 

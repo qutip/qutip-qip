@@ -1,3 +1,5 @@
+"""Backends for simulating qiskit circuits."""
+
 import numpy as np
 import uuid
 import random

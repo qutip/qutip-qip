@@ -164,7 +164,7 @@ class ModelProcessor(Processor):
             t_idx_len = int(np.floor(dt_list[n] / dt))
             mm = 0
             for m in range(len(ctrls)):
-                u[mm, t_start: (t_start + t_idx_len)] = (
+                u[mm, t_start : (t_start + t_idx_len)] = (
                     np.ones(t_idx_len) * coeffs[n, m]
                 )
                 mm += 1

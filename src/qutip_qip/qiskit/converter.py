@@ -1,3 +1,5 @@
+"""Conversion of circuits from qiskit to qutip_qip."""
+
 from qutip_qip.circuit import QubitCircuit
 from qiskit.quantum_info import Operator
 import numpy as np
@@ -94,7 +96,7 @@ def convert_qiskit_circuit(
     qiskit_circuit : QuantumCircuit
         QuantumCircuit to be converted to QubitCircuit.
 
-    all_custom_gate : bool
+    allow_custom_gate : bool
         If False, this function will raise an error if
         gate conversion is done using a custom gate's
         unitary matrix.

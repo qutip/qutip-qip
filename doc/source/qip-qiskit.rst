@@ -1,6 +1,10 @@
-******************************
-Qiskit
-******************************
+.. _qip_qiskit:
+
+**********************************
+`qutip-qip` as a Qiskit backend
+**********************************
+
+This submodule was implemented by `Shreyas Pradhan <shpradhan12@gmail.com>`_ as part of Google Summer of Code 2022.
 
 Overview
 ===============
@@ -42,8 +46,10 @@ Let's run this on the :class:`.QiskitCircuitSimulator` backend:
     job = backend.run(circ)
     result = job.result()
     
->>> from qiskit.visualization import plot_histogram
->>> plot_histogram(result.get_counts())
+.. code-block:: 
+
+    from qiskit.visualization import plot_histogram
+    >>> plot_histogram(result.get_counts())
 
 .. image:: /figures/qiskit-gate-level-plot.png
     :alt: probabilities plot 
@@ -58,7 +64,7 @@ While using a pulse processor, we define the circuit without measurements:
     pulse_circ.h(0)
     pulse_circ.h(1)
 
-To use the :class:`.QiskitPulseSimulator` backend, we need to define the processor on which we want to run the circuit:
+To use the :class:`.QiskitPulseSimulator` backend, we need to define the processor on which we want to run the circuit. This includes defining the pulse processor model with all the required parameters including noise. 
 
 .. code-block::
 
@@ -75,7 +81,9 @@ Now that we defined our processor (:class:`.LinearSpinChain` in this case), we c
     pulse_job = pulse_backend.run(pulse_circ)
     pulse_result = pulse_job.result()
 
->>> plot_histogram(pulse_result.get_counts())
+.. code-block::
+
+    >>> plot_histogram(pulse_result.get_counts())
 
 .. image:: /figures/qiskit-pulse-level-plot.png
     :alt: probabilities plot
@@ -95,6 +103,8 @@ Qiskit's interface allows us to provide some options like ``shots`` while runnin
 (Only available for :class:`.QiskitCircuitSimulator`)
 ``allow_custom_gate``, when set to ``False``, does not allowing simulating circuits that have user-defined gates; it will throw an error in that case. By default, it is set to ``True``, in which case, the backend will simulate a user-defined gate by computing its unitary matrix.
 
+  .. note::
+    
     The pulse backend does not allow simulation with user-defined gates.
 
 An example demonstrating configuring options:

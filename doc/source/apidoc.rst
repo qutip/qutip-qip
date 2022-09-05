@@ -33,3 +33,16 @@ Simulation based on the master equation.
    qutip_qip.compiler
    qutip_qip.pulse
    qutip_qip.noise
+
+Qiskit Circuit Simulation
+--------------------------
+Simulation of qiskit circuits based on qutip_qip backends.
+
+.. autosummary::
+   :toctree: apidoc/
+   :template: autosummary/module.rst
+
+   qutip_qip.qiskit.backend
+   qutip_qip.qiskit.converter
+   qutip_qip.qiskit.provider
+   qutip_qip.qiskit.job
