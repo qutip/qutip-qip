@@ -39,11 +39,57 @@ def test_compiling_with_scheduler():
     assert(abs(time_scheduled2 * 2 - time_not_scheduled) < 1.0e-10)
 
 
-def gauss_dist(t, sigma, amplitude, duration):
-    return amplitude/np.sqrt(2*np.pi) /sigma*np.exp(-0.5*((t-duration/2)/sigma)**2)
+def test_compiling_gates_different_sampling_number():
+    """
+    Define compiler without a physical model.
+    Test compiling gates to pulses with different sampling number.
+    """
+
+    class MockCompiler(GateCompiler):
+        def __init__(self, num_qubits, params=None):
+            super().__init__(num_qubits, params=params)
+            self.gate_compiler["U1"] = self.single_qubit_gate_compiler
+            self.gate_compiler["U2"] = self.two_qubit_gate_compiler
+            self.args.update({"params": params})
+
+        def single_qubit_gate_compiler(self, gate, args):
+            pulse_info = [("x", np.array([1.0] * 3))]
+            return [
+                Instruction(
+                    gate, tlist=np.linspace(0, 2, 3), pulse_info=pulse_info
+                )
+            ]
+
+        def two_qubit_gate_compiler(self, gate, args):
+            pulse_info = [("xx", np.array([2.0] * 5))]
+            return [
+                Instruction(
+                    gate, tlist=np.linspace(0, 4, 5), pulse_info=pulse_info
+                )
+            ]
+
+    num_qubits = 2
+    circuit = QubitCircuit(num_qubits)
+    circuit.add_gate("U1", targets=0, arg_value=1.0)
+    circuit.add_gate("U2", targets=[0, 1], arg_value=1.0)
+    circuit.add_gate("U1", targets=0, arg_value=1.0)
+
+    compiler = MockCompiler(num_qubits=2)
+    compiled_tlists, compiled_coeffs = compiler.compile(circuit)
+
+    # Filter out the nonzero part of the pulse
+    # and check if they are correct.
+    np.testing.assert_array_equal(
+        compiled_tlists["x"][np.nonzero(compiled_coeffs["x"])[0]],
+        np.array([1, 2, 7, 8]),
+    )
+    np.testing.assert_array_equal(
+        compiled_tlists["xx"][np.nonzero(compiled_coeffs["xx"])[0]],
+        np.array([3, 4, 5, 6]),
+    )
 
 
-from qutip_qip.compiler import GateCompiler
+# Test the compiler with a physical model.
 class MyCompiler(GateCompiler):  # compiler class
     def __init__(self, num_qubits, params):
         super(MyCompiler, self).__init__(num_qubits, params=params)
