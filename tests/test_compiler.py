@@ -89,7 +89,7 @@ def test_compiling_gates_different_sampling_number():
     )
 
 
-#### Test the compiler with a physical model.
+# Test the compiler with a physical model.
 class MyCompiler(GateCompiler):  # compiler class
     def __init__(self, num_qubits, params):
         super(MyCompiler, self).__init__(num_qubits, params=params)
