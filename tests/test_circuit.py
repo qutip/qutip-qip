@@ -525,6 +525,29 @@ class TestQubitCircuit:
 
         np.testing.assert_allclose(initial_probabilities, final_probabilities)
 
+    def test_classical_control(self):
+        qc = QubitCircuit(1, num_cbits=2)
+        qc.add_gate(
+            "X",
+            targets=[0],
+            classical_controls=[0, 1],
+            classical_control_value=1,
+        )
+        result = qc.run(basis(2, 0), cbits=[1, 0])
+        fid = qp.fidelity(result, basis(2, 0))
+        assert pytest.approx(fid, 1.0e-6) == 1
+
+        qc = QubitCircuit(1, num_cbits=2)
+        qc.add_gate(
+            "X",
+            targets=[0],
+            classical_controls=[0, 1],
+            classical_control_value=2,
+        )
+        result = qc.run(basis(2, 0), cbits=[1, 0])
+        fid = qp.fidelity(result, basis(2, 1))
+        assert pytest.approx(fid, 1.0e-6) == 1
+
     def test_runstatistics_teleportation(self):
         """
         Test circuit run_statistics on teleportation circuit
