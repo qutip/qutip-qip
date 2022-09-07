@@ -95,7 +95,7 @@ def circuit_to_qir(circuit, format, module_name = "qutip_circuit"):
             return
 
         if op.controls:
-            if op.name not in ("CNOT", "CZ") or len(op.controls) != 1:
+            if op.name not in ("CNOT", "CX", "CZ") or len(op.controls) != 1:
                 raise NotImplementedError(
                     "Arbitrary controlled quantum operations are not yet supported."
                 )
@@ -112,7 +112,7 @@ def circuit_to_qir(circuit, format, module_name = "qutip_circuit"):
             builder.t(module.qubits[op.targets[0]])
         elif op.name == "SNOT":
             builder.h(module.qubits[op.targets[0]])
-        elif op.name == "CNOT":
+        elif op.name in ("CNOT", "CX"):
             builder.cx(module.qubits[op.controls[0]], module.qubits[op.targets[0]])
         elif op.name == "RX":
             builder.rx(op.control_value, module.qubits[op.targets[0]])
