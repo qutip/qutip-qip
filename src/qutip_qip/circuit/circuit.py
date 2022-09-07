@@ -490,30 +490,19 @@ class QubitCircuit:
         final_state : Qobj
                 output state of the circuit run.
         """
-
         if state.isket:
-            sim = CircuitSimulator(
-                self,
-                state,
-                cbits,
-                U_list,
-                measure_results,
-                "state_vector_simulator",
-                precompute_unitary,
-            )
+            mode = "state_vector_simulator"
         elif state.isoper:
-            sim = CircuitSimulator(
-                self,
-                state,
-                cbits,
-                U_list,
-                measure_results,
-                "density_matrix_simulator",
-                precompute_unitary,
-            )
+            mode = "density_matrix_simulator"
         else:
             raise TypeError("State is not a ket or a density matrix.")
-        return sim.run(state, cbits).get_final_states(0)
+        sim = CircuitSimulator(
+            self,
+            U_list,
+            mode,
+            precompute_unitary,
+        )
+        return sim.run(state, cbits, measure_results).get_final_states(0)
 
     def run_statistics(
         self, state, U_list=None, cbits=None, precompute_unitary=False
@@ -530,11 +519,6 @@ class QubitCircuit:
                 initialization of the classical bits.
         U_list: list of Qobj, optional
             list of predefined unitaries corresponding to circuit.
-        measure_results : tuple of ints, optional
-            optional specification of each measurement result to enable
-            post-selection. If specified, the measurement results are
-            set to the tuple of bits (sequentially) instead of being
-            chosen at random.
         precompute_unitary: Boolean, optional
             Specify if computation is done by pre-computing and aggregating
             gate unitaries. Possibly a faster method in the case of
@@ -546,27 +530,18 @@ class QubitCircuit:
             Return a CircuitResult object containing
             output states and and their probabilities.
         """
-
         if state.isket:
-            sim = CircuitSimulator(
-                self,
-                state,
-                cbits,
-                U_list,
-                mode="state_vector_simulator",
-                precompute_unitary=precompute_unitary,
-            )
+            mode = "state_vector_simulator"
         elif state.isoper:
-            sim = CircuitSimulator(
-                self,
-                state,
-                cbits,
-                U_list,
-                mode="density_matrix_simulator",
-                precompute_unitary=precompute_unitary,
-            )
+            mode = "density_matrix_simulator"
         else:
             raise TypeError("State is not a ket or a density matrix.")
+        sim = CircuitSimulator(
+            self,
+            U_list,
+            mode,
+            precompute_unitary,
+        )
         return sim.run_statistics(state, cbits)
 
     def resolve_gates(self, basis=["CNOT", "RX", "RY", "RZ"]):
