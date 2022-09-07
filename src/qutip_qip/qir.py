@@ -30,9 +30,6 @@ __all__ = [
     "QirFormat"
 ]
 
-QREG = "qr"
-CREG = "cr"
-
 class QirFormat(Enum):
     """
     Specifies the format used to serialize QIR.
