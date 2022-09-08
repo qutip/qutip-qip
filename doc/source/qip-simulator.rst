@@ -156,8 +156,8 @@ and computation proceeds. To demonstrate, we continue with our previous circuit:
 .. testcode::
 
   from qutip_qip.circuit import CircuitSimulator
-
-  sim = CircuitSimulator(qc, state=zero_state)
+  sim = CircuitSimulator(qc)
+  sim.initialize(zero_state)
 
 This initializes the simulator object and carries out any pre-computation
 required. There are two ways to carry out state evolution with the simulator.
