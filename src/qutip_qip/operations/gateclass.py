@@ -202,6 +202,21 @@ class Gate:
             if not all_integer:
                 raise ValueError("Index of a qubit must be an integer")
 
+    def __copy__(self):
+        new_gate = type(self).__new__(self.__class__)
+        new_gate.name = self.name
+        new_gate.targets = deepcopy(self.targets)
+        new_gate.controls = deepcopy(self.controls)
+        new_gate.classical_controls = deepcopy(self.classical_controls)
+        new_gate.classical_control_value = deepcopy(
+            self.classical_control_value
+        )
+        new_gate.control_value = deepcopy(self.control_value)
+        new_gate.arg_value = deepcopy(self.arg_value)
+        new_gate.arg_label = self.arg_label
+        new_gate.latex_str = self.latex_str
+        return new_gate
+
     def get_all_qubits(self):
         """
         Return a list of all qubits that the gate operator
