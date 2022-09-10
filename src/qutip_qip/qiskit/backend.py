@@ -28,14 +28,18 @@ class QiskitSimulatorBase(BackendV1):
     The base class for qutip_qip based qiskit backends.
     """
 
-    def __init__(self, configuration=None, provider=None, **fields):
+    def __init__(self, configuration=None, **fields):
 
         if configuration is None:
-            configuration = QasmBackendConfiguration.from_dict(
-                self._DEFAULT_CONFIGURATION
-            )
+            configuration_dict = self._DEFAULT_CONFIGURATION
+        else:
+            configuration_dict = self._DEFAULT_CONFIGURATION.copy()
+            for k, v in configuration.items():
+                configuration_dict[k] = v
 
-        super().__init__(configuration=configuration, provider=provider)
+        configuration = QasmBackendConfiguration.from_dict(configuration_dict)
+
+        super().__init__(configuration=configuration)
 
         self.options.set_validator(
             "shots", (1, self.configuration().max_shots)
@@ -61,35 +65,24 @@ class QiskitSimulatorBase(BackendV1):
                 Allow conversion of circuit using unitary matrices
                 for custom gates.
 
-        Result
-        ------
+        Returns
+        -------
         qutip_qip.qiskit.job.Job
             Job that stores results and execution data
         """
-        if isinstance(self, QiskitCircuitSimulator):
-            # configure the options
-            self.set_options(
-                shots=run_options["shots"]
-                if "shots" in run_options
-                else self._default_options().shots,
-                allow_custom_gate=run_options["allow_custom_gate"]
-                if "allow_custom_gate" in run_options
-                else self._default_options().allow_custom_gate,
-            )
-            qutip_circ = convert_qiskit_circuit(
-                qiskit_circuit,
-                allow_custom_gate=self.options.allow_custom_gate,
-            )
-        else:
-            # configure the options
-            self.set_options(
-                shots=run_options["shots"]
-                if "shots" in run_options
-                else self._default_options().shots
-            )
-            qutip_circ = convert_qiskit_circuit(
-                qiskit_circuit, allow_custom_gate=False
-            )
+        # configure the options
+        self.set_options(
+            shots=run_options["shots"]
+            if "shots" in run_options
+            else self._default_options().shots,
+            allow_custom_gate=run_options["allow_custom_gate"]
+            if "allow_custom_gate" in run_options
+            else self._default_options().allow_custom_gate,
+        )
+        qutip_circ = convert_qiskit_circuit(
+            qiskit_circuit,
+            allow_custom_gate=self.options.allow_custom_gate,
+        )
 
         job_id = str(uuid.uuid4())
 
@@ -161,11 +154,9 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
         "gates": [],
     }
 
-    def __init__(self, configuration=None, provider=None, **fields):
+    def __init__(self, configuration=None, **fields):
 
-        super().__init__(
-            configuration=configuration, provider=provider, **fields
-        )
+        super().__init__(configuration=configuration, **fields)
 
     def _parse_results(
         self,
@@ -300,6 +291,9 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
     ----------
     processor : qutip_qip.device.Processor
         The processor model to be used for simulation.
+
+    configuration : dict
+        Configurable attributes of the backend.
     """
 
     processor = None
@@ -322,14 +316,10 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
         "gates": [],
     }
 
-    def __init__(
-        self, processor: Processor, configuration=None, provider=None, **fields
-    ):
+    def __init__(self, processor: Processor, configuration=None, **fields):
 
         self.processor = processor
-        super().__init__(
-            configuration=configuration, provider=provider, **fields
-        )
+        super().__init__(configuration=configuration, **fields)
 
     def _parse_results(
         self, final_state: qutip.Qobj, job_id: str, qutip_circuit: QubitCircuit
@@ -438,5 +428,9 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
         -------
         shots : int
             Number of times to sample the results.
+
+        allow_custom_gate : bool
+            Allow conversion of circuit using unitary matrices
+            for custom gates.
         """
-        return Options(shots=1024)
+        return Options(shots=1024, allow_custom_gate=True)
