@@ -52,11 +52,11 @@ A circuit with the various gates and registers available is demonstrated below:
 .. testoutput::
   :options: +NORMALIZE_WHITESPACE
 
-   [Gate(SWAP, targets=[0, 1], controls=None, classical controls=None, control_value=None, classical_control_value=None),
-   Measurement(M0, target=[1], classical_store=0),
-   Gate(CNOT, targets=[1], controls=[0], classical controls=None, control_value=1, classical_control_value=None),
-   Gate(X, targets=[0], controls=None, classical controls=[0], control_value=None, classical_control_value=None),
-   Gate(SWAP, targets=[0, 1], controls=None, classical controls=None, control_value=None, classical_control_value=None)]
+    [Gate(SWAP, targets=[0, 1], controls=None, classical controls=None, control_value=None, classical_control_value=None),
+    Measurement(M0, target=[1], classical_store=0),
+    Gate(CNOT, targets=[1], controls=[0], classical controls=None, control_value=1, classical_control_value=None),
+    Gate(X, targets=[0], controls=None, classical controls=[0], control_value=None, classical_control_value=1),
+    Gate(SWAP, targets=[0, 1], controls=None, classical controls=None, control_value=None, classical_control_value=None)]
 
 Unitaries
 =========

@@ -11,6 +11,7 @@ from ..operations import (
     gate_sequence_product,
 )
 from qutip import basis, ket2dm, Qobj, tensor
+import warnings
 
 
 __all__ = ["CircuitSimulator", "CircuitResult"]
@@ -253,12 +254,12 @@ class CircuitSimulator:
     def __init__(
         self,
         qc,
-        state=None,
-        cbits=None,
         U_list=None,
-        measure_results=None,
         mode="state_vector_simulator",
         precompute_unitary=False,
+        state=None,
+        cbits=None,
+        measure_results=None,
     ):
         """
         Simulate state evolution for Quantum Circuits.
@@ -268,20 +269,8 @@ class CircuitSimulator:
         qc : :class:`.QubitCircuit`
             Quantum Circuit to be simulated.
 
-        state: ket or oper
-            ket or density matrix
-
-        cbits: list of int, optional
-            initial value of classical bits
-
         U_list: list of Qobj, optional
             list of predefined unitaries corresponding to circuit.
-
-        measure_results : tuple of ints, optional
-            optional specification of each measurement result to enable
-            post-selection. If specified, the measurement results are
-            set to the tuple of bits (sequentially) instead of being
-            chosen at random.
 
         mode: string, optional
             Specify if input state (and therefore computation) is in
@@ -321,7 +310,13 @@ class CircuitSimulator:
         else:
             self._process_ops()
 
-        self.initialize(state, cbits, measure_results)
+        if any(p is not None for p in (state, cbits, measure_results)):
+            warnings.warn(
+                "Initializing the quantum state, cbits and measure_results "
+                "when initializing the simulator is deprecated. "
+                "The inputs are ignored. "
+                "They should, instead, be provided when running the simulation."
+            )
 
     def _process_ops(self):
         """
@@ -554,13 +549,26 @@ class CircuitSimulator:
             state after one evolution step.
         """
 
+        def _decimal_to_binary(decimal, length):
+            binary = [int(s) for s in "{0:#b}".format(decimal)[2:]]
+            return [0] * (length - len(binary)) + binary
+
         op = self.ops[self.op_index]
         if isinstance(op, Measurement):
             self._apply_measurement(op)
         elif isinstance(op, tuple):
             operation, U = op
             apply_gate = all(
-                [self.cbits[i] for i in operation.classical_controls]
+                [
+                    self.cbits[cbit_index] == control_value
+                    for cbit_index, control_value in zip(
+                        operation.classical_controls,
+                        _decimal_to_binary(
+                            operation.classical_control_value,
+                            len(operation.classical_controls),
+                        ),
+                    )
+                ]
             )
             if apply_gate:
                 if self.precompute_unitary:

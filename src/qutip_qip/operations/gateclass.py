@@ -114,15 +114,17 @@ class Gate:
         the unitary operator on the target qubits.
         E.g. if the gate should be executed when the zero-th bit is 1,
         ``controll_value=1``;
-        If the gate should be executed when the first two bits are 0 and 1,
-        ``controll_value=3``.
-    classical_control_values : int, optional
+        If the gate should be executed when the two bits are 1 and 0,
+        ``controll_value=2``.
+    classical_control_value : int, optional
         The decimal value of controlling classical bits for executing
         the unitary operator on the target qubits.
         E.g. if the gate should be executed when the zero-th bit is 1,
         ``controll_value=1``;
-        If the gate should be executed when the first two bits are 0 and 1,
-        ``controll_value=3``.
+        If the gate should be executed when the two bits are 1 and 0,
+        ``controll_value=2``.
+        The default is ``2**len(classical_controls)-1``
+        (i.e. all classical controls are 1).
     arg_label : string
         Label for the argument, it will be shown in the circuit plot,
         representing the argument value provided to the gate, e.g,
@@ -177,8 +179,16 @@ class Gate:
         else:
             self.classical_controls = classical_controls
 
+        if (
+            self.classical_controls is not None
+            and classical_control_value is None
+        ):
+            self.classical_control_value = (
+                2 ** len(self.classical_controls) - 1
+            )
+        else:
+            self.classical_control_value = classical_control_value
         self.control_value = control_value
-        self.classical_control_value = classical_control_value
         self.arg_value = arg_value
         self.arg_label = arg_label
         self.latex_str = r"U"

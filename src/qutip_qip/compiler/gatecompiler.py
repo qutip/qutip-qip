@@ -249,7 +249,7 @@ class GateCompiler(object):
                 compiled_tlist[pulse_ind].append(execution_time)
                 compiled_coeffs[pulse_ind].append(coeffs)
 
-        final_time = np.max([tlist[-1] for tlist in compiled_tlist])
+        final_time = np.max([tlist[-1][-1] for tlist in compiled_tlist])
         for pulse_ind in range(num_controls):
             if not compiled_tlist[pulse_ind]:
                 continue
