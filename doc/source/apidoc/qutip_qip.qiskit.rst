@@ -1,11 +1,12 @@
 :orphan:
 
-qutip\_qip.qiskit.backend
+qutip\_qip.qiskit
 ===========================
 
-.. automodule:: qutip_qip.qiskit.backend
+.. automodule:: qutip_qip.qiskit
    :members:
    :show-inheritance:
+   :imported-members:
 
    .. rubric:: Classes
 
@@ -14,43 +15,11 @@ qutip\_qip.qiskit.backend
       QiskitSimulatorBase
       QiskitCircuitSimulator       
       QiskitPulseSimulator     
+      Provider       
+      Job
       
-qutip\_qip.qiskit.converter
-==============================
-
-.. automodule:: qutip_qip.qiskit.converter
-   :members:
-   :show-inheritance:
-
    .. rubric:: Methods
 
    .. autosummary::
      
       convert_qiskit_circuit       
-            
-qutip\_qip.qiskit.provider
-===========================
-
-.. automodule:: qutip_qip.qiskit.provider
-   :members:
-   :show-inheritance:
-
-   .. rubric:: Classes
-
-   .. autosummary::
-     
-      Provider       
-
-qutip\_qip.qiskit.job
-===========================
-
-.. automodule:: qutip_qip.qiskit.job
-   :members:
-   :show-inheritance:
-
-   .. rubric:: Classes
-
-   .. autosummary::
-     
-      Job
-     

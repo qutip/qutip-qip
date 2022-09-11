@@ -25,7 +25,7 @@ from qiskit.qobj import QobjExperimentHeader
 
 class QiskitSimulatorBase(BackendV1):
     """
-    The base class for qutip_qip based qiskit backends.
+    The base class for ``qutip_qip`` based ``qiskit`` backends.
     """
 
     def __init__(self, configuration=None, **fields):
@@ -51,8 +51,8 @@ class QiskitSimulatorBase(BackendV1):
 
         Parameters
         ----------
-        qiskit_circuit : QuantumCircuit
-            The qiskit circuit to be simulated.
+        qiskit_circuit : :class:`qiskit.circuit.QuantumCircuit`
+            The ``qiskit`` circuit to be simulated.
 
         **run_options:
             Additional run options for the backend.
@@ -67,8 +67,8 @@ class QiskitSimulatorBase(BackendV1):
 
         Returns
         -------
-        qutip_qip.qiskit.job.Job
-            Job that stores results and execution data
+        :class:`.Job`
+            Job object that stores results and execution data.
         """
         # configure the options
         self.set_options(
@@ -95,7 +95,7 @@ class QiskitSimulatorBase(BackendV1):
 
     def _sample_shots(self, count_probs: dict) -> Counts:
         """
-        Sample measurements from a given probability distribution
+        Sample measurements from a given probability distribution.
 
         Parameters
         ----------
@@ -105,8 +105,8 @@ class QiskitSimulatorBase(BackendV1):
 
         Returns
         -------
-        qiskit.result.Counts
-            Returns the Counts object sampled according to
+        :class:`qiskit.result.Counts`
+            Returns the ``Counts`` object sampled according to
             the given probabilities and configured shots.
         """
         shots = self.options.shots
@@ -131,8 +131,13 @@ class QiskitSimulatorBase(BackendV1):
 
 class QiskitCircuitSimulator(QiskitSimulatorBase):
     """
-    Qiskit backend dealing with operator-level
-    circuit simulation using qutip_qip's CircuitSimulator.
+    ``qiskit`` backend dealing with operator-level
+    circuit simulation using ``qutip_qip``'s :class:`.CircuitSimulator`.
+
+    Parameters
+    ----------
+    configuration : dict
+        Configurable attributes of the backend.
     """
 
     MAX_QUBITS_MEMORY = 10
@@ -165,26 +170,25 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
         qutip_circuit: QubitCircuit,
     ) -> qiskit.result.Result:
         """
-        Returns a parsed object of type qiskit.result.Result
-        for the CircuitSimulator
+        Returns a parsed object of type :class:`qiskit.result.Result`
+        from the results of simulation.
 
         Parameters
         ----------
-        statistics : qutip_qip.circuit.
-                    circuitsimulator.CircuitResult
-            The result obtained from `run_statistics` on
-            a circuit on CircuitSimulator
+        statistics : :class:`.CircuitResult`
+            The result obtained from ``run_statistics`` on
+            a circuit on :class:`.CircuitSimulator`.
 
         job_id : str
             Unique ID identifying a job.
 
-        qutip_circuit : QubitCircuit
+        qutip_circuit : :class:`.QubitCircuit`
             The circuit being simulated
 
         Returns
         -------
-        qiskit.result.Result
-            Result of the simulation
+        :class:`qiskit.result.Result`
+            Result of the simulation.
         """
         count_probs = {}
         counts = None
@@ -237,20 +241,21 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
 
     def _run_job(self, job_id: str, qutip_circuit: QubitCircuit) -> Result:
         """
-        Run a QubitCircuit on the CircuitSimulator.
+        Run a :class:`.QubitCircuit` on the :class:`.CircuitSimulator`.
 
         Parameters
         ----------
         job_id : str
             Unique ID identifying a job.
 
-        qutip_circuit : QubitCircuit
+        qutip_circuit : :class:`.QubitCircuit`
             The circuit obtained after conversion
-            from QuantumCircuit to QubitCircuit.
+            from :class:`qiskit.circuit.QuantumCircuit`
+            to :class:`.QubitCircuit`.
 
         Returns
         -------
-        qiskit.result.Result
+        :class:`qiskit.result.Result`
             Result of the simulation
         """
         zero_state = basis([2] * qutip_circuit.N, [0] * qutip_circuit.N)
@@ -279,21 +284,23 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
 
 class QiskitPulseSimulator(QiskitSimulatorBase):
     """
-    Qiskit backend dealing with pulse-level simulation.
+    ``qiskit`` backend dealing with pulse-level simulation.
 
     Parameters
     ----------
-    processor : qutip_qip.device.Processor
-        The processor model to be used for simulation. Processor object to
-        be provided after initialising it with the required parameters.
-
-    Attributes
-    ----------
-    processor : qutip_qip.device.Processor
+    processor : :class:`.Processor`
         The processor model to be used for simulation.
+        An instance of the required :class:`.Processor`
+        object is to be provided after initialising
+        it with the required parameters.
 
     configuration : dict
         Configurable attributes of the backend.
+
+    Attributes
+    ----------
+    processor : :class:`.Processor`
+        The processor model to be used for simulation.
     """
 
     processor = None
@@ -311,7 +318,8 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
         "memory": False,
         "max_shots": int(1e6),
         "coupling_map": None,
-        "description": "A qutip-qip based pulse-level simulator based on the open system solver.",
+        "description": "A qutip-qip based pulse-level \
+            simulator based on the open system solver.",
         "basis_gates": [],
         "gates": [],
     }
@@ -325,25 +333,25 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
         self, final_state: qutip.Qobj, job_id: str, qutip_circuit: QubitCircuit
     ) -> qiskit.result.Result:
         """
-        Returns a parsed object of type qiskit.result.Result
+        Returns a parsed object of type :class:`qiskit.result.Result`
         for the pulse simulators.
 
         Parameters
         ----------
-        density_matrix : qutip.Qobj
+        density_matrix : :class:`.Qobj`
             The resulting density matrix obtained from `run_state` on
             a circuit using the Pulse simulator processors.
 
         job_id : str
             Unique ID identifying a job.
 
-        qutip_circuit : QubitCircuit
-            The circuit being simulated
+        qutip_circuit : :class:`.QubitCircuit`
+            The circuit being simulated.
 
         Returns
         -------
-        qiskit.result.Result
-            Result of the pulse simulation
+        :class:`qiskit.result.Result`
+            Result of the pulse simulation.
         """
         count_probs = {}
         counts = None
@@ -392,21 +400,21 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
 
     def _run_job(self, job_id: str, qutip_circuit: QubitCircuit) -> Result:
         """
-        Run a QubitCircuit on the Pulse Simulator.
+        Run a :class:`.QubitCircuit` on the Pulse Simulator.
 
         Parameters
         ----------
         job_id : str
             Unique ID identifying a job.
 
-        qutip_circuit : QubitCircuit
+        qutip_circuit : :class:`.QubitCircuit`
             The circuit obtained after conversion
-            from QuantumCircuit to QubitCircuit.
+            from :class:`.QuantumCircuit` to :class:`.QubitCircuit`.
 
         Returns
         -------
-        qiskit.result.Result
-            Result of the simulation
+        :class:`qiskit.result.Result`
+            Result of the simulation.
         """
         zero_state = self.processor.generate_init_processor_state()
 

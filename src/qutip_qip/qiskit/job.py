@@ -6,7 +6,7 @@ from qiskit.result import Result
 
 class Job(JobV1):
     """
-    Stores information about a qiskit job.
+    Stores information about an ongoing job.
 
     Parameters
     ----------

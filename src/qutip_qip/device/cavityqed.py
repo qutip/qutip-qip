@@ -169,7 +169,7 @@ class DispersiveCavityQED(ModelProcessor):
         self, init_circuit_state: Qobj = None
     ) -> Qobj:
         """
-        Generate the initial state with the dimensions of the DispersiveCavityQED processor.
+        Generate the initial state with the dimensions of the :class:`.DispersiveCavityQED` processor.
 
         Parameters
         ----------
@@ -179,7 +179,7 @@ class DispersiveCavityQED(ModelProcessor):
         Returns
         -------
         :class:`qutip.Qobj`
-            Return the initial state with the dimensions of the DispersiveCavityQED processor model.
+            Return the initial state with the dimensions of the :class:`.DispersiveCavityQED` processor model.
             If initial_circuit_state was not provided, return the zero state.
         """
         if init_circuit_state is None:

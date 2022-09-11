@@ -42,7 +42,4 @@ Simulation of qiskit circuits based on qutip_qip backends.
    :toctree: apidoc/
    :template: autosummary/module.rst
 
-   qutip_qip.qiskit.backend
-   qutip_qip.qiskit.converter
-   qutip_qip.qiskit.provider
-   qutip_qip.qiskit.job
+   qutip_qip.qiskit
