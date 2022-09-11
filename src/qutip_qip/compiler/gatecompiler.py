@@ -437,8 +437,8 @@ _default_window_t_max = {
 # subjects more to the finite sampling error under interpolation.
 # More analytical shape can be added here.
 _analytical_window = {
-    "hann": lambda t: 1 / 2 - 1 / 2 * np.cos(2 * np.pi * t),
-    "hamming": lambda t: 0.54 - 0.46 * np.cos(2 * np.pi * t),
+    "hann": lambda t: 1 / 2 - 1 / 2 * np.cos(np.pi * t),
+    "hamming": lambda t: 0.54 - 0.46 * np.cos(np.pi * t * 2 * 0.54),
 }
 
 
@@ -455,7 +455,7 @@ def _normalized_window(shape, num_samples):
         raise ValueError(f"Window function {shape} is not supported.")
     tlist = np.linspace(0, t_max, num_samples)
     if shape in _analytical_window:
-        coeff = _analytical_window["hann"](tlist)
+        coeff = _analytical_window[shape](tlist)
     else:
         coeff = signal.windows.get_window(shape, num_samples)
     return coeff, tlist
