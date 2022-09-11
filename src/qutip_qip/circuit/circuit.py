@@ -1171,7 +1171,7 @@ class QubitCircuit:
 
 
 _latex_template = r"""
-\documentclass{standalone}
+\documentclass[border=3pt]{standalone}
 \usepackage[braket]{qcircuit}
 \renewcommand{\qswap}{*=<0em>{\times}}
 \begin{document}
