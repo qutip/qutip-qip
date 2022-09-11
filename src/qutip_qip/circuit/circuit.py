@@ -1173,7 +1173,6 @@ class QubitCircuit:
 _latex_template = r"""
 \documentclass[border=3pt]{standalone}
 \usepackage[braket]{qcircuit}
-\renewcommand{\qswap}{*=<0em>{\times}}
 \begin{document}
 \Qcircuit @C=1cm @R=1cm {
 %s}
