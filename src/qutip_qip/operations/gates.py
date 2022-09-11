@@ -48,9 +48,6 @@ __all__ = [
     "controlled_gate",
     "globalphase",
     "hadamard_transform",
-    "gate_expand_1toN",
-    "gate_expand_2toN",
-    "gate_expand_3toN",
     "qubit_clifford_group",
     "expand_operator",
     "gate_sequence_product",
@@ -73,7 +70,7 @@ def x_gate(N=None, target=0):
 
     """
     if N is not None:
-        return gate_expand_1toN(x_gate(), N, target)
+        return expand_operator(x_gate(), N, targets=target, dims=[2] * N)
     return sigmax()
 
 
@@ -88,7 +85,7 @@ def y_gate(N=None, target=0):
 
     """
     if N is not None:
-        return gate_expand_1toN(y_gate(), N, target)
+        return expand_operator(y_gate(), N, targets=target, dims=[2] * N)
     return sigmay()
 
 
@@ -105,7 +102,7 @@ def cy_gate(N=None, control=0, target=1):
         N = 2
 
     if N is not None:
-        return gate_expand_2toN(cy_gate(), N, control, target)
+        return expand_operator(cy_gate(), N, (control, target), [2] * N)
     return Qobj(
         [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, -1j], [0, 0, 1j, 0]],
         dims=[[2, 2], [2, 2]],
@@ -123,7 +120,7 @@ def z_gate(N=None, target=0):
 
     """
     if N is not None:
-        return gate_expand_1toN(z_gate(), N, target)
+        return expand_operator(z_gate(), N, targets=target, dims=[2] * N)
     return sigmaz()
 
 
@@ -140,7 +137,7 @@ def cz_gate(N=None, control=0, target=1):
         N = 2
 
     if N is not None:
-        return gate_expand_2toN(cz_gate(), N, control, target)
+        return expand_operator(cz_gate(), N, (control, target))
     return Qobj(
         [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]],
         dims=[[2, 2], [2, 2]],
@@ -158,7 +155,7 @@ def s_gate(N=None, target=0):
 
     """
     if N is not None:
-        return gate_expand_1toN(s_gate(), N, target)
+        return expand_operator(s_gate(), N, target)
     return Qobj([[1, 0], [0, 1j]])
 
 
@@ -175,7 +172,7 @@ def cs_gate(N=None, control=0, target=1):
         N = 2
 
     if N is not None:
-        return gate_expand_2toN(cs_gate(), N, control, target)
+        return expand_operator(cs_gate(), N, (control, target))
     return Qobj(
         [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1j]],
         dims=[[2, 2], [2, 2]],
@@ -192,7 +189,7 @@ def t_gate(N=None, target=0):
 
     """
     if N is not None:
-        return gate_expand_1toN(t_gate(), N, target)
+        return expand_operator(t_gate(), N, target)
     return Qobj([[1, 0], [0, np.exp(1j * np.pi / 4)]])
 
 
@@ -209,7 +206,7 @@ def ct_gate(N=None, control=0, target=1):
         N = 2
 
     if N is not None:
-        return gate_expand_2toN(ct_gate(), N, control, target)
+        return expand_operator(ct_gate(), N, (control, target))
     return Qobj(
         [
             [1, 0, 0, 0],
@@ -231,7 +228,7 @@ def rx(phi, N=None, target=0):
 
     """
     if N is not None:
-        return gate_expand_1toN(rx(phi), N, target)
+        return expand_operator(rx(phi), N, target)
     return Qobj(
         [
             [np.cos(phi / 2), -1j * np.sin(phi / 2)],
@@ -250,7 +247,7 @@ def ry(phi, N=None, target=0):
 
     """
     if N is not None:
-        return gate_expand_1toN(ry(phi), N, target)
+        return expand_operator(ry(phi), N, target)
     return Qobj(
         [
             [np.cos(phi / 2), -np.sin(phi / 2)],
@@ -269,7 +266,7 @@ def rz(phi, N=None, target=0):
 
     """
     if N is not None:
-        return gate_expand_1toN(rz(phi), N, target)
+        return expand_operator(rz(phi), N, target)
     return Qobj([[np.exp(-1j * phi / 2), 0], [0, np.exp(1j * phi / 2)]])
 
 
@@ -283,7 +280,7 @@ def sqrtnot(N=None, target=0):
 
     """
     if N is not None:
-        return gate_expand_1toN(sqrtnot(), N, target)
+        return expand_operator(sqrtnot(), N, target)
     return Qobj([[0.5 + 0.5j, 0.5 - 0.5j], [0.5 - 0.5j, 0.5 + 0.5j]])
 
 
@@ -306,7 +303,7 @@ shape = [2, 2], type = oper, isHerm = True
 
     """
     if N is not None:
-        return gate_expand_1toN(snot(), N, target)
+        return expand_operator(snot(), N, target)
     return 1 / np.sqrt(2.0) * Qobj([[1, 1], [1, -1]])
 
 
@@ -335,7 +332,7 @@ shape = [2, 2], type = oper, isHerm = False
 
     """
     if N is not None:
-        return gate_expand_1toN(phasegate(theta), N, target)
+        return expand_operator(phasegate(theta), N, target)
     return Qobj([[1, 0], [0, np.exp(1.0j * theta)]], dims=[[2], [2]])
 
 
@@ -481,7 +478,7 @@ shape = [4, 4], type = oper, isHerm = True
         N = 2
 
     if N is not None:
-        return gate_expand_2toN(cnot(), N, control, target)
+        return expand_operator(cnot(), N, (control, target))
     return Qobj(
         [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]],
         dims=[[2, 2], [2, 2]],
@@ -513,7 +510,7 @@ shape = [4, 4], type = oper, isHerm = True
         N = 2
 
     if N is not None:
-        return gate_expand_2toN(csign(), N, control, target)
+        return expand_operator(csign(), N, (control, target))
     return Qobj(
         [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]],
         dims=[[2, 2], [2, 2]],
@@ -545,7 +542,7 @@ shape = [4, 4], type = oper, isHerm = True
         N = 2
 
     if N is not None:
-        return gate_expand_2toN(berkeley(), N, targets=targets)
+        return expand_operator(berkeley(), N, targets=targets)
     return Qobj(
         [
             [np.cos(np.pi / 8), 0, 0, 1.0j * np.sin(np.pi / 8)],
@@ -582,7 +579,7 @@ shape = [4, 4], type = oper, isHerm = True
         N = 2
 
     if N is not None:
-        return gate_expand_2toN(swapalpha(alpha), N, targets=targets)
+        return expand_operator(swapalpha(alpha), N, targets=targets)
     return Qobj(
         [
             [1, 0, 0, 0],
@@ -628,7 +625,7 @@ shape = [4, 4], type = oper, isHerm = True
         N = 2
 
     if N is not None:
-        return gate_expand_2toN(swap(), N, targets=targets)
+        return expand_operator(swap(), N, targets=targets)
     return Qobj(
         [[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]],
         dims=[[2, 2], [2, 2]],
@@ -658,7 +655,7 @@ shape = [4, 4], type = oper, isHerm = False
         N = 2
 
     if N is not None:
-        return gate_expand_2toN(iswap(), N, targets=targets)
+        return expand_operator(iswap(), N, targets=targets)
     return Qobj(
         [[1, 0, 0, 0], [0, 0, 1j, 0], [0, 1j, 0, 0], [0, 0, 0, 1]],
         dims=[[2, 2], [2, 2]],
@@ -678,7 +675,7 @@ def sqrtswap(N=None, targets=[0, 1]):
         N = 2
 
     if N is not None:
-        return gate_expand_2toN(sqrtswap(), N, targets=targets)
+        return expand_operator(sqrtswap(), N, targets=targets)
     return Qobj(
         np.array(
             [
@@ -720,7 +717,7 @@ shape = [4, 4], type = oper, isHerm = False
         N = 2
 
     if N is not None:
-        return gate_expand_2toN(sqrtiswap(), N, targets=targets)
+        return expand_operator(sqrtiswap(), N, targets=targets)
     return Qobj(
         np.array(
             [
@@ -801,9 +798,7 @@ shape = [8, 8], type = oper, isHerm = True
         N = 3
 
     if N is not None:
-        return gate_expand_3toN(
-            fredkin(), N, [control, targets[0]], targets[1]
-        )
+        return expand_operator(fredkin(), N, (control,) + tuple(targets))
     return Qobj(
         [
             [1, 0, 0, 0, 0, 0, 0, 0],
@@ -848,7 +843,7 @@ def toffoli(N=None, controls=[0, 1], target=2):
         N = 3
 
     if N is not None:
-        return gate_expand_3toN(toffoli(), N, controls, target)
+        return expand_operator(toffoli(), N, tuple(controls) + (target,))
     return Qobj(
         [
             [1, 0, 0, 0, 0, 0, 0, 0],
@@ -879,7 +874,7 @@ def rotation(op, phi, N=None, target=0):
 
     """
     if N is not None:
-        return gate_expand_1toN(rotation(op, phi), N, target)
+        return expand_operator(rotation(op, phi), N, target)
     return (-1j * op * phi / 2).expm()
 
 
@@ -1066,7 +1061,7 @@ def qubit_clifford_group(N=None, target=0):
 
         # Finally, we optionally expand the gate.
         if N is not None:
-            yield gate_expand_1toN(op, N, target)
+            yield expand_operator(op, N, target)
         else:
             yield op
 
@@ -1074,263 +1069,6 @@ def qubit_clifford_group(N=None, target=0):
 #
 # Gate Expand
 #
-
-
-def gate_expand_1toN(U, N, target):
-    """
-    Create a Qobj representing a one-qubit gate that act on a system with N
-    qubits.
-
-    Parameters
-    ----------
-    U : Qobj
-        The one-qubit gate
-
-    N : integer
-        The number of qubits in the target space.
-
-    target : integer
-        The index of the target qubit.
-
-    Returns
-    -------
-    gate : qobj
-        Quantum object representation of N-qubit gate.
-
-    """
-
-    if N < 1:
-        raise ValueError("integer N must be larger or equal to 1")
-
-    if target >= N:
-        raise ValueError("target must be integer < integer N")
-
-    return tensor(
-        [identity(2)] * (target) + [U] + [identity(2)] * (N - target - 1)
-    )
-
-
-def gate_expand_2toN(U, N, control=None, target=None, targets=None):
-    """
-    Create a Qobj representing a two-qubit gate that act on a system with N
-    qubits.
-
-    Parameters
-    ----------
-    U : Qobj
-        The two-qubit gate
-
-    N : integer
-        The number of qubits in the target space.
-
-    control : integer
-        The index of the control qubit.
-
-    target : integer
-        The index of the target qubit.
-
-    targets : list
-        List of target qubits.
-
-    Returns
-    -------
-    gate : qobj
-        Quantum object representation of N-qubit gate.
-
-    """
-
-    if targets is not None:
-        control, target = targets
-
-    if control is None or target is None:
-        raise ValueError("Specify value of control and target")
-
-    if N < 2:
-        raise ValueError("integer N must be larger or equal to 2")
-
-    if control >= N or target >= N:
-        raise ValueError("control and not target must be integer < integer N")
-
-    if control == target:
-        raise ValueError("target and not control cannot be equal")
-
-    p = list(range(N))
-
-    if target == 0 and control == 1:
-        p[control], p[target] = p[target], p[control]
-
-    elif target == 0:
-        p[1], p[target] = p[target], p[1]
-        p[1], p[control] = p[control], p[1]
-
-    else:
-        p[1], p[target] = p[target], p[1]
-        p[0], p[control] = p[control], p[0]
-
-    return tensor([U] + [identity(2)] * (N - 2)).permute(p)
-
-
-def gate_expand_3toN(U, N, controls=[0, 1], target=2):
-    """
-    Create a Qobj representing a three-qubit gate that act on a system with N
-    qubits.
-
-    Parameters
-    ----------
-    U : Qobj
-        The three-qubit gate
-
-    N : integer
-        The number of qubits in the target space.
-
-    controls : list
-        The list of the control qubits.
-
-    target : integer
-        The index of the target qubit.
-
-    Returns
-    -------
-    gate : qobj
-        Quantum object representation of N-qubit gate.
-
-    """
-
-    if N < 3:
-        raise ValueError("integer N must be larger or equal to 3")
-
-    if controls[0] >= N or controls[1] >= N or target >= N:
-        raise ValueError(
-            "control and not target is None." " Must be integer < integer N"
-        )
-
-    if (
-        controls[0] == target
-        or controls[1] == target
-        or controls[0] == controls[1]
-    ):
-
-        raise ValueError(
-            "controls[0], controls[1], and target" " cannot be equal"
-        )
-
-    p = list(range(N))
-    p1 = list(range(N))
-    p2 = list(range(N))
-
-    if controls[0] <= 2 and controls[1] <= 2 and target <= 2:
-        p[controls[0]] = 0
-        p[controls[1]] = 1
-        p[target] = 2
-
-    #
-    # N > 3 cases
-    #
-
-    elif controls[0] == 0 and controls[1] == 1:
-        p[2], p[target] = p[target], p[2]
-
-    elif controls[0] == 0 and target == 2:
-        p[1], p[controls[1]] = p[controls[1]], p[1]
-
-    elif controls[1] == 1 and target == 2:
-        p[0], p[controls[0]] = p[controls[0]], p[0]
-
-    elif controls[0] == 1 and controls[1] == 0:
-        p[controls[1]], p[controls[0]] = p[controls[0]], p[controls[1]]
-        p2[2], p2[target] = p2[target], p2[2]
-        p = [p2[p[k]] for k in range(N)]
-
-    elif controls[0] == 2 and target == 0:
-        p[target], p[controls[0]] = p[controls[0]], p[target]
-        p1[1], p1[controls[1]] = p1[controls[1]], p1[1]
-        p = [p1[p[k]] for k in range(N)]
-
-    elif controls[1] == 2 and target == 1:
-        p[target], p[controls[1]] = p[controls[1]], p[target]
-        p1[0], p1[controls[0]] = p1[controls[0]], p1[0]
-        p = [p1[p[k]] for k in range(N)]
-
-    elif controls[0] == 1 and controls[1] == 2:
-        #  controls[0] -> controls[1] -> target -> outside
-        p[0], p[1] = p[1], p[0]
-        p[0], p[2] = p[2], p[0]
-        p[0], p[target] = p[target], p[0]
-
-    elif controls[0] == 2 and target == 1:
-        #  controls[0] -> target -> controls[1] -> outside
-        p[0], p[2] = p[2], p[0]
-        p[0], p[1] = p[1], p[0]
-        p[0], p[controls[1]] = p[controls[1]], p[0]
-
-    elif controls[1] == 0 and controls[0] == 2:
-        #  controls[1] -> controls[0] -> target -> outside
-        p[1], p[0] = p[0], p[1]
-        p[1], p[2] = p[2], p[1]
-        p[1], p[target] = p[target], p[1]
-
-    elif controls[1] == 2 and target == 0:
-        #  controls[1] -> target -> controls[0] -> outside
-        p[1], p[2] = p[2], p[1]
-        p[1], p[0] = p[0], p[1]
-        p[1], p[controls[0]] = p[controls[0]], p[1]
-
-    elif target == 1 and controls[1] == 0:
-        #  target -> controls[1] -> controls[0] -> outside
-        p[2], p[1] = p[1], p[2]
-        p[2], p[0] = p[0], p[2]
-        p[2], p[controls[0]] = p[controls[0]], p[2]
-
-    elif target == 0 and controls[0] == 1:
-        #  target -> controls[0] -> controls[1] -> outside
-        p[2], p[0] = p[0], p[2]
-        p[2], p[1] = p[1], p[2]
-        p[2], p[controls[1]] = p[controls[1]], p[2]
-
-    elif controls[0] == 0 and controls[1] == 2:
-        #  controls[0] -> self, controls[1] -> target -> outside
-        p[1], p[2] = p[2], p[1]
-        p[1], p[target] = p[target], p[1]
-
-    elif controls[1] == 1 and controls[0] == 2:
-        #  controls[1] -> self, controls[0] -> target -> outside
-        p[0], p[2] = p[2], p[0]
-        p[0], p[target] = p[target], p[0]
-
-    elif target == 2 and controls[0] == 1:
-        #  target -> self, controls[0] -> controls[1] -> outside
-        p[0], p[1] = p[1], p[0]
-        p[0], p[controls[1]] = p[controls[1]], p[0]
-
-    #
-    # N > 4 cases
-    #
-
-    elif controls[0] == 1 and controls[1] > 2 and target > 2:
-        #  controls[0] -> controls[1] -> outside, target -> outside
-        p[0], p[1] = p[1], p[0]
-        p[0], p[controls[1]] = p[controls[1]], p[0]
-        p[2], p[target] = p[target], p[2]
-
-    elif controls[0] == 2 and controls[1] > 2 and target > 2:
-        #  controls[0] -> target -> outside, controls[1] -> outside
-        p[0], p[2] = p[2], p[0]
-        p[0], p[target] = p[target], p[0]
-        p[1], p[controls[1]] = p[controls[1]], p[1]
-
-    elif controls[1] == 2 and controls[0] > 2 and target > 2:
-        #  controls[1] -> target -> outside, controls[0] -> outside
-        p[1], p[2] = p[2], p[1]
-        p[1], p[target] = p[target], p[1]
-        p[0], p[controls[0]] = p[controls[0]], p[0]
-
-    else:
-        p[0], p[controls[0]] = p[controls[0]], p[0]
-        p1[1], p1[controls[1]] = p1[controls[1]], p1[1]
-        p2[2], p2[target] = p2[target], p2[2]
-        p = [p[p1[p2[k]]] for k in range(N)]
-
-    return tensor([U] + [identity(2)] * (N - 3)).permute(p)
 
 
 def _check_qubits_oper(oper, dims=None, targets=None):

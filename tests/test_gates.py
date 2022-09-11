@@ -10,7 +10,7 @@ from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations import (
     X, Y, Z, RX, RY, RZ, H, SQRTNOT, S, T, QASMU, CNOT, CPHASE, ISWAP, SWAP,
     CZ, SQRTSWAP, SQRTISWAP, SWAPALPHA, SWAPALPHA, MS, TOFFOLI, FREDKIN,
-    BERKELEY)
+    BERKELEY, expand_operator)
 
 
 def _permutation_id(permutation):
@@ -32,7 +32,7 @@ def _make_random_three_qubit_gate():
     def gate(N=None, controls=None, target=None):
         if N is None:
             return operation
-        return gates.gate_expand_3toN(operation, N, controls, target)
+        return expand_operator(operation, N, controls + [target])
     return gate
 
 
