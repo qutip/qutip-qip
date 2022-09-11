@@ -207,6 +207,6 @@ def test_pulse_shape(shape):
     """Test different pulse shape functions"""
     coeff, tlist = GateCompiler.generate_pulse_shape(
         shape, 1001, maximum=1.0, area=1.0)
-    assert pytest.approx(coeff[500], 1.e-2) == 1 # max
+    assert pytest.approx(coeff[500], 1.e-2) == 1  # max
     result = integrate.trapz(coeff, tlist)
-    assert pytest.approx(result, rel=1.e-2) == 1 # area
+    assert pytest.approx(result, rel=1.e-2) == 1  # area
