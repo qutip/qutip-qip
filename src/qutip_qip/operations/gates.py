@@ -57,7 +57,15 @@ __all__ = [
 #
 # Single Qubit Gates
 #
-
+def _deprecation_warnings_gate_expansion():
+    warnings.warn(
+        "The expansion of output gate matrix is no longer included "
+        "in the gate functions. "
+        "To expand the output `Qobj` or permute the qubits, "
+        "please use expand_operator.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
 
 
 def x_gate(N=None, target=0):
@@ -87,6 +95,7 @@ def y_gate(N=None, target=0):
 
     """
     if N is not None:
+        _deprecation_warnings_gate_expansion()
         return expand_operator(y_gate(), dims=[2] * N, targets=target)
     return sigmay()
 
@@ -104,6 +113,7 @@ def cy_gate(N=None, control=0, target=1):
         N = 2
 
     if N is not None:
+        _deprecation_warnings_gate_expansion()
         return expand_operator(
             cy_gate(), dims=[2] * N, targets=(control, target)
         )
@@ -124,6 +134,7 @@ def z_gate(N=None, target=0):
 
     """
     if N is not None:
+        _deprecation_warnings_gate_expansion()
         return expand_operator(z_gate(), dims=[2] * N, targets=target)
     return sigmaz()
 
@@ -141,6 +152,7 @@ def cz_gate(N=None, control=0, target=1):
         N = 2
 
     if N is not None:
+        _deprecation_warnings_gate_expansion()
         return expand_operator(
             cz_gate(), dims=[2] * N, targets=(control, target)
         )
@@ -161,6 +173,7 @@ def s_gate(N=None, target=0):
 
     """
     if N is not None:
+        _deprecation_warnings_gate_expansion()
         return expand_operator(s_gate(), dims=[2] * N, targets=target)
     return Qobj([[1, 0], [0, 1j]])
 
@@ -178,6 +191,7 @@ def cs_gate(N=None, control=0, target=1):
         N = 2
 
     if N is not None:
+        _deprecation_warnings_gate_expansion()
         return expand_operator(
             cs_gate(), dims=[2] * N, targets=(control, target)
         )
@@ -197,6 +211,7 @@ def t_gate(N=None, target=0):
 
     """
     if N is not None:
+        _deprecation_warnings_gate_expansion()
         return expand_operator(t_gate(), dims=[2] * N, targets=target)
     return Qobj([[1, 0], [0, np.exp(1j * np.pi / 4)]])
 
@@ -214,6 +229,7 @@ def ct_gate(N=None, control=0, target=1):
         N = 2
 
     if N is not None:
+        _deprecation_warnings_gate_expansion()
         return expand_operator(
             ct_gate(), dims=[2] * N, targets=(control, target)
         )
@@ -238,6 +254,7 @@ def rx(phi, N=None, target=0):
 
     """
     if N is not None:
+        _deprecation_warnings_gate_expansion()
         return expand_operator(rx(phi), dims=[2] * N, targets=target)
     return Qobj(
         [
@@ -257,6 +274,7 @@ def ry(phi, N=None, target=0):
 
     """
     if N is not None:
+        _deprecation_warnings_gate_expansion()
         return expand_operator(ry(phi), dims=[2] * N, targets=target)
     return Qobj(
         [
@@ -276,6 +294,7 @@ def rz(phi, N=None, target=0):
 
     """
     if N is not None:
+        _deprecation_warnings_gate_expansion()
         return expand_operator(rz(phi), dims=[2] * N, targets=target)
     return Qobj([[np.exp(-1j * phi / 2), 0], [0, np.exp(1j * phi / 2)]])
 
@@ -290,6 +309,7 @@ def sqrtnot(N=None, target=0):
 
     """
     if N is not None:
+        _deprecation_warnings_gate_expansion()
         return expand_operator(sqrtnot(), dims=[2] * N, targets=target)
     return Qobj([[0.5 + 0.5j, 0.5 - 0.5j], [0.5 - 0.5j, 0.5 + 0.5j]])
 
@@ -313,6 +333,7 @@ shape = [2, 2], type = oper, isHerm = True
 
     """
     if N is not None:
+        _deprecation_warnings_gate_expansion()
         return expand_operator(snot(), dims=[2] * N, targets=target)
     return 1 / np.sqrt(2.0) * Qobj([[1, 1], [1, -1]])
 
@@ -342,6 +363,7 @@ shape = [2, 2], type = oper, isHerm = False
 
     """
     if N is not None:
+        _deprecation_warnings_gate_expansion()
         return expand_operator(phasegate(theta), dims=[2] * N, targets=target)
     return Qobj([[1, 0], [0, np.exp(1.0j * theta)]], dims=[[2], [2]])
 
@@ -368,6 +390,7 @@ def qrot(theta, phi, N=None, target=0):
         a rabi pulse.
     """
     if N is not None:
+        _deprecation_warnings_gate_expansion()
         return expand_operator(qrot(theta, phi), dims=[2] * N, targets=target)
     return Qobj(
         [
@@ -410,6 +433,7 @@ def qasmu_gate(args, N=None, target=0):
 
     theta, phi, gamma = args
     if N is not None:
+        _deprecation_warnings_gate_expansion()
         return expand_operator(
             qasmu_gate([theta, phi, gamma]), dims=[2] * N, targets=target
         )
@@ -444,6 +468,8 @@ def cphase(theta, N=2, control=0, target=1):
     U : qobj
         Quantum object representation of controlled phase gate.
     """
+    if N != 2 or control != 0 or target != 1:
+        _deprecation_warnings_gate_expansion()
 
     if N < 1 or target < 0 or control < 0:
         raise ValueError("Minimum value: N=1, control=0 and target=0")
@@ -488,6 +514,7 @@ shape = [4, 4], type = oper, isHerm = True
         N = 2
 
     if N is not None:
+        _deprecation_warnings_gate_expansion()
         return expand_operator(cnot(), dims=[2] * N, targets=(control, target))
     return Qobj(
         [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]],
@@ -520,6 +547,7 @@ shape = [4, 4], type = oper, isHerm = True
         N = 2
 
     if N is not None:
+        _deprecation_warnings_gate_expansion()
         return expand_operator(csign(), N, (control, target))
     return Qobj(
         [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]],
@@ -552,6 +580,7 @@ shape = [4, 4], type = oper, isHerm = True
         N = 2
 
     if N is not None:
+        _deprecation_warnings_gate_expansion()
         return expand_operator(berkeley(), N, targets=targets)
     return Qobj(
         [
@@ -589,6 +618,7 @@ shape = [4, 4], type = oper, isHerm = True
         N = 2
 
     if N is not None:
+        _deprecation_warnings_gate_expansion()
         return expand_operator(swapalpha(alpha), N, targets=targets)
     return Qobj(
         [
@@ -635,6 +665,7 @@ shape = [4, 4], type = oper, isHerm = True
         N = 2
 
     if N is not None:
+        _deprecation_warnings_gate_expansion()
         return expand_operator(swap(), dims=[2] * N, targets=targets)
     return Qobj(
         [[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]],
@@ -665,6 +696,7 @@ shape = [4, 4], type = oper, isHerm = False
         N = 2
 
     if N is not None:
+        _deprecation_warnings_gate_expansion()
         return expand_operator(iswap(), dims=[2] * N, targets=targets)
     return Qobj(
         [[1, 0, 0, 0], [0, 0, 1j, 0], [0, 1j, 0, 0], [0, 0, 0, 1]],
@@ -685,6 +717,7 @@ def sqrtswap(N=None, targets=[0, 1]):
         N = 2
 
     if N is not None:
+        _deprecation_warnings_gate_expansion()
         return expand_operator(sqrtswap(), dims=[2] * N, targets=targets)
     return Qobj(
         np.array(
@@ -727,6 +760,7 @@ shape = [4, 4], type = oper, isHerm = False
         N = 2
 
     if N is not None:
+        _deprecation_warnings_gate_expansion()
         return expand_operator(sqrtiswap(), N, targets=targets)
     return Qobj(
         np.array(
@@ -763,6 +797,7 @@ def molmer_sorensen(theta, N=None, targets=[0, 1]):
         N = 2
 
     if N is not None:
+        _deprecation_warnings_gate_expansion()
         return expand_operator(
             molmer_sorensen(theta), dims=[2] * N, targets=targets
         )
@@ -810,6 +845,7 @@ shape = [8, 8], type = oper, isHerm = True
         N = 3
 
     if N is not None:
+        _deprecation_warnings_gate_expansion()
         return expand_operator(
             fredkin(), dims=[2] * N, targets=(control,) + tuple(targets)
         )
@@ -857,6 +893,7 @@ def toffoli(N=None, controls=[0, 1], target=2):
         N = 3
 
     if N is not None:
+        _deprecation_warnings_gate_expansion()
         return expand_operator(
             toffoli(), dims=[2] * N, targets=tuple(controls) + (target,)
         )
@@ -890,6 +927,7 @@ def rotation(op, phi, N=None, target=0):
 
     """
     if N is not None:
+        _deprecation_warnings_gate_expansion()
         return expand_operator(rotation(op, phi), N, target)
     return (-1j * op * phi / 2).expm()
 
@@ -1187,7 +1225,7 @@ def expand_operator(
     -------
     expanded_oper : :class:`qutip.Qobj`
         The expanded operator acting on a system with desired dimension.
-    
+
     Examples
     --------
     >>> from qutip_qip.operations import expand_operator, x_gate, cnot
@@ -1202,7 +1240,7 @@ def expand_operator(
      [0. 1. 0. 0. 0. 0.]
      [0. 0. 1. 0. 0. 0.]]
     >>> expand_operator(cnot(), dims=[2,2,2], targets=[1, 2]) # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims = [[2, 2, 2], [2, 2, 2]], shape = (8, 
+    Quantum object: dims = [[2, 2, 2], [2, 2, 2]], shape = (8,
     8), type = oper, isherm = True
     Qobj data =
     [[1. 0. 0. 0. 0. 0. 0. 0.]
@@ -1214,7 +1252,7 @@ def expand_operator(
      [0. 0. 0. 0. 0. 0. 0. 1.]
      [0. 0. 0. 0. 0. 0. 1. 0.]]
     >>> expand_operator(cnot(), dims=[2, 2, 2], targets=[2, 0]) # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims = [[2, 2, 2], [2, 2, 2]], shape = (8, 
+    Quantum object: dims = [[2, 2, 2], [2, 2, 2]], shape = (8,
     8), type = oper, isherm = True
     Qobj data =
     [[1. 0. 0. 0. 0. 0. 0. 0.]
@@ -1232,8 +1270,7 @@ def expand_operator(
             "arbitrary subsystems instead of only qubit systems."
             "Please use the new signature e.g.\n"
             "expand_operator(oper, dims=[2, 3, 2, 2], targets=2)",
-            DeprecationWarning
-            
+            DeprecationWarning,
         )
     if dims is not None and N is None:
         if not isinstance(dims, Iterable):
@@ -1249,7 +1286,7 @@ def expand_operator(
         warnings.warn(
             "cyclic_permutation is deprecated, "
             "please use loop through different targets manually.",
-            DeprecationWarning
+            DeprecationWarning,
         )
         oper_list = []
         for i in range(N):
