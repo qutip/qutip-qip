@@ -177,6 +177,82 @@ class TestCliffordGroup:
         assert len(pauli_gates) == 0
 
 
+@pytest.mark.filterwarnings('ignore::DeprecationWarning')
+class TestGateExpansion:
+    """
+    Test that gates act correctly when supplied with controls and targets, i.e.
+    that they pick out the correct qubits to act on, the action is correct, and
+    all other qubits are untouched.
+    """
+    n_qubits = 5
+
+    @pytest.mark.parametrize(["gate", "n_angles"], [
+        pytest.param(gates.rx, 1, id="Rx"),
+        pytest.param(gates.ry, 1, id="Ry"),
+        pytest.param(gates.rz, 1, id="Rz"),
+        pytest.param(gates.x_gate, 0, id="X"),
+        pytest.param(gates.y_gate, 0, id="Y"),
+        pytest.param(gates.z_gate, 0, id="Z"),
+        pytest.param(gates.s_gate, 0, id="S"),
+        pytest.param(gates.t_gate, 0, id="T"),
+        pytest.param(gates.phasegate, 1, id="phase"),
+        pytest.param(gates.qrot, 2, id="Rabi rotation"),
+    ])
+    def test_single_qubit_rotation(self, gate, n_angles):
+        base = qutip.rand_ket(2)
+        angles = np.random.rand(n_angles) * 2*np.pi
+        applied = gate(*angles) * base
+        random = [qutip.rand_ket(2) for _ in [None]*(self.n_qubits - 1)]
+        for target in range(self.n_qubits):
+            start = qutip.tensor(random[:target] + [base] + random[target:])
+            test = gate(*angles, self.n_qubits, target) * start
+            expected = qutip.tensor(random[:target] + [applied]
+                                    + random[target:])
+            assert _infidelity(test, expected) < 1e-12
+
+    @pytest.mark.parametrize(['gate', 'n_controls'], [
+        pytest.param(gates.cnot, 1, id="cnot"),
+        pytest.param(gates.cy_gate, 1, id="cY"),
+        pytest.param(gates.cz_gate, 1, id="cZ"),
+        pytest.param(gates.cs_gate, 1, id="cS"),
+        pytest.param(gates.ct_gate, 1, id="cT"),
+        pytest.param(gates.swap, 0, id="swap"),
+        pytest.param(gates.iswap, 0, id="iswap"),
+        pytest.param(gates.sqrtswap, 0, id="sqrt(swap)"),
+        pytest.param(functools.partial(gates.molmer_sorensen, 0.5*np.pi), 0,
+                     id="Molmer-Sorensen")
+    ])
+    def test_two_qubit(self, gate, n_controls):
+        targets = [qutip.rand_ket(2) for _ in [None]*2]
+        others = [qutip.rand_ket(2) for _ in [None]*self.n_qubits]
+        reference = gate() * qutip.tensor(*targets)
+        for q1, q2 in itertools.permutations(range(self.n_qubits), 2):
+            qubits = others.copy()
+            qubits[q1], qubits[q2] = targets
+            args = [[q1, q2]] if n_controls == 0 else [q1, q2]
+            test = gate(self.n_qubits, *args) * qutip.tensor(*qubits)
+            expected = _tensor_with_entanglement(qubits, reference, [q1, q2])
+            assert _infidelity(test, expected) < 1e-12
+
+    @pytest.mark.parametrize(['gate', 'n_controls'], [
+        pytest.param(gates.fredkin, 1, id="Fredkin"),
+        pytest.param(gates.toffoli, 2, id="Toffoli"),
+        pytest.param(_make_random_three_qubit_gate(), 2, id="random"),
+    ])
+    def test_three_qubit(self, gate, n_controls):
+        targets = [qutip.rand_ket(2) for _ in [None]*3]
+        others = [qutip.rand_ket(2) for _ in [None]*self.n_qubits]
+        reference = gate() * qutip.tensor(targets)
+        for q1, q2, q3 in itertools.permutations(range(self.n_qubits), 3):
+            qubits = others.copy()
+            qubits[q1], qubits[q2], qubits[q3] = targets
+            args = [q1, [q2, q3]] if n_controls == 1 else [[q1, q2], q3]
+            test = gate(self.n_qubits, *args) * qutip.tensor(*qubits)
+            expected = _tensor_with_entanglement(qubits, reference,
+                                                 [q1, q2, q3])
+            assert _infidelity(test, expected) < 1e-12
+
+
 class Test_expand_operator:
     # Conceptually, a lot of these tests are complete duplicates of
     # `TestGateExpansion`, except that they explicitly target an underlying
