@@ -32,7 +32,7 @@ def _make_random_three_qubit_gate():
     def gate(N=None, controls=None, target=None):
         if N is None:
             return operation
-        return expand_operator(operation, N, controls + [target])
+        return expand_operator(operation, dims=[2]*N, targets=controls + [target])
     return gate
 
 
@@ -267,8 +267,10 @@ class Test_expand_operator:
         ids=_permutation_id)
     def test_permutation_without_expansion(self, permutation):
         base = qutip.tensor([qutip.rand_unitary(2) for _ in permutation])
-        test = gates.expand_operator(base,
-                                     N=len(permutation), targets=permutation)
+        test = gates.expand_operator(
+            base,
+            dims=[2] * len(permutation),
+            targets=permutation)
         expected = base.permute(_apply_permutation(permutation))
         np.testing.assert_allclose(test.full(), expected.full(), atol=1e-15)
 
@@ -283,12 +285,14 @@ class Test_expand_operator:
         for targets in itertools.permutations(range(n_qubits), n_targets):
             expected = _tensor_with_entanglement([qutip.qeye(2)] * n_qubits,
                                                  operation, targets)
-            test = gates.expand_operator(operation, n_qubits, targets)
+            test = gates.expand_operator(
+                operation, dims=[2] * n_qubits, targets=targets)
             np.testing.assert_allclose(test.full(), expected.full(),
                                        atol=1e-15)
 
     def test_cnot_explicit(self):
-        test = gates.expand_operator(gates.cnot(), 3, [2, 0]).full()
+        test = gates.expand_operator(
+            gates.cnot(), dims=[2] * 3, targets=[2, 0]).full()
         expected = np.array([[1, 0, 0, 0, 0, 0, 0, 0],
                              [0, 0, 0, 0, 0, 1, 0, 0],
                              [0, 0, 1, 0, 0, 0, 0, 0],
@@ -316,17 +320,6 @@ class Test_expand_operator:
         expected = expected / np.sqrt(8)
         np.testing.assert_allclose(test, expected)
 
-    def test_cyclic_permutation(self):
-        operators = [qutip.sigmax(), qutip.sigmaz()]
-        test = gates.expand_operator(qutip.tensor(*operators), N=3,
-                                     targets=[0, 1], cyclic_permutation=True)
-        base_expected = qutip.tensor(*operators, qutip.qeye(2))
-        expected = [base_expected.permute(x)
-                    for x in [[0, 1, 2], [1, 2, 0], [2, 0, 1]]]
-        assert len(expected) == len(test)
-        for element in expected:
-            assert element in test
-
     @pytest.mark.parametrize('dimensions', [
         pytest.param([3, 4, 5], id="standard"),
         pytest.param([3, 3, 4, 4, 2], id="standard"),
@@ -340,8 +333,8 @@ class Test_expand_operator:
                          for n, dimension in enumerate(dimensions)]
             expected = qutip.tensor(*operators)
             base_test = qutip.tensor(*[operators[x] for x in targets])
-            test = gates.expand_operator(base_test, N=n_qubits,
-                                         targets=targets, dims=dimensions)
+            test = gates.expand_operator(base_test, dims=dimensions,
+                                         targets=targets)
             assert test.dims == expected.dims
             np.testing.assert_allclose(test.full(), expected.full())
 

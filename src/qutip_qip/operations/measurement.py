@@ -86,7 +86,7 @@ class Measurement:
             raise ValueError("target is not valid")
 
         measurement_ops = [
-            expand_operator(op, N=n, targets=self.targets)
+            expand_operator(op, dims=[2] * n, targets=self.targets)
             for op in measurement_ops
         ]
         return measurement_statistics(state, measurement_ops)

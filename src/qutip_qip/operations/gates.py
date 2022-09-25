@@ -59,6 +59,7 @@ __all__ = [
 #
 
 
+
 def x_gate(N=None, target=0):
     """Pauli-X gate or sigmax operator.
 
@@ -70,7 +71,8 @@ def x_gate(N=None, target=0):
 
     """
     if N is not None:
-        return expand_operator(x_gate(), N, targets=target, dims=[2] * N)
+        _deprecation_warnings_gate_expansion()
+        return expand_operator(x_gate(), dims=[2] * N, targets=target)
     return sigmax()
 
 
@@ -85,7 +87,7 @@ def y_gate(N=None, target=0):
 
     """
     if N is not None:
-        return expand_operator(y_gate(), N, targets=target, dims=[2] * N)
+        return expand_operator(y_gate(), dims=[2] * N, targets=target)
     return sigmay()
 
 
@@ -102,7 +104,9 @@ def cy_gate(N=None, control=0, target=1):
         N = 2
 
     if N is not None:
-        return expand_operator(cy_gate(), N, (control, target), [2] * N)
+        return expand_operator(
+            cy_gate(), dims=[2] * N, targets=(control, target)
+        )
     return Qobj(
         [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, -1j], [0, 0, 1j, 0]],
         dims=[[2, 2], [2, 2]],
@@ -120,7 +124,7 @@ def z_gate(N=None, target=0):
 
     """
     if N is not None:
-        return expand_operator(z_gate(), N, targets=target, dims=[2] * N)
+        return expand_operator(z_gate(), dims=[2] * N, targets=target)
     return sigmaz()
 
 
@@ -137,7 +141,9 @@ def cz_gate(N=None, control=0, target=1):
         N = 2
 
     if N is not None:
-        return expand_operator(cz_gate(), N, (control, target))
+        return expand_operator(
+            cz_gate(), dims=[2] * N, targets=(control, target)
+        )
     return Qobj(
         [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]],
         dims=[[2, 2], [2, 2]],
@@ -155,7 +161,7 @@ def s_gate(N=None, target=0):
 
     """
     if N is not None:
-        return expand_operator(s_gate(), N, target)
+        return expand_operator(s_gate(), dims=[2] * N, targets=target)
     return Qobj([[1, 0], [0, 1j]])
 
 
@@ -172,7 +178,9 @@ def cs_gate(N=None, control=0, target=1):
         N = 2
 
     if N is not None:
-        return expand_operator(cs_gate(), N, (control, target))
+        return expand_operator(
+            cs_gate(), dims=[2] * N, targets=(control, target)
+        )
     return Qobj(
         [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1j]],
         dims=[[2, 2], [2, 2]],
@@ -189,7 +197,7 @@ def t_gate(N=None, target=0):
 
     """
     if N is not None:
-        return expand_operator(t_gate(), N, target)
+        return expand_operator(t_gate(), dims=[2] * N, targets=target)
     return Qobj([[1, 0], [0, np.exp(1j * np.pi / 4)]])
 
 
@@ -206,7 +214,9 @@ def ct_gate(N=None, control=0, target=1):
         N = 2
 
     if N is not None:
-        return expand_operator(ct_gate(), N, (control, target))
+        return expand_operator(
+            ct_gate(), dims=[2] * N, targets=(control, target)
+        )
     return Qobj(
         [
             [1, 0, 0, 0],
@@ -228,7 +238,7 @@ def rx(phi, N=None, target=0):
 
     """
     if N is not None:
-        return expand_operator(rx(phi), N, target)
+        return expand_operator(rx(phi), dims=[2] * N, targets=target)
     return Qobj(
         [
             [np.cos(phi / 2), -1j * np.sin(phi / 2)],
@@ -247,7 +257,7 @@ def ry(phi, N=None, target=0):
 
     """
     if N is not None:
-        return expand_operator(ry(phi), N, target)
+        return expand_operator(ry(phi), dims=[2] * N, targets=target)
     return Qobj(
         [
             [np.cos(phi / 2), -np.sin(phi / 2)],
@@ -266,7 +276,7 @@ def rz(phi, N=None, target=0):
 
     """
     if N is not None:
-        return expand_operator(rz(phi), N, target)
+        return expand_operator(rz(phi), dims=[2] * N, targets=target)
     return Qobj([[np.exp(-1j * phi / 2), 0], [0, np.exp(1j * phi / 2)]])
 
 
@@ -280,7 +290,7 @@ def sqrtnot(N=None, target=0):
 
     """
     if N is not None:
-        return expand_operator(sqrtnot(), N, target)
+        return expand_operator(sqrtnot(), dims=[2] * N, targets=target)
     return Qobj([[0.5 + 0.5j, 0.5 - 0.5j], [0.5 - 0.5j, 0.5 + 0.5j]])
 
 
@@ -303,7 +313,7 @@ shape = [2, 2], type = oper, isHerm = True
 
     """
     if N is not None:
-        return expand_operator(snot(), N, target)
+        return expand_operator(snot(), dims=[2] * N, targets=target)
     return 1 / np.sqrt(2.0) * Qobj([[1, 1], [1, -1]])
 
 
@@ -332,7 +342,7 @@ shape = [2, 2], type = oper, isHerm = False
 
     """
     if N is not None:
-        return expand_operator(phasegate(theta), N, target)
+        return expand_operator(phasegate(theta), dims=[2] * N, targets=target)
     return Qobj([[1, 0], [0, np.exp(1.0j * theta)]], dims=[[2], [2]])
 
 
@@ -358,7 +368,7 @@ def qrot(theta, phi, N=None, target=0):
         a rabi pulse.
     """
     if N is not None:
-        return expand_operator(qrot(theta, phi), N=N, targets=target)
+        return expand_operator(qrot(theta, phi), dims=[2] * N, targets=target)
     return Qobj(
         [
             [
@@ -401,7 +411,7 @@ def qasmu_gate(args, N=None, target=0):
     theta, phi, gamma = args
     if N is not None:
         return expand_operator(
-            qasmu_gate([theta, phi, gamma]), N=N, targets=target
+            qasmu_gate([theta, phi, gamma]), dims=[2] * N, targets=target
         )
     return Qobj(rz(phi) * ry(theta) * rz(gamma))
 
@@ -478,7 +488,7 @@ shape = [4, 4], type = oper, isHerm = True
         N = 2
 
     if N is not None:
-        return expand_operator(cnot(), N, (control, target))
+        return expand_operator(cnot(), dims=[2] * N, targets=(control, target))
     return Qobj(
         [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]],
         dims=[[2, 2], [2, 2]],
@@ -625,7 +635,7 @@ shape = [4, 4], type = oper, isHerm = True
         N = 2
 
     if N is not None:
-        return expand_operator(swap(), N, targets=targets)
+        return expand_operator(swap(), dims=[2] * N, targets=targets)
     return Qobj(
         [[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]],
         dims=[[2, 2], [2, 2]],
@@ -655,7 +665,7 @@ shape = [4, 4], type = oper, isHerm = False
         N = 2
 
     if N is not None:
-        return expand_operator(iswap(), N, targets=targets)
+        return expand_operator(iswap(), dims=[2] * N, targets=targets)
     return Qobj(
         [[1, 0, 0, 0], [0, 0, 1j, 0], [0, 1j, 0, 0], [0, 0, 0, 1]],
         dims=[[2, 2], [2, 2]],
@@ -675,7 +685,7 @@ def sqrtswap(N=None, targets=[0, 1]):
         N = 2
 
     if N is not None:
-        return expand_operator(sqrtswap(), N, targets=targets)
+        return expand_operator(sqrtswap(), dims=[2] * N, targets=targets)
     return Qobj(
         np.array(
             [
@@ -753,7 +763,9 @@ def molmer_sorensen(theta, N=None, targets=[0, 1]):
         N = 2
 
     if N is not None:
-        return expand_operator(molmer_sorensen(theta), N, targets=targets)
+        return expand_operator(
+            molmer_sorensen(theta), dims=[2] * N, targets=targets
+        )
     return Qobj(
         [
             [np.cos(theta / 2.0), 0, 0, -1.0j * np.sin(theta / 2.0)],
@@ -798,7 +810,9 @@ shape = [8, 8], type = oper, isHerm = True
         N = 3
 
     if N is not None:
-        return expand_operator(fredkin(), N, (control,) + tuple(targets))
+        return expand_operator(
+            fredkin(), dims=[2] * N, targets=(control,) + tuple(targets)
+        )
     return Qobj(
         [
             [1, 0, 0, 0, 0, 0, 0, 0],
@@ -843,7 +857,9 @@ def toffoli(N=None, controls=[0, 1], target=2):
         N = 3
 
     if N is not None:
-        return expand_operator(toffoli(), N, tuple(controls) + (target,))
+        return expand_operator(
+            toffoli(), dims=[2] * N, targets=tuple(controls) + (target,)
+        )
     return Qobj(
         [
             [1, 0, 0, 0, 0, 0, 0, 0],
@@ -1071,7 +1087,7 @@ def qubit_clifford_group(N=None, target=0):
 #
 
 
-def _check_qubits_oper(oper, dims=None, targets=None):
+def _check_oper_dims(oper, dims=None, targets=None):
     """
     Check if the given operator is valid.
 
@@ -1081,10 +1097,9 @@ def _check_qubits_oper(oper, dims=None, targets=None):
         The quantum object to be checked.
     dims : list, optional
         A list of integer for the dimension of each composite system.
-        e.g ``[2, 2, 2, 2, 2]`` for 5 qubits system. If None, qubits system
-        will be the default.
+        e.g ``[2, 2, 2, 2, 2]`` for 5 qubits system.
     targets : int or list of int, optional
-        The indices of qubits that are acted on.
+        The indices of subspace that are acted on.
     """
     # if operator matches N
     if not isinstance(oper, Qobj) or oper.dims[0] != oper.dims[1]:
@@ -1109,19 +1124,19 @@ def _targets_to_list(targets, oper=None, N=None):
     Parameters
     ----------
     targets : int or list of int
-        The indices of qubits that are acted on.
+        The indices of subspace that are acted on.
     oper : :class:`qutip.Qobj`, optional
-        An operator acts on qubits, the type of the :class:`qutip.Qobj`
+        An operator, the type of the :class:`qutip.Qobj`
         has to be an operator
         and the dimension matches the tensored qubit Hilbert space
         e.g. dims = ``[[2, 2, 2], [2, 2, 2]]``
     N : int, optional
-        The number of qubits in the system.
+        The number of subspace in the system.
     """
     # if targets is a list of integer
     if targets is None:
         targets = list(range(len(oper.dims[0])))
-    if not isinstance(targets, Iterable):
+    if not hasattr(targets, "__iter__"):
         targets = [targets]
     if not all([isinstance(t, numbers.Integral) for t in targets]):
         raise TypeError("targets should be an integer or a list of integer")
@@ -1141,26 +1156,28 @@ def _targets_to_list(targets, oper=None, N=None):
     return targets
 
 
-def expand_operator(oper, N, targets, dims=None, cyclic_permutation=False):
+def expand_operator(
+    oper, N=None, targets=None, dims=None, cyclic_permutation=False
+):
     """
-    Expand a qubits operator to one that acts on a N-qubit system.
+    Expand an operator to one that acts on a system with desired dimensions.
 
     Parameters
     ----------
     oper : :class:`qutip.Qobj`
-        An operator acts on qubits, the type of the :class:`qutip.Qobj`
-        has to be an operator
-        and the dimension matches the tensored qubit Hilbert space
-        e.g. dims = ``[[2, 2, 2], [2, 2, 2]]``
-    N : int
-        The number of qubits in the system.
-    targets : int or list of int
-        The indices of qubits that are acted on.
-    dims : list, optional
+        An operator that act on the subsystem, has to be an operator and the
+        dimension matches the tensored dims Hilbert space
+        e.g. oper.dims = ``[[2, 3], [2, 3]]``
+    dims : list
         A list of integer for the dimension of each composite system.
-        E.g ``[2, 2, 2, 2, 2]`` for 5 qubits system. If None, qubits system
-        will be the default option.
+        E.g ``[2, 3, 2, 3, 4]``.
+    targets : int or list of int
+        The indices of subspace that are acted on.
+        Permutation can also be realized by changing the orders of the indices.
+    N : int
+         Deprecated. Number of qubits. Please use `dims`.
     cyclic_permutation : boolean, optional
+        Deprecated.
         Expand for all cyclic permutation of the targets.
         E.g. if ``N=3`` and `oper` is a 2-qubit operator,
         the result will be a list of three operators,
@@ -1169,20 +1186,71 @@ def expand_operator(oper, N, targets, dims=None, cyclic_permutation=False):
     Returns
     -------
     expanded_oper : :class:`qutip.Qobj`
-        The expanded qubits operator acting on a system with N qubits.
-
-    Notes
-    -----
-    This is equivalent to gate_expand_1toN, gate_expand_2toN,
-    gate_expand_3toN in ``qutip_qip.gate.py``, but works for any dimension.
+        The expanded operator acting on a system with desired dimension.
+    
+    Examples
+    --------
+    >>> from qutip_qip.operations import expand_operator, x_gate, cnot
+    >>> import qutip
+    >>> expand_operator(x_gate(), dims=[2,3], targets=[0]) # doctest: +NORMALIZE_WHITESPACE
+    Quantum object: dims = [[2, 3], [2, 3]], shape = (6, 6), type = oper, isherm = True
+    Qobj data =
+    [[0. 0. 0. 1. 0. 0.]
+     [0. 0. 0. 0. 1. 0.]
+     [0. 0. 0. 0. 0. 1.]
+     [1. 0. 0. 0. 0. 0.]
+     [0. 1. 0. 0. 0. 0.]
+     [0. 0. 1. 0. 0. 0.]]
+    >>> expand_operator(cnot(), dims=[2,2,2], targets=[1, 2]) # doctest: +NORMALIZE_WHITESPACE
+    Quantum object: dims = [[2, 2, 2], [2, 2, 2]], shape = (8, 
+    8), type = oper, isherm = True
+    Qobj data =
+    [[1. 0. 0. 0. 0. 0. 0. 0.]
+     [0. 1. 0. 0. 0. 0. 0. 0.]
+     [0. 0. 0. 1. 0. 0. 0. 0.]
+     [0. 0. 1. 0. 0. 0. 0. 0.]
+     [0. 0. 0. 0. 1. 0. 0. 0.]
+     [0. 0. 0. 0. 0. 1. 0. 0.]
+     [0. 0. 0. 0. 0. 0. 0. 1.]
+     [0. 0. 0. 0. 0. 0. 1. 0.]]
+    >>> expand_operator(cnot(), dims=[2, 2, 2], targets=[2, 0]) # doctest: +NORMALIZE_WHITESPACE
+    Quantum object: dims = [[2, 2, 2], [2, 2, 2]], shape = (8, 
+    8), type = oper, isherm = True
+    Qobj data =
+    [[1. 0. 0. 0. 0. 0. 0. 0.]
+     [0. 0. 0. 0. 0. 1. 0. 0.]
+     [0. 0. 1. 0. 0. 0. 0. 0.]
+     [0. 0. 0. 0. 0. 0. 0. 1.]
+     [0. 0. 0. 0. 1. 0. 0. 0.]
+     [0. 1. 0. 0. 0. 0. 0. 0.]
+     [0. 0. 0. 0. 0. 0. 1. 0.]
+     [0. 0. 0. 1. 0. 0. 0. 0.]]
     """
+    if N is not None:
+        warnings.warn(
+            "The function expand_operator has been generalized to "
+            "arbitrary subsystems instead of only qubit systems."
+            "Please use the new signature e.g.\n"
+            "expand_operator(oper, dims=[2, 3, 2, 2], targets=2)",
+            DeprecationWarning
+            
+        )
+    if dims is not None and N is None:
+        if not isinstance(dims, Iterable):
+            f"dims needs to be an interable {not type(dims)}."
+        N = len(dims)  # backward compatibility
     if dims is None:
         dims = [2] * N
     targets = _targets_to_list(targets, oper=oper, N=N)
-    _check_qubits_oper(oper, dims=dims, targets=targets)
+    _check_oper_dims(oper, dims=dims, targets=targets)
 
     # Call expand_operator for all cyclic permutation of the targets.
     if cyclic_permutation:
+        warnings.warn(
+            "cyclic_permutation is deprecated, "
+            "please use loop through different targets manually.",
+            DeprecationWarning
+        )
         oper_list = []
         for i in range(N):
             new_targets = np.mod(np.array(targets) + i, N)
@@ -1191,7 +1259,7 @@ def expand_operator(oper, N, targets, dims=None, cyclic_permutation=False):
             )
         return oper_list
 
-    # Generate the correct order for qubits permutation,
+    # Generate the correct order for permutation,
     # eg. if N = 5, targets = [3,0], the order is [1,2,3,0,4].
     # If the operator is cnot,
     # this order means that the 3rd qubit controls the 0th qubit.
