@@ -167,11 +167,11 @@ def circuit_to_qir(circuit, format, module_name="qutip_circuit"):
                 module.qubits[op.controls[0]], module.qubits[op.targets[0]]
             )
         elif op.name == "RX":
-            builder.rx(op.control_value, module.qubits[op.targets[0]])
+            builder.rx(op.arg_value, module.qubits[op.targets[0]])
         elif op.name == "RY":
-            builder.ry(op.control_value, module.qubits[op.targets[0]])
+            builder.ry(op.arg_value, module.qubits[op.targets[0]])
         elif op.name == "RZ":
-            builder.rz(op.control_value, module.qubits[op.targets[0]])
+            builder.rz(op.arg_value, module.qubits[op.targets[0]])
         elif op.name in ("CRZ", "TOFFOLI"):
             raise NotImplementedError(
                 "Decomposition of CRZ and Toffoli gates into base "

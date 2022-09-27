@@ -128,7 +128,7 @@ class TestConverter:
         containing a single qubit gate.
         """
         circuit = QubitCircuit(1)
-        circuit.add_gate("RZ", targets=[0], control_value=0.123)
+        circuit.add_gate("RZ", targets=[0], arg_value=0.123)
         parsed_qir_module: pyqir.parser.QirModule = qir.circuit_to_qir(
             circuit, format=qir.QirFormat.MODULE
         )
@@ -144,7 +144,7 @@ class TestConverter:
         #     control flow in a teleportation circuit.
         circuit = QubitCircuit(3, num_cbits=2)
         msg, here, there = range(3)
-        circuit.add_gate("RZ", targets=[msg], control_value=0.123)
+        circuit.add_gate("RZ", targets=[msg], arg_value=0.123)
         circuit.add_gate("SNOT", targets=[here])
         circuit.add_gate("CNOT", targets=[there], controls=[here])
         circuit.add_gate("CNOT", targets=[here], controls=[msg])

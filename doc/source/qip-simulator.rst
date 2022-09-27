@@ -280,9 +280,9 @@ We are left with a mixed state.
 Import and export quantum circuits
 ==================================
 
-QuTiP supports importation and exportation of quantum circuit in the `OpenQASM 2 W-state <https://github.com/Qiskit/openqasm/tree/OpenQASM2.x>`_ format
-throught the function :func:`.read_qasm` and :func:`.save_qasm`.
-We demonstrate this using the w-state generation circuit.
+QuTiP supports importing and exporting quantum circuits in the `OpenQASM 2.0 <https://github.com/Qiskit/openqasm/tree/OpenQASM2.x>`_ format, as well as exporting circuits to `Quantum Intermediate Representation <https://www.qir-alliance.org/>`.
+To import from and export to OpenQASM 2.0, you can use the :func:`.read_qasm` and :func:`.save_qasm` functions, respectively.
+We demonstrate this functionality by loading a circuit for preparing the :math:`\left|W\right\rangle`-state from an OpenQASM 2.0 file.
 The following code is in OpenQASM format:
 
 .. code-block::
@@ -326,3 +326,84 @@ One can save it in a ``.qasm`` file and import it using the following code:
 
   from qutip_qip.qasm import read_qasm
   qc = read_qasm("source/w-state.qasm")
+
+
+  # Export a text-base representation of the QIR.
+  print(circuit_to_qir(qc, "text"))
+
+QuTiP circuits can also be exported to QIR:
+
+.. testcode::
+  from qutip_qip.circuit import QubitCircuit
+  from qutip_qip.qir import circuit_to_qir
+
+  circuit = QubitCircuit(3, num_cbits=2)
+  msg, here, there = range(3)
+  circuit.add_gate("RZ", targets=[msg], arg_value=0.123)
+  circuit.add_gate("SNOT", targets=[here])
+  circuit.add_gate("CNOT", targets=[there], controls=[here])
+  circuit.add_gate("CNOT", targets=[here], controls=[msg])
+  circuit.add_gate("SNOT", targets=[msg])
+  circuit.add_measurement("Z", targets=[msg], classical_store=0)
+  circuit.add_measurement("Z", targets=[here], classical_store=1)
+  circuit.add_gate("X", targets=[there], classical_controls=[0])
+  circuit.add_gate("Z", targets=[there], classical_controls=[1])
+
+  print(circuit_to_qir(circuit, "text"))
+
+.. testoutput::
+  ; ModuleID = 'qutip_circuit'
+  source_filename = "qutip_circuit"
+
+  %Qubit = type opaque
+  %Result = type opaque
+
+  define void @main() #0 {
+  entry:
+    call void @__quantum__qis__rz__body(double 1.230000e-01, %Qubit* null)
+    call void @__quantum__qis__h__body(%Qubit* inttoptr (i64 1 to %Qubit*))
+    call void @__quantum__qis__cnot__body(%Qubit* inttoptr (i64 1 to %Qubit*), %Qubit* inttoptr (i64 2 to %Qubit*))
+    call void @__quantum__qis__cnot__body(%Qubit* null, %Qubit* inttoptr (i64 1 to %Qubit*))
+    call void @__quantum__qis__h__body(%Qubit* null)
+    call void @__quantum__qis__mz__body(%Qubit* null, %Result* null)
+    call void @__quantum__qis__mz__body(%Qubit* inttoptr (i64 1 to %Qubit*), %Result* inttoptr (i64 1 to %Result*))
+    %equal = call i1 @__quantum__qis__read_result__body(%Result* null)
+    br i1 %equal, label %then, label %else
+
+  then:                                             ; preds = %entry
+    call void @__quantum__qis__x__body(%Qubit* inttoptr (i64 2 to %Qubit*))
+    br label %continue
+
+  else:                                             ; preds = %entry
+    br label %continue
+
+  continue:                                         ; preds = %else, %then
+    %equal1 = call i1 @__quantum__qis__read_result__body(%Result* inttoptr (i64 1 to %Result*))
+    br i1 %equal1, label %then2, label %else3
+
+  then2:                                            ; preds = %continue
+    call void @__quantum__qis__z__body(%Qubit* inttoptr (i64 2 to %Qubit*))
+    br label %continue4
+
+  else3:                                            ; preds = %continue
+    br label %continue4
+
+  continue4:                                        ; preds = %else3, %then2
+    ret void
+  }
+
+  declare void @__quantum__qis__rz__body(double, %Qubit*)
+
+  declare void @__quantum__qis__h__body(%Qubit*)
+
+  declare void @__quantum__qis__cnot__body(%Qubit*, %Qubit*)
+
+  declare void @__quantum__qis__mz__body(%Qubit*, %Result*)
+
+  declare i1 @__quantum__qis__read_result__body(%Result*)
+
+  declare void @__quantum__qis__x__body(%Qubit*)
+
+  declare void @__quantum__qis__z__body(%Qubit*)
+
+  attributes #0 = { "EntryPoint" "requiredQubits"="3" "requiredResults"="2" }
