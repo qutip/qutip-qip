@@ -147,7 +147,7 @@ class Gate:
         arg_value=None,
         control_value=None,
         classical_controls=None,
-        classical_control_value : Optional[int] = None,
+        classical_control_value: Optional[int] = None,
         arg_label=None,
         **kwargs,
     ):
