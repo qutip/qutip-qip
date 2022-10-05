@@ -3,6 +3,7 @@ from collections.abc import Iterable
 from itertools import product, chain
 from functools import partial, reduce
 from operator import mul
+from typing import Optional
 
 import warnings
 import inspect
@@ -146,7 +147,7 @@ class Gate:
         arg_value=None,
         control_value=None,
         classical_controls=None,
-        classical_control_value=None,
+        classical_control_value : Optional[int] = None,
         arg_label=None,
         **kwargs,
     ):

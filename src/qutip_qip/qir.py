@@ -126,6 +126,8 @@ def circuit_to_qir(circuit, format, module_name="qutip_circuit"):
                 op_with_less_controls.classical_controls[1:]
             )
             op_with_less_controls.classical_control_value = (
+                op_with_less_controls.classical_control_value
+                if isinstance(op_with_less_controls.classical_control_value, int) else
                 (op_with_less_controls.classical_control_value[1:])
                 if op_with_less_controls.classical_control_value is not None
                 else None
