@@ -327,10 +327,6 @@ One can save it in a ``.qasm`` file and import it using the following code:
   from qutip_qip.qasm import read_qasm
   qc = read_qasm("source/w-state.qasm")
 
-
-  # Export a text-base representation of the QIR.
-  print(circuit_to_qir(qc, "text"))
-
 QuTiP circuits can also be exported to QIR:
 
 .. testcode::
