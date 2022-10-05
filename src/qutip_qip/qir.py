@@ -197,7 +197,7 @@ def circuit_to_qir(circuit, format, module_name="qutip_circuit"):
             append_operation(module, builder, op)
 
         elif isinstance(op, Measurement):
-            builder.m(
+            builder.mz(
                 module.qubits[op.targets[0]],
                 module.results[op.classical_store],
             )
