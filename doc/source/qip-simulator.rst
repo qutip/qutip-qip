@@ -280,7 +280,7 @@ We are left with a mixed state.
 Import and export quantum circuits
 ==================================
 
-QuTiP supports importing and exporting quantum circuits in the `OpenQASM 2.0 <https://github.com/Qiskit/openqasm/tree/OpenQASM2.x>`_ format, as well as exporting circuits to `Quantum Intermediate Representation <https://www.qir-alliance.org/>`.
+QuTiP supports importing and exporting quantum circuits in the `OpenQASM 2.0 <https://github.com/Qiskit/openqasm/tree/OpenQASM2.x>`_ format, as well as exporting circuits to `Quantum Intermediate Representation <https://www.qir-alliance.org/>`_.
 To import from and export to OpenQASM 2.0, you can use the :func:`.read_qasm` and :func:`.save_qasm` functions, respectively.
 We demonstrate this functionality by loading a circuit for preparing the :math:`\left|W\right\rangle`-state from an OpenQASM 2.0 file.
 The following code is in OpenQASM format:
@@ -330,6 +330,7 @@ One can save it in a ``.qasm`` file and import it using the following code:
 QuTiP circuits can also be exported to QIR:
 
 .. testcode::
+
   from qutip_qip.circuit import QubitCircuit
   from qutip_qip.qir import circuit_to_qir
 
@@ -348,6 +349,7 @@ QuTiP circuits can also be exported to QIR:
   print(circuit_to_qir(circuit, "text"))
 
 .. testoutput::
+
   ; ModuleID = 'qutip_circuit'
   source_filename = "qutip_circuit"
 
