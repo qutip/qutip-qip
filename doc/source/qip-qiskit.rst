@@ -58,6 +58,11 @@ We define a simple circuit as follows:
     
     The result object inherits from the :class:`qiskit.result.Result` class. Hence, we can use it's functions like ``result.get_counts()`` as required. We can also access the final state with ``result.data()['statevector']``.
     
+    .. code-block::
+
+        >>> result.data()['statevector']
+        Statevector([0.+0.j, 1.+0.j, 0.+0.j, 0.+0.j], dims=(2, 2))
+
     .. doctest::
         :options: +SKIP
 
@@ -73,7 +78,7 @@ We define a simple circuit as follows:
     
     .. note::
     
-        The pulse-level simulator does not support measurement. Please use :obj:`qutip.measure` to process the result manually.
+        The pulse-level simulator does not support measurement. Please use :obj:`qutip.measure` to process the result manually. By default, all the qubits will be measured at the end of the circuit.
 
     .. _pulse circ:
 
@@ -86,6 +91,8 @@ We define a simple circuit as follows:
 
     To use the :class:`.QiskitPulseSimulator` backend, we need to define the processor on which we want to run the circuit. This includes defining the pulse processor model with all the required parameters including noise. 
 
+    Different hardware parameters can be supplied here for :obj:`.LinearSpinChain`. Please refer to the documentation for details.
+    
     .. doctest::
         :options: +SKIP
 
@@ -126,7 +133,7 @@ Qiskit's interface allows us to provide some options like ``shots`` while runnin
 
 .. note::
     
-    Although you can pass this option while running a circuit on pulse backends, they do not allow simulation with user-defined gates.
+    Although you can pass this option while running a circuit on pulse backends, you need to make sure that the gate is supported by the backend simulator :obj:`.Processor` in ``qutip-qip``.
 
 An example demonstrating configuring options:
 
@@ -175,6 +182,21 @@ Let's use the :class:`.CircularSpinChain` processor this time with some noise.
         >>> noisy_result = noisy_job.result()
     
     ``t1=0.3`` will cause amplitude damping on all qubits, and hence, ``0`` is more probable than ``1`` in the final output for all qubits.
+
+    We can see what the result looks like in the density matrix format:
+
+    .. code-block::
+
+        >>> noisy_result.data()['statevector']
+        DensityMatrix([[ 0.4484772 +0.00000000e+00j,  0.04130281+2.46325222e-01j,
+                 0.04130281+2.46325222e-01j, -0.13148987+4.53709696e-02j],
+               [ 0.04130281-2.46325222e-01j,  0.22120721+0.00000000e+00j,
+                 0.13909747-1.10349672e-17j,  0.02037223+1.21497634e-01j],
+               [ 0.04130281-2.46325222e-01j,  0.13909747+1.10349672e-17j,
+                 0.22120721+0.00000000e+00j,  0.02037223+1.21497634e-01j],
+               [-0.13148987-4.53709696e-02j,  0.02037223-1.21497634e-01j,
+                 0.02037223-1.21497634e-01j,  0.10910838+0.00000000e+00j]],
+              dims=(2, 2))
 
     .. doctest::
         :options: +SKIP

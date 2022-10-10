@@ -18,7 +18,7 @@ qutip\_qip.qiskit
       Provider       
       Job
       
-   .. rubric:: Methods
+   .. rubric:: Fucntions
 
    .. autosummary::
      
