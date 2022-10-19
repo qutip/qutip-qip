@@ -1,5 +1,7 @@
+"""Provider for the simulator backends."""
+
 from qiskit.providers.provider import ProviderV1
-from .backend import QiskitCircuitSimulator
+from .backend import QiskitCircuitSimulator, QiskitPulseSimulator
 
 
 class Provider(ProviderV1):
@@ -16,7 +18,10 @@ class Provider(ProviderV1):
         super().__init__()
 
         self.name = "qutip_provider"
-        self._backends = {"circuit_simulator": QiskitCircuitSimulator()}
+        self._backends = {
+            QiskitCircuitSimulator.BACKEND_NAME: QiskitCircuitSimulator(),
+            QiskitPulseSimulator.BACKEND_NAME: QiskitPulseSimulator(),
+        }
 
     def backends(self, name: str = None, filters=None, **kwargs) -> list:
         """

@@ -1,3 +1,5 @@
+"""Conversion of circuits from qiskit to qutip_qip."""
+
 from qutip_qip.circuit import QubitCircuit
 from qiskit.quantum_info import Operator
 import numpy as np
@@ -18,6 +20,7 @@ _map_gates = {
     "ry": "RY",
     "rz": "RZ",
     "swap": "SWAP",
+    "u": "QASMU",
 }
 
 _map_controlled_gates = {
@@ -86,22 +89,25 @@ def convert_qiskit_circuit(
     qiskit_circuit: QuantumCircuit, allow_custom_gate=True
 ) -> QubitCircuit:
     """
-    Convert a QuantumCircuit from qiskit to qutip_qip's QubitCircuit.
+    Convert a :class:`qiskit.circuit.QuantumCircuit` object
+    from ``qiskit`` to ``qutip_qip``'s :class:`.QubitCircuit`.
 
     Parameters
     ----------
-    qiskit_circuit : QuantumCircuit
-        QuantumCircuit to be converted to QubitCircuit.
+    qiskit_circuit : :class:`qiskit.circuit.QuantumCircuit`
+        The :class:`qiskit.circuit.QuantumCircuit` object
+        to be converted to :class:`QubitCircuit`.
 
-    all_custom_gate : bool
+    allow_custom_gate : bool
         If False, this function will raise an error if
         gate conversion is done using a custom gate's
         unitary matrix.
 
     Returns
     -------
-    QubitCircuit
-        The converted circuit in qutip_qip's QubitCircuit format.
+    :class:`.QubitCircuit`
+        The converted circuit in qutip_qip's
+        :class:`.QubitCircuit` format.
     """
     qubit_map = {}
     for qiskit_index, qubit in enumerate(qiskit_circuit.qubits):
