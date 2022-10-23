@@ -1351,9 +1351,9 @@ class QubitCircuit:
         Parameters
         ----------
         state : ket or oper
-                state vector or density matrix input.
+            state vector or density matrix input.
         cbits : List of ints, optional
-                initialization of the classical bits.
+            initialization of the classical bits.
         U_list: list of Qobj, optional
             list of predefined unitaries corresponding to circuit.
         measure_results : tuple of ints, optional
@@ -1391,18 +1391,20 @@ class QubitCircuit:
         """
         Calculate all the possible outputs of a circuit
         (varied by measurement gates).
+
         Parameters
         ----------
-        state : ket or oper
-                state vector or density matrix input.
-        cbits : List of ints, optional
-                initialization of the classical bits.
+        state: ket or oper
+            state vector or density matrix input.
+        cbits: List of ints, optional
+            initialization of the classical bits.
         U_list: list of Qobj, optional
             list of predefined unitaries corresponding to circuit.
         precompute_unitary: Boolean, optional
             Specify if computation is done by pre-computing and aggregating
             gate unitaries. Possibly a faster method in the case of
             large number of repeat runs with different state inputs.
+
         Returns
         -------
         result: CircuitResult
