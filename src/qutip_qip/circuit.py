@@ -1850,7 +1850,9 @@ class QubitCircuit:
                                 distance = abs(
                                     gate.targets[1] - gate.targets[0]
                                 )
-                                col.append(r" \qswap \qwx[-%d] \qw" % distance)
+                                if self.reverse_states:
+                                    distance = -distance
+                                col.append(r" \qswap \qwx[%d] \qw" % distance)
                                 _swap_processing = True
 
                             elif (
