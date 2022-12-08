@@ -641,7 +641,7 @@ class CircuitSimulator:
             measured_tol = qutip.settings.core["atol"] ** 2
         except AttributeError:
             # qutip-v4
-            measured_tol = qutip.settings.atol ** 2
+            measured_tol = qutip.settings.atol**2
 
         if self.mode == "state_vector_simulator":
             if self.measure_results:
