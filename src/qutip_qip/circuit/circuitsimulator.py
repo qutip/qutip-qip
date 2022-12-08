@@ -10,6 +10,7 @@ from ..operations import (
     expand_operator,
     gate_sequence_product,
 )
+import qutip
 from qutip import basis, ket2dm, Qobj, tensor
 import warnings
 
@@ -634,8 +635,13 @@ class CircuitSimulator:
         operation: :class:`.Measurement`
             Measurement gate in a circuit object.
         """
-
         states, probabilities = operation.measurement_comp_basis(self.state)
+        try:
+            # qutip-v5
+            measured_tol = qutip.settings.core["atol"] ** 2
+        except AttributeError:
+            # qutip-v4
+            measured_tol = qutip.settings.atol ** 2
 
         if self.mode == "state_vector_simulator":
             if self.measure_results:
@@ -644,15 +650,19 @@ class CircuitSimulator:
             else:
                 probabilities = [p / sum(probabilities) for p in probabilities]
                 i = np.random.choice([0, 1], p=probabilities)
-            self.probability *= probabilities[i]
-            self.state = states[i]
+            self.probability *= (
+                probabilities[i] if probabilities[i] > measured_tol else 0.0
+            )
+            self.state = states[i] if probabilities[i] > measured_tol else None
             if operation.classical_store is not None:
                 self.cbits[operation.classical_store] = i
-
         elif self.mode == "density_matrix_simulator":
-            states = list(filter(lambda x: x is not None, states))
-            probabilities = list(filter(lambda x: x != 0, probabilities))
-            self.state = sum(p * s for s, p in zip(states, probabilities))
+            states_probabilities_zipped = [
+                (s, p)
+                for (s, p) in zip(states, probabilities)
+                if p > measured_tol
+            ]
+            self.state = sum(p * s for s, p in states_probabilities_zipped)
         else:
             raise NotImplementedError(
                 "mode {} is not available.".format(self.mode)
