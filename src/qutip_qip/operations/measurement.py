@@ -4,6 +4,7 @@ import os
 
 import numpy as np
 
+import qutip
 from qutip import basis, Qobj
 from qutip.measurement import measurement_statistics
 from .gates import expand_operator
@@ -77,7 +78,6 @@ class Measurement:
 
         n = int(np.log2(state.shape[0]))
         target = self.targets[0]
-
         if target < n:
             op0 = basis(2, 0) * basis(2, 0).dag()
             op1 = basis(2, 1) * basis(2, 1).dag()
@@ -89,7 +89,22 @@ class Measurement:
             expand_operator(op, N=n, targets=self.targets)
             for op in measurement_ops
         ]
-        return measurement_statistics(state, measurement_ops)
+
+        try:
+            # qutip-v5
+            measurement_tol = qutip.settings.core["atol"] ** 2
+        except AttributeError:
+            # qutip-v4
+            measurement_tol = qutip.settings.atol**2
+        states, probabilities = measurement_statistics(state, measurement_ops)
+        probabilities = [
+            p if p > measurement_tol else 0.0 for p in probabilities
+        ]
+        states = [
+            s if p > measurement_tol else None
+            for s, p in zip(states, probabilities)
+        ]
+        return states, probabilities
 
     def __str__(self):
         str_name = ("Measurement(%s, target=%s, classical_store=%s)") % (
