@@ -1207,7 +1207,8 @@ class Processor(object):
                 options["max_step"] = half_gate_time
         else:
             options = kwargs.get("options", qutip.Options())
-            options.max_steps = half_gate_time
+            if options.max_step == 0.:
+                options.max_step = half_gate_time
         kwargs["options"] = options
         # choose solver:
         if solver == "mesolve":
