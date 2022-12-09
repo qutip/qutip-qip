@@ -406,7 +406,8 @@ class TestCircuitProcessor:
 
         # No max_step
         final_state = processor.run_state(
-            init_state, options=SolverOptions(max_step=10000) # too large max_step
+            init_state,
+            options=SolverOptions(max_step=10000)  # too large max_step
         ).states[-1]
         expected_state = tensor([basis(2, 0), basis(2, 1)])
         assert pytest.approx(fidelity(final_state, expected_state), 0.001) == 0
@@ -415,4 +416,3 @@ class TestCircuitProcessor:
         final_state = processor.run_state(init_state).states[-1]
         expected_state = tensor([basis(2, 0), basis(2, 1)])
         assert pytest.approx(fidelity(final_state, expected_state), 0.001) == 1
-    
