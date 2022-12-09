@@ -1188,7 +1188,7 @@ class Processor(object):
         else:
             kwargs["c_ops"] = sys_c_ops
 
-        # choose solver:
+        # set tlist
         if "tlist" in kwargs:
             tlist = kwargs["tlist"]
             del kwargs["tlist"]
@@ -1196,6 +1196,20 @@ class Processor(object):
             # TODO, this can be simplified further, tlist in the solver only
             # determines the time step for intermediate result.
             tlist = self.get_full_tlist()
+        # set the max step size as 1/2 of the minimal gate time.
+        try:
+            half_gate_time = np.min(np.diff(self.get_full_tlist())) / 2
+        except ValueError:  # full_tlist not available e.g., no gate.
+            half_gate_time = 0.0
+        if is_qutip5:
+            options = kwargs.get("options", qutip.SolverOptions())
+            if options["max_step"] == 0.0:
+                options["max_step"] = half_gate_time
+        else:
+            options = kwargs.get("options", qutip.Options())
+            options.max_steps = half_gate_time
+        kwargs["options"] = options
+        # choose solver:
         if solver == "mesolve":
             evo_result = mesolve(
                 H=noisy_qobjevo, rho0=init_state, tlist=tlist, **kwargs
