@@ -334,25 +334,27 @@ class QubitCircuit:
 
         Parameters
         ----------
-        gate: string or :class:`.Gate`
-            Gate name. If gate is an instance of :class:`.Gate`, parameters are
-            unpacked and added.
-        targets: list
-            Gate targets.
-        controls: list
-            Gate controls.
-        arg_value: float
-            Argument value(phi).
-        arg_label: string
+        gate: string or :class:`~.operations.Gate`
+            Gate name. If gate is an instance of :class:`~.operations.Gate`,
+            parameters are unpacked and added.
+        targets: int or list, optional
+            Index for the target qubits.
+        controls: int or list, optional
+            Indices for the (quantum) control qubits.
+        arg_value: Any, optional
+            Arguments for the gate. It will be used when generating the
+            unitary matrix. For predefined gates, they are used when
+            calling the ``get_compact_qobj`` methods of a gate.
+        arg_label: string, optional
             Label for gate representation.
-        index : list
+        index : list, optional
             Positions to add the gate. Each index in the supplied list refers
             to a position in the original list of gates.
         classical_controls : int or list of int, optional
-            indices of classical bits to control gate on.
+            Indices of classical bits to control the gate.
         control_value : int, optional
-            value of classical bits to control on, the classical controls are
-            interpreted as an integer with lowest bit being the first one.
+            Value of classical bits to control on, the classical controls are
+            interpreted as an integer with the lowest bit being the first one.
             If not specified, then the value is interpreted to be
             2 ** len(classical_controls) - 1
             (i.e. all classical controls are 1).
