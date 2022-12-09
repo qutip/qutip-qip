@@ -358,10 +358,10 @@ class Scheduler:
         repeat_num=0,
     ):
         """
-        Schedule a `QubitCircuit`,
-        a list of `Gates` or a list of `Instruction`.
-        For pulse schedule, the execution time for each `Instruction`
-        is given in its `duration` attributes.
+        Schedule a :obj:`.QubitCircuit`,
+        a list of :obj:`.Gates` or a list of :obj:`.Instruction`.
+        For pulse schedule, the execution time for each :obj:`.Instruction`
+        is given in its ``duration`` attributes.
 
         The scheduler first generates a quantum gates dependency graph,
         containing information about
@@ -398,18 +398,18 @@ class Scheduler:
             each with an attribute `duration`
             that indicates the execution time of this instruction.
         gates_schedule: bool, optional
-            `True`, if only gates schedule is needed.
+            ``True``, if only gates schedule is needed.
             This saves some computation
             that is only useful to pulse schedule.
-            If the input `circuit` is a `QubitCircuit`,
-            it will be assigned to `True` automatically.
+            If the input ``circuit`` is a :obj:`.QubitCircuit`,
+            it will be assigned to ``True`` automatically.
             Otherwise, the default is `False`.
         return_cycles_list: bool, optional
-            If `True`, the method returns the `cycles_list`,
-            e.g. [{0, 2}, {1, 3}],
+            If ``True``, the method returns the ``cycles_list``,
+            e.g. ``[{0, 2}, {1, 3}]``,
             which means that the first cycle contains gates0 and gates2
             while the second cycle contains gates1 and gates3.
-            It is only usefull for gates schedule.
+            It is only useful for gates schedule.
         random_shuffle: bool, optional
             If the commuting gates are randomly scuffled to explore
             larger search space.
