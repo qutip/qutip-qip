@@ -1196,19 +1196,23 @@ class Processor(object):
             # TODO, this can be simplified further, tlist in the solver only
             # determines the time step for intermediate result.
             tlist = self.get_full_tlist()
-        # set the max step size as 1/2 of the minimal gate time.
-        try:
-            half_gate_time = np.min(np.diff(self.get_full_tlist())) / 2
-        except ValueError:  # full_tlist not available e.g., no gate.
-            half_gate_time = 0.0
+        # Set the max step size as 1/10 of the total circuit time.
+        # A better solution is to use the gate, which
+        # is however, much harder to implement at this stage, see also
+        # https://github.com/qutip/qutip-qip/issues/184.
+        full_tlist = self.get_full_tlist()
+        if full_tlist is not None:
+            total_circuit_time = (full_tlist)[-1]
+        else:
+            total_circuit_time = 0.
         if is_qutip5:
             options = kwargs.get("options", qutip.SolverOptions())
             if options["max_step"] == 0.0:
-                options["max_step"] = half_gate_time
+                options["max_step"] = total_circuit_time / 10
         else:
             options = kwargs.get("options", qutip.Options())
             if options.max_step == 0.0:
-                options.max_step = half_gate_time
+                options.max_step = total_circuit_time / 10
         kwargs["options"] = options
         # choose solver:
         if solver == "mesolve":
