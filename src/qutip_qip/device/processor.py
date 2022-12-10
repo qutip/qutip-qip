@@ -1204,7 +1204,7 @@ class Processor(object):
         if full_tlist is not None:
             total_circuit_time = (full_tlist)[-1]
         else:
-            total_circuit_time = 0.
+            total_circuit_time = 0.0
         if is_qutip5:
             options = kwargs.get("options", qutip.SolverOptions())
             if options["max_step"] == 0.0:
