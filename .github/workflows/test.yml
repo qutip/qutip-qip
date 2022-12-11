@@ -11,45 +11,52 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-latest
+          - case-name: Ubuntu qutip@dev.major
+            os: ubuntu-latest
             qutip-version: '@dev.major'
             qiskit-version: ''
             pyqir-version: ''
             python-version: '3.10'
-          - os: windows-latest
+          - case-name: Ubuntu qutip@master
+            os: ubuntu-latest
+            qutip-version: '@master'
+            pyqir-version: ''
+            python-version: '3.11'
+          - case-name: Windows qutip@4.6
+            os: windows-latest
             qutip-version: '==4.6.*'
             qiskit-version: ''
             pyqir-version: ''
             python-version: '3.8'
-          - os: windows-latest
-            qutip-version: '==4.6.*'
-            qiskit-version: ''
-            pyqir-version: '==0.6.2'
-            python-version: '3.8'
-          - os: macOS-latest
+          - case-name: Mac qutip@4.7
+            os: macOS-latest
             qutip-version: '==4.7.*'
             qiskit-version: ''
             pyqir-version: ''
             python-version: '3.9'
-          - os: macOS-latest
-            qutip-version: '==4.7.*'
-            qiskit-version: ''
-            pyqir-version: '==0.6.2'
-            python-version: '3.9'
-          - os: ubuntu-latest
+          - case-name: Windows full
+            os: windows-latest
             qutip-version: ''
             qiskit-version: '==0.36.*'
-            pyqir-version: ''
-            python-version: '3.7'
-          - os: ubuntu-latest
+            pyqir-version: '==0.6.2'
+            python-version: '3.8'
+          - case-name: Mac full
+            os: macOS-latest
             qutip-version: ''
+            qiskit-version: '==0.36.*'
+            pyqir-version: '==0.6.2'
+            python-version: '3.9'
+          - case-name: Ubuntu full
+            os: ubuntu-latest
+            qutip-version: ''
+            qiskit-version: '==0.36.*'
             pyqir-version: '==0.6.2'
             python-version: '3.7'
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
 
@@ -90,9 +97,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.8
     - name: Install dependencies
