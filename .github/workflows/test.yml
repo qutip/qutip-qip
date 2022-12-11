@@ -6,50 +6,58 @@ on:
   pull_request:
 
 jobs:
-  test:
+  cases:
+    name: ${{ matrix.os }}, python${{ matrix.python-version }}, ${{ matrix.case-name }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         include:
-          - os: ubuntu-latest
+          - case-name: qutip@dev.major
+            os: ubuntu-latest
             qutip-version: '@dev.major'
             qiskit-version: ''
             pyqir-version: ''
             python-version: '3.10'
-          - os: windows-latest
+          - case-name: qutip@master
+            os: ubuntu-latest
+            qutip-version: '@master'
+            pyqir-version: ''
+            python-version: '3.11'
+          - case-name: qutip@4.6
+            os: windows-latest
             qutip-version: '==4.6.*'
             qiskit-version: ''
             pyqir-version: ''
             python-version: '3.8'
-          - os: windows-latest
-            qutip-version: '==4.6.*'
-            qiskit-version: ''
-            pyqir-version: '==0.6.2'
-            python-version: '3.8'
-          - os: macOS-latest
+          - case-name: qutip@4.7
+            os: macOS-latest
             qutip-version: '==4.7.*'
             qiskit-version: ''
             pyqir-version: ''
             python-version: '3.9'
-          - os: macOS-latest
-            qutip-version: '==4.7.*'
-            qiskit-version: ''
-            pyqir-version: '==0.6.2'
-            python-version: '3.9'
-          - os: ubuntu-latest
+          - case-name: qiskit+qir
+            os: windows-latest
             qutip-version: ''
             qiskit-version: '==0.36.*'
-            pyqir-version: ''
-            python-version: '3.7'
-          - os: ubuntu-latest
+            pyqir-version: '==0.6.2'
+            python-version: '3.8'
+          - case-name: qiskit+qir
+            os: macOS-latest
             qutip-version: ''
+            qiskit-version: '==0.36.*'
+            pyqir-version: '==0.6.2'
+            python-version: '3.9'
+          - case-name: qiskit+qir
+            os: ubuntu-latest
+            qutip-version: ''
+            qiskit-version: '==0.36.*'
             pyqir-version: '==0.6.2'
             python-version: '3.7'
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
 
@@ -90,9 +98,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.8
     - name: Install dependencies
@@ -112,7 +120,7 @@ jobs:
 
   finalise:
     name: Finalise coverage reporting
-    needs: [test]
+    needs: [cases]
     runs-on: ubuntu-latest
     container: python:3-slim
     steps:
