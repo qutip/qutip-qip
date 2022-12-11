@@ -11,7 +11,7 @@ if parse_version(qutip.__version__) < parse_version('5.dev'):
     from qutip import Options as SolverOptions
 else:
     from qutip import SolverOptions
-from qutip_qip.device.processor import Processor
+from qutip_qip.device import Processor, LinearSpinChain
 from qutip import (
     basis, sigmaz, sigmax, sigmay, identity, destroy, tensor,
     rand_ket, rand_dm, fidelity)
@@ -20,6 +20,11 @@ from qutip_qip.noise import (
     DecoherenceNoise, RandomNoise, ControlAmpNoise)
 from qutip_qip.qubits import qubit_states
 from qutip_qip.pulse import Pulse
+from qutip_qip.circuit import QubitCircuit
+if parse_version(qutip.__version__) < parse_version('5.dev'):
+    from qutip import Options as SolverOptions
+else:
+    from qutip import SolverOptions
 
 
 class TestCircuitProcessor:
@@ -383,3 +388,31 @@ class TestCircuitProcessor:
         processor.pulse_mode = "discrete"
         assert(processor.pulse_mode == "discrete")
         assert(processor.pulses[0].spline_kind == "step_func")
+
+    def test_max_step_size(self):
+        num_qubits = 2
+        init_state = tensor([basis(2, 1), basis(2, 1)])
+        qc = QubitCircuit(2)
+
+        # ISWAP acts trivially on the initial states.
+        # If no max_step are defined,
+        # the solver will choose a step size too large
+        # such that the X gate will be skipped.
+        qc.add_gate("ISWAP", targets=[0, 1])
+        qc.add_gate("ISWAP", targets=[0, 1])
+        qc.add_gate("X", targets=[0])
+        processor = LinearSpinChain(num_qubits)
+        processor.load_circuit(qc)
+
+        # No max_step
+        final_state = processor.run_state(
+            init_state,
+            options=SolverOptions(max_step=10000)  # too large max_step
+        ).states[-1]
+        expected_state = tensor([basis(2, 0), basis(2, 1)])
+        assert pytest.approx(fidelity(final_state, expected_state), 0.001) == 0
+
+        # With default max_step
+        final_state = processor.run_state(init_state).states[-1]
+        expected_state = tensor([basis(2, 0), basis(2, 1)])
+        assert pytest.approx(fidelity(final_state, expected_state), 0.001) == 1

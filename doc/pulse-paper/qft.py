@@ -11,7 +11,7 @@ plt.rcParams.update({"text.usetex": False, "font.size": 10})
 
 
 import numpy as np
-from qutip import basis, fidelity
+from qutip import basis, fidelity, Options
 from qutip_qip.device import LinearSpinChain
 from qutip_qip.algorithms import qft_gate_sequence
 
@@ -23,7 +23,11 @@ state1 = qc.run(basis([2]*num_qubits, [0]*num_qubits))
 # Pulse-level simulation
 processor = LinearSpinChain(num_qubits)
 processor.load_circuit(qc)
-state2 = processor.run_state(basis([2]*num_qubits, [0]*num_qubits)).states[-1]
+options = Options(max_step=5000)
+state2 = processor.run_state(
+    basis([2]*num_qubits, [0]*num_qubits),
+    options=options
+    ).states[-1]
 
 assert(abs(1 - fidelity(state1, state2)) < 1.e-4)
 
