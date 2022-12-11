@@ -120,7 +120,7 @@ jobs:
 
   finalise:
     name: Finalise coverage reporting
-    needs: [test]
+    needs: [cases]
     runs-on: ubuntu-latest
     container: python:3-slim
     steps:
