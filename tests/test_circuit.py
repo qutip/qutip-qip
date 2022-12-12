@@ -546,7 +546,7 @@ class TestQubitCircuit:
         """
         Test for circuit with N-level system.
         """
-        mat3 = qp.rand_unitary_haar(3)
+        mat3 = qp.rand_unitary(3)
 
         def controlled_mat3(arg_value):
             """
@@ -642,6 +642,23 @@ class TestQubitCircuit:
                 else:
                     assert simulator.cbits[0] != simulator.cbits[1]
 
+    def test_circuit_with_selected_measurement_result(self):
+        qc = QubitCircuit(N=1, num_cbits=1)
+        qc.add_gate("SNOT", targets=0)
+        qc.add_measurement("M0", targets=0, classical_store=0)
+
+        # We reset the random seed so that
+        # if we don's select the measurement result,
+        # the two circuit should return the same value.
+        np.random.seed(0)
+        final_state = qc.run(qp.basis(2, 0), cbits=[0], measure_results=[0])
+        fid = pytest.approx(qp.fidelity(final_state, basis(2, 0)))
+        assert fid == 1.0
+        np.random.seed(0)
+        final_state = qc.run(qp.basis(2, 0), cbits=[0], measure_results=[1])
+        fid = pytest.approx(qp.fidelity(final_state, basis(2, 1)))
+        assert fid == 1.0
+
     def test_gate_product(self):
 
         filename = "qft.qasm"
@@ -694,9 +711,8 @@ class TestQubitCircuit:
                 assert sum(result_cbits[i]) == 1
 
     _latex_template = r"""
-\documentclass{standalone}
+\documentclass[border=3pt]{standalone}
 \usepackage[braket]{qcircuit}
-\renewcommand{\qswap}{*=<0em>{\times}}
 \begin{document}
 \Qcircuit @C=1cm @R=1cm {
 %s}

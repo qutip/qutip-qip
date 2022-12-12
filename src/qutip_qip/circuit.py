@@ -51,6 +51,8 @@ from .operations.gates import _gate_label, _single_qubit_gates
 from qutip import basis, ket2dm, qeye
 from qutip import Qobj
 from qutip.measurement import measurement_statistics
+import qutip
+import warnings
 
 
 try:
@@ -133,7 +135,6 @@ class Measurement:
 
         n = int(np.log2(state.shape[0]))
         target = self.targets[0]
-
         if target < n:
             op0 = basis(2, 0) * basis(2, 0).dag()
             op1 = basis(2, 1) * basis(2, 1).dag()
@@ -145,7 +146,22 @@ class Measurement:
             expand_operator(op, N=n, targets=self.targets)
             for op in measurement_ops
         ]
-        return measurement_statistics(state, measurement_ops)
+
+        try:
+            # qutip-v5
+            measurement_tol = qutip.settings.core["atol"] ** 2
+        except AttributeError:
+            # qutip-v4
+            measurement_tol = qutip.settings.atol**2
+        states, probabilities = measurement_statistics(state, measurement_ops)
+        probabilities = [
+            p if p > measurement_tol else 0.0 for p in probabilities
+        ]
+        states = [
+            s if p > measurement_tol else None
+            for s, p in zip(states, probabilities)
+        ]
+        return states, probabilities
 
     def __str__(self):
         str_name = ("Measurement(%s, target=%s, classical_store=%s)") % (
@@ -333,25 +349,27 @@ class QubitCircuit:
 
         Parameters
         ----------
-        gate: string or :class:`.Gate`
-            Gate name. If gate is an instance of :class:`.Gate`, parameters are
-            unpacked and added.
-        targets: list
-            Gate targets.
-        controls: list
-            Gate controls.
-        arg_value: float
-            Argument value(phi).
-        arg_label: string
+        gate: string or :class:`~.operations.Gate`
+            Gate name. If gate is an instance of :class:`~.operations.Gate`,
+            parameters are unpacked and added.
+        targets: int or list, optional
+            Index for the target qubits.
+        controls: int or list, optional
+            Indices for the (quantum) control qubits.
+        arg_value: Any, optional
+            Arguments for the gate. It will be used when generating the
+            unitary matrix. For predefined gates, they are used when
+            calling the ``get_compact_qobj`` methods of a gate.
+        arg_label: string, optional
             Label for gate representation.
-        index : list
+        index : list, optional
             Positions to add the gate. Each index in the supplied list refers
             to a position in the original list of gates.
         classical_controls : int or list of int, optional
-            indices of classical bits to control gate on.
+            Indices of classical bits to control the gate.
         control_value : int, optional
-            value of classical bits to control on, the classical controls are
-            interpreted as an integer with lowest bit being the first one.
+            Value of classical bits to control on, the classical controls are
+            interpreted as an integer with the lowest bit being the first one.
             If not specified, then the value is interpreted to be
             2 ** len(classical_controls) - 1
             (i.e. all classical controls are 1).
@@ -1350,9 +1368,9 @@ class QubitCircuit:
         Parameters
         ----------
         state : ket or oper
-                state vector or density matrix input.
+            state vector or density matrix input.
         cbits : List of ints, optional
-                initialization of the classical bits.
+            initialization of the classical bits.
         U_list: list of Qobj, optional
             list of predefined unitaries corresponding to circuit.
         measure_results : tuple of ints, optional
@@ -1370,30 +1388,19 @@ class QubitCircuit:
         final_state : Qobj
                 output state of the circuit run.
         """
-
         if state.isket:
-            sim = CircuitSimulator(
-                self,
-                state,
-                cbits,
-                U_list,
-                measure_results,
-                "state_vector_simulator",
-                precompute_unitary,
-            )
+            mode = "state_vector_simulator"
         elif state.isoper:
-            sim = CircuitSimulator(
-                self,
-                state,
-                cbits,
-                U_list,
-                measure_results,
-                "density_matrix_simulator",
-                precompute_unitary,
-            )
+            mode = "density_matrix_simulator"
         else:
             raise TypeError("State is not a ket or a density matrix.")
-        return sim.run(state, cbits).get_final_states(0)
+        sim = CircuitSimulator(
+            self,
+            U_list,
+            mode,
+            precompute_unitary,
+        )
+        return sim.run(state, cbits, measure_results).get_final_states(0)
 
     def run_statistics(
         self, state, U_list=None, cbits=None, precompute_unitary=False
@@ -1404,17 +1411,12 @@ class QubitCircuit:
 
         Parameters
         ----------
-        state : ket or oper
-                state vector or density matrix input.
-        cbits : List of ints, optional
-                initialization of the classical bits.
+        state: ket or oper
+            state vector or density matrix input.
+        cbits: List of ints, optional
+            initialization of the classical bits.
         U_list: list of Qobj, optional
             list of predefined unitaries corresponding to circuit.
-        measure_results : tuple of ints, optional
-            optional specification of each measurement result to enable
-            post-selection. If specified, the measurement results are
-            set to the tuple of bits (sequentially) instead of being
-            chosen at random.
         precompute_unitary: Boolean, optional
             Specify if computation is done by pre-computing and aggregating
             gate unitaries. Possibly a faster method in the case of
@@ -1426,27 +1428,18 @@ class QubitCircuit:
             Return a CircuitResult object containing
             output states and and their probabilities.
         """
-
         if state.isket:
-            sim = CircuitSimulator(
-                self,
-                state,
-                cbits,
-                U_list,
-                mode="state_vector_simulator",
-                precompute_unitary=precompute_unitary,
-            )
+            mode = "state_vector_simulator"
         elif state.isoper:
-            sim = CircuitSimulator(
-                self,
-                state,
-                cbits,
-                U_list,
-                mode="density_matrix_simulator",
-                precompute_unitary=precompute_unitary,
-            )
+            mode = "density_matrix_simulator"
         else:
             raise TypeError("State is not a ket or a density matrix.")
+        sim = CircuitSimulator(
+            self,
+            U_list,
+            mode,
+            precompute_unitary,
+        )
         return sim.run_statistics(state, cbits)
 
     def resolve_gates(self, basis=["CNOT", "RX", "RY", "RZ"]):
@@ -1874,6 +1867,8 @@ class QubitCircuit:
                                 distance = abs(
                                     gate.targets[1] - gate.targets[0]
                                 )
+                                if self.reverse_states:
+                                    distance = -distance
                                 col.append(r" \qswap \qwx[%d] \qw" % distance)
                                 _swap_processing = True
 
@@ -2085,9 +2080,8 @@ class QubitCircuit:
 
 
 _latex_template = r"""
-\documentclass{standalone}
+\documentclass[border=3pt]{standalone}
 \usepackage[braket]{qcircuit}
-\renewcommand{\qswap}{*=<0em>{\times}}
 \begin{document}
 \Qcircuit @C=1cm @R=1cm {
 %s}
@@ -2199,36 +2193,21 @@ class CircuitSimulator:
     def __init__(
         self,
         qc,
-        state=None,
-        cbits=None,
         U_list=None,
-        measure_results=None,
         mode="state_vector_simulator",
         precompute_unitary=False,
+        state=None,
+        cbits=None,
+        measure_results=None,
     ):
         """
         Simulate state evolution for Quantum Circuits.
-
         Parameters
         ----------
         qc : :class:`.QubitCircuit`
             Quantum Circuit to be simulated.
-
-        state: ket or oper
-            ket or density matrix
-
-        cbits: list of int, optional
-            initial value of classical bits
-
         U_list: list of Qobj, optional
             list of predefined unitaries corresponding to circuit.
-
-        measure_results : tuple of ints, optional
-            optional specification of each measurement result to enable
-            post-selection. If specified, the measurement results are
-            set to the tuple of bits (sequentially) instead of being
-            chosen at random.
-
         mode: string, optional
             Specify if input state (and therefore computation) is in
             state-vector mode or in density matrix mode.
@@ -2241,33 +2220,34 @@ class CircuitSimulator:
             If in density_matrix_simulator mode and given
             a state vector input, the output must be assumed to
             be a density matrix.
-
         precompute_unitary: Boolean, optional
             Specify if computation is done by pre-computing and aggregating
             gate unitaries. Possibly a faster method in the case of
             large number of repeat runs with different state inputs.
         """
-
         self.qc = qc
         self.mode = mode
         self.precompute_unitary = precompute_unitary
-
         if U_list:
             self.U_list = U_list
         elif precompute_unitary:
             self.U_list = qc.propagators(expand=False, ignore_measurement=True)
         else:
             self.U_list = qc.propagators(ignore_measurement=True)
-
         self.ops = []
         self.inds_list = []
-
         if precompute_unitary:
             self._process_ops_precompute()
         else:
             self._process_ops()
 
-        self.initialize(state, cbits, measure_results)
+        if any(p is not None for p in (state, cbits, measure_results)):
+            warnings.warn(
+                "Initializing the quantum state, cbits and measure_results "
+                "when initializing the simulator is deprecated. "
+                "The inputs are ignored. "
+                "They should, instead, be provided when running the simulation."
+            )
 
     def _process_ops(self):
         """
