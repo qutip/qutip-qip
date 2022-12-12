@@ -3,8 +3,8 @@ Changelog
 *********
 
 
-Version 0.2.3 (October 24, 2022)
-++++++++++++++++++++++++++++++++
+Version 0.2.3 (December 12, 2022)
++++++++++++++++++++++++++++++++++
 
 Improvements
 ------------
@@ -16,7 +16,13 @@ Bug Fixes
 - Fix the final time calculation in ``GateCompiler.compile``. (`#162 <https://github.com/qutip/qutip-qip/pull/162>`_)
 - Fix bug for circuit with selected measurement result. (`#167 <https://github.com/qutip/qutip-qip/pull/167>`_)
 - Fix bugs in the analytical pulse shapes. (`#169 <https://github.com/qutip/qutip-qip/pull/169>`_)
-- Fix the swap gate plotting. (`#170 <https://github.com/qutip/qutip-qip/pull/170>`_)
+- Fix the swap gate plotting. (`#170 <https://github.com/qutip/qutip-qip/pull/170>`_) and (`#177 <https://github.com/qutip/qutip-qip/pull/177>`_)
+- Filter the measurement probability (`#182 <https://github.com/qutip/qutip-qip/pull/182>`_)
+- Add a default max_step based on the circuit time (`#183 <https://github.com/qutip/qutip-qip/pull/183>`_)
+
+Miscellaneous
+-------------
+- Fix parsing of package versions in packaging 22. (`#181 <https://github.com/qutip/qutip-qip/pull/181>`_)
 
 
 
