@@ -1221,7 +1221,7 @@ class Processor(object):
             )
         elif solver == "mcsolve":
             evo_result = mcsolve(
-                H=noisy_qobjevo, state=init_state, tlist=tlist, **kwargs
+                noisy_qobjevo, init_state, tlist=tlist, **kwargs
             )
 
         return evo_result
