@@ -209,7 +209,7 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
         )[0]
 
         exp_res_data = ExperimentResultData(
-            counts=counts, statevector=Statevector(data=np.array(statevector))
+            counts=counts, statevector=Statevector(data=statevector.full())
         )
 
         header = QobjExperimentHeader.from_dict(
@@ -366,9 +366,9 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
 
         exp_res_data = ExperimentResultData(
             counts=counts,
-            statevector=Statevector(data=np.array(final_state))
+            statevector=Statevector(data=final_state.full())
             if final_state.type == "ket"
-            else DensityMatrix(data=np.array(final_state)),
+            else DensityMatrix(data=final_state.full()),
         )
 
         header = QobjExperimentHeader.from_dict(
