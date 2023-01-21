@@ -1206,9 +1206,9 @@ class Processor(object):
         else:
             total_circuit_time = 0.0
         if is_qutip5:
-            options = kwargs.get("options", qutip.SolverOptions())
-            if options["max_step"] == 0.0:
-                options["max_step"] = total_circuit_time / 10
+            options = kwargs.get("options", qutip.Options())
+            if options.get("max_step", 0.0) == 0.0:
+                options["max_step"] = total_circuit_time / 25
         else:
             options = kwargs.get("options", qutip.Options())
             if options.max_step == 0.0:
@@ -1221,7 +1221,7 @@ class Processor(object):
             )
         elif solver == "mcsolve":
             evo_result = mcsolve(
-                H=noisy_qobjevo, psi0=init_state, tlist=tlist, **kwargs
+                noisy_qobjevo, init_state, tlist=tlist, **kwargs
             )
 
         return evo_result
