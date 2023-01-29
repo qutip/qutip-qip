@@ -17,7 +17,6 @@ from ..circuit import QubitCircuit
 from ..operations import Gate
 from .processor import Processor, Model
 from .modelprocessor import ModelProcessor, _to_array
-from ..operations import expand_operator
 from ..pulse import Pulse
 from ..compiler import GateCompiler, CavityQEDCompiler
 

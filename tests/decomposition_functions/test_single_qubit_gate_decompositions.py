@@ -15,11 +15,11 @@ from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations.gates import snot, sqrtnot
 
 # Fidelity closer to 1 means the two states are similar to each other
-H = snot(1, 0)
+H = snot()
 sigmax = sigmax()
 sigmay = sigmay()
 sigmaz = sigmaz()
-SQRTNOT = sqrtnot(N=1, target=0)
+SQRTNOT = sqrtnot()
 T = Qobj([[1, 0], [0, cmath.rect(1, np.pi / 4)]])
 S = Qobj([[1, 0], [0, 1j]])
 target = 0

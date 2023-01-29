@@ -925,7 +925,7 @@ class QubitCircuit:
                 if expand:
                     all_targets = gate.get_all_qubits()
                     qobj = expand_operator(
-                        qobj, N=self.N, targets=all_targets, dims=self.dims
+                        qobj, dims=self.dims, targets=all_targets
                     )
             else:
                 if expand:

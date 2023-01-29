@@ -53,7 +53,7 @@ class _EvoElement:
         else:
             qobj = self.qobj
             targets = self.targets
-        return expand_operator(qobj, len(dims), targets, dims)
+        return expand_operator(qobj, dims=dims, targets=targets)
 
     def _get_qobjevo_helper(self, spline_kind, dims):
         """
