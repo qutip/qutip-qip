@@ -7,6 +7,7 @@ from qutip_qip.circuit import QubitCircuit
 from scipy.optimize import minimize
 from scipy.linalg import expm_frechet
 from .operations import gate_sequence_product
+from .utilities import _qobj_compatibility_helper
 
 
 class VQA:
@@ -429,10 +430,8 @@ class VQA:
         dCost = (init.dag() * dU.dag()) * obs * (U * init) + (
             init.dag() * U.dag()
         ) * obs * (dU * init)
-        if isinstance(dCost, Qobj):  # qutip version < 5
-            return np.real(dCost.full().item())
-        else:  # qutip version >= 5
-            return np.real(dCost)
+        dCost = _qobj_compatibility_helper(dCost)
+        return np.real(dCost.full().item())
 
     def compute_jac(self, angles, indices_to_compute=None):
         """

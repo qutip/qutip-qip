@@ -15,7 +15,8 @@ from joblib import Parallel, delayed  # for parallel simulations
 import numpy as np
 from qutip import (
     fidelity, sigmax, sigmay, sigmaz, basis, qeye, tensor, Qobj, fock_dm)
-from qutip_qip.circuit import QubitCircuit, Gate
+from qutip_qip.circuit import QubitCircuit
+from qutip_qip.operations import Gate
 from qutip_qip.device import ModelProcessor, Model
 from qutip_qip.compiler import GateCompiler, Instruction
 import qutip
