@@ -1209,10 +1209,12 @@ class Processor(object):
             options = kwargs.get("options", qutip.Options())
             if options.get("max_step", 0.0) == 0.0:
                 options["max_step"] = total_circuit_time / 25
+            options["progress_bar"] = False
         else:
             options = kwargs.get("options", qutip.Options())
             if options.max_step == 0.0:
                 options.max_step = total_circuit_time / 10
+            options.progress_bar = False
         kwargs["options"] = options
         # choose solver:
         if solver == "mesolve":

@@ -195,7 +195,7 @@ gate function returning a :class:`qutip.Qobj` and save it in the attribute ``use
            # controlled rotation X
            mat = np.zeros((4, 4), dtype=np.complex)
            mat[0, 0] = mat[1, 1] = 1.
-           mat[2:4, 2:4] = rx(arg_value)
+           mat[2:4, 2:4] = rx(arg_value).full()
            return Qobj(mat, dims=[[2, 2], [2, 2]])
 
 
