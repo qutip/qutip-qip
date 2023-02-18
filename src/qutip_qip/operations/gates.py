@@ -1055,7 +1055,6 @@ def qubit_clifford_group(N=None, target=0):
         partial(reduce, mul),
         product(_powers(E, 3), _powers(X, 2), _powers(S, 4)),
     ):
-
         # partial(reduce, mul) returns a function that takes products
         # of its argument, by analogy to sum. Note that by analogy,
         # sum can be written as partial(reduce, add).
@@ -1209,7 +1208,6 @@ def gate_expand_3toN(U, N, controls=[0, 1], target=2):
         or controls[1] == target
         or controls[0] == controls[1]
     ):
-
         raise ValueError(
             "controls[0], controls[1], and target" " cannot be equal"
         )

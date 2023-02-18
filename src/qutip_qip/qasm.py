@@ -134,7 +134,6 @@ def _tokenize(token_cmds):
     processed_commands = []
 
     for line in token_cmds:
-
         # carry out some pre-processing for convenience
         for c in "[]()":
             line = line.replace(c, " " + c + " ")
@@ -241,7 +240,6 @@ class QasmProcessor:
         expanded_commands = []
 
         for curr_index, command in enumerate(self.commands):
-
             if command[0] != "include":
                 continue
 
@@ -384,7 +382,6 @@ class QasmProcessor:
             regs_map[reg] = regs[i]
         # process all the constituent gates with supplied arguments, registers
         for call in gate.gates_inside:
-
             # create function call for the constituent gate
             name, com_args, com_regs = call
 
@@ -455,7 +452,6 @@ class QasmProcessor:
             regs = new_regs
 
         if reg_type == "measure":
-
             # processes register tokens of the form q[i] -> c[i]
             groups = re.match(r"(.*)\[(.*)\]->(.*)\[(.*)\]", "".join(regs))
             if groups:

@@ -112,6 +112,7 @@ def circuit_to_qir(circuit, format, module_name="qutip_circuit"):
     A QIR representation of `circuit`, encoded using the format specified by
     `format`.
     """
+
     # Define as an inner function to make it easier to call from conditional
     # branches.
     def append_operation(

@@ -723,7 +723,7 @@ class Processor(object):
         else:
             try:
                 return self.pulses[pulse_dict[pulse_name]]
-            except (KeyError):
+            except KeyError:
                 raise KeyError(
                     "Pulse name {} undefined. "
                     "Please define it in the attribute "
