@@ -392,9 +392,8 @@ class Gate:
             num_qubits = max(all_targets) + 1
         return expand_operator(
             self.get_compact_qobj(),
-            N=num_qubits,
-            targets=all_targets,
             dims=dims,
+            targets=all_targets,
         )
 
 

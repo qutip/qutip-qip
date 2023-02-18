@@ -104,9 +104,11 @@ def _mult_sublists(tensor_list, overall_inds, U, inds):
     ind_map = {ind: pos for ind, pos in zip(revised_inds, sorted_positions)}
 
     U_sublist = expand_operator(
-        U_sublist, N, [ind_map[ind] for ind in inds_sublist]
+        U_sublist, dims=[2] * N, targets=[ind_map[ind] for ind in inds_sublist]
     )
-    U = expand_operator(U, N, [ind_map[ind] for ind in inds])
+    U = expand_operator(
+        U, dims=[2] * N, targets=[ind_map[ind] for ind in inds]
+    )
 
     U_sublist = U * U_sublist
     inds_sublist = revised_inds
@@ -125,7 +127,9 @@ def _expand_overall(tensor_list, overall_inds):
 
     U_overall = tensor(tensor_list)
     overall_inds = _flatten(overall_inds)
-    U_overall = expand_operator(U_overall, len(overall_inds), overall_inds)
+    U_overall = expand_operator(
+        U_overall, dims=[2] * len(overall_inds), targets=overall_inds
+    )
     overall_inds = sorted(overall_inds)
     return U_overall, overall_inds
 
@@ -187,7 +191,9 @@ def _gate_sequence_product(U_list, ind_list):
                 tensor_list, overall_inds
             )
             U_left, rem_inds = _gate_sequence_product(U_list[i:], ind_list[i:])
-            U_left = expand_operator(U_left, num_qubits, rem_inds)
+            U_left = expand_operator(
+                U_left, dims=[2] * num_qubits, targets=rem_inds
+            )
             return U_left * U_overall, [
                 sorted_inds[ind] for ind in overall_inds
             ]
@@ -291,6 +297,7 @@ class CircuitSimulator:
         """
 
         self.qc = qc
+        self.dims = qc.dims
         self.mode = mode
         self.precompute_unitary = precompute_unitary
 
@@ -467,7 +474,7 @@ class CircuitSimulator:
 
         if len(overall_inds) != self.qc.N:
             U_overall = expand_operator(
-                U_overall, N=self.qc.N, targets=overall_inds
+                U_overall, dims=self.qc.dims, targets=overall_inds
             )
         return U_overall
 
@@ -572,7 +579,9 @@ class CircuitSimulator:
             if apply_gate:
                 if self.precompute_unitary:
                     U = expand_operator(
-                        U, self.qc.N, operation.get_all_qubits()
+                        U,
+                        dims=self.qc.dims,
+                        targets=operation.get_all_qubits(),
                     )
                 self._evolve_state(U)
         else:
