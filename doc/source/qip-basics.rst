@@ -151,6 +151,7 @@ Gate name                           Description
 "SQRTNOT"             Square root of NOT gate
 "SNOT"                Hadamard gate
 "PHASEGATE"           Add a phase one the state 1
+"QROT"                Arbitrary single qubit rotation
 "CRX"                 Controlled rotation around x axis
 "CRY"                 Controlled rotation around y axis
 "CRZ"                 Controlled rotation around z axis
@@ -169,6 +170,7 @@ Gate name                           Description
 "ISWAP"               Swap gate with additional phase for 01 and 10 states
 "SQRTSWAP"            Square root of the SWAP gate
 "SQRTISWAP"           Square root of the ISWAP gate
+"MS"                  Mølmer-Sørensen gate
 "FREDKIN"             Fredkin gate
 "TOFFOLI"             Toffoli gate
 "GLOBALPHASE"         Global phase
