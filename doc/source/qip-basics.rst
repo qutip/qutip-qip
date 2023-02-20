@@ -143,6 +143,7 @@ Gate name                           Description
 "RX"                  Rotation around x axis
 "RY"                  Rotation around y axis
 "RZ"                  Rotation around z axis
+"R"                   Arbitrary single qubit rotation
 "X"                   Pauli-X gate
 "Y"                   Pauli-Y gate
 "Z"                   Pauli-Z gate
@@ -151,7 +152,6 @@ Gate name                           Description
 "SQRTNOT"             Square root of NOT gate
 "SNOT"                Hadamard gate
 "PHASEGATE"           Add a phase one the state 1
-"QROT"                Arbitrary single qubit rotation
 "CRX"                 Controlled rotation around x axis
 "CRY"                 Controlled rotation around y axis
 "CRZ"                 Controlled rotation around z axis

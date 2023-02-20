@@ -63,7 +63,7 @@ __all__ = [
     "SQRTNOT",
     "S",
     "T",
-    "QROT",
+    "R",
     "QASMU",
     "SWAP",
     "ISWAP",
@@ -319,7 +319,7 @@ class Gate:
             qobj = snot()
         elif self.name == "PHASEGATE":
             qobj = phasegate(self.arg_value)
-        elif self.name == "QROT":
+        elif self.name == "R":
             qobj = qrot(*self.arg_value)
         elif self.name == "QASMU":
             qobj = qasmu_gate(self.arg_value)
@@ -638,7 +638,7 @@ class T(SingleQubitGate):
         return t_gate()
 
 
-class QROT(SingleQubitGate):
+class R(SingleQubitGate):
     r"""
     Arbitrary single-qubit rotation
 
@@ -651,8 +651,8 @@ class QROT(SingleQubitGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import QROT
-    >>> QROT(0, (np.pi/2, np.pi/2)).get_compact_qobj().tidyup() # doctest: +NORMALIZE_WHITESPACE
+    >>> from qutip_qip.operations import R
+    >>> R(0, (np.pi/2, np.pi/2)).get_compact_qobj().tidyup() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims = [[2], [2]], shape = (2, 2), type = oper, isherm = False
     Qobj data =
     [[ 0.70711 -0.70711]
@@ -661,7 +661,7 @@ class QROT(SingleQubitGate):
 
     def __init__(self, targets, arg_value=None, **kwargs):
         super().__init__(targets=targets, arg_value=arg_value, **kwargs)
-        self.latex_str = r"{\rm QROT}"
+        self.latex_str = r"{\rm R}"
 
     def get_compact_qobj(self):
         return qrot(*self.arg_value)
@@ -1173,7 +1173,7 @@ GATE_CLASS_MAP = {
     "SQRTNOT": SQRTNOT,
     "S": S,
     "T": T,
-    "QROT": QROT,
+    "R": R,
     "QASMU": QASMU,
     "SWAP": SWAP,
     "ISWAP": ISWAP,
