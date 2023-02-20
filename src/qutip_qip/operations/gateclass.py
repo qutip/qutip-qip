@@ -1173,6 +1173,7 @@ GATE_CLASS_MAP = {
     "SQRTNOT": SQRTNOT,
     "S": S,
     "T": T,
+    "QROT": QROT,
     "QASMU": QASMU,
     "SWAP": SWAP,
     "ISWAP": ISWAP,
