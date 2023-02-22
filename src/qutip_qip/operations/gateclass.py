@@ -29,6 +29,7 @@ from .gates import (
     s_gate,
     t_gate,
     cs_gate,
+    qrot,
     qasmu_gate,
     ct_gate,
     cphase,
@@ -62,6 +63,7 @@ __all__ = [
     "SQRTNOT",
     "S",
     "T",
+    "R",
     "QASMU",
     "SWAP",
     "ISWAP",
@@ -317,6 +319,8 @@ class Gate:
             qobj = snot()
         elif self.name == "PHASEGATE":
             qobj = phasegate(self.arg_value)
+        elif self.name == "R":
+            qobj = qrot(*self.arg_value)
         elif self.name == "QASMU":
             qobj = qasmu_gate(self.arg_value)
         elif self.name == "CRX":
@@ -632,6 +636,35 @@ class T(SingleQubitGate):
 
     def get_compact_qobj(self):
         return t_gate()
+
+
+class R(SingleQubitGate):
+    r"""
+    Arbitrary single-qubit rotation
+
+    .. math::
+
+        \begin{pmatrix}
+        \cos(\frac{\theta}{2}) & -ie^{-i\phi} \sin(\frac{\theta}{2}) \\
+        -ie^{i\phi} \sin(\frac{\theta}{2}) & \cos(\frac{\theta}{2})
+        \end{pmatrix}
+
+    Examples
+    --------
+    >>> from qutip_qip.operations import R
+    >>> R(0, (np.pi/2, np.pi/2)).get_compact_qobj().tidyup() # doctest: +NORMALIZE_WHITESPACE
+    Quantum object: dims = [[2], [2]], shape = (2, 2), type = oper, isherm = False
+    Qobj data =
+    [[ 0.70711 -0.70711]
+     [ 0.70711  0.70711]]
+    """
+
+    def __init__(self, targets, arg_value=None, **kwargs):
+        super().__init__(targets=targets, arg_value=arg_value, **kwargs)
+        self.latex_str = r"{\rm R}"
+
+    def get_compact_qobj(self):
+        return qrot(*self.arg_value)
 
 
 class QASMU(SingleQubitGate):
@@ -1140,6 +1173,7 @@ GATE_CLASS_MAP = {
     "SQRTNOT": SQRTNOT,
     "S": S,
     "T": T,
+    "R": R,
     "QASMU": QASMU,
     "SWAP": SWAP,
     "ISWAP": ISWAP,

@@ -10,7 +10,7 @@ from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations import (
     X, Y, Z, RX, RY, RZ, H, SQRTNOT, S, T, QASMU, CNOT, CPHASE, ISWAP, SWAP,
     CZ, SQRTSWAP, SQRTISWAP, SWAPALPHA, SWAPALPHA, MS, TOFFOLI, FREDKIN,
-    BERKELEY, expand_operator)
+    BERKELEY, R, expand_operator)
 
 
 def _permutation_id(permutation):
@@ -355,6 +355,7 @@ def test_gates_class():
     circuit1.add_gate("SQRTNOT", 0)
     circuit1.add_gate("S", 2)
     circuit1.add_gate("T", 1)
+    circuit1.add_gate("R", 1, arg_value=(np.pi/4, np.pi/6))
     circuit1.add_gate("QASMU", 0, arg_value=(np.pi/4, np.pi/4, np.pi/4))
     circuit1.add_gate("CNOT", controls=0, targets=1)
     circuit1.add_gate("CPHASE", controls=0, targets=1, arg_value=np.pi/4)
@@ -381,6 +382,7 @@ def test_gates_class():
     circuit2.add_gate(SQRTNOT(0))
     circuit2.add_gate(S(2))
     circuit2.add_gate(T(1))
+    circuit2.add_gate(R(1, (np.pi/4, np.pi/6)))
     circuit2.add_gate(QASMU(0, (np.pi/4, np.pi/4, np.pi/4)))
     circuit2.add_gate(CNOT(0, 1))
     circuit2.add_gate(CPHASE(0, 1, np.pi/4))

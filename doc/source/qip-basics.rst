@@ -143,6 +143,7 @@ Gate name                           Description
 "RX"                  Rotation around x axis
 "RY"                  Rotation around y axis
 "RZ"                  Rotation around z axis
+"R"                   Arbitrary single qubit rotation
 "X"                   Pauli-X gate
 "Y"                   Pauli-Y gate
 "Z"                   Pauli-Z gate
@@ -169,6 +170,7 @@ Gate name                           Description
 "ISWAP"               Swap gate with additional phase for 01 and 10 states
 "SQRTSWAP"            Square root of the SWAP gate
 "SQRTISWAP"           Square root of the ISWAP gate
+"MS"                  Mølmer-Sørensen gate
 "FREDKIN"             Fredkin gate
 "TOFFOLI"             Toffoli gate
 "GLOBALPHASE"         Global phase
