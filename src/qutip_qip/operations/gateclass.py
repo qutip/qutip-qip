@@ -872,16 +872,16 @@ class MS(TwoQubitGate):
     .. math::
 
         \begin{pmatrix}
-        \cos(\frac{\theta}{2}) & 0 & 0 & -i\sin(\frac{\theta}{2}) \\
+        \cos(\frac{\theta}{2}) & 0 & 0 & -i\exp^{-i2\phi}\sin(\frac{\theta}{2}) \\
         0 & \cos(\frac{\theta}{2}) & -i\sin(\frac{\theta}{2}) & 0 \\
         0 & -i\sin(\frac{\theta}{2}) & \cos(\frac{\theta}{2}) & 0 \\
-        -i\sin(\frac{\theta}{2}) & 0 & 0 & \cos(\frac{\theta}{2})
+        -i\exp^{i2\phi}\sin(\frac{\theta}{2}) & 0 & 0 & \cos(\frac{\theta}{2})
         \end{pmatrix}
 
     Examples
     --------
     >>> from qutip_qip.operations import MS
-    >>> MS([0, 1], np.pi/2).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> MS([0, 1], (np.pi/2, 0)).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims = [[2, 2], [2, 2]], shape = (4, 4), type = oper, isherm = False
     Qobj data =
     [[0.70711+0.j      0.     +0.j      0.     +0.j      0.     -0.70711j]
