@@ -183,7 +183,6 @@ def _gate_sequence_product(U_list, ind_list):
     overall_inds = []
 
     for i, (U, inds) in enumerate(zip(U_list, ind_list)):
-
         # when the tensor_list covers the full dimension of the circuit, we
         # expand the tensor_list to a unitary and call _gate_sequence_product
         # recursively on the rest of the U_list.

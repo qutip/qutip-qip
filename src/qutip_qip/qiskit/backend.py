@@ -29,7 +29,6 @@ class QiskitSimulatorBase(BackendV1):
     """
 
     def __init__(self, configuration=None, **fields):
-
         if configuration is None:
             configuration_dict = self._DEFAULT_CONFIGURATION
         else:
@@ -160,7 +159,6 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
     }
 
     def __init__(self, configuration=None, **fields):
-
         super().__init__(configuration=configuration, **fields)
 
     def _parse_results(
@@ -325,7 +323,6 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
     }
 
     def __init__(self, processor: Processor, configuration=None, **fields):
-
         self.processor = processor
         super().__init__(configuration=configuration, **fields)
 

@@ -346,9 +346,7 @@ class QubitCircuit:
             self.user_gates[user_gate] = qc.user_gates[user_gate]
 
         for circuit_op in qc.gates:
-
             if isinstance(circuit_op, Gate):
-
                 if circuit_op.targets is not None:
                     tar = [target + start for target in circuit_op.targets]
                 else:
@@ -958,9 +956,7 @@ class QubitCircuit:
                 col = []
                 _swap_processing = False
                 for n in range(self.N + self.num_cbits):
-
                     if gate.targets and n in gate.targets:
-
                         if len(gate.targets) > 1:
                             if gate.name == "SWAP":
                                 if _swap_processing:
@@ -1041,7 +1037,6 @@ class QubitCircuit:
                 measurement = op
                 col = []
                 for n in range(self.N + self.num_cbits):
-
                     if n in measurement.targets:
                         col.append(r" \meter")
                     elif (n - self.N) == measurement.classical_store:

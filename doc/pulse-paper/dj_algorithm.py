@@ -18,6 +18,8 @@ from qutip_qip.device import (
     OptPulseProcessor, LinearSpinChain, SCQubits, SpinChainModel)
 from qutip_qip.circuit import QubitCircuit
 from qutip import sigmaz, sigmax, identity, tensor, basis
+from qutip_qip.compat import to_scalar
+
 
 # Deutsch-Josza algorithm
 dj_circuit = QubitCircuit(num_qubits)
@@ -79,7 +81,6 @@ for i, (point1, point2, point3) in enumerate(two_qubit_gate_region):
     ax[i].fill_between([full_tlist[point2], full_tlist[point3]], [vmin ,vmin],  [vmax, vmax], color="lightgray", alpha=0.5)
     ax[i].vlines([full_tlist[point2], full_tlist[point3]], vmin, vmax, "gray", "--", linewidth=0.8, alpha=0.5)
 
-fig.tight_layout()
 fig.savefig("optimal_control_pulse.pdf")
 fig.show()
 
@@ -124,7 +125,6 @@ ax3[9].set_xlabel(r"$t$")
 
 full_tlist = scqubits_processor.get_full_tlist()
 
-fig3.tight_layout()
 fig3.savefig("transmon_pulse.pdf")
 fig3.show()
 
@@ -146,7 +146,7 @@ expect = []
 for state in result1.states:
     tmp = state.ptrace([0,1])
     tmp = basis([2,2], [0,0]).dag() * tmp * basis([2,2], [0,0])
-    expect.append(np.real(tmp[0, 0]))
+    expect.append(np.real(to_scalar(tmp)))
 
 fig5, ax5 = plt.subplots(figsize=(LINEWIDTH, LINEWIDTH*0.7), dpi=200)
 ax5.plot(t_record, expect, color="slategrey")
