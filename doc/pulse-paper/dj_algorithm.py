@@ -18,7 +18,7 @@ from qutip_qip.device import (
     OptPulseProcessor, LinearSpinChain, SCQubits, SpinChainModel)
 from qutip_qip.circuit import QubitCircuit
 from qutip import sigmaz, sigmax, identity, tensor, basis
-from qutip_qip.utilities import _qobj_compatibility_helper
+from qutip_qip.compat import to_scalar
 
 
 # Deutsch-Josza algorithm
@@ -146,7 +146,7 @@ expect = []
 for state in result1.states:
     tmp = state.ptrace([0,1])
     tmp = basis([2,2], [0,0]).dag() * tmp * basis([2,2], [0,0])
-    expect.append(np.real(_qobj_compatibility_helper(tmp)[0, 0]))
+    expect.append(np.real(to_scalar(tmp)))
 
 fig5, ax5 = plt.subplots(figsize=(LINEWIDTH, LINEWIDTH*0.7), dpi=200)
 ax5.plot(t_record, expect, color="slategrey")
