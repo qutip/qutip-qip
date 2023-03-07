@@ -274,7 +274,7 @@ class TestCircuitProcessor:
         Test for Processor with noise
         """
         # setup and fidelity without noise
-        init_state = qubit_states(2, [0, 0, 0, 0])
+        init_state = qubit_states([0, 0])
         tlist = np.array([0., np.pi/2.])
         a = destroy(2)
         proc = Processor(N=2)
@@ -283,24 +283,16 @@ class TestCircuitProcessor:
         proc.set_all_tlist(tlist)
         result = proc.run_state(init_state=init_state)
         assert_allclose(
-            fidelity(
-                result.states[-1],
-                qubit_states(2, [0, 1, 0, 0])
-            ),
-            1, rtol=1.e-7
-        )
+            fidelity(result.states[-1], qubit_states([0, 1])),
+            1, rtol=1.e-7)
 
         # decoherence noise
         dec_noise = DecoherenceNoise([0.25*a], targets=1)
         proc.add_noise(dec_noise)
         result = proc.run_state(init_state=init_state)
         assert_allclose(
-            fidelity(
-                result.states[-1],
-                qubit_states(2, [0, 1, 0, 0])
-            ),
-            0.981852, rtol=1.e-3
-        )
+            fidelity(result.states[-1], qubit_states([0, 1])),
+            0.981852, rtol=1.e-3)
 
         # white random noise
         proc.model._noise = []
@@ -340,7 +332,7 @@ class TestCircuitProcessor:
 
     def testChooseSolver(self):
         # setup and fidelity without noise
-        init_state = qubit_states(2, [0, 0, 0, 0])
+        init_state = qubit_states([0, 0])
         tlist = np.linspace(0., np.pi/2., 10)
         a = destroy(2)
         proc = Processor(N=2, t2=100)

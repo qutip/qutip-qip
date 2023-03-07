@@ -41,8 +41,8 @@ class TestOptPulseProcessor:
             qc, num_tslots=num_tslots, evo_time=evo_time, verbose=True)
 
         # test run_state
-        rho0 = qubit_states(1, [0])
-        plus = (qubit_states(1, [0]) + qubit_states(1, [1])).unit()
+        rho0 = qubit_states([0])
+        plus = (qubit_states([0]) + qubit_states([1])).unit()
         result = test.run_state(rho0)
         assert_allclose(fidelity(result.states[-1], plus), 1, rtol=1.0e-6)
 
@@ -72,8 +72,8 @@ class TestOptPulseProcessor:
         qc = [tensor([identity(2), cnot()])]
         test.load_circuit(qc, num_tslots=num_tslots,
                           evo_time=evo_time, min_fid_err=1.0e-6)
-        rho0 = qubit_states(3, [1, 1, 1])
-        rho1 = qubit_states(3, [1, 1, 0])
+        rho0 = qubit_states([1, 1, 1])
+        rho1 = qubit_states([1, 1, 0])
         result = test.run_state(
             rho0, options=SolverOptions(store_states=True))
         assert_(fidelity(result.states[-1], rho1) > 1-1.0e-6)
