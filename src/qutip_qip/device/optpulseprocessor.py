@@ -181,16 +181,12 @@ class OptPulseProcessor(Processor):
             for label in control_labels:
                 qobj, targets = self.model.get_control(label)
                 full_ctrls_hams.append(
-                    expand_operator(
-                        qobj, len(self.dims), targets=targets, dims=self.dims
-                    )
+                    expand_operator(qobj, dims=self.dims, targets=targets)
                 )
 
             full_drift_ham = sum(
                 [
-                    expand_operator(
-                        qobj, len(self.dims), targets=targets, dims=self.dims
-                    )
+                    expand_operator(qobj, dims=self.dims, targets=targets)
                     for (qobj, targets) in self.model.get_all_drift()
                 ],
                 Qobj(

@@ -13,6 +13,7 @@ qutip\_qip.operations
    .. autosummary::
    
       Gate
+      Measurement
       GATE_CLASS_MAP
       X
       Y
@@ -63,9 +64,6 @@ qutip\_qip.operations
       cz_gate
       expand_operator
       fredkin
-      gate_expand_1toN
-      gate_expand_2toN
-      gate_expand_3toN
       gate_sequence_product
       globalphase
       hadamard_transform

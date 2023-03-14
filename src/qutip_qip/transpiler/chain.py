@@ -99,7 +99,6 @@ def to_chain_structure(qc, setup="linear"):
                 temp = QubitCircuit(N - end + start)
                 i = 0
                 while i < (N - end + start):
-
                     if (
                         N + start - end - i - i == 1
                         and (N - end + start + 1) % 2 == 0
@@ -215,7 +214,6 @@ def to_chain_structure(qc, setup="linear"):
                 temp = QubitCircuit(N - end + start)
                 i = 0
                 while i < (N - end + start):
-
                     if (
                         N + start - end - i - i == 1
                         and (N - end + start + 1) % 2 == 0

@@ -5,13 +5,12 @@ import numpy as np
 from pathlib import Path
 
 
-from qutip_qip.circuit import (
-    QubitCircuit, CircuitSimulator, Measurement)
+from qutip_qip.circuit import (QubitCircuit, CircuitSimulator)
 from qutip import (tensor, Qobj, ptrace, rand_ket, fock_dm, basis,
                    rand_dm, bell_state, ket2dm, identity, sigmax)
 from qutip_qip.qasm import read_qasm
 from qutip_qip.operations import (
-    Gate, gates, gate_sequence_product
+    Gate, gates, Measurement, gate_sequence_product
 )
 
 from qutip_qip.decompose.decompose_single_qubit_gate import _ZYZ_rotation
@@ -103,9 +102,9 @@ class TestQubitCircuit:
     def testresolve(self, gate_from, gate_to, targets, controls):
         qc1 = QubitCircuit(2)
         qc1.add_gate(gate_from, targets=targets, controls=controls)
-        U1 = gates.gate_sequence_product(qc1.propagators())
+        U1 = gate_sequence_product(qc1.propagators())
         qc2 = qc1.resolve_gates(basis=gate_to)
-        U2 = gates.gate_sequence_product(qc2.propagators())
+        U2 = gate_sequence_product(qc2.propagators())
         assert _op_dist(U1, U2) < 1e-12
 
     def testSNOTdecompose(self):
@@ -115,9 +114,9 @@ class TestQubitCircuit:
         """
         qc1 = QubitCircuit(1)
         qc1.add_gate("SNOT", targets=0)
-        U1 = gates.gate_sequence_product(qc1.propagators())
+        U1 = gate_sequence_product(qc1.propagators())
         qc2 = qc1.resolve_gates()
-        U2 = gates.gate_sequence_product(qc2.propagators())
+        U2 = gate_sequence_product(qc2.propagators())
         assert _op_dist(U1, U2) < 1e-12
 
     def testFREDKINdecompose(self):
@@ -127,9 +126,9 @@ class TestQubitCircuit:
         """
         qc1 = QubitCircuit(3)
         qc1.add_gate("FREDKIN", targets=[0, 1], controls=[2])
-        U1 = gates.gate_sequence_product(qc1.propagators())
+        U1 = gate_sequence_product(qc1.propagators())
         qc2 = qc1.resolve_gates()
-        U2 = gates.gate_sequence_product(qc2.propagators())
+        U2 = gate_sequence_product(qc2.propagators())
         assert _op_dist(U1, U2) < 1e-12
 
     def testadjacentgates(self):
@@ -139,10 +138,10 @@ class TestQubitCircuit:
         """
         qc1 = QubitCircuit(3)
         qc1.add_gate("ISWAP", targets=[0, 2])
-        U1 = gates.gate_sequence_product(qc1.propagators())
+        U1 = gate_sequence_product(qc1.propagators())
         qc0 = qc1.adjacent_gates()
         qc2 = qc0.resolve_gates(basis="ISWAP")
-        U2 = gates.gate_sequence_product(qc2.propagators())
+        U2 = gate_sequence_product(qc2.propagators())
         assert _op_dist(U1, U2) < 1e-12
 
     def test_add_gate(self):
@@ -480,7 +479,7 @@ class TestQubitCircuit:
         """
         Test for circuit with N-level system.
         """
-        mat3 = qp.rand_unitary_haar(3)
+        mat3 = qp.rand_unitary(3)
 
         def controlled_mat3(arg_value):
             """
@@ -525,6 +524,29 @@ class TestQubitCircuit:
         _, final_probabilities = final_measurement.measurement_comp_basis(state_final)
 
         np.testing.assert_allclose(initial_probabilities, final_probabilities)
+
+    def test_classical_control(self):
+        qc = QubitCircuit(1, num_cbits=2)
+        qc.add_gate(
+            "X",
+            targets=[0],
+            classical_controls=[0, 1],
+            classical_control_value=1,
+        )
+        result = qc.run(basis(2, 0), cbits=[1, 0])
+        fid = qp.fidelity(result, basis(2, 0))
+        assert pytest.approx(fid, 1.0e-6) == 1
+
+        qc = QubitCircuit(1, num_cbits=2)
+        qc.add_gate(
+            "X",
+            targets=[0],
+            classical_controls=[0, 1],
+            classical_control_value=2,
+        )
+        result = qc.run(basis(2, 0), cbits=[1, 0])
+        fid = qp.fidelity(result, basis(2, 1))
+        assert pytest.approx(fid, 1.0e-6) == 1
 
     def test_runstatistics_teleportation(self):
         """
@@ -575,6 +597,23 @@ class TestQubitCircuit:
                     assert simulator.cbits[0] == simulator.cbits[1]
                 else:
                     assert simulator.cbits[0] != simulator.cbits[1]
+
+    def test_circuit_with_selected_measurement_result(self):
+        qc = QubitCircuit(N=1, num_cbits=1)
+        qc.add_gate("SNOT", targets=0)
+        qc.add_measurement("M0", targets=0, classical_store=0)
+
+        # We reset the random seed so that
+        # if we don's select the measurement result,
+        # the two circuit should return the same value.
+        np.random.seed(0)
+        final_state = qc.run(qp.basis(2, 0), cbits=[0], measure_results=[0])
+        fid = pytest.approx(qp.fidelity(final_state, basis(2, 0)))
+        assert fid == 1.0
+        np.random.seed(0)
+        final_state = qc.run(qp.basis(2, 0), cbits=[0], measure_results=[1])
+        fid = pytest.approx(qp.fidelity(final_state, basis(2, 1)))
+        assert fid == 1.0
 
     def test_gate_product(self):
 
@@ -628,9 +667,8 @@ class TestQubitCircuit:
                 assert sum(result_cbits[i]) == 1
 
     _latex_template = r"""
-\documentclass{standalone}
+\documentclass[border=3pt]{standalone}
 \usepackage[braket]{qcircuit}
-\renewcommand{\qswap}{*=<0em>{\times}}
 \begin{document}
 \Qcircuit @C=1cm @R=1cm {
 %s}
@@ -703,11 +741,11 @@ class TestQubitCircuit:
                 reason="requires pdflatex"
                 )
     def test_export_image(self, in_temporary_directory):
-        from qutip_qip import circuit_latex
+        from qutip_qip import circuit
         qc = QubitCircuit(2, reverse_states=False)
         qc.add_gate("CSIGN", controls=[0], targets=[1])
 
-        if "png" in circuit_latex.CONVERTERS:
+        if "png" in circuit.CONVERTERS:
             file_png200 = "exported_pic_200.png"
             file_png400 = "exported_pic_400.png"
             qc.draw("png", 200, file_png200.split('.')[0], "")
@@ -715,7 +753,13 @@ class TestQubitCircuit:
             assert file_png200 in os.listdir('.')
             assert file_png400 in os.listdir('.')
             assert os.stat(file_png200).st_size < os.stat(file_png400).st_size
-        if "svg" in circuit_latex.CONVERTERS:
+        if "svg" in circuit.CONVERTERS:
             file_svg = "exported_pic.svg"
             qc.draw("svg", file_svg.split('.')[0], "")
             assert file_svg in os.listdir('.')
+
+    def test_deprecation_warning(self):
+        # Make them available for backward compatibility.
+        with pytest.warns(DeprecationWarning):
+            from qutip_qip.circuit import Gate, Measurement
+            Gate("X", 0)

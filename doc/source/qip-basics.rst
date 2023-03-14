@@ -18,13 +18,13 @@ The circuit is characterized by registers and gates:
   and the argument ``num_cbits`` (optional) specifies the number of classical bits available for measurement
   and control.
 
-- **Gates**: Each quantum gate is saved as a class object :class:`.Gate`
+- **Gates**: Each quantum gate is saved as a class object :class:`~.operations.Gate`
   with information such as gate name, target qubits and arguments.
   Gates can also be controlled on a classical bit by specifying the register number
   with the argument ``classical_controls``.
 
 - **Measurements**: We can also carry out measurements on individual qubit (both in the middle and at the end of the circuit).
-  Each measurement is saved as a class object :class:`.Measurement` with parameters such as `targets`,
+  Each measurement is saved as a class object :class:`~.operations.Measurement` with parameters such as `targets`,
   the target qubit on which the measurement will be carried out, and `classical_store`,
   the index of the classical register which stores the result of the measurement.
 
@@ -52,11 +52,11 @@ A circuit with the various gates and registers available is demonstrated below:
 .. testoutput::
   :options: +NORMALIZE_WHITESPACE
 
-   [Gate(SWAP, targets=[0, 1], controls=None, classical controls=None, control_value=None, classical_control_value=None),
-   Measurement(M0, target=[1], classical_store=0),
-   Gate(CNOT, targets=[1], controls=[0], classical controls=None, control_value=1, classical_control_value=None),
-   Gate(X, targets=[0], controls=None, classical controls=[0], control_value=None, classical_control_value=None),
-   Gate(SWAP, targets=[0, 1], controls=None, classical controls=None, control_value=None, classical_control_value=None)]
+    [Gate(SWAP, targets=[0, 1], controls=None, classical controls=None, control_value=None, classical_control_value=None),
+    Measurement(M0, target=[1], classical_store=0),
+    Gate(CNOT, targets=[1], controls=[0], classical controls=None, control_value=1, classical_control_value=None),
+    Gate(X, targets=[0], controls=None, classical controls=[0], control_value=None, classical_control_value=1),
+    Gate(SWAP, targets=[0, 1], controls=None, classical controls=None, control_value=None, classical_control_value=None)]
 
 Unitaries
 =========
@@ -135,7 +135,7 @@ can be achieved with the argument ``expand=False`` specified to the
 Gates
 =====
 
-The pre-defined gates for the class :class:`.Gate` are shown in the table below:
+The pre-defined gates for the class :class:`~.operations.Gate` are shown in the table below:
 
 ====================  ========================================
 Gate name                           Description
@@ -143,6 +143,7 @@ Gate name                           Description
 "RX"                  Rotation around x axis
 "RY"                  Rotation around y axis
 "RZ"                  Rotation around z axis
+"R"                   Arbitrary single qubit rotation
 "X"                   Pauli-X gate
 "Y"                   Pauli-Y gate
 "Z"                   Pauli-Z gate
@@ -169,6 +170,7 @@ Gate name                           Description
 "ISWAP"               Swap gate with additional phase for 01 and 10 states
 "SQRTSWAP"            Square root of the SWAP gate
 "SQRTISWAP"           Square root of the ISWAP gate
+"MS"                  Mølmer-Sørensen gate
 "FREDKIN"             Fredkin gate
 "TOFFOLI"             Toffoli gate
 "GLOBALPHASE"         Global phase
@@ -195,7 +197,7 @@ gate function returning a :class:`qutip.Qobj` and save it in the attribute ``use
            # controlled rotation X
            mat = np.zeros((4, 4), dtype=np.complex)
            mat[0, 0] = mat[1, 1] = 1.
-           mat[2:4, 2:4] = rx(arg_value)
+           mat[2:4, 2:4] = rx(arg_value).full()
            return Qobj(mat, dims=[[2, 2], [2, 2]])
 
 
@@ -229,14 +231,10 @@ gate function returning a :class:`qutip.Qobj` and save it in the attribute ``use
 
   Quantum object: dims = [[2, 2], [2, 2]], shape = (4, 4), type = oper, isherm = False
   Qobj data =
-  [[1.        +0.j         0.        +0.j         0.        +0.j
-    0.        +0.j        ]
-   [0.        +0.j         1.        +0.j         0.        +0.j
-    0.        +0.j        ]
-   [0.        +0.j         0.        +0.j         0.70710678+0.j
-    0.        -0.70710678j]
-   [0.        +0.j         0.        +0.j         0.        -0.70710678j
-    0.70710678+0.j        ]]
+    [[1.     +0.j      0.     +0.j      0.     +0.j      0.     +0.j     ] 
+     [0.     +0.j      1.     +0.j      0.     +0.j      0.     +0.j     ] 
+     [0.     +0.j      0.     +0.j      0.70711+0.j      0.     -0.70711j] 
+     [0.     +0.j      0.     +0.j      0.     -0.70711j 0.70711+0.j     ]]
 
 .. testcode::
 
@@ -250,14 +248,10 @@ gate function returning a :class:`qutip.Qobj` and save it in the attribute ``use
 
   Quantum object: dims = [[2, 2], [2, 2]], shape = (4, 4), type = oper, isherm = False
   Qobj data =
-  [[1.        +0.j         0.        +0.j         0.        +0.j
-    0.        +0.j        ]
-   [0.        +0.j         0.70710678+0.j         0.        +0.j
-    0.        -0.70710678j]
-   [0.        +0.j         0.        +0.j         1.        +0.j
-    0.        +0.j        ]
-   [0.        +0.j         0.        -0.70710678j 0.        +0.j
-    0.70710678+0.j        ]]
+  [[1.     +0.j      0.     +0.j      0.     +0.j      0.     +0.j     ]
+   [0.     +0.j      0.70711+0.j      0.     +0.j      0.     -0.70711j]
+   [0.     +0.j      0.     +0.j      1.     +0.j      0.     +0.j     ]
+   [0.     +0.j      0.     -0.70711j 0.     +0.j      0.70711+0.j     ]]
 
 
 .. testcode::

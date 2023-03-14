@@ -3,6 +3,7 @@ from collections.abc import Iterable
 from itertools import product, chain
 from functools import partial, reduce
 from operator import mul
+from typing import Optional
 
 import warnings
 import inspect
@@ -28,6 +29,7 @@ from .gates import (
     s_gate,
     t_gate,
     cs_gate,
+    qrot,
     qasmu_gate,
     ct_gate,
     cphase,
@@ -45,7 +47,6 @@ from .gates import (
     controlled_gate,
     globalphase,
     expand_operator,
-    gate_sequence_product,
 )
 
 __all__ = [
@@ -62,6 +63,7 @@ __all__ = [
     "SQRTNOT",
     "S",
     "T",
+    "R",
     "QASMU",
     "SWAP",
     "ISWAP",
@@ -115,15 +117,17 @@ class Gate:
         the unitary operator on the target qubits.
         E.g. if the gate should be executed when the zero-th bit is 1,
         ``controll_value=1``;
-        If the gate should be executed when the first two bits are 0 and 1,
-        ``controll_value=3``.
-    classical_control_values : int, optional
+        If the gate should be executed when the two bits are 1 and 0,
+        ``controll_value=2``.
+    classical_control_value : int, optional
         The decimal value of controlling classical bits for executing
         the unitary operator on the target qubits.
         E.g. if the gate should be executed when the zero-th bit is 1,
         ``controll_value=1``;
-        If the gate should be executed when the first two bits are 0 and 1,
-        ``controll_value=3``.
+        If the gate should be executed when the two bits are 1 and 0,
+        ``controll_value=2``.
+        The default is ``2**len(classical_controls)-1``
+        (i.e. all classical controls are 1).
     arg_label : string
         Label for the argument, it will be shown in the circuit plot,
         representing the argument value provided to the gate, e.g,
@@ -147,7 +151,7 @@ class Gate:
         arg_value=None,
         control_value=None,
         classical_controls=None,
-        classical_control_value=None,
+        classical_control_value: Optional[int] = None,
         arg_label=None,
         **kwargs,
     ):
@@ -178,8 +182,16 @@ class Gate:
         else:
             self.classical_controls = classical_controls
 
+        if (
+            self.classical_controls is not None
+            and classical_control_value is None
+        ):
+            self.classical_control_value = (
+                2 ** len(self.classical_controls) - 1
+            )
+        else:
+            self.classical_control_value = classical_control_value
         self.control_value = control_value
-        self.classical_control_value = classical_control_value
         self.arg_value = arg_value
         self.arg_label = arg_label
         self.latex_str = r"U"
@@ -307,6 +319,8 @@ class Gate:
             qobj = snot()
         elif self.name == "PHASEGATE":
             qobj = phasegate(self.arg_value)
+        elif self.name == "R":
+            qobj = qrot(*self.arg_value)
         elif self.name == "QASMU":
             qobj = qasmu_gate(self.arg_value)
         elif self.name == "CRX":
@@ -382,9 +396,8 @@ class Gate:
             num_qubits = max(all_targets) + 1
         return expand_operator(
             self.get_compact_qobj(),
-            N=num_qubits,
-            targets=all_targets,
             dims=dims,
+            targets=all_targets,
         )
 
 
@@ -477,8 +490,8 @@ class RX(SingleQubitGate):
     >>> RX(0, 3.14159/2).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims = [[2], [2]], shape = (2, 2), type = oper, isherm = False
     Qobj data =
-    [[0.70710725+0.j         0.        -0.70710631j]
-     [0.        -0.70710631j 0.70710725+0.j        ]]
+    [[0.70711+0.j      0.     -0.70711j]
+     [0.     -0.70711j 0.70711+0.j     ]]
     """
 
     def __init__(self, targets, arg_value, **kwargs):
@@ -499,8 +512,8 @@ class RY(SingleQubitGate):
     >>> RY(0, 3.14159/2).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims = [[2], [2]], shape = (2, 2), type = oper, isherm = False
     Qobj data =
-    [[ 0.70710725 -0.70710631]
-     [ 0.70710631  0.70710725]]
+    [[ 0.70711 -0.70711]
+     [ 0.70711  0.70711]]
     """
 
     def __init__(self, targets, arg_value, **kwargs):
@@ -521,8 +534,8 @@ class RZ(SingleQubitGate):
     >>> RZ(0, 3.14159/2).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims = [[2], [2]], shape = (2, 2), type = oper, isherm = False
     Qobj data =
-    [[0.70710725-0.70710631j 0.        +0.j        ]
-     [0.        +0.j         0.70710725+0.70710631j]]
+    [[0.70711-0.70711j 0.     +0.j     ]
+     [0.     +0.j      0.70711+0.70711j]]
     """
 
     def __init__(self, targets, arg_value, **kwargs):
@@ -543,8 +556,8 @@ class H(SingleQubitGate):
     >>> H(0).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims = [[2], [2]], shape = (2, 2), type = oper, isherm = True
     Qobj data =
-    [[ 0.70710678  0.70710678]
-     [ 0.70710678 -0.70710678]]
+    [[ 0.70711  0.70711]
+     [ 0.70711 -0.70711]]
     """
 
     def __init__(self, targets, **kwargs):
@@ -613,8 +626,8 @@ class T(SingleQubitGate):
     >>> T(0).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims = [[2], [2]], shape = (2, 2), type = oper, isherm = False
     Qobj data =
-    [[1. +0.j  0.        +0.j     ]
-     [0. +0.j  0.70710678+0.70710678j]]
+    [[1.     +0.j      0.     +0.j     ]
+     [0.     +0.j      0.70711+0.70711j]]
     """
 
     def __init__(self, targets, **kwargs):
@@ -623,6 +636,35 @@ class T(SingleQubitGate):
 
     def get_compact_qobj(self):
         return t_gate()
+
+
+class R(SingleQubitGate):
+    r"""
+    Arbitrary single-qubit rotation
+
+    .. math::
+
+        \begin{pmatrix}
+        \cos(\frac{\theta}{2}) & -ie^{-i\phi} \sin(\frac{\theta}{2}) \\
+        -ie^{i\phi} \sin(\frac{\theta}{2}) & \cos(\frac{\theta}{2})
+        \end{pmatrix}
+
+    Examples
+    --------
+    >>> from qutip_qip.operations import R
+    >>> R(0, (np.pi/2, np.pi/2)).get_compact_qobj().tidyup() # doctest: +NORMALIZE_WHITESPACE
+    Quantum object: dims = [[2], [2]], shape = (2, 2), type = oper, isherm = False
+    Qobj data =
+    [[ 0.70711 -0.70711]
+     [ 0.70711  0.70711]]
+    """
+
+    def __init__(self, targets, arg_value=None, **kwargs):
+        super().__init__(targets=targets, arg_value=arg_value, **kwargs)
+        self.latex_str = r"{\rm R}"
+
+    def get_compact_qobj(self):
+        return qrot(*self.arg_value)
 
 
 class QASMU(SingleQubitGate):
@@ -743,10 +785,10 @@ class SQRTISWAP(TwoQubitGate):
     >>> SQRTISWAP([0, 1]).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims = [[2, 2], [2, 2]], shape = (4, 4), type = oper, isherm = False
     Qobj data =
-    [[1.        +0.j         0.        +0.j         0.        +0.j         0.        +0.j        ]
-     [0.        +0.j         0.70710678+0.j         0.        +0.70710678j 0.        +0.j        ]
-     [0.        +0.j         0.        +0.70710678j 0.70710678+0.j         0.        +0.j        ]
-     [0.        +0.j         0.        +0.j         0.        +0.j         1.        +0.j        ]]
+    [[1.     +0.j      0.     +0.j      0.     +0.j      0.     +0.j     ]
+     [0.     +0.j      0.70711+0.j      0.     +0.70711j 0.     +0.j     ]
+     [0.     +0.j      0.     +0.70711j 0.70711+0.j      0.     +0.j     ]
+     [0.     +0.j      0.     +0.j      0.     +0.j      1.     +0.j     ]]
     """
 
     def __init__(self, targets, **kwargs):
@@ -776,10 +818,10 @@ class BERKELEY(TwoQubitGate):
     >>> BERKELEY([0, 1]).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims = [[2, 2], [2, 2]], shape = (4, 4), type = oper, isherm = False
     Qobj data =
-    [[0.92387953+0.j         0.        +0.j         0.        +0.j         0.        +0.38268343j]
-     [0.        +0.j         0.38268343+0.j         0.        +0.92387953j 0.        +0.j        ]
-     [0.        +0.j         0.        +0.92387953j 0.38268343+0.j         0.        +0.j        ]
-     [0.        +0.38268343j 0.        +0.j         0.        +0.j         0.92387953+0.j        ]]
+    [[0.92388+0.j      0.     +0.j      0.     +0.j      0.     +0.38268j]
+     [0.     +0.j      0.38268+0.j      0.     +0.92388j 0.     +0.j     ]
+     [0.     +0.j      0.     +0.92388j 0.38268+0.j      0.     +0.j     ]
+     [0.     +0.38268j 0.     +0.j      0.     +0.j      0.92388+0.j     ]]
     """
 
     def __init__(self, targets, **kwargs):
@@ -842,10 +884,10 @@ class MS(TwoQubitGate):
     >>> MS([0, 1], np.pi/2).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims = [[2, 2], [2, 2]], shape = (4, 4), type = oper, isherm = False
     Qobj data =
-    [[0.70710678+0.j         0.        +0.j         0.        +0.j         0.        -0.70710678j]
-     [0.        +0.j         0.70710678+0.j         0.        -0.70710678j 0.        +0.j        ]
-     [0.        +0.j         0.        -0.70710678j 0.70710678+0.j         0.        +0.j        ]
-     [0.        -0.70710678j 0.        +0.j         0.        +0.j         0.70710678+0.j        ]]
+    [[0.70711+0.j      0.     +0.j      0.     +0.j      0.     -0.70711j]
+     [0.     +0.j      0.70711+0.j      0.     -0.70711j 0.     +0.j     ]
+     [0.     +0.j      0.     -0.70711j 0.70711+0.j      0.     +0.j     ]
+     [0.     -0.70711j 0.     +0.j      0.     +0.j      0.70711+0.j     ]]
     """
 
     def __init__(self, targets, arg_value, **kwargs):
@@ -1131,6 +1173,7 @@ GATE_CLASS_MAP = {
     "SQRTNOT": SQRTNOT,
     "S": S,
     "T": T,
+    "R": R,
     "QASMU": QASMU,
     "SWAP": SWAP,
     "ISWAP": ISWAP,

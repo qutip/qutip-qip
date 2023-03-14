@@ -3,7 +3,7 @@ import numbers
 
 import numpy as np
 
-from qutip import Qobj, QobjEvo, tensor, mesolve
+from qutip import Qobj, QobjEvo, tensor, mesolve, basis
 from ..operations import globalphase
 from ..circuit import QubitCircuit
 from .processor import Processor
@@ -242,6 +242,45 @@ class ModelProcessor(Processor):
         self.set_coeffs(coeffs)
         self.set_tlist(tlist)
         return tlist, coeffs
+
+    def generate_init_processor_state(
+        self, init_circuit_state: Qobj = None
+    ) -> Qobj:
+        """
+        Generate the initial state with the dimensions of the processor.
+
+        Parameters
+        ----------
+        init_circuit_state : :class:`qutip.Qobj`
+            Initial state provided with the dimensions of the circuit.
+
+        Returns
+        -------
+        :class:`qutip.Qobj`
+            Return the initial state with the dimensions
+            of the processor model. If initial_circuit_state
+            was not provided, return the zero state.
+        """
+        if init_circuit_state is None:
+            return basis([2] * self.num_qubits, [0] * self.num_qubits)
+        return init_circuit_state
+
+    def get_final_circuit_state(self, final_processor_state: Qobj) -> Qobj:
+        """
+        Convert the state with the dimensions of the processor model to
+        a state with the dimensions of the circuit.
+
+        Parameters
+        ----------
+        final_processor_state : :class:`qutip.Qobj`
+            State provided with the dimensions of the processor model.
+
+        Returns
+        -------
+        :class:`qutip.Qobj`
+            Return the final state with the dimensions of the circuit.
+        """
+        return final_processor_state
 
 
 def _to_array(params, num_qubits):

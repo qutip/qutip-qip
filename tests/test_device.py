@@ -13,10 +13,7 @@ from qutip_qip.device import (DispersiveCavityQED, LinearSpinChain,
                                 CircularSpinChain, SCQubits)
 
 from packaging.version import parse as parse_version
-if parse_version(qutip.__version__) < parse_version('5.dev'):
-    from qutip import Options as SolverOptions
-else:
-    from qutip import SolverOptions
+from qutip import Options
 
 _tol = 3.e-2
 
@@ -126,7 +123,7 @@ def test_numerical_evolution(
         init_state = _ket_expaned_dims(state, device.dims)
     else:
         init_state = state
-    options = SolverOptions(store_final_state=True, nsteps=50_000)
+    options = Options(store_final_state=True, nsteps=50_000)
     result = device.run_state(init_state=init_state,
                               analytical=False,
                               options=options)
@@ -161,7 +158,7 @@ circuit2.add_gate("SQRTISWAP", targets=[0, 2])  # supported only by SpinChain
     pytest.param(circuit2, LinearSpinChain, {}, id = "LinearSpinChain"),
     pytest.param(circuit2, CircularSpinChain, {}, id = "CircularSpinChain"),
     # The length of circuit is limited for SCQubits due to leakage
-    pytest.param(circuit, SCQubits, {"omega_single":[0.003]*3}, id = "SCQubits"),
+    pytest.param(circuit, SCQubits, {"omega_single":[0.02]*3}, id = "SCQubits"),
 ])
 @pytest.mark.parametrize(("schedule_mode"), ["ASAP", "ALAP", None])
 def test_numerical_circuit(circuit, device_class, kwargs, schedule_mode):
@@ -183,7 +180,7 @@ def test_numerical_circuit(circuit, device_class, kwargs, schedule_mode):
         init_state = _ket_expaned_dims(state, device.dims)
     else:
         init_state = state
-    options = SolverOptions(store_final_state=True, nsteps=50_000)
+    options = Options(store_final_state=True, nsteps=50_000)
     result = device.run_state(init_state=init_state,
                               analytical=False,
                               options=options)
@@ -210,3 +207,58 @@ def test_pulse_plotting(processor_class):
     processor.load_circuit(qc)
     fig, ax = processor.plot_pulses()
     plt.close(fig)
+
+
+def _compute_propagator(processor, circuit):
+    qevo, _ = processor.get_qobjevo(noisy=True)
+    if parse_version(qutip.__version__) < parse_version("5.dev"):
+        qevo = qevo.to_list()
+        result = qutip.propagator(qevo, t=processor.get_full_tlist())[-1]
+    else:
+        result = qutip.propagator(
+            qevo,
+            t=processor.get_full_tlist(),
+            parallel=False
+            )[-1]
+    return result
+
+
+def test_scqubits_single_qubit_gate():
+    # Check the accuracy of the single-qubit gate for SCQubits.
+    circuit = QubitCircuit(1)
+    circuit.add_gate("X", targets=[0])
+    processor = SCQubits(1, omega_single=0.04)
+    processor.load_circuit(circuit)
+    U = _compute_propagator(processor, circuit)
+    fid = qutip.average_gate_fidelity(
+        qutip.Qobj(U.full()[:2, :2]), qutip.sigmax()
+    )
+    assert pytest.approx(fid, rel=1.0e-6) == 1
+
+
+def test_idling_accuracy():
+    """
+    Check if the switch-on and off of the pulse is implemented correctly.
+    More sampling points may be needed to suppress the interpolated pulse
+    during the idling period.
+    """
+    processor = SCQubits(2, omega_single=0.04)
+    circuit = QubitCircuit(1)
+    circuit.add_gate("X", targets=[0])
+    processor.load_circuit(circuit)
+    U = _compute_propagator(processor, circuit)
+    error_1_gate = 1 - qutip.average_gate_fidelity(
+        qutip.Qobj(U.full()[:2, :2]), qutip.sigmax()
+    )
+
+    circuit = QubitCircuit(2)
+    circuit.add_gate("X", targets=[0])
+    circuit.add_gate("X", targets=[1])
+    # Turning off scheduling to keep the idling.
+    processor.load_circuit(circuit, schedule_mode=False)
+    U = _compute_propagator(processor, circuit)
+    error_2_gate = 1 - qutip.average_gate_fidelity(
+        qutip.Qobj(U.full()[:2, :2]), qutip.sigmax()
+    )
+
+    assert error_2_gate < 2 * error_1_gate

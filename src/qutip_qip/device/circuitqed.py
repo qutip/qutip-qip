@@ -27,6 +27,9 @@ class SCQubits(ModelProcessor):
     for simplicity, we only use a ZX Hamiltonian for
     the two-qubit interaction.
 
+    See the mathematical details in
+    :obj:`.SCQubitsCompiler` and :obj:`.SCQubitsModel`.
+
     Parameters
     ----------
     num_qubits: int
@@ -195,7 +198,7 @@ class SCQubitsModel(Model):
         num_qubits = self.num_qubits
         return (
             ["sx" + str(i) for i in range(num_qubits)]
-            + ["sz" + str(i) for i in range(num_qubits)]
+            + ["sy" + str(i) for i in range(num_qubits)]
             + ["zx" + str(i) + str(i + 1) for i in range(num_qubits)]
             + ["zx" + str(i + 1) + str(i) for i in range(num_qubits)]
         )
@@ -219,6 +222,11 @@ class SCQubitsModel(Model):
             destroy_op = destroy(dims[m])
             op = destroy_op * (-1.0j) + destroy_op.dag() * 1.0j
             controls["sy" + str(m)] = (2 * np.pi / 2 * op, [m])
+
+        for m in range(num_qubits):
+            destroy_op = destroy(dims[m])
+            op = destroy_op.dag() * destroy_op
+            controls["sz" + str(m)] = (2 * np.pi * op, [m])
 
         for m in range(num_qubits - 1):
             # For simplicity, we neglect leakage in two-qubit gates.
@@ -334,6 +342,7 @@ class SCQubitsModel(Model):
         labels = [
             {f"sx{n}": r"$\sigma_x" + f"^{n}$" for n in range(num_qubits)},
             {f"sy{n}": r"$\sigma_y" + f"^{n}$" for n in range(num_qubits)},
+            {f"sz{n}": r"$\sigma_z" + f"^{n}$" for n in range(num_qubits)},
         ]
         label_zx = {}
         for m in range(num_qubits - 1):

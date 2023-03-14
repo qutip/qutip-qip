@@ -54,14 +54,14 @@ method.
 
   Quantum object: dims = [[2, 2, 2], [1, 1, 1]], shape = (8, 1), type = ket
   Qobj data =
-  [[0.        ]
-   [0.57734961]
-   [0.57734961]
-   [0.        ]
-   [0.57735159]
-   [0.        ]
-   [0.        ]
-   [0.        ]]
+  [[0.     ]
+   [0.57735]
+   [0.57735]
+   [0.     ]
+   [0.57735]
+   [0.     ]
+   [0.     ]
+   [0.     ]]
 
 
 As expected, the state returned is indeed the required W-state.
@@ -87,7 +87,7 @@ outputs, we can use the :meth:`.QubitCircuit.run_statistics` function:
     probabilities = result.get_probabilities()
 
     for state, probability in zip(states, probabilities):
-        print("State:\n{}\nwith probability {}".format(state, probability))
+        print("State:\n{}\nwith probability {:.5f}".format(state, probability))
 
 **Output**:
 
@@ -105,7 +105,7 @@ outputs, we can use the :meth:`.QubitCircuit.run_statistics` function:
    [0.]
    [0.]
    [0.]]
-  with probability 0.3333325705416881
+  with probability 0.33333
   State:
   Quantum object: dims = [[2, 2, 2], [1, 1, 1]], shape = (8, 1), type = ket
   Qobj data =
@@ -117,7 +117,7 @@ outputs, we can use the :meth:`.QubitCircuit.run_statistics` function:
    [0.]
    [0.]
    [0.]]
-  with probability 0.3333325705416881
+  with probability 0.33333
   State:
   Quantum object: dims = [[2, 2, 2], [1, 1, 1]], shape = (8, 1), type = ket
   Qobj data =
@@ -129,7 +129,7 @@ outputs, we can use the :meth:`.QubitCircuit.run_statistics` function:
    [0.]
    [0.]
    [0.]]
-  with probability 0.33333485891662384
+  with probability 0.33333
 
 The function returns a :class:`~.Result` object which contains
 the output states.
@@ -156,8 +156,8 @@ and computation proceeds. To demonstrate, we continue with our previous circuit:
 .. testcode::
 
   from qutip_qip.circuit import CircuitSimulator
-
-  sim = CircuitSimulator(qc, state=zero_state)
+  sim = CircuitSimulator(qc)
+  sim.initialize(zero_state)
 
 This initializes the simulator object and carries out any pre-computation
 required. There are two ways to carry out state evolution with the simulator.
@@ -178,14 +178,14 @@ The :class:`.CircuitSimulator` class also enables stepping through the circuit:
 
   Quantum object: dims = [[2, 2, 2], [1, 1, 1]], shape = (8, 1), type = ket
   Qobj data =
-  [[0.57735159]
-   [0.        ]
-   [0.        ]
-   [0.        ]
-   [0.81649565]
-   [0.        ]
-   [0.        ]
-   [0.        ]]
+  [[0.57735]
+   [0.     ]
+   [0.     ]
+   [0.     ]
+   [0.8165 ]
+   [0.     ]
+   [0.     ]
+   [0.     ]]
 
 This only executes one gate in the circuit and
 allows for a better understanding of how the state evolution takes place.
@@ -210,22 +210,14 @@ precomputes the product of the unitaries (in between the measurements):
 
   [Quantum object: dims = [[2, 2, 2], [2, 2, 2]], shape = (8, 8), type = oper, isherm = False
     Qobj data =
-    [[ 0.          0.57734961  0.         -0.57734961  0.          0.40824922
-       0.         -0.40824922]
-     [ 0.57734961  0.         -0.57734961  0.          0.40824922  0.
-      -0.40824922  0.        ]
-     [ 0.57734961  0.          0.57734961  0.          0.40824922  0.
-       0.40824922  0.        ]
-     [ 0.          0.57734961  0.          0.57734961  0.          0.40824922
-       0.          0.40824922]
-     [ 0.57735159  0.          0.          0.         -0.81649565  0.
-       0.          0.        ]
-     [ 0.          0.57735159  0.          0.          0.         -0.81649565
-       0.          0.        ]
-     [ 0.          0.          0.57735159  0.          0.          0.
-      -0.81649565  0.        ]
-     [ 0.          0.          0.          0.57735159  0.          0.
-       0.         -0.81649565]],
+    [[ 0.       0.57735  0.      -0.57735  0.       0.40825  0.      -0.40825]     
+     [ 0.57735  0.      -0.57735  0.       0.40825  0.      -0.40825  0.     ]     
+     [ 0.57735  0.       0.57735  0.       0.40825  0.       0.40825  0.     ]     
+     [ 0.       0.57735  0.       0.57735  0.       0.40825  0.       0.40825]     
+     [ 0.57735  0.       0.       0.      -0.8165   0.       0.       0.     ]     
+     [ 0.       0.57735  0.       0.       0.      -0.8165   0.       0.     ]     
+     [ 0.       0.       0.57735  0.       0.       0.      -0.8165   0.     ]     
+     [ 0.       0.       0.       0.57735  0.       0.       0.      -0.8165 ]],
        Measurement(M0, target=[0], classical_store=0),
        Measurement(M1, target=[1], classical_store=1),
        Measurement(M2, target=[2], classical_store=2)]
@@ -274,31 +266,23 @@ just by measurement on the first qubit:
 
     Quantum object: dims = [[2, 2, 2], [2, 2, 2]], shape = (8, 8), type = oper, isherm = True
     Qobj data =
-    [[0.         0.         0.         0.         0.         0.
-      0.         0.        ]
-     [0.         0.33333257 0.         0.         0.         0.
-      0.         0.        ]
-     [0.         0.         0.33333257 0.         0.         0.
-      0.         0.        ]
-     [0.         0.         0.         0.         0.         0.
-      0.         0.        ]
-     [0.         0.         0.         0.         0.33333486 0.
-      0.         0.        ]
-     [0.         0.         0.         0.         0.         0.
-      0.         0.        ]
-     [0.         0.         0.         0.         0.         0.
-      0.         0.        ]
-     [0.         0.         0.         0.         0.         0.
-      0.         0.        ]]
+    [[0.      0.      0.      0.      0.      0.      0.      0.     ]
+     [0.      0.33333 0.      0.      0.      0.      0.      0.     ]
+     [0.      0.      0.33333 0.      0.      0.      0.      0.     ]
+     [0.      0.      0.      0.      0.      0.      0.      0.     ]
+     [0.      0.      0.      0.      0.33333 0.      0.      0.     ]
+     [0.      0.      0.      0.      0.      0.      0.      0.     ]
+     [0.      0.      0.      0.      0.      0.      0.      0.     ]
+     [0.      0.      0.      0.      0.      0.      0.      0.     ]]
 
 We are left with a mixed state.
 
 Import and export quantum circuits
 ==================================
 
-QuTiP supports importation and exportation of quantum circuit in the `OpenQASM 2 W-state <https://github.com/Qiskit/openqasm/tree/OpenQASM2.x>`_ format
-throught the function :func:`.read_qasm` and :func:`.save_qasm`.
-We demonstrate this using the w-state generation circuit.
+QuTiP supports importing and exporting quantum circuits in the `OpenQASM 2.0 <https://github.com/Qiskit/openqasm/tree/OpenQASM2.x>`_ format, as well as exporting circuits to `Quantum Intermediate Representation <https://www.qir-alliance.org/>`_.
+To import from and export to OpenQASM 2.0, you can use the :func:`.read_qasm` and :func:`.save_qasm` functions, respectively.
+We demonstrate this functionality by loading a circuit for preparing the :math:`\left|W\right\rangle`-state from an OpenQASM 2.0 file.
 The following code is in OpenQASM format:
 
 .. code-block::
@@ -342,3 +326,24 @@ One can save it in a ``.qasm`` file and import it using the following code:
 
   from qutip_qip.qasm import read_qasm
   qc = read_qasm("source/w-state.qasm")
+
+QuTiP circuits can also be exported to QIR:
+
+.. doctest::
+
+  >>> from qutip_qip.circuit import QubitCircuit
+  >>> from qutip_qip.qir import circuit_to_qir
+
+  >>> circuit = QubitCircuit(3, num_cbits=2)
+  >>> msg, here, there = range(3)
+  >>> circuit.add_gate("RZ", targets=[msg], arg_value=0.123)
+  >>> circuit.add_gate("SNOT", targets=[here])
+  >>> circuit.add_gate("CNOT", targets=[there], controls=[here])
+  >>> circuit.add_gate("CNOT", targets=[here], controls=[msg])
+  >>> circuit.add_gate("SNOT", targets=[msg])
+  >>> circuit.add_measurement("Z", targets=[msg], classical_store=0)
+  >>> circuit.add_measurement("Z", targets=[here], classical_store=1)
+  >>> circuit.add_gate("X", targets=[there], classical_controls=[0])
+  >>> circuit.add_gate("Z", targets=[there], classical_controls=[1])
+
+  >>> print(circuit_to_qir(circuit, "text"))  # doctest: +SKIP

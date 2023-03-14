@@ -313,8 +313,8 @@ class Processor(object):
         (Quantum object: dims = [[2], [2]], shape = (2, 2),
         type = oper, isherm = True
         Qobj data =
-        [[ 6.28318531  0.        ]
-        [ 0.         -6.28318531]], 0)
+        [[ 6.28319  0.     ]
+         [ 0.      -6.28319]], 0)
         """
         return self.model.get_control(label)
 
@@ -723,7 +723,7 @@ class Processor(object):
         else:
             try:
                 return self.pulses[pulse_dict[pulse_name]]
-            except (KeyError):
+            except KeyError:
                 raise KeyError(
                     "Pulse name {} undefined. "
                     "Please define it in the attribute "
@@ -1188,7 +1188,7 @@ class Processor(object):
         else:
             kwargs["c_ops"] = sys_c_ops
 
-        # choose solver:
+        # set tlist
         if "tlist" in kwargs:
             tlist = kwargs["tlist"]
             del kwargs["tlist"]
@@ -1196,13 +1196,34 @@ class Processor(object):
             # TODO, this can be simplified further, tlist in the solver only
             # determines the time step for intermediate result.
             tlist = self.get_full_tlist()
+        # Set the max step size as 1/10 of the total circuit time.
+        # A better solution is to use the gate, which
+        # is however, much harder to implement at this stage, see also
+        # https://github.com/qutip/qutip-qip/issues/184.
+        full_tlist = self.get_full_tlist()
+        if full_tlist is not None:
+            total_circuit_time = (full_tlist)[-1]
+        else:
+            total_circuit_time = 0.0
+        if is_qutip5:
+            options = kwargs.get("options", qutip.Options())
+            if options.get("max_step", 0.0) == 0.0:
+                options["max_step"] = total_circuit_time / 25
+            options["progress_bar"] = False
+        else:
+            options = kwargs.get("options", qutip.Options())
+            if options.max_step == 0.0:
+                options.max_step = total_circuit_time / 10
+            options.progress_bar = False
+        kwargs["options"] = options
+        # choose solver:
         if solver == "mesolve":
             evo_result = mesolve(
                 H=noisy_qobjevo, rho0=init_state, tlist=tlist, **kwargs
             )
         elif solver == "mcsolve":
             evo_result = mcsolve(
-                H=noisy_qobjevo, psi0=init_state, tlist=tlist, **kwargs
+                noisy_qobjevo, init_state, tlist=tlist, **kwargs
             )
 
         return evo_result

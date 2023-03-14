@@ -2,12 +2,13 @@ import numpy as np
 import scipy
 import pytest
 from math import sqrt
-from qutip_qip.circuit import Measurement
+from qutip_qip.operations import Measurement
 from qutip import (Qobj, basis, ket2dm,
                     sigmax, sigmay, sigmaz, identity, tensor, rand_ket)
 from qutip.measurement import (measure_povm, measurement_statistics_povm,
                                 measure_observable,
                                 measurement_statistics_observable)
+import qutip
 
 
 @pytest.mark.repeat(10)
@@ -67,3 +68,11 @@ def test_measurement_collapse(index):
             states_11, probability_11 = Mprime.measurement_comp_basis(state)
             assert probability_11[1] == 1
             assert states_11[0] is None
+
+
+def test_against_numerical_error():
+    state = qutip.Qobj([[1], [1.e-12]])
+    measurement = Measurement("M", 0)
+    states, probabilites = measurement.measurement_comp_basis(state)
+    assert states[1] is None
+    assert probabilites[1] == 0.
