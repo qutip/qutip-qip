@@ -805,7 +805,7 @@ def molmer_sorensen(theta, phi=0.0, N=None, targets=[0, 1]):
         )
 
     return Qobj(
-        [   
+        [
             [
                 np.cos(theta / 2),
                 0,
@@ -1117,7 +1117,6 @@ def qubit_clifford_group(N=None, target=0):
         partial(reduce, mul),
         product(_powers(E, 3), _powers(X, 2), _powers(S, 4)),
     ):
-
         # partial(reduce, mul) returns a function that takes products
         # of its argument, by analogy to sum. Note that by analogy,
         # sum can be written as partial(reduce, add).

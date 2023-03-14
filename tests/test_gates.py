@@ -219,7 +219,7 @@ class TestGateExpansion:
         pytest.param(gates.swap, 0, id="swap"),
         pytest.param(gates.iswap, 0, id="iswap"),
         pytest.param(gates.sqrtswap, 0, id="sqrt(swap)"),
-        pytest.param(functools.partial(gates.molmer_sorensen, 0.5*np.pi), 0,
+        pytest.param(functools.partial(gates.molmer_sorensen, 0.5*np.pi, 0.), 0,
                      id="Molmer-Sorensen")
     ])
     def test_two_qubit(self, gate, n_controls):

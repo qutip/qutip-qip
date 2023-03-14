@@ -872,10 +872,10 @@ class MS(TwoQubitGate):
     .. math::
 
         \begin{pmatrix}
-        \cos(\frac{\theta}{2}) & 0 & 0 & -i\exp^{-i2\phi}\sin(\frac{\theta}{2}) \\
+        \cos(\frac{\theta}{2}) & 0 & 0 & -ie^{-i2\phi}\sin(\frac{\theta}{2}) \\
         0 & \cos(\frac{\theta}{2}) & -i\sin(\frac{\theta}{2}) & 0 \\
         0 & -i\sin(\frac{\theta}{2}) & \cos(\frac{\theta}{2}) & 0 \\
-        -i\exp^{i2\phi}\sin(\frac{\theta}{2}) & 0 & 0 & \cos(\frac{\theta}{2})
+        -ie^{i2\phi}\sin(\frac{\theta}{2}) & 0 & 0 & \cos(\frac{\theta}{2})
         \end{pmatrix}
 
     Examples
@@ -895,7 +895,7 @@ class MS(TwoQubitGate):
         self.latex_str = r"{\rm MS}"
 
     def get_compact_qobj(self):
-        return molmer_sorensen(self.arg_value)
+        return molmer_sorensen(*self.arg_value)
 
 
 class TOFFOLI(Gate):
