@@ -775,7 +775,7 @@ shape = [4, 4], type = oper, isHerm = False
     )
 
 
-def molmer_sorensen(theta, N=None, targets=[0, 1]):
+def molmer_sorensen(theta, phi=0.0, N=None, targets=[0, 1]):
     """
     Quantum object of a Mølmer–Sørensen gate.
 
@@ -783,6 +783,8 @@ def molmer_sorensen(theta, N=None, targets=[0, 1]):
     ----------
     theta: float
         The duration of the interaction pulse.
+    phi: float
+        Rotation axis. phi = 0 for XX; phi=pi for YY
     N: int
         Number of qubits in the system.
     target: int
@@ -801,12 +803,23 @@ def molmer_sorensen(theta, N=None, targets=[0, 1]):
         return expand_operator(
             molmer_sorensen(theta), dims=[2] * N, targets=targets
         )
+
     return Qobj(
         [
-            [np.cos(theta / 2.0), 0, 0, -1.0j * np.sin(theta / 2.0)],
-            [0, np.cos(theta / 2.0), -1.0j * np.sin(theta / 2.0), 0],
-            [0, -1.0j * np.sin(theta / 2.0), np.cos(theta / 2.0), 0],
-            [-1.0j * np.sin(theta / 2.0), 0, 0, np.cos(theta / 2.0)],
+            [
+                np.cos(theta / 2),
+                0,
+                0,
+                -1j * np.exp(-1j * 2 * phi) * np.sin(theta / 2),
+            ],
+            [0, np.cos(theta / 2), -1j * np.sin(theta / 2), 0],
+            [0, -1j * np.sin(theta / 2), np.cos(theta / 2), 0],
+            [
+                -1j * np.exp(1j * 2 * phi) * np.sin(theta / 2),
+                0,
+                0,
+                np.cos(theta / 2),
+            ],
         ],
         dims=[[2, 2], [2, 2]],
     )

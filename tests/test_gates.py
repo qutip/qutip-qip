@@ -219,7 +219,7 @@ class TestGateExpansion:
         pytest.param(gates.swap, 0, id="swap"),
         pytest.param(gates.iswap, 0, id="iswap"),
         pytest.param(gates.sqrtswap, 0, id="sqrt(swap)"),
-        pytest.param(functools.partial(gates.molmer_sorensen, 0.5*np.pi), 0,
+        pytest.param(functools.partial(gates.molmer_sorensen, 0.5*np.pi, 0.), 0,
                      id="Molmer-Sorensen")
     ])
     def test_two_qubit(self, gate, n_controls):
@@ -365,7 +365,7 @@ def test_gates_class():
     circuit1.add_gate("SQRTSWAP", [2, 0])
     circuit1.add_gate("SQRTISWAP", [0, 1])
     circuit1.add_gate("SWAPALPHA", [1, 2], arg_value=np.pi/4)
-    circuit1.add_gate("MS", [1, 0], arg_value=np.pi/4)
+    circuit1.add_gate("MS", [1, 0], arg_value=(np.pi/4, np.pi/7))
     circuit1.add_gate("TOFFOLI", [2, 0, 1])
     circuit1.add_gate("FREDKIN", [0, 1, 2])
     circuit1.add_gate("BERKELEY", [1, 0])
@@ -392,7 +392,7 @@ def test_gates_class():
     circuit2.add_gate(SQRTSWAP([2, 0]))
     circuit2.add_gate(SQRTISWAP([0, 1]))
     circuit2.add_gate(SWAPALPHA([1, 2], np.pi/4))
-    circuit2.add_gate(MS([1, 0], np.pi/4))
+    circuit2.add_gate(MS([1, 0], (np.pi/4, np.pi/7)))
     circuit2.add_gate(TOFFOLI([2, 0, 1]))
     circuit2.add_gate(FREDKIN([0, 1, 2]))
     circuit2.add_gate(BERKELEY([1, 0]))
