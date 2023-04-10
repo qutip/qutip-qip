@@ -756,5 +756,5 @@ class TestQubitCircuit:
         qc.add_gate("CNOT", 2, 0)
         qc2 = to_chain_structure(qc)
 
-        assert qc2.reverse_states == True 
+        assert qc2.reverse_states == True
         assert qc2.input_states ==  [None] * 3
