@@ -112,23 +112,6 @@ class QubitCircuit:
                     "{{str: gate_function}}, not {}".format(user_gates)
                 )
 
-    def _create_empty_copy(self):
-        new_qc = QubitCircuit(
-            N=self.N,
-            input_states=self.input_states,
-            output_states=self.output_states,
-            reverse_states=self.reverse_states,
-            user_gates=self.user_gates,
-            dims=self.dims,
-            num_cbits=self.num_cbits,
-        )
-        return new_qc
-
-    def __copy__(self):
-        new_qc = self._create_empty_copy()
-        new_qc.gates = [gate for gate in self.gates]
-        return new_qc
-
     def add_state(self, state, targets=None, state_type="input"):
         """
         Add an input or ouput state to the circuit. By default all the input
