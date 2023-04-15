@@ -1,3 +1,4 @@
+from copy import deepcopy
 from ..circuit import QubitCircuit
 
 
@@ -27,7 +28,8 @@ def to_chain_structure(qc, setup="linear"):
     # FIXME This huge block has been here for a long time.
     # It could be moved to the new compiler section and carefully
     # splitted into smaller peaces.
-    qc_t = QubitCircuit(qc.N, qc.reverse_states)
+    qc_t = deepcopy(qc)
+    qc_t.gates = []
     swap_gates = [
         "SWAP",
         "ISWAP",
@@ -263,12 +265,8 @@ def to_chain_structure(qc, setup="linear"):
                     j = j + 1
 
         else:
-            qc_t.add_gate(
-                gate.name,
-                gate.targets,
-                gate.controls,
-                gate.arg_value,
-                gate.arg_label,
-            )
+            # This gate can be general quantum operations
+            # such as measurement or global phase.
+            qc_t.add_gate(gate)
 
     return qc_t
