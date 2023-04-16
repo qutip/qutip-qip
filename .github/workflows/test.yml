@@ -12,6 +12,11 @@ jobs:
     strategy:
       matrix:
         include:
+          - case-name: qutip@5.0.0a1
+            os: ubuntu-latest
+            qutip-version: '==5.0.0a1'
+            pyqir-version: ''
+            python-version: '3.10'
           - case-name: qutip@qutip-4.7.X
             os: ubuntu-latest
             qutip-version: '@qutip-4.7.X'
@@ -74,7 +79,7 @@ jobs:
     - name: Install qutip-qtrl from PyPI
       if: ${{ matrix.qutip-version == '@master'}}
       run: |
-        python -m pip install qutip-qtrl
+        python -m pip install 'git+https://github.com/qutip/qutip-qtrl.git'
 
     - name: Install Qiskit from PyPI
       if: ${{ matrix.qiskit-version != '' }}
