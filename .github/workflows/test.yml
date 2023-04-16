@@ -17,6 +17,11 @@ jobs:
             qutip-version: '==5.0.0a1'
             pyqir-version: ''
             python-version: '3.10'
+          - case-name: qutip@qutip-4.7.X
+            os: ubuntu-latest
+            qutip-version: '@qutip-4.7.X'
+            pyqir-version: ''
+            python-version: '3.10'
           - case-name: qutip@master
             os: ubuntu-latest
             qutip-version: '@master'
