@@ -195,10 +195,7 @@ def test_numerical_circuit(circuit, device_class, kwargs, schedule_mode):
     "processor_class",
     [DispersiveCavityQED, LinearSpinChain, CircularSpinChain, SCQubits])
 def test_pulse_plotting(processor_class):
-    try:
-        import matplotlib.pyplot as plt
-    except Exception:
-        return True
+    plt = pytest.importorskip("matplotlib.pyplot")
     qc = QubitCircuit(3)
     qc.add_gate("CNOT", 1, 0)
     qc.add_gate("X", 1)

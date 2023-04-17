@@ -186,11 +186,8 @@ class TestVQACircuit:
         """
         Check plotting function returns without error
         """
+        plt = pytest.importorskip("matplotlib.pyplot")
         # Only test on environments that have the matplotlib dependency
-        try:
-            import matplotlib.pyplot as plt
-        except Exception:
-            return True
         vqa = VQA(num_qubits=4, num_layers=1, cost_method="STATE")
         for i in range(4):
             vqa.add_block(VQABlock("X", targets=[i]))
