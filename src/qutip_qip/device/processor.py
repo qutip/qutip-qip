@@ -331,7 +331,7 @@ class Processor(object):
         return self.model.get_control_labels()
 
     def get_control_latex(self):
-        """
+        r"""
         Get the latex string for each Hamiltonian.
         It is used in the method :meth:`.Processor.plot_pulses`.
         It is a list of dictionaries.
