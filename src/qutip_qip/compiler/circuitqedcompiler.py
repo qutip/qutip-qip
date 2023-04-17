@@ -33,9 +33,9 @@ class SCQubitsCompiler(GateCompiler):
 
         \Omega^{x} &= \Omega_0 - \frac{\Omega_0^3}{4 \alpha^2}
 
-        \Omega^{y} &= - \dot{\Omega}_0 / \alpha
+        \Omega^{y} &= - \frac{\dot{\Omega}_0 }{\alpha}
 
-        \Omega^{z} &= - \Omega_0**2 / \alpha + \frac{2  \Omega_0^2)}{
+        \Omega^{z} &= - \frac{\Omega_0^2}{\alpha} + \frac{2 \Omega_0^2}{
             4 \alpha
         }
 
