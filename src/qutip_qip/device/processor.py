@@ -1200,20 +1200,15 @@ class Processor(object):
         # A better solution is to use the gate, which
         # is however, much harder to implement at this stage, see also
         # https://github.com/qutip/qutip-qip/issues/184.
-        full_tlist = self.get_full_tlist()
-        if full_tlist is not None:
-            total_circuit_time = (full_tlist)[-1]
-        else:
-            total_circuit_time = 0.0
         if is_qutip5:
             options = kwargs.get("options", qutip.Options())
             if options.get("max_step", 0.0) == 0.0:
-                options["max_step"] = total_circuit_time / 25
+                options["max_step"] = self._get_max_step()
             options["progress_bar"] = False
         else:
             options = kwargs.get("options", qutip.Options())
             if options.max_step == 0.0:
-                options.max_step = total_circuit_time / 10
+                options.max_step = self._get_max_step()
             options.progress_bar = False
         kwargs["options"] = options
         # choose solver:
@@ -1227,6 +1222,17 @@ class Processor(object):
             )
 
         return evo_result
+
+    def _get_max_step(self):
+        """
+        Define the maximal sampling step for the solver.
+        """
+        full_tlist = self.get_full_tlist()
+        if full_tlist is not None:
+            total_circuit_time = (full_tlist)[-1]
+        else:
+            total_circuit_time = 0.0
+        return total_circuit_time / 10
 
     def load_circuit(self, qc):
         """
