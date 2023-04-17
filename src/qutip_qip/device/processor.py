@@ -65,7 +65,7 @@ class Processor(object):
         -"step_func":
         The coefficient will be treated as a step function.
         E.g. ``tlist=[0,1,2]`` and ``coeff=[3,2]``, means that the coefficient
-        is 3 in t=[0,1) and 2 in t=[2,3). It requires
+        is 3 in t=[0,1) and 2 in t=[1,2). It requires
         ``len(coeff)=len(tlist)-1`` or ``len(coeff)=len(tlist)``, but
         in the second case the last element of ``coeff`` has no effect.
 
