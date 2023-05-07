@@ -220,7 +220,7 @@ class DispersiveCavityQED(ModelProcessor):
 
 
 class CavityQEDModel(Model):
-    """
+    r"""
     The physical model for a dispersive cavity-QED processor
     (:obj:`.DispersiveCavityQED`).
     It is a qubit-resonator model that describes a system composed of

@@ -143,10 +143,8 @@ class TestCircuitProcessor:
         """
         Test for plotting functions
         """
-        try:
-            import matplotlib.pyplot as plt
-        except Exception:
-            return True
+        plt = pytest.importorskip("matplotlib.pyplot")
+
         # step_func
         tlist = np.linspace(0., 2*np.pi, 20)
         processor = Processor(N=1, spline_kind="step_func")
