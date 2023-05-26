@@ -4,9 +4,15 @@
 Tutorials
 ************
 
-Tutorials related to using quantum gates and circuits in ``qutip-qip`` can be found at the following links:
+Tutorials related to using quantum gates and circuits in ``qutip-qip`` can be
+found `here <https://nbviewer.org/urls/qutip.org/qutip-tutorials/tutorials-v4/quantum-circuits/qip-toffoli-cnot.ipynb>`_ and
+those related to using noise simulators are available at this
+`link <https://qutip.org/qutip-tutorials/#quantum-information-processing>`_.
 
-- Quantum information processing: `Link <https://github.com/qutip/qutip-qip>`_
+
+Tutorials related to using quantum gates and circuits in ``qutip-qip`` `Link <https://github.com/qutip/qutip-qip>`_ can be found at the following links:
+
+Quantum information processing:
 
 - Decomposition of the Toffoli gate in terms of CNOT and single-qubit rotations: `Link <https://nbviewer.org/urls/qutip.org/qutip-tutorials/tutorials-v4/quantum-circuits/qip-toffoli-cnot.ipynb>`_
 
