@@ -80,7 +80,7 @@ def generate_index_html(version_directory, version, tutorial_directories, title,
         loader=FileSystemLoader("../"),
         autoescape=select_autoescape()
     )
-    template = env.get_template("source/tutorials.html.jinja")
+    template = env.get_template("tutorials-website/tutorials.html.jinja")
 
     # render template and return
     html = template.render(tutorials=tutorials, title=title,
@@ -137,8 +137,8 @@ def convert_html_to_rst(html_file_path, rst_file_path):
 html_file_path = 'qutip-qip.html'
 html_file_path_v5 = 'qutip-qip-v5.html'
 
-rst_file_path = 'tutorials.rst'
-rst_file_path_v5 = 'tutorials_v5.rst'
+rst_file_path = '../tutorials.rst'
+rst_file_path_v5 = '../tutorials_v5.rst'
 
 convert_html_to_rst(html_file_path, rst_file_path)
 convert_html_to_rst(html_file_path_v5, rst_file_path_v5)
