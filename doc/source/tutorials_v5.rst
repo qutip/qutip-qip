@@ -8,8 +8,8 @@
 Quantum information processing
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This section contains tutorials for QuTiP Version 4. You can find the
-tutorials for QuTiP Version 5 `here <>`__.
+This are the tutorials for QuTiP Version 5. You can find the tutorials
+for QuTiP Version 4 `here <./qutip-qip.html>`.
 
 .. _qip-circuits:
 

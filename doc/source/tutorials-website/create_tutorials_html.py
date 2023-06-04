@@ -107,7 +107,7 @@ suffix = ""
 
 # +++ VERSION 4 INDEX FILE +++
 title = 'Tutorials'
-version_note = 'This are the tutorials for QuTiP-qip Version 4. You can \
+version_note = 'This section contains the tutorials for QuTiP-qip Version 4. You can \
          find the tutorials for QuTiP Version 5 \
           <a href="./qutip-qip-v5.html">here</a>.'
 version_directory= 'https://github.com/qutip/qutip-tutorials/tree/main/tutorials-v4/'
@@ -137,9 +137,10 @@ def convert_html_to_rst(html_file_path, rst_file_path):
 html_file_path = 'qutip-qip.html'
 html_file_path_v5 = 'qutip-qip-v5.html'
 
-rst_file_path = '../tutorials.rst'
+
+#rst_file_path = '../tutorials_v4.rst'
 rst_file_path_v5 = '../tutorials_v5.rst'
 
-convert_html_to_rst(html_file_path, rst_file_path)
+#convert_html_to_rst(html_file_path, rst_file_path)
 convert_html_to_rst(html_file_path_v5, rst_file_path_v5)
 
