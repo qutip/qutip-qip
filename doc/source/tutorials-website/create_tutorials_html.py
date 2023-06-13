@@ -101,7 +101,7 @@ suffix = ""
 title = 'Tutorials for QuTiP Version 4'
 version_note = 'These are the tutorials for QuTiP Version 4. You can find the tutorials for QuTiP Version 5 <a href="./index-v5.html">here</a>.'
 html = generate_index_html(os.path.join(cloned_repo_dir, 'tutorials-v4/'), tutorial_directories, title, version_note)
-with open('qutip-qip.html', 'w+') as f:
+with open('source/tutorials-website/qutip-qip.html', 'w+') as f:
     #f.write(prefix)
     f.write(html)
     #f.write(suffix)
@@ -110,7 +110,7 @@ with open('qutip-qip.html', 'w+') as f:
 title = 'Tutorials for QuTiP Version 5'
 version_note = 'These are the tutorials for QuTiP Version 5. You can find the tutorials for QuTiP Version 4 <a href="./index.html">here</a>.'
 html = generate_index_html(os.path.join(cloned_repo_dir, 'tutorials-v5/'), tutorial_directories, title, version_note)
-with open('qutip-qip-v5.html', 'w+') as f:
+with open('source/tutorials-website/qutip-qip-v5.html', 'w+') as f:
     #f.write(prefix)
     f.write(html)
     #f.write(suffix)
@@ -122,11 +122,11 @@ def convert_html_to_rst(html_file_path, rst_file_path):
      # Use the subprocess module to call the pandoc command-line tool
      subprocess.run(['pandoc', html_file_path, '-o', rst_file_path])
 
-html_file_path = 'qutip-qip.html'
-html_file_path_v5 = 'qutip-qip-v5.html'
+html_file_path = 'source/tutorials-website/qutip-qip.html'
+html_file_path_v5 = 'source/tutorials-website/qutip-qip-v5.html'
 
-rst_file_path = '../tutorials.rst'
-rst_file_path_v5 = '../tutorials_v5.rst'
+rst_file_path = 'source/tutorials.rst'
+rst_file_path_v5 = 'source/tutorials_v5.rst'
 
 #convert_html_to_rst(html_file_path, rst_file_path)
 convert_html_to_rst(html_file_path_v5, rst_file_path_v5)
