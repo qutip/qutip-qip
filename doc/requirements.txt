@@ -13,5 +13,3 @@ pyqir-generator==0.6.2
 pyqir-parser==0.6.2
 qiskit==0.37.2
 pandoc
-
-
