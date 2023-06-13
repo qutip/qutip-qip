@@ -4,7 +4,6 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 import shutil
 import subprocess
 import tempfile
-import mistune
 
 def atoi(text):
     return int(text) if text.isdigit() else text
