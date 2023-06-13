@@ -22,6 +22,7 @@ help:
 create_tutorials:
 	python3 source/tutorials-website/create_tutorials_html.py
 
-# Modify the html target to include create_tutorials as a prerequisite
+#Modify the html target to include create_tutorials as a prerequisite
 html: create_tutorials
-	@$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) "$(SOURCEDIR)" "$(BUILDDIR)/html"
+	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+
