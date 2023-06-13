@@ -1,135 +1,123 @@
- 
-import base64
+import os
 import re
 from jinja2 import Environment, FileSystemLoader, select_autoescape
-import requests
+import shutil
 import subprocess
-
+import tempfile
+import mistune
 
 def atoi(text):
     return int(text) if text.isdigit() else text
 
-
 def natural_keys(text):
     return [atoi(c) for c in re.split('(\d+)', text)]
-
 
 class notebook:
     def __init__(self, path, title):
         # remove ../ from path
-        self.path = path.replace('https://github.com/qutip/qutip-tutorials/tree/main/', '')
+        self.path = path.replace('../', '')
         self.title = title
         # set url and update from markdown to ipynb
         self.url = url_prefix + self.path.replace(".md", ".ipynb")
 
+def get_title(filename):
+    """ Reads the title from a markdown notebook """
+    with open(filename, 'r') as f:
+        # get first row that starts with "# "
+        for line in f.readlines():
+            # trim leading/trailing whitespaces
+            line = line.lstrip().rstrip()
+            # check if line is the title
+            if line[0:2] == '# ':
+                # return title
+                return line[2:]
 
-def get_title(filename, dir, version):
-    """ Reads the title from the notebook """
-    file_url = f"https://api.github.com/repos/qutip/qutip-tutorials/contents/{version}/{dir}/{filename}"
-    response = requests.get(file_url)
-    file_content = response.json()['content']
-    decoded_text= base64.b64decode(file_content).decode('utf-8') 
-    lines = decoded_text.split("\n")
-    for line in lines:
-    # trim leading/trailing whitespaces
-        line = line.strip()
-        # check if line is the title
-        if line.startswith('#'):
-            # return title
-            title = line[2:]
-            return title
+def sort_files_titles(files, titles):
+    """ Sorts the files and titles either by filenames or titles """
+    # identify numbered files and sort them
+    nfiles = [s for s in files if s.split('/')[-1][0].isdigit()]
+    nfiles = sorted(nfiles, key=natural_keys)
+    ntitles = [titles[files.index(s)] for s in nfiles]
+    # sort the files without numbering by the alphabetic order of the titles
+    atitles = [titles[files.index(s)] for s in files if s not in nfiles]
+    atitles = sorted(atitles, key=natural_keys)
+    afiles = [files[titles.index(s)] for s in atitles]
+    # merge the numbered and unnumbered sorting
+    return nfiles + afiles, ntitles + atitles
 
-
-def get_directory_contents(directory, version):
-    url = f"https://api.github.com/repos/qutip/qutip-tutorials/contents/{version}/{directory}"
-    response = requests.get(url)
-    if response.status_code == 200:
-        contents = response.json()
-        file_names = [content['name'] for content in contents if content['type'] == 'file']
-        return file_names
-    
-    else:
-        print(response.status_code)
-        return None
-
-def get_notebooks(path,version,dir):
+def get_notebooks(path):
     """ Gets a list of all notebooks in a directory """
     # get list of files and their titles
     try:
-        filesintut = get_directory_contents(dir,version)
-        files = [path + f for f in filesintut if f.endswith('.md') ] 
+        files = [os.path.join(path, f) for f in os.listdir(path) if f.endswith('.md')]
     except FileNotFoundError:
         return {}
-    titles = [get_title(f,dir,version) for f in filesintut]
-    # sort the files and titles for display: TODO : files_sorted, titles_sorted = sort_files_titles(files, titles)
-    # generate notebook objects from the lists and return
-    notebooks = [notebook(f, t) for f, t in zip(files, titles)]
+    titles = [get_title(f) for f in files]
+    # sort the files and titles for display
+    files_sorted, titles_sorted = sort_files_titles(files, titles)
+    # generate notebook objects from the sorted lists and return
+    notebooks = [notebook(f, t) for f, t in zip(files_sorted, titles_sorted)]
     return notebooks
 
-
-def generate_index_html(version_directory, version, tutorial_directories, title,
-                        version_note):
-    """ Generates the index html file from the given data"""
+def generate_index_html(version_directory, tutorial_directories, title, version_note):
+    """ Generates the index HTML file from the given data """
     # get tutorials from the different directories
     tutorials = {}
     for dir in tutorial_directories:
-        tutorials[dir] = get_notebooks(version_directory + dir + '/', version, dir)
+        tutorials[dir] = get_notebooks(os.path.join(version_directory, dir))
 
     # Load environment for Jinja and template
     env = Environment(
-        loader=FileSystemLoader("../"),
+        loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), "../")),
         autoescape=select_autoescape()
     )
     template = env.get_template("tutorials-website/tutorials.html.jinja")
 
     # render template and return
-    html = template.render(tutorials=tutorials, title=title,
-                           version_note=version_note)
+    html = template.render(tutorials=tutorials, title=title, version_note=version_note)
     return html
 
+# Clone the qutip-tutorials repository
+repo_url = 'https://github.com/qutip/qutip-tutorials.git'
+cloned_repo_dir = tempfile.mkdtemp()
+subprocess.run(['git', 'clone', repo_url, cloned_repo_dir])
 
-# url prefix for the links
+# Set the necessary variables
 url_prefix = "https://nbviewer.org/urls/qutip.org/qutip-tutorials/"
-# tutorial directories
 tutorial_directories = [
+    'pulse-level-circuit-simulation',
     'quantum-circuits',
-     'pulse-level-circuit-simulation',
 ]
 
-# +++ READ PREFIX AND SUFFIX +++
+# Perform the operations on the cloned repository
 prefix = ""
 suffix = ""
-
 #with open('prefix.html', 'r') as f:
-#   prefix = f.read()
+ #   prefix = f.read()
 #with open('suffix.html', 'r') as f:
 #    suffix = f.read()
 
-# +++ VERSION 4 INDEX FILE +++
-title = 'Tutorials'
-version_note = 'This section contains the tutorials for QuTiP-qip Version 4. You can \
-         find the tutorials for QuTiP Version 5 \
-          <a href="./qutip-qip-v5.html">here</a>.'
-version_directory= 'https://github.com/qutip/qutip-tutorials/tree/main/tutorials-v4/'
-html = generate_index_html('https://github.com/qutip/qutip-tutorials/tree/main/tutorials-v4/', "tutorials-v4", tutorial_directories, title,version_note)
+# Version 4 index file
+title = 'Tutorials for QuTiP Version 4'
+version_note = 'These are the tutorials for QuTiP Version 4. You can find the tutorials for QuTiP Version 5 <a href="./index-v5.html">here</a>.'
+html = generate_index_html(os.path.join(cloned_repo_dir, 'tutorials-v4/'), tutorial_directories, title, version_note)
 with open('qutip-qip.html', 'w+') as f:
-    f.write(prefix)
+    #f.write(prefix)
     f.write(html)
-    f.write(suffix)
+    #f.write(suffix)
 
-# +++ VERSION 5 INDEX FILE +++
-title = 'Tutorials'
-version_note = 'This are the tutorials for QuTiP Version 5. You can \
-         find the tutorials for QuTiP Version 4 \
-          <a href="./qutip-qip.html">here</a>.'
-
-html = generate_index_html('https://github.com/qutip/qutip-tutorials/tree/main/tutorials-v5/', "tutorials-v5",tutorial_directories, title,version_note)
+# Version 5 index file
+title = 'Tutorials for QuTiP Version 5'
+version_note = 'These are the tutorials for QuTiP Version 5. You can find the tutorials for QuTiP Version 4 <a href="./index.html">here</a>.'
+html = generate_index_html(os.path.join(cloned_repo_dir, 'tutorials-v5/'), tutorial_directories, title, version_note)
 with open('qutip-qip-v5.html', 'w+') as f:
-    f.write(prefix)
+    #f.write(prefix)
     f.write(html)
-    f.write(suffix)
+    #f.write(suffix)
 
-# convert html to rst
+# Wipe off the cloned repository
+shutil.rmtree(cloned_repo_dir)
+
 def convert_html_to_rst(html_file_path, rst_file_path):
      # Use the subprocess module to call the pandoc command-line tool
      subprocess.run(['pandoc', html_file_path, '-o', rst_file_path])
@@ -137,10 +125,10 @@ def convert_html_to_rst(html_file_path, rst_file_path):
 html_file_path = 'qutip-qip.html'
 html_file_path_v5 = 'qutip-qip-v5.html'
 
-
-#rst_file_path = '../tutorials_v4.rst'
+rst_file_path = '../tutorials.rst'
 rst_file_path_v5 = '../tutorials_v5.rst'
 
 #convert_html_to_rst(html_file_path, rst_file_path)
 convert_html_to_rst(html_file_path_v5, rst_file_path_v5)
+
 
