@@ -18,7 +18,9 @@ class notebook:
         self.title = title
         # set url and update from markdown to ipynb
         self.url = url_prefix + self.path.replace(".md", ".ipynb")
-
+        self.url = self.url.replace("/var/folders/n5/lj0kjnmd4rx1_q9yv2m0ygd80000gn/T", "")
+        self.url = re.sub(r"tmp[a-z0-9_]+/", "", self.url)
+     
 def get_title(filename):
     """ Reads the title from a markdown notebook """
     with open(filename, 'r') as f:
@@ -64,7 +66,7 @@ def generate_index_html(version_directory, tutorial_directories, title, version_
     tutorials = {}
     for dir in tutorial_directories:
         tutorials[dir] = get_notebooks(os.path.join(version_directory, dir))
-
+    
     # Load environment for Jinja and template
     env = Environment(
         loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), "../")),
@@ -82,7 +84,7 @@ cloned_repo_dir = tempfile.mkdtemp()
 subprocess.run(['git', 'clone', repo_url, cloned_repo_dir])
 
 # Set the necessary variables
-url_prefix = "https://nbviewer.org/urls/qutip.org/qutip-tutorials/"
+url_prefix = "https://nbviewer.org/urls/qutip.org/qutip-tutorials"
 tutorial_directories = [
     'pulse-level-circuit-simulation',
     'quantum-circuits',
