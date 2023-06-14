@@ -19,6 +19,7 @@ class notebook:
         # set url and update from markdown to ipynb
         self.url = url_prefix + self.path.replace(".md", ".ipynb")
         self.url = self.url.replace("/var/folders/n5/lj0kjnmd4rx1_q9yv2m0ygd80000gn/T", "")
+        self.url = self.url.replace("/tmp", "")
         self.url = re.sub(r"tmp[a-z0-9_]+/", "", self.url)
      
 def get_title(filename):
