@@ -8,7 +8,7 @@ Contributing to the documentation
 The user guide provides an overview of the package's functionality.
 The guide is composed of individual reStructuredText (**.rst**)
 files which each get rendered as a webpage.
-Each page typically tackles one area of functionality.
+Each page typically tackles one area of functionality. A few **.rst** files are generated runtime from **html** files using the `pandoc <https://pandoc.org>`_ tool.
 To learn more about how to write **.rst** files,
 it is useful to follow the `sphinx guide <https://www.sphinx-doc.org/en/master/usage/index.html>`_.
 

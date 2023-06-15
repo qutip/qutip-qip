@@ -1,3 +1,5 @@
+#Adapted from https://github.com/qutip/qutip-tutorials/blob/1d1da2fc623372fa11ad5370a4fcd19452aad8fa/website/create_index.py
+
 import os
 import re
 from jinja2 import Environment, FileSystemLoader, select_autoescape
