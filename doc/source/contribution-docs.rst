@@ -8,7 +8,7 @@ Contributing to the documentation
 The user guide provides an overview of the package's functionality.
 The guide is composed of individual reStructuredText (**.rst**)
 files which each get rendered as a webpage.
-Each page typically tackles one area of functionality.
+Each page typically tackles one area of functionality. A few **.rst** files are generated runtime from **html** files using the `Pandoc <https://pandoc.org>`_ tool.
 To learn more about how to write **.rst** files,
 it is useful to follow the `sphinx guide <https://www.sphinx-doc.org/en/master/usage/index.html>`_.
 
@@ -31,6 +31,8 @@ To build and test the documentation, the following packages are required:
 .. code-block:: bash
 
     sphinx numpydoc sphinx_rtd_theme doctest
+
+The generation of documentation also requires Pandoc. Follow this `link <https://pandoc.org/installing.html>`_ to install Pandoc for your operating system.
 
 Under the ``doc`` directory, use
 

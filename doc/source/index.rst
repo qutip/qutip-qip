@@ -29,7 +29,7 @@ qutip-qip |version|: QuTiP quantum information processing
     :maxdepth: 2
     :caption: Tutorials
 
-    tutorials.rst
+    tutorials_v5.rst
 
 .. toctree::
     :maxdepth: 2
