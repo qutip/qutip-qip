@@ -1,0 +1,39 @@
+<div class="row">
+<div class="col-md-12">
+<h1>{{ title }}</h1><br>
+</div>
+</div>
+
+<h4 id="quantum-information-processing">Quantum information processing</h4>
+<p>This section contains tutorials for QuTiP Version 5. You can find the tutorials for QuTiP Version 4 <a href="https://qutip.org/qutip-tutorials/">here</a>. To check the version of QuTiP, you can use the <code>qutip.about()</code> command.</p>
+
+<h5 id="qip-circuits">Quantum circuits and algorithms</h5>
+<ul>
+{% for item in tutorials['quantum-circuits'] %}
+    <li><a href="{{ item.url }}">{{ item.title }}</a></li>
+{% endfor %}
+</ul>
+
+
+<h5 id="qip-pulse-level">Pulse-level circuit simulation</h5>
+<ul>
+{% for item in tutorials['pulse-level-circuit-simulation'] %}
+    <li><a href="{{ item.url }}">{{ item.title }}</a></li>
+{% endfor %}
+</ul>
+
+<div class="row">
+<div class="col-md-12">
+<h3 id="contributing">Contributing</h3>
+<p>If you would like to contribute a notebook or report a bug, you may open
+an issue or pull request in the
+<a href="https://github.com/qutip/qutip-tutorials">qutip-tutorials</a>
+GitHub repository.
+</p>
+<p>A few of the notebooks are still maintained in the repository
+<a href="https://github.com/qutip/qutip-notebooks">qutip-notebooks</a> and
+a complete archive of older versions of the tutorials is maintained there.
+</p>
+
+</div>
+</div>
