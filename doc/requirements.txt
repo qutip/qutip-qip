@@ -1,5 +1,5 @@
 numpy==1.22.4
-scipy==1.7.3
+scipy==1.10.0
 qutip==4.7.0
 cython==0.29.30
 sphinx==5.0.2
