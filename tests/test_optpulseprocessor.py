@@ -1,6 +1,6 @@
 import os
 
-from numpy.testing import (assert_, run_module_suite, assert_allclose,
+from numpy.testing import (assert_, assert_allclose,
                            assert_equal)
 import numpy as np
 import pytest

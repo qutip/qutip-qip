@@ -805,20 +805,20 @@ class OptimizationResult:
             labels = [
                 self._label_to_sets(S, bitstring) for bitstring in bitstrings
             ]
-        plt.bar(
+        fig, ax = plt.subplots()
+        ax.bar(
             list(range(len(bitstrings))),
             probs,
             tick_label=labels if label_sets else bitstrings,
             width=0.8,
         )
-        plt.xticks(rotation=30)
-        plt.tight_layout()
-        plt.xlabel("Measurement outcome")
-        plt.ylabel("Probability")
-        plt.title(
+        ax.tick_params(axis="x", labelrotation=30)
+        ax.set_xlabel("Measurement outcome")
+        ax.set_ylabel("Probability")
+        ax.set_title(
             "Measurement Outcomes after Optimisation. "
             f"Cost: {round(min_cost, 2)}"
         )
-        plt.tight_layout()
+        fig.tight_layout()
         if display:
-            plt.show()
+            fig.show()
