@@ -1,4 +1,4 @@
-from numpy.testing import assert_, assert_equal, assert_string_equal, run_module_suite
+from numpy.testing import assert_, assert_equal, assert_string_equal
 from qutip_qip.algorithms.qft import qft, qft_steps, qft_gate_sequence
 from qutip_qip.operations import gate_sequence_product
 
@@ -59,6 +59,3 @@ class TestQFT:
             circuit = qft_gate_sequence(N, swapping=False, to_cnot=True)
 
         assert not any([gate.name == "CPHASE" for gate in circuit.gates])
-
-if __name__ == "__main__":
-    run_module_suite()
