@@ -3,7 +3,7 @@ Changelog
 *********
 
 
-Version 0.3.0 (June 1, 2023)
+Version 0.3.0 (July 19, 2023)
 ++++++++++++++++++++++++++++
 
 This release adds to major features to the package.
@@ -14,7 +14,9 @@ New features
 - **MAJOR** qutip-qip backends for qiskit :obj:`qutip_qip.qiskit`. `Google Summer of Code project 2022 <https://summerofcode.withgoogle.com/archive/2022/projects/jFfaK3Su>`_ (`#155 <https://github.com/qutip/qutip-qip/pull/155>`_, `#159 <https://github.com/qutip/qutip-qip/pull/159>`_)
 - Add class representation of quantum gates. (`#147 <https://github.com/qutip/qutip-qip/pull/123>`_)
 
-
+Documentation
+-------------
+- Add synced qutip-qip tutorials to documentation on Read the docs (`#207 <https://github.com/qutip/qutip-qip/pull/207>`_)
 
 Version 0.2.3 (December 12, 2022)
 +++++++++++++++++++++++++++++++++
