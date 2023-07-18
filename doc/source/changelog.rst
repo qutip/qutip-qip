@@ -6,7 +6,7 @@ Changelog
 Version 0.3.0 (July 19, 2023)
 +++++++++++++++++++++++++++++
 
-This release adds to major features to the package.
+This release adds two major features and one minor feature to the package.
 
 New features
 ------------
