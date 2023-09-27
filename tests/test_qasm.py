@@ -145,5 +145,5 @@ def test_read_qasm():
         qc = read_qasm(filepath)
         qc2 = read_qasm(filepath2)
         assert True
-    except SyntaxError: # inline comments caused SyntaxError
+    except SyntaxError:  # inline comments caused SyntaxError
         assert False
