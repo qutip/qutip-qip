@@ -889,12 +889,12 @@ def read_qasm(qasm_input, mode="qiskit", version="2.0", strmode=False):
     # QASMBench Benchmark Suite has lines that have comments after instructions.
     # Not sure if QASM standard allows this.
     for i in range(len(qasm_lines)):
-       qasm_line = qasm_lines[i]
-       loc_comment = qasm_line.find("//")
-       if loc_comment >= 0:
-          qasm_line = qasm_line[0:loc_comment]
-       qasm_lines[i] = qasm_line
-        
+        qasm_line = qasm_lines[i]
+        loc_comment = qasm_line.find("//")
+        if loc_comment >= 0:
+            qasm_line = qasm_line[0:loc_comment]
+        qasm_lines[i] = qasm_line
+
     if version != "2.0":
         raise NotImplementedError(
             "QASM: Only OpenQASM 2.0 \
