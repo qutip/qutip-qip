@@ -141,9 +141,7 @@ def test_read_qasm():
     filepath = Path(__file__).parent / 'qasm_files' / filename
     filename2 = "w-state_with_comments.qasm"
     filepath2 = Path(__file__).parent / 'qasm_files' / filename2
-    try:
-        qc = read_qasm(filepath)
-        qc2 = read_qasm(filepath2)
-        assert True
-    except SyntaxError:  # inline comments caused SyntaxError
-        assert False
+    
+    qc = read_qasm(filepath)
+    qc2 = read_qasm(filepath2)
+    assert True
