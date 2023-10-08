@@ -134,3 +134,14 @@ def test_export_import():
 
     for u0, u1 in zip(props, read_props):
         assert (u0 - u1).norm() < 1e-12
+
+
+def test_read_qasm():
+    filename = "w-state.qasm"
+    filepath = Path(__file__).parent / 'qasm_files' / filename
+    filename2 = "w-state_with_comments.qasm"
+    filepath2 = Path(__file__).parent / 'qasm_files' / filename2
+
+    qc = read_qasm(filepath)
+    qc2 = read_qasm(filepath2)
+    assert True
