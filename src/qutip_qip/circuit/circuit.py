@@ -1013,7 +1013,9 @@ class QubitCircuit:
                         gate.classical_controls
                         and (n - self.N) in gate.classical_controls
                     ):
-                        control_tag = n - gate.targets[0]
+                        control_tag = (-1 if self.reverse_states else 1) * (
+                            gate.targets[0] - n
+                        )
                         col.append(r" \ctrl{%d} " % control_tag)
 
                     elif not gate.controls and not gate.targets:

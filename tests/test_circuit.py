@@ -692,6 +692,25 @@ class TestQubitCircuit:
             "",
         ])
 
+    def test_latex_code_classical_controls(self):
+        qc = QubitCircuit(1, num_cbits=1, reverse_states=True)
+        qc.add_gate("X", targets=0, classical_controls=[0])
+        latex = qc.latex_code()
+        assert latex == self._latex_template % "\n".join([
+            r" &  &  \ctrl{1}  & \qw \\ ",
+            r" &  &  \gate{X}  & \qw \\ ",
+            "",
+        ])
+
+        qc = QubitCircuit(1, num_cbits=1, reverse_states=False)
+        qc.add_gate("X", targets=0, classical_controls=[0])
+        latex = qc.latex_code()
+        assert latex == self._latex_template % "\n".join([
+            r" &  &  \gate{X}  & \qw \\ ",
+            r" &  &  \ctrl{-1}  & \qw \\ ",
+            "",
+        ])
+
     H = Qobj([[1/np.sqrt(2), 1/np.sqrt(2)], [1/np.sqrt(2), -1/np.sqrt(2)]])
     H_zyz_gates = _ZYZ_rotation(H)
     H_zyz_quantum_circuit = QubitCircuit(1)
