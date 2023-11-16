@@ -1,14 +1,29 @@
-# File: .readthedocs.yaml
+# .readthedocs.yaml
+# Read the Docs configuration file
+# See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
 
+# Required
 version: 2
 
-# Build from the doc/ directory with Sphinx
+# Set the version of Python and other tools you might need
+build:
+  os: ubuntu-22.04
+  tools:
+    python: "3.10"
+  apt_packages:
+    - pandoc
+  jobs:
+    pre_build:
+      # Each command is executed in a new shell process
+      - cd doc; python source/tutorials-website/create_tutorials_html.py
+
+# Build documentation in the docs/ directory with Sphinx
 sphinx:
   configuration: doc/source/conf.py
 
-# Explicitly set the version of Python and its requirements
+# We recommend specifying your dependencies to enable reproducible builds:
+# https://docs.readthedocs.io/en/stable/guides/reproducible-builds.html
 python:
-  version: 3.8
   install:
     - requirements: doc/requirements.txt
     - method: pip
