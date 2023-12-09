@@ -132,6 +132,7 @@ def test_export_import():
     # The generated code by default has a inclusion statement of
     # qelib1.inc, which will trigger a warning when read.
     with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
         read_qc = read_qasm(circuit_to_qasm_str(qc), strmode=True)
 
     props = qc.propagators()
