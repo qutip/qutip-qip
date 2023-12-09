@@ -1,11 +1,13 @@
 import pytest
 import numpy as np
 from pathlib import Path
+import warnings
 
+import qutip
 from qutip_qip.qasm import read_qasm, circuit_to_qasm_str
 from qutip_qip.circuit import QubitCircuit
 from qutip import tensor, rand_ket, basis, rand_dm, identity
-from qutip_qip.operations import cnot, ry, Measurement
+from qutip_qip.operations import cnot, ry, Measurement, swap
 
 
 @pytest.mark.parametrize(["filename", "error", "error_message"], [
@@ -127,7 +129,10 @@ def test_export_import():
     qc.add_gate("T", targets=[0])
     # qc.add_gate("CSIGN", targets=[0], controls=[1])
 
-    read_qc = read_qasm(circuit_to_qasm_str(qc), strmode=True)
+    # The generated code by default has a inclusion statement of
+    # qelib1.inc, which will trigger a warning when read.
+    with warnings.catch_warnings():
+        read_qc = read_qasm(circuit_to_qasm_str(qc), strmode=True)
 
     props = qc.propagators()
     read_props = read_qc.propagators()
@@ -145,3 +150,66 @@ def test_read_qasm():
     qc = read_qasm(filepath)
     qc2 = read_qasm(filepath2)
     assert True
+
+
+def test_parsing_mode(tmp_path):
+    mode = "qiskit"
+    qasm_input_string = (
+        'OPENQASM 2.0;\n\ncreg c[2];'
+        '\nqreg q[2];cx q[0],q[1];\n'
+    )
+    with pytest.warns(UserWarning) as record_warning:
+        read_qasm(
+            qasm_input_string,
+            mode=mode,
+            strmode=True,
+        )
+    assert "Unknown parsing mode" in record_warning[0].message.args[0]
+
+    mode = "predefined_only"
+    qasm_input_string = (
+        'OPENQASM 2.0;\ninclude "qelib1.inc"\n\ncreg c[2];'
+        '\nqreg q[2];swap q[0],q[1];\n'
+    )
+    with pytest.raises(SyntaxError):
+        with pytest.warns(UserWarning) as record_warning:
+            circuit = read_qasm(
+                qasm_input_string,
+                mode=mode,
+                strmode=True,
+            )
+    assert (
+        "Ignoring external gate definition in the predefined_only mode."
+        in record_warning[0].message.args[0]
+    )
+
+    mode = "external_only"
+    file_path = tmp_path / "custom_swap.inc"
+    file_path.write_text(
+        "gate cx c,t { CX c,t; }\n"
+        "gate swap a,b { cx a,b; cx b,a; cx a,b; }\n"
+        )
+    qasm_input_string = (
+        'OPENQASM 2.0;\ninclude "'
+        + str(file_path)
+        + '"\ncreg c[2];'
+        '\nqreg q[2];swap q[0],q[1];\n'
+    )
+    circuit = read_qasm(
+        qasm_input_string,
+        mode=mode,
+        strmode=True,
+    )
+    propagator = circuit.compute_unitary()
+
+    fidelity = qutip.average_gate_fidelity(propagator, swap())
+    pytest.approx(fidelity, 1.0)
+
+    circuit = read_qasm(
+        qasm_input_string,
+        strmode=True,
+    )
+    propagator = circuit.compute_unitary()
+
+    fidelity = qutip.average_gate_fidelity(propagator, swap())
+    pytest.approx(fidelity, 1.0)
