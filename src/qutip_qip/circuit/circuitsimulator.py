@@ -438,18 +438,19 @@ class CircuitSimulator:
         else:
             self.cbits = None
 
-        self.state = None
-
+        # Parameters that will be updated during the simulation.
         if state is not None:
             if self.mode == "density_matrix_simulator" and state.isket:
-                self.state = ket2dm(state)
+                self._state = ket2dm(state)
             else:
-                self.state = state
-
-        self.probability = 1
+                self._state = state
+        else:
+            # Just computing the full unitary, no state
+            self._state = None
+        self._probability = 1
         self._op_index = 0
-        self.measure_results = measure_results
-        self.measure_ind = 0
+        self._measure_results = measure_results
+        self._measure_ind = 0
 
     def _compute_unitary(self, U_list, ind_list):
         """
@@ -508,7 +509,7 @@ class CircuitSimulator:
             if result is None:
                 # TODO This only happens if there is predefined post-selection on the measurement results and the measurement results is exactly 0. This needs to be improved.
                 break
-        return CircuitResult(self.state, self.probability, self.cbits)
+        return CircuitResult(self._state, self._probability, self.cbits)
 
     def run_statistics(self, state, cbits=None):
         """
@@ -576,8 +577,9 @@ class CircuitSimulator:
             return all(matched)
 
         op = self.ops[self._op_index]
+        current_state = self._state
         if isinstance(op, Measurement):
-            self._apply_measurement(op)
+            state = self._apply_measurement(op, current_state)
         elif isinstance(op, tuple):
             operation, U = op
             if operation.classical_controls is not None:
@@ -592,15 +594,18 @@ class CircuitSimulator:
                     dims=self.dims,
                     targets=operation.get_all_qubits(),
                 )
-                self._evolve_state(U)
+                state = self._evolve_state(U, current_state)
+            else:
+                state = current_state
         else:
             # For pre-computed unitary only.
-            self._evolve_state(op)
+            state = self._evolve_state(op, current_state)
 
         self._op_index += 1
-        return self.state
+        self._state = state
+        return state
 
-    def _evolve_state(self, U):
+    def _evolve_state(self, U, state):
         """
         Applies unitary to state.
 
@@ -611,39 +616,16 @@ class CircuitSimulator:
         """
 
         if self.mode == "state_vector_simulator":
-            self._evolve_ket(U)
+            state = U * state
         elif self.mode == "density_matrix_simulator":
-            self._evolve_dm(U)
+            state = U * state * U.dag()
         else:
             raise NotImplementedError(
                 "mode {} is not available.".format(self.mode)
             )
+        return state
 
-    def _evolve_ket(self, U):
-        """
-        Applies unitary to ket state.
-
-        Parameters
-        ----------
-        U: Qobj
-            unitary to be applied.
-        """
-
-        self.state = U * self.state
-
-    def _evolve_dm(self, U):
-        """
-        Applies unitary to density matrix state.
-
-        Parameters
-        ----------
-        U: Qobj
-            unitary to be applied.
-        """
-
-        self.state = U * self.state * U.dag()
-
-    def _apply_measurement(self, operation):
+    def _apply_measurement(self, operation, state):
         """
         Applies measurement gate specified by operation to current state.
 
@@ -653,28 +635,29 @@ class CircuitSimulator:
             Measurement gate in a circuit object.
         """
 
-        states, probabilities = operation.measurement_comp_basis(self.state)
+        states, probabilities = operation.measurement_comp_basis(self._state)
 
         if self.mode == "state_vector_simulator":
-            if self.measure_results:
-                i = int(self.measure_results[self.measure_ind])
-                self.measure_ind += 1
+            if self._measure_results:
+                i = int(self._measure_results[self._measure_ind])
+                self._measure_ind += 1
             else:
                 probabilities = [p / sum(probabilities) for p in probabilities]
                 i = np.random.choice([0, 1], p=probabilities)
-            self.probability *= probabilities[i]
-            self.state = states[i]
+            self._probability *= probabilities[i]
+            state = states[i]
             if operation.classical_store is not None:
                 self.cbits[operation.classical_store] = i
 
         elif self.mode == "density_matrix_simulator":
             states = list(filter(lambda x: x is not None, states))
             probabilities = list(filter(lambda x: x != 0, probabilities))
-            self.state = sum(p * s for s, p in zip(states, probabilities))
+            state = sum(p * s for s, p in zip(states, probabilities))
         else:
             raise NotImplementedError(
                 "mode {} is not available.".format(self.mode)
             )
+        return state
 
 
 class CircuitResult:
