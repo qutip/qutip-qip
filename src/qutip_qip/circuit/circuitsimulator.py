@@ -261,9 +261,6 @@ class CircuitSimulator:
         U_list=None,
         mode="state_vector_simulator",
         precompute_unitary=False,
-        state=None,
-        cbits=None,
-        measure_results=None,
     ):
         """
         Simulate state evolution for Quantum Circuits.
@@ -303,14 +300,6 @@ class CircuitSimulator:
 
         if U_list:
             U_list = U_list
-
-        if any(p is not None for p in (state, cbits, measure_results)):
-            warnings.warn(
-                "Initializing the quantum state, cbits and measure_results "
-                "when initializing the simulator is deprecated. "
-                "The inputs are ignored. "
-                "They should, instead, be provided when running the simulation."
-            )
 
     @property
     def qc(self):
