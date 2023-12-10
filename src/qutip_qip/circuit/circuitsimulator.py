@@ -302,10 +302,8 @@ class CircuitSimulator:
         self.precompute_unitary = precompute_unitary
 
         if U_list:
-            self.U_list = U_list
-        else:
-            self.U_list = qc.propagators(expand=False, ignore_measurement=True)
-
+            U_list = U_list
+            
         self.ops = []
         self.inds_list = []
 
@@ -327,14 +325,15 @@ class CircuitSimulator:
         Process list of gates (including measurements), and stores
         them in self.ops (as unitaries) for further computation.
         """
-
+        # We generate all the unitaries here because information
+        #  of the custom gates is still saved in circuit class.
         U_list_index = 0
-
+        U_list = self.qc.propagators(expand=False, ignore_measurement=True)
         for operation in self.qc.gates:
             if isinstance(operation, Measurement):
                 self.ops.append(operation)
             elif isinstance(operation, Gate):
-                self.ops.append((operation, self.U_list[U_list_index]))
+                self.ops.append((operation, U_list[U_list_index]))
                 U_list_index += 1
 
     def _process_ops_precompute(self):
@@ -364,12 +363,14 @@ class CircuitSimulator:
             else:
                 self.inds_list.append(gate.get_all_qubits())
 
+        U_list = self.qc.propagators(expand=False, ignore_measurement=True)
+
         for operation in self.qc.gates:
             if isinstance(operation, Measurement):
                 if U_list_index > prev_index:
                     self.ops.append(
                         self._compute_unitary(
-                            self.U_list[prev_index:U_list_index],
+                            U_list[prev_index:U_list_index],
                             self.inds_list[prev_index:U_list_index],
                         )
                     )
@@ -381,12 +382,12 @@ class CircuitSimulator:
                     if U_list_index > prev_index:
                         self.ops.append(
                             self._compute_unitary(
-                                self.U_list[prev_index:U_list_index],
+                                U_list[prev_index:U_list_index],
                                 self.inds_list[prev_index:U_list_index],
                             )
                         )
                         prev_index = U_list_index
-                    self.ops.append((operation, self.U_list[prev_index]))
+                    self.ops.append((operation, U_list[prev_index]))
                     prev_index += 1
                     U_list_index += 1
                 else:
@@ -395,7 +396,7 @@ class CircuitSimulator:
         if U_list_index > prev_index:
             self.ops.append(
                 self._compute_unitary(
-                    self.U_list[prev_index:U_list_index],
+                    U_list[prev_index:U_list_index],
                     self.inds_list[prev_index:U_list_index],
                 )
             )
@@ -577,7 +578,7 @@ class CircuitSimulator:
             if apply_gate:
                 U = expand_operator(
                     U,
-                    dims=self.qc.dims,
+                    dims=self.dims,
                     targets=operation.get_all_qubits(),
                 )
                 self._evolve_state(U)
