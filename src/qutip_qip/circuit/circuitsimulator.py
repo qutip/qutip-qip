@@ -304,7 +304,7 @@ class CircuitSimulator:
 
         if U_list:
             U_list = U_list
-            
+
         if any(p is not None for p in (state, cbits, measure_results)):
             warnings.warn(
                 "Initializing the quantum state, cbits and measure_results "
@@ -448,7 +448,7 @@ class CircuitSimulator:
                 self.state = state
 
         self.probability = 1
-        self.op_index = 0
+        self._op_index = 0
         self.measure_results = measure_results
         self.measure_ind = 0
 
@@ -505,7 +505,9 @@ class CircuitSimulator:
         """
         self.initialize(state, cbits, measure_results)
         for _ in range(len(self.ops)):
-            if self.step() is None:
+            result = self.step()
+            if result is None:
+                # TODO This only happens if there is predefined post-selection on the measurement results and the measurement results is exactly 0. This needs to be improved.
                 break
         return CircuitResult(self.state, self.probability, self.cbits)
 
@@ -561,7 +563,7 @@ class CircuitSimulator:
             binary = [int(s) for s in "{0:#b}".format(decimal)[2:]]
             return [0] * (length - len(binary)) + binary
 
-        op = self.ops[self.op_index]
+        op = self.ops[self._op_index]
         if isinstance(op, Measurement):
             self._apply_measurement(op)
         elif isinstance(op, tuple):
@@ -592,7 +594,7 @@ class CircuitSimulator:
             # For pre-computed unitary only.
             self._evolve_state(op)
 
-        self.op_index += 1
+        self._op_index += 1
         return self.state
 
     def _evolve_state(self, U):
