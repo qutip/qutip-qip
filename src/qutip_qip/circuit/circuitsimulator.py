@@ -563,23 +563,27 @@ class CircuitSimulator:
             binary = [int(s) for s in "{0:#b}".format(decimal)[2:]]
             return [0] * (length - len(binary)) + binary
 
+        def _check_classical_control_value(operation, cbits):
+            """Check if the gate should be executed, depending on the current value of classical bits."""
+            matched = np.empty(len(operation.classical_controls), dtype=bool)
+            cbits_conditions = _decimal_to_binary(
+                operation.classical_control_value,
+                len(operation.classical_controls),
+            )
+            for i in range(len(operation.classical_controls)):
+                cbit_index = operation.classical_controls[i]
+                control_value = cbits_conditions[i]
+                matched[i] = cbits[cbit_index] == control_value
+            return all(matched)
+
         op = self.ops[self._op_index]
         if isinstance(op, Measurement):
             self._apply_measurement(op)
         elif isinstance(op, tuple):
             operation, U = op
             if operation.classical_controls is not None:
-                apply_gate = all(
-                    [
-                        self.cbits[cbit_index] == control_value
-                        for cbit_index, control_value in zip(
-                            operation.classical_controls,
-                            _decimal_to_binary(
-                                operation.classical_control_value,
-                                len(operation.classical_controls),
-                            ),
-                        )
-                    ]
+                apply_gate = _check_classical_control_value(
+                    operation, self.cbits
                 )
             else:
                 apply_gate = True
