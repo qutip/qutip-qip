@@ -1,14 +1,11 @@
 from itertools import product, chain
-import os
 
 import numpy as np
 
-from . import circuit_latex as _latex
 from ..operations import (
     Gate,
     Measurement,
     expand_operator,
-    gate_sequence_product,
 )
 from qutip import basis, ket2dm, Qobj, tensor
 import warnings
@@ -225,7 +222,9 @@ def _gate_sequence_product(U_list, ind_list):
 
 def _gate_sequence_product_with_expansion(U_list, left_to_right=True):
     """
-    Calculate the overall unitary matrix for a given list of unitary operations.
+    Calculate the overall unitary matrix for a given list of unitary
+    operations. Assuming that all unitary has the same dimension.
+    This is only for backward compatibility.
 
     Parameters
     ----------
@@ -354,13 +353,13 @@ class CircuitSimulator:
         """
         prev_index = 0
         U_list_index = 0
-        inds_list = []
+        ind_list = []
 
         for gate in circuit.gates:
             if isinstance(gate, Measurement):
                 continue
             else:
-                inds_list.append(gate.get_all_qubits())
+                ind_list.append(gate.get_all_qubits())
 
         U_list = circuit.propagators(expand=False, ignore_measurement=True)
 
@@ -371,7 +370,7 @@ class CircuitSimulator:
                     ops.append(
                         self._compute_unitary(
                             U_list[prev_index:U_list_index],
-                            inds_list[prev_index:U_list_index],
+                            ind_list[prev_index:U_list_index],
                         )
                     )
                     prev_index = U_list_index
@@ -383,7 +382,7 @@ class CircuitSimulator:
                         ops.append(
                             self._compute_unitary(
                                 U_list[prev_index:U_list_index],
-                                inds_list[prev_index:U_list_index],
+                                ind_list[prev_index:U_list_index],
                             )
                         )
                         prev_index = U_list_index
@@ -397,7 +396,7 @@ class CircuitSimulator:
             ops.append(
                 self._compute_unitary(
                     U_list[prev_index:U_list_index],
-                    inds_list[prev_index:U_list_index],
+                    ind_list[prev_index:U_list_index],
                 )
             )
             prev_index = U_list_index + 1
@@ -452,7 +451,7 @@ class CircuitSimulator:
         self.measure_results = measure_results
         self.measure_ind = 0
 
-    def _compute_unitary(self, U_list, inds_list):
+    def _compute_unitary(self, U_list, ind_list):
         """
         Compute unitary corresponding to a product of unitaries in U_list
         and expand it to size of circuit.
@@ -462,7 +461,7 @@ class CircuitSimulator:
         U_list: list of Qobj
             list of predefined unitaries.
 
-        inds_list: list of list of int
+        ind_list: list of list of int
             list of qubit indices corresponding to each unitary in U_list
 
         Returns
@@ -471,8 +470,8 @@ class CircuitSimulator:
             resultant unitary
         """
 
-        U_overall, overall_inds = gate_sequence_product(
-            U_list, inds_list=inds_list, expand=True
+        U_overall, overall_inds = _gate_sequence_product(
+            U_list, ind_list=ind_list
         )
 
         if len(overall_inds) != self.qc.N:
