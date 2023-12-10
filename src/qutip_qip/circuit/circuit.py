@@ -891,47 +891,45 @@ class QubitCircuit:
                 "Cannot compute the propagator of a measurement operator."
                 "Please set ignore_measurement=True."
             )
-
         for gate in gates:
             if gate.name == "GLOBALPHASE":
                 qobj = gate.get_qobj(self.N)
-                U_list.append(qobj)
-                continue
-
-            if gate.name in self.user_gates:
-                if gate.controls is not None:
-                    raise ValueError(
-                        "A user defined gate {} takes only  "
-                        "`targets` variable.".format(gate.name)
-                    )
-                func_or_oper = self.user_gates[gate.name]
-                if inspect.isfunction(func_or_oper):
-                    func = func_or_oper
-                    para_num = len(inspect.getfullargspec(func)[0])
-                    if para_num == 0:
-                        qobj = func()
-                    elif para_num == 1:
-                        qobj = func(gate.arg_value)
-                    else:
-                        raise ValueError(
-                            "gate function takes at most one parameters."
-                        )
-                elif isinstance(func_or_oper, Qobj):
-                    qobj = func_or_oper
-                else:
-                    raise ValueError("gate is neither function nor operator")
+            else:
+                qobj = self._get_gate_unitary(gate)
                 if expand:
                     all_targets = gate.get_all_qubits()
                     qobj = expand_operator(
                         qobj, dims=self.dims, targets=all_targets
                     )
-            else:
-                if expand:
-                    qobj = gate.get_qobj(self.N, self.dims)
-                else:
-                    qobj = gate.get_compact_qobj()
             U_list.append(qobj)
         return U_list
+
+    def _get_gate_unitary(self, gate):
+        if gate.name in self.user_gates:
+            if gate.controls is not None:
+                raise ValueError(
+                    "A user defined gate {} takes only  "
+                    "`targets` variable.".format(gate.name)
+                )
+            func_or_oper = self.user_gates[gate.name]
+            if inspect.isfunction(func_or_oper):
+                func = func_or_oper
+                para_num = len(inspect.getfullargspec(func)[0])
+                if para_num == 0:
+                    qobj = func()
+                elif para_num == 1:
+                    qobj = func(gate.arg_value)
+                else:
+                    raise ValueError(
+                        "gate function takes at most one parameters."
+                    )
+            elif isinstance(func_or_oper, Qobj):
+                qobj = func_or_oper
+            else:
+                raise ValueError("gate is neither function nor operator")
+        else:
+            qobj = gate.get_compact_qobj()
+        return qobj
 
     def compute_unitary(self):
         """Evaluates the matrix of all the gates in a quantum circuit.

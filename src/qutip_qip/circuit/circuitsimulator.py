@@ -316,24 +316,6 @@ class CircuitSimulator:
     def qc(self):
         return self._qc
 
-    def _process_ops(self, circuit):
-        """
-        Process list of gates (including measurements), and stores
-        them in self.ops (as unitaries) for further computation.
-        """
-        # We generate all the unitaries here because information
-        #  of the custom gates is still saved in circuit class.
-        U_list_index = 0
-        U_list = circuit.propagators(expand=False, ignore_measurement=True)
-        ops = []
-        for operation in circuit.gates:
-            if isinstance(operation, Measurement):
-                ops.append(operation)
-            elif isinstance(operation, Gate):
-                ops.append((operation, U_list[U_list_index]))
-                U_list_index += 1
-        return ops
-
     def _process_ops_precompute(self, circuit):
         """
         Process list of gates (including measurements), aggregate
@@ -429,7 +411,7 @@ class CircuitSimulator:
             if self.precompute_unitary:
                 self.ops = self._process_ops_precompute(self.qc)
             else:
-                self.ops = self._process_ops(self.qc)
+                self.ops = self.qc.gates
 
         if cbits and len(cbits) == self.qc.num_cbits:
             self.cbits = cbits
@@ -580,8 +562,8 @@ class CircuitSimulator:
         current_state = self._state
         if isinstance(op, Measurement):
             state = self._apply_measurement(op, current_state)
-        elif isinstance(op, tuple):
-            operation, U = op
+        elif isinstance(op, Gate):
+            operation = op
             if operation.classical_controls is not None:
                 apply_gate = _check_classical_control_value(
                     operation, self.cbits
@@ -589,23 +571,20 @@ class CircuitSimulator:
             else:
                 apply_gate = True
             if apply_gate:
-                U = expand_operator(
-                    U,
-                    dims=self.dims,
-                    targets=operation.get_all_qubits(),
+                state = self._evolve_state(
+                    operation, current_state, expand=True
                 )
-                state = self._evolve_state(U, current_state)
             else:
                 state = current_state
         else:
-            # For pre-computed unitary only.
+            # For pre-computed unitary only, where op is a Qobj.
             state = self._evolve_state(op, current_state)
 
         self._op_index += 1
         self._state = state
         return state
 
-    def _evolve_state(self, U, state):
+    def _evolve_state(self, operation, state, expand=False):
         """
         Applies unitary to state.
 
@@ -614,7 +593,18 @@ class CircuitSimulator:
         U: Qobj
             unitary to be applied.
         """
-
+        if isinstance(operation, Gate):
+            # We need to use the circuit because the custom gates
+            # are still saved in circuit instance.
+            # This should be changed once that is deprecated.
+            U = self.qc._get_gate_unitary(operation)
+            U = expand_operator(
+                U,
+                dims=self.dims,
+                targets=operation.get_all_qubits(),
+            )
+        else:
+            U = operation
         if self.mode == "state_vector_simulator":
             state = U * state
         elif self.mode == "density_matrix_simulator":
