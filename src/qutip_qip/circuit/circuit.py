@@ -17,13 +17,12 @@ from ..operations import (
     Measurement,
     expand_operator,
     GATE_CLASS_MAP,
-    gate_sequence_product,
 )
 from .circuitsimulator import (
     CircuitSimulator,
     CircuitResult,
 )
-from qutip import basis, Qobj
+from qutip import Qobj, qeye
 
 
 try:
@@ -939,8 +938,9 @@ class QubitCircuit:
         circuit_unitary : :class:`qutip.Qobj`
             Product of all gate arrays in the quantum circuit.
         """
-        gate_list = self.propagators()
-        circuit_unitary = gate_sequence_product(gate_list)
+        sim = CircuitSimulator(self)
+        result = sim.run(qeye(self.dims))
+        circuit_unitary = result.get_final_states()[0]
         return circuit_unitary
 
     def latex_code(self):
