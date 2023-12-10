@@ -583,15 +583,19 @@ class CircuitSimulator:
             unitary to be applied.
         """
         if isinstance(operation, Gate):
-            # We need to use the circuit because the custom gates
-            # are still saved in circuit instance.
-            # This should be changed once that is deprecated.
-            U = self.qc._get_gate_unitary(operation)
-            U = expand_operator(
-                U,
-                dims=self.dims,
-                targets=operation.get_all_qubits(),
-            )
+            if operation.name == "GLOBALPHASE":
+                # This is just a complex number.
+                U = np.exp(1.0j * operation.arg_value)
+            else:
+                # We need to use the circuit because the custom gates
+                # are still saved in circuit instance.
+                # This should be changed once that is deprecated.
+                U = self.qc._get_gate_unitary(operation)
+                U = expand_operator(
+                    U,
+                    dims=self.dims,
+                    targets=operation.get_all_qubits(),
+                )
         else:
             U = operation
         if self.mode == "state_vector_simulator":
