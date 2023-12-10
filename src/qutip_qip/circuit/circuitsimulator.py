@@ -303,10 +303,8 @@ class CircuitSimulator:
 
         if U_list:
             self.U_list = U_list
-        elif precompute_unitary:
-            self.U_list = qc.propagators(expand=False, ignore_measurement=True)
         else:
-            self.U_list = qc.propagators(ignore_measurement=True)
+            self.U_list = qc.propagators(expand=False, ignore_measurement=True)
 
         self.ops = []
         self.inds_list = []
@@ -336,10 +334,7 @@ class CircuitSimulator:
             if isinstance(operation, Measurement):
                 self.ops.append(operation)
             elif isinstance(operation, Gate):
-                if operation.classical_controls:
-                    self.ops.append((operation, self.U_list[U_list_index]))
-                else:
-                    self.ops.append(self.U_list[U_list_index])
+                self.ops.append((operation, self.U_list[U_list_index]))
                 U_list_index += 1
 
     def _process_ops_precompute(self):
@@ -564,27 +559,30 @@ class CircuitSimulator:
             self._apply_measurement(op)
         elif isinstance(op, tuple):
             operation, U = op
-            apply_gate = all(
-                [
-                    self.cbits[cbit_index] == control_value
-                    for cbit_index, control_value in zip(
-                        operation.classical_controls,
-                        _decimal_to_binary(
-                            operation.classical_control_value,
-                            len(operation.classical_controls),
-                        ),
-                    )
-                ]
-            )
+            if operation.classical_controls is not None:
+                apply_gate = all(
+                    [
+                        self.cbits[cbit_index] == control_value
+                        for cbit_index, control_value in zip(
+                            operation.classical_controls,
+                            _decimal_to_binary(
+                                operation.classical_control_value,
+                                len(operation.classical_controls),
+                            ),
+                        )
+                    ]
+                )
+            else:
+                apply_gate = True
             if apply_gate:
-                if self.precompute_unitary:
-                    U = expand_operator(
-                        U,
-                        dims=self.qc.dims,
-                        targets=operation.get_all_qubits(),
-                    )
+                U = expand_operator(
+                    U,
+                    dims=self.qc.dims,
+                    targets=operation.get_all_qubits(),
+                )
                 self._evolve_state(U)
         else:
+            # For pre-computed unitary only.
             self._evolve_state(op)
 
         self.op_index += 1
