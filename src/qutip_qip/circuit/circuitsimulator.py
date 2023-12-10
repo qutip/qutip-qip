@@ -296,22 +296,15 @@ class CircuitSimulator:
             large number of repeat runs with different state inputs.
         """
 
-        self.qc = qc
+        self._qc = qc
         self.dims = qc.dims
         self.mode = mode
         self.precompute_unitary = precompute_unitary
+        self.ops = None
 
         if U_list:
             U_list = U_list
             
-        self.ops = []
-        self.inds_list = []
-
-        if precompute_unitary:
-            self._process_ops_precompute()
-        else:
-            self._process_ops()
-
         if any(p is not None for p in (state, cbits, measure_results)):
             warnings.warn(
                 "Initializing the quantum state, cbits and measure_results "
@@ -320,7 +313,11 @@ class CircuitSimulator:
                 "They should, instead, be provided when running the simulation."
             )
 
-    def _process_ops(self):
+    @property
+    def qc(self):
+        return self._qc
+
+    def _process_ops(self, circuit):
         """
         Process list of gates (including measurements), and stores
         them in self.ops (as unitaries) for further computation.
@@ -328,15 +325,17 @@ class CircuitSimulator:
         # We generate all the unitaries here because information
         #  of the custom gates is still saved in circuit class.
         U_list_index = 0
-        U_list = self.qc.propagators(expand=False, ignore_measurement=True)
-        for operation in self.qc.gates:
+        U_list = circuit.propagators(expand=False, ignore_measurement=True)
+        ops = []
+        for operation in circuit.gates:
             if isinstance(operation, Measurement):
-                self.ops.append(operation)
+                ops.append(operation)
             elif isinstance(operation, Gate):
-                self.ops.append((operation, U_list[U_list_index]))
+                ops.append((operation, U_list[U_list_index]))
                 U_list_index += 1
+        return ops
 
-    def _process_ops_precompute(self):
+    def _process_ops_precompute(self, circuit):
         """
         Process list of gates (including measurements), aggregate
         gate unitaries (by multiplying) and store them in self.ops
@@ -353,55 +352,57 @@ class CircuitSimulator:
 
         then self.ops = [YX, M0, X]
         """
-
         prev_index = 0
         U_list_index = 0
+        inds_list = []
 
-        for gate in self.qc.gates:
+        for gate in circuit.gates:
             if isinstance(gate, Measurement):
                 continue
             else:
-                self.inds_list.append(gate.get_all_qubits())
+                inds_list.append(gate.get_all_qubits())
 
-        U_list = self.qc.propagators(expand=False, ignore_measurement=True)
+        U_list = circuit.propagators(expand=False, ignore_measurement=True)
 
-        for operation in self.qc.gates:
+        ops = []
+        for operation in circuit.gates:
             if isinstance(operation, Measurement):
                 if U_list_index > prev_index:
-                    self.ops.append(
+                    ops.append(
                         self._compute_unitary(
                             U_list[prev_index:U_list_index],
-                            self.inds_list[prev_index:U_list_index],
+                            inds_list[prev_index:U_list_index],
                         )
                     )
                     prev_index = U_list_index
-                self.ops.append(operation)
+                ops.append(operation)
 
             elif isinstance(operation, Gate):
                 if operation.classical_controls:
                     if U_list_index > prev_index:
-                        self.ops.append(
+                        ops.append(
                             self._compute_unitary(
                                 U_list[prev_index:U_list_index],
-                                self.inds_list[prev_index:U_list_index],
+                                inds_list[prev_index:U_list_index],
                             )
                         )
                         prev_index = U_list_index
-                    self.ops.append((operation, U_list[prev_index]))
+                    ops.append((operation, U_list[prev_index]))
                     prev_index += 1
                     U_list_index += 1
                 else:
                     U_list_index += 1
 
         if U_list_index > prev_index:
-            self.ops.append(
+            ops.append(
                 self._compute_unitary(
                     U_list[prev_index:U_list_index],
-                    self.inds_list[prev_index:U_list_index],
+                    inds_list[prev_index:U_list_index],
                 )
             )
             prev_index = U_list_index + 1
             U_list_index = prev_index
+        return ops
 
     def initialize(self, state=None, cbits=None, measure_results=None):
         """
@@ -424,6 +425,12 @@ class CircuitSimulator:
             set to the tuple of bits (sequentially) instead of being
             chosen at random.
         """
+        # Initializing the unitary operators.
+        if self.ops is None:
+            if self.precompute_unitary:
+                self.ops = self._process_ops_precompute(self.qc)
+            else:
+                self.ops = self._process_ops(self.qc)
 
         if cbits and len(cbits) == self.qc.num_cbits:
             self.cbits = cbits
@@ -496,7 +503,6 @@ class CircuitSimulator:
             Return a CircuitResult object containing
             output state and probability.
         """
-
         self.initialize(state, cbits, measure_results)
         for _ in range(len(self.ops)):
             if self.step() is None:

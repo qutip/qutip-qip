@@ -202,7 +202,7 @@ precomputes the product of the unitaries (in between the measurements):
 .. testcode::
 
   sim = CircuitSimulator(qc, precompute_unitary=True)
-
+  sim.initialize()
   print(sim.ops)
 
 .. testoutput::
