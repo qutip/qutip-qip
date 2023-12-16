@@ -561,7 +561,7 @@ class CircuitSimulator:
                 apply_gate = True
             if apply_gate:
                 state = self._evolve_state(
-                    operation, current_state, expand=True
+                    operation, current_state
                 )
             else:
                 state = current_state
@@ -573,7 +573,7 @@ class CircuitSimulator:
         self._state = state
         return state
 
-    def _evolve_state(self, operation, state, expand=False):
+    def _evolve_state(self, operation, state):
         """
         Applies unitary to state.
 
