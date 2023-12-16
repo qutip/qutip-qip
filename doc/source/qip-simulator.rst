@@ -191,44 +191,6 @@ This only executes one gate in the circuit and
 allows for a better understanding of how the state evolution takes place.
 The method steps through both the gates and the measurements.
 
-Precomputing the unitary
-========================
-
-By default, the :class:`.CircuitSimulator` class is initialized such that
-the circuit evolution is conducted by applying each unitary to the state interactively.
-However, by setting the argument ``precompute_unitary=True``, :class:`.CircuitSimulator`
-precomputes the product of the unitaries (in between the measurements):
-
-.. testcode::
-
-  sim = CircuitSimulator(qc, precompute_unitary=True)
-  sim.initialize()
-  print(sim.ops)
-
-.. testoutput::
-  :options: +NORMALIZE_WHITESPACE
-
-  [Quantum object: dims = [[2, 2, 2], [2, 2, 2]], shape = (8, 8), type = oper, isherm = False
-    Qobj data =
-    [[ 0.       0.57735  0.      -0.57735  0.       0.40825  0.      -0.40825]     
-     [ 0.57735  0.      -0.57735  0.       0.40825  0.      -0.40825  0.     ]     
-     [ 0.57735  0.       0.57735  0.       0.40825  0.       0.40825  0.     ]     
-     [ 0.       0.57735  0.       0.57735  0.       0.40825  0.       0.40825]     
-     [ 0.57735  0.       0.       0.      -0.8165   0.       0.       0.     ]     
-     [ 0.       0.57735  0.       0.       0.      -0.8165   0.       0.     ]     
-     [ 0.       0.       0.57735  0.       0.       0.      -0.8165   0.     ]     
-     [ 0.       0.       0.       0.57735  0.       0.       0.      -0.8165 ]],
-       Measurement(M0, target=[0], classical_store=0),
-       Measurement(M1, target=[1], classical_store=1),
-       Measurement(M2, target=[2], classical_store=2)]
-
-
-Here, ``sim.ops`` stores all the circuit operations that are going to be applied during
-state evolution. As observed above, all the unitaries of the circuit are compressed into
-a single unitary product with the precompute optimization enabled.
-This is more efficient if one runs the same circuit one multiple initial states.
-However, as the number of qubits increases, this will consume more and more memory
-and become unfeasible.
 
 Density Matrix Simulation
 =========================

@@ -258,7 +258,6 @@ class CircuitSimulator:
     def __init__(
         self,
         qc,
-        U_list=None,
         mode="state_vector_simulator",
         precompute_unitary=False,
     ):
@@ -269,9 +268,6 @@ class CircuitSimulator:
         ----------
         qc : :class:`.QubitCircuit`
             Quantum Circuit to be simulated.
-
-        U_list: list of Qobj, optional
-            list of predefined unitaries corresponding to circuit.
 
         mode: string, optional
             Specify if input state (and therefore computation) is in
@@ -285,94 +281,19 @@ class CircuitSimulator:
             If in density_matrix_simulator mode and given
             a state vector input, the output must be assumed to
             be a density matrix.
-
-        precompute_unitary: Boolean, optional
-            Specify if computation is done by pre-computing and aggregating
-            gate unitaries. Possibly a faster method in the case of
-            large number of repeat runs with different state inputs.
         """
 
         self._qc = qc
         self.dims = qc.dims
         self.mode = mode
-        self.precompute_unitary = precompute_unitary
-        self.ops = None
-
-        if U_list:
-            U_list = U_list
+        if precompute_unitary:
+            warnings.warn(
+                "Precomputing the full unitary is no longer supported. Switching to normal simulation mode."
+            )
 
     @property
     def qc(self):
         return self._qc
-
-    def _process_ops_precompute(self, circuit):
-        """
-        Process list of gates (including measurements), aggregate
-        gate unitaries (by multiplying) and store them in self.ops
-        for further computation. The gate multiplication is carried out
-        only for groups of matrices in between classically controlled gates
-        and measurement gates.
-
-        Examples
-        --------
-
-        If we have a circuit that looks like:
-
-        ----|X|-----|Y|----|M0|-----|X|----
-
-        then self.ops = [YX, M0, X]
-        """
-        prev_index = 0
-        U_list_index = 0
-        ind_list = []
-
-        for gate in circuit.gates:
-            if isinstance(gate, Measurement):
-                continue
-            else:
-                ind_list.append(gate.get_all_qubits())
-
-        U_list = circuit.propagators(expand=False, ignore_measurement=True)
-
-        ops = []
-        for operation in circuit.gates:
-            if isinstance(operation, Measurement):
-                if U_list_index > prev_index:
-                    ops.append(
-                        self._compute_unitary(
-                            U_list[prev_index:U_list_index],
-                            ind_list[prev_index:U_list_index],
-                        )
-                    )
-                    prev_index = U_list_index
-                ops.append(operation)
-
-            elif isinstance(operation, Gate):
-                if operation.classical_controls:
-                    if U_list_index > prev_index:
-                        ops.append(
-                            self._compute_unitary(
-                                U_list[prev_index:U_list_index],
-                                ind_list[prev_index:U_list_index],
-                            )
-                        )
-                        prev_index = U_list_index
-                    ops.append((operation, U_list[prev_index]))
-                    prev_index += 1
-                    U_list_index += 1
-                else:
-                    U_list_index += 1
-
-        if U_list_index > prev_index:
-            ops.append(
-                self._compute_unitary(
-                    U_list[prev_index:U_list_index],
-                    ind_list[prev_index:U_list_index],
-                )
-            )
-            prev_index = U_list_index + 1
-            U_list_index = prev_index
-        return ops
 
     def initialize(self, state=None, cbits=None, measure_results=None):
         """
@@ -386,9 +307,6 @@ class CircuitSimulator:
         cbits: list of int, optional
             initial value of classical bits
 
-        U_list: list of Qobj, optional
-            list of predefined unitaries corresponding to circuit.
-
         measure_results : tuple of ints, optional
             optional specification of each measurement result to enable
             post-selection. If specified, the measurement results are
@@ -396,12 +314,6 @@ class CircuitSimulator:
             chosen at random.
         """
         # Initializing the unitary operators.
-        if self.ops is None:
-            if self.precompute_unitary:
-                self.ops = self._process_ops_precompute(self.qc)
-            else:
-                self.ops = self.qc.gates
-
         if cbits and len(cbits) == self.qc.num_cbits:
             self.cbits = cbits
         elif self.qc.num_cbits > 0:
@@ -422,35 +334,6 @@ class CircuitSimulator:
         self._op_index = 0
         self._measure_results = measure_results
         self._measure_ind = 0
-
-    def _compute_unitary(self, U_list, ind_list):
-        """
-        Compute unitary corresponding to a product of unitaries in U_list
-        and expand it to size of circuit.
-
-        Parameters
-        ----------
-        U_list: list of Qobj
-            list of predefined unitaries.
-
-        ind_list: list of list of int
-            list of qubit indices corresponding to each unitary in U_list
-
-        Returns
-        -------
-        U: Qobj
-            resultant unitary
-        """
-
-        U_overall, overall_inds = _gate_sequence_product(
-            U_list, ind_list=ind_list
-        )
-
-        if len(overall_inds) != self.qc.N:
-            U_overall = expand_operator(
-                U_overall, dims=self.qc.dims, targets=overall_inds
-            )
-        return U_overall
 
     def run(self, state, cbits=None, measure_results=None):
         """
@@ -475,7 +358,7 @@ class CircuitSimulator:
             output state and probability.
         """
         self.initialize(state, cbits, measure_results)
-        for _ in range(len(self.ops)):
+        for _ in range(len(self.qc.gates)):
             result = self.step()
             if result is None:
                 # TODO This only happens if there is predefined post-selection on the measurement results and the measurement results is exactly 0. This needs to be improved.
@@ -547,7 +430,7 @@ class CircuitSimulator:
                 matched[i] = cbits[cbit_index] == control_value
             return all(matched)
 
-        op = self.ops[self._op_index]
+        op = self.qc.gates[self._op_index]
         current_state = self._state
         if isinstance(op, Measurement):
             state = self._apply_measurement(op, current_state)
@@ -560,14 +443,9 @@ class CircuitSimulator:
             else:
                 apply_gate = True
             if apply_gate:
-                state = self._evolve_state(
-                    operation, current_state
-                )
+                state = self._evolve_state(operation, current_state)
             else:
                 state = current_state
-        else:
-            # For pre-computed unitary only, where op is a Qobj.
-            state = self._evolve_state(op, current_state)
 
         self._op_index += 1
         self._state = state

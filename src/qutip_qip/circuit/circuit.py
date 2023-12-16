@@ -479,10 +479,6 @@ class QubitCircuit:
             post-selection. If specified, the measurement results are
             set to the tuple of bits (sequentially) instead of being
             chosen at random.
-        precompute_unitary: Boolean, optional
-            Specify if computation is done by pre-computing and aggregating
-            gate unitaries. Possibly a faster method in the case of
-            large number of repeat runs with different state inputs.
 
         Returns
         -------
@@ -497,7 +493,6 @@ class QubitCircuit:
             raise TypeError("State is not a ket or a density matrix.")
         sim = CircuitSimulator(
             self,
-            U_list,
             mode,
             precompute_unitary,
         )
@@ -518,10 +513,6 @@ class QubitCircuit:
                 initialization of the classical bits.
         U_list: list of Qobj, optional
             list of predefined unitaries corresponding to circuit.
-        precompute_unitary: Boolean, optional
-            Specify if computation is done by pre-computing and aggregating
-            gate unitaries. Possibly a faster method in the case of
-            large number of repeat runs with different state inputs.
 
         Returns
         -------
@@ -535,12 +526,7 @@ class QubitCircuit:
             mode = "density_matrix_simulator"
         else:
             raise TypeError("State is not a ket or a density matrix.")
-        sim = CircuitSimulator(
-            self,
-            U_list,
-            mode,
-            precompute_unitary,
-        )
+        sim = CircuitSimulator(self, mode, precompute_unitary)
         return sim.run_statistics(state, cbits)
 
     def resolve_gates(self, basis=["CNOT", "RX", "RY", "RZ"]):
