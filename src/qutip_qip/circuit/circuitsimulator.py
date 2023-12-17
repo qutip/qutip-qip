@@ -1,5 +1,6 @@
 from itertools import product, chain
-
+from operator import mul
+from functools import reduce
 import numpy as np
 
 from ..operations import (
@@ -322,6 +323,9 @@ class CircuitSimulator:
             self.cbits = None
 
         # Parameters that will be updated during the simulation.
+        # self._state keeps track of the current state of the evolution.
+        # It is not guaranteed to be a Qobj and could be reshaped.
+        # Use self.state to return the Qobj representation.
         if state is not None:
             if self.mode == "density_matrix_simulator" and state.isket:
                 self._state = ket2dm(state)
@@ -330,10 +334,42 @@ class CircuitSimulator:
         else:
             # Just computing the full unitary, no state
             self._state = None
+        self._state_dims = (
+            state.dims.copy()
+        )  # Record the dimension of the state.
         self._probability = 1
         self._op_index = 0
         self._measure_results = measure_results
         self._measure_ind = 0
+        if self.mode == "state_vector_simulator":
+            self._tensor_dims = self._state_dims[0].copy()
+            if state.type == "oper":
+                # apply the gate to a unitary, add an ancillary axis.
+                self._state_mat_shape = [
+                    reduce(mul, self._state_dims[0], 1)
+                ] * 2
+                self._tensor_dims += [reduce(mul, self._state_dims[0], 1)]
+            else:
+                self._state_mat_shape = [
+                    reduce(mul, self._state_dims[0], 1),
+                    1,
+                ]
+            self._tensor_dims = tuple(self._tensor_dims)
+            self._state_mat_shape = tuple(self._state_mat_shape)
+
+    @property
+    def state(self):
+        """
+        The current state of the simulator as a `qutip.Qobj`
+
+        Returns:
+            `qutip.Qobj`: _description_
+        """
+        if not isinstance(self._state, Qobj) and self._state is not None:
+            self._state = self._state.reshape(self._state_mat_shape)
+            return Qobj(self._state, dims=self._state_dims)
+        else:
+            return self._state
 
     def run(self, state, cbits=None, measure_results=None):
         """
@@ -359,11 +395,11 @@ class CircuitSimulator:
         """
         self.initialize(state, cbits, measure_results)
         for _ in range(len(self.qc.gates)):
-            result = self.step()
-            if result is None:
+            self.step()
+            if self._state is None:
                 # TODO This only happens if there is predefined post-selection on the measurement results and the measurement results is exactly 0. This needs to be improved.
                 break
-        return CircuitResult(self._state, self._probability, self.cbits)
+        return CircuitResult(self.state, self._probability, self.cbits)
 
     def run_statistics(self, state, cbits=None):
         """
@@ -431,6 +467,8 @@ class CircuitSimulator:
             return all(matched)
 
         op = self.qc.gates[self._op_index]
+        self._op_index += 1
+
         current_state = self._state
         if isinstance(op, Measurement):
             state = self._apply_measurement(op, current_state)
@@ -442,14 +480,14 @@ class CircuitSimulator:
                 )
             else:
                 apply_gate = True
-            if apply_gate:
-                state = self._evolve_state(operation, current_state)
+            if not apply_gate:
+                return current_state
+            if self.mode == "state_vector_simulator":
+                state = self._evolve_state_einsum(op, current_state)
             else:
-                state = current_state
+                state = self._evolve_state(operation, current_state)
 
-        self._op_index += 1
         self._state = state
-        return state
 
     def _evolve_state(self, operation, state):
         """
@@ -460,22 +498,19 @@ class CircuitSimulator:
         U: Qobj
             unitary to be applied.
         """
-        if isinstance(operation, Gate):
-            if operation.name == "GLOBALPHASE":
-                # This is just a complex number.
-                U = np.exp(1.0j * operation.arg_value)
-            else:
-                # We need to use the circuit because the custom gates
-                # are still saved in circuit instance.
-                # This should be changed once that is deprecated.
-                U = self.qc._get_gate_unitary(operation)
-                U = expand_operator(
-                    U,
-                    dims=self.dims,
-                    targets=operation.get_all_qubits(),
-                )
+        if operation.name == "GLOBALPHASE":
+            # This is just a complex number.
+            U = np.exp(1.0j * operation.arg_value)
         else:
-            U = operation
+            # We need to use the circuit because the custom gates
+            # are still saved in circuit instance.
+            # This should be changed once that is deprecated.
+            U = self.qc._get_gate_unitary(operation)
+            U = expand_operator(
+                U,
+                dims=self.dims,
+                targets=operation.get_all_qubits(),
+            )
         if self.mode == "state_vector_simulator":
             state = U * state
         elif self.mode == "density_matrix_simulator":
@@ -484,6 +519,37 @@ class CircuitSimulator:
             raise NotImplementedError(
                 "mode {} is not available.".format(self.mode)
             )
+        return state
+
+    def _evolve_state_einsum(self, gate, state):
+        if gate.name == "GLOBALPHASE":
+            # This is just a complex number.
+            return np.exp(1.0j * gate.arg_value) * state
+        # Prepare the state tensor.
+        targets_indices = gate.get_all_qubits()
+        if isinstance(state, Qobj):
+            # If it is a Qobj, transform it to the array representation.
+            state = state.full()
+            # Transform the gate and state array to the corresponding
+            # tensor form.
+            state = state.reshape(self._tensor_dims)
+        # Prepare the gate tensor.
+        gate = self.qc._get_gate_unitary(gate)
+        gate_array = gate.full().reshape(gate.dims[0] + gate.dims[1])
+        # Compute the tensor indices and call einsum.
+        num_site = len(state.shape)
+        ancillary_indices = range(num_site, num_site + len(targets_indices))
+        index_list = range(num_site)
+        new_index_list = list(index_list).copy()
+        for j, k in enumerate(targets_indices):
+            new_index_list[k] = j + num_site
+        state = np.einsum(
+            gate_array,
+            list(ancillary_indices) + list(targets_indices),
+            state,
+            index_list,
+            new_index_list,
+        )
         return state
 
     def _apply_measurement(self, operation, state):
@@ -495,8 +561,7 @@ class CircuitSimulator:
         operation: :class:`.Measurement`
             Measurement gate in a circuit object.
         """
-
-        states, probabilities = operation.measurement_comp_basis(self._state)
+        states, probabilities = operation.measurement_comp_basis(self.state)
 
         if self.mode == "state_vector_simulator":
             if self._measure_results:

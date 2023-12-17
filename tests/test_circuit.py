@@ -646,6 +646,7 @@ class TestQubitCircuit:
             np.testing.assert_allclose(probs_initial, probs_final)
             assert sum(result_cbits[i]) == 1
 
+
     _latex_template = r"""
 \documentclass[border=3pt]{standalone}
 \usepackage[braket]{qcircuit}

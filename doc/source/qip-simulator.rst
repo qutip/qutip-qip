@@ -169,7 +169,8 @@ The :class:`.CircuitSimulator` class also enables stepping through the circuit:
 
 .. testcode::
 
-  print(sim.step())
+  sim.step()
+  print(sim.state)
 
 **Output**:
 
