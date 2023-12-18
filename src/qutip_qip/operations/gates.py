@@ -1,4 +1,5 @@
 import numbers
+from packaging.version import parse as parse_version
 from collections.abc import Iterable
 from itertools import product
 from functools import partial, reduce
@@ -1276,6 +1277,9 @@ def expand_operator(
      [0. 0. 0. 0. 0. 0. 1. 0.]
      [0. 0. 0. 1. 0. 0. 0. 0.]]
     """
+    if parse_version(qutip.__version__) >= parse_version("5.dev"):
+        if isinstance(oper.data, qutip.data.Dense):
+            oper = oper.to("csr")
     if N is not None:
         warnings.warn(
             "The function expand_operator has been generalized to "
