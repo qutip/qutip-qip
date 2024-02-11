@@ -338,6 +338,19 @@ class Test_expand_operator:
             assert test.dims == expected.dims
             np.testing.assert_allclose(test.full(), expected.full())
 
+    @pytest.mark.skipif(
+        not parse_version(qutip.__version__) >= parse_version('5.dev'),
+        reason=
+        "Data type only exist in v5."
+        )
+    def test_dtype(self):
+        expanded_qobj = expand_operator(gates.cnot(), dims=[2, 2, 2]).data
+        assert isinstance(expanded_qobj, qutip.data.CSR)
+        expanded_qobj = expand_operator(
+            gates.cnot(), dims=[2, 2, 2], dtype="dense").data
+        assert isinstance(expanded_qobj, qutip.data.Dense)
+
+
 def test_gates_class():
     if parse_version(qutip.__version__) < parse_version('5.dev'):
         init_state = qutip.rand_ket(8, dims=[[2, 2, 2], [1, 1, 1]])
