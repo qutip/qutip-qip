@@ -1,4 +1,5 @@
 """Pulse representation of a quantum circuit."""
+
 from packaging.version import parse as parse_version
 import numpy as np
 from scipy.interpolate import CubicSpline

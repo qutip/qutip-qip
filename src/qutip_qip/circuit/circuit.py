@@ -1,6 +1,7 @@
 """
 Quantum circuit representation and simulation.
 """
+
 from collections.abc import Iterable
 from itertools import product
 import inspect

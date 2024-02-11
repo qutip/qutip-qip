@@ -3,6 +3,7 @@ This is a temporary file.
 Those decomposition functions should be moved to the
 individual gate classes.
 """
+
 import numpy as np
 from ..operations import Gate
 

@@ -182,9 +182,9 @@ unitary matrix, set allow_custom_gate=True."
                 )
 
             unitary = np.array(Operator(qiskit_instruction))
-            qutip_circuit.user_gates[
-                qiskit_instruction.name
-            ] = _make_user_gate(unitary, qiskit_instruction)
+            qutip_circuit.user_gates[qiskit_instruction.name] = (
+                _make_user_gate(unitary, qiskit_instruction)
+            )
             qutip_circuit.add_gate(
                 qiskit_instruction.name,
                 targets=_get_mapped_bits(qiskit_qregs, bit_map=qubit_map),

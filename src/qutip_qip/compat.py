@@ -1,6 +1,7 @@
 """
 For the compatibility between qutip-v5 and v4.
 """
+
 from itertools import chain
 from functools import reduce
 from packaging.version import parse as parse_version

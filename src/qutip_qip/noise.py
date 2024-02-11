@@ -1,4 +1,5 @@
 """Noise of quantum hardware."""
+
 import numbers
 import warnings
 from collections.abc import Iterable
