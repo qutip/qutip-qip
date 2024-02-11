@@ -1208,7 +1208,7 @@ def _targets_to_list(targets, oper=None, N=None):
 
 
 def expand_operator(
-    oper, N=None, targets=None, dims=None, cyclic_permutation=False
+    oper, N=None, targets=None, dims=None, cyclic_permutation=False, dtype=None
 ):
     """
     Expand an operator to one that acts on a system with desired dimensions.
@@ -1233,6 +1233,9 @@ def expand_operator(
         E.g. if ``N=3`` and `oper` is a 2-qubit operator,
         the result will be a list of three operators,
         each acting on qubits 0 and 1, 1 and 2, 2 and 0.
+    dtype : str, optional
+        Data type of the output `Qobj`. Only for qutip version larger than 5.
+
 
     Returns
     -------
@@ -1278,8 +1281,11 @@ def expand_operator(
      [0. 0. 0. 1. 0. 0. 0. 0.]]
     """
     if parse_version(qutip.__version__) >= parse_version("5.dev"):
-        if isinstance(oper.data, qutip.data.Dense):
-            oper = oper.to("csr")
+        if dtype is None:
+            if isinstance(oper.data, qutip.data.Dense):
+                oper = oper.to("csr")
+        else:
+            oper = oper.to(dtype)
     if N is not None:
         warnings.warn(
             "The function expand_operator has been generalized to "
