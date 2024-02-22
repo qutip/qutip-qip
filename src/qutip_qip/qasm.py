@@ -774,7 +774,7 @@ class QasmProcessor:
             self._custom_gate(
                 qc_temp, [command[0], args, [str(i) for i in range(n)]]
             )
-            unitary_mat = gate_sequence_product(qc_temp.propagators())
+            unitary_mat = qc_temp.compute_unitary()
             custom_gates[gate_name] = unitary_mat
 
         qc.user_gates = custom_gates
