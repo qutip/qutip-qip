@@ -224,7 +224,7 @@ def _gate_sequence_product(U_list, ind_list):
 def _gate_sequence_product_with_expansion(U_list, left_to_right=True):
     """
     Calculate the overall unitary matrix for a given list of unitary
-    operations. Assuming that all unitary has the same dimension.
+    operations, assuming that all operations have the same dimension.
     This is only for backward compatibility.
 
     Parameters
@@ -363,7 +363,7 @@ class CircuitSimulator:
         The current state of the simulator as a `qutip.Qobj`
 
         Returns:
-            `qutip.Qobj`: _description_
+            `qutip.Qobj`: The current state of the simulator.
         """
         if not isinstance(self._state, Qobj) and self._state is not None:
             self._state = self._state.reshape(self._state_mat_shape)
@@ -394,7 +394,7 @@ class CircuitSimulator:
             output state and probability.
         """
         self.initialize(state, cbits, measure_results)
-        for _ in range(len(self.qc.gates)):
+        for _ in range(len(self._qc.gates)):
             self.step()
             if self._state is None:
                 # TODO This only happens if there is predefined post-selection on the measurement results and the measurement results is exactly 0. This needs to be improved.
@@ -425,7 +425,7 @@ class CircuitSimulator:
         cbits_results = []
 
         num_measurements = len(
-            list(filter(lambda x: isinstance(x, Measurement), self.qc.gates))
+            list(filter(lambda x: isinstance(x, Measurement), self._qc.gates))
         )
 
         for results in product("01", repeat=num_measurements):
@@ -466,17 +466,16 @@ class CircuitSimulator:
                 matched[i] = cbits[cbit_index] == control_value
             return all(matched)
 
-        op = self.qc.gates[self._op_index]
+        op = self._qc.gates[self._op_index]
         self._op_index += 1
 
         current_state = self._state
         if isinstance(op, Measurement):
             state = self._apply_measurement(op, current_state)
         elif isinstance(op, Gate):
-            operation = op
-            if operation.classical_controls is not None:
+            if op.classical_controls is not None:
                 apply_gate = _check_classical_control_value(
-                    operation, self.cbits
+                    op, self.cbits
                 )
             else:
                 apply_gate = True
@@ -485,7 +484,7 @@ class CircuitSimulator:
             if self.mode == "state_vector_simulator":
                 state = self._evolve_state_einsum(op, current_state)
             else:
-                state = self._evolve_state(operation, current_state)
+                state = self._evolve_state(op, current_state)
 
         self._state = state
 
@@ -540,7 +539,7 @@ class CircuitSimulator:
         num_site = len(state.shape)
         ancillary_indices = range(num_site, num_site + len(targets_indices))
         index_list = range(num_site)
-        new_index_list = list(index_list).copy()
+        new_index_list = list(index_list)
         for j, k in enumerate(targets_indices):
             new_index_list[k] = j + num_site
         state = np.einsum(
