@@ -36,9 +36,8 @@ class QasmGate:
 
 def _get_qiskit_gates():
     """
-    Create and return a dictionary containing custom gates needed
-    for "qiskit" mode. These include a subset of gates usually defined
-    in the file "qelib1.inc".
+    Create and return a dictionary containing a few commonly used qiskit gates
+    that are not predefined in qutip-qip.
 
     Returns a dictionary mapping gate names to QuTiP gates.
     """
@@ -180,17 +179,22 @@ class QasmProcessor:
     Class which holds variables used in processing QASM code.
     """
 
-    def __init__(self, commands, mode="qiskit", version="2.0"):
+    def __init__(self, commands, mode="default", version="2.0"):
         self.qubit_regs = {}
         self.cbit_regs = {}
         self.num_qubits = 0
         self.num_cbits = 0
-        self.qasm_gates = {}
+        self.qasm_gates = {}  # Custom defined QASM gates
+        if mode not in ["default", "external_only", "predefined_only"]:
+            warnings.warn(
+                "Unknown parsing mode, using the default mode instead."
+            )
+            mode = "default"
         self.mode = mode
         self.version = version
         self.predefined_gates = set(["CX", "U"])
 
-        if self.mode == "qiskit":
+        if self.mode != "external_only":
             self.qiskitgates = set(
                 [
                     "u3",
@@ -222,6 +226,8 @@ class QasmProcessor:
                 self.qiskitgates
             )
 
+        # A set of available gates, including both predefined gate and
+        # custom defined gates from `qelib1.inc` (added later).
         self.gate_names = deepcopy(self.predefined_gates)
         for gate in self.predefined_gates:
             self.qasm_gates[gate] = QasmGate(
@@ -246,7 +252,11 @@ class QasmProcessor:
 
             filename = command[1].strip('"')
 
-            if self.mode == "qiskit" and filename == "qelib1.inc":
+            if self.mode == "predefined_only":
+                warnings.warn(
+                    "Ignoring external gate definition"
+                    " in the predefined_only mode."
+                )
                 continue
 
             if os.path.exists(filename):
@@ -265,8 +275,14 @@ class QasmProcessor:
                     )
                     prev_index = curr_index + 1
             else:
-                raise ValueError(command[1] + ": such a file does not exist")
+                if self.mode == "default":
+                    warnings.warn(command[1] + "not found, ignored.")
+                else:
+                    raise ValueError(
+                        command[1] + ": such a file does not exist"
+                    )
 
+        # Insert the custom gate configurations to the list of commands
         expanded_commands += self.commands[prev_index:]
         self.commands = expanded_commands
 
@@ -276,8 +292,10 @@ class QasmProcessor:
         each user-defined gate, process register declarations.
         """
 
-        gate_defn_mode = False
-        open_bracket_mode = False
+        gate_defn_mode = False  # If in the middle of defining a custom gate
+        open_bracket_mode = (
+            False  # If in the middle of defining a decomposition
+        )
 
         unprocessed = []
 
@@ -291,6 +309,7 @@ class QasmProcessor:
                 else:
                     raise SyntaxError("QASM: incorrect bracket formatting")
             elif open_bracket_mode:
+                # Define the decomposition of custom QASM gate
                 if command[0] == "{":
                     raise SyntaxError("QASM: incorrect bracket formatting")
                 elif command[0] == "}":
@@ -313,11 +332,11 @@ class QasmProcessor:
                     gate_added = self.qasm_gates[name]
                     curr_gate.gates_inside.append([name, gate_args, gate_regs])
             elif command[0] == "gate":
+                # Custom definition of gates.
                 gate_name = command[1]
                 gate_args, gate_regs = _gate_processor(command[1:])
                 curr_gate = QasmGate(gate_name, gate_args, gate_regs)
                 gate_defn_mode = True
-
             elif command[0] == "qreg":
                 groups = re.match(r"(.*)\[(.*)\]", "".join(command[1:]))
                 if groups:
@@ -648,7 +667,7 @@ class QasmProcessor:
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
             )
-        if name == "cx":
+        elif name == "cx":
             qc.add_gate(
                 "CNOT",
                 targets=int(regs[1]),
@@ -716,7 +735,7 @@ class QasmProcessor:
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
             )
-        elif name in self.qiskitgates and self.mode == "qiskit":
+        elif name in self.qiskitgates:
             self._add_qiskit_gates(
                 qc,
                 name,
@@ -809,7 +828,7 @@ class QasmProcessor:
         """
 
         custom_gates = {}
-        if self.mode == "qiskit":
+        if self.mode != "external_only":
             custom_gates = _get_qiskit_gates()
 
         for command in self.commands:
@@ -848,7 +867,7 @@ class QasmProcessor:
                 raise SyntaxError(err)
 
 
-def read_qasm(qasm_input, mode="qiskit", version="2.0", strmode=False):
+def read_qasm(qasm_input, mode="default", version="2.0", strmode=False):
     """
     Read OpenQASM intermediate representation
     (https://github.com/Qiskit/openqasm) and return
@@ -861,10 +880,13 @@ def read_qasm(qasm_input, mode="qiskit", version="2.0", strmode=False):
         File location or String Input for QASM file to be imported. In case of
         string input, the parameter strmode must be True.
     mode : str
-        QASM mode to be read in. When mode is "qiskit",
-        the "qelib1.inc" include is automatically included,
-        without checking externally. Otherwise, each include is
-        processed.
+        Parsing mode for the qasm file.
+        - "default": For predefined gates in qutip-qip, use the predefined
+        version, otherwise use the custom gate defined in qelib1.inc.
+        The predefined gate can usually be further processed (e.g. decomposed)
+        within qutip-qip.
+        - "predefined_only": Use only the predefined gates in qutip-qip.
+        - "external_only": Use only the gate defined in qelib1.inc, except for CX and QASMU gate.
     version : str
         QASM version of the QASM file. Only version 2.0 is currently supported.
     strmode : bool
