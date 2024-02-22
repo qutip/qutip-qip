@@ -11,3 +11,4 @@ jobs:
         with:
           options: "--check --diff"
           src: "./src"
+          version: "~= 24.0"

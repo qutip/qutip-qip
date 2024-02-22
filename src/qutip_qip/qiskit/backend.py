@@ -71,12 +71,16 @@ class QiskitSimulatorBase(BackendV1):
         """
         # configure the options
         self.set_options(
-            shots=run_options["shots"]
-            if "shots" in run_options
-            else self._default_options().shots,
-            allow_custom_gate=run_options["allow_custom_gate"]
-            if "allow_custom_gate" in run_options
-            else self._default_options().allow_custom_gate,
+            shots=(
+                run_options["shots"]
+                if "shots" in run_options
+                else self._default_options().shots
+            ),
+            allow_custom_gate=(
+                run_options["allow_custom_gate"]
+                if "allow_custom_gate" in run_options
+                else self._default_options().allow_custom_gate
+            ),
         )
         qutip_circ = convert_qiskit_circuit(
             qiskit_circuit,
@@ -212,9 +216,11 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
 
         header = QobjExperimentHeader.from_dict(
             {
-                "name": qutip_circuit.name
-                if hasattr(qutip_circuit, "name")
-                else "",
+                "name": (
+                    qutip_circuit.name
+                    if hasattr(qutip_circuit, "name")
+                    else ""
+                ),
                 "n_qubits": qutip_circuit.N,
             }
         )
@@ -363,16 +369,20 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
 
         exp_res_data = ExperimentResultData(
             counts=counts,
-            statevector=Statevector(data=final_state.full())
-            if final_state.type == "ket"
-            else DensityMatrix(data=final_state.full()),
+            statevector=(
+                Statevector(data=final_state.full())
+                if final_state.type == "ket"
+                else DensityMatrix(data=final_state.full())
+            ),
         )
 
         header = QobjExperimentHeader.from_dict(
             {
-                "name": qutip_circuit.name
-                if hasattr(qutip_circuit, "name")
-                else "",
+                "name": (
+                    qutip_circuit.name
+                    if hasattr(qutip_circuit, "name")
+                    else ""
+                ),
                 "n_qubits": qutip_circuit.N,
             }
         )

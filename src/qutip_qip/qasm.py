@@ -1,4 +1,5 @@
 """Importation and exportation of QASM circuits"""
+
 import re
 import os
 from itertools import chain
@@ -505,9 +506,9 @@ class QasmProcessor:
                 return zip(
                     *list(
                         map(
-                            lambda x: x
-                            if isinstance(x, list)
-                            else [x] * expand,
+                            lambda x: (
+                                x if isinstance(x, list) else [x] * expand
+                            ),
                             new_regs,
                         )
                     )
