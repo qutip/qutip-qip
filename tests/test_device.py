@@ -76,7 +76,7 @@ def test_device_against_gate_sequence(
     circuit = QubitCircuit(num_qubits)
     for gate in gates:
         circuit.add_gate(gate)
-    U_ideal = gate_sequence_product(circuit.propagators())
+    U_ideal = circuit.compute_unitary()
 
     device = device_class(num_qubits)
     U_physical = gate_sequence_product(device.run(circuit))
@@ -91,7 +91,7 @@ def test_analytical_evolution(num_qubits, gates, device_class, kwargs):
         circuit.add_gate(gate)
     state = qutip.rand_ket(2**num_qubits)
     state.dims = [[2]*num_qubits, [1]*num_qubits]
-    ideal = gate_sequence_product([state] + circuit.propagators())
+    ideal = circuit.run(state)
     device = device_class(num_qubits)
     operators = device.run_state(init_state=state, qc=circuit, analytical=True)
     result = gate_sequence_product(operators)
@@ -112,7 +112,7 @@ def test_numerical_evolution(
 
     state = qutip.rand_ket(2**num_qubits)
     state.dims = [[2]*num_qubits, [1]*num_qubits]
-    target = gate_sequence_product([state] + circuit.propagators())
+    target = circuit.run(state)
     if isinstance(device, DispersiveCavityQED):
         num_ancilla = len(device.dims)-num_qubits
         ancilla_indices = slice(0, num_ancilla)
@@ -169,7 +169,7 @@ def test_numerical_circuit(circuit, device_class, kwargs, schedule_mode):
 
     state = qutip.rand_ket(2**num_qubits)
     state.dims = [[2]*num_qubits, [1]*num_qubits]
-    target = gate_sequence_product([state] + circuit.propagators())
+    target = circuit.run(state)
     if isinstance(device, DispersiveCavityQED):
         num_ancilla = len(device.dims)-num_qubits
         ancilla_indices = slice(0, num_ancilla)
