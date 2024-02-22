@@ -734,7 +734,7 @@ class QasmProcessor:
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
             )
-        elif name in self.qiskitgates and self.mode != "external_only":
+        elif name in self.qiskitgates:
             self._add_qiskit_gates(
                 qc,
                 name,
