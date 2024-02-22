@@ -61,24 +61,6 @@ def _measurement_circuit():
     return qc
 
 
-def _simulators_sv(qc):
-
-    sim_sv_precompute = CircuitSimulator(qc, mode="state_vector_simulator",
-                                         precompute_unitary=True)
-    sim_sv = CircuitSimulator(qc, mode="state_vector_simulator")
-
-    return [sim_sv_precompute, sim_sv]
-
-
-def _simulators_dm(qc):
-
-    sim_dm_precompute = CircuitSimulator(qc, mode="density_matrix_simulator",
-                                         precompute_unitary=True)
-    sim_dm = CircuitSimulator(qc, mode="density_matrix_simulator")
-
-    return [sim_dm_precompute, sim_dm]
-
-
 class TestQubitCircuit:
     """
     A test class for the QuTiP functions for Circuit resolution.
@@ -586,17 +568,16 @@ class TestQubitCircuit:
     def test_measurement_circuit(self):
 
         qc = _measurement_circuit()
-        simulators = _simulators_sv(qc)
+        simulator = CircuitSimulator(qc)
         labels = ["00", "01", "10", "11"]
 
         for label in labels:
             state = bell_state(label)
-            for i, simulator in enumerate(simulators):
-                simulator.run(state)
-                if label[0] == "0":
-                    assert simulator.cbits[0] == simulator.cbits[1]
-                else:
-                    assert simulator.cbits[0] != simulator.cbits[1]
+            simulator.run(state)
+            if label[0] == "0":
+                assert simulator.cbits[0] == simulator.cbits[1]
+            else:
+                assert simulator.cbits[0] != simulator.cbits[1]
 
     def test_circuit_with_selected_measurement_result(self):
         qc = QubitCircuit(N=1, num_cbits=1)
@@ -654,17 +635,17 @@ class TestQubitCircuit:
 
         _, probs_initial = fourth.measurement_comp_basis(state)
 
-        simulators = _simulators_sv(qc)
+        simulator = CircuitSimulator(qc)
 
-        for simulator in simulators:
-            result = simulator.run_statistics(state)
-            final_states = result.get_final_states()
-            result_cbits = result.get_cbits()
+        result = simulator.run_statistics(state)
+        final_states = result.get_final_states()
+        result_cbits = result.get_cbits()
 
-            for i, final_state in enumerate(final_states):
-                _, probs_final = fourth.measurement_comp_basis(final_state)
-                np.testing.assert_allclose(probs_initial, probs_final)
-                assert sum(result_cbits[i]) == 1
+        for i, final_state in enumerate(final_states):
+            _, probs_final = fourth.measurement_comp_basis(final_state)
+            np.testing.assert_allclose(probs_initial, probs_final)
+            assert sum(result_cbits[i]) == 1
+
 
     _latex_template = r"""
 \documentclass[border=3pt]{standalone}
