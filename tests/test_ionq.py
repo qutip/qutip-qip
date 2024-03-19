@@ -69,7 +69,3 @@ class TestJob(unittest.TestCase):
         )
         results = job.get_results(polling_rate=0)
         self.assertEqual(results, {"0": 512, "1": 512})
-
-
-if __name__ == "__main__":
-    unittest.main()
