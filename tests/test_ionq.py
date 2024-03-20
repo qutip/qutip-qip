@@ -6,6 +6,7 @@ from qutip_qip.ionq import (
     IonQSimulator,
     IonQQPU,
     convert_qutip_circuit,
+    convert_ionq_response_to_circuitresult,
     Job,
 )
 
@@ -79,4 +80,9 @@ class TestJob(unittest.TestCase):
             "test_job_id"  # Simulate a job that has already been submitted
         )
         results = job.get_results(polling_rate=0)
-        self.assertEqual(results, {"0": 512, "1": 512})
+        self.assertEqual(
+            results.get_final_states(),
+            convert_ionq_response_to_circuitresult(
+                {"0": 0.5, "1": 0.5}
+            ).get_final_states(),
+        )
