@@ -1,6 +1,7 @@
 """Class for a running job."""
 
-from .converter import create_job_body
+from .converter import create_job_body, convert_ionq_response_to_circuitresult
+from qutip_qip.circuit import CircuitResult
 import requests
 import time
 
@@ -65,7 +66,7 @@ class Job:
         self.status = response.json()
         return self.status
 
-    def get_results(self, polling_rate: int = 1) -> dict:
+    def get_results(self, polling_rate: int = 1) -> CircuitResult:
         """
         Get the results of the job.
 
@@ -85,7 +86,4 @@ class Job:
             headers=self.headers,
         )
         response.raise_for_status()
-        self.results = {
-            k: int(round(v * self.shots)) for k, v in response.json().items()
-        }
-        return self.results
+        return convert_ionq_response_to_circuitresult(response.json())
