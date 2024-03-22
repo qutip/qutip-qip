@@ -21,12 +21,14 @@ class Job:
         circuit: dict,
         shots: int,
         backend: str,
+        gateset: str,
         headers: dict,
         url: str,
     ) -> None:
         self.circuit = circuit
         self.shots = shots
         self.backend = backend
+        self.gateset = gateset
         self.headers = headers
         self.url = url
         self.id = None
@@ -40,7 +42,9 @@ class Job:
             self.circuit,
             self.shots,
             self.backend,
+            self.gateset,
         )
+        print(json)
         response = requests.post(
             f"{self.url}/jobs",
             json=json,

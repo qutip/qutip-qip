@@ -24,13 +24,24 @@ def convert_qutip_circuit(qc: QubitCircuit) -> dict:
             and hasattr(gate, "targets")
             and hasattr(gate, "controls")
         ):
-            ionq_circuit.append(
-                {
-                    "gate": gate.name,
-                    "targets": gate.targets,
-                    "controls": gate.controls or [],
-                }
-            )
+            g = {
+                "gate": gate.name,
+            }
+            if gate.targets is not None:
+                if len(gate.targets) == 1:
+                    g["target"] = gate.targets[0]
+                else:
+                    g["targets"] = gate.targets
+            if gate.controls is not None:
+                if len(gate.controls) == 1:
+                    g["control"] = gate.controls[0]
+                else:
+                    g["controls"] = gate.controls
+            if hasattr(gate, "arg_value") and gate.arg_value is not None:
+                g["angle"] = gate.arg_value
+                g["phase"] = gate.arg_value
+                g["rotation"] = gate.arg_value
+            ionq_circuit.append(g)
     return ionq_circuit
 
 
@@ -78,6 +89,7 @@ def create_job_body(
     circuit: dict,
     shots: int,
     backend: str,
+    gateset: str,
     format: str = "ionq.circuit.v0",
 ) -> dict:
     """
@@ -91,6 +103,8 @@ def create_job_body(
         The number of shots.
     backend: str
         The simulator or QPU backend.
+    gateset: str
+        Either native or compiled gates.
     format: str
         The format of the circuit.
 
@@ -101,16 +115,21 @@ def create_job_body(
     """
     return {
         "target": backend,
+        "shots": shots,
         "input": {
             "format": format,
+            "gateset": gateset,
+            "circuit": circuit,
             "qubits": len(
                 {
                     q
                     for g in circuit
-                    for q in g.get("targets", []) + g.get("controls", [])
+                    for q in g.get("targets", [])
+                    + g.get("controls", [])
+                    + [g.get("target")]
+                    + [g.get("control")]
+                    if q is not None
                 }
             ),
-            "circuit": circuit,
         },
-        "shots": shots,
     }

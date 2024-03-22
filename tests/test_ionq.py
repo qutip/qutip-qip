@@ -20,8 +20,8 @@ class TestConverter(unittest.TestCase):
         # Convert the qutip_qip circuit to IonQ format
         ionq_circuit = convert_qutip_circuit(qc)
         expected_output = [
-            {"gate": "H", "targets": [0], "controls": []},
-            {"gate": "CNOT", "targets": [0], "controls": [1]},
+            {"gate": "H", "target": 0},
+            {"gate": "CNOT", "target": 0, "control": 1},
         ]
         self.assertEqual(ionq_circuit, expected_output)
 
@@ -34,7 +34,7 @@ class TestIonQBackend(unittest.TestCase):
     def test_simulator_initialization(self, mock_provider):
         simulator = IonQSimulator(provider=mock_provider)
         self.assertEqual(simulator.provider, mock_provider)
-        self.assertEqual(simulator.gateset, "qis")
+        self.assertEqual(mock_provider.gateset, "qis")
 
     @patch("qutip_qip.ionq.Provider")
     def test_qpu_initialization(self, mock_provider):
@@ -52,6 +52,7 @@ class TestJob(unittest.TestCase):
             circuit={},
             shots=1024,
             backend="simulator",
+            gateset="qis",
             headers={},
             url="http://dummy_url",
         )
@@ -73,6 +74,7 @@ class TestJob(unittest.TestCase):
             circuit={},
             shots=1024,
             backend="simulator",
+            gateset="qis",
             headers={},
             url="http://dummy_url",
         )

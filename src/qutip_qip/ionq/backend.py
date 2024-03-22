@@ -7,14 +7,18 @@ class IonQBackend:
     def __init__(self, provider: Provider, backend: str, gateset: str):
         self.provider = provider
         self.provider.backend = backend
-        self.gateset = gateset
+        self.provider.gateset = gateset
 
     def run(self, circuit: dict, shots: int = 1024):
         return self.provider.run(circuit, shots=shots)
 
 
 class IonQSimulator(IonQBackend):
-    def __init__(self, provider: Provider, gateset: str = "qis"):
+    def __init__(
+        self,
+        provider: Provider,
+        gateset: str = "qis",
+    ):
         super().__init__(provider, "simulator", gateset)
 
 

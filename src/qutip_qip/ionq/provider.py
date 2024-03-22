@@ -49,6 +49,7 @@ class Provider:
             ionq_circuit,
             shots,
             self.backend,
+            self.gateset,
             self.headers,
             self.url,
         )
