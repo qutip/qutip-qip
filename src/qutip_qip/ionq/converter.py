@@ -19,70 +19,70 @@ def convert_qutip_circuit(qc: QubitCircuit) -> dict:
     """
     ionq_circuit = []
     for gate in qc.gates:
-        if (
-            hasattr(gate, "name")
-            and hasattr(gate, "targets")
-            and hasattr(gate, "controls")
-        ):
-            g = {
-                "gate": gate.name,
-            }
-            if gate.targets is not None:
-                if len(gate.targets) == 1:
-                    g["target"] = gate.targets[0]
-                else:
-                    g["targets"] = gate.targets
-            if gate.controls is not None:
-                if len(gate.controls) == 1:
-                    g["control"] = gate.controls[0]
-                else:
-                    g["controls"] = gate.controls
-            if hasattr(gate, "arg_value") and gate.arg_value is not None:
-                g["angle"] = gate.arg_value
-                g["phase"] = gate.arg_value
-                g["rotation"] = gate.arg_value
-            ionq_circuit.append(g)
+        g = {"gate": gate.name}
+        # Map target(s) and control(s) depending on the number of qubits
+        for attr, key in (("targets", "target"), ("controls", "control")):
+            items = getattr(gate, attr, None)
+            if items:
+                g[key if len(items) == 1 else key + "s"] = (
+                    items[0] if len(items) == 1 else items
+                )
+        # Include arg_value as angle, phase, and rotation if it exists
+        if getattr(gate, "arg_value", None) is not None:
+            g.update(
+                {
+                    "angle": gate.arg_value,
+                    "phase": gate.arg_value,
+                    "rotation": gate.arg_value,
+                }
+            )
+        ionq_circuit.append(g)
     return ionq_circuit
 
 
-def convert_ionq_response_to_circuitresult(
-    ionq_response: dict,
-) -> CircuitResult:
+def convert_ionq_response_to_circuitresult(ionq_response: dict):
     """
     Convert an IonQ response to a CircuitResult.
 
     Parameters
     ----------
     ionq_response: dict
-        The IonQ response.
+        The IonQ response {state: probability, ...}.
 
     Returns
     -------
     CircuitResult
         The CircuitResult.
     """
-    states = list(ionq_response.keys())
-    # probabilities = list(ionq_response.values())
+    # Calculate the number of qubits based on the binary representation of the highest state
+    num_qubits = max(len(state) for state in ionq_response.keys())
 
-    max_state = max(int(state) for state in states)
-    num_qubits = int(np.ceil(np.log2(max_state + 1))) if max_state > 0 else 1
+    # Initialize an empty density matrix for the mixed state
+    density_matrix = np.zeros((2**num_qubits, 2**num_qubits), dtype=complex)
 
-    final_states = []
-    final_probabilities = []
+    # Iterate over the measurement outcomes and their probabilities
+    for state, probability in ionq_response.items():
+        # Ensure state string is correctly padded for single-qubit cases
+        binary_state = format(int(state, base=10), f"0{num_qubits}b")
+        index = int(binary_state, 2)  # Convert binary string back to integer
 
-    for state in states:
-        binary_state = format(int(state), "0{}b".format(num_qubits))
+        # Update the density matrix to include this measurement outcome
         state_vector = np.zeros((2**num_qubits,), dtype=complex)
-        index = int(binary_state, 2)
-        state_vector[index] = 1.0
-
-        qobj_state = Qobj(
-            state_vector, dims=[[2] * num_qubits, [1] * num_qubits]
+        state_vector[index] = (
+            1.0  # Pure state corresponding to the measurement outcome
         )
-        final_states.append(qobj_state)
-        final_probabilities.append(ionq_response[state])
+        density_matrix += probability * np.outer(
+            state_vector, state_vector.conj()
+        )  # Add weighted outer product
 
-    return CircuitResult(final_states, final_probabilities)
+    # Convert the numpy array to a Qobj density matrix
+    qobj_density_matrix = Qobj(
+        density_matrix, dims=[[2] * num_qubits, [2] * num_qubits]
+    )
+
+    return CircuitResult(
+        [qobj_density_matrix], [1.0]
+    )  # Return the density matrix wrapped in CircuitResult
 
 
 def create_job_body(

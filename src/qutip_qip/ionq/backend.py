@@ -1,10 +1,10 @@
 """Backends for simulating circuits."""
 
-from .provider import Provider
+from .provider import IonQProvider
 
 
 class IonQBackend:
-    def __init__(self, provider: Provider, backend: str, gateset: str):
+    def __init__(self, provider: IonQProvider, backend: str, gateset: str):
         self.provider = provider
         self.provider.backend = backend
         self.provider.gateset = gateset
@@ -16,7 +16,7 @@ class IonQBackend:
 class IonQSimulator(IonQBackend):
     def __init__(
         self,
-        provider: Provider,
+        provider: IonQProvider,
         gateset: str = "qis",
     ):
         super().__init__(provider, "simulator", gateset)
@@ -25,7 +25,7 @@ class IonQSimulator(IonQBackend):
 class IonQQPU(IonQBackend):
     def __init__(
         self,
-        provider: Provider,
+        provider: IonQProvider,
         qpu: str = "harmony",
         gateset: str = "qis",
     ):

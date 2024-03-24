@@ -1,4 +1,4 @@
-"""Provider for the simulator backends."""
+"""Provider for the IonQ backends."""
 
 from .converter import convert_qutip_circuit
 from .job import Job
@@ -6,7 +6,7 @@ from ..version import version as __version__
 from os import getenv
 
 
-class Provider:
+class IonQProvider:
     """
     Provides access to qutip_qip based IonQ backends.
 

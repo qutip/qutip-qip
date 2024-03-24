@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import patch, MagicMock
 from qutip_qip.circuit import QubitCircuit, Gate
 from qutip_qip.ionq import (
-    Provider,
+    IonQProvider,
     IonQSimulator,
     IonQQPU,
     convert_qutip_circuit,
@@ -28,15 +28,15 @@ class TestConverter(unittest.TestCase):
 
 class TestIonQBackend(unittest.TestCase):
     def setUp(self):
-        self.provider = Provider(token="dummy_token")
+        self.provider = IonQProvider(token="dummy_token")
 
-    @patch("qutip_qip.ionq.Provider")
+    @patch("qutip_qip.ionq.IonQProvider")
     def test_simulator_initialization(self, mock_provider):
         simulator = IonQSimulator(provider=mock_provider)
         self.assertEqual(simulator.provider, mock_provider)
         self.assertEqual(mock_provider.gateset, "qis")
 
-    @patch("qutip_qip.ionq.Provider")
+    @patch("qutip_qip.ionq.IonQProvider")
     def test_qpu_initialization(self, mock_provider):
         qpu = IonQQPU(provider=mock_provider, qpu="harmony")
         self.assertEqual(qpu.provider, mock_provider)

@@ -6,4 +6,4 @@ from .converter import (
     convert_ionq_response_to_circuitresult,
 )
 from .job import Job
-from .provider import Provider
+from .provider import IonQProvider
