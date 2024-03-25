@@ -44,7 +44,6 @@ class Job:
             self.backend,
             self.gateset,
         )
-        print(json)
         response = requests.post(
             f"{self.url}/jobs",
             json=json,
