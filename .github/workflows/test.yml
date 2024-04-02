@@ -70,9 +70,9 @@ jobs:
 
     # For qutip-v5 qutip.control is replaced by qutip-qtrl
     - name: Install qutip-qtrl from PyPI
-      if: ${{ matrix.qutip-version == '@master' || startsWith( matrix.qutip-version, '==5') }}
+      if: ${{! startsWith( matrix.qutip-version, '==4') }}
       run: |
-        python -m pip install 'git+https://github.com/qutip/qutip-qtrl.git'
+        python -m pip install qutip-qtrl
 
     - name: Install Qiskit from PyPI
       if: ${{ matrix.qiskit-version != '' }}
