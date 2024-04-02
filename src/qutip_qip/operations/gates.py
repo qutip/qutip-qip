@@ -1226,7 +1226,7 @@ def expand_operator(
         The indices of subspace that are acted on.
         Permutation can also be realized by changing the orders of the indices.
     N : int
-         Deprecated. Number of qubits. Please use `dims`.
+        Deprecated. Number of qubits. Please use `dims`.
     cyclic_permutation : boolean, optional
         Deprecated.
         Expand for all cyclic permutation of the targets.
@@ -1281,11 +1281,9 @@ def expand_operator(
      [0. 0. 0. 1. 0. 0. 0. 0.]]
     """
     if parse_version(qutip.__version__) >= parse_version("5.dev"):
-        if dtype is None:
-            if isinstance(oper.data, qutip.data.Dense):
-                oper = oper.to("csr")
-        else:
-            oper = oper.to(dtype)
+        # If no data type specified, use CSR
+        dtype = dtype or qutip.settings.core["default_dtype"] or qutip.data.CSR
+        oper = oper.to(dtype)
     if N is not None:
         warnings.warn(
             "The function expand_operator has been generalized to "
