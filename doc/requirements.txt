@@ -11,4 +11,5 @@ docutils==0.17.1
 sphinxcontrib-bibtex==2.4.2
 pyqir-generator==0.6.2
 pyqir-parser==0.6.2
-qiskit==0.37.2
+qiskit==0.46.1
+qiskit-aer==0.14.0
