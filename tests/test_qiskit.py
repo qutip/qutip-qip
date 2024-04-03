@@ -9,24 +9,20 @@ from qutip_qip.device import (
     DispersiveCavityQED,
 )
 
-try:
-    from qiskit import QuantumCircuit
-    from qiskit.providers.aer import AerSimulator
-    from qutip_qip.qiskit.provider import (
-        QiskitCircuitSimulator,
-        QiskitPulseSimulator,
-    )
-    from qutip_qip.qiskit.converter import (
-        convert_qiskit_circuit,
-        _get_qutip_index,
-    )
-except ImportError:
-    pass
-
-
 # will skip tests in this entire file
 # if qiskit is not installed
 pytest.importorskip("qiskit")
+
+from qiskit import QuantumCircuit
+from qiskit_aer import AerSimulator
+from qutip_qip.qiskit.provider import (
+    QiskitCircuitSimulator,
+    QiskitPulseSimulator,
+)
+from qutip_qip.qiskit.converter import (
+    convert_qiskit_circuit,
+    _get_qutip_index,
+)
 
 
 class TestConverter:
