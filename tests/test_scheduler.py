@@ -13,12 +13,12 @@ def _verify_scheduled_circuit(circuit, gate_cycle_indices):
     The input gate_cycle_indices is the scheduling result,
     i.e., a list of integers denoting the execution cycle of each gate in the circuit.
     """
-    result0 = gate_sequence_product(circuit.propagators())
+    result0 = circuit.compute_unitary()
     scheduled_gate = [[] for i in range(max(gate_cycle_indices) + 1)]
     for i, cycles in enumerate(gate_cycle_indices):
         scheduled_gate[cycles].append(circuit.gates[i])
     circuit.gates = sum(scheduled_gate, [])
-    result1 = gate_sequence_product(circuit.propagators())
+    result1 = circuit.compute_unitary()
     return tracedist(result0 * result1.dag(), qeye(result0.dims[0])) < 1.0e-7
 
 
@@ -27,7 +27,6 @@ def test_allow_permutation():
     circuit.add_gate("X", 0)
     circuit.add_gate("CNOT", 0, 1)
     circuit.add_gate("X", 1)
-    result0 = gate_sequence_product(circuit.propagators())
 
     scheduler = Scheduler("ASAP", allow_permutation=True)
     gate_cycle_indices = scheduler.schedule(circuit)
@@ -138,7 +137,6 @@ def test_scheduling_gates1(
         repeat_num = 5
     else:
         repeat_num = 0
-    result0 = gate_sequence_product(circuit.propagators())
 
     # run the scheduler
     scheduler = Scheduler(method)
@@ -168,7 +166,6 @@ def test_scheduling_gates2(
         repeat_num = 5
     else:
         repeat_num = 0
-    result0 = gate_sequence_product(circuit.propagators())
 
     # run the scheduler
     scheduler = Scheduler(method)
@@ -200,7 +197,6 @@ def test_scheduling_gates3(
         repeat_num = 5
     else:
         repeat_num = 0
-    result0 = gate_sequence_product(circuit.propagators())
 
     # run the scheduler
     scheduler = Scheduler(method)
@@ -232,7 +228,6 @@ def test_scheduling_gates4(
         repeat_num = 5
     else:
         repeat_num = 0
-    result0 = gate_sequence_product(circuit.propagators())
 
     # run the scheduler
     scheduler = Scheduler(method)
@@ -278,7 +273,6 @@ def test_scheduling_pulse(
         repeat_num = 5
     else:
         repeat_num = 0
-    result0 = gate_sequence_product(circuit.propagators())
 
     # run the scheduler
     scheduler = Scheduler(method)

@@ -66,8 +66,7 @@ def circuit_to_qir(
     circuit: QubitCircuit,
     format: Union[Literal[QirFormat.BITCODE], Literal["bitcode"]],
     module_name: str,
-) -> bytes:
-    ...
+) -> bytes: ...
 
 
 @overload
@@ -75,8 +74,7 @@ def circuit_to_qir(
     circuit: QubitCircuit,
     format: Union[Literal[QirFormat.TEXT], Literal["text"]],
     module_name: str,
-) -> str:
-    ...
+) -> str: ...
 
 
 @overload
@@ -84,8 +82,7 @@ def circuit_to_qir(
     circuit: QubitCircuit,
     format: Union[Literal[QirFormat.MODULE], Literal["module"]],
     module_name: str,
-) -> pqp.QirModule:
-    ...
+) -> pqp.QirModule: ...
 
 
 def circuit_to_qir(circuit, format, module_name="qutip_circuit"):
@@ -131,9 +128,12 @@ def circuit_to_qir(circuit, format, module_name="qutip_circuit"):
                 if isinstance(
                     op_with_less_controls.classical_control_value, int
                 )
-                else (op_with_less_controls.classical_control_value[1:])
-                if op_with_less_controls.classical_control_value is not None
-                else None
+                else (
+                    (op_with_less_controls.classical_control_value[1:])
+                    if op_with_less_controls.classical_control_value
+                    is not None
+                    else None
+                )
             )
             branch_body = {
                 value: (

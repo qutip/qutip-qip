@@ -185,5 +185,5 @@ bibtex_default_style = 'unsrt'
 # -- Options for intersphinx ---------------------------------------
 
 intersphinx_mapping = {
-    'qutip': ('https://qutip.org/docs/latest/', None),
+    'qutip': ('https://qutip.readthedocs.io/en/stable/', None),
 }

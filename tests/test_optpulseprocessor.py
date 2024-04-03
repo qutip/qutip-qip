@@ -102,7 +102,7 @@ class TestOptPulseProcessor:
 
         rho0 = rand_ket(4)  # use random generated ket state
         rho0.dims = [[2, 2], [1, 1]]
-        U = gate_sequence_product(qc.propagators())
+        U = qc.compute_unitary()
         rho1 = U * rho0
         result = test.run_state(rho0)
         assert_(fidelity(result.states[-1], rho1) > 1-1.0e-6)
