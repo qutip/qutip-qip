@@ -474,9 +474,7 @@ class CircuitSimulator:
             state = self._apply_measurement(op, current_state)
         elif isinstance(op, Gate):
             if op.classical_controls is not None:
-                apply_gate = _check_classical_control_value(
-                    op, self.cbits
-                )
+                apply_gate = _check_classical_control_value(op, self.cbits)
             else:
                 apply_gate = True
             if not apply_gate:
