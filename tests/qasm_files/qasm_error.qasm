@@ -1,5 +1,3 @@
-include "qelib1.inc";
-
 qreg q[2];
 creg c[4];
 gate cu1fixed (a) c,t {
