@@ -70,7 +70,7 @@ jobs:
 
     - name: Install Qiskit from PyPI
       if: ${{ matrix.qiskit-version != '' }}
-      run: python -m pip install 'qiskit${{ matrix.qiskit-version }}' qiskit-aer
+      run: python -m pip install 'qiskit${{ matrix.qiskit-version }}' 'qiskit-aer==0.14.0.1'
 
     - name: Install PyQIR from PyPI
       if: ${{ matrix.pyqir-version != '' }}
