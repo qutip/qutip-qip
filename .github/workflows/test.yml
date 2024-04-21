@@ -12,11 +12,11 @@ jobs:
     strategy:
       matrix:
         include:
-          - case-name: qutip@5.0.0a1
+          - case-name: qutip@5.0.0
             os: ubuntu-latest
-            qutip-version: '==5.0.0a1'
+            qutip-version: '==5.0.0'
             pyqir-version: ''
-            python-version: '3.10'
+            python-version: '3.11'
           - case-name: qutip@qutip-4.7.X
             os: ubuntu-latest
             qutip-version: '@qutip-4.7.X'
@@ -26,37 +26,31 @@ jobs:
             os: ubuntu-latest
             qutip-version: '@master'
             pyqir-version: ''
-            python-version: '3.11'
-          - case-name: qutip@4.6
-            os: windows-latest
-            qutip-version: '==4.6.*'
-            qiskit-version: ''
-            pyqir-version: ''
-            python-version: '3.8'
+            python-version: '3.12'
           - case-name: qutip@4.7
             os: macOS-latest
             qutip-version: '==4.7.*'
             qiskit-version: ''
             pyqir-version: ''
-            python-version: '3.9'
+            python-version: '3.11'
           - case-name: qiskit+qir
             os: windows-latest
             qutip-version: ''
-            qiskit-version: '==0.36.*'
+            qiskit-version: '==0.46.*'
             pyqir-version: '==0.6.2'
-            python-version: '3.8'
+            python-version: '3.9'
           - case-name: qiskit+qir
             os: macOS-latest
             qutip-version: ''
-            qiskit-version: '==0.36.*'
+            qiskit-version: '==0.46.*'
             pyqir-version: '==0.6.2'
             python-version: '3.9'
           - case-name: qiskit+qir
             os: ubuntu-latest
             qutip-version: ''
-            qiskit-version: '==0.36.*'
+            qiskit-version: '==0.46.*'
             pyqir-version: '==0.6.2'
-            python-version: '3.7'
+            python-version: '3.9'
 
     steps:
     - uses: actions/checkout@v3
@@ -74,15 +68,9 @@ jobs:
       run: |
         python -m pip install 'git+https://github.com/qutip/qutip.git${{ matrix.qutip-version }}'
 
-    # For qutip-v5 qutip.control is replaced by qutip-qtrl
-    - name: Install qutip-qtrl from PyPI
-      if: ${{ matrix.qutip-version == '@master'}}
-      run: |
-        python -m pip install 'git+https://github.com/qutip/qutip-qtrl.git'
-
     - name: Install Qiskit from PyPI
       if: ${{ matrix.qiskit-version != '' }}
-      run: python -m pip install 'qiskit${{ matrix.qiskit-version }}'
+      run: python -m pip install 'qiskit${{ matrix.qiskit-version }}' 'qiskit-aer==0.14.0.1'
 
     - name: Install PyQIR from PyPI
       if: ${{ matrix.pyqir-version != '' }}
@@ -111,11 +99,12 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: 3.8
+        python-version: 3.9
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         python -mpip install -r doc/requirements.txt
+        pip install qutip==4.7.3
         pip install .
     - name: Test code snippets in the documentation
       run: |

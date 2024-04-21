@@ -3,6 +3,23 @@ Changelog
 *********
 
 
+Version 0.3.1 (April 21, 2024)
+++++++++++++++++++++++++++++++
+
+Improvements
+------------
+- Update qiskit support version to ``0.46.*`` (`#232 <https://github.com/qutip/qutip-qip/pull/232>`_)
+
+Bug Fixes
+---------
+- Remove comments after meaningful statements in QASM reader. (`#218 <https://github.com/qutip/qutip-qip/pull/218>`_ by NoriyukiK-1qbit)
+- Fix circuit plot error for gates with classical controls when ``reverse_states=False``. (`#221 <https://github.com/qutip/qutip-qip/pull/221>`_ by Kevin P. O'Brien)
+- Update the RTD configuration file to execute ``create_tutorials_html.py`` (`#222 <https://github.com/qutip/qutip-qip/pull/222>`_, reported by Ramyashri Padmanabhakumar)
+- Remove the unnecessary use of circuit.propagatos (`#226 <https://github.com/qutip/qutip-qip/pull/226>`_)
+- Use CSR as default for ``expand_operator`` (`#227 <https://github.com/qutip/qutip-qip/pull/227>`_)
+- Update the parsing mode for ``read_qasm`` (`#224 <https://github.com/qutip/qutip-qip/pull/224>`_ reported by kevinab107)
+
+
 Version 0.3.0 (July 19, 2023)
 +++++++++++++++++++++++++++++
 

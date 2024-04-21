@@ -1,6 +1,6 @@
 numpy==1.22.4
 scipy==1.10.0
-qutip==4.7.0
+qutip==4.7.3
 cython==0.29.30
 sphinx==5.0.2
 sphinx_rtd_theme==1.0.0
@@ -11,4 +11,5 @@ docutils==0.17.1
 sphinxcontrib-bibtex==2.4.2
 pyqir-generator==0.6.2
 pyqir-parser==0.6.2
-qiskit==0.37.2
+qiskit==0.46.1
+qiskit-aer==0.14.0.1
