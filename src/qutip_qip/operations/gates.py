@@ -802,7 +802,7 @@ def molmer_sorensen(theta, phi=0.0, N=None, targets=[0, 1]):
     if N is not None:
         _deprecation_warnings_gate_expansion()
         return expand_operator(
-            molmer_sorensen(theta), dims=[2] * N, targets=targets
+            molmer_sorensen(theta, phi), dims=[2] * N, targets=targets
         )
 
     return Qobj(
