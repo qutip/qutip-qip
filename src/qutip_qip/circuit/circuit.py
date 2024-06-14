@@ -18,13 +18,12 @@ from ..operations import (
     Measurement,
     expand_operator,
     GATE_CLASS_MAP,
-    gate_sequence_product,
 )
 from .circuitsimulator import (
     CircuitSimulator,
     CircuitResult,
 )
-from qutip import basis, Qobj
+from qutip import Qobj, qeye
 
 
 try:
@@ -481,10 +480,6 @@ class QubitCircuit:
             post-selection. If specified, the measurement results are
             set to the tuple of bits (sequentially) instead of being
             chosen at random.
-        precompute_unitary: Boolean, optional
-            Specify if computation is done by pre-computing and aggregating
-            gate unitaries. Possibly a faster method in the case of
-            large number of repeat runs with different state inputs.
 
         Returns
         -------
@@ -499,7 +494,6 @@ class QubitCircuit:
             raise TypeError("State is not a ket or a density matrix.")
         sim = CircuitSimulator(
             self,
-            U_list,
             mode,
             precompute_unitary,
         )
@@ -520,10 +514,6 @@ class QubitCircuit:
                 initialization of the classical bits.
         U_list: list of Qobj, optional
             list of predefined unitaries corresponding to circuit.
-        precompute_unitary: Boolean, optional
-            Specify if computation is done by pre-computing and aggregating
-            gate unitaries. Possibly a faster method in the case of
-            large number of repeat runs with different state inputs.
 
         Returns
         -------
@@ -537,12 +527,7 @@ class QubitCircuit:
             mode = "density_matrix_simulator"
         else:
             raise TypeError("State is not a ket or a density matrix.")
-        sim = CircuitSimulator(
-            self,
-            U_list,
-            mode,
-            precompute_unitary,
-        )
+        sim = CircuitSimulator(self, mode, precompute_unitary)
         return sim.run_statistics(state, cbits)
 
     def resolve_gates(self, basis=["CNOT", "RX", "RY", "RZ"]):
@@ -892,47 +877,45 @@ class QubitCircuit:
                 "Cannot compute the propagator of a measurement operator."
                 "Please set ignore_measurement=True."
             )
-
         for gate in gates:
             if gate.name == "GLOBALPHASE":
                 qobj = gate.get_qobj(self.N)
-                U_list.append(qobj)
-                continue
-
-            if gate.name in self.user_gates:
-                if gate.controls is not None:
-                    raise ValueError(
-                        "A user defined gate {} takes only  "
-                        "`targets` variable.".format(gate.name)
-                    )
-                func_or_oper = self.user_gates[gate.name]
-                if inspect.isfunction(func_or_oper):
-                    func = func_or_oper
-                    para_num = len(inspect.getfullargspec(func)[0])
-                    if para_num == 0:
-                        qobj = func()
-                    elif para_num == 1:
-                        qobj = func(gate.arg_value)
-                    else:
-                        raise ValueError(
-                            "gate function takes at most one parameters."
-                        )
-                elif isinstance(func_or_oper, Qobj):
-                    qobj = func_or_oper
-                else:
-                    raise ValueError("gate is neither function nor operator")
+            else:
+                qobj = self._get_gate_unitary(gate)
                 if expand:
                     all_targets = gate.get_all_qubits()
                     qobj = expand_operator(
                         qobj, dims=self.dims, targets=all_targets
                     )
-            else:
-                if expand:
-                    qobj = gate.get_qobj(self.N, self.dims)
-                else:
-                    qobj = gate.get_compact_qobj()
             U_list.append(qobj)
         return U_list
+
+    def _get_gate_unitary(self, gate):
+        if gate.name in self.user_gates:
+            if gate.controls is not None:
+                raise ValueError(
+                    "A user defined gate {} takes only  "
+                    "`targets` variable.".format(gate.name)
+                )
+            func_or_oper = self.user_gates[gate.name]
+            if inspect.isfunction(func_or_oper):
+                func = func_or_oper
+                para_num = len(inspect.getfullargspec(func)[0])
+                if para_num == 0:
+                    qobj = func()
+                elif para_num == 1:
+                    qobj = func(gate.arg_value)
+                else:
+                    raise ValueError(
+                        "gate function takes at most one parameters."
+                    )
+            elif isinstance(func_or_oper, Qobj):
+                qobj = func_or_oper
+            else:
+                raise ValueError("gate is neither function nor operator")
+        else:
+            qobj = gate.get_compact_qobj()
+        return qobj
 
     def compute_unitary(self):
         """Evaluates the matrix of all the gates in a quantum circuit.
@@ -942,8 +925,9 @@ class QubitCircuit:
         circuit_unitary : :class:`qutip.Qobj`
             Product of all gate arrays in the quantum circuit.
         """
-        gate_list = self.propagators()
-        circuit_unitary = gate_sequence_product(gate_list)
+        sim = CircuitSimulator(self)
+        result = sim.run(qeye(self.dims))
+        circuit_unitary = result.get_final_states()[0]
         return circuit_unitary
 
     def latex_code(self):
