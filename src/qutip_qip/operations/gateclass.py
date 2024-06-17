@@ -14,6 +14,7 @@ import scipy.sparse as sp
 
 import qutip
 from qutip import Qobj, identity, qeye, sigmax, sigmay, sigmaz, tensor, fock_dm
+from ..circuit.color_theme import default_theme
 from .gates import (
     rx,
     ry,
@@ -141,6 +142,10 @@ class Gate:
         It is recommended to use ``isinstance``
         or ``issubclass`` to identify a gate rather than
         comparing the name string.
+    style : dict, optional
+        A dictionary of style options for the gate.
+        The options are passed to the `matplotlib` plotter.
+        The default is None.
     """
 
     def __init__(
@@ -153,16 +158,44 @@ class Gate:
         classical_controls=None,
         classical_control_value: Optional[int] = None,
         arg_label=None,
+        style=None,
         **kwargs,
     ):
         """
         Create a gate with specified parameters.
         """
-
         self.name = name if name is not None else self.__class__.__name__
         self.targets = None
         self.controls = None
         self.classical_controls = None
+
+        if style is not None:
+            self.text = style.get("text", self.name)
+            self.color = style.get(
+                "color",
+                (
+                    default_theme[self.name]
+                    if self.name in default_theme
+                    else "#000000"
+                ),
+            )
+            self.fontsize = style.get("fontsize", 10)
+            self.fontcolor = style.get("fontcolor", "#FFFFFF")
+            self.fontweight = style.get("fontweight", "normal")
+            self.fontstyle = style.get("fontstyle", "normal")
+            self.fontfamily = style.get("fontfamily", "monospace")
+        else:
+            self.text = self.name
+            self.color = (
+                default_theme[self.name]
+                if self.name in default_theme
+                else "#000000"
+            )
+            self.fontsize = 10
+            self.fontcolor = "#FFFFFF"
+            self.fontweight = "normal"
+            self.fontstyle = "normal"
+            self.fontfamily = "monospace"
 
         if not isinstance(targets, Iterable) and targets is not None:
             self.targets = [targets]
