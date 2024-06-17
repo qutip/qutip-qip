@@ -200,6 +200,7 @@ class QubitCircuit:
         classical_controls=None,
         control_value=None,
         classical_control_value=None,
+        style=None,
     ):
         """
         Adds a gate with specified parameters to the circuit.
@@ -245,6 +246,7 @@ class QubitCircuit:
                 classical_controls=classical_controls,
                 control_value=control_value,
                 classical_control_value=classical_control_value,
+                style=style,
             )
 
         if index is None:
@@ -863,7 +865,7 @@ class QubitCircuit:
         ignore_measurement: bool, optional
             Whether :class:`.Measurement` operators should be ignored.
             If set False, it will raise an error
-            when the circuit has measurement.
+            when the circuit hasf measurement.
 
         Returns
         -------
@@ -885,16 +887,9 @@ class QubitCircuit:
             )
         for gate in gates:
             if gate.name == "GLOBALPHASE":
-                qobj = gate.get_qobj(self.N)
-            else:
-                qobj = self._get_gate_unitary(gate)
-                if expand:
-                    all_targets = gate.get_all_qubits()
-                    qobj = expand_operator(
-                        qobj, dims=self.dims, targets=all_targets
-                    )
-            U_list.append(qobj)
-        return U_list
+                qobj = gate.get_ (self.N)
+                U_list.append(qobj)
+                continue
 
     def _get_gate_unitary(self, gate):
         if gate.name in self.user_gates:
