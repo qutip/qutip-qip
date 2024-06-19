@@ -865,7 +865,7 @@ class QubitCircuit:
         ignore_measurement: bool, optional
             Whether :class:`.Measurement` operators should be ignored.
             If set False, it will raise an error
-            when the circuit hasf measurement.
+            when the circuit has measurement.
 
         Returns
         -------
@@ -887,9 +887,16 @@ class QubitCircuit:
             )
         for gate in gates:
             if gate.name == "GLOBALPHASE":
-                qobj = gate.get_ (self.N)
-                U_list.append(qobj)
-                continue
+                qobj = gate.get_qobj(self.N)
+            else:
+                qobj = self._get_gate_unitary(gate)
+                if expand:
+                    all_targets = gate.get_all_qubits()
+                    qobj = expand_operator(
+                        qobj, dims=self.dims, targets=all_targets
+                    )
+            U_list.append(qobj)
+        return U_list
 
     def _get_gate_unitary(self, gate):
         if gate.name in self.user_gates:
