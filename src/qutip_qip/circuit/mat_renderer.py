@@ -3,6 +3,8 @@ Module for rendering a quantum circuit using matplotlib library.
 """
 
 from typing import List
+
+import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import (
     FancyBboxPatch,
@@ -13,6 +15,7 @@ from matplotlib.patches import (
 
 from ..operations import Gate, Measurement
 from ..circuit import QubitCircuit
+from .color_theme import default_theme
 
 __all__ = [
     "MatRenderer",
@@ -49,6 +52,7 @@ class MatRenderer:
         bgcolor: str = "#FFFFFF",
         wire_label: List[str] = None,
         condense=0.15,
+        bulge=True,
     ) -> None:
 
         self.wire_sep = 0.5
@@ -64,6 +68,13 @@ class MatRenderer:
         self.connector_r = 0.01
         self.target_node_r = 0.12
         self.display_layer_len = 0
+        self.start_pad = 0.1
+
+        self.end_wire_ext = 2
+        if bulge:
+            self.bulge = "round4"
+        else:
+            self.bulge = "square"
 
         self.qc = qc
         self.qwires = qc.N
@@ -73,7 +84,7 @@ class MatRenderer:
         self.padding = padding
         self.bgcolor = bgcolor
         self.wire_label = wire_label
-        self.layer_list = {i: [] for i in range(self.qwires)}
+        self.layer_list = {i: [self.start_pad] for i in range(self.qwires)}
 
         # fig config
         self.fig_height = (
@@ -276,6 +287,19 @@ class MatRenderer:
             ]
             self.wire_label = default_labels
 
+        self.max_label_width = max(
+            [
+                self._get_text_width(
+                    label,
+                    8,
+                    "normal",
+                    "monospace",
+                    "normal",
+                )
+                for label in self.wire_label
+            ]
+        )
+
         for i, label in enumerate(self.wire_label):
             wire_label = plt.Text(
                 -self.label_pad,
@@ -283,7 +307,7 @@ class MatRenderer:
                 label,
                 fontsize=self.font_size,
                 verticalalignment="center",
-                horizontalalignment="left",
+                horizontalalignment="right",
                 zorder=3,
             )
             self.ax.add_artist(wire_label)
@@ -518,6 +542,39 @@ class MatRenderer:
         self.ax.add_line(dia_left)
         self.ax.add_line(dia_right)
 
+    def to_pi_fraction(self, value, tolerance=0.01):
+        """
+        Convert a value to a string fraction of pi.
+
+        Parameters
+        ----------
+        value : float
+            The value to be converted.
+
+        tolerance : float, optional
+            The tolerance for the fraction. The default is 0.01.
+
+        Returns
+        -------
+        str
+            The value in terms of pi.
+        """
+
+        pi_value = value / np.pi
+        if abs(pi_value - round(pi_value)) < tolerance:
+            num = round(pi_value)
+            return f"[{num}\\pi]" if num != 1 else "[\\pi]"
+
+        for denom in [2, 3, 4, 6, 8, 12]:
+            fraction_value = pi_value * denom
+            if abs(fraction_value - round(fraction_value)) < tolerance:
+                num = round(fraction_value)
+                return (
+                    f"[{num}\\pi/{denom}]" if num != 1 else f"[\\pi/{denom}]"
+                )
+
+        return f"[{round(value, 2)}]"
+
     def _draw_singleq_gate(self, gate, layer):
         """
         Draw the single qubit gate.
@@ -532,12 +589,18 @@ class MatRenderer:
         """
 
         gate_wire = gate.targets[0]
+        if gate.arg_value is not None:
+            pi_frac = self.to_pi_fraction(gate.arg_value)
+            text = f"${{{self.text}}}_{{{pi_frac}}}$"
+        else:
+            text = self.text
+
         text_width = self._get_text_width(
-            gate.text,
-            gate.fontsize,
-            gate.fontweight,
-            gate.fontfamily,
-            gate.fontstyle,
+            text,
+            self.fontsize,
+            self.fontweight,
+            self.fontfamily,
+            self.fontstyle,
         )
         gate_width = max(text_width + self.gate_pad * 2, self.gate_width)
 
@@ -546,12 +609,12 @@ class MatRenderer:
             + self.gate_margin
             + gate_width / 2,
             (gate_wire + self.cwires) * self.wire_sep,
-            gate.text,
-            color=gate.fontcolor,
-            fontsize=gate.fontsize,
-            fontweight=gate.fontweight,
-            fontfamily=gate.fontfamily,
-            fontstyle=gate.fontstyle,
+            text,
+            color=self.fontcolor,
+            fontsize=self.fontsize,
+            fontweight=self.fontweight,
+            fontfamily=self.fontfamily,
+            fontstyle=self.fontstyle,
             verticalalignment="center",
             horizontalalignment="center",
             zorder=3,
@@ -564,10 +627,10 @@ class MatRenderer:
             ),
             gate_width,
             self.gate_height,
-            boxstyle="round4",
+            boxstyle=self.bulge,
             mutation_scale=0.3,
-            facecolor=gate.color,
-            edgecolor=gate.color,
+            facecolor=self.color,
+            edgecolor=self.color,
             zorder=2,
         )
 
@@ -594,10 +657,10 @@ class MatRenderer:
         com_xskip = self._get_xskip(self.merged_qubits, layer)
 
         if gate.name == "CNOT":
-            self._draw_control_node(gate.controls[0], com_xskip, gate.color)
-            self._draw_target_node(gate.targets[0], com_xskip, gate.color)
+            self._draw_control_node(gate.controls[0], com_xskip, self.color)
+            self._draw_target_node(gate.targets[0], com_xskip, self.color)
             self._draw_qbridge(
-                gate.targets[0], gate.controls[0], com_xskip, gate.color
+                gate.targets[0], gate.controls[0], com_xskip, self.color
             )
             self._manage_layers(
                 2 * self.gate_pad + self.target_node_r / 3,
@@ -607,10 +670,10 @@ class MatRenderer:
             )
 
         elif gate.name == "SWAP":
-            self._draw_swap_mark(gate.targets[0], com_xskip, gate.color)
-            self._draw_swap_mark(gate.targets[1], com_xskip, gate.color)
+            self._draw_swap_mark(gate.targets[0], com_xskip, self.color)
+            self._draw_swap_mark(gate.targets[1], com_xskip, self.color)
             self._draw_qbridge(
-                gate.targets[0], gate.targets[1], com_xskip, gate.color
+                gate.targets[0], gate.targets[1], com_xskip, self.color
             )
             self._manage_layers(
                 2 * (self.gate_pad + self.gate_width / 3),
@@ -620,14 +683,14 @@ class MatRenderer:
             )
 
         elif gate.name == "TOFFOLI":
-            self._draw_control_node(gate.controls[0], com_xskip, gate.color)
-            self._draw_control_node(gate.controls[1], com_xskip, gate.color)
-            self._draw_target_node(gate.targets[0], com_xskip, gate.color)
+            self._draw_control_node(gate.controls[0], com_xskip, self.color)
+            self._draw_control_node(gate.controls[1], com_xskip, self.color)
+            self._draw_target_node(gate.targets[0], com_xskip, self.color)
             self._draw_qbridge(
-                gate.targets[0], gate.controls[0], com_xskip, gate.color
+                gate.targets[0], gate.controls[0], com_xskip, self.color
             )
             self._draw_qbridge(
-                gate.targets[0], gate.controls[1], com_xskip, gate.color
+                gate.targets[0], gate.controls[1], com_xskip, self.color
             )
             self._manage_layers(
                 2 * self.gate_pad + self.target_node_r / 3,
@@ -640,11 +703,11 @@ class MatRenderer:
 
             adj_targets = [i + self.cwires for i in sorted(gate.targets)]
             text_width = self._get_text_width(
-                gate.text,
-                gate.fontsize,
-                gate.fontweight,
-                gate.fontfamily,
-                gate.fontstyle,
+                self.text,
+                self.fontsize,
+                self.fontweight,
+                self.fontfamily,
+                self.fontstyle,
             )
             gate_width = max(text_width + self.gate_pad * 2, self.gate_width)
             xskip = self._get_xskip(wire_list, layer)
@@ -652,12 +715,12 @@ class MatRenderer:
             gate_text = plt.Text(
                 xskip + self.gate_margin + gate_width / 2,
                 (adj_targets[0] + adj_targets[-1]) / 2 * self.wire_sep,
-                gate.text,
-                color=gate.fontcolor,
-                fontsize=gate.fontsize,
-                fontweight=gate.fontweight,
-                fontfamily=gate.fontfamily,
-                fontstyle=gate.fontstyle,
+                self.text,
+                color=self.fontcolor,
+                fontsize=self.fontsize,
+                fontweight=self.fontweight,
+                fontfamily=self.fontfamily,
+                fontstyle=self.fontstyle,
                 verticalalignment="center",
                 horizontalalignment="center",
                 zorder=3,
@@ -671,10 +734,10 @@ class MatRenderer:
                 gate_width,
                 self.gate_height
                 + self.wire_sep * (adj_targets[-1] - adj_targets[0]),
-                boxstyle="round4",
+                boxstyle=self.bulge,
                 mutation_scale=0.3,
-                facecolor=gate.color,
-                edgecolor=gate.color,
+                facecolor=self.color,
+                edgecolor=self.color,
                 zorder=2,
             )
 
@@ -686,7 +749,7 @@ class MatRenderer:
                             (adj_targets[i]) * self.wire_sep,
                         ),
                         self.connector_r,
-                        color=gate.fontcolor,
+                        color=self.fontcolor,
                         zorder=3,
                     )
                     connector_r = Circle(
@@ -698,7 +761,7 @@ class MatRenderer:
                             (adj_targets[i]) * self.wire_sep,
                         ),
                         self.connector_r,
-                        color=gate.fontcolor,
+                        color=self.fontcolor,
                         zorder=3,
                     )
                     self.ax.add_artist(connector_l)
@@ -708,13 +771,13 @@ class MatRenderer:
             if gate.controls is not None:
                 for control in gate.controls:
                     self._draw_control_node(
-                        control, xskip + text_width / 2, gate.color
+                        control, xskip + text_width / 2, self.color
                     )
                     self._draw_qbridge(
                         control,
                         gate.targets[0],
                         xskip + text_width / 2,
-                        gate.color,
+                        self.color,
                     )
 
             self.ax.add_artist(gate_text)
@@ -749,7 +812,7 @@ class MatRenderer:
             ),
             self.gate_width,
             self.gate_height,
-            boxstyle="round4",
+            boxstyle=self.bulge,
             mutation_scale=0.3,
             facecolor="white",
             edgecolor="k",
@@ -800,32 +863,41 @@ class MatRenderer:
 
         for gate in self.qc.gates:
 
-            # multi-qubit gate
-            if (
-                len(gate.targets) > 1
-                or getattr(gate, "controls", False) is not None
-            ):
-
+            if isinstance(gate, Measurement):
                 self.merged_qubits = gate.targets.copy()
-                if isinstance(gate, Gate) and gate.controls is not None:
-                    self.merged_qubits += gate.controls.copy()
                 self.merged_qubits.sort()
 
-                # check if the gate is a measurement gate
-                if isinstance(gate, Measurement):
+                find_layer = [
+                    len(self.layer_list[i])
+                    for i in range(0, self.merged_qubits[-1] + 1)
+                ]
+                self._draw_measure(
+                    gate.classical_store,
+                    gate.targets[0],
+                    max(find_layer),
+                )
 
-                    find_layer = [
-                        len(self.layer_list[i])
-                        for i in range(0, self.merged_qubits[-1] + 1)
-                    ]
+            if isinstance(gate, Gate):
+                style = gate.style if gate.style is not None else {}
+                self.text = style.get("text", gate.name)
+                self.color = style.get(
+                    "color", default_theme.get(gate.name, "k")
+                )
+                self.fontsize = style.get("fontsize", self.font_size)
+                self.fontcolor = style.get("fontcolor", "#FFFFFF")
+                self.fontweight = style.get("fontweight", "normal")
+                self.fontstyle = style.get("fontstyle", "normal")
+                self.fontfamily = style.get("fontfamily", "monospace")
 
-                    self._draw_measure(
-                        gate.classical_store,
-                        gate.targets[0],
-                        max(find_layer),
-                    )
-
-                else:
+                # multi-qubit gate
+                if (
+                    len(gate.targets) > 1
+                    or getattr(gate, "controls", False) is not None
+                ):
+                    self.merged_qubits = gate.targets.copy()
+                    if gate.controls is not None:
+                        self.merged_qubits += gate.controls.copy()
+                    self.merged_qubits.sort()
 
                     find_layer = [
                         len(self.layer_list[i])
@@ -833,16 +905,16 @@ class MatRenderer:
                             self.merged_qubits[0], self.merged_qubits[-1] + 1
                         )
                     ]
-
                     self._draw_multiq_gate(gate, max(find_layer))
 
-            else:
-                self._draw_singleq_gate(
-                    gate, len(self.layer_list[gate.targets[0]])
-                )
+                else:
+                    self._draw_singleq_gate(
+                        gate, len(self.layer_list[gate.targets[0]])
+                    )
 
-            self._extend_wires(0)
-        self._extend_wires(2, end=True)
+                self._extend_wires(0)
+
+        self._extend_wires(self.end_wire_ext, end=True)
         self._fig_config()
 
     def _fig_config(self):
@@ -855,8 +927,9 @@ class MatRenderer:
             self.padding + (self.qwires + self.cwires - 1) * self.wire_sep,
         )
         self.ax.set_xlim(
-            -self.padding,
+            -self.padding - self.max_label_width - self.label_pad,
             self.padding
+            + 2 * self.layer_sep
             + max([sum(self.layer_list[i]) for i in range(self.qwires)]),
         )
         self.ax.set_aspect("equal")
