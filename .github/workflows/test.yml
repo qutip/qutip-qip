@@ -10,6 +10,7 @@ jobs:
     name: ${{ matrix.os }}, python${{ matrix.python-version }}, ${{ matrix.case-name }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false # Continue running jobs even if a previous job fails
       matrix:
         include:
           - case-name: qutip@5.0.0
