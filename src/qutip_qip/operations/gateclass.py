@@ -14,7 +14,6 @@ import scipy.sparse as sp
 
 import qutip
 from qutip import Qobj, identity, qeye, sigmax, sigmay, sigmaz, tensor, fock_dm
-from ..circuit.color_theme import default_theme
 from .gates import (
     rx,
     ry,
@@ -168,34 +167,7 @@ class Gate:
         self.targets = None
         self.controls = None
         self.classical_controls = None
-
-        if style is not None:
-            self.text = style.get("text", self.name)
-            self.color = style.get(
-                "color",
-                (
-                    default_theme[self.name]
-                    if self.name in default_theme
-                    else "#000000"
-                ),
-            )
-            self.fontsize = style.get("fontsize", 10)
-            self.fontcolor = style.get("fontcolor", "#FFFFFF")
-            self.fontweight = style.get("fontweight", "normal")
-            self.fontstyle = style.get("fontstyle", "normal")
-            self.fontfamily = style.get("fontfamily", "monospace")
-        else:
-            self.text = self.name
-            self.color = (
-                default_theme[self.name]
-                if self.name in default_theme
-                else "#000000"
-            )
-            self.fontsize = 10
-            self.fontcolor = "#FFFFFF"
-            self.fontweight = "normal"
-            self.fontstyle = "normal"
-            self.fontfamily = "monospace"
+        self.style = style
 
         if not isinstance(targets, Iterable) and targets is not None:
             self.targets = [targets]
