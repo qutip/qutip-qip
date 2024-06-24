@@ -243,7 +243,7 @@ We are left with a mixed state.
 Import and export quantum circuits
 ==================================
 
-QuTiP supports importing and exporting quantum circuits in the `OpenQASM 2.0 <https://github.com/Qiskit/openqasm/tree/OpenQASM2.x>`_ format, as well as exporting circuits to `Quantum Intermediate Representation <https://www.qir-alliance.org/>`_.
+QuTiP supports importing and exporting quantum circuits in the `OpenQASM 2.0 <https://github.com/Qiskit/openqasm/tree/OpenQASM2.x>`_ format.
 To import from and export to OpenQASM 2.0, you can use the :func:`.read_qasm` and :func:`.save_qasm` functions, respectively.
 We demonstrate this functionality by loading a circuit for preparing the :math:`\left|W\right\rangle`-state from an OpenQASM 2.0 file.
 The following code is in OpenQASM format:
@@ -289,24 +289,3 @@ One can save it in a ``.qasm`` file and import it using the following code:
 
   from qutip_qip.qasm import read_qasm
   qc = read_qasm("source/w-state.qasm")
-
-QuTiP circuits can also be exported to QIR:
-
-.. doctest::
-
-  >>> from qutip_qip.circuit import QubitCircuit
-  >>> from qutip_qip.qir import circuit_to_qir
-
-  >>> circuit = QubitCircuit(3, num_cbits=2)
-  >>> msg, here, there = range(3)
-  >>> circuit.add_gate("RZ", targets=[msg], arg_value=0.123)
-  >>> circuit.add_gate("SNOT", targets=[here])
-  >>> circuit.add_gate("CNOT", targets=[there], controls=[here])
-  >>> circuit.add_gate("CNOT", targets=[here], controls=[msg])
-  >>> circuit.add_gate("SNOT", targets=[msg])
-  >>> circuit.add_measurement("Z", targets=[msg], classical_store=0)
-  >>> circuit.add_measurement("Z", targets=[here], classical_store=1)
-  >>> circuit.add_gate("X", targets=[there], classical_controls=[0])
-  >>> circuit.add_gate("Z", targets=[there], classical_controls=[1])
-
-  >>> print(circuit_to_qir(circuit, "text"))  # doctest: +SKIP

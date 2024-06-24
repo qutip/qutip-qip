@@ -10,46 +10,40 @@ jobs:
     name: ${{ matrix.os }}, python${{ matrix.python-version }}, ${{ matrix.case-name }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false # Continue running jobs even if a previous job fails
       matrix:
         include:
           - case-name: qutip@5.0.0
             os: ubuntu-latest
             qutip-version: '==5.0.0'
-            pyqir-version: ''
             python-version: '3.11'
           - case-name: qutip@qutip-4.7.X
             os: ubuntu-latest
             qutip-version: '@qutip-4.7.X'
-            pyqir-version: ''
             python-version: '3.10'
           - case-name: qutip@master
             os: ubuntu-latest
             qutip-version: '@master'
-            pyqir-version: ''
             python-version: '3.12'
           - case-name: qutip@4.7
             os: macOS-latest
             qutip-version: '==4.7.*'
             qiskit-version: ''
-            pyqir-version: ''
             python-version: '3.11'
-          - case-name: qiskit+qir
+          - case-name: qiskit
             os: windows-latest
             qutip-version: ''
             qiskit-version: '==0.46.*'
-            pyqir-version: '==0.6.2'
             python-version: '3.9'
-          - case-name: qiskit+qir
+          - case-name: qiskit
             os: macOS-latest
             qutip-version: ''
             qiskit-version: '==0.46.*'
-            pyqir-version: '==0.6.2'
             python-version: '3.9'
-          - case-name: qiskit+qir
+          - case-name: qiskit
             os: ubuntu-latest
             qutip-version: ''
             qiskit-version: '==0.46.*'
-            pyqir-version: '==0.6.2'
             python-version: '3.9'
 
     steps:
@@ -71,11 +65,6 @@ jobs:
     - name: Install Qiskit from PyPI
       if: ${{ matrix.qiskit-version != '' }}
       run: python -m pip install 'qiskit${{ matrix.qiskit-version }}' 'qiskit-aer==0.14.0.1'
-
-    - name: Install PyQIR from PyPI
-      if: ${{ matrix.pyqir-version != '' }}
-      # We use each subpackage explicitly here; see https://github.com/qir-alliance/pyqir/issues/167.
-      run: python -m pip install 'pyqir-generator${{ matrix.pyqir-version }}' 'pyqir-parser${{ matrix.pyqir-version }}'
 
     - name: Install qutip-qip
       # Installing in-place so that coveralls can locate the source code.
