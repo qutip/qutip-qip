@@ -3,6 +3,7 @@
 from .circuit import *
 from .circuit_latex import *
 from .circuitsimulator import *
+from .mat_renderer import *
 from ..operations import Gate, Measurement
 
 

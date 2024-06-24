@@ -194,6 +194,7 @@ class QubitCircuit:
         classical_controls=None,
         control_value=None,
         classical_control_value=None,
+        style=None,
     ):
         """
         Adds a gate with specified parameters to the circuit.
@@ -239,6 +240,7 @@ class QubitCircuit:
                 classical_controls=classical_controls,
                 control_value=control_value,
                 classical_control_value=classical_control_value,
+                style=style,
             )
 
         if index is None:
