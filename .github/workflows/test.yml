@@ -13,9 +13,9 @@ jobs:
       fail-fast: false # Continue running jobs even if a previous job fails
       matrix:
         include:
-          - case-name: qutip@5.0.0
+          - case-name: qutip@5
             os: ubuntu-latest
-            qutip-version: '==5.0.0'
+            qutip-version: '==5.*'
             python-version: '3.11'
           - case-name: qutip@qutip-4.7.X
             os: ubuntu-latest
