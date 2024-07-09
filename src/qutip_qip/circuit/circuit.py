@@ -12,6 +12,7 @@ import numpy as np
 from copy import deepcopy
 
 from . import circuit_latex as _latex
+from .texrenderer import TeXRenderer
 from ._decompose import _resolve_to_universal, _resolve_2q_basis
 from ..operations import (
     Gate,
@@ -111,6 +112,12 @@ class QubitCircuit:
                     "`user_gate` takes a python dictionary of the form"
                     "{{str: gate_function}}, not {}".format(user_gates)
                 )
+
+        if "png" in _latex.CONVERTERS:
+            self._repr_png_ = self._generate_png
+
+        if "svg" in _latex.CONVERTERS:
+            self._repr_svg_ = self._generate_svg
 
     def add_state(self, state, targets=None, state_type="input"):
         """
@@ -930,136 +937,6 @@ class QubitCircuit:
         circuit_unitary = result.get_final_states()[0]
         return circuit_unitary
 
-    def latex_code(self):
-        rows = []
-
-        ops = self.gates
-        col = []
-        for op in ops:
-            if isinstance(op, Gate):
-                gate = op
-                col = []
-                _swap_processing = False
-                for n in range(self.N + self.num_cbits):
-                    if gate.targets and n in gate.targets:
-                        if len(gate.targets) > 1:
-                            if gate.name == "SWAP":
-                                if _swap_processing:
-                                    col.append(r" \qswap \qw")
-                                    continue
-                                distance = abs(
-                                    gate.targets[1] - gate.targets[0]
-                                )
-                                if self.reverse_states:
-                                    distance = -distance
-                                col.append(r" \qswap \qwx[%d] \qw" % distance)
-                                _swap_processing = True
-
-                            elif (
-                                self.reverse_states and n == max(gate.targets)
-                            ) or (
-                                not self.reverse_states
-                                and n == min(gate.targets)
-                            ):
-                                col.append(
-                                    r" \multigate{%d}{%s} "
-                                    % (
-                                        len(gate.targets) - 1,
-                                        _gate_label(gate),
-                                    )
-                                )
-                            else:
-                                col.append(
-                                    r" \ghost{%s} " % (_gate_label(gate))
-                                )
-
-                        elif gate.name == "CNOT":
-                            col.append(r" \targ ")
-                        elif gate.name == "CY":
-                            col.append(r" \targ ")
-                        elif gate.name == "CZ":
-                            col.append(r" \targ ")
-                        elif gate.name == "CS":
-                            col.append(r" \targ ")
-                        elif gate.name == "CT":
-                            col.append(r" \targ ")
-                        elif gate.name == "TOFFOLI":
-                            col.append(r" \targ ")
-                        else:
-                            col.append(r" \gate{%s} " % _gate_label(gate))
-
-                    elif gate.controls and n in gate.controls:
-                        control_tag = (-1 if self.reverse_states else 1) * (
-                            gate.targets[0] - n
-                        )
-                        col.append(r" \ctrl{%d} " % control_tag)
-
-                    elif (
-                        gate.classical_controls
-                        and (n - self.N) in gate.classical_controls
-                    ):
-                        control_tag = (-1 if self.reverse_states else 1) * (
-                            gate.targets[0] - n
-                        )
-                        col.append(r" \ctrl{%d} " % control_tag)
-
-                    elif not gate.controls and not gate.targets:
-                        # global gate
-                        if (self.reverse_states and n == self.N - 1) or (
-                            not self.reverse_states and n == 0
-                        ):
-                            col.append(
-                                r" \multigate{%d}{%s} "
-                                % (
-                                    self.N - 1,
-                                    _gate_label(gate),
-                                )
-                            )
-                        else:
-                            col.append(r" \ghost{%s} " % (_gate_label(gate)))
-                    else:
-                        col.append(r" \qw ")
-
-            else:
-                measurement = op
-                col = []
-                for n in range(self.N + self.num_cbits):
-                    if n in measurement.targets:
-                        col.append(r" \meter")
-                    elif (n - self.N) == measurement.classical_store:
-                        sgn = 1 if self.reverse_states else -1
-                        store_tag = sgn * (n - measurement.targets[0])
-                        col.append(r" \qw \cwx[%d] " % store_tag)
-                    else:
-                        col.append(r" \qw ")
-
-            col.append(r" \qw ")
-            rows.append(col)
-
-        input_states_quantum = [
-            r"\lstick{\ket{" + x + "}}" if x is not None else ""
-            for x in self.input_states[: self.N]
-        ]
-        input_states_classical = [
-            r"\lstick{" + x + "}" if x is not None else ""
-            for x in self.input_states[self.N :]
-        ]
-        input_states = input_states_quantum + input_states_classical
-
-        code = ""
-        n_iter = (
-            reversed(range(self.N + self.num_cbits))
-            if self.reverse_states
-            else range(self.N + self.num_cbits)
-        )
-        for n in n_iter:
-            code += r" & %s" % input_states[n]
-            for m in range(len(ops)):
-                code += r" & %s" % rows[m][n]
-            code += r" & \qw \\ " + "\n"
-
-        return _latex_template % code
-
     # This slightly convoluted dance with the conversion formats is because
     # image conversion has optional dependencies.  We always want the `png` and
     # `svg` methods to be available so that they are discoverable by the user,
@@ -1069,14 +946,11 @@ class QubitCircuit:
     # conversion is available, so the user doesn't get exceptions on display
     # because IPython tried to do something behind their back.
 
-    def _raw_img(self, file_type="png", dpi=100):
-        return _latex.image_from_latex(self.latex_code(), file_type, dpi)
+    def _generate_png(self):
+        return TeXRenderer(self).raw_img(file_type="png")
 
-    if "png" in _latex.CONVERTERS:
-        _repr_png_ = _raw_img
-
-    if "svg" in _latex.CONVERTERS:
-        _repr_svg_ = partialmethod(_raw_img, file_type="svg", dpi=None)
+    def _generate_svg(self):
+        return TeXRenderer(self).raw_img(file_type="svg")
 
     @property
     def png(self):
@@ -1094,6 +968,7 @@ class QubitCircuit:
 
     def draw(
         self,
+        renderer="latex",
         file_type="png",
         dpi=None,
         file_name="exported_pic",
@@ -1104,6 +979,9 @@ class QubitCircuit:
 
         Parameters
         ----------
+        renderer : choose the renderer for the circuit.
+                   Default: 'latex'
+
         file_type : Provide a supported image file_type eg: "svg"/"png".
                    Default : "png".
 
@@ -1119,17 +997,22 @@ class QubitCircuit:
                     Note : User should have write access to the location.
         """
 
-        if file_type == "svg":
-            mode = "w"
-        else:
-            mode = "wb"
-            if file_type == "png" and not dpi:
-                dpi = 100
-        image_data = self._raw_img(file_type, dpi)
-        with open(
-            os.path.join(file_path, file_name + "." + file_type), mode
-        ) as f:
-            f.write(image_data)
+        if renderer == "latex":
+
+            latex = TeXRenderer(self)
+            image_data = latex.raw_img(file_type, dpi)
+
+            if file_type == "svg":
+                mode = "w"
+            else:
+                mode = "wb"
+                if file_type == "png" and not dpi:
+                    dpi = 100
+
+            with open(
+                os.path.join(file_path, file_name + "." + file_type), mode
+            ) as f:
+                f.write(image_data)
 
     def _to_qasm(self, qasm_out):
         """
@@ -1154,20 +1037,3 @@ class QubitCircuit:
 
         for op in self.gates:
             op._to_qasm(qasm_out)
-
-
-_latex_template = r"""
-\documentclass[border=3pt]{standalone}
-\usepackage[braket]{qcircuit}
-\begin{document}
-\Qcircuit @C=1cm @R=1cm {
-%s}
-\end{document}
-"""
-
-
-def _gate_label(gate):
-    gate_label = gate.latex_str
-    if gate.arg_label is not None:
-        return r"%s(%s)" % (gate_label, gate.arg_label)
-    return r"%s" % gate_label
