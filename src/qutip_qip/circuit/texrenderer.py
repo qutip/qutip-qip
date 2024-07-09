@@ -29,14 +29,6 @@ class TeXRenderer:
         \end{document}
         """
 
-        if "png" in _latex.CONVERTERS:
-            self._repr_png_ = self.raw_img
-
-        if "svg" in _latex.CONVERTERS:
-            self._repr_svg_ = partialmethod(
-                TeXRenderer.raw_img, file_type="svg", dpi=None
-            )
-
     def _gate_label(self, gate):
         gate_label = gate.latex_str
         if gate.arg_label is not None:

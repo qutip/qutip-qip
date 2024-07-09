@@ -936,7 +936,7 @@ class QubitCircuit:
         result = sim.run(qeye(self.dims))
         circuit_unitary = result.get_final_states()[0]
         return circuit_unitary
-
+    
     # This slightly convoluted dance with the conversion formats is because
     # image conversion has optional dependencies.  We always want the `png` and
     # `svg` methods to be available so that they are discoverable by the user,
