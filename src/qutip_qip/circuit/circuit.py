@@ -119,6 +119,7 @@ class QubitCircuit:
         if "svg" in _latex.CONVERTERS:
             self._repr_svg_ = self._generate_svg
 
+
     def add_state(self, state, targets=None, state_type="input"):
         """
         Add an input or ouput state to the circuit. By default all the input
@@ -937,7 +938,7 @@ class QubitCircuit:
         circuit_unitary = result.get_final_states()[0]
         return circuit_unitary
     
-    # This slightly convoluted dance with the conversion formats is because
+        # This slightly convoluted dance with the conversion formats is because
     # image conversion has optional dependencies.  We always want the `png` and
     # `svg` methods to be available so that they are discoverable by the user,
     # however if one is called without the required dependency, then they'll
@@ -998,17 +999,14 @@ class QubitCircuit:
         """
 
         if renderer == "latex":
-
             latex = TeXRenderer(self)
             image_data = latex.raw_img(file_type, dpi)
-
             if file_type == "svg":
                 mode = "w"
             else:
                 mode = "wb"
                 if file_type == "png" and not dpi:
                     dpi = 100
-
             with open(
                 os.path.join(file_path, file_name + "." + file_type), mode
             ) as f:
