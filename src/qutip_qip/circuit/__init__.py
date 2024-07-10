@@ -4,6 +4,7 @@ from .circuit import *
 from .circuit_latex import *
 from .circuitsimulator import *
 from ..operations import Gate, Measurement
+from .texrenderer import TeXRenderer
 
 
 def _add_deprecation(fun, msg):
