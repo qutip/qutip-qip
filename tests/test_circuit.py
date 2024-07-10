@@ -5,7 +5,7 @@ import numpy as np
 from pathlib import Path
 
 
-from qutip_qip.circuit import (QubitCircuit, CircuitSimulator)
+from qutip_qip.circuit import (QubitCircuit, CircuitSimulator, TeXRenderer)
 from qutip import (tensor, Qobj, ptrace, rand_ket, fock_dm, basis,
                    rand_dm, bell_state, ket2dm, identity, sigmax)
 from qutip_qip.qasm import read_qasm
@@ -658,8 +658,9 @@ class TestQubitCircuit:
 
     def test_latex_code_teleportation_circuit(self):
         qc = _teleportation_circuit()
-        latex = qc.latex_code()
-        assert latex == self._latex_template % "\n".join([
+        renderer = TeXRenderer(qc)
+        latex = renderer.latex_code()
+        assert latex == renderer._latex_template % "\n".join([
             r" & \lstick{c1} &  \qw  &  \qw  &  \qw  &  \qw"
             r"  &  \qw \cwx[4]  &  \qw  &  \qw  &  \ctrl{2}  & \qw \\ ",
             r" & \lstick{c0} &  \qw  &  \qw  &  \qw  &  \qw"
@@ -676,8 +677,9 @@ class TestQubitCircuit:
     def test_latex_code_classical_controls(self):
         qc = QubitCircuit(1, num_cbits=1, reverse_states=True)
         qc.add_gate("X", targets=0, classical_controls=[0])
-        latex = qc.latex_code()
-        assert latex == self._latex_template % "\n".join([
+        renderer = TeXRenderer(qc)
+        latex = TeXRenderer(qc).latex_code()
+        assert latex == renderer._latex_template % "\n".join([
             r" &  &  \ctrl{1}  & \qw \\ ",
             r" &  &  \gate{X}  & \qw \\ ",
             "",
@@ -685,8 +687,9 @@ class TestQubitCircuit:
 
         qc = QubitCircuit(1, num_cbits=1, reverse_states=False)
         qc.add_gate("X", targets=0, classical_controls=[0])
-        latex = qc.latex_code()
-        assert latex == self._latex_template % "\n".join([
+        renderer = TeXRenderer(qc)
+        latex = TeXRenderer(qc).latex_code()
+        assert latex == renderer._latex_template % "\n".join([
             r" &  &  \gate{X}  & \qw \\ ",
             r" &  &  \ctrl{-1}  & \qw \\ ",
             "",
@@ -727,14 +730,17 @@ class TestQubitCircuit:
         qc.add_measurement("M0", targets=0, classical_store=0)
         exp = \
             ' &  &  \\qw \\cwx[1]  & \\qw \\\\ \n &  &  \\meter & \\qw \\\\ \n'
-        assert qc.latex_code() == self._latex_template % exp
+        
+        renderer = TeXRenderer(qc)
+        assert renderer.latex_code() == renderer._latex_template % exp
 
     def test_latex_code_non_reversed(self):
         qc = QubitCircuit(1, num_cbits=1, reverse_states=False)
         qc.add_measurement("M0", targets=0, classical_store=0)
         exp = ' &  &  \\meter & \\qw \\\\ \n &  ' + \
               '&  \\qw \\cwx[-1]  & \\qw \\\\ \n'
-        assert qc.latex_code() == self._latex_template % exp
+        renderer = TeXRenderer(qc)
+        assert renderer.latex_code() == renderer._latex_template % exp
 
     @pytest.mark.skipif(
                 shutil.which("pdflatex") is None,
@@ -748,8 +754,8 @@ class TestQubitCircuit:
         if "png" in circuit.CONVERTERS:
             file_png200 = "exported_pic_200.png"
             file_png400 = "exported_pic_400.png"
-            qc.draw("png", 200, file_png200.split('.')[0], "")
-            qc.draw("png", 400.5, file_png400.split('.')[0], "")
+            qc.draw("latex","png", 200, file_png200.split('.')[0], "")
+            qc.draw("latex","png", 400.5, file_png400.split('.')[0], "")
             assert file_png200 in os.listdir('.')
             assert file_png400 in os.listdir('.')
             assert os.stat(file_png200).st_size < os.stat(file_png400).st_size
