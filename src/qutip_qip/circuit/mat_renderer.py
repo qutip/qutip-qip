@@ -53,6 +53,7 @@ class MatRenderer:
         wire_label: List[str] = None,
         condense=0.15,
         bulge=True,
+        end_wire_ext=2,
     ) -> None:
 
         self.wire_sep = 0.5
@@ -61,7 +62,7 @@ class MatRenderer:
         self.gate_height = 0.2
         self.gate_width = 0.2
         self.gate_pad = 0.05
-        self.label_pad = 0.2
+        self.label_pad = 0.1
         self.font_size = 10
         self.default_layers = 2
         self.arrow_lenght = 0.06
@@ -70,7 +71,7 @@ class MatRenderer:
         self.display_layer_len = 0
         self.start_pad = 0.1
 
-        self.end_wire_ext = 2
+        self.end_wire_ext = end_wire_ext
         if bulge:
             self.bulge = "round4"
         else:
@@ -200,81 +201,48 @@ class MatRenderer:
                     temp + gate_width + self.gate_margin * 2
                 )
 
-    def _extend_wires(self, ext, end=False):
+    def _add_wire(self):
         """
-        Extends the wires in the circuit.
-
-        Parameters
-        ----------
-        ext : int
-            The number of layers to extend the wires.
-
-        end : bool, optional
-            If True, the wires are extended further distance for end of the circuit.
-            The default is False.
+        Adds the wires to the circuit.
         """
+        max_len = (
+            max([sum(self.layer_list[i]) for i in range(self.qwires)])
+            + self.end_wire_ext * self.layer_sep
+        )
 
-        max_layer = max([sum(self.layer_list[i]) for i in range(self.qwires)])
+        for i in range(self.qwires):
+            wire = plt.Line2D(
+                [0, max_len],
+                [i * self.wire_sep, i * self.wire_sep],
+                lw=1,
+                color="k",
+                zorder=1,
+            )
+            self.ax.add_line(wire)
 
-        if (
-            self.display_layer_len < max_layer
-            or self.display_layer_len == 0
-            or end is True
-        ):
-            if self.cwires != 0:
-
-                ext_cwires_pos = [
-                    [
-                        [
-                            (
-                                self.display_layer_len,
-                                max_layer + ext * self.layer_sep,
-                            ),
-                            (
-                                (i * self.wire_sep) + self.cwire_sep,
-                                (i * self.wire_sep) + self.cwire_sep,
-                            ),
-                        ],
-                        [
-                            (
-                                self.display_layer_len,
-                                max_layer + ext * self.layer_sep,
-                            ),
-                            (
-                                i * self.wire_sep - self.cwire_sep,
-                                i * self.wire_sep - self.cwire_sep,
-                            ),
-                        ],
-                    ]
-                    for i in range(self.cwires)
-                ]
-
-                for pos in ext_cwires_pos:
-                    wire_up = plt.Line2D(
-                        pos[0][0], pos[0][1], lw=1, color="k", zorder=1
-                    )
-                    wire_down = plt.Line2D(
-                        pos[1][0], pos[1][1], lw=1, color="k", zorder=1
-                    )
-                    self.ax.add_line(wire_up)
-                    self.ax.add_line(wire_down)
-
-            ext_qwires_pos = [
+        for i in range(self.cwires):
+            wire_up = plt.Line2D(
+                [0, max_len],
                 [
-                    (
-                        self.display_layer_len,
-                        max_layer + ext * self.layer_sep,
-                    ),
-                    (i * self.wire_sep, i * self.wire_sep),
-                ]
-                for i in range(self.cwires, self.cwires + self.qwires)
-            ]
-
-            for pos in ext_qwires_pos:
-                wire = plt.Line2D(pos[0], pos[1], lw=1, color="k", zorder=1)
-                self.ax.add_line(wire)
-
-            self.display_layer_len = max_layer
+                    (i + self.qwires) * self.wire_sep,
+                    (i + self.qwires) * self.wire_sep,
+                ],
+                lw=1,
+                color="k",
+                zorder=1,
+            )
+            wire_down = plt.Line2D(
+                [0, max_len],
+                [
+                    (i + self.qwires) * self.wire_sep,
+                    (i + self.qwires) * self.wire_sep,
+                ],
+                lw=1,
+                color="k",
+                zorder=1,
+            )
+            self.ax.add_line(wire_up)
+            self.ax.add_line(wire_down)
 
     def _add_wire_labels(self):
         """
@@ -858,7 +826,6 @@ class MatRenderer:
         Plot the quantum circuit.
         """
 
-        self._extend_wires(self.default_layers)
         self._add_wire_labels()
 
         for gate in self.qc.gates:
@@ -912,9 +879,7 @@ class MatRenderer:
                         gate, len(self.layer_list[gate.targets[0]])
                     )
 
-                self._extend_wires(0)
-
-        self._extend_wires(self.end_wire_ext, end=True)
+        self._add_wire()
         self._fig_config()
 
     def _fig_config(self):
