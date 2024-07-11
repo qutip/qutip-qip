@@ -557,7 +557,7 @@ class MatRenderer:
         """
 
         gate_wire = gate.targets[0]
-        if gate.arg_value is not None:
+        if gate.arg_value is not None and self.showarg is True:
             pi_frac = self.to_pi_fraction(gate.arg_value)
             text = f"${{{self.text}}}_{{{pi_frac}}}$"
         else:
@@ -855,6 +855,7 @@ class MatRenderer:
                 self.fontweight = style.get("fontweight", "normal")
                 self.fontstyle = style.get("fontstyle", "normal")
                 self.fontfamily = style.get("fontfamily", "monospace")
+                self.showarg = style.get("showarg", False)
 
                 # multi-qubit gate
                 if (
