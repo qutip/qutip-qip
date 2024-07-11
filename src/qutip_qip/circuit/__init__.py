@@ -1,10 +1,11 @@
 """Circuit representation and simulation at the gate level."""
 
+import warnings
+
 from .circuit import *
-from .circuit_latex import *
 from .circuitsimulator import *
 from ..operations import Gate, Measurement
-from .texrenderer import TeXRenderer
+from .texrenderer import *
 
 
 def _add_deprecation(fun, msg):

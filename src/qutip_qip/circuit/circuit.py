@@ -11,8 +11,7 @@ from functools import partialmethod
 import numpy as np
 from copy import deepcopy
 
-from . import circuit_latex as _latex
-from .texrenderer import TeXRenderer
+from .texrenderer import TeXRenderer, CONVERTERS
 from ._decompose import _resolve_to_universal, _resolve_2q_basis
 from ..operations import (
     Gate,
@@ -113,12 +112,11 @@ class QubitCircuit:
                     "{{str: gate_function}}, not {}".format(user_gates)
                 )
 
-        if "png" in _latex.CONVERTERS:
+        if "png" in CONVERTERS:
             self._repr_png_ = self._generate_png
 
-        if "svg" in _latex.CONVERTERS:
+        if "svg" in CONVERTERS:
             self._repr_svg_ = self._generate_svg
-
 
     def add_state(self, state, targets=None, state_type="input"):
         """
@@ -937,8 +935,9 @@ class QubitCircuit:
         result = sim.run(qeye(self.dims))
         circuit_unitary = result.get_final_states()[0]
         return circuit_unitary
-    
+
         # This slightly convoluted dance with the conversion formats is because
+
     # image conversion has optional dependencies.  We always want the `png` and
     # `svg` methods to be available so that they are discoverable by the user,
     # however if one is called without the required dependency, then they'll
@@ -999,14 +998,14 @@ class QubitCircuit:
         """
 
         if renderer == "latex":
-            latex = TeXRenderer(self)
-            image_data = latex.raw_img(file_type, dpi)
             if file_type == "svg":
                 mode = "w"
             else:
                 mode = "wb"
                 if file_type == "png" and not dpi:
                     dpi = 100
+            latex = TeXRenderer(self)
+            image_data = latex.raw_img(file_type, dpi)
             with open(
                 os.path.join(file_path, file_name + "." + file_type), mode
             ) as f:
