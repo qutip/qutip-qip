@@ -1010,6 +1010,10 @@ class QubitCircuit:
                 os.path.join(file_path, file_name + "." + file_type), mode
             ) as f:
                 f.write(image_data)
+        else:
+            raise ValueError(
+                f"Unknown renderer '{renderer}' not supported. Please choose from 'latex', 'matplotlib', 'text'."
+            )
 
     def _to_qasm(self, qasm_out):
         """
