@@ -2,7 +2,7 @@
 Module for rendering a quantum circuit using matplotlib library.
 """
 
-from typing import List
+from typing import List, Union
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -31,29 +31,14 @@ class MatRenderer:
     qc : QuantumCircuit Object
         The quantum circuit to be rendered.
 
-    padding : float, optional
-        The padding around the circuit. The default is 0.3.
-
-    dpi : int, optional
-        The resolution of the image. The default is 150.
-
-    bgcolor : str, optional
-        The background color of the plotted circuit. The default is "#FFFFFF" (white).
-
-    wire_labels : list, optional
-        The labels for the wires.
+    style : dict, optional
+        The style dictionary for the circuit. The default is None.
     """
 
     def __init__(
         self,
         qc: QubitCircuit,
-        padding=0.3,
-        dpi: int = 150,
-        bgcolor: str = "#FFFFFF",
-        wire_label: List[str] = None,
-        condense=0.15,
-        bulge=True,
-        end_wire_ext=2,
+        style: dict = None,
     ) -> None:
 
         self.wire_sep = 0.5
@@ -63,28 +48,29 @@ class MatRenderer:
         self.gate_width = 0.2
         self.gate_pad = 0.05
         self.label_pad = 0.1
-        self.font_size = 10
         self.default_layers = 2
         self.arrow_lenght = 0.06
         self.connector_r = 0.01
         self.target_node_r = 0.12
+        self.control_node_radius = 0.05
         self.display_layer_len = 0
         self.start_pad = 0.1
-
-        self.end_wire_ext = end_wire_ext
-        if bulge:
-            self.bulge = "round4"
-        else:
-            self.bulge = "square"
 
         self.qc = qc
         self.qwires = qc.N
         self.cwires = qc.num_cbits
-        self.dpi = dpi
-        self.gate_margin = condense
-        self.padding = padding
-        self.bgcolor = bgcolor
-        self.wire_label = wire_label
+
+        if style.get("bulge", True):
+            self.bulge = "round4"
+        else:
+            self.bulge = "square"
+        self.dpi = style.get("dpi", 150)
+        self.padding = style.get("padding", 0.3)
+        self.fontsize = style.get("fontsize", 10)
+        self.gate_margin = style.get("condense", 0.3)
+        self.bgcolor = style.get("bgcolor", "#FFFFFF")
+        self.wire_label = style.get("wire_label", None)
+        self.end_wire_ext = style.get("end_wire_ext", 2)
         self.layer_list = {i: [self.start_pad] for i in range(self.qwires)}
 
         # fig config
@@ -100,7 +86,7 @@ class MatRenderer:
 
         self.canvas_plot()
 
-    def _get_xskip(self, wire_list, layer):
+    def _get_xskip(self, wire_list: List[int], layer: int) -> float:
         """
         Get the xskip (horizontal value for getting to requested layer) for the gate to be plotted.
 
@@ -120,8 +106,13 @@ class MatRenderer:
         return max(xskip)
 
     def _get_text_width(
-        self, text, fontsize, fontweight, fontfamily, fontstyle
-    ):
+        self,
+        text: str,
+        fontsize: float,
+        fontweight: Union[float, str],
+        fontfamily: str,
+        fontstyle: str,
+    ) -> float:
         """
         Get the width of the text to be plotted.
 
@@ -130,10 +121,10 @@ class MatRenderer:
         text : str
             The text to be plotted.
 
-        fontsize : int
+        fontsize : float
             The fontsize of the text.
 
-        fontweight : str
+        fontweight : str or float
             The fontweight of the text.
 
         fontfamily : str
@@ -167,7 +158,13 @@ class MatRenderer:
 
         return bbox_data.width * 2.54 * 3
 
-    def _manage_layers(self, gate_width, wire_list, layer, xskip=0):
+    def _manage_layers(
+        self,
+        gate_width: float,
+        wire_list: List[int],
+        layer: int,
+        xskip: float = 0,
+    ) -> None:
         """
         Manages and updates the layer widths according to the gate's width just plotted.
 
@@ -201,7 +198,7 @@ class MatRenderer:
                     temp + gate_width + self.gate_margin * 2
                 )
 
-    def _add_wire(self):
+    def _add_wire(self) -> None:
         """
         Adds the wires to the circuit.
         """
@@ -244,7 +241,7 @@ class MatRenderer:
             self.ax.add_line(wire_up)
             self.ax.add_line(wire_down)
 
-    def _add_wire_labels(self):
+    def _add_wire_labels(self) -> None:
         """
         Adds the wire labels to the circuit.
         """
@@ -259,7 +256,7 @@ class MatRenderer:
             [
                 self._get_text_width(
                     label,
-                    8,
+                    self.fontsize,
                     "normal",
                     "monospace",
                     "normal",
@@ -273,54 +270,53 @@ class MatRenderer:
                 -self.label_pad,
                 i * self.wire_sep,
                 label,
-                fontsize=self.font_size,
+                fontsize=self.fontsize,
                 verticalalignment="center",
                 horizontalalignment="right",
                 zorder=3,
             )
             self.ax.add_artist(wire_label)
 
-    def _draw_control_node(self, pos, xskip, color):
+    def _draw_control_node(self, pos: int, xskip: float, color: str) -> None:
         """
         Draw the control node for the multi-qubit gate.
 
         Parameters
         ----------
         pos : int
-            The position of the control node.
+            The position of the control node, in terms of the wire number.
 
         xskip : float
             The horizontal value for getting to requested layer.
 
         color : str
-            The color of the control node.
+            The color of the control node. HEX code or color name supported by matplotlib are valid.
         """
 
         pos = pos + self.cwires
 
-        control_node_radius = 0.05
         control_node = Circle(
             (xskip + self.gate_margin + self.gate_pad, pos * self.wire_sep),
-            control_node_radius,
+            self.control_node_radius,
             color=color,
             zorder=2,
         )
         self.ax.add_artist(control_node)
 
-    def _draw_target_node(self, pos, xskip, node_color):
+    def _draw_target_node(self, pos: int, xskip: float, color: str) -> None:
         """
         Draw the target node for the multi-qubit gate.
 
         Parameters
         ----------
         pos : int
-            The position of the target node.
+            The position of the target node, in terms of the wire number.
 
         xskip : float
             The horizontal value for getting to requested layer.
 
-        node_color : str
-            The color of the target node.
+        color : str
+            The color of the control node. HEX code or color name supported by matplotlib are valid.
         """
 
         pos = pos + self.cwires
@@ -328,7 +324,7 @@ class MatRenderer:
         target_node = Circle(
             (xskip + self.gate_margin + self.gate_pad, pos * self.wire_sep),
             self.target_node_r,
-            color=node_color,
+            color=color,
             zorder=2,
         )
         vertical_line = plt.Line2D(
@@ -365,23 +361,25 @@ class MatRenderer:
         self.ax.add_line(vertical_line)
         self.ax.add_line(horizontal_line)
 
-    def _draw_qbridge(self, pos1, pos2, xskip, color):
+    def _draw_qbridge(
+        self, pos1: int, pos2: int, xskip: float, color: str
+    ) -> None:
         """
         Draw the bridge between the control and target nodes for the multi-qubit gate.
 
         Parameters
         ----------
         pos1 : int
-            The position of the first node for the bridge.
+            The position of the first node for the bridge, in terms of the wire number.
 
         pos2 : int
-            The position of the second node for the bridge.
+            The position of the second node for the bridge, in terms of the wire number.
 
         xskip : float
             The horizontal value for getting to requested layer.
 
         color : str
-            The color of the bridge.
+            The color of the control node. HEX code or color name supported by matplotlib are valid.
         """
         pos2 = pos2 + self.cwires
         pos1 = pos1 + self.cwires
@@ -397,17 +395,19 @@ class MatRenderer:
         )
         self.ax.add_line(bridge)
 
-    def _draw_cbridge(self, c_pos, q_pos, xskip, color):
+    def _draw_cbridge(
+        self, c_pos: int, q_pos: int, xskip: float, color: str
+    ) -> None:
         """
         Draw the bridge between the classical and quantum wires for the measurement gate.
 
         Parameters
         ----------
         c_pos : int
-            The position of the classical wire.
+            The position of the classical wire, in terms of the wire number.
 
         q_pos : int
-            The position of the quantum wire.
+            The position of the quantum wire, in terms of the wire number.
 
         xskip : float
             The horizontal value for getting to requested layer.
@@ -463,14 +463,14 @@ class MatRenderer:
         self.ax.add_line(cbridge_r)
         self.ax.add_artist(end_arrow)
 
-    def _draw_swap_mark(self, pos, xskip, color):
+    def _draw_swap_mark(self, pos: int, xskip: int, color: str) -> None:
         """
         Draw the swap mark for the SWAP gate.
 
         Parameters
         ----------
         pos : int
-            The position of the swap mark.
+            The position of the swap mark, in terms of the wire number.
 
         xskip : float
             The horizontal value for getting to requested layer.
@@ -510,7 +510,7 @@ class MatRenderer:
         self.ax.add_line(dia_left)
         self.ax.add_line(dia_right)
 
-    def to_pi_fraction(self, value, tolerance=0.01):
+    def to_pi_fraction(self, value: float, tolerance: float = 0.01) -> str:
         """
         Convert a value to a string fraction of pi.
 
@@ -543,7 +543,7 @@ class MatRenderer:
 
         return f"[{round(value, 2)}]"
 
-    def _draw_singleq_gate(self, gate, layer):
+    def _draw_singleq_gate(self, gate: Gate, layer: int) -> None:
         """
         Draw the single qubit gate.
 
@@ -606,7 +606,7 @@ class MatRenderer:
         self.ax.add_patch(gate_patch)
         self._manage_layers(gate_width, [gate_wire], layer)
 
-    def _draw_multiq_gate(self, gate, layer):
+    def _draw_multiq_gate(self, gate: Gate, layer: int) -> None:
         """
         Draw the multi-qubit gate.
 
@@ -752,9 +752,7 @@ class MatRenderer:
             self.ax.add_patch(gate_patch)
             self._manage_layers(gate_width, wire_list, layer, xskip)
 
-            return None
-
-    def _draw_measure(self, c_pos, q_pos, layer):
+    def _draw_measure(self, c_pos: int, q_pos: int, layer: int) -> None:
         """
         Draw the measurement gate.
 
@@ -821,7 +819,7 @@ class MatRenderer:
         self.ax.add_artist(arc)
         self.ax.add_artist(arrow)
 
-    def canvas_plot(self):
+    def canvas_plot(self) -> None:
         """
         Plot the quantum circuit.
         """
@@ -850,7 +848,7 @@ class MatRenderer:
                 self.color = style.get(
                     "color", default_theme.get(gate.name, "k")
                 )
-                self.fontsize = style.get("fontsize", self.font_size)
+                self.fontsize = style.get("fontsize", self.fontsize)
                 self.fontcolor = style.get("fontcolor", "#FFFFFF")
                 self.fontweight = style.get("fontweight", "normal")
                 self.fontstyle = style.get("fontstyle", "normal")
@@ -883,7 +881,7 @@ class MatRenderer:
         self._add_wire()
         self._fig_config()
 
-    def _fig_config(self):
+    def _fig_config(self) -> None:
         """
         Configure the figure settings.
         """
@@ -895,7 +893,7 @@ class MatRenderer:
         self.ax.set_xlim(
             -self.padding - self.max_label_width - self.label_pad,
             self.padding
-            + 2 * self.layer_sep
+            + self.end_wire_ext * self.layer_sep
             + max([sum(self.layer_list[i]) for i in range(self.qwires)]),
         )
         self.ax.set_aspect("equal")
