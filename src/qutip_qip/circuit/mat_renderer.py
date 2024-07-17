@@ -6,6 +6,7 @@ from typing import List, Union
 
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.axes import Axes
 from matplotlib.patches import (
     FancyBboxPatch,
     Circle,
@@ -38,16 +39,18 @@ class MatRenderer:
     def __init__(
         self,
         qc: QubitCircuit,
+        ax: Axes = None,
         style: dict = None,
     ) -> None:
 
-        self.wire_sep = 0.5
-        self.layer_sep = 0.5
+        self.qc = qc
+        self.ax = ax
+        self.qwires = qc.N
+        self.cwires = qc.num_cbits
+
         self.cwire_sep = 0.02
         self.gate_height = 0.2
         self.gate_width = 0.2
-        self.gate_pad = 0.05
-        self.label_pad = 0.1
         self.default_layers = 2
         self.arrow_lenght = 0.06
         self.connector_r = 0.01
@@ -56,10 +59,8 @@ class MatRenderer:
         self.display_layer_len = 0
         self.start_pad = 0.1
 
-        self.qc = qc
-        self.qwires = qc.N
-        self.cwires = qc.num_cbits
-
+        # user defined style
+        style = {} if style is None else style
         if style.get("bulge", True):
             self.bulge = "round4"
         else:
@@ -68,9 +69,16 @@ class MatRenderer:
         self.padding = style.get("padding", 0.3)
         self.fontsize = style.get("fontsize", 10)
         self.gate_margin = style.get("condense", 0.3)
+        self.wire_sep = style.get("wire_sep", 0.5)
+        self.layer_sep = style.get("layer_sep", 0.5)
+        self.gate_pad = style.get("gate_pad", 0.05)
+        self.label_pad = style.get("label_pad", 0.1)
         self.bgcolor = style.get("bgcolor", "#FFFFFF")
         self.wire_label = style.get("wire_label", None)
         self.end_wire_ext = style.get("end_wire_ext", 2)
+        self.center_ciruit = style.get("center_circuit", False)
+        self.title = style.get("title", None)
+
         self.layer_list = {i: [self.start_pad] for i in range(self.qwires)}
 
         # fig config
@@ -78,11 +86,12 @@ class MatRenderer:
             (self.qwires + self.cwires) * self.wire_sep * 0.393701 * 3
         )
         self.fig_width = 10
-        self.fig, self.ax = plt.subplots(
-            figsize=(self.fig_width, self.fig_height),
-            dpi=self.dpi,
-            facecolor=self.bgcolor,
-        )
+        if self.ax is None:
+            self.fig, self.ax = plt.subplots(
+                figsize=(self.fig_width, self.fig_height),
+                dpi=self.dpi,
+                facecolor=self.bgcolor,
+            )
 
         self.canvas_plot()
 
@@ -881,7 +890,7 @@ class MatRenderer:
         self._add_wire()
         self._fig_config()
 
-    def _fig_config(self) -> None:
+    def _fig_config(self) -> Axes:
         """
         Configure the figure settings.
         """
@@ -896,5 +905,24 @@ class MatRenderer:
             + self.end_wire_ext * self.layer_sep
             + max([sum(self.layer_list[i]) for i in range(self.qwires)]),
         )
+        if self.title is not None:
+            self.ax.set_title(self.title, pad=10)
         self.ax.set_aspect("equal")
         self.ax.axis("off")
+
+        return self.ax
+
+    def save(self, filename: str, **kwargs) -> None:
+        """
+        Save the circuit to a file.
+
+        Parameters
+        ----------
+        filename : str
+            The name of the file to save the circuit to.
+
+        **kwargs
+            Additional arguments to be passed to `plt.savefig`.
+        """
+
+        self.fig.savefig(filename, **kwargs)
