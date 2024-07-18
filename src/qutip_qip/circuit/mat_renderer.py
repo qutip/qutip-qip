@@ -68,7 +68,7 @@ class MatRenderer:
         self.dpi = style.get("dpi", 150)
         self.padding = style.get("padding", 0.3)
         self.fontsize = style.get("fontsize", 10)
-        self.gate_margin = style.get("condense", 0.3)
+        self.gate_margin = style.get("condense", 0.15)
         self.wire_sep = style.get("wire_sep", 0.5)
         self.layer_sep = style.get("layer_sep", 0.5)
         self.gate_pad = style.get("gate_pad", 0.05)
@@ -76,12 +76,24 @@ class MatRenderer:
         self.bgcolor = style.get("bgcolor", "#FFFFFF")
         self.wire_label = style.get("wire_label", None)
         self.end_wire_ext = style.get("end_wire_ext", 2)
-        self.center_ciruit = style.get("center_circuit", False)
+        self.align_layer = style.get("align_layer", False)
         self.title = style.get("title", None)
+        self.fig_height = style.get("fig_height", None)
+        self.fig_width = style.get("fig_width", None)
 
         self.layer_list = {i: [self.start_pad] for i in range(self.qwires)}
 
         # fig config
+        self.zorder = {
+            "wire": 1,
+            "wire_label": 1,
+            "gate": 2,
+            "node": 2,
+            "bridge": 2,
+            "connector": 3,
+            "gate_label": 3,
+            "node_label": 3,
+        }
         self.fig_height = (
             (self.qwires + self.cwires) * self.wire_sep * 0.393701 * 3
         )
@@ -109,6 +121,9 @@ class MatRenderer:
         """
 
         xskip = []
+        if self.align_layer:
+            wire_list = list(range(self.qwires))
+
         for wire in wire_list:
             xskip.append(sum(self.layer_list[wire][:layer]))
 
@@ -222,7 +237,7 @@ class MatRenderer:
                 [i * self.wire_sep, i * self.wire_sep],
                 lw=1,
                 color="k",
-                zorder=1,
+                zorder=self.zorder["wire"],
             )
             self.ax.add_line(wire)
 
@@ -235,7 +250,7 @@ class MatRenderer:
                 ],
                 lw=1,
                 color="k",
-                zorder=1,
+                zorder=self.zorder["wire"],
             )
             wire_down = plt.Line2D(
                 [0, max_len],
@@ -245,7 +260,7 @@ class MatRenderer:
                 ],
                 lw=1,
                 color="k",
-                zorder=1,
+                zorder=self.zorder["wire"],
             )
             self.ax.add_line(wire_up)
             self.ax.add_line(wire_down)
@@ -282,7 +297,7 @@ class MatRenderer:
                 fontsize=self.fontsize,
                 verticalalignment="center",
                 horizontalalignment="right",
-                zorder=3,
+                zorder=self.zorder["wire_label"],
             )
             self.ax.add_artist(wire_label)
 
@@ -308,7 +323,7 @@ class MatRenderer:
             (xskip + self.gate_margin + self.gate_pad, pos * self.wire_sep),
             self.control_node_radius,
             color=color,
-            zorder=2,
+            zorder=self.zorder["node"],
         )
         self.ax.add_artist(control_node)
 
@@ -334,7 +349,7 @@ class MatRenderer:
             (xskip + self.gate_margin + self.gate_pad, pos * self.wire_sep),
             self.target_node_r,
             color=color,
-            zorder=2,
+            zorder=self.zorder["node"],
         )
         vertical_line = plt.Line2D(
             (
@@ -347,7 +362,7 @@ class MatRenderer:
             ),
             lw=1.5,
             color="white",
-            zorder=3,
+            zorder=self.zorder["node_label"],
         )
         horizontal_line = plt.Line2D(
             (
@@ -363,7 +378,7 @@ class MatRenderer:
             (pos * self.wire_sep, pos * self.wire_sep),
             lw=1.5,
             color="white",
-            zorder=3,
+            zorder=self.zorder["node_label"],
         )
 
         self.ax.add_artist(target_node)
@@ -400,7 +415,7 @@ class MatRenderer:
             ],
             [pos1 * self.wire_sep, pos2 * self.wire_sep],
             color=color,
-            zorder=2,
+            zorder=self.zorder["bridge"],
         )
         self.ax.add_line(bridge)
 
@@ -439,7 +454,7 @@ class MatRenderer:
             ),
             (c_pos * self.wire_sep + self.arrow_lenght, q_pos * self.wire_sep),
             color=color,
-            zorder=2,
+            zorder=self.zorder["bridge"],
         )
         cbridge_r = plt.Line2D(
             (
@@ -454,7 +469,7 @@ class MatRenderer:
             ),
             (c_pos * self.wire_sep + self.arrow_lenght, q_pos * self.wire_sep),
             color=color,
-            zorder=2,
+            zorder=self.zorder["bridge"],
         )
         end_arrow = FancyArrow(
             xskip + self.gate_margin + self.gate_width / 2,
@@ -466,7 +481,7 @@ class MatRenderer:
             head_length=self.cwire_sep * 3,
             length_includes_head=True,
             color="k",
-            zorder=2,
+            zorder=self.zorder["bridge"],
         )
         self.ax.add_line(cbridge_l)
         self.ax.add_line(cbridge_r)
@@ -501,7 +516,7 @@ class MatRenderer:
             ],
             color=color,
             linewidth=1.5,
-            zorder=3,
+            zorder=self.zorder["gate"],
         )
         dia_right = plt.Line2D(
             [
@@ -514,7 +529,7 @@ class MatRenderer:
             ],
             color=color,
             linewidth=1.5,
-            zorder=3,
+            zorder=self.zorder["gate"],
         )
         self.ax.add_line(dia_left)
         self.ax.add_line(dia_right)
@@ -594,7 +609,7 @@ class MatRenderer:
             fontstyle=self.fontstyle,
             verticalalignment="center",
             horizontalalignment="center",
-            zorder=3,
+            zorder=self.zorder["gate_label"],
         )
         gate_patch = FancyBboxPatch(
             (
@@ -608,7 +623,7 @@ class MatRenderer:
             mutation_scale=0.3,
             facecolor=self.color,
             edgecolor=self.color,
-            zorder=2,
+            zorder=self.zorder["gate"],
         )
 
         self.ax.add_artist(gate_text)
@@ -700,7 +715,7 @@ class MatRenderer:
                 fontstyle=self.fontstyle,
                 verticalalignment="center",
                 horizontalalignment="center",
-                zorder=3,
+                zorder=self.zorder["gate_label"],
             )
 
             gate_patch = FancyBboxPatch(
@@ -715,7 +730,7 @@ class MatRenderer:
                 mutation_scale=0.3,
                 facecolor=self.color,
                 edgecolor=self.color,
-                zorder=2,
+                zorder=self.zorder["gate"],
             )
 
             if len(gate.targets) > 1:
@@ -727,7 +742,7 @@ class MatRenderer:
                         ),
                         self.connector_r,
                         color=self.fontcolor,
-                        zorder=3,
+                        zorder=self.zorder["connector"],
                     )
                     connector_r = Circle(
                         (
@@ -739,7 +754,7 @@ class MatRenderer:
                         ),
                         self.connector_r,
                         color=self.fontcolor,
-                        zorder=3,
+                        zorder=self.zorder["connector"],
                     )
                     self.ax.add_artist(connector_l)
                     self.ax.add_artist(connector_r)
@@ -791,7 +806,7 @@ class MatRenderer:
             mutation_scale=0.3,
             facecolor="white",
             edgecolor="k",
-            zorder=2,
+            zorder=self.zorder["gate"],
         )
         arc = Arc(
             (
@@ -804,7 +819,7 @@ class MatRenderer:
             theta1=0,
             theta2=180,
             color="k",
-            zorder=2,
+            zorder=self.zorder["gate_label"],
         )
         arrow = FancyArrow(
             xskip + self.gate_margin + self.gate_width / 2,
@@ -814,7 +829,7 @@ class MatRenderer:
             length_includes_head=True,
             head_width=0,
             color="k",
-            zorder=2,
+            zorder=self.zorder["gate_label"],
         )
 
         self._draw_cbridge(c_pos, q_pos, xskip, "k")
@@ -889,8 +904,9 @@ class MatRenderer:
 
         self._add_wire()
         self._fig_config()
+        plt.show()
 
-    def _fig_config(self) -> Axes:
+    def _fig_config(self) -> None:
         """
         Configure the figure settings.
         """
@@ -909,8 +925,6 @@ class MatRenderer:
             self.ax.set_title(self.title, pad=10)
         self.ax.set_aspect("equal")
         self.ax.axis("off")
-
-        return self.ax
 
     def save(self, filename: str, **kwargs) -> None:
         """
