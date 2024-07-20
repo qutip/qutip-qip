@@ -646,7 +646,7 @@ class MatRenderer:
         wire_list = list(
             range(self.merged_qubits[0], self.merged_qubits[-1] + 1)
         )
-        com_xskip = self._get_xskip(self.merged_qubits, layer)
+        com_xskip = self._get_xskip(wire_list, layer)
 
         if gate.name == "CNOT":
             self._draw_control_node(gate.controls[0], com_xskip, self.color)
