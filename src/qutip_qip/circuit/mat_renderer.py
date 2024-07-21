@@ -16,7 +16,7 @@ from matplotlib.patches import (
 
 from ..operations import Gate, Measurement
 from ..circuit import QubitCircuit
-from .color_theme import default_theme
+from .color_theme import qutip, light, modern
 
 __all__ = [
     "MatRenderer",
@@ -65,6 +65,7 @@ class MatRenderer:
             self.bulge = "round4"
         else:
             self.bulge = "square"
+
         self.dpi = style.get("dpi", 150)
         self.padding = style.get("padding", 0.3)
         self.fontsize = style.get("fontsize", 10)
@@ -80,6 +81,15 @@ class MatRenderer:
         self.title = style.get("title", None)
         self.fig_height = style.get("fig_height", None)
         self.fig_width = style.get("fig_width", None)
+        self.globalcolor = style.get("globalcolor", "#FFFFFF")
+
+        if style.get("theme", "qutip") == "qutip":
+            self.theme = qutip
+        elif style.get("theme") == "light":
+            self.theme = light
+            self.globalcolor = "#000000"
+        elif style.get("theme") == "modern":
+            self.theme = modern
 
         self.layer_list = {i: [self.start_pad] for i in range(self.qwires)}
 
@@ -361,7 +371,7 @@ class MatRenderer:
                 pos * self.wire_sep + self.target_node_r / 2,
             ),
             lw=1.5,
-            color="white",
+            color=self.globalcolor,
             zorder=self.zorder["node_label"],
         )
         horizontal_line = plt.Line2D(
@@ -377,7 +387,7 @@ class MatRenderer:
             ),
             (pos * self.wire_sep, pos * self.wire_sep),
             lw=1.5,
-            color="white",
+            color=self.globalcolor,
             zorder=self.zorder["node_label"],
         )
 
@@ -515,7 +525,7 @@ class MatRenderer:
                 pos * self.wire_sep - self.gate_height / 2,
             ],
             color=color,
-            linewidth=1.5,
+            linewidth=2,
             zorder=self.zorder["gate"],
         )
         dia_right = plt.Line2D(
@@ -528,7 +538,7 @@ class MatRenderer:
                 pos * self.wire_sep - self.gate_height / 2,
             ],
             color=color,
-            linewidth=1.5,
+            linewidth=2,
             zorder=self.zorder["gate"],
         )
         self.ax.add_line(dia_left)
@@ -869,11 +879,9 @@ class MatRenderer:
             if isinstance(gate, Gate):
                 style = gate.style if gate.style is not None else {}
                 self.text = style.get("text", gate.name)
-                self.color = style.get(
-                    "color", default_theme.get(gate.name, "k")
-                )
+                self.color = style.get("color", self.theme.get(gate.name, "k"))
                 self.fontsize = style.get("fontsize", self.fontsize)
-                self.fontcolor = style.get("fontcolor", "#FFFFFF")
+                self.fontcolor = style.get("fontcolor", self.globalcolor)
                 self.fontweight = style.get("fontweight", "normal")
                 self.fontstyle = style.get("fontstyle", "normal")
                 self.fontfamily = style.get("fontfamily", "monospace")
