@@ -3,6 +3,10 @@ Color theme for different gates in the circuit diagram.
 """
 
 qutip = {
+    "bgcolor": "#FFFFFF",  # White
+    "color": "#FFFFFF",  # White
+    "wire_color": "#000000",  # Black
+    "default_gate": "#000000",  # Black
     "H": "#6270CE",  # Medium Slate Blue
     "SNOT": "#6270CE",  # Medium Slate Blue
     "X": "#CB4BF9",  # Medium Orchid
@@ -30,6 +34,10 @@ qutip = {
 }
 
 light = {
+    "bgcolor": "#EEEEEE",  # Light Gray
+    "color": "#000000",  # Black
+    "wire_color": "#000000",  # Black
+    "default_gate": "#D8CDAF",  # Bit Dark Beige
     "H": "#A3C1DA",  # Light Blue
     "SNOT": "#A3C1DA",  # Light Blue
     "X": "#F4A7B9",  # Light Pink
@@ -40,7 +48,7 @@ light = {
     "RX": "#B3E6E4",  # Light Teal
     "RY": "#B3E6E4",  # Light Teal
     "RZ": "#B3E6E4",  # Light Teal
-    "CNOT": "#C3C5E6",  # Light Indigo
+    "CNOT": "#B7C9F2",  # Light Indigo
     "CPHASE": "#D5E0F2",  # Light Slate Blue
     "TOFFOLI": "#E6CCE6",  # Soft Lavender
     "SWAP": "#FFB6B6",  # Lighter Coral Pink
@@ -56,7 +64,43 @@ light = {
     "FREDKIN": "#CDC1E8",  # Light Purple
 }
 
+dark = {
+    "bgcolor": "#000000",  # Black
+    "color": "#000000",  # Black
+    "wire_color": "#989898",  # Dark Gray
+    "default_gate": "#D8BFD8",  # (Thistle)
+    "H": "#AFEEEE",  # Pale Turquoise
+    "SNOT": "#AFEEEE",  # Pale Turquoise
+    "X": "#9370DB",  # Medium Purple
+    "Y": "#9370DB",  # Medium Purple
+    "Z": "#9370DB",  # Medium Purple
+    "S": "#B0E0E6",  # Powder Blue
+    "T": "#B0E0E6",  # Powder Blue
+    "RX": "#87CEEB",  # Sky Blue
+    "RY": "#87CEEB",  # Sky Blue
+    "RZ": "#87CEEB",  # Sky Blue
+    "CNOT": "#6495ED",  # Cornflower Blue
+    "CPHASE": "#8A2BE2",  # Blue Violet
+    "TOFFOLI": "#DA70D6",  # Orchid
+    "SWAP": "#BA55D3",  # Medium Orchid
+    "CX": "#4682B4",  # Steel Blue
+    "CY": "#4682B4",  # Steel Blue
+    "CZ": "#4682B4",  # Steel Blue
+    "CS": "#4682B4",  # Steel Blue
+    "CT": "#4682B4",  # Steel Blue
+    "CRX": "#7B68EE",  # Medium Slate Blue
+    "CRY": "#7B68EE",  # Medium Slate Blue
+    "CRZ": "#7B68EE",  # Medium Slate Blue
+    "BERKELEY": "#6A5ACD",  # Slate Blue
+    "FREDKIN": "#6A5ACD",  # Slate Blue
+}
+
+
 modern = {
+    "bgcolor": "#FFFFFF",  # White
+    "color": "#FFFFFF",  # White
+    "wire_color": "#000000",  # Black
+    "default_gate": "#ED9455",  # Slate Orange
     "H": "#C25454",  # Soft Red
     "SNOT": "#C25454",  # Soft Red
     "X": "#4A5D6D",  # Dark Slate Blue
