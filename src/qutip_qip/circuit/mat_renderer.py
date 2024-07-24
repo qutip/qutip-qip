@@ -712,7 +712,7 @@ class MatRenderer:
         """
 
         wire_list = list(
-            range(self.merged_qubits[0], self.merged_qubits[-1] + 1)
+            range(self.merged_wires[0], self.merged_wires[-1] + 1)
         )
         com_xskip = self._get_xskip(wire_list, layer)
 
@@ -864,7 +864,7 @@ class MatRenderer:
         """
 
         xskip = self._get_xskip(
-            list(range(0, self.merged_qubits[-1] + 1)), layer
+            list(range(0, self.merged_wires[-1] + 1)), layer
         )
         measure_box = FancyBboxPatch(
             (
@@ -912,7 +912,7 @@ class MatRenderer:
         self._draw_cbridge(c_pos, q_pos, xskip, color=self.style.measure_color)
         self._manage_layers(
             self._min_gate_width,
-            list(range(0, self.merged_qubits[-1] + 1)),
+            list(range(0, self.merged_wires[-1] + 1)),
             layer,
             xskip,
         )
@@ -930,17 +930,16 @@ class MatRenderer:
         for gate in self._qc.gates:
 
             if isinstance(gate, Measurement):
-                self.merged_qubits = gate.targets.copy()
-                self.merged_qubits.sort()
+                self.merged_wires = gate.targets.copy()
+                self.merged_wires.sort()
 
-                find_layer = [
-                    len(self._layer_list[i])
-                    for i in range(0, self.merged_qubits[-1] + 1)
-                ]
                 self._draw_measure(
                     gate.classical_store,
                     gate.targets[0],
-                    max(find_layer),
+                    max(
+                        len(self._layer_list[i])
+                        for i in range(0, self.merged_wires[-1] + 1)
+                    ),
                 )
 
             if isinstance(gate, Gate):
@@ -964,15 +963,15 @@ class MatRenderer:
                     len(gate.targets) > 1
                     or getattr(gate, "controls", False) is not None
                 ):
-                    self.merged_qubits = gate.targets.copy()
+                    self.merged_wires = gate.targets.copy()
                     if gate.controls is not None:
-                        self.merged_qubits += gate.controls.copy()
-                    self.merged_qubits.sort()
+                        self.merged_wires += gate.controls.copy()
+                    self.merged_wires.sort()
 
                     find_layer = [
                         len(self._layer_list[i])
                         for i in range(
-                            self.merged_qubits[0], self.merged_qubits[-1] + 1
+                            self.merged_wires[0], self.merged_wires[-1] + 1
                         )
                     ]
                     self._draw_multiq_gate(gate, max(find_layer))
