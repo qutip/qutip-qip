@@ -970,7 +970,7 @@ class QubitCircuit:
 
     def draw(
         self,
-        renderer="latex",
+        renderer="matplotlib",
         file_type="png",
         dpi=None,
         file_name="exported_pic",
@@ -982,7 +982,7 @@ class QubitCircuit:
         Parameters
         ----------
         renderer : choose the renderer for the circuit.
-                   Default: 'latex'
+                   Default: 'matplotlib'
 
         file_type : Provide a supported image file_type eg: "svg"/"png".
                    Default : "png".
@@ -1012,6 +1012,10 @@ class QubitCircuit:
                 os.path.join(file_path, file_name + "." + file_type), mode
             ) as f:
                 f.write(image_data)
+        elif renderer == "matplotlib":
+            from .mat_renderer import MatRenderer
+            mat = MatRenderer(self)
+            mat.canvas_plot()
         else:
             raise ValueError(
                 f"Unknown renderer '{renderer}' not supported. Please choose from 'latex', 'matplotlib', 'text'."

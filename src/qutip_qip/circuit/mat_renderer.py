@@ -146,8 +146,6 @@ class MatRenderer:
                 facecolor=self.style.bgcolor,
             )
 
-        self.canvas_plot()
-
     def _get_xskip(self, wire_list: List[int], layer: int) -> float:
         """
         Get the xskip (horizontal value for getting to requested layer) for the gate to be plotted.
@@ -249,15 +247,19 @@ class MatRenderer:
         """
 
         for wire in wire_list:
+            # check if requested layer exists for the wire
             if len(self._layer_list[wire]) > layer:
+                # check if the layer width is greater than new layer width
                 if (
                     self._layer_list[wire][layer]
                     < gate_width + self.style.gate_margin * 2
                 ):
+                    # update with new layer width
                     self._layer_list[wire][layer] = (
                         gate_width + self.style.gate_margin * 2
                     )
             else:
+                # add layer width: new layer width + missing layer widths if exits
                 temp = xskip - sum(self._layer_list[wire]) if xskip != 0 else 0
                 self._layer_list[wire].append(
                     temp + gate_width + self.style.gate_margin * 2
@@ -716,7 +718,7 @@ class MatRenderer:
         )
         com_xskip = self._get_xskip(wire_list, layer)
 
-        if gate.name == "CNOT":
+        if gate.name == "CNOT" or gate.name == "CX":
             self._draw_control_node(gate.controls[0], com_xskip, self.color)
             self._draw_target_node(gate.targets[0], com_xskip, self.color)
             self._draw_qbridge(
