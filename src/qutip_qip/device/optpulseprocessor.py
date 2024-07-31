@@ -195,6 +195,7 @@ class OptPulseProcessor(Processor):
             )
 
             import qutip.control.pulseoptim as cpo
+
             result = cpo.optimize_pulse_unitary(
                 full_drift_ham, full_ctrls_hams, U_0, U_targ, **kwargs
             )
