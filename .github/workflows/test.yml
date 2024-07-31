@@ -61,6 +61,11 @@ jobs:
       if: ${{ startsWith( matrix.qutip-version, '@') }}
       run: |
         python -m pip install 'git+https://github.com/qutip/qutip.git${{ matrix.qutip-version }}'
+        
+    - name: Install qutip-qtrl from GitHub
+      if: ${{ matrix.qutip-version == '@master' }}
+      run: |
+        python -m pip install 'git+https://github.com/qutip/qutip-qtrl.git${{ matrix.qutip-version }}'
 
     - name: Install Qiskit from PyPI
       if: ${{ matrix.qiskit-version != '' }}
