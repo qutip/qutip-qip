@@ -5,7 +5,6 @@ import numbers
 import numpy as np
 
 from qutip import Qobj, identity, tensor, mesolve
-import qutip.control.pulseoptim as cpo
 from ..circuit import QubitCircuit
 from .processor import Processor
 from ..operations import gate_sequence_product, expand_operator
@@ -195,6 +194,7 @@ class OptPulseProcessor(Processor):
                 ),
             )
 
+            import qutip.control.pulseoptim as cpo
             result = cpo.optimize_pulse_unitary(
                 full_drift_ham, full_ctrls_hams, U_0, U_targ, **kwargs
             )

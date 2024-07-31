@@ -5,6 +5,7 @@ from numpy.testing import (assert_, assert_allclose,
 import numpy as np
 import pytest
 
+pytest.importorskip("qutip_qtrl")
 from qutip_qip.device import OptPulseProcessor, SpinChainModel
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.qubits import qubit_states
