@@ -74,7 +74,8 @@ jobs:
     - name: Install qutip-qip
       # Installing in-place so that coveralls can locate the source code.
       run: |
-        pip install -e .[full]
+        pip install matplotlib pytest
+        pip install -e .
     - name: Test with pytest and generate coverage report
       run: |
         pip install pytest-cov coveralls
