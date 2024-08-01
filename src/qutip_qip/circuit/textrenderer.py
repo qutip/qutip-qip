@@ -2,8 +2,6 @@
 Module for rendering a quantum circuit in text format.
 """
 
-import math
-
 from ..operations import Measurement
 from ..circuit import QubitCircuit
 
@@ -23,11 +21,12 @@ class TextRenderer:
         self._qwires = qc.N
         self._cwires = qc.num_cbits
         self.gate_pad = 1
+        self.end_ext = 2
 
         self._render_strs = {
-            "top_lid": ["  "] * self._qwires + ["  "] * self._cwires,
+            "top_lid": ["  "] * (self._qwires + self._cwires),
             "mid": ["──"] * self._qwires + ["══"] * self._cwires,
-            "bot_lid": ["  "] * self._qwires + ["  "] * self._cwires,
+            "bot_lid": ["  "] * (self._qwires + self._cwires),
         }
 
         self._layer_list = {i: [] for i in range(self._qwires + self._cwires)}
@@ -78,7 +77,7 @@ class TextRenderer:
                 temp = xskip - sum(self._layer_list[wire]) if xskip != 0 else 0
                 self._layer_list[wire].append(temp + gate_width)
 
-    def add_wire_labels(self):
+    def _add_wire_labels(self):
         """
         Add wire labels to the circuit
         """
@@ -107,7 +106,7 @@ class TextRenderer:
             sum(self._layer_list[i])
             for i in range(self._qwires + self._cwires)
         ]
-        max_length = max(length_wire)
+        max_length = max(length_wire) + self.end_ext
 
         for i in range(self._qwires):
             if length_wire[i] < max_length:
@@ -123,7 +122,7 @@ class TextRenderer:
                 self._render_strs["mid"][i + self._qwires] += "═" * diff
                 self._render_strs["bot_lid"][i + self._qwires] += " " * diff
 
-    def _draw_singleq_gate(self, gate):
+    def _draw_singleq_gate(self, gate_name):
         """
         Draw a single qubit gate
 
@@ -141,11 +140,11 @@ class TextRenderer:
             The width of the gate.
         """
 
-        lid_seg = "─" * (self.gate_pad * 2 + len(gate.name))
+        lid_seg = "─" * (self.gate_pad * 2 + len(gate_name))
         pad = " " * self.gate_pad
 
         top_lid = f" ┌{lid_seg}┐ "
-        mid = f"─┤{pad}{gate.name}{pad}├─"
+        mid = f"─┤{pad}{gate_name}{pad}├─"
         bot_lid = f" └{lid_seg}┘ "
 
         return (top_lid, mid, bot_lid), len(top_lid)
@@ -173,7 +172,7 @@ class TextRenderer:
 
         top_lid = f" ┌{lid_seg}┐ "
         bot_lid = f" └{lid_seg}┘ "
-        mid = f" |{pad}{' ' * len(gate.name)}{pad}| "
+        mid = f" │{pad}{' ' * len(gate.name)}{pad}│ "
         connect = f"─┤{pad}{' ' * len(gate.name)}{pad}├─"
         connect_label = f"─┤{pad}{gate.name}{pad}├─"
 
@@ -186,6 +185,43 @@ class TextRenderer:
                 top_lid = top_lid[:mid_index] + "┴" + top_lid[mid_index + 1 :]
 
         return (top_lid, mid, connect, connect_label, bot_lid), len(top_lid)
+
+    def _draw_measurement_gate(self, measurement):
+
+        parts, width = self._draw_singleq_gate("M")
+        top_lid, mid, bot_lid = parts
+
+        mid_index = len(bot_lid) // 2
+        if measurement.classical_store + self._qwires > measurement.targets[0]:
+            bot_lid = bot_lid[:mid_index] + "╥" + bot_lid[mid_index + 1 :]
+        else:
+            top_lid = top_lid[:mid_index] + "╨" + top_lid[mid_index + 1 :]
+
+        return (top_lid, mid, bot_lid), width
+
+    def _update_cbridge(self, wire_list, xskip, width):
+        """
+        Update the render strings for the control bridge
+
+        Parameters
+        ----------
+        wire_list : list
+            The list of control wires the gate is acting on and all the wires in between.
+
+        xskip : float
+            The horizontal value for getting to requested layer.
+
+        width : int
+            The width of the gate.
+        """
+
+        bar_conn = " " * (width // 2) + "║" + " " * (width // 2 - 1)
+        self._adjust_layer(xskip, wire_list)
+
+        for wire in wire_list:
+            self._render_strs["top_lid"][wire] += bar_conn
+            self._render_strs["mid"][wire] += bar_conn
+            self._render_strs["bot_lid"][wire] += bar_conn
 
     def _adjust_layer(self, xskip, wire_list):
         """
@@ -277,77 +313,143 @@ class TextRenderer:
             If the top of the gate is closer to the first control wires.
         """
 
-        bar_conn = " " * (width // 2) + "|" + " " * (width // 2 - 1)
+        bar_conn = " " * (width // 2) + "│" + " " * (width // 2 - 1)
+        node_conn = "─" * (width // 2) + "▇" + "─" * (width // 2 - 1)
         self._adjust_layer(xskip, wire_list_control)
 
         for wire in wire_list_control:
             if wire not in gate.targets:
                 if wire in gate.controls:
-                    self._render_strs["mid"][wire] += (
-                        "─" * (math.floor(width / 2))
-                        + "▇"
-                        + "─" * (math.floor(width / 2) - 1)
-                    )
-                    self._render_strs["top_lid"][wire] += (
-                        bar_conn if is_top_closer else " " * len(bar_conn)
-                    )
-                    self._render_strs["bot_lid"][wire] += (
-                        bar_conn if not is_top_closer else " " * len(bar_conn)
-                    )
+                    if (
+                        wire == wire_list_control[0]
+                        or wire == wire_list_control[-1]
+                    ):
+                        self._render_strs["mid"][wire] += node_conn
+                        self._render_strs["top_lid"][wire] += (
+                            bar_conn if is_top_closer else " " * len(bar_conn)
+                        )
+                        self._render_strs["bot_lid"][wire] += (
+                            bar_conn
+                            if not is_top_closer
+                            else " " * len(bar_conn)
+                        )
+                    else:
+                        self._render_strs["top_lid"][wire] += bar_conn
+                        self._render_strs["mid"][wire] += node_conn
+                        self._render_strs["bot_lid"][wire] += bar_conn
                 else:
                     self._render_strs["top_lid"][wire] += bar_conn
                     self._render_strs["mid"][wire] += bar_conn
                     self._render_strs["bot_lid"][wire] += bar_conn
 
+    def _update_swap_gate(self, gate):
+        """
+        Update the render strings for the SWAP gate
+        """
+
+        wire_list = list(range(min(gate.targets), max(gate.targets) + 1))
+        layer = max(len(self._layer_list[i]) for i in wire_list)
+        xskip = self.get_xskip(wire_list, layer)
+        self._adjust_layer(xskip, wire_list)
+
+        width = 4 * self.gate_pad + 1
+        cross_conn = " " * (width // 2) + "╳" + " " * (width // 2 - 1)
+        bar_conn = " " * (width // 2) + "│" + " " * (width // 2 - 1)
+        self.manage_layers(wire_list, layer, xskip, width)
+
+        for wire in wire_list:
+            if wire == wire_list[-1]:
+                self._render_strs["top_lid"][wire] += " " * len(bar_conn)
+                self._render_strs["mid"][wire] += cross_conn
+                self._render_strs["bot_lid"][wire] += bar_conn
+            elif wire == wire_list[0]:
+                self._render_strs["top_lid"][wire] += bar_conn
+                self._render_strs["mid"][wire] += cross_conn
+                self._render_strs["bot_lid"][wire] += " " * len(bar_conn)
+            else:
+                self._render_strs["top_lid"][wire] += bar_conn
+                self._render_strs["mid"][wire] += bar_conn
+                self._render_strs["bot_lid"][wire] += bar_conn
+
     def layout(self):
         """
         Layout the circuit
         """
-        self.add_wire_labels()
+        self._add_wire_labels()
 
         for gate in self._qc.gates:
-            if len(gate.targets) == 1 and gate.controls is None:
+            if isinstance(gate, Measurement):
+                wire_list = list(
+                    range(
+                        gate.targets[0],
+                        gate.classical_store + self._qwires,
+                    )
+                )
+                parts, width = self._draw_measurement_gate(gate)
+                layer = max(len(self._layer_list[i]) for i in wire_list)
+                xskip = self.get_xskip(wire_list, layer)
+                self.manage_layers(wire_list, layer, xskip, width)
+                self._update_singleq(gate.targets, parts)
+                # self._update_cbridge(
+                #     wire_list,
+                #     xskip,
+                #     width,
+                # )
+
+            elif len(gate.targets) == 1 and gate.controls is None:
                 wire_list = gate.targets
                 layer = max(len(self._layer_list[i]) for i in wire_list)
                 xskip = self.get_xskip(wire_list, layer)
 
-                parts, width = self._draw_singleq_gate(gate)
+                parts, width = self._draw_singleq_gate(gate.name)
                 self.manage_layers(wire_list, layer, xskip, width)
                 self._update_singleq(wire_list, parts)
             else:
-                merged_wire = sorted(gate.targets + (gate.controls or []))
-                wire_list = list(range(merged_wire[0], merged_wire[-1] + 1))
-                layer = max(len(self._layer_list[i]) for i in wire_list)
-                xskip = self.get_xskip(wire_list, layer)
-                parts, width = self._draw_multiq_gate(gate)
-                self.manage_layers(wire_list, layer, xskip, width)
 
-                sorted_targets = sorted(gate.targets)
-                wire_list_target = list(
-                    range(sorted_targets[0], sorted_targets[-1] + 1)
-                )
-                self._update_target_multiq(
-                    gate, wire_list_target, xskip, parts
-                )
+                if gate.name == "SWAP":
+                    self._update_swap_gate(gate)
+                else:
+                    merged_wire = sorted(gate.targets + (gate.controls or []))
+                    wire_list = list(
+                        range(merged_wire[0], merged_wire[-1] + 1)
+                    )
+                    layer = max(len(self._layer_list[i]) for i in wire_list)
+                    xskip = self.get_xskip(wire_list, layer)
+                    parts, width = self._draw_multiq_gate(gate)
+                    self.manage_layers(wire_list, layer, xskip, width)
 
-                if gate.controls:
-                    sorted_controls = sorted(gate.controls)
-                    is_top_closer = wire_list_target[0] >= sorted_controls[0]
-                    closest_pos = (
-                        wire_list_target[0]
-                        if not is_top_closer
-                        else wire_list_target[-1]
+                    sorted_targets = sorted(gate.targets)
+                    wire_list_target = list(
+                        range(sorted_targets[0], sorted_targets[-1] + 1)
+                    )
+                    self._update_target_multiq(
+                        gate, wire_list_target, xskip, parts
                     )
 
-                    wire_list_control = list(
-                        range(
-                            min(sorted_controls[0], closest_pos),
-                            max(sorted_controls[-1], closest_pos) + 1,
+                    if gate.controls:
+                        sorted_controls = sorted(gate.controls)
+                        is_top_closer = (
+                            wire_list_target[0] >= sorted_controls[0]
                         )
-                    )
-                    self._update_control_multiq(
-                        gate, wire_list_control, xskip, width, is_top_closer
-                    )
+                        closest_pos = (
+                            wire_list_target[0]
+                            if not is_top_closer
+                            else wire_list_target[-1]
+                        )
+
+                        wire_list_control = list(
+                            range(
+                                min(sorted_controls[0], closest_pos),
+                                max(sorted_controls[-1], closest_pos) + 1,
+                            )
+                        )
+                        self._update_control_multiq(
+                            gate,
+                            wire_list_control,
+                            xskip,
+                            width,
+                            is_top_closer,
+                        )
 
         self._extend_line()
         self.print_circuit()
@@ -357,7 +459,12 @@ class TextRenderer:
         Print the circuit
         """
 
-        for i in range(self._qwires + self._cwires - 1, -1, -1):
+        for i in range(self._qwires - 1, -1, -1):
+            print(self._render_strs["top_lid"][i])
+            print(self._render_strs["mid"][i])
+            print(self._render_strs["bot_lid"][i])
+
+        for i in range(self._qwires, self._qwires + self._cwires):
             print(self._render_strs["top_lid"][i])
             print(self._render_strs["mid"][i])
             print(self._render_strs["bot_lid"][i])
