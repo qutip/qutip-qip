@@ -277,7 +277,10 @@ class MatRenderer:
         for i in range(self._qwires):
             wire = plt.Line2D(
                 [0, max_len],
-                [i * self.style.wire_sep, i * self.style.wire_sep],
+                [
+                    (i + self._cwires) * self.style.wire_sep,
+                    (i + self._cwires) * self.style.wire_sep,
+                ],
                 lw=1,
                 color=self.style.wire_color,
                 zorder=self._zorder["wire"],
@@ -288,8 +291,8 @@ class MatRenderer:
             wire_up = plt.Line2D(
                 [0, max_len],
                 [
-                    (i + self._qwires) * self.style.wire_sep,
-                    (i + self._qwires) * self.style.wire_sep,
+                    (i * self.style.wire_sep) + self._cwire_sep,
+                    (i * self.style.wire_sep) + self._cwire_sep,
                 ],
                 lw=1,
                 color=self.style.wire_color,
@@ -298,8 +301,8 @@ class MatRenderer:
             wire_down = plt.Line2D(
                 [0, max_len],
                 [
-                    (i + self._qwires) * self.style.wire_sep,
-                    (i + self._qwires) * self.style.wire_sep,
+                    (i * self.style.wire_sep) - self._cwire_sep,
+                    (i * self.style.wire_sep) - self._cwire_sep,
                 ],
                 lw=1,
                 color=self.style.wire_color,
