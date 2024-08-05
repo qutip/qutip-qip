@@ -975,6 +975,7 @@ class QubitCircuit:
         dpi=None,
         file_name="exported_pic",
         file_path="",
+        **kwargs,
     ):
         """
         Export circuit object as an image file in a supported format.
@@ -1014,7 +1015,8 @@ class QubitCircuit:
                 f.write(image_data)
         elif renderer == "matplotlib":
             from .mat_renderer import MatRenderer
-            mat = MatRenderer(self)
+
+            mat = MatRenderer(self, **kwargs)
             mat.canvas_plot()
         else:
             raise ValueError(

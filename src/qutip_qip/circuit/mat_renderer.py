@@ -81,15 +81,13 @@ class StyleConfig:
         The background color of the circuit. The default is None.
 
     color : Optional[str], optional
-        Controls color of acsent elements (eg. cross sign in the target node) 
-        and set as deafult color of gate-label. Can be overwritten by gate specific color. 
+        Controls color of acsent elements (eg. cross sign in the target node)
+        and set as deafult color of gate-label. Can be overwritten by gate specific color.
         The default is None.
 
     wire_label : Optional[List], optional
         The labels of the wires. The default is None.
     """
-
-
 
     dpi: int = 150
     fontsize: int = 10
@@ -1010,7 +1008,9 @@ class MatRenderer:
 
             if isinstance(gate, Gate):
                 style = gate.style if gate.style is not None else {}
-                self.text = style.get("text", gate.name)
+                self.text = (
+                    gate.arg_label if gate.arg_label is not None else gate.name
+                )
                 self.color = style.get(
                     "color",
                     self.style.theme.get(
