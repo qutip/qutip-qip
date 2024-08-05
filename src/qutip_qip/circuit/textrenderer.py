@@ -102,25 +102,16 @@ class TextRenderer:
         Extend all the wires to the same length
         """
 
-        length_wire = [
-            sum(self._layer_list[i])
-            for i in range(self._qwires + self._cwires)
-        ]
-        max_length = max(length_wire) + self.end_ext
+        wire_len = [sum(wire) for wire in self._layer_list.values()]
+        max_len = max(wire_len) + self.end_ext
 
-        for i in range(self._qwires):
-            if length_wire[i] < max_length:
-                diff = max_length - length_wire[i]
-                self._render_strs["top_lid"][i] += " " * diff
-                self._render_strs["mid"][i] += "─" * diff
-                self._render_strs["bot_lid"][i] += " " * diff
-
-        for i in range(self._cwires):
-            if length_wire[i + self._qwires] < max_length:
-                diff = max_length - length_wire[i + self._qwires]
-                self._render_strs["top_lid"][i + self._qwires] += " " * diff
-                self._render_strs["mid"][i + self._qwires] += "═" * diff
-                self._render_strs["bot_lid"][i + self._qwires] += " " * diff
+        for i, length in enumerate(wire_len):
+            if length < max_len:
+                diff = max_len - length
+                if i < self._qwires:
+                    self._render_strs["mid"][i] += "─" * diff
+                else:
+                    self._render_strs["mid"][i] += "═" * diff
 
     def _draw_singleq_gate(self, gate_name):
         """
@@ -202,7 +193,7 @@ class TextRenderer:
 
         return (top_lid, mid, bot_lid), width
 
-    def _update_cbridge(self, wire_list, classical_store, xskip, width):
+    def _update_cbridge(self, gate, wire_list, xskip, width):
         """
         Update the render strings for the control bridge
 
@@ -218,20 +209,28 @@ class TextRenderer:
             The width of the gate.
         """
 
-        bar_mid_conn = "─" * (width // 2 - 1) + "║" + "─" * (width // 2)
         bar_conn = " " * (width // 2 - 1) + "║" + " " * (width // 2)
+        bar_mid_conn = "─" * (width // 2 - 1) + "║" + "─" * (width // 2)
+        bar_mid_classical_conn = (
+            "═" * (width // 2 - 1) + "║" + "═" * (width // 2)
+        )
         classical_conn = "═" * (width // 2 - 1) + "╩" + "═" * (width // 2)
         self._adjust_layer(xskip, wire_list)
 
         for wire in wire_list:
-            if wire == self._qwires + classical_store:
+            if wire == gate.targets[0]:
+                continue
+            if wire == self._qwires + gate.classical_store:
                 self._render_strs["top_lid"][wire] += bar_conn
                 self._render_strs["mid"][wire] += classical_conn
                 self._render_strs["bot_lid"][wire] += " " * len(bar_conn)
             else:
                 self._render_strs["top_lid"][wire] += bar_conn
-                self._render_strs["mid"][wire] += bar_mid_conn
                 self._render_strs["bot_lid"][wire] += bar_conn
+                if wire > self._qwires:
+                    self._render_strs["mid"][wire] += bar_mid_classical_conn
+                else:
+                    self._render_strs["mid"][wire] += bar_mid_conn
 
     def _adjust_layer(self, xskip, wire_list):
         """
@@ -242,12 +241,17 @@ class TextRenderer:
             self._render_strs["top_lid"][wire] += " " * (
                 xskip - len(self._render_strs["top_lid"][wire])
             )
-            self._render_strs["mid"][wire] += "─" * (
-                xskip - len(self._render_strs["mid"][wire])
-            )
             self._render_strs["bot_lid"][wire] += " " * (
                 xskip - len(self._render_strs["bot_lid"][wire])
             )
+            if wire < self._qwires:
+                self._render_strs["mid"][wire] += "─" * (
+                    xskip - len(self._render_strs["mid"][wire])
+                )
+            else:
+                self._render_strs["mid"][wire] += "═" * (
+                    xskip - len(self._render_strs["mid"][wire])
+                )
 
     def _update_singleq(self, wire_list, parts):
         """
@@ -389,21 +393,18 @@ class TextRenderer:
 
         for gate in self._qc.gates:
             if isinstance(gate, Measurement):
-                wire_list = list(range(gate.targets[0])) + list(
+                wire_list = list(range(gate.targets[0] + 1)) + list(
                     range(
                         gate.classical_store + self._qwires,
                         self._qwires + self._cwires,
                     )
                 )
-                print(wire_list)
                 parts, width = self._draw_measurement_gate(gate)
                 layer = max(len(self._layer_list[i]) for i in wire_list)
                 xskip = self.get_xskip(wire_list, layer)
                 self.manage_layers(wire_list, layer, xskip, width)
                 self._update_singleq(gate.targets, parts)
-                self._update_cbridge(
-                    wire_list, gate.classical_store, xskip, width
-                )
+                self._update_cbridge(gate, wire_list, xskip, width)
 
             elif len(gate.targets) == 1 and gate.controls is None:
                 wire_list = gate.targets
