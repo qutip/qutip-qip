@@ -152,7 +152,8 @@ class TextRenderer:
         Returns
         -------
         tuple
-            The parts of the gate to be drawn. The parts are the top_lid, mid, connect, connect_label, and bot_lid.
+            The parts of the gate to be drawn. 
+            i.e. the top_lid, mid, connect, connect_label, and bot_lid.
 
         int
             The width of the gate.
@@ -185,6 +186,7 @@ class TextRenderer:
         parts, width = self._draw_singleq_gate("M")
         top_lid, mid, bot_lid = parts
 
+        # adjust top_lid or bottom according the placement of the classical wire
         mid_index = len(bot_lid) // 2
         if measurement.classical_store + self._qwires > measurement.targets[0]:
             bot_lid = bot_lid[:mid_index] + "╥" + bot_lid[mid_index + 1 :]
@@ -209,12 +211,12 @@ class TextRenderer:
             The width of the gate.
         """
 
-        bar_conn = " " * (width // 2 - 1) + "║" + " " * (width // 2)
-        bar_mid_conn = "─" * (width // 2 - 1) + "║" + "─" * (width // 2)
+        bar_conn = " " * (width // 2) + "║" + " " * (width // 2)
+        bar_mid_conn = "─" * (width // 2) + "║" + "─" * (width // 2)
         bar_mid_classical_conn = (
-            "═" * (width // 2 - 1) + "║" + "═" * (width // 2)
+            "═" * (width // 2) + "║" + "═" * (width // 2 - 1)
         )
-        classical_conn = "═" * (width // 2 - 1) + "╩" + "═" * (width // 2)
+        classical_conn = "═" * (width // 2) + "╩" + "═" * (width // 2)
         self._adjust_layer(xskip, wire_list)
 
         for wire in wire_list:
@@ -367,8 +369,8 @@ class TextRenderer:
         self._adjust_layer(xskip, wire_list)
 
         width = 4 * self.gate_pad + 1
-        cross_conn = "─" * (width // 2) + "╳" + "─" * (width // 2 - 1)
-        bar_conn = " " * (width // 2) + "│" + " " * (width // 2 - 1)
+        cross_conn = "─" * (width // 2) + "╳" + "─" * (width // 2)
+        bar_conn = " " * (width // 2) + "│" + " " * (width // 2)
         self.manage_layers(wire_list, layer, xskip, width)
 
         for wire in wire_list:
