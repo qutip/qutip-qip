@@ -87,6 +87,9 @@ class StyleConfig:
 
     wire_label : Optional[List], optional
         The labels of the wires. The default is None.
+
+    wire_color : Optional[str], optional
+        The color of the wires. The default is None.
     """
 
     dpi: int = 150
@@ -125,7 +128,9 @@ class StyleConfig:
             self.theme = modern
         else:
             raise ValueError(
-                f"Invalid theme: {self.theme}. Must be selectec from 'qutip', 'light', 'dark', or 'modern'."
+                f"""Invalid theme: {self.theme},
+                Must be selectec from 'qutip', 'light', 'dark', or 'modern'.
+                """
             )
 
         self.bgcolor = self.bgcolor or self.theme["bgcolor"]
@@ -218,10 +223,10 @@ class MatRenderer:
             The layer the gate is acting on.
         """
 
-        xskip = []
         if self.style.align_layer:
             wire_list = list(range(self._qwires))
 
+        xskip = []
         for wire in wire_list:
             xskip.append(sum(self._layer_list[wire][:layer]))
 
@@ -400,6 +405,9 @@ class MatRenderer:
                 i * self.style.wire_sep,
                 label,
                 fontsize=self.style.fontsize,
+                fontweight="normal",
+                fontfamily="monospace",
+                fontstyle="normal",
                 verticalalignment="center",
                 horizontalalignment="right",
                 zorder=self._zorder["wire_label"],
