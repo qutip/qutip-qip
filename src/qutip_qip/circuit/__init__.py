@@ -4,6 +4,7 @@ import warnings
 
 from .circuit import *
 from .circuitsimulator import *
+from .mat_renderer import *
 from ..operations import Gate, Measurement
 from .texrenderer import *
 

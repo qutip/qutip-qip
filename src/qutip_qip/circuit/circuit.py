@@ -200,6 +200,7 @@ class QubitCircuit:
         classical_controls=None,
         control_value=None,
         classical_control_value=None,
+        style=None,
     ):
         """
         Adds a gate with specified parameters to the circuit.
@@ -245,6 +246,7 @@ class QubitCircuit:
                 classical_controls=classical_controls,
                 control_value=control_value,
                 classical_control_value=classical_control_value,
+                style=style,
             )
 
         if index is None:
@@ -968,11 +970,12 @@ class QubitCircuit:
 
     def draw(
         self,
-        renderer="latex",
+        renderer="matplotlib",
         file_type="png",
         dpi=None,
         file_name="exported_pic",
         file_path="",
+        **kwargs,
     ):
         """
         Export circuit object as an image file in a supported format.
@@ -980,7 +983,7 @@ class QubitCircuit:
         Parameters
         ----------
         renderer : choose the renderer for the circuit.
-                   Default: 'latex'
+                   Default: 'matplotlib'
 
         file_type : Provide a supported image file_type eg: "svg"/"png".
                    Default : "png".
@@ -1010,6 +1013,11 @@ class QubitCircuit:
                 os.path.join(file_path, file_name + "." + file_type), mode
             ) as f:
                 f.write(image_data)
+        elif renderer == "matplotlib":
+            from .mat_renderer import MatRenderer
+
+            mat = MatRenderer(self, **kwargs)
+            mat.canvas_plot()
         else:
             raise ValueError(
                 f"Unknown renderer '{renderer}' not supported. Please choose from 'latex', 'matplotlib', 'text'."
