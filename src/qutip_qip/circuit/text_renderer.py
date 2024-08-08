@@ -454,6 +454,7 @@ class TextRenderer:
             self.manage_layers(wire_list, layer, xskip, width)
 
             if isinstance(gate, Measurement):
+                self._adjust_layer(wire_list, xskip)
                 self._update_singleq(gate.targets, parts)
                 self._update_cbridge(gate, wire_list, xskip, width)
             elif len(gate.targets) == 1 and gate.controls is None:
