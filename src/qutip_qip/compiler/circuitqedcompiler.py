@@ -91,6 +91,7 @@ class SCQubitsCompiler(GateCompiler):
                 "RY": self.ry_compiler,
                 "RX": self.rx_compiler,
                 "CNOT": self.cnot_compiler,
+                "RZX": self.rzx_compiler,
             }
         )
         self.args = {  # Default configuration
@@ -130,10 +131,22 @@ class SCQubitsCompiler(GateCompiler):
             maximum=self.params[param_label][targets[0]],
             area=gate.arg_value / 2.0 / np.pi,
         )
+        f = 2 * np.pi * self.params["wq"][targets[0]]
         if args["DRAG"]:
             pulse_info = self._drag_pulse(op_label, coeff, tlist, targets[0])
+        elif op_label == "sx":
+            pulse_info = [
+                ("sx" + str(targets[0]), coeff),
+                # Add zero here just to make it easier to add the driving frequency later.
+                ("sy" + str(targets[0]), np.zeros(len(coeff))),
+            ]
+        elif op_label == "sy":
+            pulse_info = [
+                ("sx" + str(targets[0]), np.zeros(len(coeff))),
+                ("sy" + str(targets[0]), coeff),
+            ]
         else:
-            pulse_info = [(op_label + str(targets[0]), coeff)]
+            raise RuntimeError("Unknown label.")
         return [Instruction(gate, tlist, pulse_info)]
 
     def _drag_pulse(self, op_label, coeff, tlist, target):
@@ -198,6 +211,40 @@ class SCQubitsCompiler(GateCompiler):
         """
         return self._rotation_compiler(gate, "sx", "omega_single", args)
 
+    def rzx_compiler(self, gate, args):
+        """
+        Cross-Resonance RZX rotation, building block for the CNOT gate.
+
+        Parameters
+        ----------
+        gate : :obj:`~.operations.Gate`:
+            The quantum gate to be compiled.
+        args : dict
+            The compilation configuration defined in the attributes
+            :obj:`.GateCompiler.args` or given as a parameter in
+            :obj:`.GateCompiler.compile`.
+
+        Returns
+        -------
+        A list of :obj:`.Instruction`, including the compiled pulse
+        information for this gate.
+        """
+        result = []
+        q1, q2 = gate.targets
+        if q1 < q2:
+            zx_coeff = self.params["zx_coeff"][2 * q1]
+        else:
+            zx_coeff = self.params["zx_coeff"][2 * q1 - 1]
+        area = 0.5
+        coeff, tlist = self.generate_pulse_shape(
+            args["shape"], args["num_samples"], maximum=zx_coeff, area=area
+        )
+        tlist *= np.sqrt(np.abs(gate.arg_value) / (np.pi / 2))
+        coeff *= np.sqrt(np.abs(gate.arg_value) / (np.pi / 2))
+        pulse_info = [("zx" + str(q1) + str(q2), coeff)]
+        result += [Instruction(gate, tlist, pulse_info)]
+        return result
+
     def cnot_compiler(self, gate, args):
         """
         Compiler for CNOT gate using the cross resonance iteraction.
@@ -226,13 +273,9 @@ class SCQubitsCompiler(GateCompiler):
         gate1 = Gate("RX", q2, arg_value=-np.pi / 2)
         result += self.gate_compiler[gate1.name](gate1, args)
 
-        zx_coeff = self.params["zx_coeff"][q1]
-        area = 1 / 2
-        coeff, tlist = self.generate_pulse_shape(
-            args["shape"], args["num_samples"], maximum=zx_coeff, area=area
-        )
-        pulse_info = [("zx" + str(q1) + str(q2), coeff)]
-        result += [Instruction(gate, tlist, pulse_info)]
+        from ..operations.gateclass import RZX
+        gate = Gate("RZX", targets=[q1, q2], arg_value=np.pi/2)
+        result += self.rzx_compiler(gate, args)
 
         gate3 = Gate("RX", q1, arg_value=-np.pi / 2)
         result += self.gate_compiler[gate3.name](gate3, args)
