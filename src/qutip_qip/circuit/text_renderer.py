@@ -2,8 +2,10 @@
 Module for rendering a quantum circuit in text format.
 """
 
+from math import ceil
 from typing import List
 
+from .base_renderer import BaseRenderer, StyleConfig
 from ..operations import Gate, Measurement
 from . import QubitCircuit
 
@@ -12,18 +14,22 @@ __all__ = [
 ]
 
 
-class TextRenderer:
+class TextRenderer(BaseRenderer):
     """
     A class to render a quantum circuit in text format.
     """
 
-    def __init__(self, qc: QubitCircuit):
+    def __init__(self, qc: QubitCircuit, **style):
 
+        # user defined style
+        style = {} if style is None else style
+        style["gate_margin"] = 0
+        self.style = StyleConfig(**style)
+
+        super().__init__(self.style)
         self._qc = qc
         self._qwires = qc.N
         self._cwires = qc.num_cbits
-        self.gate_pad = 1
-        self.end_ext = 2
 
         self._render_strs = {
             "top_frame": ["  "] * (self._qwires + self._cwires),
@@ -32,54 +38,6 @@ class TextRenderer:
         }
 
         self._layer_list = {i: [] for i in range(self._qwires + self._cwires)}
-
-    def get_xskip(self, wire_list: List[int], layer: int):
-        """
-        Get the xskip (horizontal value for getting to requested layer) for the gate to be plotted.
-
-        Parameters
-        ----------
-        wire_list : list
-            The list of wires the gate is acting on (control and target).
-
-        layer : int
-            The layer the gate is acting on.
-        """
-
-        xskip = []
-        for wire in wire_list:
-            xskip.append(sum(self._layer_list[wire][:layer]))
-
-        return max(xskip)
-
-    def manage_layers(
-        self, wire_list: List[int], layer: int, xskip: int, gate_width: int
-    ):
-        """
-        Manages and updates the layer widths according to the gate'lid_seg width just plotted.
-
-        Parameters
-        ----------
-        gate_width : float
-            The width of the gate to be plotted.
-
-        wire_list : list
-            The list of wires the gate is acting on (control and target).
-
-        layer : int
-            The layer the gate is acting on.
-
-        xskip : float, optional
-            The horizontal value for getting to requested layer. The default is 0.
-        """
-
-        for wire in wire_list:
-            if len(self._layer_list[wire]) > layer:
-                if self._layer_list[wire][layer] < gate_width:
-                    self._layer_list[wire][layer] = gate_width
-            else:
-                temp = xskip - sum(self._layer_list[wire]) if xskip != 0 else 0
-                self._layer_list[wire].append(temp + gate_width)
 
     def _adjust_layer(self, wire_list: List[int], xskip: int):
         """
@@ -128,7 +86,7 @@ class TextRenderer:
         """
 
         wire_len = [sum(wire) for wire in self._layer_list.values()]
-        max_len = max(wire_len) + self.end_ext
+        max_len = max(wire_len) + self.style.end_wire_ext
 
         for i, length in enumerate(wire_len):
             if length < max_len:
@@ -156,8 +114,8 @@ class TextRenderer:
             The width of the gate.
         """
 
-        lid_seg = "─" * (self.gate_pad * 2 + len(gate_name))
-        pad = " " * self.gate_pad
+        lid_seg = "─" * (ceil(self.style.gate_pad) * 2 + len(gate_name))
+        pad = " " * ceil(self.style.gate_pad)
 
         top_frame = f" ┌{lid_seg}┐ "
         mid_frame = f"─┤{pad}{gate_name}{pad}├─"
@@ -184,8 +142,8 @@ class TextRenderer:
             The width of the gate.
         """
 
-        lid_seg = "─" * (self.gate_pad * 2 + len(gate.name))
-        pad = " " * self.gate_pad
+        lid_seg = "─" * (ceil(self.style.gate_pad) * 2 + len(gate.name))
+        pad = " " * ceil(self.style.gate_pad)
 
         top_frame = f" ┌{lid_seg}┐ "
         bot_frame = f" └{lid_seg}┘ "
@@ -399,14 +357,14 @@ class TextRenderer:
 
         wire_list = list(range(min(gate.targets), max(gate.targets) + 1))
         layer = max(len(self._layer_list[i]) for i in wire_list)
-        xskip = self.get_xskip(wire_list, layer)
+        xskip = self._get_xskip(wire_list, layer)
         self._adjust_layer(wire_list, xskip)
 
-        width = 4 * self.gate_pad + 1
+        width = 4 * ceil(self.style.gate_pad) + 1
         cross_conn = "─" * (width // 2) + "╳" + "─" * (width // 2)
         bar_conn = " " * (width // 2) + "│" + " " * (width // 2)
         mid_bar_conn = "─" * (width // 2) + "│" + "─" * (width // 2)
-        self.manage_layers(wire_list, layer, xskip, width)
+        self._manage_layers(width, wire_list, layer, xskip)
 
         for wire in wire_list:
             if wire == wire_list[-1]:
@@ -453,8 +411,8 @@ class TextRenderer:
 
             # update the render strings for the gate
             layer = max(len(self._layer_list[i]) for i in wire_list)
-            xskip = self.get_xskip(wire_list, layer)
-            self.manage_layers(wire_list, layer, xskip, width)
+            xskip = self._get_xskip(wire_list, layer)
+            self._manage_layers(width, wire_list, layer, xskip)
 
             if isinstance(gate, Measurement):
                 self._adjust_layer(wire_list, xskip)
