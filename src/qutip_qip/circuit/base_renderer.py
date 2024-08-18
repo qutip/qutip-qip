@@ -12,31 +12,15 @@ class BaseRenderer:
     Base class for rendering quantum circuits with MatRender and TextRender.
     """
 
-    def __init__(self):
+    def __init__(self, style):
         """
         Initialize the base renderer with default values.
         Both Renderers should override these attributes as needed.
         """
-        self.align_layer = False
-        self.qwires = 0
-        self.layer_list = []
-        self.gate_margin = 0
 
-    # @property
-    # @abstractmethod
-    # def layer_list(self) -> List[List[float]]:
-    #     """
-    #     Abstract property for layer list, to be implemented by child classes.
-    #     """
-    #     pass
-
-    # @property
-    # @abstractmethod
-    # def gate_margin(self) -> float:
-    #     """
-    #     Abstract property for gate margin, to be implemented by child classes.
-    #     """
-    #     pass
+        self._qwires = 0
+        self._layer_list = []
+        self.style = style
 
     def _get_xskip(self, wire_list: List[int], layer: int) -> float:
         """
@@ -56,12 +40,12 @@ class BaseRenderer:
             The maximum xskip value needed to reach the specified layer.
         """
 
-        xskip = []
-        if self.align_layer:
-            wire_list = list(range(self.qwires))
+        if self.style.align_layer:
+            wire_list = list(range(self._qwires))
 
+        xskip = []
         for wire in wire_list:
-            xskip.append(sum(self.layer_list[wire][:layer]))
+            xskip.append(sum(self._layer_list[wire][:layer]))
 
         return max(xskip)
 
@@ -80,7 +64,7 @@ class BaseRenderer:
         gate_width : float
             The width of the gate to be plotted.
 
-        wire_list : List[int]
+        wire_list : list
             The list of wires the gate is acting on (control and target).
 
         layer : int
@@ -91,16 +75,20 @@ class BaseRenderer:
         """
 
         for wire in wire_list:
-            if len(self.layer_list[wire]) > layer:
+            # check if requested layer exists for the wire
+            if len(self._layer_list[wire]) > layer:
+                # check if the layer width is greater than new layer width
                 if (
-                    self.layer_list[wire][layer]
-                    < gate_width + self.gate_margin * 2
+                    self._layer_list[wire][layer]
+                    < gate_width + self.style.gate_margin * 2
                 ):
-                    self.layer_list[wire][layer] = (
-                        gate_width + self.gate_margin * 2
+                    # update with new layer width
+                    self._layer_list[wire][layer] = (
+                        gate_width + self.style.gate_margin * 2
                     )
             else:
-                temp = xskip - sum(self.layer_list[wire]) if xskip != 0 else 0
-                self.layer_list[wire].append(
-                    temp + gate_width + self.gate_margin * 2
+                # add layer width: new layer width + missing layer widths if exits
+                temp = xskip - sum(self._layer_list[wire]) if xskip != 0 else 0
+                self._layer_list[wire].append(
+                    temp + gate_width + self.style.gate_margin * 2
                 )
