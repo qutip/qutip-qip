@@ -331,7 +331,7 @@ class TextRenderer:
                 self._render_strs["mid_frame"][wire] += mid_frame
                 self._render_strs["bot_frame"][wire] += mid_frame
 
-    def _update_control_multiq(
+    def _update_qbridge(
         self,
         gate: Gate,
         wire_list_control: List[int],
@@ -361,12 +361,15 @@ class TextRenderer:
         """
 
         bar_conn = " " * (width // 2) + "│" + " " * (width // 2 - 1)
+        mid_bar_conn = "─" * (width // 2) + "│" + "─" * (width // 2 - 1)
         node_conn = "─" * (width // 2) + "▇" + "─" * (width // 2 - 1)
         self._adjust_layer(wire_list_control, xskip)
 
         for wire in wire_list_control:
             if wire not in gate.targets:
                 if wire in gate.controls:
+                    # check if the control wire is the first or last control wire.
+                    # used in cases of multiple control wires
                     if (
                         wire == wire_list_control[0]
                         or wire == wire_list_control[-1]
@@ -386,7 +389,7 @@ class TextRenderer:
                         self._render_strs["bot_frame"][wire] += bar_conn
                 else:
                     self._render_strs["top_frame"][wire] += bar_conn
-                    self._render_strs["mid_frame"][wire] += bar_conn
+                    self._render_strs["mid_frame"][wire] += mid_bar_conn
                     self._render_strs["bot_frame"][wire] += bar_conn
 
     def _update_swap_gate(self, gate: Gate):
@@ -474,7 +477,7 @@ class TextRenderer:
                     closest_pos = (
                         wire_list[0] if not is_top_closer else wire_list[-1]
                     )
-                    self._update_control_multiq(
+                    self._update_qbridge(
                         gate,
                         list(
                             range(
@@ -504,3 +507,29 @@ class TextRenderer:
             print(self._render_strs["top_frame"][i])
             print(self._render_strs["mid_frame"][i])
             print(self._render_strs["bot_frame"][i])
+
+    def save(self, filename: str):
+        """
+        Save the circuit to a file
+
+        Parameters
+        ----------
+        filename : str
+            The name of the file to save the circuit to.
+        """
+
+        if not filename.endswith(".txt"):
+            filename += ".txt"
+
+        with open(filename, "w", encoding="utf-8") as file:
+            for i in range(self._qwires - 1, -1, -1):
+                file.write(self._render_strs["top_frame"][i] + "\n")
+                file.write(self._render_strs["mid_frame"][i] + "\n")
+                file.write(self._render_strs["bot_frame"][i] + "\n")
+
+            for i in range(
+                self._qwires + self._cwires - 1, self._qwires - 1, -1
+            ):
+                file.write(self._render_strs["top_frame"][i] + "\n")
+                file.write(self._render_strs["mid_frame"][i] + "\n")
+                file.write(self._render_strs["bot_frame"][i] + "\n")
