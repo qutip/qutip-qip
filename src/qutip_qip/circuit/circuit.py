@@ -1015,9 +1015,12 @@ class QubitCircuit:
                 f.write(image_data)
         elif renderer == "matplotlib":
             from .mat_renderer import MatRenderer
-
             mat = MatRenderer(self, **kwargs)
             mat.canvas_plot()
+        elif renderer == "text":
+            from .text_renderer import TextRenderer
+            text = TextRenderer(self)
+            text.layout()
         else:
             raise ValueError(
                 f"Unknown renderer '{renderer}' not supported. Please choose from 'latex', 'matplotlib', 'text'."

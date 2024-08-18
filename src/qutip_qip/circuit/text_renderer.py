@@ -30,14 +30,13 @@ class TextRenderer(BaseRenderer):
         self._qc = qc
         self._qwires = qc.N
         self._cwires = qc.num_cbits
+        self._layer_list = {i: [] for i in range(self._qwires + self._cwires)}
 
         self._render_strs = {
             "top_frame": ["  "] * (self._qwires + self._cwires),
             "mid_frame": ["──"] * self._qwires + ["══"] * self._cwires,
             "bot_frame": ["  "] * (self._qwires + self._cwires),
         }
-
-        self._layer_list = {i: [] for i in range(self._qwires + self._cwires)}
 
     def _adjust_layer(self, wire_list: List[int], xskip: int):
         """
@@ -123,7 +122,7 @@ class TextRenderer(BaseRenderer):
 
         return (top_frame, mid_frame, bot_frame), len(top_frame)
 
-    def _draw_multiq_gate(self, gate: Gate):
+    def _draw_multiq_gate(self, gate: Gate, gate_text: str):
         """
         Draw a multi qubit gate
 
@@ -142,14 +141,14 @@ class TextRenderer(BaseRenderer):
             The width of the gate.
         """
 
-        lid_seg = "─" * (ceil(self.style.gate_pad) * 2 + len(gate.name))
+        lid_seg = "─" * (ceil(self.style.gate_pad) * 2 + len(gate_text))
         pad = " " * ceil(self.style.gate_pad)
 
         top_frame = f" ┌{lid_seg}┐ "
         bot_frame = f" └{lid_seg}┘ "
-        mid_frame = f" │{pad}{' ' * len(gate.name)}{pad}│ "
-        mid_connect = f"─┤{pad}{' ' * len(gate.name)}{pad}├─"
-        mid_connect_label = f"─┤{pad}{gate.name}{pad}├─"
+        mid_frame = f" │{pad}{' ' * len(gate_text)}{pad}│ "
+        mid_connect = f"─┤{pad}{' ' * len(gate_text)}{pad}├─"
+        mid_connect_label = f"─┤{pad}{gate_text}{pad}├─"
 
         # Adjust top_frame or bottom if there is a control wire
         if gate.controls:
@@ -387,9 +386,13 @@ class TextRenderer(BaseRenderer):
         self._add_wire_labels()
 
         for gate in self._qc.gates:
-            wire_list, layer, xskip, parts, width = [], 0, 0, [], 0
 
-            # generate the parts, width and wire_list for the gate
+            if isinstance(gate, Gate):
+                gate_text = (
+                    gate.arg_label if gate.arg_label is not None else gate.name
+                )
+
+            # generate the parts, width and wire_list for the gates
             if isinstance(gate, Measurement):
                 wire_list = list(range(gate.targets[0] + 1)) + list(
                     range(
@@ -400,14 +403,14 @@ class TextRenderer(BaseRenderer):
                 parts, width = self._draw_measurement_gate(gate)
             elif len(gate.targets) == 1 and gate.controls is None:
                 wire_list = gate.targets
-                parts, width = self._draw_singleq_gate(gate.name)
+                parts, width = self._draw_singleq_gate(gate_text)
             elif gate.name == "SWAP":
                 self._update_swap_gate(gate)
                 continue
             else:
                 merged_wire = sorted(gate.targets + (gate.controls or []))
                 wire_list = list(range(merged_wire[0], merged_wire[-1] + 1))
-                parts, width = self._draw_multiq_gate(gate)
+                parts, width = self._draw_multiq_gate(gate, gate_text)
 
             # update the render strings for the gate
             layer = max(len(self._layer_list[i]) for i in wire_list)
@@ -431,6 +434,7 @@ class TextRenderer(BaseRenderer):
 
                 if gate.controls:
                     sorted_controls = sorted(gate.controls)
+                    # check if the top of the gate is closer to the first control wire
                     is_top_closer = wire_list[0] >= sorted_controls[0]
                     closest_pos = (
                         wire_list[0] if not is_top_closer else wire_list[-1]
