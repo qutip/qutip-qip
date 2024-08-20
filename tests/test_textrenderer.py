@@ -160,7 +160,7 @@ def test_parts_len(request, qc_fixture):
             if len(gate.targets) == 1 and gate.controls is None:
                 parts, _ = tr._draw_singleq_gate(gate.name)
             else:
-                parts, _ = tr._draw_multiq_gate(gate)
+                parts, _ = tr._draw_multiq_gate(gate, gate.name)
         elif isinstance(gate, Measurement):
             parts, _ = tr._draw_measurement_gate(gate)
 
