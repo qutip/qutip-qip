@@ -1021,7 +1021,7 @@ class QubitCircuit:
         elif renderer == "text":
             from .text_renderer import TextRenderer
 
-            text = TextRenderer(self)
+            text = TextRenderer(self, **kwargs)
             text.layout()
         else:
             raise ValueError(

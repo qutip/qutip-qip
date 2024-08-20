@@ -30,7 +30,7 @@ class TextRenderer(BaseRenderer):
         self._qc = qc
         self._qwires = qc.N
         self._cwires = qc.num_cbits
-        self._layer_list = {i: [] for i in range(self._qwires + self._cwires)}
+        self._layer_list = [[] for _ in range(self._qwires + self._cwires)]
 
         self._render_strs = {
             "top_frame": ["  "] * (self._qwires + self._cwires),
@@ -38,7 +38,7 @@ class TextRenderer(BaseRenderer):
             "bot_frame": ["  "] * (self._qwires + self._cwires),
         }
 
-    def _adjust_layer(self, wire_list: List[int], xskip: int):
+    def _adjust_layer_pad(self, wire_list: List[int], xskip: int):
         """
         Adjust the layers by filling the empty spaces with respective characters
         """
@@ -67,33 +67,20 @@ class TextRenderer(BaseRenderer):
         default_labels = [f"q{i}" for i in range(self._qwires)] + [
             f"c{i}" for i in range(self._cwires)
         ]
+
+        max_label_len = max([len(label) for label in default_labels])
         for i, label in enumerate(default_labels):
             self._render_strs["mid_frame"][i] = (
-                f" {label} :" + self._render_strs["mid_frame"][i]
+                f" {label} :"
+                + " " * (max_label_len - len("label"))
+                + self._render_strs["mid_frame"][i]
             )
-            self._render_strs["top_frame"][i] = " " * (len(f" {label} :") + 2)
-            self._render_strs["bot_frame"][i] = " " * (len(f" {label} :") + 2)
 
-        self._layer_list = {
-            i: [len(self._render_strs["mid_frame"][i])]
-            for i in range(self._qwires + self._cwires)
-        }
+            update_len = len(self._render_strs["mid_frame"][i])
+            self._render_strs["top_frame"][i] = " " * update_len
+            self._render_strs["bot_frame"][i] = " " * update_len
 
-    def _extend_line(self):
-        """
-        Extend all the wires to the same length
-        """
-
-        wire_len = [sum(wire) for wire in self._layer_list.values()]
-        max_len = max(wire_len) + self.style.end_wire_ext
-
-        for i, length in enumerate(wire_len):
-            if length < max_len:
-                diff = max_len - length
-                if i < self._qwires:
-                    self._render_strs["mid_frame"][i] += "─" * diff
-                else:
-                    self._render_strs["mid_frame"][i] += "═" * diff
+            self._layer_list[i].append(update_len)
 
     def _draw_singleq_gate(self, gate_name: str):
         """
@@ -213,7 +200,7 @@ class TextRenderer(BaseRenderer):
         mid_bar_conn = "─" * (width // 2) + "║" + "─" * (width // 2)
         mid_bar_classical_conn = "═" * (width // 2) + "║" + "═" * (width // 2)
         classical_conn = "═" * (width // 2) + "╩" + "═" * (width // 2)
-        self._adjust_layer(wire_list, xskip)
+        self._adjust_layer_pad(wire_list, xskip)
 
         for wire in wire_list:
 
@@ -268,7 +255,7 @@ class TextRenderer(BaseRenderer):
         """
 
         top_frame, mid_frame, mid_connect, mid_connect_label, bot_frame = parts
-        self._adjust_layer(wire_list, xskip)
+        self._adjust_layer_pad(wire_list, xskip)
 
         for i, wire in enumerate(wire_list):
             if len(gate.targets) == 1:
@@ -320,7 +307,7 @@ class TextRenderer(BaseRenderer):
         bar_conn = " " * (width // 2) + "│" + " " * (width // 2 - 1)
         mid_bar_conn = "─" * (width // 2) + "│" + "─" * (width // 2 - 1)
         node_conn = "─" * (width // 2) + "▇" + "─" * (width // 2 - 1)
-        self._adjust_layer(wire_list_control, xskip)
+        self._adjust_layer_pad(wire_list_control, xskip)
 
         for wire in wire_list_control:
             if wire not in gate.targets:
@@ -357,7 +344,7 @@ class TextRenderer(BaseRenderer):
         wire_list = list(range(min(gate.targets), max(gate.targets) + 1))
         layer = max(len(self._layer_list[i]) for i in wire_list)
         xskip = self._get_xskip(wire_list, layer)
-        self._adjust_layer(wire_list, xskip)
+        self._adjust_layer_pad(wire_list, xskip)
 
         width = 4 * ceil(self.style.gate_pad) + 1
         cross_conn = "─" * (width // 2) + "╳" + "─" * (width // 2)
@@ -415,10 +402,10 @@ class TextRenderer(BaseRenderer):
             # update the render strings for the gate
             layer = max(len(self._layer_list[i]) for i in wire_list)
             xskip = self._get_xskip(wire_list, layer)
+            self._adjust_layer_pad(wire_list, xskip)
             self._manage_layers(width, wire_list, layer, xskip)
 
             if isinstance(gate, Measurement):
-                self._adjust_layer(wire_list, xskip)
                 self._update_singleq(gate.targets, parts)
                 self._update_cbridge(gate, wire_list, xskip, width)
             elif len(gate.targets) == 1 and gate.controls is None:
@@ -452,7 +439,10 @@ class TextRenderer(BaseRenderer):
                         is_top_closer,
                     )
 
-        self._extend_line()
+        self._adjust_layer_pad(
+            list(range(self._qwires + self._cwires)),
+            len(self._layer_list[0]) + self.style.end_wire_ext,
+        )
         self.print_circuit()
 
     def print_circuit(self):
