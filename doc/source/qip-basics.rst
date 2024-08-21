@@ -380,6 +380,8 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
 
       * - ``gate_pad : int``
         - The padding between the gate and the gate label.
+      * - ``wire_label : Optional[List]``
+        - The labels of the wires.
       * - ``align_layer : bool``
         - Align the layers of the gates across different wires.
       * - ``end_wire_ext : int``

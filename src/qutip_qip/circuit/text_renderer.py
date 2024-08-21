@@ -64,9 +64,15 @@ class TextRenderer(BaseRenderer):
         Add wire labels to the circuit
         """
 
-        default_labels = [f"q{i}" for i in range(self._qwires)] + [
-            f"c{i}" for i in range(self._cwires)
-        ]
+        if self.style.wire_label is None:
+            default_labels = [f"q{i}" for i in range(self._qwires)] + [
+                f"c{i}" for i in range(self._cwires)
+            ]
+        else:
+            default_labels = (
+                self.style.wire_label[self._cwires :]
+                + self.style.wire_label[: self._cwires]
+            )
 
         max_label_len = max([len(label) for label in default_labels])
         for i, label in enumerate(default_labels):
