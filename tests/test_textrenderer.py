@@ -148,29 +148,6 @@ def test_layout_qc3(qc3):
 
 
 @pytest.mark.parametrize("qc_fixture", ["qc1", "qc2", "qc3"])
-def test_parts_len(request, qc_fixture):
-    """
-    Check if the length of different parts of the gate is the same.
-    """
-    qc = request.getfixturevalue(qc_fixture)
-    tr = TextRenderer(qc)
-    for gate in qc.gates:
-        if isinstance(gate, Gate):
-            if len(gate.targets) == 1 and gate.controls is None:
-                parts, _ = tr._draw_singleq_gate(gate.name)
-            else:
-                parts, _ = tr._draw_multiq_gate(gate, gate.name)
-        elif isinstance(gate, Measurement):
-            parts, _ = tr._draw_measurement_gate(gate)
-
-        # testing if all parts have the same length
-        len_parts = [len(part) for part in parts]
-        assert (
-            len(set(len_parts)) == 1
-        ), f"Gate {gate} has parts with different lengths: {len_parts}"
-
-
-@pytest.mark.parametrize("qc_fixture", ["qc1", "qc2", "qc3"])
 def test_render_str_len(request, qc_fixture):
     """
     Check if all render wire lengths are the same.

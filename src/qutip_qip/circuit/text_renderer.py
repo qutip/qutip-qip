@@ -108,6 +108,9 @@ class TextRenderer(BaseRenderer):
         mid_frame = f"─┤{pad}{gate_name}{pad}├─"
         bot_frame = f" └{lid_seg}┘ "
 
+        # check for equal part lengths
+        assert len(top_frame) == len(mid_frame) == len(bot_frame)
+
         return (top_frame, mid_frame, bot_frame), len(top_frame)
 
     def _draw_multiq_gate(self, gate: Gate, gate_text: str):
@@ -149,6 +152,15 @@ class TextRenderer(BaseRenderer):
                 top_frame = (
                     top_frame[:mid_index] + "┴" + top_frame[mid_index + 1 :]
                 )
+
+        # check for equal part lengths
+        assert (
+            len(top_frame)
+            == len(mid_frame)
+            == len(bot_frame)
+            == len(mid_connect)
+            == len(mid_connect_label)
+        )
 
         return (
             top_frame,
