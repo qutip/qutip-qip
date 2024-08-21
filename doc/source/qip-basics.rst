@@ -293,7 +293,7 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
 
     .. code-block:: python
           
-        # plot the quantum circuit using matplotlib renderer
+        # plot the quantum circuit using  MatRenderer
         qc.draw("matplotlib")
 
     .. image:: /figures//mat_circuit_example.png
@@ -354,7 +354,7 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
 
     .. code-block:: python
           
-        # plot the quantum circuit using matplotlib renderer
+        # plot the quantum circuit using TextRenderer
         qc.draw("text")
 
 
