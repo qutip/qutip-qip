@@ -272,31 +272,134 @@ gate function returning a :class:`qutip.Qobj` and save it in the attribute ``use
 
 .. _quantum_circuit_plots:
 
-Plotting a Quantum Circuit
+Plotting Quantum Circuits
 ===================================
 
-A quantum circuit (described above) can directly be plotted using the QCircuit library (https://github.com/CQuIC/qcircuit).
-QCiruit is a quantum circuit drawing application and is implemented directly into QuTiP.
-
-More information related to installing these packages is also available in the
-installation guide (:ref:`circuit_plot_packages`).
-
-An example code for plotting the example quantum circuit from above is given:
+QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below is an example that demonstrates how to create and plot a quantum circuit using these methods:
 
 .. code-block:: python
 
     from qutip_qip.circuit import QubitCircuit
     from qutip_qip.operations import Gate
+
     # create the quantum circuit
     qc = QubitCircuit(2, num_cbits=1)
     qc.add_gate("CNOT", controls=0, targets=1)
     qc.add_gate("SNOT", targets=1)
     qc.add_gate("ISWAP", targets=[0,1])
     qc.add_measurement("M0", targets=1, classical_store=0)
-    # plot the quantum circuit
-    qc.png
 
-.. image:: /figures//quantum_circuit_example.png
+- **Matplotlib (Default)**:
+
+    .. code-block:: python
+          
+        # plot the quantum circuit using matplotlib renderer
+        qc.draw("matplotlib")
+
+    .. image:: /figures//mat_circuit_example.png
+
+    **Customization Parameters**
+
+    .. list-table:: 
+      :header-rows: 1
+      :widths: 20 80
+
+      * - **Parameter**
+        - **Description**
+      * - ``dpi : int``
+        - The dpi of the figure.
+      * - ``fontsize : int``
+        - The fontsize control at the circuit level, including tile 
+          and wire labels.
+      * - ``end_wire_ext : int``
+        - The extension of the wire at the end of the circuit.
+      * - ``padding : float``
+        - The padding between the circuit and the figure border.
+      * - ``gate_margin : float``
+        - The margin space left on each side of the gate.
+      * - ``wire_sep : float``
+        - The separation between the wires.
+      * - ``layer_sep : float``
+        - The separation between the layers.
+      * - ``gate_pad : float``
+        - The padding between the gate and the gate label.
+      * - ``label_pad : float``
+        - The padding between the wire label and the wire.
+      * - ``fig_height : float``
+        - The height of the figure.
+      * - ``fig_width : float``
+        - The width of the figure.
+      * - ``bulge : Union[str, bool]``
+        - The bulge style of the gate. Renders non-bulge gates if False.
+      * - ``align_layer : bool``
+        - Align the layers of the gates across different wires.
+      * - ``theme : Optional[Union[str, Dict]]``
+        - The color theme of the circuit. Available themes are 'qutip', 'light', and 'modern'.
+      * - ``title : Optional[str]``
+        - The title of the circuit.
+      * - ``bgcolor : Optional[str]``
+        - The background color of the circuit.
+      * - ``color : Optional[str]``
+        - Controls color of accent elements (e.g., cross sign in the target node) 
+          and sets as default color of gate-label. Can be overwritten 
+          by gate-specific color.
+      * - ``wire_label : Optional[List]``
+        - The labels of the wires.
+      * - ``wire_color : Optional[str]``
+        - The color of the wires.
+
+
+
+- **Text**:
+
+    .. code-block:: python
+          
+        # plot the quantum circuit using matplotlib renderer
+        qc.draw("text")
+
+
+    .. code-block:: none
+    
+               ┌──────┐  ┌──────┐  ┌───────┐  ┌───┐   
+        q1 :───┤ CNOT ├──┤ SNOT ├──┤       ├──┤ M ├───
+               └───┬──┘  └──────┘  │       │  └─╥─┘   
+                   │               │       │    ║     
+        q0 :───────▇───────────────┤ ISWAP ├────║─────
+                                   └───────┘    ║     
+                                                ║     
+        c0 :════════════════════════════════════╩═════
+
+    **Customization Parameters**
+
+    .. list-table:: 
+      :header-rows: 1
+      :widths: 20 80
+
+      * - **Parameter**
+        - **Description**
+
+      * - ``gate_pad : int``
+        - The padding between the gate and the gate label.
+      * - ``align_layer : bool``
+        - Align the layers of the gates across different wires.
+      * - ``end_wire_ext : int``
+        - The extension of the wire at the end of the circuit.
+
+- **LaTeX**:
+
+    A quantum circuit (described above) can directly be plotted using the QCircuit library (https://github.com/CQuIC/qcircuit).
+    QCiruit is a quantum circuit drawing application and is implemented directly into QuTiP.
+
+    More information related to installing these packages is also available in the
+    installation guide (:ref:`circuit_plot_packages`).
+
+    An example code for plotting the example quantum circuit from above is given:
+
+    .. code-block:: python
+
+        qc.draw("latex")
+
+    .. image:: /figures//quantum_circuit_example.png
 
 ..
    _This: is a comment, do not test the png generation as it requires additional installation!
