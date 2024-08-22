@@ -417,15 +417,14 @@ class Pulse:
             noise.get_qobjevo(self.spline_kind, dims)
             for noise in self.coherent_noise
         ]
-        qu = _merge_qobjevo([ideal_qu] + noise_qu_list)
+        if parse_version(qutip.__version__) < parse_version("5.dev"):
+            qu = _merge_qobjevo([ideal_qu] + noise_qu_list)
+        else:
+            qu = sum(noise_qu_list, ideal_qu)
         c_ops = [
             noise.get_qobjevo(self.spline_kind, dims)
             for noise in self.lindblad_noise
         ]
-        full_tlist = self.get_full_tlist()
-        qu = _merge_qobjevo([qu], full_tlist)
-        for i, c_op in enumerate(c_ops):
-            c_ops[i] = _merge_qobjevo([c_op], full_tlist)
         return qu, c_ops
 
     def get_full_tlist(self, tol=1.0e-10):

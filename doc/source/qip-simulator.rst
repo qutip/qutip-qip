@@ -52,7 +52,7 @@ method.
 .. testoutput::
   :options: +NORMALIZE_WHITESPACE
 
-  Quantum object: dims = [[2, 2, 2], [1, 1, 1]], shape = (8, 1), type = ket
+  Quantum object: dims=[[2, 2, 2], [1, 1, 1]], shape=(8, 1), type='ket', dtype=Dense
   Qobj data =
   [[0.     ]
    [0.57735]
@@ -95,7 +95,7 @@ outputs, we can use the :meth:`.QubitCircuit.run_statistics` function:
   :options: +NORMALIZE_WHITESPACE
 
   State:
-  Quantum object: dims = [[2, 2, 2], [1, 1, 1]], shape = (8, 1), type = ket
+  Quantum object: dims=[[2, 2, 2], [1, 1, 1]], shape=(8, 1), type='ket', dtype=Dense
   Qobj data =
   [[0.]
    [1.]
@@ -107,7 +107,7 @@ outputs, we can use the :meth:`.QubitCircuit.run_statistics` function:
    [0.]]
   with probability 0.33333
   State:
-  Quantum object: dims = [[2, 2, 2], [1, 1, 1]], shape = (8, 1), type = ket
+  Quantum object: dims=[[2, 2, 2], [1, 1, 1]], shape=(8, 1), type='ket', dtype=Dense
   Qobj data =
   [[0.]
    [0.]
@@ -119,7 +119,7 @@ outputs, we can use the :meth:`.QubitCircuit.run_statistics` function:
    [0.]]
   with probability 0.33333
   State:
-  Quantum object: dims = [[2, 2, 2], [1, 1, 1]], shape = (8, 1), type = ket
+  Quantum object: dims=[[2, 2, 2], [1, 1, 1]], shape=(8, 1), type='ket', dtype=Dense
   Qobj data =
   [[0.]
    [0.]
@@ -176,7 +176,7 @@ The :class:`.CircuitSimulator` class also enables stepping through the circuit:
 .. testoutput::
   :options: +NORMALIZE_WHITESPACE
 
-  Quantum object: dims = [[2, 2, 2], [1, 1, 1]], shape = (8, 1), type = ket
+  Quantum object: dims=[[2, 2, 2], [1, 1, 1]], shape=(8, 1), type='ket', dtype=Dense
   Qobj data =
   [[0.57735]
    [0.     ]
@@ -264,7 +264,7 @@ just by measurement on the first qubit:
 .. testoutput::
   :options: +NORMALIZE_WHITESPACE
 
-    Quantum object: dims = [[2, 2, 2], [2, 2, 2]], shape = (8, 8), type = oper, isherm = True
+    Quantum object: dims=[[2, 2, 2], [2, 2, 2]], shape=(8, 8), type='oper', dtype=Dense, isherm=True
     Qobj data =
     [[0.      0.      0.      0.      0.      0.      0.      0.     ]
      [0.      0.33333 0.      0.      0.      0.      0.      0.     ]

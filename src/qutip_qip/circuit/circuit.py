@@ -67,6 +67,7 @@ class QubitCircuit:
 
     Examples
     --------
+    >>> from qutip_qip.circuit import QubitCircuit
     >>> def user_gate():
     ...     mat = np.array([[1.,   0],
     ...                     [0., 1.j]])
