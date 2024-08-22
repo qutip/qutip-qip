@@ -470,7 +470,7 @@ class RandomNoise(ControlAmpNoise):
         self.rand_gen = rand_gen
         self.kwargs = kwargs
         if "size" in kwargs:
-            raise ValueError("size is preditermined inside the noise object.")
+            raise ValueError("size is predetermined inside the noise object.")
         self.dt = dt
         self.indices = indices
 
@@ -510,7 +510,7 @@ class RandomNoise(ControlAmpNoise):
         # create new tlist and random coeff
         num_rand = int(np.floor((t_max - t_min) / self.dt)) + 1
         tlist = np.arange(0, self.dt * num_rand, self.dt)[:num_rand] + t_min
-        # [:num_rand] for round of error like 0.2*6=1.2000000000002
+        # [:num_rand] for round off error like 0.2*6=1.2000000000002
 
         for i in indices:
             pulse = pulses[i]

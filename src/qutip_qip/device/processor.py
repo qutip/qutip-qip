@@ -997,10 +997,11 @@ class Processor(object):
                 qu = pulse.get_ideal_qobjevo(dims=self.dims)
             qu_list.append(qu)
 
-        final_qu = _merge_qobjevo(qu_list)
         if is_qutip5:
+            final_qu = sum(qu_list)
             final_qu.arguments(args)
         else:
+            final_qu = _merge_qobjevo(qu_list)
             final_qu.args.update(args)
 
         # bring all c_ops to the same tlist, won't need it in QuTiP 5
