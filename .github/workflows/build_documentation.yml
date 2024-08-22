@@ -27,7 +27,6 @@ jobs:
 
       - name: Install qutip-qip from GitHub
         run: |
-          python -mpip install qutip==4.7.3
           python -mpip install -e .
           # Install in editable mode so it doesn't matter if we import from
           # inside the installation directory, otherwise we can get some errors
