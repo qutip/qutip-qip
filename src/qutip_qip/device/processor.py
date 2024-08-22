@@ -272,8 +272,8 @@ class Processor(object):
         >>> processor.get_control_labels()
         ['sx']
         >>> processor.get_control("sx") # doctest: +NORMALIZE_WHITESPACE
-        (Quantum object: dims = [[2], [2]], shape = (2, 2),
-        type = oper, isherm = True
+        (Quantum object: dims=[[2], [2]], shape=(2, 2),
+        type='oper', dtype=CSR, isherm=True
         Qobj data =
         [[0. 1.]
         [1. 0.]], [0])
@@ -310,8 +310,8 @@ class Processor(object):
         >>> processor.get_control_labels()
         ['sx0', 'sz0']
         >>> processor.get_control('sz0') # doctest: +NORMALIZE_WHITESPACE
-        (Quantum object: dims = [[2], [2]], shape = (2, 2),
-        type = oper, isherm = True
+        (Quantum object: dims=[[2], [2]], shape=(2, 2),
+        type='oper', dtype=CSR, isherm=True
         Qobj data =
         [[ 6.28319  0.     ]
          [ 0.      -6.28319]], 0)
@@ -997,10 +997,11 @@ class Processor(object):
                 qu = pulse.get_ideal_qobjevo(dims=self.dims)
             qu_list.append(qu)
 
-        final_qu = _merge_qobjevo(qu_list)
         if is_qutip5:
+            final_qu = sum(qu_list)
             final_qu.arguments(args)
         else:
+            final_qu = _merge_qobjevo(qu_list)
             final_qu.args.update(args)
 
         # bring all c_ops to the same tlist, won't need it in QuTiP 5

@@ -49,6 +49,13 @@ from .gates import (
     expand_operator,
 )
 
+from packaging.version import parse as parse_version
+
+if parse_version(qutip.__version__) >= parse_version("5.dev"):
+    is_qutip5 = True
+else:
+    is_qutip5 = False
+
 __all__ = [
     "Gate",
     "GATE_CLASS_MAP",
@@ -427,7 +434,7 @@ class X(SingleQubitGate):
     --------
     >>> from qutip_qip.operations import X
     >>> X(0).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims = [[2], [2]], shape = (2, 2), type = oper, isherm = True
+    Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=True
     Qobj data =
     [[0. 1.]
      [1. 0.]]
@@ -438,7 +445,7 @@ class X(SingleQubitGate):
         self.latex_str = r"X"
 
     def get_compact_qobj(self):
-        return qutip.sigmax()
+        return qutip.sigmax() if not is_qutip5 else qutip.sigmax(dtype="dense")
 
 
 class Y(SingleQubitGate):
@@ -449,7 +456,7 @@ class Y(SingleQubitGate):
     --------
     >>> from qutip_qip.operations import Y
     >>> Y(0).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims = [[2], [2]], shape = (2, 2), type = oper, isherm = True
+    Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=True
     Qobj data =
     [[0.+0.j 0.-1.j]
      [0.+1.j 0.+0.j]]
@@ -460,7 +467,7 @@ class Y(SingleQubitGate):
         self.latex_str = r"Y"
 
     def get_compact_qobj(self):
-        return qutip.sigmay()
+        return qutip.sigmay() if not is_qutip5 else qutip.sigmay(dtype="dense")
 
 
 class Z(SingleQubitGate):
@@ -471,7 +478,7 @@ class Z(SingleQubitGate):
     --------
     >>> from qutip_qip.operations import Z
     >>> Z(0).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims = [[2], [2]], shape = (2, 2), type = oper, isherm = True
+    Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=True
     Qobj data =
     [[ 1.  0.]
      [ 0. -1.]]
@@ -482,7 +489,7 @@ class Z(SingleQubitGate):
         self.latex_str = r"Z"
 
     def get_compact_qobj(self):
-        return qutip.sigmaz()
+        return qutip.sigmaz() if not is_qutip5 else qutip.sigmaz(dtype="dense")
 
 
 class RX(SingleQubitGate):
@@ -493,7 +500,7 @@ class RX(SingleQubitGate):
     --------
     >>> from qutip_qip.operations import RX
     >>> RX(0, 3.14159/2).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims = [[2], [2]], shape = (2, 2), type = oper, isherm = False
+    Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[0.70711+0.j      0.     -0.70711j]
      [0.     -0.70711j 0.70711+0.j     ]]
@@ -515,7 +522,7 @@ class RY(SingleQubitGate):
     --------
     >>> from qutip_qip.operations import RY
     >>> RY(0, 3.14159/2).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims = [[2], [2]], shape = (2, 2), type = oper, isherm = False
+    Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[ 0.70711 -0.70711]
      [ 0.70711  0.70711]]
@@ -537,7 +544,7 @@ class RZ(SingleQubitGate):
     --------
     >>> from qutip_qip.operations import RZ
     >>> RZ(0, 3.14159/2).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims = [[2], [2]], shape = (2, 2), type = oper, isherm = False
+    Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[0.70711-0.70711j 0.     +0.j     ]
      [0.     +0.j      0.70711+0.70711j]]
@@ -559,7 +566,7 @@ class H(SingleQubitGate):
     --------
     >>> from qutip_qip.operations import H
     >>> H(0).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims = [[2], [2]], shape = (2, 2), type = oper, isherm = True
+    Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=True
     Qobj data =
     [[ 0.70711  0.70711]
      [ 0.70711 -0.70711]]
@@ -585,7 +592,7 @@ class SQRTNOT(SingleQubitGate):
     --------
     >>> from qutip_qip.operations import SQRTNOT
     >>> SQRTNOT(0).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims = [[2], [2]], shape = (2, 2), type = oper, isherm = False
+    Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[0.5+0.5j 0.5-0.5j]
      [0.5-0.5j 0.5+0.5j]]
@@ -607,7 +614,7 @@ class S(SingleQubitGate):
     --------
     >>> from qutip_qip.operations import S
     >>> S(0).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims = [[2], [2]], shape = (2, 2), type = oper, isherm = False
+    Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[1.+0.j 0.+0.j]
      [0.+0.j 0.+1.j]]
@@ -629,7 +636,7 @@ class T(SingleQubitGate):
     --------
     >>> from qutip_qip.operations import T
     >>> T(0).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims = [[2], [2]], shape = (2, 2), type = oper, isherm = False
+    Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[1.     +0.j      0.     +0.j     ]
      [0.     +0.j      0.70711+0.70711j]]
@@ -658,7 +665,7 @@ class R(SingleQubitGate):
     --------
     >>> from qutip_qip.operations import R
     >>> R(0, (np.pi/2, np.pi/2)).get_compact_qobj().tidyup() # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims = [[2], [2]], shape = (2, 2), type = oper, isherm = False
+    Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[ 0.70711 -0.70711]
      [ 0.70711  0.70711]]
@@ -683,7 +690,7 @@ class QASMU(SingleQubitGate):
     --------
     >>> from qutip_qip.operations import QASMU
     >>> QASMU(0, (np.pi/2, np.pi, np.pi/2)).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims = [[2], [2]], shape = (2, 2), type = oper, isherm = False
+    Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[-0.5-0.5j -0.5+0.5j]
      [ 0.5+0.5j -0.5+0.5j]]
@@ -716,7 +723,7 @@ class SWAP(TwoQubitGate):
     --------
     >>> from qutip_qip.operations import SWAP
     >>> SWAP([0, 1]).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims = [[2, 2], [2, 2]], shape = (4, 4), type = oper, isherm = True
+    Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=True
     Qobj data =
     [[1. 0. 0. 0.]
      [0. 0. 1. 0.]
@@ -740,7 +747,7 @@ class ISWAP(TwoQubitGate):
     --------
     >>> from qutip_qip.operations import ISWAP
     >>> ISWAP([0, 1]).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims = [[2, 2], [2, 2]], shape = (4, 4), type = oper, isherm = False
+    Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[1.+0.j 0.+0.j 0.+0.j 0.+0.j]
      [0.+0.j 0.+0.j 0.+1.j 0.+0.j]
@@ -764,7 +771,7 @@ class SQRTSWAP(TwoQubitGate):
     --------
     >>> from qutip_qip.operations import SQRTSWAP
     >>> SQRTSWAP([0, 1]).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims = [[2, 2], [2, 2]], shape = (4, 4), type = oper, isherm = False
+    Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[1. +0.j  0. +0.j  0. +0.j  0. +0.j ]
      [0. +0.j  0.5+0.5j 0.5-0.5j 0. +0.j ]
@@ -788,7 +795,7 @@ class SQRTISWAP(TwoQubitGate):
     --------
     >>> from qutip_qip.operations import SQRTISWAP
     >>> SQRTISWAP([0, 1]).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims = [[2, 2], [2, 2]], shape = (4, 4), type = oper, isherm = False
+    Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[1.     +0.j      0.     +0.j      0.     +0.j      0.     +0.j     ]
      [0.     +0.j      0.70711+0.j      0.     +0.70711j 0.     +0.j     ]
@@ -821,7 +828,7 @@ class BERKELEY(TwoQubitGate):
     --------
     >>> from qutip_qip.operations import BERKELEY
     >>> BERKELEY([0, 1]).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims = [[2, 2], [2, 2]], shape = (4, 4), type = oper, isherm = False
+    Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[0.92388+0.j      0.     +0.j      0.     +0.j      0.     +0.38268j]
      [0.     +0.j      0.38268+0.j      0.     +0.92388j 0.     +0.j     ]
@@ -854,7 +861,7 @@ class SWAPALPHA(TwoQubitGate):
     --------
     >>> from qutip_qip.operations import SWAPALPHA
     >>> SWAPALPHA([0, 1], 0.5).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims = [[2, 2], [2, 2]], shape = (4, 4), type = oper, isherm = False
+    Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[1. +0.j  0. +0.j  0. +0.j  0. +0.j ]
      [0. +0.j  0.5+0.5j 0.5-0.5j 0. +0.j ]
@@ -887,7 +894,7 @@ class MS(TwoQubitGate):
     --------
     >>> from qutip_qip.operations import MS
     >>> MS([0, 1], (np.pi/2, 0)).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims = [[2, 2], [2, 2]], shape = (4, 4), type = oper, isherm = False
+    Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[0.70711+0.j      0.     +0.j      0.     +0.j      0.     -0.70711j]
      [0.     +0.j      0.70711+0.j      0.     -0.70711j 0.     +0.j     ]
@@ -911,7 +918,7 @@ class TOFFOLI(Gate):
     --------
     >>> from qutip_qip.operations import TOFFOLI
     >>> TOFFOLI([0, 1, 2]).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims = [[2, 2, 2], [2, 2, 2]], shape = (8, 8), type = oper, isherm = True
+    Quantum object: dims=[[2, 2, 2], [2, 2, 2]], shape=(8, 8), type='oper', dtype=Dense, isherm=True
     Qobj data =
     [[1. 0. 0. 0. 0. 0. 0. 0.]
      [0. 1. 0. 0. 0. 0. 0. 0.]
@@ -939,7 +946,7 @@ class FREDKIN(Gate):
     --------
     >>> from qutip_qip.operations import FREDKIN
     >>> FREDKIN([0, 1, 2]).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims = [[2, 2, 2], [2, 2, 2]], shape = (8, 8), type = oper, isherm = True
+    Quantum object: dims=[[2, 2, 2], [2, 2, 2]], shape=(8, 8), type='oper', dtype=Dense, isherm=True
     Qobj data =
     [[1. 0. 0. 0. 0. 0. 0. 0.]
      [0. 1. 0. 0. 0. 0. 0. 0.]
@@ -1030,7 +1037,7 @@ class CNOT(_OneControlledGate):
     --------
     >>> from qutip_qip.operations import CNOT
     >>> CNOT(0, 1).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims = [[2, 2], [2, 2]], shape = (4, 4), type = oper, isherm = True
+    Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=True
     Qobj data =
     [[1. 0. 0. 0.]
      [0. 1. 0. 0.]
@@ -1060,7 +1067,7 @@ class CZ(_OneControlledGate):
     --------
     >>> from qutip_qip.operations import CZ
     >>> CSIGN(0, 1).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims = [[2, 2], [2, 2]], shape = (4, 4), type = oper, isherm = True
+    Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=True
     Qobj data =
     [[ 1.  0.  0.  0.]
      [ 0.  1.  0.  0.]
@@ -1089,7 +1096,7 @@ class CSIGN(_OneControlledGate):
     --------
     >>> from qutip_qip.operations import CSIGN
     >>> CSIGN(0, 1).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims = [[2, 2], [2, 2]], shape = (4, 4), type = oper, isherm = True
+    Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=True
     Qobj data =
     [[ 1.  0.  0.  0.]
      [ 0.  1.  0.  0.]
@@ -1127,7 +1134,7 @@ class CPHASE(_OneControlledGate):
     --------
     >>> from qutip_qip.operations import CPHASE
     >>> CPHASE(0, 1, np.pi/2).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims = [[2, 2], [2, 2]], shape = (4, 4), type = oper, isherm = False
+    Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[1.+0.j 0.+0.j 0.+0.j 0.+0.j]
      [0.+0.j 1.+0.j 0.+0.j 0.+0.j]
@@ -1148,7 +1155,7 @@ class CPHASE(_OneControlledGate):
         )
 
     def get_compact_qobj(self):
-        return cphase(self.arg_value)
+        return cphase(self.arg_value).tidyup()
 
 
 CRY = partial(_OneControlledGate, target_gate=RY)

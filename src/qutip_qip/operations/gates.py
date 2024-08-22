@@ -326,8 +326,8 @@ def snot(N=None, target=0):
     Examples
     --------
     >>> snot() # doctest: +SKIP
-    Quantum object: dims = [[2], [2]], \
-shape = [2, 2], type = oper, isHerm = True
+    Quantum object: dims=[[2], [2]], \
+shape = [2, 2], type='oper', dtype=Dense, isherm=True
     Qobj data =
     [[ 0.70710678+0.j  0.70710678+0.j]
      [ 0.70710678+0.j -0.70710678+0.j]]
@@ -356,8 +356,8 @@ def phasegate(theta, N=None, target=0):
     Examples
     --------
     >>> phasegate(pi/4) # doctest: +SKIP
-    Quantum object: dims = [[2], [2]], \
-shape = [2, 2], type = oper, isHerm = False
+    Quantum object: dims=[[2], [2]], \
+shape = [2, 2], type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[ 1.00000000+0.j          0.00000000+0.j        ]
      [ 0.00000000+0.j          0.70710678+0.70710678j]]
@@ -502,8 +502,8 @@ def cnot(N=None, control=0, target=1):
     Examples
     --------
     >>> cnot() # doctest: +SKIP
-    Quantum object: dims = [[2, 2], [2, 2]], \
-shape = [4, 4], type = oper, isHerm = True
+    Quantum object: dims=[[2, 2], [2, 2]], \
+shape = [4, 4], type='oper', dtype=Dense, isherm=True
     Qobj data =
         [[ 1.+0.j  0.+0.j  0.+0.j  0.+0.j]
          [ 0.+0.j  1.+0.j  0.+0.j  0.+0.j]
@@ -535,8 +535,8 @@ def csign(N=None, control=0, target=1):
     Examples
     --------
     >>> csign() # doctest: +SKIP
-    Quantum object: dims = [[2, 2], [2, 2]], \
-shape = [4, 4], type = oper, isHerm = True
+    Quantum object: dims=[[2, 2], [2, 2]], \
+shape = [4, 4], type='oper', dtype=Dense, isherm=True
     Qobj data =
         [[ 1.+0.j  0.+0.j  0.+0.j  0.+0.j]
          [ 0.+0.j  1.+0.j  0.+0.j  0.+0.j]
@@ -568,8 +568,8 @@ def berkeley(N=None, targets=[0, 1]):
     Examples
     --------
     >>> berkeley() # doctest: +SKIP
-    Quantum object: dims = [[2, 2], [2, 2]], \
-shape = [4, 4], type = oper, isHerm = True
+    Quantum object: dims=[[2, 2], [2, 2]], \
+shape = [4, 4], type='oper', dtype=Dense, isherm=True
     Qobj data =
         [[ cos(pi/8).+0.j  0.+0.j           0.+0.j           0.+sin(pi/8).j]
          [ 0.+0.j          cos(3pi/8).+0.j  0.+sin(3pi/8).j  0.+0.j]
@@ -606,8 +606,8 @@ def swapalpha(alpha, N=None, targets=[0, 1]):
     Examples
     --------
     >>> swapalpha(alpha) # doctest: +SKIP
-    Quantum object: dims = [[2, 2], [2, 2]], \
-shape = [4, 4], type = oper, isHerm = True
+    Quantum object: dims=[[2, 2], [2, 2]], \
+shape = [4, 4], type='oper', dtype=Dense, isherm=True
     Qobj data =
     [[ 1.+0.j  0.+0.j                    0.+0.j                    0.+0.j]
      [ 0.+0.j  0.5*(1 + exp(j*pi*alpha)  0.5*(1 - exp(j*pi*alpha)  0.+0.j]
@@ -653,8 +653,8 @@ def swap(N=None, targets=[0, 1]):
     Examples
     --------
     >>> swap() # doctest: +SKIP
-    Quantum object: dims = [[2, 2], [2, 2]], \
-shape = [4, 4], type = oper, isHerm = True
+    Quantum object: dims=[[2, 2], [2, 2]], \
+shape = [4, 4], type='oper', dtype=Dense, isherm=True
     Qobj data =
     [[ 1.+0.j  0.+0.j  0.+0.j  0.+0.j]
      [ 0.+0.j  0.+0.j  1.+0.j  0.+0.j]
@@ -685,8 +685,8 @@ def iswap(N=None, targets=[0, 1]):
     Examples
     --------
     >>> iswap() # doctest: +SKIP
-    Quantum object: dims = [[2, 2], [2, 2]], \
-shape = [4, 4], type = oper, isHerm = False
+    Quantum object: dims=[[2, 2], [2, 2]], \
+shape = [4, 4], type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[ 1.+0.j  0.+0.j  0.+0.j  0.+0.j]
      [ 0.+0.j  0.+0.j  0.+1.j  0.+0.j]
@@ -744,8 +744,8 @@ def sqrtiswap(N=None, targets=[0, 1]):
     Examples
     --------
     >>> sqrtiswap() # doctest: +SKIP
-    Quantum object: dims = [[2, 2], [2, 2]], \
-shape = [4, 4], type = oper, isHerm = False
+    Quantum object: dims=[[2, 2], [2, 2]], \
+shape = [4, 4], type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[ 1.00000000+0.j   0.00000000+0.j   \
        0.00000000+0.j          0.00000000+0.j]
@@ -842,8 +842,7 @@ def fredkin(N=None, control=0, targets=[1, 2]):
     Examples
     --------
     >>> fredkin() # doctest: +SKIP
-    Quantum object: dims = [[2, 2, 2], [2, 2, 2]], \
-shape = [8, 8], type = oper, isHerm = True
+    Quantum object: dims=[[2, 2, 2], [2, 2, 2]], shape = [8, 8], type='oper', dtype=Dense, isherm=True
     Qobj data =
         [[ 1.+0.j  0.+0.j  0.+0.j  0.+0.j  0.+0.j  0.+0.j  0.+0.j  0.+0.j]
          [ 0.+0.j  1.+0.j  0.+0.j  0.+0.j  0.+0.j  0.+0.j  0.+0.j  0.+0.j]
@@ -889,8 +888,7 @@ def toffoli(N=None, controls=[0, 1], target=2):
     Examples
     --------
     >>> toffoli() # doctest: +SKIP
-    Quantum object: dims = [[2, 2, 2], [2, 2, 2]], \
-                    shape = [8, 8], type = oper, isHerm = True
+    Quantum object: dims=[[2, 2, 2], [2, 2, 2]], shape = [8, 8], type='oper', dtype=Dense, isherm=True
     Qobj data =
         [[ 1.+0.j  0.+0.j  0.+0.j  0.+0.j  0.+0.j  0.+0.j  0.+0.j  0.+0.j]
          [ 0.+0.j  1.+0.j  0.+0.j  0.+0.j  0.+0.j  0.+0.j  0.+0.j  0.+0.j]
@@ -1018,8 +1016,8 @@ def globalphase(theta, N=1):
     Examples
     --------
     >>> phasegate(pi/4) # doctest: +SKIP
-    Quantum object: dims = [[2], [2]], \
-shape = [2, 2], type = oper, isHerm = False
+    Quantum object: dims=[[2], [2]], \
+shape = [2, 2], type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[ 0.70710678+0.70710678j          0.00000000+0.j]
      [ 0.00000000+0.j          0.70710678+0.70710678j]]
@@ -1247,7 +1245,7 @@ def expand_operator(
     >>> from qutip_qip.operations import expand_operator, x_gate, cnot
     >>> import qutip
     >>> expand_operator(x_gate(), dims=[2,3], targets=[0]) # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims = [[2, 3], [2, 3]], shape = (6, 6), type = oper, isherm = True
+    Quantum object: dims=[[2, 3], [2, 3]], shape=(6, 6), type='oper', dtype=CSR, isherm=True
     Qobj data =
     [[0. 0. 0. 1. 0. 0.]
      [0. 0. 0. 0. 1. 0.]
@@ -1256,8 +1254,7 @@ def expand_operator(
      [0. 1. 0. 0. 0. 0.]
      [0. 0. 1. 0. 0. 0.]]
     >>> expand_operator(cnot(), dims=[2,2,2], targets=[1, 2]) # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims = [[2, 2, 2], [2, 2, 2]], shape = (8,
-    8), type = oper, isherm = True
+    Quantum object: dims=[[2, 2, 2], [2, 2, 2]], shape=(8, 8), type='oper', dtype=CSR, isherm=True
     Qobj data =
     [[1. 0. 0. 0. 0. 0. 0. 0.]
      [0. 1. 0. 0. 0. 0. 0. 0.]
@@ -1268,8 +1265,7 @@ def expand_operator(
      [0. 0. 0. 0. 0. 0. 0. 1.]
      [0. 0. 0. 0. 0. 0. 1. 0.]]
     >>> expand_operator(cnot(), dims=[2, 2, 2], targets=[2, 0]) # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims = [[2, 2, 2], [2, 2, 2]], shape = (8,
-    8), type = oper, isherm = True
+    Quantum object: dims=[[2, 2, 2], [2, 2, 2]], shape=(8, 8), type='oper', dtype=CSR, isherm=True
     Qobj data =
     [[1. 0. 0. 0. 0. 0. 0. 0.]
      [0. 0. 0. 0. 0. 1. 0. 0.]
