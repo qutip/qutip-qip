@@ -50,6 +50,7 @@ from .gates import (
 )
 
 from packaging.version import parse as parse_version
+
 if parse_version(qutip.__version__) >= parse_version("5.dev"):
     is_qutip5 = True
 else:

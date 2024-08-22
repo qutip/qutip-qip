@@ -1278,7 +1278,7 @@ def expand_operator(
     """
     if parse_version(qutip.__version__) >= parse_version("5.dev"):
         # If no data type specified, use CSR
-        dtype=dtype or qutip.settings.core["default_dtype"] or qutip.data.CSR
+        dtype = dtype or qutip.settings.core["default_dtype"] or qutip.data.CSR
         oper = oper.to(dtype)
     if N is not None:
         warnings.warn(
