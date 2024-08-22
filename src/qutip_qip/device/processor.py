@@ -272,8 +272,8 @@ class Processor(object):
         >>> processor.get_control_labels()
         ['sx']
         >>> processor.get_control("sx") # doctest: +NORMALIZE_WHITESPACE
-        (Quantum object: dims = [[2], [2]], shape = (2, 2),
-        type = oper, isherm = True
+        (Quantum object: dims=[[2], [2]], shape=(2, 2),
+        type='oper', dtype=CSR, isherm=True
         Qobj data =
         [[0. 1.]
         [1. 0.]], [0])
@@ -310,8 +310,8 @@ class Processor(object):
         >>> processor.get_control_labels()
         ['sx0', 'sz0']
         >>> processor.get_control('sz0') # doctest: +NORMALIZE_WHITESPACE
-        (Quantum object: dims = [[2], [2]], shape = (2, 2),
-        type = oper, isherm = True
+        (Quantum object: dims=[[2], [2]], shape=(2, 2),
+        type='oper', dtype=CSR, isherm=True
         Qobj data =
         [[ 6.28319  0.     ]
          [ 0.      -6.28319]], 0)
