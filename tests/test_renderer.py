@@ -170,7 +170,4 @@ def test_matrenderer(request, qc_fixture):
     qc = request.getfixturevalue(qc_fixture)
 
     with patch("matplotlib.pyplot.show"):
-        try:
-            qc.draw("matplotlib")
-        except Exception as e:
-            assert False, f"Error: {e}"
+        qc.draw("matplotlib")
