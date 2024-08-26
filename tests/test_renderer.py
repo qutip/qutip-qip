@@ -1,7 +1,7 @@
-import numpy as np
 import pytest
+import numpy as np
+from unittest.mock import patch
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import Gate, Measurement
 from qutip_qip.circuit.text_renderer import TextRenderer
 
 
@@ -160,3 +160,17 @@ def test_render_str_len(request, qc_fixture):
     assert (
         len(set([len(wire) for wire in render_str])) == 1
     ), "Render wires have different lengths."
+
+
+@pytest.mark.parametrize("qc_fixture", ["qc1", "qc2", "qc3"])
+def test_matrenderer(request, qc_fixture):
+    """
+    Check if Matplotlib renderer works without error.
+    """
+    qc = request.getfixturevalue(qc_fixture)
+
+    with patch("matplotlib.pyplot.show"):
+        try:
+            qc.draw("matplotlib")
+        except Exception as e:
+            assert False, f"Error: {e}"
