@@ -325,7 +325,7 @@ class TextRenderer(BaseRenderer):
 
         bar_conn = " " * (width // 2) + "│" + " " * (width // 2 - 1)
         mid_bar_conn = "─" * (width // 2) + "│" + "─" * (width // 2 - 1)
-        node_conn = "─" * (width // 2) + "▇" + "─" * (width // 2 - 1)
+        node_conn = "─" * (width // 2) + "█" + "─" * (width // 2 - 1)
 
         for wire in wire_list_control:
             if wire not in gate.targets:

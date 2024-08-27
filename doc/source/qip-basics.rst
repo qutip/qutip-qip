@@ -354,20 +354,20 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
 
     .. code-block:: python
           
-        # plot the quantum circuit using TextRenderer
-        qc.draw("text")
+      # plot the quantum circuit using TextRenderer
+      qc.draw("text")
 
 
     .. code-block:: none
-    
-               ┌──────┐  ┌──────┐  ┌───────┐  ┌───┐   
-        q1 :───┤ CNOT ├──┤ SNOT ├──┤       ├──┤ M ├───
-               └───┬──┘  └──────┘  │       │  └─╥─┘   
-                   │               │       │    ║     
-        q0 :───────▇───────────────┤ ISWAP ├────║─────
-                                   └───────┘    ║     
-                                                ║     
-        c0 :════════════════════════════════════╩═════
+        
+             ┌──────┐  ┌──────┐  ┌───────┐  ┌───┐   
+      q1 :───┤ CNOT ├──┤ SNOT ├──┤       ├──┤ M ├───
+             └───┬──┘  └──────┘  │       │  └─╥─┘   
+                 │               │       │    ║     
+      q0 :───────█───────────────┤ ISWAP ├────║─────
+                                 └───────┘    ║     
+                                              ║     
+      c0 :════════════════════════════════════╩═════
 
     **Customization Parameters**
 
