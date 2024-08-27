@@ -916,5 +916,4 @@ class MatRenderer(BaseRenderer):
         **kwargs
             Additional arguments to be passed to `plt.savefig`.
         """
-
-        self.fig.savefig(filename, **kwargs)
+        self.fig.savefig(filename, bbox_inches="tight", **kwargs)
