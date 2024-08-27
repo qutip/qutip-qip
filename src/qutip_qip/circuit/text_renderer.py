@@ -149,15 +149,20 @@ class TextRenderer(BaseRenderer):
 
         # Adjust top_frame or bottom if there is a control wire
         if gate.controls:
+            sorted_controls = sorted(gate.controls)
+            sorted_targets = sorted(gate.targets)
+
             mid_index = len(bot_frame) // 2
-            if gate.controls[0] < gate.targets[0]:
-                bot_frame = (
-                    bot_frame[:mid_index] + "┬" + bot_frame[mid_index + 1 :]
-                )
-            else:
-                top_frame = (
-                    top_frame[:mid_index] + "┴" + top_frame[mid_index + 1 :]
-                )
+            top_frame = (
+                (top_frame[:mid_index] + "┴" + top_frame[mid_index + 1 :])
+                if sorted_controls[-1] > sorted_targets[0]
+                else top_frame
+            )
+            bot_frame = (
+                (bot_frame[:mid_index] + "┬" + bot_frame[mid_index + 1 :])
+                if sorted_controls[0] < sorted_targets[-1]
+                else bot_frame
+            )
 
         # check for equal part lengths
         assert (
@@ -295,7 +300,7 @@ class TextRenderer(BaseRenderer):
         gate: Gate,
         wire_list_control: List[int],
         width: int,
-        is_top_closer: bool,
+        is_top: bool,
     ):
         """
         Update the render strings for part of the multi qubit gate drawn on the control wires.
@@ -333,12 +338,10 @@ class TextRenderer(BaseRenderer):
                     ):
                         self._render_strs["mid_frame"][wire] += node_conn
                         self._render_strs["top_frame"][wire] += (
-                            bar_conn if is_top_closer else " " * len(bar_conn)
+                            bar_conn if not is_top else " " * len(bar_conn)
                         )
                         self._render_strs["bot_frame"][wire] += (
-                            bar_conn
-                            if not is_top_closer
-                            else " " * len(bar_conn)
+                            bar_conn if is_top else " " * len(bar_conn)
                         )
                     else:
                         self._render_strs["top_frame"][wire] += bar_conn
@@ -431,22 +434,36 @@ class TextRenderer(BaseRenderer):
 
                 if gate.controls:
                     sorted_controls = sorted(gate.controls)
-                    # check if the top of the gate is closer to the first control wire
-                    is_top_closer = wire_list[0] >= sorted_controls[0]
-                    closest_pos = (
-                        wire_list[0] if not is_top_closer else wire_list[-1]
-                    )
-                    self._update_qbridge(
-                        gate,
-                        list(
-                            range(
-                                min(sorted_controls[0], closest_pos),
-                                max(sorted_controls[-1], closest_pos) + 1,
-                            )
-                        ),
-                        width,
-                        is_top_closer,
-                    )
+
+                    # check if there is control wire above the gate top
+                    is_top = sorted_controls[-1] > sorted_targets[0]
+                    is_bot = sorted_controls[0] < sorted_targets[-1]
+
+                    if is_top:
+                        self._update_qbridge(
+                            gate,
+                            list(
+                                range(
+                                    sorted_targets[0],
+                                    sorted_controls[-1] + 1,
+                                )
+                            ),
+                            width,
+                            is_top,
+                        )
+
+                    if is_bot:
+                        self._update_qbridge(
+                            gate,
+                            list(
+                                range(
+                                    sorted_controls[0],
+                                    sorted_targets[-1] + 1,
+                                )
+                            ),
+                            width,
+                            not is_bot,
+                        )
 
         max_layer_len = max(sum(layer) for layer in self._layer_list)
         self._adjust_layer_pad(
