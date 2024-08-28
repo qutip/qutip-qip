@@ -8,7 +8,7 @@ import pytest
 
 import qutip
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import Gate, gate_sequence_product
+from qutip_qip.operations import Gate, gate_sequence_product, RZX
 from qutip_qip.device import (DispersiveCavityQED, LinearSpinChain,
                                 CircularSpinChain, SCQubits)
 
@@ -101,8 +101,21 @@ def test_analytical_evolution(num_qubits, gates, device_class, kwargs):
 @pytest.mark.filterwarnings("ignore:Not in the dispersive regime")
 @pytest.mark.parametrize(("num_qubits", "gates"), single_gate_tests)
 @pytest.mark.parametrize(("device_class", "kwargs"), device_lists_numeric)
-def test_numerical_evolution(
-    num_qubits, gates, device_class, kwargs):
+def test_numerical_evolution(num_qubits, gates, device_class, kwargs):
+    _test_numerical_evolution_helper(num_qubits, gates, device_class, kwargs)
+
+
+# Test for RZX gate, only available on SCQubits.
+_rzx = RZX([0, 1], arg_value=np.pi/2)
+@pytest.mark.parametrize(
+    ("num_qubits", "gates", "device_class", "kwargs"), 
+    [pytest.param(2, [_rzx], SCQubits, {}, id="RZX-SCQubits")]
+    )
+def test_numerical_evolution_zx(num_qubits, gates, device_class, kwargs):
+    _test_numerical_evolution_helper(num_qubits, gates, device_class, kwargs)
+
+
+def _test_numerical_evolution_helper(num_qubits, gates, device_class, kwargs):
     num_qubits = 2
     circuit = QubitCircuit(num_qubits)
     for gate in gates:
