@@ -365,7 +365,6 @@ class Gate:
             )
         else:
             raise NotImplementedError(f"{self.name} is an unknown gate.")
-        print("gere")
         return qobj
 
     def get_qobj(self, num_qubits=None, dims=None):
