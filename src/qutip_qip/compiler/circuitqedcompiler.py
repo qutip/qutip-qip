@@ -274,7 +274,8 @@ class SCQubitsCompiler(GateCompiler):
         result += self.gate_compiler[gate1.name](gate1, args)
 
         from ..operations.gateclass import RZX
-        gate = Gate("RZX", targets=[q1, q2], arg_value=np.pi/2)
+
+        gate = Gate("RZX", targets=[q1, q2], arg_value=np.pi / 2)
         result += self.rzx_compiler(gate, args)
 
         gate3 = Gate("RX", q1, arg_value=-np.pi / 2)
