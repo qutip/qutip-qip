@@ -93,6 +93,7 @@ __all__ = [
     "CS",
     "CT",
     "CPHASE",
+    "RZX",
 ]
 
 """
@@ -1158,6 +1159,55 @@ class CPHASE(_OneControlledGate):
         return cphase(self.arg_value).tidyup()
 
 
+class RZX(TwoQubitGate):
+    r"""
+    RZX gate.
+
+    .. math::
+
+        \begin{pmatrix}
+        \cos{\theta/2} & -i\sin{\theta/2} & 0 & 0 \\
+        -i\sin{\theta/2} & \cos{\theta/2} & 0 & 0 \\
+        0 & 0 & \cos{\theta/2} & i\sin{\theta/2} \\
+        0 & 0 & i\sin{\theta/2} & \cos{\theta/2} \\
+        \end{pmatrix}
+
+    Examples
+    --------
+    >>> from qutip_qip.operations import RZX
+    >>> RZX([0, 1], np.pi).get_compact_qobj().tidyup() # doctest: +NORMALIZE_WHITESPACE
+    Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
+    Qobj data =
+    [[0.+0.j 0.-1.j 0.+0.j 0.+0.j]
+    [0.-1.j 0.+0.j 0.+0.j 0.+0.j]
+    [0.+0.j 0.+0.j 0.+0.j 0.+1.j]
+    [0.+0.j 0.+0.j 0.+1.j 0.+0.j]]
+    """
+
+    def __init__(self, targets, arg_value, **kwargs):
+        self.target_gate = RZ
+        super().__init__(
+            targets=targets,
+            arg_value=arg_value,
+            target_gate=self.target_gate,
+            **kwargs,
+        )
+
+    def get_compact_qobj(self):
+        theta = self.arg_value
+        return Qobj(
+            np.array(
+                [
+                    [np.cos(theta / 2), -1.0j * np.sin(theta / 2), 0.0, 0.0],
+                    [-1.0j * np.sin(theta / 2), np.cos(theta / 2), 0.0, 0.0],
+                    [0.0, 0.0, np.cos(theta / 2), 1.0j * np.sin(theta / 2)],
+                    [0.0, 0.0, 1.0j * np.sin(theta / 2), np.cos(theta / 2)],
+                ]
+            ),
+            dims=[[2, 2], [2, 2]],
+        )
+
+
 CRY = partial(_OneControlledGate, target_gate=RY)
 CRY.__doc__ = "Controlled Y rotation."
 CRX = partial(_OneControlledGate, target_gate=RX)
@@ -1210,4 +1260,5 @@ GATE_CLASS_MAP = {
     "CS": CS,
     "CT": CT,
     "CPHASE": CPHASE,
+    "RZX": RZX,
 }
