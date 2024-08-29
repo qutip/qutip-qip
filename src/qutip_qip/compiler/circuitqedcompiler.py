@@ -239,8 +239,9 @@ class SCQubitsCompiler(GateCompiler):
         coeff, tlist = self.generate_pulse_shape(
             args["shape"], args["num_samples"], maximum=zx_coeff, area=area
         )
-        tlist *= np.sqrt(np.abs(gate.arg_value) / (np.pi / 2))
-        coeff *= np.sqrt(np.abs(gate.arg_value) / (np.pi / 2))
+        area_rescale_factor = np.sqrt(np.abs(gate.arg_value) / (np.pi / 2))
+        tlist *= area_rescale_factor
+        coeff *= area_rescale_factor
         pulse_info = [("zx" + str(q1) + str(q2), coeff)]
         result += [Instruction(gate, tlist, pulse_info)]
         return result
@@ -273,10 +274,8 @@ class SCQubitsCompiler(GateCompiler):
         gate1 = Gate("RX", q2, arg_value=-np.pi / 2)
         result += self.gate_compiler[gate1.name](gate1, args)
 
-        from ..operations.gateclass import RZX
-
-        gate = Gate("RZX", targets=[q1, q2], arg_value=np.pi / 2)
-        result += self.rzx_compiler(gate, args)
+        gate2 = Gate("RZX", targets=[q1, q2], arg_value=np.pi / 2)
+        result += self.rzx_compiler(gate2, args)
 
         gate3 = Gate("RX", q1, arg_value=-np.pi / 2)
         result += self.gate_compiler[gate3.name](gate3, args)
