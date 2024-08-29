@@ -1167,7 +1167,7 @@ class RZX(TwoQubitGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import CPHASE
+    >>> from qutip_qip.operations import CRX
     >>> CRX(0, 1, np.pi/2).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims = [[2, 2], [2, 2]], shape = (4, 4), type = oper, isherm = False
     Qobj data =
