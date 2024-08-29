@@ -7,6 +7,7 @@ from itertools import product
 import inspect
 import os
 from functools import partialmethod
+from typing import Optional, Union, Tuple, List, Dict, Any
 
 import numpy as np
 from copy import deepcopy
@@ -596,9 +597,6 @@ class QubitCircuit:
                     basis_1q.append(gate)
                 else:
                     pass
-                    raise NotImplementedError(
-                        "%s is not a valid basis gate" % gate
-                    )
             if len(basis_1q) == 1:
                 raise ValueError("Not sufficient single-qubit gates in basis")
             if len(basis_1q) == 0:
@@ -621,9 +619,12 @@ class QubitCircuit:
                 )
             try:
                 _resolve_to_universal(gate, temp_resolved, basis_1q, basis_2q)
-            except AttributeError:
-                exception = f"Gate {gate.name} cannot be resolved."
-                raise NotImplementedError(exception)
+            except KeyError:
+                if gate.name in basis:
+                    temp_resolved.append(gate)
+                else:
+                    exception = f"Gate {gate.name} cannot be resolved."
+                    raise NotImplementedError(exception)
 
         match = False
         for basis_unit in ["CSIGN", "ISWAP", "SQRTSWAP", "SQRTISWAP"]:

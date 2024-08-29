@@ -10,7 +10,7 @@ from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations import (
     X, Y, Z, RX, RY, RZ, H, SQRTNOT, S, T, QASMU, CNOT, CPHASE, ISWAP, SWAP,
     CZ, SQRTSWAP, SQRTISWAP, SWAPALPHA, SWAPALPHA, MS, TOFFOLI, FREDKIN,
-    BERKELEY, R, expand_operator)
+    BERKELEY, R, RZX, expand_operator)
 
 
 def _permutation_id(permutation):
@@ -382,6 +382,7 @@ def test_gates_class():
     circuit1.add_gate("TOFFOLI", [2, 0, 1])
     circuit1.add_gate("FREDKIN", [0, 1, 2])
     circuit1.add_gate("BERKELEY", [1, 0])
+    circuit1.add_gate("RZX", [1, 0], arg_value=1.)
     result1 = circuit1.run(init_state)
 
     circuit2 = QubitCircuit(3)
@@ -409,6 +410,7 @@ def test_gates_class():
     circuit2.add_gate(TOFFOLI([2, 0, 1]))
     circuit2.add_gate(FREDKIN([0, 1, 2]))
     circuit2.add_gate(BERKELEY([1, 0]))
+    circuit2.add_gate(RZX([1, 0], 1.))
     result2 = circuit2.run(init_state)
 
     assert pytest.approx(qutip.fidelity(result1, result2), 1.0e-6) == 1

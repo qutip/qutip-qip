@@ -73,7 +73,7 @@ class SCQubits(ModelProcessor):
             **params,
         )
         super(SCQubits, self).__init__(model=model)
-        self.native_gates = ["RX", "RY", "CNOT"]
+        self.native_gates = ["RX", "RY", "CNOT", "RZX"]
         self._default_compiler = SCQubitsCompiler
         self.pulse_mode = "continuous"
 
@@ -318,13 +318,12 @@ class SCQubitsModel(Model):
                 )
             )
             zx_coeff.append(tmp)
-        for i in range(num_qubits - 1, 0, -1):
             tmp = (
-                J[i - 1]
-                * omega_cr[i]
+                J[i]
+                * omega_cr[i + 1]
                 * (
-                    1 / (wq[i] - wq[i - 1] + alpha[i])
-                    - 1 / (wq[i] - wq[i - 1])
+                    1 / (wq[i + 1] - wq[i] + alpha[i + 1])
+                    - 1 / (wq[i + 1] - wq[i])
                 )
             )
             zx_coeff.append(tmp)
