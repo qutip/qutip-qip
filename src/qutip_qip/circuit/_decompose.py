@@ -59,6 +59,9 @@ def _gate_SNOT(gate, temp_resolved):
     )
 
 
+_gate_H = _gate_SNOT
+
+
 def _gate_PHASEGATE(gate, temp_resolved):
     temp_resolved.append(
         Gate(

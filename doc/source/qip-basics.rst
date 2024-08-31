@@ -75,22 +75,22 @@ full dimension of the circuit:
 
 .. testoutput::
 
-  [Quantum object: dims = [[2, 2], [2, 2]], shape = (4, 4), type = oper, isherm = True
+  [Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=CSR, isherm=True
   Qobj data =
   [[1. 0. 0. 0.]
    [0. 0. 1. 0.]
    [0. 1. 0. 0.]
-   [0. 0. 0. 1.]], Quantum object: dims = [[2, 2], [2, 2]], shape = (4, 4), type = oper, isherm = True
+   [0. 0. 0. 1.]], Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=CSR, isherm=True
   Qobj data =
   [[1. 0. 0. 0.]
    [0. 1. 0. 0.]
    [0. 0. 0. 1.]
-   [0. 0. 1. 0.]], Quantum object: dims = [[2, 2], [2, 2]], shape = (4, 4), type = oper, isherm = True
+   [0. 0. 1. 0.]], Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=CSR, isherm=True
   Qobj data =
   [[0. 0. 1. 0.]
    [0. 0. 0. 1.]
    [1. 0. 0. 0.]
-   [0. 1. 0. 0.]], Quantum object: dims = [[2, 2], [2, 2]], shape = (4, 4), type = oper, isherm = True
+   [0. 1. 0. 0.]], Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=CSR, isherm=True
   Qobj data =
   [[1. 0. 0. 0.]
    [0. 0. 1. 0.]
@@ -110,25 +110,25 @@ can be achieved with the argument ``expand=False`` specified to the
 
 .. testoutput::
 
-  [Quantum object: dims = [[2, 2], [2, 2]], shape = (4, 4), type = oper, isherm = True
-  Qobj data =
-  [[1. 0. 0. 0.]
-   [0. 0. 1. 0.]
-   [0. 1. 0. 0.]
-   [0. 0. 0. 1.]], Quantum object: dims = [[2, 2], [2, 2]], shape = (4, 4), type = oper, isherm = True
-  Qobj data =
-  [[1. 0. 0. 0.]
-   [0. 1. 0. 0.]
-   [0. 0. 0. 1.]
-   [0. 0. 1. 0.]], Quantum object: dims = [[2], [2]], shape = (2, 2), type = oper, isherm = True
-  Qobj data =
-  [[0. 1.]
-   [1. 0.]], Quantum object: dims = [[2, 2], [2, 2]], shape = (4, 4), type = oper, isherm = True
-  Qobj data =
-  [[1. 0. 0. 0.]
-   [0. 0. 1. 0.]
-   [0. 1. 0. 0.]
-   [0. 0. 0. 1.]]]
+    [Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=True
+    Qobj data =
+    [[1. 0. 0. 0.]
+     [0. 0. 1. 0.]
+     [0. 1. 0. 0.]
+     [0. 0. 0. 1.]], Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=True
+    Qobj data =
+    [[1. 0. 0. 0.]
+     [0. 1. 0. 0.]
+     [0. 0. 0. 1.]
+     [0. 0. 1. 0.]], Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=True
+    Qobj data =
+    [[0. 1.]
+     [1. 0.]], Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=True
+    Qobj data =
+    [[1. 0. 0. 0.]
+     [0. 0. 1. 0.]
+     [0. 1. 0. 0.]
+     [0. 0. 0. 1.]]]
 
 .. _quantum_gates:
 
@@ -195,7 +195,7 @@ gate function returning a :class:`qutip.Qobj` and save it in the attribute ``use
 
       def user_gate1(arg_value):
            # controlled rotation X
-           mat = np.zeros((4, 4), dtype=np.complex)
+           mat = np.zeros((4, 4), dtype=np.complex128)
            mat[0, 0] = mat[1, 1] = 1.
            mat[2:4, 2:4] = rx(arg_value).full()
            return Qobj(mat, dims=[[2, 2], [2, 2]])
@@ -229,7 +229,7 @@ gate function returning a :class:`qutip.Qobj` and save it in the attribute ``use
 .. testoutput::
   :options: +NORMALIZE_WHITESPACE
 
-  Quantum object: dims = [[2, 2], [2, 2]], shape = (4, 4), type = oper, isherm = False
+  Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=CSR, isherm=False
   Qobj data =
     [[1.     +0.j      0.     +0.j      0.     +0.j      0.     +0.j     ] 
      [0.     +0.j      1.     +0.j      0.     +0.j      0.     +0.j     ] 
@@ -246,7 +246,7 @@ gate function returning a :class:`qutip.Qobj` and save it in the attribute ``use
   :options: +NORMALIZE_WHITESPACE
 
 
-  Quantum object: dims = [[2, 2], [2, 2]], shape = (4, 4), type = oper, isherm = False
+  Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=CSR, isherm=False
   Qobj data =
   [[1.     +0.j      0.     +0.j      0.     +0.j      0.     +0.j     ]
    [0.     +0.j      0.70711+0.j      0.     +0.j      0.     -0.70711j]
@@ -263,12 +263,12 @@ gate function returning a :class:`qutip.Qobj` and save it in the attribute ``use
 .. testoutput::
   :options: +NORMALIZE_WHITESPACE
 
-  Quantum object: dims = [[2, 2], [2, 2]], shape = (4, 4), type = oper, isherm = False
-  Qobj data =
-  [[1.+0.j 0.+0.j 0.+0.j 0.+0.j]
-   [0.+0.j 0.+1.j 0.+0.j 0.+0.j]
-   [0.+0.j 0.+0.j 1.+0.j 0.+0.j]
-   [0.+0.j 0.+0.j 0.+0.j 0.+1.j]]
+    Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=CSR, isherm=False
+    Qobj data =
+    [[1.+0.j 0.+0.j 0.+0.j 0.+0.j]
+     [0.+0.j 0.+1.j 0.+0.j 0.+0.j]
+     [0.+0.j 0.+0.j 1.+0.j 0.+0.j]
+     [0.+0.j 0.+0.j 0.+0.j 0.+1.j]]
 
 .. _quantum_circuit_plots:
 
