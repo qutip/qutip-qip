@@ -40,12 +40,6 @@ jobs:
             pyqir-version: '==0.6.2'
             python-version: '3.9'
           - case-name: qiskit+qir
-            os: macOS-latest
-            qutip-version: ''
-            qiskit-version: '==0.46.*'
-            pyqir-version: '==0.6.2'
-            python-version: '3.9'
-          - case-name: qiskit+qir
             os: ubuntu-latest
             qutip-version: ''
             qiskit-version: '==0.46.*'
