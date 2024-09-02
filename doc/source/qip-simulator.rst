@@ -208,19 +208,19 @@ precomputes the product of the unitaries (in between the measurements):
 .. testoutput::
   :options: +NORMALIZE_WHITESPACE
 
-  [Quantum object: dims = [[2, 2, 2], [2, 2, 2]], shape = (8, 8), type = oper, isherm = False
-    Qobj data =
-    [[ 0.       0.57735  0.      -0.57735  0.       0.40825  0.      -0.40825]     
-     [ 0.57735  0.      -0.57735  0.       0.40825  0.      -0.40825  0.     ]     
-     [ 0.57735  0.       0.57735  0.       0.40825  0.       0.40825  0.     ]     
-     [ 0.       0.57735  0.       0.57735  0.       0.40825  0.       0.40825]     
-     [ 0.57735  0.       0.       0.      -0.8165   0.       0.       0.     ]     
-     [ 0.       0.57735  0.       0.       0.      -0.8165   0.       0.     ]     
-     [ 0.       0.       0.57735  0.       0.       0.      -0.8165   0.     ]     
-     [ 0.       0.       0.       0.57735  0.       0.       0.      -0.8165 ]],
-       Measurement(M0, target=[0], classical_store=0),
-       Measurement(M1, target=[1], classical_store=1),
-       Measurement(M2, target=[2], classical_store=2)]
+  [Quantum object: dims=[[2, 2, 2], [2, 2, 2]], shape=(8, 8), type='oper', dtype=CSR, isherm=False
+  Qobj data =
+  [[ 0.       0.57735  0.      -0.57735  0.       0.40825  0.      -0.40825]
+    [ 0.57735  0.      -0.57735  0.       0.40825  0.      -0.40825  0.     ]
+    [ 0.57735  0.       0.57735  0.       0.40825  0.       0.40825  0.     ]
+    [ 0.       0.57735  0.       0.57735  0.       0.40825  0.       0.40825]
+    [ 0.57735  0.       0.       0.      -0.8165   0.       0.       0.     ]
+    [ 0.       0.57735  0.       0.       0.      -0.8165   0.       0.     ]
+    [ 0.       0.       0.57735  0.       0.       0.      -0.8165   0.     ]
+    [ 0.       0.       0.       0.57735  0.       0.       0.      -0.8165 ]],
+    Measurement(M0, target=[0], classical_store=0),
+    Measurement(M1, target=[1], classical_store=1),
+    Measurement(M2, target=[2], classical_store=2)]
 
 
 Here, ``sim.ops`` stores all the circuit operations that are going to be applied during
