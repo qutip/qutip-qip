@@ -15,6 +15,7 @@ Bug Fixes
 ---------
 - Add phi parameter to expand_operator call. (`#237 <https://github.com/qutip/qutip-qip/pull/237>`_ by Neill Lambert)
 - Fix the warning on MacOS. (`#240 <https://github.com/qutip/qutip-qip/pull/240>`_)
+- Fix a bug in :class:`~.QubitCircuit.add_1q_gate`. (`#250 <https://github.com/qutip/qutip-qip/pull/250>`_ issue raised by hatlabcz Chao Zhou)
 
 
 Version 0.3.1 (April 21, 2024)
