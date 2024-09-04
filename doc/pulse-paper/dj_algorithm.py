@@ -136,8 +136,8 @@ fig4, ax4 = plt.subplots(figsize=(LINEWIDTH*0.9, LINEWIDTH*0.7), dpi=200)
 first_two_qubits = result1.states[-1].ptrace([0,1])
 _, ax4 = hinton(
     first_two_qubits, ax=ax4,
-    xlabels=['$|00\\rangle$', '$|01\\rangle$', '$|10\\rangle$', '$|11\\rangle$'],
-    ylabels=['$|00\\rangle$', '$|01\\rangle$', '$|10\\rangle$', '$|11\\rangle$'])
+    x_basis=['$|00\\rangle$', '$|01\\rangle$', '$|10\\rangle$', '$|11\\rangle$'],
+    y_basis=['$|00\\rangle$', '$|01\\rangle$', '$|10\\rangle$', '$|11\\rangle$'])
 fig4.savefig("hinton.pdf")
 fig4.show()
 

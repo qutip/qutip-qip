@@ -3,6 +3,21 @@ Changelog
 *********
 
 
+Version 0.3.2 (Sept 3, 2024)
+++++++++++++++++++++++++++++
+
+Improvements
+------------
+- Add RZX gate to the SCQubits model. Fix bugs on the ZX strength. (`#245 <https://github.com/qutip/qutip-qip/pull/245>`_)
+- Compile the documentation using qutip v5 (`#246 <https://github.com/qutip/qutip-qip/pull/246>`_)
+
+Bug Fixes
+---------
+- Add phi parameter to expand_operator call. (`#237 <https://github.com/qutip/qutip-qip/pull/237>`_ by Neill Lambert)
+- Fix the warning on MacOS. (`#240 <https://github.com/qutip/qutip-qip/pull/240>`_)
+- Fix a bug in :class:`~.QubitCircuit.add_1q_gate`. (`#250 <https://github.com/qutip/qutip-qip/pull/250>`_ issue raised by hatlabcz Chao Zhou)
+
+
 Version 0.3.1 (April 21, 2024)
 ++++++++++++++++++++++++++++++
 

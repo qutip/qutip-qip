@@ -350,15 +350,16 @@ The following example demonstrates a biased Gaussian noise on the pulse amplitud
     # Plot the ideal pulse
     fig1, axis1 = processor.plot_pulses(
         title="Original control amplitude", figsize=(5,3),
-        use_control_latex=False)
+        use_control_latex=False, dpi=200)
 
     # Plot the noisy pulse
     qobjevo, _ = processor.get_qobjevo(noisy=True)
-    noisy_coeff = qobjevo.to_list()[1][1] + qobjevo.to_list()[2][1]
     fig2, axis2 = processor.plot_pulses(
         title="Noisy control amplitude", figsize=(5,3),
-        use_control_latex=False)
-    axis2[0].step(qobjevo.tlist, noisy_coeff)
+        use_control_latex=False, dpi=200)
+    tlist = np.linspace(0., processor.get_full_tlist()[-1], 300)
+    noisy_coeff = [qobjevo(t)[0, 0] for t in tlist]
+    axis2[0].step(tlist, noisy_coeff)
 
 Lindblad noise
 --------------

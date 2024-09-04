@@ -1,3 +1,4 @@
+import warnings
 import numpy as np
 import cmath
 
@@ -23,7 +24,14 @@ def _angles_for_ZYZ(input_gate):
         The gate matrix that's supposed to be decomposed should be a Qobj.
     """
     input_array = input_gate.full()
-    normalization_constant = np.sqrt(np.linalg.det(input_array))
+
+    # On MacOS it raises a warning about dvived by 0 with numpy 1.26.4.
+    # It may be related to some openblas issue.
+    # https://github.com/numpy/numpy/issues/25214.
+    # Remove this later if the issue is fixed.
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        normalization_constant = np.sqrt(np.linalg.det(input_array))
     global_phase_angle = -cmath.phase(1 / normalization_constant)
     input_array = input_array * (1 / normalization_constant)
 
