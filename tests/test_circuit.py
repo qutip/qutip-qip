@@ -138,6 +138,7 @@ class TestQubitCircuit:
         qc.add_gate("SNOT", targets=[3])
         qc.add_gate(test_gate, index=[3])
         qc.add_1q_gate("RY", start=4, end=5, arg_value=1.570796)
+        qc.add_1q_gate("RX", qubits=[3], arg_value=-1.570796)
 
         # Test explicit gate addition
         assert qc.gates[0].name == "CNOT"
@@ -158,7 +159,12 @@ class TestQubitCircuit:
         assert qc.gates[5].arg_value == 1.570796
         assert qc.gates[6].name == "RY"
         assert qc.gates[6].targets == [5]
-        assert qc.gates[5].arg_value == 1.570796
+        assert qc.gates[6].arg_value == 1.570796
+
+        # Test adding 1 qubit gate on qubits [3] 
+        assert qc.gates[7].name == "RX"
+        assert qc.gates[7].targets == [3]
+        assert qc.gates[7].arg_value == -1.570796
 
         dummy_gate1 = Gate("DUMMY1")
         inds = [1, 3, 4, 6]
@@ -179,6 +185,7 @@ class TestQubitCircuit:
             'RY',       # 8
             'DUMMY1',   # 9
             'RY',       # 10
+            'RX',       # 11
         ]
         actual_gate_names = [gate.name for gate in qc.gates]
         assert actual_gate_names == expected_gate_names
@@ -202,6 +209,7 @@ class TestQubitCircuit:
             'DUMMY1',   # 10
             'RY',       # 11
             'DUMMY2',   # 12
+            'RX',       # 13
         ]
         actual_gate_names = [gate.name for gate in qc.gates]
         assert actual_gate_names == expected_gate_names
