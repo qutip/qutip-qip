@@ -287,11 +287,7 @@ class QubitCircuit:
         start=0,
         end=None,
         qubits=None,
-        arg_value=None,
-        arg_label=None,
-        classical_controls=None,
-        control_value=None,
-        classical_control_value=None,
+        **kwargs,
     ):
         """
         Adds a single qubit gate with specified parameters on a variable
@@ -301,45 +297,21 @@ class QubitCircuit:
         Parameters
         ----------
         name : string
-            Gate name.
+            Gate name or the :class:`~.operations.Gate` object.
         start : int
             Starting location of qubits.
         end : int
             Last qubit for the gate.
         qubits : list
             Specific qubits for applying gates.
-        arg_value : float
-            Argument value(phi).
-        arg_label : string
-            Label for gate representation.
+        kwargs : dict
+            Keyword arguments for the gate, except for `targets`.
+            See :class:`~.QubitCircuit.add_gate`.
         """
-        if qubits is not None:
-            for _, i in enumerate(qubits):
-                gate = GATE_CLASS_MAP[name](
-                    targets=qubits[i],
-                    controls=None,
-                    arg_value=arg_value,
-                    arg_label=arg_label,
-                    classical_controls=classical_controls,
-                    control_value=control_value,
-                    classical_control_value=classical_control_value,
-                )
-                self.gates.append(gate)
-
-        else:
-            if end is None:
-                end = self.N - 1
-            for i in range(start, end + 1):
-                gate = GATE_CLASS_MAP[name](
-                    targets=i,
-                    controls=None,
-                    arg_value=arg_value,
-                    arg_label=arg_label,
-                    classical_controls=classical_controls,
-                    control_value=control_value,
-                    classical_control_value=classical_control_value,
-                )
-                self.gates.append(gate)
+        if qubits is None:
+            qubits = range(start, end + 1)
+        for q in qubits:
+            self.add_gate(name, targets=q, **kwargs)
 
     def add_circuit(self, qc, start=0, overwrite_user_gates=False):
         """

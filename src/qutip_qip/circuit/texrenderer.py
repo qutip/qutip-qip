@@ -264,10 +264,12 @@ class TeXRenderer:
             )
 
     @staticmethod
-    def _convert_pdf(file_stem):
+    def _convert_pdf(file_stem, dpi=None):
         """
         'Convert' to pdf: since LaTeX outputs a PDF file, there's nothing to do.
         """
+        if dpi is not None:
+            warnings.warn("argument dpi is ignored for pdf output.")
         with open(file_stem + ".pdf", "rb") as file:
             return file.read()
 
