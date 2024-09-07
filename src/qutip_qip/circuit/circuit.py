@@ -1007,6 +1007,9 @@ class QubitCircuit:
         elif renderer == "matplotlib":
             from .mat_renderer import MatRenderer
 
+            if dpi is not None:
+                kwargs["dpi"] = dpi
+
             mat = MatRenderer(self, **kwargs)
             mat.canvas_plot()
             if save:

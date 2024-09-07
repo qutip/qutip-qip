@@ -82,21 +82,16 @@ class MatRenderer(BaseRenderer):
             "node_label": 3,
         }
         self.style.fig_height = (
-            (
-                (self._qwires + self._cwires)
-                * self.style.wire_sep
-                * 0.393701
-                * 3
-            )
+            ((self._qwires + self._cwires) * self.style.wire_sep)
             if self.style.fig_height is None
             else self.style.fig_height
         )
         if self._ax is None:
-            self.fig, self._ax = plt.subplots(
-                figsize=(self.style.fig_width, self.style.fig_height),
-                dpi=self.style.dpi,
-                facecolor=self.style.bgcolor,
-            )
+            self.fig = plt.figure()
+            self._ax = self.fig.add_subplot(111)
+            self.fig.set_dpi(self.style.dpi)
+        else:
+            self.fig = self._ax.get_figure()
 
     def _get_text_width(
         self,
@@ -125,10 +120,11 @@ class MatRenderer(BaseRenderer):
 
         fontstyle : str
             The fontstyle of the text.
+
         Returns
         -------
         float
-            The width of the text in cm.
+            The width of the text inches.
         """
 
         text_obj = plt.Text(
@@ -145,11 +141,9 @@ class MatRenderer(BaseRenderer):
         bbox = text_obj.get_window_extent(
             renderer=self._ax.figure.canvas.get_renderer()
         )
-        inv = self._ax.transData.inverted()
-        bbox_data = bbox.transformed(inv)
         text_obj.remove()
 
-        return bbox_data.width * 2.54 * 3
+        return bbox.width / self.style.dpi
 
     def _add_wire(self) -> None:
         """
@@ -702,7 +696,7 @@ class MatRenderer(BaseRenderer):
                 for i in range(len(gate.targets)):
                     connector_l = Circle(
                         (
-                            xskip + self.style.gate_margin - self._connector_r,
+                            xskip + self.style.gate_margin + self._connector_r,
                             (adj_targets[i]) * self.style.wire_sep,
                         ),
                         self._connector_r,
@@ -714,7 +708,7 @@ class MatRenderer(BaseRenderer):
                             xskip
                             + self.style.gate_margin
                             + gate_width
-                            + self._connector_r,
+                            - self._connector_r,
                             (adj_targets[i]) * self.style.wire_sep,
                         ),
                         self._connector_r,
@@ -879,13 +873,17 @@ class MatRenderer(BaseRenderer):
 
         self._add_wire()
         self._fig_config()
+        plt.tight_layout()
         plt.show()
 
     def _fig_config(self) -> None:
         """
         Configure the figure settings.
         """
-
+        self._ax.set_facecolor(self.style.bgcolor)
+        self.fig.set_size_inches(
+            self.style.fig_width, self.style.fig_height, forward=True
+        )
         self._ax.set_ylim(
             -self.style.padding,
             self.style.padding
