@@ -880,7 +880,7 @@ class MatRenderer(BaseRenderer):
         """
         Configure the figure settings.
         """
-        self._ax.set_facecolor(self.style.bgcolor)
+        self.fig.set_facecolor(self.style.bgcolor)
         self.fig.set_size_inches(
             self.style.fig_width, self.style.fig_height, forward=True
         )

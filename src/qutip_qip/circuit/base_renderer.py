@@ -19,53 +19,56 @@ class StyleConfig:
     Parameters
     ----------
     dpi : int, optional
-        The dpi of the figure. The default is 150.
+        DPI of the figure. The default is 150.
 
     fontsize : int, optional
-        The fontsize control at circuit level, including tile and wire labels. The default is 10.
+        Fontsize control at circuit level, including tile and wire labels. The default is 10.
 
     end_wire_ext : int, optional
-        The extension of the wire at the end of the circuit. The default is 2.
+        Extension of the wire at the end of the circuit. The default is 2.
+        Available to TextRender and MatRender.
 
     padding : float, optional
-        The padding between the circuit and the figure border. The default is 0.3.
+        Padding between the circuit and the figure border. The default is 0.3.
 
     gate_margin : float, optional
-        The margin space left on each side of the gate. The default is 0.15.
+        Margin space left on each side of the gate. The default is 0.15.
 
     wire_sep : float, optional
-        The separation between the wires. The default is 0.5.
+        Separation between the wires. The default is 0.5.
 
     layer_sep : float, optional
-        The separation between the layers. The default is 0.5.
+        Separation between the layers. The default is 0.5.
 
     gate_pad : float, optional
-        The padding between the gate and the gate label. The default is 0.05.
+        Padding between the gate and the gate label. The default is 0.05.
+        Available to TextRender and MatRender.
 
     label_pad : float, optional
-        The padding between the wire label and the wire. The default is 0.1.
+        Padding between the wire label and the wire. The default is 0.1.
 
     fig_height : float, optional
-        The height of the figure. The default is None.
+        Height of the figure. The default is None.
 
     fig_width : float, optional
-        The width of the figure. The default is None.
+        Width of the figure. The default is None.
 
     bulge : Union[str, bool], optional
-        The bulge style of the gate. Renders non-bulge gates if False. The default is True.
+        Bulge style of the gate. Renders non-bulge gates if False. The default is True.
 
     align_layer : bool, optional
         Align the layers of the gates across different wires. The default is False.
+        Available to TextRender and MatRender.
 
     theme : Optional[Union[str, Dict]], optional
-        The color theme of the circuit. The default is "qutip".
-        The available themes are 'qutip', 'light', and 'modern'.
+        Color theme of the circuit. The default is "qutip".
+        The available themes are 'qutip', 'light', 'dark' and 'modern'.
 
     title : Optional[str], optional
-        The title of the circuit. The default is None.
+        Title of the circuit. The default is None.
 
     bgcolor : Optional[str], optional
-        The background color of the circuit. The default is None.
+        Background color of the circuit. The default is None.
 
     color : Optional[str], optional
         Controls color of acsent elements (eg. cross sign in the target node)
@@ -73,10 +76,11 @@ class StyleConfig:
         The default is None.
 
     wire_label : Optional[List], optional
-        The labels of the wires. The default is None.
+        Labels of the wires. The default is None.
+        Available to TextRender and MatRender.
 
     wire_color : Optional[str], optional
-        The color of the wires. The default is None.
+        Color of the wires. The default is None.
     """
 
     dpi: int = 150
