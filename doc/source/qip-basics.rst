@@ -277,7 +277,10 @@ Plotting Quantum Circuits
 
 QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below is an example that demonstrates how to create and plot a quantum circuit using these methods:
 
-.. code-block:: python
+- **Matplotlib (Default)**:
+
+  .. plot::
+    :include-source:
 
     from qutip_qip.circuit import QubitCircuit
     from qutip_qip.operations import Gate
@@ -289,76 +292,96 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
     qc.add_gate("ISWAP", targets=[0,1])
     qc.add_measurement("M0", targets=1, classical_store=0)
 
-- **Matplotlib (Default)**:
+    qc.draw("matplotlib", dpi=300, fig_width=4)
 
-    .. code-block:: python
-          
-        # plot the quantum circuit using  MatRenderer
-        qc.draw("matplotlib")
+  **Customization Examples**:
 
-    .. image:: /figures//mat_circuit_example.png
+    .. plot::
+      :include-source:
 
-    **Customization Parameters**
+      from qutip_qip.circuit import QubitCircuit
+      from qutip_qip.operations import Gate
 
-    .. list-table:: 
-      :header-rows: 1
-      :widths: 20 80
+      # create the quantum circuit
+      qc = QubitCircuit(2, num_cbits=1)
+      qc.add_gate("CNOT", controls=0, targets=1)
+      qc.add_gate("SNOT", targets=1)
+      qc.add_gate("ISWAP", targets=[0,1])
+      qc.add_measurement("M0", targets=1, classical_store=0)
 
-      * - **Parameter**
-        - **Description**
-      * - ``dpi : int``
-        - The dpi of the figure.
-      * - ``fontsize : int``
-        - The fontsize control at the circuit level, including tile 
-          and wire labels.
-      * - ``end_wire_ext : int``
-        - The extension of the wire at the end of the circuit.
-      * - ``padding : float``
-        - The padding between the circuit and the figure border.
-      * - ``gate_margin : float``
-        - The margin space left on each side of the gate.
-      * - ``wire_sep : float``
-        - The separation between the wires.
-      * - ``layer_sep : float``
-        - The separation between the layers.
-      * - ``gate_pad : float``
-        - The padding between the gate and the gate label.
-      * - ``label_pad : float``
-        - The padding between the wire label and the wire.
-      * - ``fig_height : float``
-        - The height of the figure.
-      * - ``fig_width : float``
-        - The width of the figure.
-      * - ``bulge : Union[str, bool]``
-        - The bulge style of the gate. Renders non-bulge gates if False.
-      * - ``align_layer : bool``
-        - Align the layers of the gates across different wires.
-      * - ``theme : Optional[Union[str, Dict]]``
-        - The color theme of the circuit. Available themes are 'qutip', 'light', and 'modern'.
-      * - ``title : Optional[str]``
-        - The title of the circuit.
-      * - ``bgcolor : Optional[str]``
-        - The background color of the circuit.
-      * - ``color : Optional[str]``
-        - Controls color of accent elements (e.g., cross sign in the target node) 
-          and sets as default color of gate-label. Can be overwritten 
-          by gate-specific color.
-      * - ``wire_label : Optional[List]``
-        - The labels of the wires.
-      * - ``wire_color : Optional[str]``
-        - The color of the wires.
+      qc.draw("matplotlib", bulge=False, theme='dark', title="Plotting Quantum Circuit", dpi=300, fig_width=4)
 
+    To further explore the customization examples, refer to `link 🔗 <https://nbviewer.org/urls/qutip.org/qutip-tutorials/tutorials-v5/quantum-circuits/matrenderer-plot.ipynb>`_.
 
+  **Customization Parameters**
+
+  .. list-table:: 
+    :header-rows: 1
+    :widths: 20 80
+
+    * - **Parameter**
+      - **Description**
+    * - ``dpi : int = 150``
+      - DPI of the figure.
+    * - ``fontsize : int = 10``
+      - Fontsize control at the circuit level, including tile 
+        and wire labels.
+    * - ``end_wire_ext : int = 2``
+      - Extension of the wire at the end of the circuit.
+    * - ``padding : float = 0.3``
+      - Padding between the circuit and the figure border.
+    * - ``gate_margin : float = 0.15``
+      - Margin space left on each side of the gate.
+    * - ``wire_sep : float = 0.5``
+      - Separation between the wires.
+    * - ``layer_sep : float = 0.5``
+      - Separation between the layers.
+    * - ``gate_pad : float = 0.05``
+      - Padding between the gate and the gate label.
+    * - ``label_pad : float = 0.1``
+      - Padding between the wire label and the wire.
+    * - ``fig_height : Optional[float] = None``
+      - Height of the figure.
+    * - ``fig_width : Optional[float] = 10``
+      - Width of the figure.
+    * - ``bulge : Union[str, bool] = True``
+      - Bulge style of the gate. Renders non-bulge gates if False.
+    * - ``align_layer : bool = False``
+      - Align the layers of the gates across different wires.
+    * - ``theme : Optional[Union[str, Dict]] = "qutip"``
+      - Color theme of the circuit. Available themes are 'qutip', 'light', 'dark' and 'modern'.
+    * - ``title : Optional[str] = None``
+      - Title of the circuit.
+    * - ``bgcolor : Optional[str] = None``
+      - Background color of the circuit.
+    * - ``color : Optional[str] = None``
+      - Controls color of accent elements (e.g., cross sign in the target node) 
+        and sets as default color of gate-label. Can be overwritten 
+        by gate-specific color.
+    * - ``wire_label : Optional[List] = None``
+      - Labels of the wires.
+    * - ``wire_color : Optional[str] = None``
+      - Color of the wires.
 
 - **Text**:
 
-    .. code-block:: python
+    .. testcode::
           
-      # plot the quantum circuit using TextRenderer
-      qc.draw("text")
+      from qutip_qip.circuit import QubitCircuit
+      from qutip_qip.operations import Gate
 
+      # create the quantum circuit
+      qc = QubitCircuit(2, num_cbits=1)
+      qc.add_gate("CNOT", controls=0, targets=1)
+      qc.add_gate("SNOT", targets=1)
+      qc.add_gate("ISWAP", targets=[0,1])
+      qc.add_measurement("M0", targets=1, classical_store=0)
 
-    .. code-block:: none
+      qc.draw("matplotlib", dpi=300, fig_width=4)
+
+    **Output**:
+
+    .. testoutput::
         
              ┌──────┐  ┌──────┐  ┌───────┐  ┌───┐   
       q1 :───┤ CNOT ├──┤ SNOT ├──┤       ├──┤ M ├───
@@ -378,14 +401,15 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
       * - **Parameter**
         - **Description**
 
-      * - ``gate_pad : int``
-        - The padding between the gate and the gate label.
-      * - ``wire_label : Optional[List]``
-        - The labels of the wires.
-      * - ``align_layer : bool``
+      * - ``gate_pad : int = 1``
+        - Padding between the gate and the gate label.
+      * - ``wire_label : Optional[List] = None``
+        - Labels of the wires.
+      * - ``align_layer : bool = False``
         - Align the layers of the gates across different wires.
-      * - ``end_wire_ext : int``
-        - The extension of the wire at the end of the circuit.
+      * - ``end_wire_ext : int = 2``
+        - Extension of the wire at the end of the circuit.
+
 
 - **LaTeX**:
 
@@ -399,7 +423,19 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
 
     .. code-block:: python
 
-        qc.draw("latex")
+      from qutip_qip.circuit import QubitCircuit
+      from qutip_qip.operations import Gate
+
+      # create the quantum circuit
+      qc = QubitCircuit(2, num_cbits=1)
+      qc.add_gate("CNOT", controls=0, targets=1)
+      qc.add_gate("SNOT", targets=1)
+      qc.add_gate("ISWAP", targets=[0,1])
+      qc.add_measurement("M0", targets=1, classical_store=0)
+
+      qc.draw("latex")
+
+    **Output**:
 
     .. image:: /figures//quantum_circuit_example.png
 
