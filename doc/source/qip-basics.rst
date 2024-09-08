@@ -377,12 +377,11 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
       qc.add_gate("ISWAP", targets=[0,1])
       qc.add_measurement("M0", targets=1, classical_store=0)
 
-      qc.draw("matplotlib", dpi=300, fig_width=4)
+      qc.draw("text")
 
     **Output**:
 
     .. testoutput::
-        
              ┌──────┐  ┌──────┐  ┌───────┐  ┌───┐   
       q1 :───┤ CNOT ├──┤ SNOT ├──┤       ├──┤ M ├───
              └───┬──┘  └──────┘  │       │  └─╥─┘   
