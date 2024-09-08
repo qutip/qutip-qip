@@ -365,31 +365,32 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
 
 - **Text**:
 
-    .. testcode::
-          
-      from qutip_qip.circuit import QubitCircuit
-      from qutip_qip.operations import Gate
+  .. testcode::
+        
+    from qutip_qip.circuit import QubitCircuit
+    from qutip_qip.operations import Gate
 
-      # create the quantum circuit
-      qc = QubitCircuit(2, num_cbits=1)
-      qc.add_gate("CNOT", controls=0, targets=1)
-      qc.add_gate("SNOT", targets=1)
-      qc.add_gate("ISWAP", targets=[0,1])
-      qc.add_measurement("M0", targets=1, classical_store=0)
+    # create the quantum circuit
+    qc = QubitCircuit(2, num_cbits=1)
+    qc.add_gate("CNOT", controls=0, targets=1)
+    qc.add_gate("SNOT", targets=1)
+    qc.add_gate("ISWAP", targets=[0,1])
+    qc.add_measurement("M0", targets=1, classical_store=0)
 
-      qc.draw("text")
+    qc.draw("text")
 
-    **Output**:
+  **Output**:
 
-    .. testoutput::
-             ┌──────┐  ┌──────┐  ┌───────┐  ┌───┐   
-      q1 :───┤ CNOT ├──┤ SNOT ├──┤       ├──┤ M ├───
-             └───┬──┘  └──────┘  │       │  └─╥─┘   
-                 │               │       │    ║     
-      q0 :───────█───────────────┤ ISWAP ├────║─────
-                                 └───────┘    ║     
-                                              ║     
-      c0 :════════════════════════════════════╩═════
+  .. testoutput::
+      :options: +NORMALIZE_WHITESPACE
+               ┌──────┐  ┌──────┐  ┌───────┐  ┌───┐   
+        q1 :───┤ CNOT ├──┤ SNOT ├──┤       ├──┤ M ├───
+               └───┬──┘  └──────┘  │       │  └─╥─┘   
+                   │               │       │    ║     
+        q0 :───────█───────────────┤ ISWAP ├────║─────
+                                   └───────┘    ║     
+                                                ║     
+        c0 :════════════════════════════════════╩═════
 
     **Customization Parameters**
 
