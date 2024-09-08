@@ -957,6 +957,11 @@ class QubitCircuit:
         kwargs : dict
             Additional keyword arguments passed to the renderer.
             Passed to StyleConfig Dataclass under base_renderer.py, pls refer to the file for more details.
+
+        See Also
+        --------
+        :class:`~qutip_qip.circuit.base_renderer.StyleConfig`
+            Configuration class for detailed style options.
         """
 
         if renderer == "latex":

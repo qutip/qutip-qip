@@ -366,7 +366,6 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
 - **Text**:
 
   .. testcode::
-        
     from qutip_qip.circuit import QubitCircuit
     from qutip_qip.operations import Gate
 
@@ -379,20 +378,19 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
 
     qc.draw("text")
 
-  **Output**:
-
   .. testoutput::
-      :options: +NORMALIZE_WHITESPACE
-               ┌──────┐  ┌──────┐  ┌───────┐  ┌───┐   
-        q1 :───┤ CNOT ├──┤ SNOT ├──┤       ├──┤ M ├───
-               └───┬──┘  └──────┘  │       │  └─╥─┘   
-                   │               │       │    ║     
-        q0 :───────█───────────────┤ ISWAP ├────║─────
-                                   └───────┘    ║     
-                                                ║     
-        c0 :════════════════════════════════════╩═════
+    :options: +NORMALIZE_WHITESPACE
+    
+             ┌──────┐  ┌──────┐  ┌───────┐  ┌───┐   
+      q1 :───┤ CNOT ├──┤ SNOT ├──┤       ├──┤ M ├───
+             └───┬──┘  └──────┘  │       │  └─╥─┘   
+                 │               │       │    ║     
+      q0 :───────█───────────────┤ ISWAP ├────║─────
+                                 └───────┘    ║     
+                                              ║     
+      c0 :════════════════════════════════════╩═════
 
-    **Customization Parameters**
+  **Customization Parameters**
 
     .. list-table:: 
       :header-rows: 1
@@ -434,8 +432,6 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
       qc.add_measurement("M0", targets=1, classical_store=0)
 
       qc.draw("latex")
-
-    **Output**:
 
     .. image:: /figures//quantum_circuit_example.png
 
