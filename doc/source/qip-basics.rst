@@ -279,41 +279,42 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
 
 - **Matplotlib (Default)**:
 
-  .. plot::
-    :include-source:
+.. plot::
+  :include-source:
 
-    from qutip_qip.circuit import QubitCircuit
-    from qutip_qip.operations import Gate
+  from qutip_qip.circuit import QubitCircuit
+  from qutip_qip.operations import Gate
 
-    # create the quantum circuit
-    qc = QubitCircuit(2, num_cbits=1)
-    qc.add_gate("CNOT", controls=0, targets=1)
-    qc.add_gate("SNOT", targets=1)
-    qc.add_gate("ISWAP", targets=[0,1])
-    qc.add_measurement("M0", targets=1, classical_store=0)
+  # create the quantum circuit
+  qc = QubitCircuit(2, num_cbits=1)
+  qc.add_gate("CNOT", controls=0, targets=1)
+  qc.add_gate("SNOT", targets=1)
+  qc.add_gate("ISWAP", targets=[0,1])
+  qc.add_measurement("M0", targets=1, classical_store=0)
 
-    qc.draw("matplotlib", dpi=300, fig_width=4)
+  qc.draw("matplotlib", dpi=300, fig_width=4)
 
-  **Customization Examples**:
+**Customization Examples**:
 
-    .. plot::
-      :include-source:
+.. plot::
+  :include-source:
 
-      from qutip_qip.circuit import QubitCircuit
-      from qutip_qip.operations import Gate
+  from qutip_qip.circuit import QubitCircuit
+  from qutip_qip.operations import Gate
 
-      # create the quantum circuit
-      qc = QubitCircuit(2, num_cbits=1)
-      qc.add_gate("CNOT", controls=0, targets=1)
-      qc.add_gate("SNOT", targets=1)
-      qc.add_gate("ISWAP", targets=[0,1])
-      qc.add_measurement("M0", targets=1, classical_store=0)
+  # create the quantum circuit
+  qc = QubitCircuit(2, num_cbits=1)
+  qc.add_gate("CNOT", controls=0, targets=1)
+  qc.add_gate("SNOT", targets=1)
+  qc.add_gate("ISWAP", targets=[0,1])
+  qc.add_measurement("M0", targets=1, classical_store=0)
 
-      qc.draw("matplotlib", bulge=False, theme='dark', title="Plotting Quantum Circuit", dpi=300, fig_width=4)
+  qc.draw("matplotlib", bulge=False, theme='dark', title="Plotting Quantum Circuit", dpi=300, fig_width=4)
 
-    To further explore the customization examples, refer to `link 🔗 <https://nbviewer.org/urls/qutip.org/qutip-tutorials/tutorials-v5/quantum-circuits/matrenderer-plot.ipynb>`_.
+.. 
+  _To further explore the customization examples, refer to `tutorial notebook <link to tutorial notebook>`.
 
-  **Customization Parameters**
+**Customization Parameters**
 
   .. list-table:: 
     :header-rows: 1
@@ -365,30 +366,31 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
 
 - **Text**:
 
-  .. testcode::
-    from qutip_qip.circuit import QubitCircuit
-    from qutip_qip.operations import Gate
+.. testcode::
 
-    # create the quantum circuit
-    qc = QubitCircuit(2, num_cbits=1)
-    qc.add_gate("CNOT", controls=0, targets=1)
-    qc.add_gate("SNOT", targets=1)
-    qc.add_gate("ISWAP", targets=[0,1])
-    qc.add_measurement("M0", targets=1, classical_store=0)
+  from qutip_qip.circuit import QubitCircuit
+  from qutip_qip.operations import Gate
 
-    qc.draw("text")
+  # create the quantum circuit
+  qc = QubitCircuit(2, num_cbits=1)
+  qc.add_gate("CNOT", controls=0, targets=1)
+  qc.add_gate("SNOT", targets=1)
+  qc.add_gate("ISWAP", targets=[0,1])
+  qc.add_measurement("M0", targets=1, classical_store=0)
 
-  .. testoutput::
-    :options: +NORMALIZE_WHITESPACE
-    
-             ┌──────┐  ┌──────┐  ┌───────┐  ┌───┐   
-      q1 :───┤ CNOT ├──┤ SNOT ├──┤       ├──┤ M ├───
-             └───┬──┘  └──────┘  │       │  └─╥─┘   
-                 │               │       │    ║     
-      q0 :───────█───────────────┤ ISWAP ├────║─────
-                                 └───────┘    ║     
-                                              ║     
-      c0 :════════════════════════════════════╩═════
+  qc.draw("text")
+
+.. testoutput::
+  :options: +NORMALIZE_WHITESPACE
+  
+           ┌──────┐  ┌──────┐  ┌───────┐  ┌───┐   
+    q1 :───┤ CNOT ├──┤ SNOT ├──┤       ├──┤ M ├───
+           └───┬──┘  └──────┘  │       │  └─╥─┘   
+               │               │       │    ║     
+    q0 :───────█───────────────┤ ISWAP ├────║─────
+                               └───────┘    ║     
+                                            ║     
+    c0 :════════════════════════════════════╩═════
 
   **Customization Parameters**
 
@@ -419,7 +421,7 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
 
     An example code for plotting the example quantum circuit from above is given:
 
-    .. code-block:: python
+    .. code-block::
 
       from qutip_qip.circuit import QubitCircuit
       from qutip_qip.operations import Gate
