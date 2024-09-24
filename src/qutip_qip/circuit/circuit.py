@@ -2,12 +2,13 @@
 Quantum circuit representation and simulation.
 """
 
-from collections.abc import Iterable
-from itertools import product
-import inspect
 import os
+import inspect
+from io import BytesIO
+from itertools import product
 from functools import partialmethod
 from typing import Optional, Union, Tuple, List, Dict, Any
+from collections.abc import Iterable
 
 import numpy as np
 from copy import deepcopy
@@ -114,11 +115,17 @@ class QubitCircuit:
                     "{{str: gate_function}}, not {}".format(user_gates)
                 )
 
-        if "png" in CONVERTERS:
-            self._repr_png_ = self._generate_png
+    def __repr__(self) -> str:
+        return ""
 
-        if "svg" in CONVERTERS:
-            self._repr_svg_ = self._generate_svg
+    def _repr_png_(self):
+        """
+        Provide PNG representation for Jupyter Notebook.
+        """
+        try:
+            self.draw(renderer="matplotlib")
+        except ImportError:
+            self.draw("text")
 
     def add_state(self, state, targets=None, state_type="input"):
         """
@@ -914,41 +921,13 @@ class QubitCircuit:
 
         # This slightly convoluted dance with the conversion formats is because
 
-    # image conversion has optional dependencies.  We always want the `png` and
-    # `svg` methods to be available so that they are discoverable by the user,
-    # however if one is called without the required dependency, then they'll
-    # get a `RuntimeError` explaining the problem.  We only want the IPython
-    # magic methods `_repr_xxx_` to be defined if we know that the image
-    # conversion is available, so the user doesn't get exceptions on display
-    # because IPython tried to do something behind their back.
-
-    def _generate_png(self):
-        return TeXRenderer(self).raw_img(file_type="png")
-
-    def _generate_svg(self):
-        return TeXRenderer(self).raw_img(file_type="svg")
-
-    @property
-    def png(self):
-        """
-        Return the png file
-        """
-        return DisplayImage(self._repr_png_(), embed=True)
-
-    @property
-    def svg(self):
-        """
-        Return the svg file
-        """
-        return DisplaySVG(self._repr_svg_())
-
     def draw(
         self,
         renderer="matplotlib",
         file_type="png",
         dpi=None,
-        file_name="exported_pic",
-        file_path="",
+        file_path="circuit",
+        save=False,
         **kwargs,
     ):
         """
@@ -956,42 +935,72 @@ class QubitCircuit:
 
         Parameters
         ----------
-        renderer : choose the renderer for the circuit.
-                   Default: 'matplotlib'
+        renderer : str, optional
+            The renderer to use for the circuit. Options are 'latex', 'matplotlib', or 'text'.
+            Default is 'matplotlib'.
 
-        file_type : Provide a supported image file_type eg: "svg"/"png".
-                   Default : "png".
+        file_type : str, optional
+            The type of the image file to export. Supported types are 'svg' and 'png'.
+            Default is 'png'.
 
-        dpi : Image density in Dots per inch(dpi)
-            Applicable for PNG, NA for SVG.
-            Default : None, though it's set to 100 internally for PNG
+        dpi : int, optional
+            The image density in dots per inch (dpi). Applicable for PNG, not for SVG.
+            Default is None (set to 100 internally for PNG).
 
-        file_name : Filename of the exported image.
-                    Default : "exported_pic"
+        file_path : str, optional
+            The path to save the image file. Default is the current working directory.
 
-        file_path : Path to which the file has to be exported.
-                    Default : ""
-                    Note : User should have write access to the location.
+        save : bool, optional
+            If True, the image will be saved to the specified path.
+            Default is False.
+
+        kwargs : dict
+            Additional keyword arguments passed to the renderer.
+            Passed to StyleConfig Dataclass under base_renderer.py, pls refer to the file for more details.
+
+        See Also
+        --------
+        :class:`~qutip_qip.circuit.base_renderer.StyleConfig`
+            Configuration class for detailed style options.
         """
 
         if renderer == "latex":
-            if file_type == "svg":
-                mode = "w"
-            else:
-                mode = "wb"
-                if file_type == "png" and not dpi:
-                    dpi = 100
+            if file_type == "png" and dpi is None:
+                dpi = 100
+
             latex = TeXRenderer(self)
             image_data = latex.raw_img(file_type, dpi)
-            with open(
-                os.path.join(file_path, file_name + "." + file_type), mode
-            ) as f:
-                f.write(image_data)
+
+            if save:
+                mode = "w" if file_type == "svg" else "wb"
+                with open(f"{file_path}.{file_type}", mode) as file:
+                    file.write(image_data)
+
+            return (
+                DisplaySVG(data=image_data)
+                if file_type == "svg"
+                else DisplayImage(data=image_data)
+            )
+
         elif renderer == "matplotlib":
             from .mat_renderer import MatRenderer
 
+            if dpi is not None:
+                kwargs["dpi"] = dpi
+
             mat = MatRenderer(self, **kwargs)
             mat.canvas_plot()
+            if save:
+                mat.save(file_path)
+
+        elif renderer == "text":
+            from .text_renderer import TextRenderer
+
+            text = TextRenderer(self, **kwargs)
+            text.layout()
+            if save:
+                text.save(file_path)
+
         else:
             raise ValueError(
                 f"Unknown renderer '{renderer}' not supported. Please choose from 'latex', 'matplotlib', 'text'."

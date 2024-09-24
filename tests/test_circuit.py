@@ -5,12 +5,27 @@ import numpy as np
 from pathlib import Path
 
 
-from qutip_qip.circuit import (QubitCircuit, CircuitSimulator, TeXRenderer)
-from qutip import (tensor, Qobj, ptrace, rand_ket, fock_dm, basis,
-                   rand_dm, bell_state, ket2dm, identity, sigmax)
+from qutip_qip.circuit import QubitCircuit, CircuitSimulator
+from qutip_qip.circuit.texrenderer import TeXRenderer
+from qutip import (
+    tensor,
+    Qobj,
+    ptrace,
+    rand_ket,
+    fock_dm,
+    basis,
+    rand_dm,
+    bell_state,
+    ket2dm,
+    identity,
+    sigmax,
+)
 from qutip_qip.qasm import read_qasm
 from qutip_qip.operations import (
-    Gate, gates, Measurement, gate_sequence_product
+    Gate,
+    gates,
+    Measurement,
+    gate_sequence_product,
 )
 from qutip_qip.transpiler import to_chain_structure
 from qutip_qip.decompose.decompose_single_qubit_gate import _ZYZ_rotation
@@ -23,8 +38,9 @@ def _op_dist(A, B):
 
 
 def _teleportation_circuit():
-    teleportation = QubitCircuit(3, num_cbits=2,
-                                 input_states=["q0", "0", "0", "c0", "c1"])
+    teleportation = QubitCircuit(
+        3, num_cbits=2, input_states=["q0", "0", "0", "c0", "c1"]
+    )
 
     teleportation.add_gate("SNOT", targets=[1])
     teleportation.add_gate("CNOT", targets=[2], controls=[1])
@@ -39,8 +55,9 @@ def _teleportation_circuit():
 
 
 def _teleportation_circuit2():
-    teleportation = QubitCircuit(3, num_cbits=2,
-                                 input_states=["q0", "0", "0", "c0", "c1"])
+    teleportation = QubitCircuit(
+        3, num_cbits=2, input_states=["q0", "0", "0", "c0", "c1"]
+    )
 
     teleportation.add_gate("SNOT", targets=[1])
     teleportation.add_gate("CNOT", targets=[2], controls=[1])
@@ -66,21 +83,18 @@ class TestQubitCircuit:
     A test class for the QuTiP functions for Circuit resolution.
     """
 
-    @pytest.mark.parametrize(["gate_from", "gate_to", "targets", "controls"], [
-                        pytest.param("SWAP", "CNOT",
-                                        [0, 1], None, id="SWAPtoCNOT"),
-                        pytest.param("ISWAP", "CNOT",
-                                        [0, 1], None, id="ISWAPtoCNOT"),
-                        pytest.param("CSIGN", "CNOT",
-                                        [1], [0], id="CSIGNtoCNOT"),
-                        pytest.param("CNOT", "CSIGN",
-                                        [0], [1], id="CNOTtoCSIGN"),
-                        pytest.param("CNOT", "SQRTSWAP",
-                                        [0], [1], id="CNOTtoSQRTSWAP"),
-                        pytest.param("CNOT", "SQRTISWAP",
-                                        [0], [1], id="CNOTtoSQRTISWAP"),
-                        pytest.param("CNOT", "ISWAP",
-                                        [0], [1], id="CNOTtoISWAP")])
+    @pytest.mark.parametrize(
+        ["gate_from", "gate_to", "targets", "controls"],
+        [
+            pytest.param("SWAP", "CNOT", [0, 1], None, id="SWAPtoCNOT"),
+            pytest.param("ISWAP", "CNOT", [0, 1], None, id="ISWAPtoCNOT"),
+            pytest.param("CSIGN", "CNOT", [1], [0], id="CSIGNtoCNOT"),
+            pytest.param("CNOT", "CSIGN", [0], [1], id="CNOTtoCSIGN"),
+            pytest.param("CNOT", "SQRTSWAP", [0], [1], id="CNOTtoSQRTSWAP"),
+            pytest.param("CNOT", "SQRTISWAP", [0], [1], id="CNOTtoSQRTISWAP"),
+            pytest.param("CNOT", "ISWAP", [0], [1], id="CNOTtoISWAP"),
+        ],
+    )
     def testresolve(self, gate_from, gate_to, targets, controls):
         qc1 = QubitCircuit(2)
         qc1.add_gate(gate_from, targets=targets, controls=controls)
@@ -221,7 +235,7 @@ class TestQubitCircuit:
 
         def customer_gate1(arg_values):
             mat = np.zeros((4, 4), dtype=np.complex128)
-            mat[0, 0] = mat[1, 1] = 1.
+            mat[0, 0] = mat[1, 1] = 1.0
             mat[2:4, 2:4] = gates.rx(arg_values)
             return Qobj(mat, dims=[[2, 2], [2, 2]])
 
@@ -237,7 +251,7 @@ class TestQubitCircuit:
         qc.add_gate(test_gate, index=[3])
         qc.add_measurement("M0", targets=[0], classical_store=[1])
         qc.add_1q_gate("RY", start=4, end=5, arg_value=1.570796)
-        qc.add_gate("CTRLRX", targets=[1, 2], arg_value=np.pi/2)
+        qc.add_gate("CTRLRX", targets=[1, 2], arg_value=np.pi / 2)
 
         qc1 = QubitCircuit(6)
 
@@ -250,20 +264,22 @@ class TestQubitCircuit:
         assert qc1.user_gates == qc.user_gates
 
         for i in range(len(qc1.gates)):
-            assert (qc1.gates[i].name
-                    == qc.gates[i].name)
-            assert (qc1.gates[i].targets
-                    == qc.gates[i].targets)
-            if (isinstance(qc1.gates[i], Gate) and
-                    isinstance(qc.gates[i], Gate)):
-                assert (qc1.gates[i].controls
-                        == qc.gates[i].controls)
-                assert (qc1.gates[i].classical_controls
-                        == qc.gates[i].classical_controls)
-            elif (isinstance(qc1.gates[i], Measurement) and
-                    isinstance(qc.gates[i], Measurement)):
-                assert (qc1.gates[i].classical_store
-                        == qc.gates[i].classical_store)
+            assert qc1.gates[i].name == qc.gates[i].name
+            assert qc1.gates[i].targets == qc.gates[i].targets
+            if isinstance(qc1.gates[i], Gate) and isinstance(
+                qc.gates[i], Gate
+            ):
+                assert qc1.gates[i].controls == qc.gates[i].controls
+                assert (
+                    qc1.gates[i].classical_controls
+                    == qc.gates[i].classical_controls
+                )
+            elif isinstance(qc1.gates[i], Measurement) and isinstance(
+                qc.gates[i], Measurement
+            ):
+                assert (
+                    qc1.gates[i].classical_store == qc.gates[i].classical_store
+                )
 
         # Test exception when qubit out of range
         pytest.raises(NotImplementedError, qc1.add_circuit, qc, start=4)
@@ -277,12 +293,12 @@ class TestQubitCircuit:
         # Test if the positions are correct
         for i in range(len(qc2.gates)):
             if qc.gates[i].targets is not None:
-                assert (qc2.gates[i].targets[0]
-                        == qc.gates[i].targets[0]+2)
-            if (isinstance(qc.gates[i], Gate) and
-                    qc.gates[i].controls is not None):
-                assert (qc2.gates[i].controls[0]
-                        == qc.gates[i].controls[0]+2)
+                assert qc2.gates[i].targets[0] == qc.gates[i].targets[0] + 2
+            if (
+                isinstance(qc.gates[i], Gate)
+                and qc.gates[i].controls is not None
+            ):
+                assert qc2.gates[i].controls[0] == qc.gates[i].controls[0] + 2
 
         # Test exception when the operators to be added are not gates or measurements
         qc.gates[-1] = 0
@@ -348,7 +364,7 @@ class TestQubitCircuit:
         assert qc.gates[2].name == "TOFFOLI"
         assert qc.gates[4].classical_controls == [0, 1]
 
-    @pytest.mark.parametrize('gate', ['X', 'Y', 'Z', 'S', 'T'])
+    @pytest.mark.parametrize("gate", ["X", "Y", "Z", "S", "T"])
     def test_exceptions(self, gate):
         """
         Text exceptions are thrown correctly for inadequate inputs
@@ -417,8 +433,7 @@ class TestQubitCircuit:
         """
         qc = QubitCircuit(3)
 
-        qc.add_gate("RX", targets=[0], arg_value=3.141,
-                    arg_label=r"\pi/2")
+        qc.add_gate("RX", targets=[0], arg_value=3.141, arg_label=r"\pi/2")
         qc.add_gate("CNOT", targets=[1], controls=[0])
         qc.add_measurement("M1", targets=[1])
         qc.add_gate("SNOT", targets=[2])
@@ -443,24 +458,23 @@ class TestQubitCircuit:
         """
         User defined gate for QubitCircuit
         """
+
         def customer_gate1(arg_values):
             mat = np.zeros((4, 4), dtype=np.complex128)
-            mat[0, 0] = mat[1, 1] = 1.
+            mat[0, 0] = mat[1, 1] = 1.0
             mat[2:4, 2:4] = gates.rx(arg_values).full()
             return Qobj(mat, dims=[[2, 2], [2, 2]])
 
         def customer_gate2():
-            mat = np.array([[1., 0],
-                            [0., 1.j]])
+            mat = np.array([[1.0, 0], [0.0, 1.0j]])
             return Qobj(mat, dims=[[2], [2]])
 
         qc = QubitCircuit(3)
-        qc.user_gates = {"CTRLRX": customer_gate1,
-                         "T1": customer_gate2}
-        qc.add_gate("CTRLRX", targets=[1, 2], arg_value=np.pi/2)
+        qc.user_gates = {"CTRLRX": customer_gate1, "T1": customer_gate2}
+        qc.add_gate("CTRLRX", targets=[1, 2], arg_value=np.pi / 2)
         qc.add_gate("T1", targets=[1])
         props = qc.propagators()
-        result1 = tensor(identity(2), customer_gate1(np.pi/2))
+        result1 = tensor(identity(2), customer_gate1(np.pi / 2))
         np.testing.assert_allclose(props[0].full(), result1.full())
         result2 = tensor(identity(2), customer_gate2(), identity(2))
         np.testing.assert_allclose(props[1].full(), result2.full())
@@ -477,8 +491,9 @@ class TestQubitCircuit:
             """
             control_value = arg_value
             dim = mat3.dims[0][0]
-            return (tensor(fock_dm(2, control_value), mat3) +
-                    tensor(fock_dm(2, 1 - control_value), identity(dim)))
+            return tensor(fock_dm(2, control_value), mat3) + tensor(
+                fock_dm(2, 1 - control_value), identity(dim)
+            )
 
         qc = QubitCircuit(2, dims=[3, 2])
         qc.user_gates = {"CTRLMAT3": controlled_mat3}
@@ -490,7 +505,7 @@ class TestQubitCircuit:
         init_state = basis([3, 2], [0, 1])
         result = qc.run(init_state)
         final_fid = qp.fidelity(result, props[0] * init_state)
-        assert pytest.approx(final_fid, 1.0e-6) == 1.
+        assert pytest.approx(final_fid, 1.0e-6) == 1.0
 
     @pytest.mark.repeat(10)
     def test_run_teleportation(self):
@@ -503,7 +518,9 @@ class TestQubitCircuit:
 
         state = tensor(rand_ket(2), basis(2, 0), basis(2, 0))
         initial_measurement = Measurement("start", targets=[0])
-        _, initial_probabilities = initial_measurement.measurement_comp_basis(state)
+        _, initial_probabilities = initial_measurement.measurement_comp_basis(
+            state
+        )
 
         teleportation_sim = CircuitSimulator(teleportation)
 
@@ -511,7 +528,9 @@ class TestQubitCircuit:
         state_final = teleportation_sim_results.get_final_states(0)
 
         final_measurement = Measurement("start", targets=[2])
-        _, final_probabilities = final_measurement.measurement_comp_basis(state_final)
+        _, final_probabilities = final_measurement.measurement_comp_basis(
+            state_final
+        )
 
         np.testing.assert_allclose(initial_probabilities, final_probabilities)
 
@@ -548,7 +567,9 @@ class TestQubitCircuit:
         initial_measurement = Measurement("start", targets=[0])
 
         original_state = tensor(rand_ket(2), basis(2, 0), basis(2, 0))
-        _, initial_probabilities = initial_measurement.measurement_comp_basis(original_state)
+        _, initial_probabilities = initial_measurement.measurement_comp_basis(
+            original_state
+        )
 
         teleportation_results = teleportation.run_statistics(original_state)
         states = teleportation_results.get_final_states()
@@ -557,9 +578,12 @@ class TestQubitCircuit:
         for i, state in enumerate(states):
             state_final = state
             prob = probabilities[i]
-            _, final_probabilities = final_measurement.measurement_comp_basis(state_final)
-            np.testing.assert_allclose(initial_probabilities,
-                                       final_probabilities)
+            _, final_probabilities = final_measurement.measurement_comp_basis(
+                state_final
+            )
+            np.testing.assert_allclose(
+                initial_probabilities, final_probabilities
+            )
             assert prob == pytest.approx(0.25, abs=1e-7)
 
         mixed_state = sum(p * ket2dm(s) for p, s in zip(probabilities, states))
@@ -607,7 +631,7 @@ class TestQubitCircuit:
     def test_gate_product(self):
 
         filename = "qft.qasm"
-        filepath = Path(__file__).parent / 'qasm_files' / filename
+        filepath = Path(__file__).parent / "qasm_files" / filename
         qc = read_qasm(filepath)
 
         U_list_expanded = qc.propagators()
@@ -621,23 +645,25 @@ class TestQubitCircuit:
             else:
                 inds_list.append(gate.get_all_qubits())
 
-        U_1, _ = gate_sequence_product(U_list,
-                                       inds_list=inds_list,
-                                       expand=True)
-        U_2 = gate_sequence_product(U_list_expanded, left_to_right=True,
-                                    expand=False)
+        U_1, _ = gate_sequence_product(
+            U_list, inds_list=inds_list, expand=True
+        )
+        U_2 = gate_sequence_product(
+            U_list_expanded, left_to_right=True, expand=False
+        )
 
         np.testing.assert_allclose(U_1.full(), U_2.full())
 
     def test_wstate(self):
 
         filename = "w-state.qasm"
-        filepath = Path(__file__).parent / 'qasm_files' / filename
+        filepath = Path(__file__).parent / "qasm_files" / filename
         qc = read_qasm(filepath)
 
         rand_state = rand_ket(2)
-        state = tensor(tensor(basis(2, 0), basis(2, 0), basis(2, 0)),
-                       rand_state)
+        state = tensor(
+            tensor(basis(2, 0), basis(2, 0), basis(2, 0)), rand_state
+        )
 
         fourth = Measurement("test_rand", targets=[3])
 
@@ -654,7 +680,6 @@ class TestQubitCircuit:
             np.testing.assert_allclose(probs_initial, probs_final)
             assert sum(result_cbits[i]) == 1
 
-
     _latex_template = r"""
 \documentclass[border=3pt]{standalone}
 \usepackage[braket]{qcircuit}
@@ -668,42 +693,50 @@ class TestQubitCircuit:
         qc = _teleportation_circuit()
         renderer = TeXRenderer(qc)
         latex = renderer.latex_code()
-        assert latex == renderer._latex_template % "\n".join([
-            r" & \lstick{c1} &  \qw  &  \qw  &  \qw  &  \qw"
-            r"  &  \qw \cwx[4]  &  \qw  &  \qw  &  \ctrl{2}  & \qw \\ ",
-            r" & \lstick{c0} &  \qw  &  \qw  &  \qw  &  \qw"
-            r"  &  \qw  &  \qw \cwx[2]  &  \ctrl{1}  &  \qw  & \qw \\ ",
-            r" & \lstick{\ket{0}} &  \qw  &  \targ  &  \qw  &  \qw"
-            r"  &  \qw  &  \qw  &  \gate{X}  &  \gate{Z}  & \qw \\ ",
-            r" & \lstick{\ket{0}} &  \gate{{\rm H}}  &  \ctrl{-1}  &"
-            r"  \targ  &  \qw  &  \qw  &  \meter &  \qw  &  \qw  & \qw \\ ",
-            r" & \lstick{\ket{q0}} &  \qw  &  \qw  &  \ctrl{-1}  &"
-            r"  \gate{{\rm H}}  &  \meter &  \qw  &  \qw  &  \qw  & \qw \\ ",
-            "",
-        ])
+        assert latex == renderer._latex_template % "\n".join(
+            [
+                r" & \lstick{c1} &  \qw  &  \qw  &  \qw  &  \qw"
+                r"  &  \qw \cwx[4]  &  \qw  &  \qw  &  \ctrl{2}  & \qw \\ ",
+                r" & \lstick{c0} &  \qw  &  \qw  &  \qw  &  \qw"
+                r"  &  \qw  &  \qw \cwx[2]  &  \ctrl{1}  &  \qw  & \qw \\ ",
+                r" & \lstick{\ket{0}} &  \qw  &  \targ  &  \qw  &  \qw"
+                r"  &  \qw  &  \qw  &  \gate{X}  &  \gate{Z}  & \qw \\ ",
+                r" & \lstick{\ket{0}} &  \gate{{\rm H}}  &  \ctrl{-1}  &"
+                r"  \targ  &  \qw  &  \qw  &  \meter &  \qw  &  \qw  & \qw \\ ",
+                r" & \lstick{\ket{q0}} &  \qw  &  \qw  &  \ctrl{-1}  &"
+                r"  \gate{{\rm H}}  &  \meter &  \qw  &  \qw  &  \qw  & \qw \\ ",
+                "",
+            ]
+        )
 
     def test_latex_code_classical_controls(self):
         qc = QubitCircuit(1, num_cbits=1, reverse_states=True)
         qc.add_gate("X", targets=0, classical_controls=[0])
         renderer = TeXRenderer(qc)
         latex = TeXRenderer(qc).latex_code()
-        assert latex == renderer._latex_template % "\n".join([
-            r" &  &  \ctrl{1}  & \qw \\ ",
-            r" &  &  \gate{X}  & \qw \\ ",
-            "",
-        ])
+        assert latex == renderer._latex_template % "\n".join(
+            [
+                r" &  &  \ctrl{1}  & \qw \\ ",
+                r" &  &  \gate{X}  & \qw \\ ",
+                "",
+            ]
+        )
 
         qc = QubitCircuit(1, num_cbits=1, reverse_states=False)
         qc.add_gate("X", targets=0, classical_controls=[0])
         renderer = TeXRenderer(qc)
         latex = TeXRenderer(qc).latex_code()
-        assert latex == renderer._latex_template % "\n".join([
-            r" &  &  \gate{X}  & \qw \\ ",
-            r" &  &  \ctrl{-1}  & \qw \\ ",
-            "",
-        ])
+        assert latex == renderer._latex_template % "\n".join(
+            [
+                r" &  &  \gate{X}  & \qw \\ ",
+                r" &  &  \ctrl{-1}  & \qw \\ ",
+                "",
+            ]
+        )
 
-    H = Qobj([[1/np.sqrt(2), 1/np.sqrt(2)], [1/np.sqrt(2), -1/np.sqrt(2)]])
+    H = Qobj(
+        [[1 / np.sqrt(2), 1 / np.sqrt(2)], [1 / np.sqrt(2), -1 / np.sqrt(2)]]
+    )
     H_zyz_gates = _ZYZ_rotation(H)
     H_zyz_quantum_circuit = QubitCircuit(1)
     H_zyz_quantum_circuit.add_gates(H_zyz_gates)
@@ -713,69 +746,70 @@ class TestQubitCircuit:
 
     @pytest.mark.parametrize(
         "valid_input, correct_result",
-        [(H_zyz_gates, H), 
-        (sigmax_zyz_gates, sigmax())]
-        )
+        [(H_zyz_gates, H), (sigmax_zyz_gates, sigmax())],
+    )
     def test_add_gates(self, valid_input, correct_result):
         circuit = QubitCircuit(1)
         circuit.add_gates(valid_input)
         result = gate_sequence_product(circuit.propagators())
-        assert(result == correct_result)
+        assert result == correct_result
 
     @pytest.mark.parametrize(
         "valid_input, correct_result",
-        [(H_zyz_quantum_circuit, H),
-        (sigmax_zyz_quantum_circuit, sigmax())]
-        )
-    def test_compute_unitary(
-            self, valid_input, correct_result):
+        [(H_zyz_quantum_circuit, H), (sigmax_zyz_quantum_circuit, sigmax())],
+    )
+    def test_compute_unitary(self, valid_input, correct_result):
         final_output = valid_input.compute_unitary()
-        assert(isinstance(final_output, Qobj))
-        assert(final_output == correct_result)
+        assert isinstance(final_output, Qobj)
+        assert final_output == correct_result
 
     def test_latex_code(self):
         qc = QubitCircuit(1, num_cbits=1, reverse_states=True)
         qc.add_measurement("M0", targets=0, classical_store=0)
-        exp = \
-            ' &  &  \\qw \\cwx[1]  & \\qw \\\\ \n &  &  \\meter & \\qw \\\\ \n'
-        
+        exp = (
+            " &  &  \\qw \\cwx[1]  & \\qw \\\\ \n &  &  \\meter & \\qw \\\\ \n"
+        )
+
         renderer = TeXRenderer(qc)
         assert renderer.latex_code() == renderer._latex_template % exp
 
     def test_latex_code_non_reversed(self):
         qc = QubitCircuit(1, num_cbits=1, reverse_states=False)
         qc.add_measurement("M0", targets=0, classical_store=0)
-        exp = ' &  &  \\meter & \\qw \\\\ \n &  ' + \
-              '&  \\qw \\cwx[-1]  & \\qw \\\\ \n'
+        exp = (
+            " &  &  \\meter & \\qw \\\\ \n &  "
+            + "&  \\qw \\cwx[-1]  & \\qw \\\\ \n"
+        )
         renderer = TeXRenderer(qc)
         assert renderer.latex_code() == renderer._latex_template % exp
 
     @pytest.mark.skipif(
-                shutil.which("pdflatex") is None,
-                reason="requires pdflatex"
-                )
+        shutil.which("pdflatex") is None, reason="requires pdflatex"
+    )
     def test_export_image(self, in_temporary_directory):
-        from qutip_qip import circuit
+        from qutip_qip.circuit.texrenderer import CONVERTERS
+
         qc = QubitCircuit(2, reverse_states=False)
         qc.add_gate("CSIGN", controls=[0], targets=[1])
 
-        if "png" in circuit.CONVERTERS:
+        if "png" in CONVERTERS:
             file_png200 = "exported_pic_200.png"
             file_png400 = "exported_pic_400.png"
-            qc.draw("latex","png", 200, file_png200.split('.')[0], "")
-            qc.draw("latex","png", 400.5, file_png400.split('.')[0], "")
-            assert file_png200 in os.listdir('.')
-            assert file_png400 in os.listdir('.')
+            qc.draw("latex", "png", 200, file_png200.split(".")[0], True)
+            qc.draw("latex", "png", 400.5, file_png400.split(".")[0], True)
+            assert file_png200 in os.listdir(".")
+            assert file_png400 in os.listdir(".")
             assert os.stat(file_png200).st_size < os.stat(file_png400).st_size
-        if "svg" in circuit.CONVERTERS:
+        if "svg" in CONVERTERS:
             file_svg = "exported_pic.svg"
-            qc.draw("svg", file_svg.split('.')[0], "")
-            assert file_svg in os.listdir('.')
+            qc.draw("svg", file_svg.split(".")[0], True)
+            assert file_svg in os.listdir(".")
 
     def test_deprecation_warning(self):
         # Make them available for backward compatibility.
         with pytest.warns(DeprecationWarning):
             from qutip_qip.circuit import Gate, Measurement
+
             Gate("X", 0)
 
     def test_circuit_chain_structure(self):

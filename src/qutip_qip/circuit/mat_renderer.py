@@ -15,130 +15,16 @@ from matplotlib.patches import (
     FancyArrow,
 )
 
+from .base_renderer import BaseRenderer, StyleConfig
 from ..operations import Gate, Measurement
 from ..circuit import QubitCircuit
-from .color_theme import qutip, light, dark, modern
 
 __all__ = [
     "MatRenderer",
 ]
 
 
-@dataclass
-class StyleConfig:
-    """
-    Dataclass to store the style configuration for circuit customization.
-
-    Parameters
-    ----------
-    dpi : int, optional
-        The dpi of the figure. The default is 150.
-
-    fontsize : int, optional
-        The fontsize control at circuit level, including tile and wire labels. The default is 10.
-
-    end_wire_ext : int, optional
-        The extension of the wire at the end of the circuit. The default is 2.
-
-    padding : float, optional
-        The padding between the circuit and the figure border. The default is 0.3.
-
-    gate_margin : float, optional
-        The margin space left on each side of the gate. The default is 0.15.
-
-    wire_sep : float, optional
-        The separation between the wires. The default is 0.5.
-
-    layer_sep : float, optional
-        The separation between the layers. The default is 0.5.
-
-    gate_pad : float, optional
-        The padding between the gate and the gate label. The default is 0.05.
-
-    label_pad : float, optional
-        The padding between the wire label and the wire. The default is 0.1.
-
-    fig_height : float, optional
-        The height of the figure. The default is None.
-
-    fig_width : float, optional
-        The width of the figure. The default is None.
-
-    bulge : Union[str, bool], optional
-        The bulge style of the gate. Renders non-bulge gates if False. The default is True.
-
-    align_layer : bool, optional
-        Align the layers of the gates across different wires. The default is False.
-
-    theme : Optional[Union[str, Dict]], optional
-        The color theme of the circuit. The default is "qutip".
-        The available themes are 'qutip', 'light', and 'modern'.
-
-    title : Optional[str], optional
-        The title of the circuit. The default is None.
-
-    bgcolor : Optional[str], optional
-        The background color of the circuit. The default is None.
-
-    color : Optional[str], optional
-        Controls color of acsent elements (eg. cross sign in the target node)
-        and set as deafult color of gate-label. Can be overwritten by gate specific color.
-        The default is None.
-
-    wire_label : Optional[List], optional
-        The labels of the wires. The default is None.
-
-    wire_color : Optional[str], optional
-        The color of the wires. The default is None.
-    """
-
-    dpi: int = 150
-    fontsize: int = 10
-    end_wire_ext: int = 2
-    padding: float = 0.3
-    gate_margin: float = 0.15
-    wire_sep: float = 0.5
-    layer_sep: float = 0.5
-    gate_pad: float = 0.05
-    label_pad: float = 0.1
-    fig_height: Optional[float] = None
-    fig_width: Optional[float] = 10
-    bulge: Union[str, bool] = True
-    align_layer: bool = False
-    theme: Optional[Union[str, Dict]] = "qutip"
-    title: Optional[str] = None
-    bgcolor: Optional[str] = None
-    color: Optional[str] = None
-    wire_label: Optional[List] = None
-    wire_color: Optional[str] = None
-
-    def __post_init__(self):
-        if isinstance(self.bulge, bool):
-            self.bulge = "round4" if self.bulge else "square"
-
-        self.measure_color = "#000000"
-        if self.theme == "qutip":
-            self.theme = qutip
-        elif self.theme == "light":
-            self.theme = light
-        elif self.theme == "dark":
-            self.theme = dark
-            self.measure_color = "#FFFFFF"
-        elif self.theme == "modern":
-            self.theme = modern
-        else:
-            raise ValueError(
-                f"""Invalid theme: {self.theme},
-                Must be selectec from 'qutip', 'light', 'dark', or 'modern'.
-                """
-            )
-
-        self.bgcolor = self.bgcolor or self.theme["bgcolor"]
-        self.color = self.color or self.theme["color"]
-        self.wire_color = self.wire_color or self.theme["wire_color"]
-
-
-class MatRenderer:
+class MatRenderer(BaseRenderer):
     """
     Class to render a quantum circuit using matplotlib.
 
@@ -161,11 +47,17 @@ class MatRenderer:
         **style,
     ) -> None:
 
+        # user defined style
+        style = {} if style is None else style
+        self.style = StyleConfig(**style)
+
+        super().__init__(self.style)
         self._qc = qc
         self._ax = ax
         self._qwires = qc.N
         self._cwires = qc.num_cbits
 
+        # default values
         self._cwire_sep = 0.02
         self._min_gate_height = 0.2
         self._min_gate_width = 0.2
@@ -177,10 +69,6 @@ class MatRenderer:
         self._display_layer_len = 0
         self._start_pad = 0.1
         self._layer_list = {i: [self._start_pad] for i in range(self._qwires)}
-
-        # user defined style
-        style = {} if style is None else style
-        self.style = StyleConfig(**style)
 
         # fig config
         self._zorder = {
@@ -194,43 +82,16 @@ class MatRenderer:
             "node_label": 3,
         }
         self.style.fig_height = (
-            (
-                (self._qwires + self._cwires)
-                * self.style.wire_sep
-                * 0.393701
-                * 3
-            )
+            ((self._qwires + self._cwires) * self.style.wire_sep)
             if self.style.fig_height is None
             else self.style.fig_height
         )
         if self._ax is None:
-            self.fig, self._ax = plt.subplots(
-                figsize=(self.style.fig_width, self.style.fig_height),
-                dpi=self.style.dpi,
-                facecolor=self.style.bgcolor,
-            )
-
-    def _get_xskip(self, wire_list: List[int], layer: int) -> float:
-        """
-        Get the xskip (horizontal value for getting to requested layer) for the gate to be plotted.
-
-        Parameters
-        ----------
-        wire_list : list
-            The list of wires the gate is acting on (control and target).
-
-        layer : int
-            The layer the gate is acting on.
-        """
-
-        if self.style.align_layer:
-            wire_list = list(range(self._qwires))
-
-        xskip = []
-        for wire in wire_list:
-            xskip.append(sum(self._layer_list[wire][:layer]))
-
-        return max(xskip)
+            self.fig = plt.figure()
+            self._ax = self.fig.add_subplot(111)
+            self.fig.set_dpi(self.style.dpi)
+        else:
+            self.fig = self._ax.get_figure()
 
     def _get_text_width(
         self,
@@ -259,10 +120,11 @@ class MatRenderer:
 
         fontstyle : str
             The fontstyle of the text.
+
         Returns
         -------
         float
-            The width of the text in cm.
+            The width of the text inches.
         """
 
         text_obj = plt.Text(
@@ -279,55 +141,9 @@ class MatRenderer:
         bbox = text_obj.get_window_extent(
             renderer=self._ax.figure.canvas.get_renderer()
         )
-        inv = self._ax.transData.inverted()
-        bbox_data = bbox.transformed(inv)
         text_obj.remove()
 
-        return bbox_data.width * 2.54 * 3
-
-    def _manage_layers(
-        self,
-        gate_width: float,
-        wire_list: List[int],
-        layer: int,
-        xskip: float = 0,
-    ) -> None:
-        """
-        Manages and updates the layer widths according to the gate's width just plotted.
-
-        Parameters
-        ----------
-        gate_width : float
-            The width of the gate to be plotted.
-
-        wire_list : list
-            The list of wires the gate is acting on (control and target).
-
-        layer : int
-            The layer the gate is acting on.
-
-        xskip : float, optional
-            The horizontal value for getting to requested layer. The default is 0.
-        """
-
-        for wire in wire_list:
-            # check if requested layer exists for the wire
-            if len(self._layer_list[wire]) > layer:
-                # check if the layer width is greater than new layer width
-                if (
-                    self._layer_list[wire][layer]
-                    < gate_width + self.style.gate_margin * 2
-                ):
-                    # update with new layer width
-                    self._layer_list[wire][layer] = (
-                        gate_width + self.style.gate_margin * 2
-                    )
-            else:
-                # add layer width: new layer width + missing layer widths if exits
-                temp = xskip - sum(self._layer_list[wire]) if xskip != 0 else 0
-                self._layer_list[wire].append(
-                    temp + gate_width + self.style.gate_margin * 2
-                )
+        return bbox.width / self.style.dpi
 
     def _add_wire(self) -> None:
         """
@@ -880,7 +696,7 @@ class MatRenderer:
                 for i in range(len(gate.targets)):
                     connector_l = Circle(
                         (
-                            xskip + self.style.gate_margin - self._connector_r,
+                            xskip + self.style.gate_margin + self._connector_r,
                             (adj_targets[i]) * self.style.wire_sep,
                         ),
                         self._connector_r,
@@ -892,7 +708,7 @@ class MatRenderer:
                             xskip
                             + self.style.gate_margin
                             + gate_width
-                            + self._connector_r,
+                            - self._connector_r,
                             (adj_targets[i]) * self.style.wire_sep,
                         ),
                         self._connector_r,
@@ -1057,13 +873,17 @@ class MatRenderer:
 
         self._add_wire()
         self._fig_config()
+        plt.tight_layout()
         plt.show()
 
     def _fig_config(self) -> None:
         """
         Configure the figure settings.
         """
-
+        self.fig.set_facecolor(self.style.bgcolor)
+        self.fig.set_size_inches(
+            self.style.fig_width, self.style.fig_height, forward=True
+        )
         self._ax.set_ylim(
             -self.style.padding,
             self.style.padding
@@ -1094,5 +914,4 @@ class MatRenderer:
         **kwargs
             Additional arguments to be passed to `plt.savefig`.
         """
-
-        self.fig.savefig(filename, **kwargs)
+        self.fig.savefig(filename, bbox_inches="tight", **kwargs)

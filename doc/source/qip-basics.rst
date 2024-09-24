@@ -272,31 +272,170 @@ gate function returning a :class:`qutip.Qobj` and save it in the attribute ``use
 
 .. _quantum_circuit_plots:
 
-Plotting a Quantum Circuit
+Plotting Quantum Circuits
 ===================================
 
-A quantum circuit (described above) can directly be plotted using the QCircuit library (https://github.com/CQuIC/qcircuit).
-QCiruit is a quantum circuit drawing application and is implemented directly into QuTiP.
+QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below is an example that demonstrates how to create and plot a quantum circuit using these methods:
 
-More information related to installing these packages is also available in the
-installation guide (:ref:`circuit_plot_packages`).
+- **Matplotlib (Default)**:
 
-An example code for plotting the example quantum circuit from above is given:
+.. plot::
+  :include-source:
 
-.. code-block:: python
+  from qutip_qip.circuit import QubitCircuit
+  from qutip_qip.operations import Gate
 
-    from qutip_qip.circuit import QubitCircuit
-    from qutip_qip.operations import Gate
-    # create the quantum circuit
-    qc = QubitCircuit(2, num_cbits=1)
-    qc.add_gate("CNOT", controls=0, targets=1)
-    qc.add_gate("SNOT", targets=1)
-    qc.add_gate("ISWAP", targets=[0,1])
-    qc.add_measurement("M0", targets=1, classical_store=0)
-    # plot the quantum circuit
-    qc.png
+  # create the quantum circuit
+  qc = QubitCircuit(2, num_cbits=1)
+  qc.add_gate("CNOT", controls=0, targets=1)
+  qc.add_gate("SNOT", targets=1)
+  qc.add_gate("ISWAP", targets=[0,1])
+  qc.add_measurement("M0", targets=1, classical_store=0)
 
-.. image:: /figures//quantum_circuit_example.png
+  qc.draw("matplotlib", dpi=300, fig_width=4)
+
+**Customization Examples**:
+
+.. plot::
+  :include-source:
+
+  from qutip_qip.circuit import QubitCircuit
+  from qutip_qip.operations import Gate
+
+  # create the quantum circuit
+  qc = QubitCircuit(2, num_cbits=1)
+  qc.add_gate("CNOT", controls=0, targets=1)
+  qc.add_gate("SNOT", targets=1)
+  qc.add_gate("ISWAP", targets=[0,1])
+  qc.add_measurement("M0", targets=1, classical_store=0)
+
+  qc.draw("matplotlib", bulge=False, theme='dark', title="Plotting Quantum Circuit", dpi=300, fig_width=4)
+
+.. 
+  _To further explore the customization examples, refer to `tutorial notebook <link to tutorial notebook>`.
+
+**Customization Parameters**
+
+  .. list-table:: 
+    :header-rows: 1
+    :widths: 20 80
+
+    * - **Parameter**
+      - **Description**
+    * - ``dpi : int = 150``
+      - DPI of the figure.
+    * - ``fontsize : int = 10``
+      - Fontsize control at the circuit level, including tile 
+        and wire labels.
+    * - ``end_wire_ext : int = 2``
+      - Extension of the wire at the end of the circuit.
+    * - ``padding : float = 0.3``
+      - Padding between the circuit and the figure border.
+    * - ``gate_margin : float = 0.15``
+      - Margin space left on each side of the gate.
+    * - ``wire_sep : float = 0.5``
+      - Separation between the wires.
+    * - ``layer_sep : float = 0.5``
+      - Separation between the layers.
+    * - ``gate_pad : float = 0.05``
+      - Padding between the gate and the gate label.
+    * - ``label_pad : float = 0.1``
+      - Padding between the wire label and the wire.
+    * - ``fig_height : Optional[float] = None``
+      - Height of the figure.
+    * - ``fig_width : Optional[float] = 10``
+      - Width of the figure.
+    * - ``bulge : Union[str, bool] = True``
+      - Bulge style of the gate. Renders non-bulge gates if False.
+    * - ``align_layer : bool = False``
+      - Align the layers of the gates across different wires.
+    * - ``theme : Optional[Union[str, Dict]] = "qutip"``
+      - Color theme of the circuit. Available themes are 'qutip', 'light', 'dark' and 'modern'.
+    * - ``title : Optional[str] = None``
+      - Title of the circuit.
+    * - ``bgcolor : Optional[str] = None``
+      - Background color of the circuit.
+    * - ``color : Optional[str] = None``
+      - Controls color of accent elements (e.g., cross sign in the target node) 
+        and sets as default color of gate-label. Can be overwritten 
+        by gate-specific color.
+    * - ``wire_label : Optional[List] = None``
+      - Labels of the wires.
+    * - ``wire_color : Optional[str] = None``
+      - Color of the wires.
+
+- **Text**:
+
+.. testcode::
+
+  from qutip_qip.circuit import QubitCircuit
+  from qutip_qip.operations import Gate
+
+  # create the quantum circuit
+  qc = QubitCircuit(2, num_cbits=1)
+  qc.add_gate("CNOT", controls=0, targets=1)
+  qc.add_gate("SNOT", targets=1)
+  qc.add_gate("ISWAP", targets=[0,1])
+  qc.add_measurement("M0", targets=1, classical_store=0)
+
+  qc.draw("text")
+
+.. testoutput::
+  :options: +NORMALIZE_WHITESPACE
+  
+           ┌──────┐  ┌──────┐  ┌───────┐  ┌───┐   
+    q1 :───┤ CNOT ├──┤ SNOT ├──┤       ├──┤ M ├───
+           └───┬──┘  └──────┘  │       │  └─╥─┘   
+               │               │       │    ║     
+    q0 :───────█───────────────┤ ISWAP ├────║─────
+                               └───────┘    ║     
+                                            ║     
+    c0 :════════════════════════════════════╩═════
+
+**Customization Parameters**
+
+  .. list-table:: 
+    :header-rows: 1
+    :widths: 20 80
+
+    * - **Parameter**
+      - **Description**
+
+    * - ``gate_pad : int = 1``
+      - Padding between the gate and the gate label.
+    * - ``wire_label : Optional[List] = None``
+      - Labels of the wires.
+    * - ``align_layer : bool = False``
+      - Align the layers of the gates across different wires.
+    * - ``end_wire_ext : int = 2``
+      - Extension of the wire at the end of the circuit.
+
+
+- **LaTeX**:
+
+    A quantum circuit (described above) can directly be plotted using the QCircuit library (https://github.com/CQuIC/qcircuit).
+    QCiruit is a quantum circuit drawing application and is implemented directly into QuTiP.
+
+    More information related to installing these packages is also available in the
+    installation guide (:ref:`circuit_plot_packages`).
+
+    An example code for plotting the example quantum circuit from above is given:
+
+    .. code-block::
+
+      from qutip_qip.circuit import QubitCircuit
+      from qutip_qip.operations import Gate
+
+      # create the quantum circuit
+      qc = QubitCircuit(2, num_cbits=1)
+      qc.add_gate("CNOT", controls=0, targets=1)
+      qc.add_gate("SNOT", targets=1)
+      qc.add_gate("ISWAP", targets=[0,1])
+      qc.add_measurement("M0", targets=1, classical_store=0)
+
+      qc.draw("latex")
+
+    .. image:: /figures//quantum_circuit_example.png
 
 ..
    _This: is a comment, do not test the png generation as it requires additional installation!
