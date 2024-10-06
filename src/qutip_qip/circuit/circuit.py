@@ -284,7 +284,7 @@ class QubitCircuit:
     def add_1q_gate(
         self,
         name,
-        start=0,
+        start=None,
         end=None,
         qubits=None,
         **kwargs,
@@ -308,13 +308,14 @@ class QubitCircuit:
             Keyword arguments for the gate, except for `targets`.
             See :class:`~.QubitCircuit.add_gate`.
         """
-        if end is None and start is not None:
-            raise ValueError(
-                "The end qubit must be specified if start is given."
-            )
         if qubits is None:
+            if start is None or end is None:
+                raise ValueError(
+                    "Both start and end must be specified if target qubits"
+                    " are not provided."
+                )
             qubits = range(start, end + 1)
-        if qubits is not Iterable:
+        if not isinstance(qubits, Iterable):
             qubits = [qubits]
         for q in qubits:
             self.add_gate(name, targets=q, **kwargs)
