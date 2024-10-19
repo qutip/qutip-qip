@@ -20,7 +20,7 @@ QubitSpecifier: TypeAlias = Union[int, Iterable[int]]
 import numpy as np
 from copy import deepcopy
 
-from .texrenderer import TeXRenderer, CONVERTERS
+from .tex_renderer import TeXRenderer, CONVERTERS
 from ._decompose import _resolve_to_universal, _resolve_2q_basis
 from ..operations import (
     Gate,

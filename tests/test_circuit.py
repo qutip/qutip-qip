@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 from qutip_qip.circuit import QubitCircuit, CircuitSimulator
-from qutip_qip.circuit.texrenderer import TeXRenderer
+from qutip_qip.circuit.tex_renderer import TeXRenderer
 from qutip import (
     tensor,
     Qobj,
@@ -787,7 +787,7 @@ class TestQubitCircuit:
         shutil.which("pdflatex") is None, reason="requires pdflatex"
     )
     def test_export_image(self, in_temporary_directory):
-        from qutip_qip.circuit.texrenderer import CONVERTERS
+        from qutip_qip.circuit.tex_renderer import CONVERTERS
 
         qc = QubitCircuit(2, reverse_states=False)
         qc.add_gate("CSIGN", controls=[0], targets=[1])
