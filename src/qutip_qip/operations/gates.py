@@ -4,16 +4,17 @@ from collections.abc import Iterable
 from itertools import product
 from functools import partial, reduce
 from operator import mul
+from typing import Optional, List, Union, Tuple, Generator
 
 import warnings
-import inspect
-from copy import deepcopy
 
 import numpy as np
 import scipy.sparse as sp
 
 import qutip
-from qutip import Qobj, identity, qeye, sigmax, sigmay, sigmaz, tensor, fock_dm
+from qutip import Qobj, identity, qeye, sigmax, sigmay, sigmaz, tensor
+
+QubitSpecifier = Union[int, Iterable[int]]
 
 __all__ = [
     "rx",
@@ -58,18 +59,9 @@ __all__ = [
 #
 # Single Qubit Gates
 #
-def _deprecation_warnings_gate_expansion():
-    warnings.warn(
-        "The expansion of output gate matrix is no longer included "
-        "in the gate functions. "
-        "To expand the output `Qobj` or permute the qubits, "
-        "please use expand_operator.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
 
 
-def x_gate(N=None, target=0):
+def x_gate() -> Qobj:
     """Pauli-X gate or sigmax operator.
 
     Returns
@@ -79,13 +71,10 @@ def x_gate(N=None, target=0):
         a single-qubit rotation through pi radians around the x-axis.
 
     """
-    if N is not None:
-        _deprecation_warnings_gate_expansion()
-        return expand_operator(x_gate(), dims=[2] * N, targets=target)
     return sigmax()
 
 
-def y_gate(N=None, target=0):
+def y_gate() -> Qobj:
     """Pauli-Y gate or sigmay operator.
 
     Returns
@@ -95,13 +84,10 @@ def y_gate(N=None, target=0):
         a single-qubit rotation through pi radians around the y-axis.
 
     """
-    if N is not None:
-        _deprecation_warnings_gate_expansion()
-        return expand_operator(y_gate(), dims=[2] * N, targets=target)
     return sigmay()
 
 
-def cy_gate(N=None, control=0, target=1):
+def cy_gate() -> Qobj:
     """Controlled Y gate.
 
     Returns
@@ -110,21 +96,13 @@ def cy_gate(N=None, control=0, target=1):
         Quantum object for operator describing the rotation.
 
     """
-    if (control == 1 and target == 0) and N is None:
-        N = 2
-
-    if N is not None:
-        _deprecation_warnings_gate_expansion()
-        return expand_operator(
-            cy_gate(), dims=[2] * N, targets=(control, target)
-        )
     return Qobj(
         [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, -1j], [0, 0, 1j, 0]],
         dims=[[2, 2], [2, 2]],
     )
 
 
-def z_gate(N=None, target=0):
+def z_gate() -> Qobj:
     """Pauli-Z gate or sigmaz operator.
 
     Returns
@@ -134,13 +112,10 @@ def z_gate(N=None, target=0):
         a single-qubit rotation through pi radians around the z-axis.
 
     """
-    if N is not None:
-        _deprecation_warnings_gate_expansion()
-        return expand_operator(z_gate(), dims=[2] * N, targets=target)
     return sigmaz()
 
 
-def cz_gate(N=None, control=0, target=1):
+def cz_gate() -> Qobj:
     """Controlled Z gate.
 
     Returns
@@ -149,21 +124,13 @@ def cz_gate(N=None, control=0, target=1):
         Quantum object for operator describing the rotation.
 
     """
-    if (control == 1 and target == 0) and N is None:
-        N = 2
-
-    if N is not None:
-        _deprecation_warnings_gate_expansion()
-        return expand_operator(
-            cz_gate(), dims=[2] * N, targets=(control, target)
-        )
     return Qobj(
         [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]],
         dims=[[2, 2], [2, 2]],
     )
 
 
-def s_gate(N=None, target=0):
+def s_gate() -> Qobj:
     """Single-qubit rotation also called Phase gate or the Z90 gate.
 
     Returns
@@ -173,13 +140,10 @@ def s_gate(N=None, target=0):
         a 90 degree rotation around the z-axis.
 
     """
-    if N is not None:
-        _deprecation_warnings_gate_expansion()
-        return expand_operator(s_gate(), dims=[2] * N, targets=target)
     return Qobj([[1, 0], [0, 1j]])
 
 
-def cs_gate(N=None, control=0, target=1):
+def cs_gate() -> Qobj:
     """Controlled S gate.
 
     Returns
@@ -188,21 +152,13 @@ def cs_gate(N=None, control=0, target=1):
         Quantum object for operator describing the rotation.
 
     """
-    if (control == 1 and target == 0) and N is None:
-        N = 2
-
-    if N is not None:
-        _deprecation_warnings_gate_expansion()
-        return expand_operator(
-            cs_gate(), dims=[2] * N, targets=(control, target)
-        )
     return Qobj(
         [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1j]],
         dims=[[2, 2], [2, 2]],
     )
 
 
-def t_gate(N=None, target=0):
+def t_gate() -> Qobj:
     """Single-qubit rotation related to the S gate by the relationship S=T*T.
 
     Returns
@@ -211,13 +167,10 @@ def t_gate(N=None, target=0):
         Quantum object for operator describing a phase shift of pi/4.
 
     """
-    if N is not None:
-        _deprecation_warnings_gate_expansion()
-        return expand_operator(t_gate(), dims=[2] * N, targets=target)
     return Qobj([[1, 0], [0, np.exp(1j * np.pi / 4)]])
 
 
-def ct_gate(N=None, control=0, target=1):
+def ct_gate() -> Qobj:
     """Controlled T gate.
 
     Returns
@@ -226,14 +179,6 @@ def ct_gate(N=None, control=0, target=1):
         Quantum object for operator describing the rotation.
 
     """
-    if (control == 1 and target == 0) and N is None:
-        N = 2
-
-    if N is not None:
-        _deprecation_warnings_gate_expansion()
-        return expand_operator(
-            ct_gate(), dims=[2] * N, targets=(control, target)
-        )
     return Qobj(
         [
             [1, 0, 0, 0],
@@ -245,18 +190,15 @@ def ct_gate(N=None, control=0, target=1):
     )
 
 
-def rx(phi, N=None, target=0):
+def rx(phi: float) -> Qobj:
     """Single-qubit rotation for operator sigmax with angle phi.
 
     Returns
     -------
-    result : qobj
+    result : :class:`qutip.Qobj`
         Quantum object for operator describing the rotation.
 
     """
-    if N is not None:
-        _deprecation_warnings_gate_expansion()
-        return expand_operator(rx(phi), dims=[2] * N, targets=target)
     return Qobj(
         [
             [np.cos(phi / 2), -1j * np.sin(phi / 2)],
@@ -265,18 +207,15 @@ def rx(phi, N=None, target=0):
     )
 
 
-def ry(phi, N=None, target=0):
+def ry(phi: float) -> Qobj:
     """Single-qubit rotation for operator sigmay with angle phi.
 
     Returns
     -------
-    result : qobj
+    result : :class:`qutip.Qobj`
         Quantum object for operator describing the rotation.
 
     """
-    if N is not None:
-        _deprecation_warnings_gate_expansion()
-        return expand_operator(ry(phi), dims=[2] * N, targets=target)
     return Qobj(
         [
             [np.cos(phi / 2), -np.sin(phi / 2)],
@@ -285,42 +224,36 @@ def ry(phi, N=None, target=0):
     )
 
 
-def rz(phi, N=None, target=0):
+def rz(phi: float) -> Qobj:
     """Single-qubit rotation for operator sigmaz with angle phi.
 
     Returns
     -------
-    result : qobj
+    result : :class:`qutip.Qobj`
         Quantum object for operator describing the rotation.
 
     """
-    if N is not None:
-        _deprecation_warnings_gate_expansion()
-        return expand_operator(rz(phi), dims=[2] * N, targets=target)
     return Qobj([[np.exp(-1j * phi / 2), 0], [0, np.exp(1j * phi / 2)]])
 
 
-def sqrtnot(N=None, target=0):
+def sqrtnot() -> Qobj:
     """Single-qubit square root NOT gate.
 
     Returns
     -------
-    result : qobj
+    result : :class:`qutip.Qobj`
         Quantum object for operator describing the square root NOT gate.
 
     """
-    if N is not None:
-        _deprecation_warnings_gate_expansion()
-        return expand_operator(sqrtnot(), dims=[2] * N, targets=target)
     return Qobj([[0.5 + 0.5j, 0.5 - 0.5j], [0.5 - 0.5j, 0.5 + 0.5j]])
 
 
-def snot(N=None, target=0):
+def snot() -> Qobj:
     """Quantum object representing the SNOT (Hadamard) gate.
 
     Returns
     -------
-    snot_gate : qobj
+    snot_gate : :class:`qutip.Qobj`
         Quantum object representation of SNOT gate.
 
     Examples
@@ -333,13 +266,10 @@ shape = [2, 2], type='oper', dtype=Dense, isherm=True
      [ 0.70710678+0.j -0.70710678+0.j]]
 
     """
-    if N is not None:
-        _deprecation_warnings_gate_expansion()
-        return expand_operator(snot(), dims=[2] * N, targets=target)
     return 1 / np.sqrt(2.0) * Qobj([[1, 1], [1, -1]])
 
 
-def phasegate(theta, N=None, target=0):
+def phasegate(theta: float) -> Qobj:
     """
     Returns quantum object representing the phase shift gate.
 
@@ -350,7 +280,7 @@ def phasegate(theta, N=None, target=0):
 
     Returns
     -------
-    phase_gate : qobj
+    phase_gate : :class:`qutip.Qobj`
         Quantum object representation of phase shift gate.
 
     Examples
@@ -363,13 +293,10 @@ shape = [2, 2], type='oper', dtype=Dense, isherm=False
      [ 0.00000000+0.j          0.70710678+0.70710678j]]
 
     """
-    if N is not None:
-        _deprecation_warnings_gate_expansion()
-        return expand_operator(phasegate(theta), dims=[2] * N, targets=target)
     return Qobj([[1, 0], [0, np.exp(1.0j * theta)]], dims=[[2], [2]])
 
 
-def qrot(theta, phi, N=None, target=0):
+def qrot(theta: float, phi: float) -> Qobj:
     """
     Single qubit rotation driving by Rabi oscillation with 0 detune.
 
@@ -390,9 +317,6 @@ def qrot(theta, phi, N=None, target=0):
         Quantum object representation of physical qubit rotation under
         a rabi pulse.
     """
-    if N is not None:
-        _deprecation_warnings_gate_expansion()
-        return expand_operator(qrot(theta, phi), dims=[2] * N, targets=target)
     return Qobj(
         [
             [
@@ -407,23 +331,21 @@ def qrot(theta, phi, N=None, target=0):
     )
 
 
-def qasmu_gate(args, N=None, target=0):
+def qasmu_gate(args: Tuple[float, float, float]) -> Qobj:
     """
     QASM U-gate as defined in the OpenQASM standard.
 
     Parameters
     ----------
+    args : tuple
+        Three parameters:
 
-    theta : float
-        The argument supplied to the last RZ rotation.
-    phi : float
-        The argument supplied to the middle RY rotation.
-    gamma : float
-        The argument supplied to the first RZ rotation.
-    N : int
-        Number of qubits in the system.
-    target : int
-        The index of the target qubit.
+        - theta : float
+            The argument supplied to the last RZ rotation.
+        - phi : float
+            The argument supplied to the middle RY rotation.
+        - gamma : float
+            The argument supplied to the first RZ rotation.
 
     Returns
     -------
@@ -433,11 +355,6 @@ def qasmu_gate(args, N=None, target=0):
     """
 
     theta, phi, gamma = args
-    if N is not None:
-        _deprecation_warnings_gate_expansion()
-        return expand_operator(
-            qasmu_gate([theta, phi, gamma]), dims=[2] * N, targets=target
-        )
     return Qobj(rz(phi) * ry(theta) * rz(gamma))
 
 
@@ -446,7 +363,7 @@ def qasmu_gate(args, N=None, target=0):
 #
 
 
-def cphase(theta, N=2, control=0, target=1):
+def cphase(theta: float) -> Qobj:
     """
     Returns quantum object representing the controlled phase shift gate.
 
@@ -455,48 +372,23 @@ def cphase(theta, N=2, control=0, target=1):
     theta : float
         Phase rotation angle.
 
-    N : integer
-        The number of qubits in the target space.
-
-    control : integer
-        The index of the control qubit.
-
-    target : integer
-        The index of the target qubit.
-
     Returns
     -------
-    U : qobj
+    U : :class:`qutip.Qobj`
         Quantum object representation of controlled phase gate.
     """
-    if N != 2 or control != 0 or target != 1:
-        _deprecation_warnings_gate_expansion()
-
-    if N < 1 or target < 0 or control < 0:
-        raise ValueError("Minimum value: N=1, control=0 and target=0")
-
-    if control >= N or target >= N:
-        raise ValueError("control and target need to be smaller than N")
-
-    U_list1 = [identity(2)] * N
-    U_list2 = [identity(2)] * N
-
-    U_list1[control] = fock_dm(2, 1)
-    U_list1[target] = phasegate(theta)
-
-    U_list2[control] = fock_dm(2, 0)
-
-    U = tensor(U_list1) + tensor(U_list2)
-    return U
+    mat = np.identity(4, dtype=np.complex128)
+    mat[2:, 2:] = phasegate(theta).full()
+    return Qobj(mat, dims=[[2, 2], [2, 2]])
 
 
-def cnot(N=None, control=0, target=1):
+def cnot() -> Qobj:
     """
     Quantum object representing the CNOT gate.
 
     Returns
     -------
-    cnot_gate : qobj
+    cnot_gate : :class:`qutip.Qobj`
         Quantum object representation of CNOT gate
 
     Examples
@@ -511,25 +403,19 @@ shape = [4, 4], type='oper', dtype=Dense, isherm=True
          [ 0.+0.j  0.+0.j  1.+0.j  0.+0.j]]
 
     """
-    if (control == 1 and target == 0) and N is None:
-        N = 2
-
-    if N is not None:
-        _deprecation_warnings_gate_expansion()
-        return expand_operator(cnot(), dims=[2] * N, targets=(control, target))
     return Qobj(
         [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]],
         dims=[[2, 2], [2, 2]],
     )
 
 
-def csign(N=None, control=0, target=1):
+def csign() -> Qobj:
     """
     Quantum object representing the CSIGN gate.
 
     Returns
     -------
-    csign_gate : qobj
+    csign_gate : :class:`qutip.Qobj`
         Quantum object representation of CSIGN gate
 
     Examples
@@ -544,25 +430,19 @@ shape = [4, 4], type='oper', dtype=Dense, isherm=True
          [ 0.+0.j  0.+0.j  0.+0.j  -1.+0.j]]
 
     """
-    if (control == 1 and target == 0) and N is None:
-        N = 2
-
-    if N is not None:
-        _deprecation_warnings_gate_expansion()
-        return expand_operator(csign(), N, (control, target))
     return Qobj(
         [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]],
         dims=[[2, 2], [2, 2]],
     )
 
 
-def berkeley(N=None, targets=[0, 1]):
+def berkeley() -> Qobj:
     """
     Quantum object representing the Berkeley gate.
 
     Returns
     -------
-    berkeley_gate : qobj
+    berkeley_gate : :class:`qutip.Qobj`
         Quantum object representation of Berkeley gate
 
     Examples
@@ -577,12 +457,6 @@ shape = [4, 4], type='oper', dtype=Dense, isherm=True
          [ 0.+sin(pi/8).j  0.+0.j           0.+0.j           cos(pi/8).+0.j]]
 
     """
-    if (targets[0] == 1 and targets[1] == 0) and N is None:
-        N = 2
-
-    if N is not None:
-        _deprecation_warnings_gate_expansion()
-        return expand_operator(berkeley(), N, targets=targets)
     return Qobj(
         [
             [np.cos(np.pi / 8), 0, 0, 1.0j * np.sin(np.pi / 8)],
@@ -594,13 +468,13 @@ shape = [4, 4], type='oper', dtype=Dense, isherm=True
     )
 
 
-def swapalpha(alpha, N=None, targets=[0, 1]):
+def swapalpha(alpha: float) -> Qobj:
     """
     Quantum object representing the SWAPalpha gate.
 
     Returns
     -------
-    swapalpha_gate : qobj
+    swapalpha_gate : :class:`qutip.Qobj`
         Quantum object representation of SWAPalpha gate
 
     Examples
@@ -615,12 +489,6 @@ shape = [4, 4], type='oper', dtype=Dense, isherm=True
      [ 0.+0.j  0.+0.j                    0.+0.j                    1.+0.j]]
 
     """
-    if (targets[0] == 1 and targets[1] == 0) and N is None:
-        N = 2
-
-    if N is not None:
-        _deprecation_warnings_gate_expansion()
-        return expand_operator(swapalpha(alpha), N, targets=targets)
     return Qobj(
         [
             [1, 0, 0, 0],
@@ -642,12 +510,12 @@ shape = [4, 4], type='oper', dtype=Dense, isherm=True
     )
 
 
-def swap(N=None, targets=[0, 1]):
+def swap() -> Qobj:
     """Quantum object representing the SWAP gate.
 
     Returns
     -------
-    swap_gate : qobj
+    swap_gate : :class:`qutip.Qobj`
         Quantum object representation of SWAP gate
 
     Examples
@@ -662,24 +530,18 @@ shape = [4, 4], type='oper', dtype=Dense, isherm=True
      [ 0.+0.j  0.+0.j  0.+0.j  1.+0.j]]
 
     """
-    if targets != [0, 1] and N is None:
-        N = 2
-
-    if N is not None:
-        _deprecation_warnings_gate_expansion()
-        return expand_operator(swap(), dims=[2] * N, targets=targets)
     return Qobj(
         [[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]],
         dims=[[2, 2], [2, 2]],
     )
 
 
-def iswap(N=None, targets=[0, 1]):
+def iswap() -> Qobj:
     """Quantum object representing the iSWAP gate.
 
     Returns
     -------
-    iswap_gate : qobj
+    iswap_gate : :class:`qutip.Qobj`
         Quantum object representation of iSWAP gate
 
     Examples
@@ -693,33 +555,21 @@ shape = [4, 4], type='oper', dtype=Dense, isherm=False
      [ 0.+0.j  0.+1.j  0.+0.j  0.+0.j]
      [ 0.+0.j  0.+0.j  0.+0.j  1.+0.j]]
     """
-    if targets != [0, 1] and N is None:
-        N = 2
-
-    if N is not None:
-        _deprecation_warnings_gate_expansion()
-        return expand_operator(iswap(), dims=[2] * N, targets=targets)
     return Qobj(
         [[1, 0, 0, 0], [0, 0, 1j, 0], [0, 1j, 0, 0], [0, 0, 0, 1]],
         dims=[[2, 2], [2, 2]],
     )
 
 
-def sqrtswap(N=None, targets=[0, 1]):
+def sqrtswap() -> Qobj:
     """Quantum object representing the square root SWAP gate.
 
     Returns
     -------
-    sqrtswap_gate : qobj
+    sqrtswap_gate : :class:`qutip.Qobj`
         Quantum object representation of square root SWAP gate
 
     """
-    if targets != [0, 1] and N is None:
-        N = 2
-
-    if N is not None:
-        _deprecation_warnings_gate_expansion()
-        return expand_operator(sqrtswap(), dims=[2] * N, targets=targets)
     return Qobj(
         np.array(
             [
@@ -733,12 +583,12 @@ def sqrtswap(N=None, targets=[0, 1]):
     )
 
 
-def sqrtiswap(N=None, targets=[0, 1]):
+def sqrtiswap() -> Qobj:
     """Quantum object representing the square root iSWAP gate.
 
     Returns
     -------
-    sqrtiswap_gate : qobj
+    sqrtiswap_gate : :class:`qutip.Qobj`
         Quantum object representation of square root iSWAP gate
 
     Examples
@@ -757,12 +607,6 @@ shape = [4, 4], type='oper', dtype=Dense, isherm=False
        0.00000000+0.j          1.00000000+0.j]]
 
     """
-    if targets != [0, 1] and N is None:
-        N = 2
-
-    if N is not None:
-        _deprecation_warnings_gate_expansion()
-        return expand_operator(sqrtiswap(), N, targets=targets)
     return Qobj(
         np.array(
             [
@@ -776,7 +620,7 @@ shape = [4, 4], type='oper', dtype=Dense, isherm=False
     )
 
 
-def molmer_sorensen(theta, phi=0.0, N=None, targets=[0, 1]):
+def molmer_sorensen(theta: float, phi: float = 0.0) -> Qobj:
     """
     Quantum object of a Mølmer–Sørensen gate.
 
@@ -786,25 +630,12 @@ def molmer_sorensen(theta, phi=0.0, N=None, targets=[0, 1]):
         The duration of the interaction pulse.
     phi: float
         Rotation axis. phi = 0 for XX; phi=pi for YY
-    N: int
-        Number of qubits in the system.
-    target: int
-        The indices of the target qubits.
 
     Returns
     -------
     molmer_sorensen_gate : :class:`qutip.Qobj`
         Quantum object representation of the Mølmer–Sørensen gate.
     """
-    if targets != [0, 1] and N is None:
-        N = 2
-
-    if N is not None:
-        _deprecation_warnings_gate_expansion()
-        return expand_operator(
-            molmer_sorensen(theta, phi), dims=[2] * N, targets=targets
-        )
-
     return Qobj(
         [
             [
@@ -831,12 +662,12 @@ def molmer_sorensen(theta, phi=0.0, N=None, targets=[0, 1]):
 #
 
 
-def fredkin(N=None, control=0, targets=[1, 2]):
+def fredkin() -> Qobj:
     """Quantum object representing the Fredkin gate.
 
     Returns
     -------
-    fredkin_gate : qobj
+    fredkin_gate : :class:`qutip.Qobj`
         Quantum object representation of Fredkin gate.
 
     Examples
@@ -854,14 +685,6 @@ def fredkin(N=None, control=0, targets=[1, 2]):
          [ 0.+0.j  0.+0.j  0.+0.j  0.+0.j  0.+0.j  0.+0.j  0.+0.j  1.+0.j]]
 
     """
-    if [control, targets[0], targets[1]] != [0, 1, 2] and N is None:
-        N = 3
-
-    if N is not None:
-        _deprecation_warnings_gate_expansion()
-        return expand_operator(
-            fredkin(), dims=[2] * N, targets=(control,) + tuple(targets)
-        )
     return Qobj(
         [
             [1, 0, 0, 0, 0, 0, 0, 0],
@@ -877,12 +700,12 @@ def fredkin(N=None, control=0, targets=[1, 2]):
     )
 
 
-def toffoli(N=None, controls=[0, 1], target=2):
+def toffoli() -> Qobj:
     """Quantum object representing the Toffoli gate.
 
     Returns
     -------
-    toff_gate : qobj
+    toff_gate : :class:`qutip.Qobj`
         Quantum object representation of Toffoli gate.
 
     Examples
@@ -901,14 +724,6 @@ def toffoli(N=None, controls=[0, 1], target=2):
 
 
     """
-    if [controls[0], controls[1], target] != [0, 1, 2] and N is None:
-        N = 3
-
-    if N is not None:
-        _deprecation_warnings_gate_expansion()
-        return expand_operator(
-            toffoli(), dims=[2] * N, targets=tuple(controls) + (target,)
-        )
     return Qobj(
         [
             [1, 0, 0, 0, 0, 0, 0, 0],
@@ -929,28 +744,25 @@ def toffoli(N=None, controls=[0, 1], target=2):
 #
 
 
-def rotation(op, phi, N=None, target=0):
+def rotation(op: Qobj, phi: float) -> Qobj:
     """Single-qubit rotation for operator op with angle phi.
 
     Returns
     -------
-    result : qobj
+    result : ) -> Qobj:
         Quantum object for operator describing the rotation.
 
     """
-    if N is not None:
-        _deprecation_warnings_gate_expansion()
-        return expand_operator(rotation(op, phi), N, target)
     return (-1j * op * phi / 2).expm()
 
 
 def controlled_gate(
-    U,
-    controls=0,
-    targets=1,
-    N=None,
-    control_value=1,
-):
+    U: Qobj,
+    controls: QubitSpecifier = 0,
+    targets: QubitSpecifier = 1,
+    N: Optional[int] = None,
+    control_value: int = 1,
+) -> Qobj:
     """
     Create an N-qubit controlled gate from a single-qubit gate U with the given
     control and target qubits.
@@ -970,7 +782,7 @@ def controlled_gate(
 
     Returns
     -------
-    result : qobj
+    result : :class:`qutip.Qobj`
         Quantum object representing the controlled-U gate.
     """
     # Compatibility
@@ -993,13 +805,13 @@ def controlled_gate(
     result = Qobj(result, dims=[[2] * (num_controls + num_targets)] * 2)
 
     # Expand it to N qubits and permute qubits labelling
-    if controls + targets == list(range(N)):
+    if set(controls + targets) == set(range(N)):
         return result
     else:
         return expand_operator(result, N, targets=controls + targets)
 
 
-def globalphase(theta, N=1):
+def globalphase(theta: float, N: int = 1) -> Qobj:
     """
     Returns quantum object representing the global phase shift gate.
 
@@ -1010,7 +822,7 @@ def globalphase(theta, N=1):
 
     Returns
     -------
-    phase_gate : qobj
+    phase_gate : :class:`qutip.Qobj`
         Quantum object representation of global phase shift gate.
 
     Examples
@@ -1034,7 +846,7 @@ shape = [2, 2], type='oper', dtype=Dense, isherm=False
 #
 
 
-def _hamming_distance(x, bits=32):
+def _hamming_distance(x: int, bits: int = 32) -> int:
     """
     Calculate the bit-wise Hamming distance of x from 0: That is, the number
     1s in the integer x.
@@ -1046,12 +858,12 @@ def _hamming_distance(x, bits=32):
     return tot
 
 
-def hadamard_transform(N=1):
+def hadamard_transform(N: int = 1) -> Qobj:
     """Quantum object representing the N-qubit Hadamard gate.
 
     Returns
     -------
-    q : qobj
+    q : :class:`qutip.Qobj`
         Quantum object representation of the N-qubit Hadamard gate.
 
     """
@@ -1061,7 +873,7 @@ def hadamard_transform(N=1):
     return tensor([H] * N)
 
 
-def _powers(op, N):
+def _powers(op: Qobj, N: int) -> Generator[Qobj, None, None]:
     """
     Generator that yields powers of an operator `op`,
     through to `N`.
@@ -1074,21 +886,11 @@ def _powers(op, N):
         yield acc
 
 
-def qubit_clifford_group(N=None, target=0):
+def qubit_clifford_group() -> Generator[Qobj, None, None]:
     """
     Generates the Clifford group on a single qubit,
     using the presentation of the group given by Ross and Selinger
     (http://www.mathstat.dal.ca/~selinger/newsynth/).
-
-    Parameters
-    ----------
-
-    N : int or None
-        Number of qubits on which each operator is to be defined
-        (default: 1).
-    target : int
-        Index of the target qubit on which the single-qubit
-        Clifford operators are to act.
 
     Yields
     ------
@@ -1125,10 +927,7 @@ def qubit_clifford_group(N=None, target=0):
         # partial(reduce, mul) acting on the tuple yields E**i * X**j * S**k.
 
         # Finally, we optionally expand the gate.
-        if N is not None:
-            yield expand_operator(op, N, target)
-        else:
-            yield op
+        yield op
 
 
 #
@@ -1136,7 +935,11 @@ def qubit_clifford_group(N=None, target=0):
 #
 
 
-def _check_oper_dims(oper, dims=None, targets=None):
+def _check_oper_dims(
+    oper: Qobj,
+    dims: Optional[List[int]] = None,
+    targets: Optional[QubitSpecifier] = None,
+) -> None:
     """
     Check if the given operator is valid.
 
@@ -1166,7 +969,11 @@ def _check_oper_dims(oper, dims=None, targets=None):
             )
 
 
-def _targets_to_list(targets, oper=None, N=None):
+def _targets_to_list(
+    targets: Optional[QubitSpecifier],
+    oper: Optional[Qobj] = None,
+    N: Optional[int] = None,
+) -> List[int]:
     """
     transform targets to a list and check validity.
 
@@ -1206,8 +1013,13 @@ def _targets_to_list(targets, oper=None, N=None):
 
 
 def expand_operator(
-    oper, N=None, targets=None, dims=None, cyclic_permutation=False, dtype=None
-):
+    oper: Qobj,
+    N: Optional[int] = None,
+    targets: Optional[QubitSpecifier] = None,
+    dims: Optional[List[int]] = None,
+    cyclic_permutation: bool = False,
+    dtype: Optional[str] = None,
+) -> Union[Qobj, List[Qobj]]:
     """
     Expand an operator to one that acts on a system with desired dimensions.
 
@@ -1330,8 +1142,11 @@ def expand_operator(
 
 
 def gate_sequence_product(
-    U_list, left_to_right=True, inds_list=None, expand=False
-):
+    U_list: List[Qobj],
+    left_to_right: bool = True,
+    inds_list: Optional[List[List[int]]] = None,
+    expand: bool = False,
+) -> Union[Qobj, Tuple[Qobj, List[int]]]:
     """
     Calculate the overall unitary matrix for a given list of unitary operations.
 
@@ -1352,7 +1167,7 @@ def gate_sequence_product(
 
     Returns
     -------
-    U_overall : qobj
+    U_overall : :class:`qutip.Qobj`
         Unitary matrix corresponding to U_list.
 
     overall_inds : list of int, optional
