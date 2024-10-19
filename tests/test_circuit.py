@@ -135,7 +135,7 @@ class TestQubitCircuit:
         qc1 = QubitCircuit(3)
         qc1.add_gate("ISWAP", targets=[0, 2])
         U1 = qc1.compute_unitary()
-        qc0 = qc1.adjacent_gates()
+        qc0 = to_chain_structure(qc1)
         qc2 = qc0.resolve_gates(basis="ISWAP")
         U2 = qc2.compute_unitary()
         assert _op_dist(U1, U2) < 1e-12
