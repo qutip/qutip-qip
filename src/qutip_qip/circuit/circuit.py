@@ -2,13 +2,20 @@
 Quantum circuit representation and simulation.
 """
 
-import os
 import inspect
-from io import BytesIO
-from itertools import product
-from functools import partialmethod
-from typing import Optional, Union, Tuple, List, Dict, Any
-from collections.abc import Iterable
+from typing import (
+    Optional,
+    Union,
+    Tuple,
+    List,
+    Dict,
+    Any,
+    Callable,
+    Iterable,
+    TypeAlias,
+)
+
+QubitSpecifier: TypeAlias = Union[int, Iterable[int]]
 
 import numpy as np
 from copy import deepcopy
@@ -79,13 +86,15 @@ class QubitCircuit:
 
     def __init__(
         self,
-        N,
-        input_states=None,
-        output_states=None,
-        reverse_states=True,
-        user_gates=None,
-        dims=None,
-        num_cbits=0,
+        N: int,
+        input_states: Optional[List[str]] = None,
+        output_states: Optional[List[str]] = None,
+        reverse_states: bool = True,
+        user_gates: Optional[
+            Dict[str, Union[Callable[..., Qobj], Qobj]]
+        ] = None,
+        dims: Optional[Union[List[int], Tuple[int, ...]]] = None,
+        num_cbits: int = 0,
     ):
         # number of qubits in the register
         self.N = N
@@ -118,7 +127,7 @@ class QubitCircuit:
     def __repr__(self) -> str:
         return ""
 
-    def _repr_png_(self):
+    def _repr_png_(self) -> None:
         """
         Provide PNG representation for Jupyter Notebook.
         """
@@ -127,7 +136,12 @@ class QubitCircuit:
         except ImportError:
             self.draw("text")
 
-    def add_state(self, state, targets=None, state_type="input"):
+    def add_state(
+        self,
+        state: str,
+        targets: Iterable[int] = None,
+        state_type: str = "input",
+    ) -> None:
         """
         Add an input or ouput state to the circuit. By default all the input
         and output states will be initialized to `None`. A particular state can
@@ -156,8 +170,12 @@ class QubitCircuit:
                 self.output_states[i] = state
 
     def add_measurement(
-        self, measurement, targets=None, index=None, classical_store=None
-    ):
+        self,
+        measurement: Union[str, Measurement],
+        targets: Optional[QubitSpecifier] = None,
+        index: Optional[QubitSpecifier] = None,
+        classical_store: Optional[int] = None,
+    ) -> None:
         """
         Adds a measurement with specified parameters to the circuit.
 
@@ -200,17 +218,17 @@ class QubitCircuit:
 
     def add_gate(
         self,
-        gate,
-        targets=None,
-        controls=None,
-        arg_value=None,
-        arg_label=None,
-        index=None,
-        classical_controls=None,
-        control_value=None,
-        classical_control_value=None,
-        style=None,
-    ):
+        gate: Union[str, Gate],
+        targets: Optional[QubitSpecifier] = None,
+        controls: Optional[QubitSpecifier] = None,
+        arg_value: Optional[Any] = None,
+        arg_label: Optional[str] = None,
+        index: Optional[QubitSpecifier] = None,
+        classical_controls: Optional[QubitSpecifier] = None,
+        control_value: Optional[int] = None,
+        classical_control_value: Optional[int] = None,
+        style: Optional[Any] = None,
+    ) -> None:
         """
         Adds a gate with specified parameters to the circuit.
 
@@ -268,7 +286,7 @@ class QubitCircuit:
             for position in shifted_inds:
                 self.gates.insert(position, gate)
 
-    def add_gates(self, gates):
+    def add_gates(self, gates: Iterable[Gate]) -> None:
         """
         Adds a sequence of gates to the circuit in a positive order, i.e.
         the first gate in the sequence will be applied first to the state.
@@ -283,12 +301,12 @@ class QubitCircuit:
 
     def add_1q_gate(
         self,
-        name,
-        start=None,
-        end=None,
-        qubits=None,
-        **kwargs,
-    ):
+        name: str,
+        start: Optional[int] = None,
+        end: Optional[int] = None,
+        qubits: Optional[QubitSpecifier] = None,
+        **kwargs: Any,
+    ) -> None:
         """
         Adds a single qubit gate with specified parameters on a variable
         number of qubits in the circuit. By default, it applies the given gate
@@ -320,7 +338,12 @@ class QubitCircuit:
         for q in qubits:
             self.add_gate(name, targets=q, **kwargs)
 
-    def add_circuit(self, qc, start=0, overwrite_user_gates=False):
+    def add_circuit(
+        self,
+        qc: "QubitCircuit",
+        start: int = 0,
+        overwrite_user_gates: bool = False,
+    ) -> None:
         """
         Adds a block of a qubit circuit to the main circuit.
         Globalphase gates are not added.
@@ -373,8 +396,12 @@ class QubitCircuit:
                 )
 
     def remove_gate_or_measurement(
-        self, index=None, end=None, name=None, remove="first"
-    ):
+        self,
+        index: Optional[int] = None,
+        end: Optional[int] = None,
+        name: Optional[str] = None,
+        remove: str = "first",
+    ) -> None:
         """
         Remove a gate from a specific index or between two indexes or the
         first, last or all instances of a particular gate.
@@ -454,12 +481,12 @@ class QubitCircuit:
 
     def run(
         self,
-        state,
-        cbits=None,
-        U_list=None,
-        measure_results=None,
-        precompute_unitary=False,
-    ):
+        state: Qobj,
+        cbits: Optional[QubitSpecifier] = None,
+        U_list: Optional[List[Qobj]] = None,
+        measure_results: Optional[Tuple[int, ...]] = None,
+        precompute_unitary: bool = False,
+    ) -> Qobj:
         """
         Calculate the result of one instance of circuit run.
 
@@ -496,8 +523,12 @@ class QubitCircuit:
         return sim.run(state, cbits, measure_results).get_final_states(0)
 
     def run_statistics(
-        self, state, U_list=None, cbits=None, precompute_unitary=False
-    ):
+        self,
+        state: Qobj,
+        U_list: Optional[List[Qobj]] = None,
+        cbits: Optional[QubitSpecifier] = None,
+        precompute_unitary: bool = False,
+    ) -> CircuitResult:
         """
         Calculate all the possible outputs of a circuit
         (varied by measurement gates).
@@ -526,7 +557,9 @@ class QubitCircuit:
         sim = CircuitSimulator(self, mode, precompute_unitary)
         return sim.run_statistics(state, cbits)
 
-    def resolve_gates(self, basis=["CNOT", "RX", "RY", "RZ"]):
+    def resolve_gates(
+        self, basis: Optional[List[str]] = ["CNOT", "RX", "RY", "RZ"]
+    ) -> "QubitCircuit":
         """
         Unitary matrix calculator for N qubits returning the individual
         steps as unitary matrices operating from left to right in the specified
@@ -710,7 +743,7 @@ class QubitCircuit:
 
         return qc_temp
 
-    def adjacent_gates(self):
+    def adjacent_gates(self) -> "QubitCircuit":
         """
         Method to resolve two qubit gates with non-adjacent control/s or
         target/s in terms of gates with adjacent interactions.
@@ -835,7 +868,9 @@ class QubitCircuit:
 
         return temp
 
-    def propagators(self, expand=True, ignore_measurement=False):
+    def propagators(
+        self, expand: bool = True, ignore_measurement: bool = False
+    ) -> List[Qobj]:
         """
         Propagator matrix calculator returning the individual
         steps as unitary matrices operating from left to right.
@@ -886,7 +921,7 @@ class QubitCircuit:
             U_list.append(qobj)
         return U_list
 
-    def _get_gate_unitary(self, gate):
+    def _get_gate_unitary(self, gate: Gate) -> Qobj:
         if gate.name in self.user_gates:
             if gate.controls is not None:
                 raise ValueError(
@@ -913,7 +948,7 @@ class QubitCircuit:
             qobj = gate.get_compact_qobj()
         return qobj
 
-    def compute_unitary(self):
+    def compute_unitary(self) -> Qobj:
         """Evaluates the matrix of all the gates in a quantum circuit.
 
         Returns
@@ -930,13 +965,13 @@ class QubitCircuit:
 
     def draw(
         self,
-        renderer="matplotlib",
-        file_type="png",
-        dpi=None,
-        file_path="circuit",
-        save=False,
-        **kwargs,
-    ):
+        renderer: str = "matplotlib",
+        file_type: str = "png",
+        dpi: Optional[int] = None,
+        file_path: str = "circuit",
+        save: bool = False,
+        **kwargs: Any,
+    ) -> Optional[Union[DisplayImage, DisplaySVG]]:
         """
         Export circuit object as an image file in a supported format.
 
@@ -1013,7 +1048,7 @@ class QubitCircuit:
                 f"Unknown renderer '{renderer}' not supported. Please choose from 'latex', 'matplotlib', 'text'."
             )
 
-    def _to_qasm(self, qasm_out):
+    def _to_qasm(self, qasm_out: Any) -> None:
         """
         Pipe output of circuit object to QasmOutput object.
 
