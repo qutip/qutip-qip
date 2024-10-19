@@ -3,7 +3,7 @@ from collections.abc import Iterable
 from itertools import product, chain
 from functools import partial, reduce
 from operator import mul
-from typing import Optional
+from typing import Optional, Union, List, Tuple, Dict, Callable, Any
 
 import warnings
 import inspect
@@ -51,12 +51,14 @@ from .gates import (
 
 from packaging.version import parse as parse_version
 
-if parse_version(qutip.__version__) >= parse_version("5.dev"):
-    is_qutip5 = True
-else:
-    is_qutip5 = False
+QubitSpecifier = Union[int, Iterable[int]]
 
-__all__ = [
+if parse_version(qutip.__version__) >= parse_version("5.dev"):
+    is_qutip5: bool = True
+else:
+    is_qutip5: bool = False
+
+__all__: List[str] = [
     "Gate",
     "GATE_CLASS_MAP",
     "X",
@@ -96,81 +98,21 @@ __all__ = [
     "RZX",
 ]
 
-"""
-.. testsetup::
-
-   import numpy as np
-   np.set_printoptions(5)
-"""
-
 
 class Gate:
-    r"""
-    Base class for a quantum gate,
-    concrete gate classes need to be defined as subclasses.
-
-    Parameters
-    ----------
-    targets : list or int
-        The target qubits fo the gate.
-    controls : list or int
-        The controlling qubits of the gate.
-    arg_value : object
-        Argument value of the gate. It will be saved as an attributes and
-        can be accessed when generating the `:obj:qutip.Qobj`.
-    classical_controls : int or list of int, optional
-        Indices of classical bits to control the unitary operator.
-    control_value : int, optional
-        The decimal value of controlling bits for executing
-        the unitary operator on the target qubits.
-        E.g. if the gate should be executed when the zero-th bit is 1,
-        ``controll_value=1``;
-        If the gate should be executed when the two bits are 1 and 0,
-        ``controll_value=2``.
-    classical_control_value : int, optional
-        The decimal value of controlling classical bits for executing
-        the unitary operator on the target qubits.
-        E.g. if the gate should be executed when the zero-th bit is 1,
-        ``controll_value=1``;
-        If the gate should be executed when the two bits are 1 and 0,
-        ``controll_value=2``.
-        The default is ``2**len(classical_controls)-1``
-        (i.e. all classical controls are 1).
-    arg_label : string
-        Label for the argument, it will be shown in the circuit plot,
-        representing the argument value provided to the gate, e.g,
-        if ``arg_label="\phi" the latex name for the gate in the circuit plot
-        will be ``$U(\phi)$``.
-    name : string, optional
-        The name of the gate. This is kept for backward compatibility
-        to identify different gates.
-        In most cases it is identical to the class name,
-        but that is not guaranteed.
-        It is recommended to use ``isinstance``
-        or ``issubclass`` to identify a gate rather than
-        comparing the name string.
-    style : dict, optional
-        A dictionary of style options for the gate.
-        The options are passed to the `matplotlib` plotter.
-        The default is None.
-    """
-
     def __init__(
         self,
-        name=None,
-        targets=None,
-        controls=None,
-        arg_value=None,
-        control_value=None,
-        classical_controls=None,
+        name: Optional[str] = None,
+        targets: Optional[QubitSpecifier] = None,
+        controls: Optional[QubitSpecifier] = None,
+        arg_value: Optional[Any] = None,
+        control_value: Optional[int] = None,
+        classical_controls: Optional[QubitSpecifier] = None,
         classical_control_value: Optional[int] = None,
-        arg_label=None,
-        style=None,
-        **kwargs,
-    ):
-        """
-        Create a gate with specified parameters.
-        """
+        arg_label: Optional[str] = None,
+        style: Optional[Dict[str, Any]] = None,
+        **kwargs: Any,
+    ) -> None:
         self.name = name if name is not None else self.__class__.__name__
         self.targets = None
         self.controls = None
@@ -218,18 +160,7 @@ class Gate:
             if not all_integer:
                 raise ValueError("Index of a qubit must be an integer")
 
-    def get_all_qubits(self):
-        """
-        Return a list of all qubits that the gate operator
-        acts on.
-        The list concatenates the two lists representing
-        the controls and the targets qubits while retains the order.
-
-        Returns
-        -------
-        targets_list : list of int
-            A list of all qubits, including controls and targets.
-        """
+    def get_all_qubits(self) -> List[int]:
         if self.controls is not None:
             return self.controls + self.targets
         if self.targets is not None:
@@ -238,7 +169,7 @@ class Gate:
             # Special case: the global phase gate
             return []
 
-    def __str__(self):
+    def __str__(self) -> str:
         str_name = (
             "Gate(%s, targets=%s, controls=%s,"
             " classical controls=%s, control_value=%s, classical_control_value=%s)"
@@ -252,22 +183,13 @@ class Gate:
         )
         return str_name
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)
 
-    def _repr_latex_(self):
+    def _repr_latex_(self) -> str:
         return str(self)
 
-    def _to_qasm(self, qasm_out):
-        """
-        Pipe output of gate signature and application to QasmOutput object.
-
-        Parameters
-        ----------
-        qasm_out: QasmOutput
-            object to store QASM output.
-        """
-
+    def _to_qasm(self, qasm_out: "QasmOutput") -> None:
         qasm_gate = qasm_out.qasm_name(self.name)
 
         if not qasm_gate:
@@ -286,22 +208,7 @@ class Gate:
                 )
             )
 
-    def get_compact_qobj(self):
-        """
-        Get the compact :class:`qutip.Qobj` representation of the gate
-        operator, ignoring the controls and targets.
-        In the unitary representation,
-        it always assumes that the first few qubits are controls,
-        then targets.
-
-        Returns
-        -------
-        qobj : :obj:`qutip.Qobj`
-            The compact gate operator as a unitary matrix.
-        """
-        # TODO This will be moved to each sub-class of Gate.
-        # However, one first needs to replace the direct use of Gate in
-        # other modules.
+    def get_compact_qobj(self) -> Qobj:
         if self.name == "RX":
             qobj = rx(self.arg_value)
         elif self.name == "RY":
@@ -374,27 +281,11 @@ class Gate:
             raise NotImplementedError(f"{self.name} is an unknown gate.")
         return qobj
 
-    def get_qobj(self, num_qubits=None, dims=None):
-        """
-        Get the :class:`qutip.Qobj` representation of the gate operator.
-        The operator is expanded to the full Herbert space according to
-        the controls and targets qubits defined for the gate.
-
-        Parameters
-        ----------
-        num_qubits : int, optional
-            The number of qubits.
-            If not given, use the minimal number of qubits required
-            by the target and control qubits.
-        dims : list, optional
-            A list representing the dimensions of each quantum system.
-            If not given, it is assumed to be an all-qubit system.
-
-        Returns
-        -------
-        qobj : :obj:`qutip.Qobj`
-            The compact gate operator as a unitary matrix.
-        """
+    def get_qobj(
+        self,
+        num_qubits: Optional[int] = None,
+        dims: Optional[List[int]] = None,
+    ) -> Qobj:
         if self.name == "GLOBALPHASE":
             if num_qubits is not None:
                 return globalphase(self.arg_value, num_qubits)
@@ -415,7 +306,7 @@ class Gate:
 
 
 class SingleQubitGate(Gate):
-    def __init__(self, targets, **kwargs):
+    def __init__(self, targets: QubitSpecifier, **kwargs: Any) -> None:
         super().__init__(targets=targets, **kwargs)
         if self.targets is None or len(self.targets) != 1:
             raise ValueError(
@@ -441,11 +332,11 @@ class X(SingleQubitGate):
      [1. 0.]]
     """
 
-    def __init__(self, targets, **kwargs):
+    def __init__(self, targets: QubitSpecifier, **kwargs: Any) -> None:
         super().__init__(targets=targets, **kwargs)
         self.latex_str = r"X"
 
-    def get_compact_qobj(self):
+    def get_compact_qobj(self) -> Qobj:
         return qutip.sigmax() if not is_qutip5 else qutip.sigmax(dtype="dense")
 
 
@@ -463,11 +354,11 @@ class Y(SingleQubitGate):
      [0.+1.j 0.+0.j]]
     """
 
-    def __init__(self, targets, **kwargs):
+    def __init__(self, targets: QubitSpecifier, **kwargs: Any) -> None:
         super().__init__(targets=targets, **kwargs)
         self.latex_str = r"Y"
 
-    def get_compact_qobj(self):
+    def get_compact_qobj(self) -> Qobj:
         return qutip.sigmay() if not is_qutip5 else qutip.sigmay(dtype="dense")
 
 
@@ -485,11 +376,11 @@ class Z(SingleQubitGate):
      [ 0. -1.]]
     """
 
-    def __init__(self, targets, **kwargs):
+    def __init__(self, targets: QubitSpecifier, **kwargs: Any) -> None:
         super().__init__(targets=targets, **kwargs)
         self.latex_str = r"Z"
 
-    def get_compact_qobj(self):
+    def get_compact_qobj(self) -> Qobj:
         return qutip.sigmaz() if not is_qutip5 else qutip.sigmaz(dtype="dense")
 
 
@@ -507,11 +398,13 @@ class RX(SingleQubitGate):
      [0.     -0.70711j 0.70711+0.j     ]]
     """
 
-    def __init__(self, targets, arg_value, **kwargs):
+    def __init__(
+        self, targets: QubitSpecifier, arg_value: float, **kwargs
+    ) -> None:
         super().__init__(targets=targets, arg_value=arg_value, **kwargs)
         self.latex_str = r"R_x"
 
-    def get_compact_qobj(self):
+    def get_compact_qobj(self) -> Qobj:
         return rx(self.arg_value)
 
 
@@ -529,11 +422,13 @@ class RY(SingleQubitGate):
      [ 0.70711  0.70711]]
     """
 
-    def __init__(self, targets, arg_value, **kwargs):
+    def __init__(
+        self, targets: QubitSpecifier, arg_value: float, **kwargs
+    ) -> None:
         super().__init__(targets=targets, arg_value=arg_value, **kwargs)
         self.latex_str = r"R_y"
 
-    def get_compact_qobj(self):
+    def get_compact_qobj(self) -> Qobj:
         return ry(self.arg_value)
 
 
@@ -551,11 +446,13 @@ class RZ(SingleQubitGate):
      [0.     +0.j      0.70711+0.70711j]]
     """
 
-    def __init__(self, targets, arg_value, **kwargs):
+    def __init__(
+        self, targets: QubitSpecifier, arg_value: float, **kwargs
+    ) -> None:
         super().__init__(targets=targets, arg_value=arg_value, **kwargs)
         self.latex_str = r"R_z"
 
-    def get_compact_qobj(self):
+    def get_compact_qobj(self) -> Qobj:
         return rz(self.arg_value)
 
 
@@ -573,11 +470,11 @@ class H(SingleQubitGate):
      [ 0.70711 -0.70711]]
     """
 
-    def __init__(self, targets, **kwargs):
+    def __init__(self, targets: QubitSpecifier, **kwargs: Any) -> None:
         super().__init__(targets=targets, **kwargs)
         self.latex_str = r"{\rm H}"
 
-    def get_compact_qobj(self):
+    def get_compact_qobj(self) -> Qobj:
         return snot()
 
 
@@ -599,11 +496,11 @@ class SQRTNOT(SingleQubitGate):
      [0.5-0.5j 0.5+0.5j]]
     """
 
-    def __init__(self, targets, **kwargs):
+    def __init__(self, targets: QubitSpecifier, **kwargs: Any) -> None:
         super().__init__(targets=targets, **kwargs)
         self.latex_str = r"\sqrt{\rm NOT}"
 
-    def get_compact_qobj(self):
+    def get_compact_qobj(self) -> Qobj:
         return sqrtnot()
 
 
@@ -621,11 +518,11 @@ class S(SingleQubitGate):
      [0.+0.j 0.+1.j]]
     """
 
-    def __init__(self, targets, **kwargs):
+    def __init__(self, targets: QubitSpecifier, **kwargs: Any) -> None:
         super().__init__(targets=targets, **kwargs)
         self.latex_str = r"{\rm S}"
 
-    def get_compact_qobj(self):
+    def get_compact_qobj(self) -> Qobj:
         return s_gate()
 
 
@@ -643,11 +540,11 @@ class T(SingleQubitGate):
      [0.     +0.j      0.70711+0.70711j]]
     """
 
-    def __init__(self, targets, **kwargs):
+    def __init__(self, targets: QubitSpecifier, **kwargs: Any) -> None:
         super().__init__(targets=targets, **kwargs)
         self.latex_str = r"{\rm T}"
 
-    def get_compact_qobj(self):
+    def get_compact_qobj(self) -> Qobj:
         return t_gate()
 
 
@@ -672,11 +569,13 @@ class R(SingleQubitGate):
      [ 0.70711  0.70711]]
     """
 
-    def __init__(self, targets, arg_value=None, **kwargs):
+    def __init__(
+        self, targets: QubitSpecifier, arg_value: Tuple[float, float], **kwargs
+    ) -> None:
         super().__init__(targets=targets, arg_value=arg_value, **kwargs)
         self.latex_str = r"{\rm R}"
 
-    def get_compact_qobj(self):
+    def get_compact_qobj(self) -> Qobj:
         return qrot(*self.arg_value)
 
 
@@ -697,18 +596,23 @@ class QASMU(SingleQubitGate):
      [ 0.5+0.5j -0.5+0.5j]]
     """
 
-    def __init__(self, targets, arg_value=None, **kwargs):
+    def __init__(
+        self,
+        targets: QubitSpecifier,
+        arg_value: Tuple[float, float, float],
+        **kwargs,
+    ) -> None:
         super().__init__(targets=targets, arg_value=arg_value, **kwargs)
         self.latex_str = r"{\rm QASM-U}"
 
-    def get_compact_qobj(self):
+    def get_compact_qobj(self) -> Qobj:
         return qasmu_gate(self.arg_value)
 
 
 class TwoQubitGate(Gate):
     """Abstract two-qubit gate."""
 
-    def __init__(self, targets, **kwargs):
+    def __init__(self, targets: QubitSpecifier, **kwargs: Any) -> None:
         super().__init__(targets=targets, **kwargs)
         if len(self.get_all_qubits()) != 2:
             raise ValueError(
@@ -732,11 +636,11 @@ class SWAP(TwoQubitGate):
      [0. 0. 0. 1.]]
     """
 
-    def __init__(self, targets, **kwargs):
+    def __init__(self, targets: QubitSpecifier, **kwargs: Any) -> None:
         super().__init__(targets=targets, **kwargs)
         self.latex_str = r"{\rm SWAP}"
 
-    def get_compact_qobj(self):
+    def get_compact_qobj(self) -> Qobj:
         return swap()
 
 
@@ -756,11 +660,11 @@ class ISWAP(TwoQubitGate):
      [0.+0.j 0.+0.j 0.+0.j 1.+0.j]]
     """
 
-    def __init__(self, targets, **kwargs):
+    def __init__(self, targets: QubitSpecifier, **kwargs: Any) -> None:
         super().__init__(targets=targets, **kwargs)
         self.latex_str = r"{i}{\rm SWAP}"
 
-    def get_compact_qobj(self):
+    def get_compact_qobj(self) -> Qobj:
         return iswap()
 
 
@@ -780,11 +684,11 @@ class SQRTSWAP(TwoQubitGate):
      [0. +0.j  0. +0.j  0. +0.j  1. +0.j ]]
     """
 
-    def __init__(self, targets, **kwargs):
+    def __init__(self, targets: QubitSpecifier, **kwargs: Any) -> None:
         super().__init__(targets=targets, **kwargs)
         self.latex_str = r"\sqrt{\rm SWAP}"
 
-    def get_compact_qobj(self):
+    def get_compact_qobj(self) -> Qobj:
         return sqrtswap()
 
 
@@ -804,11 +708,11 @@ class SQRTISWAP(TwoQubitGate):
      [0.     +0.j      0.     +0.j      0.     +0.j      1.     +0.j     ]]
     """
 
-    def __init__(self, targets, **kwargs):
+    def __init__(self, targets: QubitSpecifier, **kwargs: Any) -> None:
         super().__init__(targets=targets, **kwargs)
         self.latex_str = r"\sqrt{{i}\rm SWAP}"
 
-    def get_compact_qobj(self):
+    def get_compact_qobj(self) -> Qobj:
         return sqrtiswap()
 
 
@@ -837,11 +741,11 @@ class BERKELEY(TwoQubitGate):
      [0.     +0.38268j 0.     +0.j      0.     +0.j      0.92388+0.j     ]]
     """
 
-    def __init__(self, targets, **kwargs):
+    def __init__(self, targets: QubitSpecifier, **kwargs: Any) -> None:
         super().__init__(targets=targets, **kwargs)
         self.latex_str = r"{\rm BERKELEY}"
 
-    def get_compact_qobj(self):
+    def get_compact_qobj(self) -> Qobj:
         return berkeley()
 
 
@@ -870,11 +774,13 @@ class SWAPALPHA(TwoQubitGate):
      [0. +0.j  0. +0.j  0. +0.j  1. +0.j ]]
     """
 
-    def __init__(self, targets, arg_value, **kwargs):
+    def __init__(
+        self, targets: QubitSpecifier, arg_value: float, **kwargs
+    ) -> None:
         super().__init__(targets=targets, arg_value=arg_value, **kwargs)
         self.latex_str = r"{\rm SWAPALPHA}"
 
-    def get_compact_qobj(self):
+    def get_compact_qobj(self) -> Qobj:
         return swapalpha(self.arg_value)
 
 
@@ -903,11 +809,13 @@ class MS(TwoQubitGate):
      [0.     -0.70711j 0.     +0.j      0.     +0.j      0.70711+0.j     ]]
     """
 
-    def __init__(self, targets, arg_value, **kwargs):
+    def __init__(
+        self, targets: QubitSpecifier, arg_value: Tuple[float, float], **kwargs
+    ) -> None:
         super().__init__(targets=targets, arg_value=arg_value, **kwargs)
         self.latex_str = r"{\rm MS}"
 
-    def get_compact_qobj(self):
+    def get_compact_qobj(self) -> Qobj:
         return molmer_sorensen(*self.arg_value)
 
 
@@ -931,11 +839,11 @@ class TOFFOLI(Gate):
      [0. 0. 0. 0. 0. 0. 1. 0.]]
     """
 
-    def __init__(self, targets, **kwargs):
+    def __init__(self, targets: QubitSpecifier, **kwargs: Any) -> None:
         super().__init__(targets=targets, **kwargs)
         self.latex_str = r"{\rm TOFFOLI}"
 
-    def get_compact_qobj(self):
+    def get_compact_qobj(self) -> Qobj:
         return toffoli()
 
 
@@ -959,18 +867,23 @@ class FREDKIN(Gate):
      [0. 0. 0. 0. 0. 0. 0. 1.]]
     """
 
-    def __init__(self, targets, **kwargs):
+    def __init__(self, targets: QubitSpecifier, **kwargs: Any) -> None:
         super().__init__(targets=targets, **kwargs)
         self.latex_str = r"{\rm FREDKIN}"
 
-    def get_compact_qobj(self):
+    def get_compact_qobj(self) -> Qobj:
         return fredkin()
 
 
 class ControlledGate(Gate):
     def __init__(
-        self, controls, targets, control_value, target_gate, **kwargs
-    ):
+        self,
+        controls: QubitSpecifier,
+        targets: QubitSpecifier,
+        control_value: Optional[int],
+        target_gate: Callable[..., Gate],
+        **kwargs: Any,
+    ) -> None:
         super().__init__(
             controls=controls,
             targets=targets,
@@ -990,7 +903,7 @@ class ControlledGate(Gate):
             targets=self.targets, **self.kwargs
         ).latex_str
 
-    def get_compact_qobj(self):
+    def get_compact_qobj(self) -> Qobj:
         return controlled_gate(
             U=self.target_gate(
                 targets=self.targets, **self.kwargs
@@ -1013,12 +926,18 @@ class _OneControlledGate(ControlledGate, TwoQubitGate):
     and raise an error if it is 0.
     """
 
-    def __init__(self, controls, targets, target_gate, **kwargs):
+    def __init__(
+        self,
+        controls: QubitSpecifier,
+        targets: QubitSpecifier,
+        target_gate: Callable[..., Gate],
+        **kwargs: Any,
+    ) -> None:
         _control_value = kwargs.get("control_value", None)
         if _control_value is not None:
             if _control_value != 1:
                 raise ValueError(
-                    f"{self.__class__.__name__} must has control_value=1"
+                    f"{self.__class__.__name__} must have control_value=1"
                 )
         else:
             kwargs["control_value"] = 1
@@ -1046,7 +965,9 @@ class CNOT(_OneControlledGate):
      [0. 0. 1. 0.]]
     """
 
-    def __init__(self, controls, targets, **kwargs):
+    def __init__(
+        self, controls: QubitSpecifier, targets: QubitSpecifier, **kwargs: Any
+    ) -> None:
         self.target_gate = X
         super().__init__(
             targets=targets,
@@ -1056,7 +977,7 @@ class CNOT(_OneControlledGate):
         )
         self.latex_str = r"{\rm CNOT}"
 
-    def get_compact_qobj(self):
+    def get_compact_qobj(self) -> Qobj:
         return cnot()
 
 
@@ -1076,7 +997,9 @@ class CZ(_OneControlledGate):
      [ 0.  0.  0. -1.]]
     """
 
-    def __init__(self, controls, targets, **kwargs):
+    def __init__(
+        self, controls: QubitSpecifier, targets: QubitSpecifier, **kwargs: Any
+    ) -> None:
         self.target_gate = Z
         super().__init__(
             targets=targets,
@@ -1085,7 +1008,7 @@ class CZ(_OneControlledGate):
             **kwargs,
         )
 
-    def get_compact_qobj(self):
+    def get_compact_qobj(self) -> Qobj:
         return csign()
 
 
@@ -1105,7 +1028,9 @@ class CSIGN(_OneControlledGate):
      [ 0.  0.  0. -1.]]
     """
 
-    def __init__(self, controls, targets, **kwargs):
+    def __init__(
+        self, controls: QubitSpecifier, targets: QubitSpecifier, **kwargs: Any
+    ) -> None:
         self.target_gate = Z
         super().__init__(
             targets=targets,
@@ -1114,7 +1039,7 @@ class CSIGN(_OneControlledGate):
             **kwargs,
         )
 
-    def get_compact_qobj(self):
+    def get_compact_qobj(self) -> Qobj:
         return csign()
 
 
@@ -1144,18 +1069,24 @@ class CPHASE(_OneControlledGate):
     """
 
     def __init__(
-        self, controls, targets, arg_value, control_value=1, **kwargs
-    ):
+        self,
+        controls: QubitSpecifier,
+        targets: QubitSpecifier,
+        arg_value: float,
+        control_value: int = 1,
+        **kwargs: Any,
+    ) -> None:
         self.target_gate = RZ
         super().__init__(
             targets=targets,
             controls=controls,
             arg_value=arg_value,
             target_gate=self.target_gate,
+            control_value=control_value,
             **kwargs,
         )
 
-    def get_compact_qobj(self):
+    def get_compact_qobj(self) -> Qobj:
         return cphase(self.arg_value).tidyup()
 
 
@@ -1184,7 +1115,9 @@ class RZX(TwoQubitGate):
     [0.+0.j 0.+0.j 0.+1.j 0.+0.j]]
     """
 
-    def __init__(self, targets, arg_value, **kwargs):
+    def __init__(
+        self, targets: QubitSpecifier, arg_value: float, **kwargs: Any
+    ) -> None:
         self.target_gate = RZ
         super().__init__(
             targets=targets,
@@ -1193,7 +1126,7 @@ class RZX(TwoQubitGate):
             **kwargs,
         )
 
-    def get_compact_qobj(self):
+    def get_compact_qobj(self) -> Qobj:
         theta = self.arg_value
         return Qobj(
             np.array(
