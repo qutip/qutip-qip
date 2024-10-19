@@ -12,10 +12,9 @@ from typing import (
     Any,
     Callable,
     Iterable,
-    TypeAlias,
 )
 
-QubitSpecifier: TypeAlias = Union[int, Iterable[int]]
+QubitSpecifier = Union[int, Iterable[int]]
 
 import numpy as np
 from copy import deepcopy

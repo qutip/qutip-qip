@@ -10,7 +10,6 @@ from typing import (
     Iterable,
     Callable,
     Any,
-    TypeAlias,
 )
 
 from ..operations import (
@@ -21,7 +20,7 @@ from ..operations import (
 from qutip import basis, ket2dm, Qobj, tensor
 import warnings
 
-QubitSpecifier: TypeAlias = Union[int, Iterable[int]]
+QubitSpecifier = Union[int, Iterable[int]]
 
 __all__ = ["CircuitSimulator", "CircuitResult"]
 
