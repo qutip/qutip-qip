@@ -292,7 +292,7 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
   qc.add_gate("ISWAP", targets=[0,1])
   qc.add_measurement("M0", targets=1, classical_store=0)
 
-  qc.draw("matplotlib", dpi=300, fig_width=4)
+  qc.draw("matplotlib", dpi=300)
 
 **Customization Examples**:
 
@@ -309,7 +309,7 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
   qc.add_gate("ISWAP", targets=[0,1])
   qc.add_measurement("M0", targets=1, classical_store=0)
 
-  qc.draw("matplotlib", bulge=False, theme='dark', title="Plotting Quantum Circuit", dpi=300, fig_width=4)
+  qc.draw("matplotlib", bulge=False, theme='dark', title="Plotting Quantum Circuit", dpi=300)
 
 .. 
   _To further explore the customization examples, refer to `tutorial notebook <link to tutorial notebook>`.
@@ -341,10 +341,6 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
       - Padding between the gate and the gate label.
     * - ``label_pad : float = 0.1``
       - Padding between the wire label and the wire.
-    * - ``fig_height : Optional[float] = None``
-      - Height of the figure.
-    * - ``fig_width : Optional[float] = 10``
-      - Width of the figure.
     * - ``bulge : Union[str, bool] = True``
       - Bulge style of the gate. Renders non-bulge gates if False.
     * - ``align_layer : bool = False``
