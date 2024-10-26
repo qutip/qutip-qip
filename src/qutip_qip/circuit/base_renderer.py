@@ -47,12 +47,6 @@ class StyleConfig:
     label_pad : float, optional
         Padding between the wire label and the wire. The default is 0.1.
 
-    fig_height : float, optional
-        Height of the figure. The default is None.
-
-    fig_width : float, optional
-        Width of the figure. The default is None.
-
     bulge : Union[str, bool], optional
         Bulge style of the gate. Renders non-bulge gates if False. The default is True.
 
@@ -92,8 +86,6 @@ class StyleConfig:
     layer_sep: float = 0.5
     gate_pad: float = 0.05
     label_pad: float = 0.1
-    fig_height: Optional[float] = None
-    fig_width: Optional[float] = 10
     bulge: Union[str, bool] = True
     align_layer: bool = False
     theme: Optional[Union[str, Dict]] = "qutip"

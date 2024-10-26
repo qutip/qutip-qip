@@ -81,11 +81,6 @@ class MatRenderer(BaseRenderer):
             "gate_label": 3,
             "node_label": 3,
         }
-        self.style.fig_height = (
-            ((self._qwires + self._cwires) * self.style.wire_sep)
-            if self.style.fig_height is None
-            else self.style.fig_height
-        )
         if self._ax is None:
             self.fig = plt.figure()
             self._ax = self.fig.add_subplot(111)
@@ -881,25 +876,37 @@ class MatRenderer(BaseRenderer):
         Configure the figure settings.
         """
         self.fig.set_facecolor(self.style.bgcolor)
-        self.fig.set_size_inches(
-            self.style.fig_width, self.style.fig_height, forward=True
+        xlim = (
+            -self.style.padding - self.max_label_width - self.style.label_pad,
+            self.style.padding
+            + self.style.end_wire_ext * self.style.layer_sep
+            + max(sum(self._layer_list[i]) for i in range(self._qwires)),
         )
-        self._ax.set_ylim(
+        ylim = (
             -self.style.padding,
             self.style.padding
             + (self._qwires + self._cwires - 1) * self.style.wire_sep,
         )
-        self._ax.set_xlim(
-            -self.style.padding - self.max_label_width - self.style.label_pad,
-            self.style.padding
-            + self.style.end_wire_ext * self.style.layer_sep
-            + max([sum(self._layer_list[i]) for i in range(self._qwires)]),
-        )
+        self._ax.set_xlim(xlim)
+        self._ax.set_ylim(ylim)
+
         if self.style.title is not None:
             self._ax.set_title(
-                self.style.title, pad=10, color=self.style.wire_color
+                self.style.title,
+                pad=10,
+                color=self.style.wire_color,
+                fontdict={"fontsize": self.style.fontsize},
             )
-        self._ax.set_aspect("equal")
+
+        try:
+            get_ipython()
+            max_dim = max(xlim[1] - xlim[0], ylim[1] - ylim[0])
+            self.fig.set_size_inches(max_dim, max_dim, forward=True)
+        except NameError:
+            self.fig.set_size_inches(
+                xlim[1] - xlim[0], ylim[1] - ylim[0], forward=True
+            )
+        self._ax.set_aspect("equal", adjustable="box")
         self._ax.axis("off")
 
     def save(self, filename: str, **kwargs) -> None:
