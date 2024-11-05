@@ -898,6 +898,7 @@ class MatRenderer(BaseRenderer):
                 fontdict={"fontsize": self.style.fontsize},
             )
 
+        # Adjusting to square dimensions in jupyter to prevent small fig size with equal-aspect cmd
         try:
             get_ipython()
             max_dim = max(xlim[1] - xlim[0], ylim[1] - ylim[0])
