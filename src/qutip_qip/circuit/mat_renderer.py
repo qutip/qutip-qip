@@ -644,7 +644,14 @@ class MatRenderer(BaseRenderer):
 
         else:
 
-            adj_targets = [i + self._cwires for i in sorted(gate.targets)]
+            adj_targets = [
+                i + self._cwires
+                for i in sorted(
+                    gate.targets
+                    if gate.targets is not None
+                    else list(range(self._qwires)) # adaptation for globalphase
+                )
+            ]
             text_width = self._get_text_width(
                 self.text,
                 self.fontsize,
@@ -687,7 +694,7 @@ class MatRenderer(BaseRenderer):
                 zorder=self._zorder["gate"],
             )
 
-            if len(gate.targets) > 1:
+            if gate.targets is not None and len(gate.targets) > 1:
                 for i in range(len(gate.targets)):
                     connector_l = Circle(
                         (
@@ -845,10 +852,16 @@ class MatRenderer(BaseRenderer):
 
                 # multi-qubit gate
                 if (
-                    len(gate.targets) > 1
+                    gate.targets is None
+                    or len(gate.targets) > 1
                     or getattr(gate, "controls", False) is not None
                 ):
-                    self.merged_wires = gate.targets.copy()
+                    # If targets=None, it implies globalphase. Adaptation for the renderer: targets=all-qubits.
+                    self.merged_wires = (
+                        gate.targets.copy()
+                        if gate.targets is not None
+                        else list(range(self._qwires))
+                    )
                     if gate.controls is not None:
                         self.merged_wires += gate.controls.copy()
                     self.merged_wires.sort()
