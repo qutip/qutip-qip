@@ -81,11 +81,6 @@ class MatRenderer(BaseRenderer):
             "gate_label": 3,
             "node_label": 3,
         }
-        self.style.fig_height = (
-            ((self._qwires + self._cwires) * self.style.wire_sep)
-            if self.style.fig_height is None
-            else self.style.fig_height
-        )
         if self._ax is None:
             self.fig = plt.figure()
             self._ax = self.fig.add_subplot(111)
@@ -649,7 +644,16 @@ class MatRenderer(BaseRenderer):
 
         else:
 
-            adj_targets = [i + self._cwires for i in sorted(gate.targets)]
+            adj_targets = [
+                i + self._cwires
+                for i in sorted(
+                    gate.targets
+                    if gate.targets is not None
+                    else list(
+                        range(self._qwires)
+                    )  # adaptation for globalphase
+                )
+            ]
             text_width = self._get_text_width(
                 self.text,
                 self.fontsize,
@@ -692,7 +696,7 @@ class MatRenderer(BaseRenderer):
                 zorder=self._zorder["gate"],
             )
 
-            if len(gate.targets) > 1:
+            if gate.targets is not None and len(gate.targets) > 1:
                 for i in range(len(gate.targets)):
                     connector_l = Circle(
                         (
@@ -850,10 +854,16 @@ class MatRenderer(BaseRenderer):
 
                 # multi-qubit gate
                 if (
-                    len(gate.targets) > 1
+                    gate.targets is None
+                    or len(gate.targets) > 1
                     or getattr(gate, "controls", False) is not None
                 ):
-                    self.merged_wires = gate.targets.copy()
+                    # If targets=None, it implies globalphase. Adaptation for the renderer: targets=all-qubits.
+                    self.merged_wires = (
+                        gate.targets.copy()
+                        if gate.targets is not None
+                        else list(range(self._qwires))
+                    )
                     if gate.controls is not None:
                         self.merged_wires += gate.controls.copy()
                     self.merged_wires.sort()
@@ -881,25 +891,38 @@ class MatRenderer(BaseRenderer):
         Configure the figure settings.
         """
         self.fig.set_facecolor(self.style.bgcolor)
-        self.fig.set_size_inches(
-            self.style.fig_width, self.style.fig_height, forward=True
+        xlim = (
+            -self.style.padding - self.max_label_width - self.style.label_pad,
+            self.style.padding
+            + self.style.end_wire_ext * self.style.layer_sep
+            + max(sum(self._layer_list[i]) for i in range(self._qwires)),
         )
-        self._ax.set_ylim(
+        ylim = (
             -self.style.padding,
             self.style.padding
             + (self._qwires + self._cwires - 1) * self.style.wire_sep,
         )
-        self._ax.set_xlim(
-            -self.style.padding - self.max_label_width - self.style.label_pad,
-            self.style.padding
-            + self.style.end_wire_ext * self.style.layer_sep
-            + max([sum(self._layer_list[i]) for i in range(self._qwires)]),
-        )
+        self._ax.set_xlim(xlim)
+        self._ax.set_ylim(ylim)
+
         if self.style.title is not None:
             self._ax.set_title(
-                self.style.title, pad=10, color=self.style.wire_color
+                self.style.title,
+                pad=10,
+                color=self.style.wire_color,
+                fontdict={"fontsize": self.style.fontsize},
             )
-        self._ax.set_aspect("equal")
+
+        # Adjusting to square dimensions in jupyter to prevent small fig size with equal-aspect cmd
+        try:
+            get_ipython()
+            max_dim = max(xlim[1] - xlim[0], ylim[1] - ylim[0])
+            self.fig.set_size_inches(max_dim, max_dim, forward=True)
+        except NameError:
+            self.fig.set_size_inches(
+                xlim[1] - xlim[0], ylim[1] - ylim[0], forward=True
+            )
+        self._ax.set_aspect("equal", adjustable="box")
         self._ax.axis("off")
 
     def save(self, filename: str, **kwargs) -> None:
