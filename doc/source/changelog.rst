@@ -3,6 +3,39 @@ Changelog
 *********
 
 
+Version 0.4.0 (Nov 23, 2024)
++++++++++++++++++++++++++++++
+
+This release adds a new quantum circuit renderer based on matplotlib and text and improves the circuit simulation speed.
+
+New features
+------------
+- Add matplotlib-based and text-based quantum circuit renderer. The new renderer is more flexible and can be used in different environments without latex dependencies. (`#239 <https://github.com/qutip/qutip-qip/pull/239>`_ and `#244 <https://github.com/qutip/qutip-qip/pull/244>`_ by Rushiraj Gadhvi)
+
+Improvements
+-------------
+- `einsum` is used to speed up the circuit simulation. (`#225 <https://github.com/qutip/qutip-qip/pull/225>`_ by Boxi Li)
+
+
+Miscellaneous
+-------------
+- The QIR support is removed. (`#238 <https://github.com/qutip/qutip-qip/pull/225>`_ by Boxi Li)
+
+Version 0.3.2 (Sept 3, 2024)
+++++++++++++++++++++++++++++
+
+Improvements
+------------
+- Add RZX gate to the SCQubits model. Fix bugs on the ZX strength. (`#245 <https://github.com/qutip/qutip-qip/pull/245>`_)
+- Compile the documentation using qutip v5 (`#246 <https://github.com/qutip/qutip-qip/pull/246>`_)
+
+Bug Fixes
+---------
+- Add phi parameter to expand_operator call. (`#237 <https://github.com/qutip/qutip-qip/pull/237>`_ by Neill Lambert)
+- Fix the warning on MacOS. (`#240 <https://github.com/qutip/qutip-qip/pull/240>`_)
+- Fix a bug in :class:`~.QubitCircuit.add_1q_gate`. (`#250 <https://github.com/qutip/qutip-qip/pull/250>`_ issue raised by hatlabcz Chao Zhou)
+
+
 Version 0.3.1 (April 21, 2024)
 ++++++++++++++++++++++++++++++
 
