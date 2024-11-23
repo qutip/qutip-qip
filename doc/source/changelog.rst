@@ -19,7 +19,7 @@ Improvements
 
 Miscellaneous
 -------------
-- The QIR support is removed. (`#238 <https://github.com/qutip/qutip-qip/pull/225>`_ by Boxi Li)
+- The QIR support is removed. (`#238 <https://github.com/qutip/qutip-qip/pull/238>`_ by Boxi Li)
 
 Version 0.3.2 (Sept 3, 2024)
 ++++++++++++++++++++++++++++
