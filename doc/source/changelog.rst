@@ -13,7 +13,7 @@ New features
 - Add matplotlib-based and text-based quantum circuit renderer. The new renderer is more flexible and can be used in different environments without latex dependencies. (`#239 <https://github.com/qutip/qutip-qip/pull/239>`_ and `#244 <https://github.com/qutip/qutip-qip/pull/244>`_ by Rushiraj Gadhvi)
 
 Improvements
--------------
+------------
 - `einsum` is used to speed up the circuit simulation. (`#225 <https://github.com/qutip/qutip-qip/pull/225>`_ by Boxi Li)
 
 
