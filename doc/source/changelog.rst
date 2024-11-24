@@ -10,7 +10,7 @@ This release adds two new quantum circuit renderers -- one based on matplotlib a
 
 New features
 ------------
-- Add matplotlib-based and text-based quantum circuit renderer. The new renderer is more flexible and can be used in different environments without latex dependencies. (`#239 <https://github.com/qutip/qutip-qip/pull/239>`_ and `#244 <https://github.com/qutip/qutip-qip/pull/244>`_ by Rushiraj Gadhvi)
+- Add matplotlib-based and text-based quantum circuit renderers. The new rendering framework is more flexible and can be used in different environments without latex dependencies. (`#239 <https://github.com/qutip/qutip-qip/pull/239>`_ and `#244 <https://github.com/qutip/qutip-qip/pull/244>`_ by Rushiraj Gadhvi)
 
 Improvements
 ------------
