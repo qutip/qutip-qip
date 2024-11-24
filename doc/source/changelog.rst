@@ -14,7 +14,7 @@ New features
 
 Improvements
 ------------
-- `einsum` is used to speed up the circuit simulation. (`#225 <https://github.com/qutip/qutip-qip/pull/225>`_ by Boxi Li)
+- `einsum` is used to speed up the circuit simulation by up to 10 times. (`#225 <https://github.com/qutip/qutip-qip/pull/225>`_ by Boxi Li)
 
 
 Miscellaneous
