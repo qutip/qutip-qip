@@ -6,7 +6,7 @@ Changelog
 Version 0.4.0 (Nov 23, 2024)
 +++++++++++++++++++++++++++++
 
-This release adds a new quantum circuit renderer based on matplotlib and text and improves the circuit simulation speed.
+This release adds two new quantum circuit renderers -- one based on matplotlib and another that renders the circuit as text -- and improves the circuit simulation speed.
 
 New features
 ------------
