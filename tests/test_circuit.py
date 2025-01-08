@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 from qutip_qip.circuit import QubitCircuit, CircuitSimulator
-from qutip_qip.circuit.texrenderer import TeXRenderer
+from qutip_qip.circuit.tex_renderer import TeXRenderer
 from qutip import (
     tensor,
     Qobj,
@@ -135,7 +135,7 @@ class TestQubitCircuit:
         qc1 = QubitCircuit(3)
         qc1.add_gate("ISWAP", targets=[0, 2])
         U1 = qc1.compute_unitary()
-        qc0 = qc1.adjacent_gates()
+        qc0 = to_chain_structure(qc1)
         qc2 = qc0.resolve_gates(basis="ISWAP")
         U2 = qc2.compute_unitary()
         assert _op_dist(U1, U2) < 1e-12
@@ -787,7 +787,7 @@ class TestQubitCircuit:
         shutil.which("pdflatex") is None, reason="requires pdflatex"
     )
     def test_export_image(self, in_temporary_directory):
-        from qutip_qip.circuit.texrenderer import CONVERTERS
+        from qutip_qip.circuit.tex_renderer import CONVERTERS
 
         qc = QubitCircuit(2, reverse_states=False)
         qc.add_gate("CSIGN", controls=[0], targets=[1])
