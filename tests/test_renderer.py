@@ -172,3 +172,37 @@ def test_matrenderer(request, qc_fixture):
 
     with patch("matplotlib.pyplot.show"):
         qc.draw("matplotlib")
+
+
+@pytest.mark.parametrize("qc_fixture", ["qc1", "qc2", "qc3"])
+def test_circuit_saving(request, qc_fixture, tmpdir):
+    """
+    Test if the different renderers can save the circuit in different formats.
+    """
+
+    qc = request.getfixturevalue(qc_fixture)
+
+    # test MatRenderer
+    with patch("matplotlib.pyplot.show"):
+        qc.draw("matplotlib", save=True, file_path=str(tmpdir.join("test")))
+    assert tmpdir.join(
+        "test.png"
+    ).check(), "MatRenderer saved PNG file not found."
+
+    # test TextRenderer
+    qc.draw("text", save=True, file_path=str(tmpdir.join("test")))
+    assert tmpdir.join(
+        "test.txt"
+    ).check(), "TextRenderer saved TXT file not found."
+
+    # test TeXRenderer
+    qc.draw("latex", save=True, file_path=str(tmpdir.join("test")))
+    qc.draw(
+        "latex", save=True, file_type="pdf", file_path=str(tmpdir.join("test"))
+    )
+    assert tmpdir.join(
+        "test.png"
+    ).check(), "TeXRenderer saved PNG file not found."
+    assert tmpdir.join(
+        "test.pdf"
+    ).check(), "TeXRenderer saved PDF file not found."
