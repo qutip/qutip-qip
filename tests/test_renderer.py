@@ -170,7 +170,7 @@ def test_matrenderer(request, qc_fixture):
     """
     qc = request.getfixturevalue(qc_fixture)
 
-    with patch("matplotlib.pyplot.show"):
+    with patch("matplotlib.pyplot.show"):  # to avoid showing the plot
         qc.draw("matplotlib")
 
 
@@ -183,7 +183,7 @@ def test_circuit_saving(request, qc_fixture, tmpdir):
     qc = request.getfixturevalue(qc_fixture)
 
     # test MatRenderer
-    with patch("matplotlib.pyplot.show"):
+    with patch("matplotlib.pyplot.show"):  # to avoid showing the plot
         qc.draw("matplotlib", save=True, file_path=str(tmpdir.join("test")))
     assert tmpdir.join(
         "test.png"
