@@ -592,8 +592,8 @@ class ZZCrossTalk(Noise):
             )
             zz_op = tensor(z1, z2)
             zz_coeff = (
-                1 / (wq[i] - wr[i] - alpha[i + 1])
-                - 1 / (wq[i] - wr[i] + alpha[i])
+                1 / (wq[i] - wq[i + 1] + alpha[i + 1])
+                - 1 / (wq[i] - wq[i + 1] - alpha[i])
             ) * J[i] ** 2
             systematic_noise.add_control_noise(
                 zz_coeff * zz_op / 2,
