@@ -289,7 +289,7 @@ class SCQubitsModel(Model):
         for i in range(num_qubits - 1):
             tmp = wr[i]
             tmp -= g[2 * i] ** 2 / (wq[i] - wr[i] + alpha[i])
-            tmp -= g[2 * i + 1] ** 2 / (wq[i + 1] - wr[i] + alpha[i])
+            tmp -= g[2 * i + 1] ** 2 / (wq[i + 1] - wr[i] + alpha[i+1])
             wr_dr.append(tmp)
         self.params["wr_dressed"] = wr_dr
         # Effective qubit coupling strength
