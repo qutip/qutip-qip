@@ -563,7 +563,7 @@ class ZZCrossTalk(Noise):
         J = self.params["J"]
         wr_dr = self.params["wr_dressed"]
         wr = self.params["wr"]
-        wq_dr_ori = self.params["wq_dressed_ori"]
+        wq_dr_cav = self.params["wq_dressed_cavity"]
         wq_dr = self.params["wq_dressed"]
         wq = self.params["wq"]
         alpha = self.params["alpha"]
@@ -593,8 +593,8 @@ class ZZCrossTalk(Noise):
             )
             zz_op = tensor(z1, z2)
             zz_coeff = (
-                1 / (wq_dr_ori[i] - wq_dr_ori[i + 1] - alpha[i + 1])
-                - 1 / (wq_dr_ori[i] - wq_dr_ori[i + 1] + alpha[i])
+                1 / (wq_dr_cav[i] - wq_dr_cav[i + 1] - alpha[i + 1])
+                - 1 / (wq_dr_cav[i] - wq_dr_cav[i + 1] + alpha[i])
             ) * J[i] ** 2
             systematic_noise.add_control_noise(
                 zz_coeff * zz_op / 2,

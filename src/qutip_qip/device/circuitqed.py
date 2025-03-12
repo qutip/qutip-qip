@@ -283,7 +283,7 @@ class SCQubitsModel(Model):
             if i != (num_qubits - 1):
                 tmp += g[2 * i] ** 2 / (wq[i] - wr[i])
             wq_dr.append(tmp)
-        self.params["wq_dressed_ori"] = wq_dr
+        self.params["wq_dressed_cavity"] = wq_dr
         # Dressed resonator frequency
         wr_dr = []
         for i in range(num_qubits - 1):
