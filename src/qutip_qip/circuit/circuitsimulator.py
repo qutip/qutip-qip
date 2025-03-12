@@ -1,3 +1,5 @@
+from __future__ import annotations
+from typing import List, Tuple, Optional, Union, TYPE_CHECKING
 from itertools import product, chain
 from operator import mul
 from functools import reduce
@@ -11,11 +13,15 @@ from ..operations import (
 from qutip import basis, ket2dm, Qobj, tensor
 import warnings
 
+if TYPE_CHECKING:
+    from .circuit import QubitCircuit
+    from ..operations import CNOT, CZ, H
+    from numpy import float64, int64, ndarray
 
 __all__ = ["CircuitSimulator", "CircuitResult"]
 
 
-def _flatten(lst):
+def _flatten(lst: List[List[int]]) -> List[int]:
     """
     Helper to flatten lists.
     """
@@ -23,7 +29,12 @@ def _flatten(lst):
     return [item for sublist in lst for item in sublist]
 
 
-def _mult_sublists(tensor_list, overall_inds, U, inds):
+def _mult_sublists(
+    tensor_list: List[Qobj],
+    overall_inds: List[List[int]],
+    U: Qobj,
+    inds: List[int],
+) -> Tuple[List[Qobj], List[List[int]]]:
     """
     Calculate the revised indices and tensor list by multiplying a new unitary
     U applied to inds.
@@ -117,7 +128,9 @@ def _mult_sublists(tensor_list, overall_inds, U, inds):
     return tensor_list_revised, overall_inds_revised
 
 
-def _expand_overall(tensor_list, overall_inds):
+def _expand_overall(
+    tensor_list: List[Qobj], overall_inds: List[List[int]]
+) -> Tuple[Qobj, List[int]]:
     """
     Tensor unitaries in tensor list and then use expand_operator to rearrange
     them appropriately according to the indices in overall_inds.
@@ -132,7 +145,9 @@ def _expand_overall(tensor_list, overall_inds):
     return U_overall, overall_inds
 
 
-def _gate_sequence_product(U_list, ind_list):
+def _gate_sequence_product(
+    U_list: List[Qobj], ind_list: List[List[int]]
+) -> Tuple[Qobj, List[int]]:
     """
     Calculate the overall unitary matrix for a given list of unitary operations
     that are still of original dimension.
@@ -221,7 +236,9 @@ def _gate_sequence_product(U_list, ind_list):
     return U_overall, [sorted_inds[ind] for ind in overall_inds]
 
 
-def _gate_sequence_product_with_expansion(U_list, left_to_right=True):
+def _gate_sequence_product_with_expansion(
+    U_list: List[Qobj], left_to_right: bool = True
+) -> Qobj:
     """
     Calculate the overall unitary matrix for a given list of unitary
     operations, assuming that all operations have the same dimension.
@@ -258,9 +275,9 @@ class CircuitSimulator:
 
     def __init__(
         self,
-        qc,
-        mode="state_vector_simulator",
-        precompute_unitary=False,
+        qc: QubitCircuit,
+        mode: str = "state_vector_simulator",
+        precompute_unitary: bool = False,
     ):
         """
         Simulate state evolution for Quantum Circuits.
@@ -293,10 +310,17 @@ class CircuitSimulator:
             )
 
     @property
-    def qc(self):
+    def qc(self) -> QubitCircuit:
         return self._qc
 
-    def initialize(self, state=None, cbits=None, measure_results=None):
+    def initialize(
+        self,
+        state: Optional[Qobj] = None,
+        cbits: Optional[List[int]] = None,
+        measure_results: Optional[
+            Union[List[int], Tuple[str, str], Tuple[str, str, str], Tuple[()]]
+        ] = None,
+    ):
         """
         Reset Simulator state variables to start a new run.
 
@@ -358,7 +382,7 @@ class CircuitSimulator:
             self._state_mat_shape = tuple(self._state_mat_shape)
 
     @property
-    def state(self):
+    def state(self) -> Optional[Qobj]:
         """
         The current state of the simulator as a `qutip.Qobj`
 
@@ -371,7 +395,14 @@ class CircuitSimulator:
         else:
             return self._state
 
-    def run(self, state, cbits=None, measure_results=None):
+    def run(
+        self,
+        state: Qobj,
+        cbits: Optional[List[int]] = None,
+        measure_results: Optional[
+            Union[List[int], Tuple[str, str], Tuple[str, str, str], Tuple[()]]
+        ] = None,
+    ) -> "CircuitResult":
         """
         Calculate the result of one instance of circuit run.
 
@@ -401,7 +432,9 @@ class CircuitSimulator:
                 break
         return CircuitResult(self.state, self._probability, self.cbits)
 
-    def run_statistics(self, state, cbits=None):
+    def run_statistics(
+        self, state: Qobj, cbits: None = None
+    ) -> "CircuitResult":
         """
         Calculate all the possible outputs of a circuit
         (varied by measurement gates).
@@ -438,7 +471,7 @@ class CircuitSimulator:
 
         return CircuitResult(states, probabilities, cbits_results)
 
-    def step(self):
+    def step(self) -> Union[ndarray, Qobj]:
         """
         Return state after one step of circuit evolution
         (gate or measurement).
@@ -486,7 +519,9 @@ class CircuitSimulator:
 
         self._state = state
 
-    def _evolve_state(self, operation, state):
+    def _evolve_state(
+        self, operation: Union[CZ, CNOT, H], state: Qobj
+    ) -> Qobj:
         """
         Applies unitary to state.
 
@@ -518,7 +553,9 @@ class CircuitSimulator:
             )
         return state
 
-    def _evolve_state_einsum(self, gate, state):
+    def _evolve_state_einsum(
+        self, gate: Gate, state: Union[ndarray, Qobj]
+    ) -> Union[ndarray, Qobj]:
         if gate.name == "GLOBALPHASE":
             # This is just a complex number.
             return np.exp(1.0j * gate.arg_value) * state
@@ -549,7 +586,11 @@ class CircuitSimulator:
         )
         return state
 
-    def _apply_measurement(self, operation, state):
+    def _apply_measurement(
+        self,
+        operation: Measurement,
+        state: Union[ndarray, Qobj],
+    ) -> Optional[Qobj]:
         """
         Applies measurement gate specified by operation to current state.
 
@@ -588,7 +629,18 @@ class CircuitResult:
     Result of a quantum circuit simulation.
     """
 
-    def __init__(self, final_states, probabilities, cbits=None):
+    def __init__(
+        self,
+        final_states: Optional[
+            Union[
+                List[Optional[Qobj]],
+                List[Qobj],
+                Qobj,
+            ]
+        ],
+        probabilities: Union[List[int], float64, int, List[float64]],
+        cbits: Optional[Union[List[List[int]], List[int], List[int64]]] = None,
+    ):
         """
         Store result of CircuitSimulator.
 
@@ -621,7 +673,9 @@ class CircuitResult:
             if cbits:
                 self.cbits = [cbits[i] for i in inds]
 
-    def get_final_states(self, index=None):
+    def get_final_states(
+        self, index: Optional[int] = None
+    ) -> Optional[Union[List[Qobj], Qobj]]:
         """
         Return list of output states.
 
@@ -640,7 +694,9 @@ class CircuitResult:
             return self.final_states[index]
         return self.final_states
 
-    def get_probabilities(self, index=None):
+    def get_probabilities(
+        self, index: Optional[int] = None
+    ) -> Union[float64, int, List[float64]]:
         """
         Return list of probabilities corresponding to the output states.
 
@@ -659,7 +715,7 @@ class CircuitResult:
             return self.probabilities[index]
         return self.probabilities
 
-    def get_cbits(self, index=None):
+    def get_cbits(self, index: None = None) -> List[List[int]]:
         """
         Return list of classical bit outputs corresponding to the results.
 
