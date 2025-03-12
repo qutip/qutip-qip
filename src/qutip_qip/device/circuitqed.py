@@ -283,13 +283,13 @@ class SCQubitsModel(Model):
             if i != (num_qubits - 1):
                 tmp += g[2 * i] ** 2 / (wq[i] - wr[i])
             wq_dr.append(tmp)
-        self.params["wq_dressed"] = wq_dr
+        self.params["wq_dressed_cavity"] = wq_dr
         # Dressed resonator frequency
         wr_dr = []
         for i in range(num_qubits - 1):
             tmp = wr[i]
             tmp -= g[2 * i] ** 2 / (wq[i] - wr[i] + alpha[i])
-            tmp -= g[2 * i + 1] ** 2 / (wq[i + 1] - wr[i] + alpha[i])
+            tmp -= g[2 * i + 1] ** 2 / (wq[i + 1] - wr[i] + alpha[i + 1])
             wr_dr.append(tmp)
         self.params["wr_dressed"] = wr_dr
         # Effective qubit coupling strength
@@ -305,6 +305,17 @@ class SCQubitsModel(Model):
             )
             J.append(tmp)
         self.params["J"] = J
+        # Additional qubit-qubit coupling induced shift
+        wq_dr_copy = np.copy(wq_dr) * -1
+        for i in range(num_qubits - 1):
+            JJ_shift = J[i] ** 2 / (wq_dr_copy[i] - wq_dr_copy[i + 1])
+            zz_shift = -J[i] ** 2 * (
+                1 / (wq_dr_copy[i] - wq_dr_copy[i + 1] + alpha[i])
+                + 1 / (-wq_dr_copy[i] + wq_dr_copy[i + 1] + alpha[i + 1])
+            )
+            wq_dr_copy[i] += -JJ_shift - zz_shift
+            wq_dr_copy[i + 1] += +JJ_shift - zz_shift
+        self.params["wq_dressed"] = wq_dr
         # Effective ZX strength
         zx_coeff = []
         omega_cr = self.params["omega_cr"]
