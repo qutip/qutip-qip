@@ -3,8 +3,24 @@ Changelog
 *********
 
 
-Version 0.4.0 (Nov 23, 2024)
+Version 0.4.1 (April 7, 2025)
 +++++++++++++++++++++++++++++
+
+This update includes improvements such as a new test for verifying that circuit files are correctly saved in PNG, TXT, and PDF formats, and the addition of a package entry point with about information. Bug fixes address a correction in the ZZ coefficients calculation in the superconducting qubits model and ensure that expand_operator outputs the expected data type.
+
+Improvements
+------------
+- Add a test to verify that the Matplotlib, Text, and LaTeX renderers saves circuit files in PNG, TXT, and PDF formats. (`#260 <https://github.com/qutip/qutip-qip/pull/260>`_ by Rushiraj Gadhvi)
+- Add family package entry point with about information. (`#261 <https://github.com/qutip/qutip-qip/pull/261>`_ by Simon Cross)
+
+Bug Fixes
+---------
+- Use ``wq`` instead of ``wr`` for ``zz_coeff`` in ``SCqubits`` modelling. (`#270 <https://github.com/qutip/qutip-qip/pull/270>`_ by Ferris Prima Nugraha)
+- Ensure the output of ``expand_operator`` is the expected dtype. (`#273 <https://github.com/qutip/qutip-qip/pull/273>`_ by Eric Giguère)
+
+
+Version 0.4.0 (Nov 23, 2024)
+++++++++++++++++++++++++++++
 
 This release adds two new quantum circuit renderers -- one based on matplotlib and another that renders the circuit as text -- and improves the circuit simulation speed.
 
