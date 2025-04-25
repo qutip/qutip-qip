@@ -133,10 +133,11 @@ def qft_gate_sequence(N=1, swapping=True, to_cnot=False):
                 qc.add_gate("SWAP", targets=[N - i - 1, i])
     return qc
 
+
 def inverse_qft_gate_sequence(N=1, swapping=True, to_cnot=False):
     """
     Create the inverse quantum Fourier transform gate sequence.
-    
+
     Parameters
     ----------
     N : int, optional
@@ -145,7 +146,7 @@ def inverse_qft_gate_sequence(N=1, swapping=True, to_cnot=False):
         Flag to include SWAP gates at the beginning (default: True)
     to_cnot : bool, optional
         Flag to decompose controlled phase gates to CNOT gates (default: False)
-        
+
     Returns
     -------
     QubitCircuit
@@ -153,16 +154,16 @@ def inverse_qft_gate_sequence(N=1, swapping=True, to_cnot=False):
     """
     if N < 1:
         raise ValueError("Minimum value of N can be 1")
-    
+
     qc = QubitCircuit(N)
-    
+
     if N == 1:
         qc.add_gate("SNOT", targets=[0])
     else:
         if swapping:
             for i in range(N // 2):
                 qc.add_gate("SWAP", targets=[N - i - 1, i])
-        
+  
         # Inverse QFT main algorithm
         for i in range(N - 1, -1, -1):
             qc.add_gate("SNOT", targets=[i])
@@ -181,8 +182,9 @@ def inverse_qft_gate_sequence(N=1, swapping=True, to_cnot=False):
                         [j], [i], -np.pi / (2 ** (i - j))
                     )
                     qc.gates.extend(decomposed_gates)
-    
+
     return qc
+
 
 def _cphase_to_cnot(targets, controls, arg_value):
     rotation = Qobj([[1.0, 0.0], [0.0, np.exp(1.0j * arg_value)]])
