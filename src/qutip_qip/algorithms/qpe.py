@@ -2,7 +2,7 @@ import numpy as np
 from qutip import Qobj
 from qutip_qip.operations import Gate, ControlledGate
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.algorithms import inverse_qft_gate_sequence
+from qutip_qip.algorithms import inverse_qft_gate_sequence, qft_gate_sequence
 
 __all__ = ["qpe"]
 
@@ -115,9 +115,9 @@ def qpe(U, num_counting_qubits, target_qubits=None, to_cnot=False):
         qc.add_gate(controlled_u)
 
     # Add inverse QFT on counting qubits
-    inverse_qft_circuit = inverse_qft_gate_sequence(
+    inverse_qft_circuit = qft_gate_sequence(
         num_counting_qubits, swapping=True, to_cnot=to_cnot
-    )
+    ).reverse_circuit()
     for gate in inverse_qft_circuit.gates:
         qc.add_gate(gate)
 
