@@ -9,7 +9,7 @@ from qutip import Qobj
 from ..decompose import decompose_one_qubit_gate
 
 
-__all__ = ["qft", "qft_steps", "qft_gate_sequence", "inverse_qft_gate_sequence"]
+__all__ = ["qft", "qft_steps", "qft_gate_sequence"]
 
 
 def qft(N=1):
