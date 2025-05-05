@@ -1036,5 +1036,3 @@ class QubitCircuit:
 
         for op in self.gates:
             op._to_qasm(qasm_out)
-
-    
