@@ -8,11 +8,12 @@ from ..operations import (
     Measurement,
     expand_operator,
 )
+
 from qutip import basis, ket2dm, Qobj, tensor
 import warnings
 
 
-__all__ = ["CircuitSimulator", "CircuitResult"]
+__all__ = ["CircuitSimulator", "CircuitResult", "gate_sequence_product"]
 
 
 def _flatten(lst):
@@ -132,7 +133,7 @@ def _expand_overall(tensor_list, overall_inds):
     return U_overall, overall_inds
 
 
-def _gate_sequence_product(U_list, ind_list):
+def gate_sequence_product(U_list, ind_list):
     """
     Calculate the overall unitary matrix for a given list of unitary operations
     that are still of original dimension.

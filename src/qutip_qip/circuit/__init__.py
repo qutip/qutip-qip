@@ -5,7 +5,7 @@ import warnings
 from .circuit import *
 from .circuitsimulator import *
 from ..operations import Gate, Measurement
-
+from .optimise import *
 
 def _add_deprecation(fun, msg):
     def newfun(*args, **kwargs):
