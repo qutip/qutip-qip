@@ -1,65 +1,60 @@
-# bit_flip_code.py
-
-import numpy as np
-from qutip import Qobj, tensor, basis, sigmax, sigmay
-from qutip_qip.operations import Gate
 from qutip_qip.circuit import QubitCircuit
-
-__all__ = ["BitFlipCode"]
-
 
 class BitFlipCode:
     """
-    Implementation of the 3-qubit bit-flip code.
+    Generalized implementation of the 3-qubit bit-flip code.
 
-    The bit-flip code protects against X (bit-flip) errors by encoding
-    a single logical qubit across three physical qubits:
-    |0⟩ → |000⟩
-    |1⟩ → |111⟩
+    Parameters
+    ----------
+    data_qubits : list of int
+        The three physical qubits holding the logical qubit.
+    syndrome_qubits : list of int, optional
+        Two ancilla qubits used for syndrome extraction.
     """
 
-    @staticmethod
-    def encode_circuit():
-        """
-        Create a circuit for encoding a single qubit into the 3-qubit bit-flip code.
+    def __init__(self, data_qubits=[0, 1, 2], syndrome_qubits=[3, 4]):
+        assert len(data_qubits) == 3, "Bit-flip code requires 3 data qubits."
+        assert len(syndrome_qubits) == 2, "Syndrome extraction requires 2 ancilla qubits."
+        self.data_qubits = data_qubits
+        self.syndrome_qubits = syndrome_qubits
+        self.n_qubits = max(data_qubits + syndrome_qubits) + 1
 
+    def encode_circuit(self):
+        """
         Returns
         -------
-        qc : instance of QubitCircuit
-            Encoding circuit for the bit-flip code.
+        QubitCircuit
+            Circuit encoding the logical qubit into 3 physical qubits.
         """
-        qc = QubitCircuit(3)
-        qc.add_gate("CNOT", controls=0, targets=1)
-        qc.add_gate("CNOT", controls=0, targets=2)
+        qc = QubitCircuit(self.n_qubits)
+        control = self.data_qubits[0]
+        for target in self.data_qubits[1:]:
+            qc.add_gate("CNOT", controls=control, targets=target)
         return qc
 
-    @staticmethod
-    def syndrome_measurement_circuit():
+    def syndrome_measurement_circuit(self):
         """
-        Create a circuit for syndrome measurement of the 3-qubit bit-flip code.
-
         Returns
         -------
-        qc : instance of QubitCircuit
-            Syndrome measurement circuit that uses two ancilla qubits.
+        QubitCircuit
+            Circuit to extract the error syndrome using ancilla qubits.
         """
-        qc = QubitCircuit(5)  # 3 data qubits + 2 syndrome qubits
+        qc = QubitCircuit(self.n_qubits)
+        dq = self.data_qubits
+        sq = self.syndrome_qubits
 
-        # First syndrome measurement: Parity of qubits 0 and 1
-        qc.add_gate("CNOT", controls=0, targets=3)
-        qc.add_gate("CNOT", controls=1, targets=3)
+        # First syndrome bit: parity of dq[0] and dq[1]
+        qc.add_gate("CNOT", controls=dq[0], targets=sq[0])
+        qc.add_gate("CNOT", controls=dq[1], targets=sq[0])
 
-        # Second syndrome measurement: Parity of qubits 1 and 2
-        qc.add_gate("CNOT", controls=1, targets=4)
-        qc.add_gate("CNOT", controls=2, targets=4)
+        # Second syndrome bit: parity of dq[1] and dq[2]
+        qc.add_gate("CNOT", controls=dq[1], targets=sq[1])
+        qc.add_gate("CNOT", controls=dq[2], targets=sq[1])
 
         return qc
 
-    @staticmethod
-    def correction_circuit(syndrome):
+    def correction_circuit(self, syndrome):
         """
-        Create a circuit for error correction based on syndrome measurement.
-
         Parameters
         ----------
         syndrome : tuple
@@ -67,46 +62,33 @@ class BitFlipCode:
 
         Returns
         -------
-        qc : instance of QubitCircuit
-            Correction circuit applying X gates as needed.
+        QubitCircuit
+            Circuit applying the appropriate X gate based on syndrome.
         """
-        qc = QubitCircuit(3)
+        qc = QubitCircuit(self.n_qubits)
         s1, s2 = syndrome
 
-        # Syndrome interpretation:
-        # s1=0, s2=0: No error
-        # s1=1, s2=0: Error on qubit 0
-        # s1=1, s2=1: Error on qubit 1
-        # s1=0, s2=1: Error on qubit 2
-
         if s1 == 1 and s2 == 0:
-            # Error on qubit 0
-            qc.add_gate("X", targets=0)
+            qc.add_gate("X", targets=self.data_qubits[0])
         elif s1 == 1 and s2 == 1:
-            # Error on qubit 1
-            qc.add_gate("X", targets=1)
+            qc.add_gate("X", targets=self.data_qubits[1])
         elif s1 == 0 and s2 == 1:
-            # Error on qubit 2
-            qc.add_gate("X", targets=2)
-
+            qc.add_gate("X", targets=self.data_qubits[2])
+        # No correction for (0,0)
         return qc
 
-    @staticmethod
-    def decode_circuit():
+    def decode_circuit(self):
         """
-        Create a circuit for decoding the 3-qubit bit-flip code.
-
         Returns
         -------
-        qc : instance of QubitCircuit
-            Decoding circuit for the bit-flip code.
+        QubitCircuit
+            Circuit to decode the logical qubit back to original qubit.
         """
-        qc = QubitCircuit(3)
-        qc.add_gate("CNOT", controls=0, targets=2)
-        qc.add_gate("CNOT", controls=0, targets=1)
+        qc = QubitCircuit(self.n_qubits)
+        control = self.data_qubits[0]
+        for target in reversed(self.data_qubits[1:]):
+            qc.add_gate("CNOT", controls=control, targets=target)
 
-        # Add a Toffoli gate to verify the parity
-        # If all qubits have the same value, the result is stored in qubit 0
-        qc.add_gate("TOFFOLI", controls=[1, 2], targets=0)
-
+        # Optional TOFFOLI to verify parity
+        qc.add_gate("TOFFOLI", controls=self.data_qubits[1:], targets=control)
         return qc

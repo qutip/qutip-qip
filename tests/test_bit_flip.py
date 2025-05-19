@@ -1,89 +1,66 @@
 import pytest
-import numpy as np
-from qutip_qip.algorithms import BitFlipCode
+from qutip_qip.circuit import Gate
+from qutip_qip.algorithms import BitFlipCode  # Update with the actual module name
 
 
 def test_encode_circuit_structure():
-    """Test that the encoding circuit has the correct structure."""
-    qc = BitFlipCode.encode_circuit()
+    code = BitFlipCode(data_qubits=[0, 1, 2], syndrome_qubits=[3, 4])
+    circuit = code.encode_circuit()
 
-    # Check circuit has correct number of qubits
-    assert qc.N == 3
-
-    # Check it has 2 CNOT gates
-    assert len(qc.gates) == 2
-    assert all(gate.name == "CNOT" for gate in qc.gates)
-
-    # Check gate connections - QubitCircuit uses lists for controls and targets
-    assert qc.gates[0].controls == [0]
-    assert qc.gates[0].targets[0] == 1
-    assert qc.gates[1].controls == [0]
-    assert qc.gates[1].targets[0] == 2
+    assert len(circuit.gates) == 2
+    assert circuit.gates[0].name == "CNOT"
+    assert circuit.gates[0].controls == [0]
+    assert circuit.gates[0].targets == [1]
+    assert circuit.gates[1].controls == [0]
+    assert circuit.gates[1].targets == [2]
 
 
-def test_syndrome_measurement_circuit_structure():
-    """Test that the syndrome measurement circuit has the correct structure."""
-    qc = BitFlipCode.syndrome_measurement_circuit()
+def test_syndrome_circuit_structure():
+    code = BitFlipCode(data_qubits=[0, 1, 2], syndrome_qubits=[3, 4])
+    circuit = code.syndrome_measurement_circuit()
 
-    # Check circuit has correct number of qubits (3 data + 2 syndrome)
-    assert qc.N == 5
+    expected = [
+        ("CNOT", [0], [3]),
+        ("CNOT", [1], [3]),
+        ("CNOT", [1], [4]),
+        ("CNOT", [2], [4]),
+    ]
 
-    # Check it has 4 CNOT gates
-    assert len(qc.gates) == 4
-    assert all(gate.name == "CNOT" for gate in qc.gates)
-
-    # Check gate connections for syndrome measurement
-    assert qc.gates[0].controls == [0] and qc.gates[0].targets[0] == 3
-    assert qc.gates[1].controls == [1] and qc.gates[1].targets[0] == 3
-    assert qc.gates[2].controls == [1] and qc.gates[2].targets[0] == 4
-    assert qc.gates[3].controls == [2] and qc.gates[3].targets[0] == 4
-
-
-def test_correction_circuit_no_error():
-    """Test correction circuit with no error (syndrome 00)."""
-    qc = BitFlipCode.correction_circuit((0, 0))
-    assert qc.N == 3
-    assert len(qc.gates) == 0  # No correction needed
+    for gate, (name, controls, targets) in zip(circuit.gates, expected):
+        assert gate.name == name
+        assert gate.controls == controls
+        assert gate.targets == targets
 
 
-def test_correction_circuit_qubit0_error():
-    """Test correction circuit with error on qubit 0 (syndrome 10)."""
-    qc = BitFlipCode.correction_circuit((1, 0))
-    assert qc.N == 3
-    assert len(qc.gates) == 1
-    assert qc.gates[0].name == "X" and qc.gates[0].targets[0] == 0
+@pytest.mark.parametrize("syndrome,expected_target", [
+    ((1, 0), 0),
+    ((1, 1), 1),
+    ((0, 1), 2),
+    ((0, 0), None),
+])
+def test_correction_circuit_behavior(syndrome, expected_target):
+    code = BitFlipCode(data_qubits=[0, 1, 2], syndrome_qubits=[3, 4])
+    circuit = code.correction_circuit(syndrome)
 
-
-def test_correction_circuit_qubit1_error():
-    """Test correction circuit with error on qubit 1 (syndrome 11)."""
-    qc = BitFlipCode.correction_circuit((1, 1))
-    assert qc.N == 3
-    assert len(qc.gates) == 1
-    assert qc.gates[0].name == "X" and qc.gates[0].targets[0] == 1
-
-
-def test_correction_circuit_qubit2_error():
-    """Test correction circuit with error on qubit 2 (syndrome 01)."""
-    qc = BitFlipCode.correction_circuit((0, 1))
-    assert qc.N == 3
-    assert len(qc.gates) == 1
-    assert qc.gates[0].name == "X" and qc.gates[0].targets[0] == 2
+    if expected_target is None:
+        assert len(circuit.gates) == 0
+    else:
+        assert len(circuit.gates) == 1
+        gate = circuit.gates[0]
+        assert gate.name == "X"
+        assert gate.targets == [expected_target]
 
 
 def test_decode_circuit_structure():
-    """Test that the decoding circuit has the correct structure."""
-    qc = BitFlipCode.decode_circuit()
+    code = BitFlipCode(data_qubits=[0, 1, 2], syndrome_qubits=[3, 4])
+    circuit = code.decode_circuit()
 
-    # Check circuit has correct number of qubits
-    assert qc.N == 3
-
-    # Check it has 2 CNOT gates and 1 TOFFOLI gate
-    assert len(qc.gates) == 3
-    assert qc.gates[0].name == "CNOT"
-    assert qc.gates[1].name == "CNOT"
-    assert qc.gates[2].name == "TOFFOLI"
-
-    # Check gate connections
-    assert qc.gates[0].controls == [0] and qc.gates[0].targets[0] == 2
-    assert qc.gates[1].controls == [0] and qc.gates[1].targets[0] == 1
-    assert qc.gates[2].controls == [1, 2] and qc.gates[2].targets[0] == 0
+    assert len(circuit.gates) == 3
+    assert circuit.gates[0].name == "CNOT"
+    assert circuit.gates[0].controls == [0]
+    assert circuit.gates[0].targets == [2]
+    assert circuit.gates[1].controls == [0]
+    assert circuit.gates[1].targets == [1]
+    assert circuit.gates[2].name == "TOFFOLI"
+    assert circuit.gates[2].controls == [1, 2]
+    assert circuit.gates[2].targets == [0]
