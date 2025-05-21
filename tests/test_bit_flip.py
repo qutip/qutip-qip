@@ -1,6 +1,8 @@
 import pytest
 from qutip_qip.circuit import Gate
-from qutip_qip.algorithms import BitFlipCode  # Update with the actual module name
+from qutip_qip.algorithms import (
+    BitFlipCode,
+)  # Update with the actual module name
 
 
 def test_encode_circuit_structure():
@@ -32,12 +34,15 @@ def test_syndrome_circuit_structure():
         assert gate.targets == targets
 
 
-@pytest.mark.parametrize("syndrome,expected_target", [
-    ((1, 0), 0),
-    ((1, 1), 1),
-    ((0, 1), 2),
-    ((0, 0), None),
-])
+@pytest.mark.parametrize(
+    "syndrome,expected_target",
+    [
+        ((1, 0), 0),
+        ((1, 1), 1),
+        ((0, 1), 2),
+        ((0, 0), None),
+    ],
+)
 def test_correction_circuit_behavior(syndrome, expected_target):
     code = BitFlipCode(data_qubits=[0, 1, 2], syndrome_qubits=[3, 4])
     circuit = code.correction_circuit(syndrome)

@@ -1,5 +1,7 @@
 import pytest
-from qutip_qip.algorithms import PhaseFlipCode  # Replace with actual module name
+from qutip_qip.algorithms import (
+    PhaseFlipCode,
+)  # Replace with actual module name
 
 
 def test_encode_circuit_structure():
@@ -28,12 +30,15 @@ def test_syndrome_measurement_circuit_structure():
     assert circuit.gates[7].name == "SNOT"
 
 
-@pytest.mark.parametrize("syndrome,expected_target", [
-    ((1, 0), 0),
-    ((1, 1), 1),
-    ((0, 1), 2),
-    ((0, 0), None),
-])
+@pytest.mark.parametrize(
+    "syndrome,expected_target",
+    [
+        ((1, 0), 0),
+        ((1, 1), 1),
+        ((0, 1), 2),
+        ((0, 0), None),
+    ],
+)
 def test_correction_circuit_behavior(syndrome, expected_target):
     code = PhaseFlipCode()
     circuit = code.correction_circuit(syndrome)

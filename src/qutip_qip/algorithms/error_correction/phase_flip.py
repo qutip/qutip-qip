@@ -16,7 +16,6 @@ class PhaseFlipCode:
 
     def __init__(self, data_qubits=[0, 1, 2], syndrome_qubits=[3, 4]):
         assert len(data_qubits) == 3, "Phase-flip code requires 3 data qubits."
-        assert len(syndrome_qubits) == 2, "Syndrome extraction requires 2 ancilla qubits."
         self.data_qubits = data_qubits
         self.syndrome_qubits = syndrome_qubits
         self.n_qubits = max(data_qubits + syndrome_qubits) + 1

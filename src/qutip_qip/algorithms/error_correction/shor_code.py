@@ -2,6 +2,7 @@ from qutip_qip.circuit import QubitCircuit
 from qutip_qip.algorithms import BitFlipCode
 from qutip_qip.algorithms import PhaseFlipCode
 
+
 class ShorCode:
     """
     Constructs the 9-qubit Shor code encoding circuit using BitFlipCode and PhaseFlipCode.
@@ -11,11 +12,13 @@ class ShorCode:
         # Logical qubit -> Phase protection: [0, 3, 6] (1 qubit to 3)
         # Each → BitFlipCode: [0,1,2], [3,4,5], [6,7,8]
         self.data_qubits = list(range(9))
-        self.phase_code = PhaseFlipCode(data_qubits=[0, 3, 6], syndrome_qubits=[])  # No ancillas for encoding
+        self.phase_code = PhaseFlipCode(
+            data_qubits=[0, 3, 6], syndrome_qubits=[]
+        )
         self.bit_blocks = [
             BitFlipCode(data_qubits=[0, 1, 2], syndrome_qubits=[]),
             BitFlipCode(data_qubits=[3, 4, 5], syndrome_qubits=[]),
-            BitFlipCode(data_qubits=[6, 7, 8], syndrome_qubits=[])
+            BitFlipCode(data_qubits=[6, 7, 8], syndrome_qubits=[]),
         ]
         self.n_qubits = 9  # Encoding only requires 9 qubits
 
