@@ -1,94 +1,70 @@
 from qutip_qip.circuit import QubitCircuit
 
-
 class BitFlipCode:
     """
-    Generalized implementation of the 3-qubit bit-flip code.
+    Implementation of the 3-qubit bit-flip code using projective measurements
+    and classically controlled gates for automatic correction.
 
-    Parameters
-    ----------
-    data_qubits : list of int
-        The three physical qubits holding the logical qubit.
-    syndrome_qubits : list of int, optional
-        Two ancilla qubits used for syndrome extraction.
+    The class represents the abstract structure of the bit-flip code.
+    Qubit indices must be provided when generating the circuit.
+
+    Methods
+    -------
+    encode_circuit(data_qubits)
+        Encode a logical qubit into three physical qubits.
+    syndrome_and_correction_circuit(data_qubits, syndrome_qubits)
+        Extract error syndrome and apply correction via classical control.
+    decode_circuit(data_qubits)
+        Decode the logical qubit back to a single physical qubit.
     """
 
-    def __init__(self, data_qubits=[0, 1, 2], syndrome_qubits=[3, 4]):
-        assert len(data_qubits) == 3, "Bit-flip code requires 3 data qubits."
-        self.data_qubits = data_qubits
-        self.syndrome_qubits = syndrome_qubits
-        self.n_qubits = max(data_qubits + syndrome_qubits) + 1
+    def __init__(self):
+        self.n_data = 3
+        self.n_syndrome = 2
 
-    def encode_circuit(self):
-        """
-        Returns
-        -------
-        QubitCircuit
-            Circuit encoding the logical qubit into 3 physical qubits.
-        """
-        qc = QubitCircuit(self.n_qubits)
-        control = self.data_qubits[0]
-        for target in self.data_qubits[1:]:
+    def encode_circuit(self, data_qubits):
+        assert len(data_qubits) == self.n_data
+        qc = QubitCircuit(max(data_qubits) + 1)
+        control = data_qubits[0]
+        for target in data_qubits[1:]:
             qc.add_gate("CNOT", controls=control, targets=target)
         return qc
 
-    def syndrome_measurement_circuit(self):
-        """
-        Returns
-        -------
-        QubitCircuit
-            Circuit to extract the error syndrome using ancilla qubits.
-        """
-        qc = QubitCircuit(self.n_qubits)
-        dq = self.data_qubits
-        sq = self.syndrome_qubits
+    def syndrome_and_correction_circuit(self, data_qubits, syndrome_qubits):
+        assert len(data_qubits) == self.n_data
+        assert len(syndrome_qubits) == self.n_syndrome
 
-        # First syndrome bit: parity of dq[0] and dq[1]
+        total_qubits = max(data_qubits + syndrome_qubits) + 1
+        classical_bits = len(syndrome_qubits)
+        qc = QubitCircuit(N=total_qubits, num_cbits=classical_bits)
+
+        dq = data_qubits
+        sq = syndrome_qubits
+
+        # Syndrome extraction
         qc.add_gate("CNOT", controls=dq[0], targets=sq[0])
         qc.add_gate("CNOT", controls=dq[1], targets=sq[0])
-
-        # Second syndrome bit: parity of dq[1] and dq[2]
         qc.add_gate("CNOT", controls=dq[1], targets=sq[1])
         qc.add_gate("CNOT", controls=dq[2], targets=sq[1])
 
+        # Measurements into classical bits
+        qc.add_measurement(sq[0], classical_store=0)
+        qc.add_measurement(sq[1], classical_store=1)
+
+        # Classically controlled correction
+        qc.add_gate("X", targets=dq[0], classical_controls=[0, 1], classical_control_value=[1, 0])
+        qc.add_gate("X", targets=dq[1], classical_controls=[0, 1], classical_control_value=[1, 1])
+        qc.add_gate("X", targets=dq[2], classical_controls=[0, 1], classical_control_value=[0, 1])
+
         return qc
 
-    def correction_circuit(self, syndrome):
-        """
-        Parameters
-        ----------
-        syndrome : tuple
-            Two-bit syndrome measurement result (s1, s2).
-
-        Returns
-        -------
-        QubitCircuit
-            Circuit applying the appropriate X gate based on syndrome.
-        """
-        qc = QubitCircuit(self.n_qubits)
-        s1, s2 = syndrome
-
-        if s1 == 1 and s2 == 0:
-            qc.add_gate("X", targets=self.data_qubits[0])
-        elif s1 == 1 and s2 == 1:
-            qc.add_gate("X", targets=self.data_qubits[1])
-        elif s1 == 0 and s2 == 1:
-            qc.add_gate("X", targets=self.data_qubits[2])
-        # No correction for (0,0)
-        return qc
-
-    def decode_circuit(self):
-        """
-        Returns
-        -------
-        QubitCircuit
-            Circuit to decode the logical qubit back to original qubit.
-        """
-        qc = QubitCircuit(self.n_qubits)
-        control = self.data_qubits[0]
-        for target in reversed(self.data_qubits[1:]):
+    def decode_circuit(self, data_qubits):
+        assert len(data_qubits) == self.n_data
+        qc = QubitCircuit(max(data_qubits) + 1)
+        control = data_qubits[0]
+        for target in reversed(data_qubits[1:]):
             qc.add_gate("CNOT", controls=control, targets=target)
 
-        # Optional TOFFOLI to verify parity
-        qc.add_gate("TOFFOLI", controls=self.data_qubits[1:], targets=control)
+        # Optional parity verification
+        qc.add_gate("TOFFOLI", controls=data_qubits[1:], targets=control)
         return qc
