@@ -164,6 +164,17 @@ class TextRenderer(BaseRenderer):
                 else bot_frame
             )
 
+        # Adjust the frames for classical_control_value
+        if gate.classical_control_value is not None:
+            if gate.classical_control_value + self._qwires > gate.targets[0]:
+                bot_frame = (
+                    bot_frame[:mid_index] + "╥" + bot_frame[mid_index + 1 :]
+                )
+            else:
+                top_frame = (
+                    top_frame[:mid_index] + "╨" + top_frame[mid_index + 1 :]
+                )
+
         # check for equal part lengths
         assert (
             len(top_frame)
@@ -224,11 +235,15 @@ class TextRenderer(BaseRenderer):
         classical_conn = "═" * (width // 2) + "╩" + "═" * (width // 2)
 
         for wire in wire_list:
-
             if wire == gate.targets[0]:
                 continue
 
-            if wire == self._qwires + gate.classical_store:
+            classical_wire = (
+                gate.classical_control_value
+                if isinstance(gate, Gate)
+                else gate.classical_store
+            )
+            if wire == self._qwires + classical_wire:
                 self._render_strs["top_frame"][wire] += bar_conn
                 self._render_strs["mid_frame"][wire] += classical_conn
                 self._render_strs["bot_frame"][wire] += " " * len(bar_conn)
@@ -444,7 +459,7 @@ class TextRenderer(BaseRenderer):
                             gate,
                             list(
                                 range(
-                                    sorted_targets[0],
+                                    sorted_targets[-1],
                                     sorted_controls[-1] + 1,
                                 )
                             ),
@@ -464,6 +479,19 @@ class TextRenderer(BaseRenderer):
                             width,
                             not is_bot,
                         )
+
+                if gate.classical_control_value is not None:
+                    self._update_cbridge(
+                        gate,
+                        list(range(gate.targets[0] + 1))
+                        + list(
+                            range(
+                                gate.classical_control_value + self._qwires,
+                                self._qwires + self._cwires,
+                            )
+                        ),
+                        width,
+                    )
 
         max_layer_len = max(sum(layer) for layer in self._layer_list)
         self._adjust_layer_pad(
