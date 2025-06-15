@@ -146,13 +146,12 @@ class TextRenderer(BaseRenderer):
         mid_frame = f" │{pad}{' ' * len(gate_text)}{pad}│ "
         mid_connect = f"─┤{pad}{' ' * len(gate_text)}{pad}├─"
         mid_connect_label = f"─┤{pad}{gate_text}{pad}├─"
+        mid_index = len(bot_frame) // 2
 
         # Adjust top_frame or bottom if there is a control wire
         if gate.controls:
             sorted_controls = sorted(gate.controls)
             sorted_targets = sorted(gate.targets)
-
-            mid_index = len(bot_frame) // 2
             top_frame = (
                 (top_frame[:mid_index] + "┴" + top_frame[mid_index + 1 :])
                 if sorted_controls[-1] > sorted_targets[0]
@@ -413,9 +412,6 @@ class TextRenderer(BaseRenderer):
                     )
                 )
                 parts, width = self._draw_measurement_gate(gate)
-            elif len(gate.targets) == 1 and gate.controls is None:
-                wire_list = gate.targets
-                parts, width = self._draw_singleq_gate(gate_text)
             elif gate.name == "SWAP":
                 wire_list = list(
                     range(min(gate.targets), max(gate.targets) + 1)
@@ -424,6 +420,13 @@ class TextRenderer(BaseRenderer):
             else:
                 merged_wire = sorted(gate.targets + (gate.controls or []))
                 wire_list = list(range(merged_wire[0], merged_wire[-1] + 1))
+                if getattr(gate, "classical_control_value", None) is not None:
+                    wire_list += list(range(gate.targets[0])) + list(
+                        range(
+                            gate.classical_control_value + self._qwires,
+                            self._qwires + self._cwires,
+                        )
+                    )
                 parts, width = self._draw_multiq_gate(gate, gate_text)
 
             # update the render strings for the gate
@@ -435,8 +438,6 @@ class TextRenderer(BaseRenderer):
             if isinstance(gate, Measurement):
                 self._update_singleq(gate.targets, parts)
                 self._update_cbridge(gate, wire_list, width)
-            elif len(gate.targets) == 1 and gate.controls is None:
-                self._update_singleq(wire_list, parts)
             elif gate.name == "SWAP":
                 self._update_swap_gate(wire_list)
             else:
