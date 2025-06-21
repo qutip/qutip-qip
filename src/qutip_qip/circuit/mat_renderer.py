@@ -46,7 +46,6 @@ class MatRenderer(BaseRenderer):
         ax: Axes = None,
         **style,
     ) -> None:
-
         # user defined style
         style = {} if style is None else style
         self.style = StyleConfig(**style)
@@ -351,7 +350,12 @@ class MatRenderer(BaseRenderer):
         self._ax.add_line(bridge)
 
     def _draw_cbridge(
-        self, c_pos: int, q_pos: int, xskip: float, color: str
+        self,
+        c_pos: int,
+        q_pos: int,
+        xskip: float,
+        color: str,
+        is_arrow: bool = True,
     ) -> None:
         """
         Draw the bridge between the classical and quantum wires for the measurement gate.
@@ -366,6 +370,9 @@ class MatRenderer(BaseRenderer):
 
         xskip : float
             The horizontal value for getting to requested layer.
+
+        is_bool : bool
+            Renders a arrow at classical end (if True), else (if False) renders a node.
 
         color : str
             The color of the bridge.
@@ -396,21 +403,35 @@ class MatRenderer(BaseRenderer):
             color=color,
             zorder=self._zorder["bridge"],
         )
-        end_arrow = FancyArrow(
-            xskip,
-            c_pos * self.style.wire_sep + self._arrow_lenght,
-            0,
-            -self._cwire_sep * 3,
-            width=0,
-            head_width=self._cwire_sep * 5,
-            head_length=self._cwire_sep * 3,
-            length_includes_head=True,
-            color=color,
-            zorder=self._zorder["bridge"],
-        )
         self._ax.add_line(cbridge_l)
         self._ax.add_line(cbridge_r)
-        self._ax.add_artist(end_arrow)
+
+        if is_arrow:
+            end_arrow = FancyArrow(
+                xskip,
+                c_pos * self.style.wire_sep + self._arrow_lenght,
+                0,
+                -self._cwire_sep * 3,
+                width=0,
+                head_width=self._cwire_sep * 5,
+                head_length=self._cwire_sep * 3,
+                length_includes_head=True,
+                color=color,
+                zorder=self._zorder["bridge"],
+            )
+
+            self._ax.add_artist(end_arrow)
+        else:
+            target_node = Circle(
+                (
+                    xskip,
+                    c_pos * self.style.wire_sep,
+                ),
+                self._control_node_r,
+                color=color,
+                zorder=self._zorder["node"],
+            )
+            self._ax.add_artist(target_node)
 
     def _draw_swap_mark(self, pos: int, xskip: int, color: str) -> None:
         """
@@ -566,7 +587,6 @@ class MatRenderer(BaseRenderer):
             )
 
         else:
-
             adj_targets = [
                 i + self._cwires
                 for i in sorted(
@@ -658,13 +678,15 @@ class MatRenderer(BaseRenderer):
                         self.color,
                     )
             # add cbridge if classical controls qubits are present
-            if gate.classical_control_value is not None:
-                self._draw_cbridge(
-                    gate.classical_control_value,
-                    gate.targets[0],
-                    xskip + self.style.gate_margin + gate_width / 2,
-                    self.color,
-                )
+            if gate.classical_controls is not None:
+                for c in gate.classical_controls:
+                    self._draw_cbridge(
+                        c,
+                        gate.targets[0],
+                        xskip + self.style.gate_margin + gate_width / 2,
+                        self.color,
+                        is_arrow=False,
+                    )
 
             self._ax.add_artist(gate_text)
             self._ax.add_patch(gate_patch)
@@ -756,7 +778,6 @@ class MatRenderer(BaseRenderer):
         self._add_wire_labels()
 
         for gate in self._qc.gates:
-
             if isinstance(gate, Measurement):
                 self.merged_wires = gate.targets.copy()
                 self.merged_wires.sort()
@@ -795,10 +816,11 @@ class MatRenderer(BaseRenderer):
                 )
                 if gate.controls is not None:
                     self.merged_wires += gate.controls.copy()
-                if gate.classical_control_value is not None:
-                    self.merged_wires += [gate.classical_control_value]
                 self.merged_wires.sort()
-
+                if gate.classical_controls is not None:
+                    self.merged_wires = list(
+                        range(0, self.merged_wires[-1] + 1)
+                    )
                 find_layer = [
                     len(self._layer_list[i])
                     for i in range(
