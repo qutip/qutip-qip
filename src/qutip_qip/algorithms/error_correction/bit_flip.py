@@ -4,26 +4,23 @@ class BitFlipCode:
     """
     Implementation of the 3-qubit bit-flip code using projective measurements
     and classically controlled gates for automatic correction.
-
-    The class represents the abstract structure of the bit-flip code.
-    Qubit indices must be provided when generating the circuit.
-
-    Methods
-    -------
-    encode_circuit(data_qubits)
-        Encode a logical qubit into three physical qubits.
-    syndrome_and_correction_circuit(data_qubits, syndrome_qubits)
-        Extract error syndrome and apply correction via classical control.
-    decode_circuit(data_qubits)
-        Decode the logical qubit back to a single physical qubit.
     """
 
     def __init__(self):
-        self.n_data = 3
-        self.n_syndrome = 2
+        self._n_data = 3
+        self._n_syndrome = 2
+
+    @property
+    def n_data(self):
+        return self._n_data
+
+    @property
+    def n_syndrome(self):
+        return self._n_syndrome
 
     def encode_circuit(self, data_qubits):
-        assert len(data_qubits) == self.n_data
+        if len(data_qubits) != self.n_data:
+            raise ValueError(f"Expected {self.n_data} data qubits, got {len(data_qubits)}.")
         qc = QubitCircuit(max(data_qubits) + 1)
         control = data_qubits[0]
         for target in data_qubits[1:]:
@@ -31,8 +28,10 @@ class BitFlipCode:
         return qc
 
     def syndrome_and_correction_circuit(self, data_qubits, syndrome_qubits):
-        assert len(data_qubits) == self.n_data
-        assert len(syndrome_qubits) == self.n_syndrome
+        if len(data_qubits) != self.n_data:
+            raise ValueError(f"Expected {self.n_data} data qubits, got {len(data_qubits)}.")
+        if len(syndrome_qubits) != self.n_syndrome:
+            raise ValueError(f"Expected {self.n_syndrome} syndrome qubits, got {len(syndrome_qubits)}.")
 
         total_qubits = max(data_qubits + syndrome_qubits) + 1
         classical_bits = len(syndrome_qubits)
@@ -48,8 +47,8 @@ class BitFlipCode:
         qc.add_gate("CNOT", controls=dq[2], targets=sq[1])
 
         # Measurements into classical bits
-        qc.add_measurement(sq[0], classical_store=0)
-        qc.add_measurement(sq[1], classical_store=1)
+        qc.add_measurement(sq[0], sq[0], classical_store=0)
+        qc.add_measurement(sq[1], sq[1], classical_store=0)
 
         # Classically controlled correction
         qc.add_gate("X", targets=dq[0], classical_controls=[0, 1], classical_control_value=[1, 0])
@@ -59,7 +58,8 @@ class BitFlipCode:
         return qc
 
     def decode_circuit(self, data_qubits):
-        assert len(data_qubits) == self.n_data
+        if len(data_qubits) != self.n_data:
+            raise ValueError(f"Expected {self.n_data} data qubits, got {len(data_qubits)}.")
         qc = QubitCircuit(max(data_qubits) + 1)
         control = data_qubits[0]
         for target in reversed(data_qubits[1:]):
@@ -68,3 +68,4 @@ class BitFlipCode:
         # Optional parity verification
         qc.add_gate("TOFFOLI", controls=data_qubits[1:], targets=control)
         return qc
+
