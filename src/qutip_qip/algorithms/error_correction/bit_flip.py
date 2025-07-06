@@ -48,12 +48,12 @@ class BitFlipCode:
 
         # Measurements into classical bits
         qc.add_measurement(sq[0], sq[0], classical_store=0)
-        qc.add_measurement(sq[1], sq[1], classical_store=0)
+        qc.add_measurement(sq[1], sq[1], classical_store=1)
 
         # Classically controlled correction
-        qc.add_gate("X", targets=dq[0], classical_controls=[0, 1], classical_control_value=[1, 0])
-        qc.add_gate("X", targets=dq[1], classical_controls=[0, 1], classical_control_value=[1, 1])
-        qc.add_gate("X", targets=dq[2], classical_controls=[0, 1], classical_control_value=[0, 1])
+        qc.add_gate("X", targets=dq[0], classical_controls=[0, 1], classical_control_value=2)
+        qc.add_gate("X", targets=dq[1], classical_controls=[0, 1], classical_control_value=3)
+        qc.add_gate("X", targets=dq[2], classical_controls=[0, 1], classical_control_value=1)
 
         return qc
 
