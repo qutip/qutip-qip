@@ -1,61 +1,75 @@
 import pytest
-from qutip_qip.algorithms import (
-    PhaseFlipCode,
-)  # Replace with actual module name
+import qutip
+from qutip_qip.circuit import QubitCircuit
+from qutip_qip.algorithms import PhaseFlipCode  # Make sure you place this class in qutip_qip.algorithms
 
 
-def test_encode_circuit_structure():
-    code = PhaseFlipCode()
-    circuit = code.encode_circuit()
-    expected = [
-        ("SNOT", [], [0]),
-        ("SNOT", [], [1]),
-        ("SNOT", [], [2]),
-        ("CNOT", [0], [1]),
-        ("CNOT", [0], [2]),
-    ]
-    for gate, (name, controls, targets) in zip(circuit.gates, expected):
-        assert gate.name == name
-        assert gate.targets == targets
+@pytest.fixture
+def code():
+    return PhaseFlipCode()
 
 
-def test_syndrome_measurement_circuit_structure():
-    code = PhaseFlipCode()
-    circuit = code.syndrome_measurement_circuit()
-
-    # 3 Hadamards + 4 CNOTs + 3 Hadamards = 10 gates
-    assert len(circuit.gates) == 10
-    assert circuit.gates[0].name == "SNOT"
-    assert circuit.gates[3].name == "CNOT"
-    assert circuit.gates[7].name == "SNOT"
+@pytest.fixture
+def data_qubits():
+    return [0, 1, 2]
 
 
-@pytest.mark.parametrize(
-    "syndrome,expected_target",
-    [
-        ((1, 0), 0),
-        ((1, 1), 1),
-        ((0, 1), 2),
-        ((0, 0), None),
-    ],
-)
-def test_correction_circuit_behavior(syndrome, expected_target):
-    code = PhaseFlipCode()
-    circuit = code.correction_circuit(syndrome)
-
-    if expected_target is None:
-        assert len(circuit.gates) == 0
-    else:
-        assert len(circuit.gates) == 1
-        gate = circuit.gates[0]
-        assert gate.name == "Z"
-        assert gate.targets == [expected_target]
+@pytest.fixture
+def syndrome_qubits():
+    return [3, 4]
 
 
-def test_decode_circuit_structure():
-    code = PhaseFlipCode()
-    circuit = code.decode_circuit()
+def test_encode_circuit_structure(code, data_qubits):
+    qc = code.encode_circuit(data_qubits)
+    gate_names = [g.name for g in qc.gates]
+    assert gate_names.count("SNOT") == 3
+    assert gate_names.count("CNOT") == 2
+    assert qc.gates[3].controls == [0]
+    assert qc.gates[3].targets == [1]
+    assert qc.gates[4].controls == [0]
+    assert qc.gates[4].targets == [2]
 
-    assert circuit.gates[-1].name == "SNOT"
-    assert circuit.gates[-3].name == "SNOT"
-    assert all(gate.name == "SNOT" for gate in circuit.gates[-3:])
+def test_decode_circuit_structure(code, data_qubits):
+    qc = code.decode_circuit(data_qubits)
+    gate_names = [g.name for g in qc.gates]
+    assert gate_names.count("CNOT") == 2
+    assert gate_names.count("SNOT") == 3
+    assert qc.gates[0].controls == [0]
+    assert qc.gates[0].targets == [2]
+    assert qc.gates[1].controls == [0]
+    assert qc.gates[1].targets == [1]
+
+
+def test_phaseflip_correction_simulation(code, data_qubits, syndrome_qubits):
+    """
+    Simulate the full encoding, Z-error, correction, and decoding process
+    for a random qubit state |ψ⟩. Fidelity after correction should be ~1.
+    """
+    # Random initial qubit state
+    psi = qutip.rand_ket(2)
+
+    # Full system: qubit + 2 redundant qubits + 2 ancillas
+    state = qutip.tensor([psi] + [qutip.basis(2, 0)] * 4)
+
+    # Encode in X-basis
+    qc_encode = code.encode_circuit(data_qubits)
+    state = qc_encode.run(state)
+
+    # Apply Z (phase-flip) error to qubit 1
+    qc_error = QubitCircuit(N=5)
+    qc_error.add_gate("Z", targets=[1])
+    state = qc_error.run(state)
+
+    # Syndrome measurement and Z correction
+    qc_correct = code.syndrome_and_correction_circuit(data_qubits, syndrome_qubits)
+    state = qc_correct.run(state)
+
+    # Decode to return to original basis
+    qc_decode = code.decode_circuit(data_qubits)
+    state = qc_decode.run(state)
+
+    # Extract logical qubit (0th qubit)
+    final = state.ptrace(0)
+    fidelity = qutip.fidelity(psi, final)
+
+    assert fidelity > 0.99, f"Fidelity too low: {fidelity:.4f}"

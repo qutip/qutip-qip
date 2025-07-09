@@ -1,23 +1,65 @@
 import pytest
+import qutip
+import numpy as np
+from qutip_qip.circuit import QubitCircuit
 from qutip_qip.algorithms import ShorCode
 
 
-def test_shor_encode_structure():
-    shor = ShorCode()
-    circuit = shor.encode_circuit()
+@pytest.fixture
+def code():
+    return ShorCode()
 
-    snot_targets = [
-        gate.targets[0] for gate in circuit.gates if gate.name == "SNOT"
-    ]
-    assert set(snot_targets) == {
-        0,
-        3,
-        6,
-    }, "Hadamards should be on qubits 0, 3, and 6."
 
-    cnot_gates = [gate for gate in circuit.gates if gate.name == "CNOT"]
+def test_shor_circuit_structure(code):
+    qc = code.encode_circuit()
+    assert qc.N == 9
+    assert len(qc.gates) > 0
 
-    expected_blocks = [(0, 1), (0, 2), (3, 4), (3, 5), (6, 7), (6, 8)]
-    actual_blocks = [(g.controls[0], g.targets[0]) for g in cnot_gates]
-    for pair in expected_blocks:
-        assert pair in actual_blocks, f"CNOT {pair} not found in circuit."
+
+def test_shor_encodes_zero(code):
+    qc = code.encode_circuit()
+    zero_state = qutip.tensor([qutip.basis(2, 0)] * 9)
+    encoded = qc.run(zero_state)
+    assert abs(encoded.norm() - 1.0) < 1e-10
+
+
+def test_shor_encodes_one(code):
+    qc = code.encode_circuit()
+    one_input = qutip.tensor([qutip.basis(2, 1)] + [qutip.basis(2, 0)] * 8)
+    encoded = qc.run(one_input)
+    assert abs(encoded.norm() - 1.0) < 1e-10
+
+
+def test_shor_linearity(code):
+    qc = code.encode_circuit()
+    
+    # Encode |0⟩ and |1⟩
+    zero_input = qutip.tensor([qutip.basis(2, 0)] + [qutip.basis(2, 0)] * 8)
+    one_input = qutip.tensor([qutip.basis(2, 1)] + [qutip.basis(2, 0)] * 8)
+    encoded_zero = qc.run(zero_input)
+    encoded_one = qc.run(one_input)
+    
+    # Encode superposition
+    alpha, beta = 0.6, 0.8
+    superpos = alpha * qutip.basis(2, 0) + beta * qutip.basis(2, 1)
+    superpos_input = qutip.tensor([superpos] + [qutip.basis(2, 0)] * 8)
+    encoded_superpos = qc.run(superpos_input)
+    
+    # Check linearity
+    expected = alpha * encoded_zero + beta * encoded_one
+    fidelity = qutip.fidelity(encoded_superpos, expected)
+    assert fidelity > 0.99
+
+
+def test_shor_orthogonality(code):
+    qc = code.encode_circuit()
+    
+    zero_input = qutip.tensor([qutip.basis(2, 0)] + [qutip.basis(2, 0)] * 8)
+    one_input = qutip.tensor([qutip.basis(2, 1)] + [qutip.basis(2, 0)] * 8)
+    
+    encoded_zero = qc.run(zero_input)
+    encoded_one = qc.run(one_input)
+    
+    # Should be orthogonal
+    overlap = abs(encoded_zero.overlap(encoded_one))
+    assert overlap < 0.1

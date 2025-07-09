@@ -1,43 +1,42 @@
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.algorithms import BitFlipCode
-from qutip_qip.algorithms import PhaseFlipCode
+from qutip_qip.algorithms import BitFlipCode, PhaseFlipCode
 
 
 class ShorCode:
     """
     Constructs the 9-qubit Shor code encoding circuit using BitFlipCode and PhaseFlipCode.
+
+    The Shor code protects against arbitrary single-qubit errors by combining
+    bit-flip and phase-flip redundancy encoding.
     """
 
     def __init__(self):
-        # Logical qubit -> Phase protection: [0, 3, 6] (1 qubit to 3)
-        # Each → BitFlipCode: [0,1,2], [3,4,5], [6,7,8]
-        self.data_qubits = list(range(9))
-        self.phase_code = PhaseFlipCode(
-            data_qubits=[0, 3, 6], syndrome_qubits=[]
-        )
-        self.bit_blocks = [
-            BitFlipCode(data_qubits=[0, 1, 2], syndrome_qubits=[]),
-            BitFlipCode(data_qubits=[3, 4, 5], syndrome_qubits=[]),
-            BitFlipCode(data_qubits=[6, 7, 8], syndrome_qubits=[]),
-        ]
-        self.n_qubits = 9  # Encoding only requires 9 qubits
+        self.n_qubits = 9  # Total qubits in the Shor code
 
     def encode_circuit(self):
         """
         Construct the 9-qubit Shor code encoding circuit.
 
-        Returns
-        -------
-        QubitCircuit
-            Circuit that encodes one logical qubit into the Shor code.
+        Returns:
+            QubitCircuit: Circuit that encodes one logical qubit into the Shor code.
         """
-        qc = QubitCircuit(self.n_qubits)
+        qc = QubitCircuit(N=self.n_qubits)
 
-        phase_encode = self.phase_code.encode_circuit()
-        qc.gates.extend(phase_encode.gates)
+        # Step 1: Bit-flip encode qubit 0 → [0, 1, 2]
+        bit_code = BitFlipCode()
+        bit_encode = bit_code.encode_circuit([0, 1, 2])
+        qc.gates.extend(bit_encode.gates)
 
-        for bit_code in self.bit_blocks:
-            bit_encode = bit_code.encode_circuit()
-            qc.gates.extend(bit_encode.gates)
+        # Step 2: Phase-flip encode each of [0,1,2] across 3 qubits each:
+        phase_blocks = [
+            [0, 3, 6],
+            [1, 4, 7],
+            [2, 5, 8]
+        ]
+
+        for block in phase_blocks:
+            phase_code = PhaseFlipCode()
+            phase_encode = phase_code.encode_circuit(block)
+            qc.gates.extend(phase_encode.gates)
 
         return qc
