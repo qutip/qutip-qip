@@ -1,7 +1,7 @@
 import pytest
 import qutip
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.algorithms import PhaseFlipCode  # Make sure you place this class in qutip_qip.algorithms
+from qutip_qip.algorithms import PhaseFlipCode 
 
 
 @pytest.fixture

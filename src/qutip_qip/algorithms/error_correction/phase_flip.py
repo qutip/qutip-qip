@@ -1,5 +1,6 @@
 from qutip_qip.circuit import QubitCircuit
 
+
 class PhaseFlipCode:
     """
     Implementation of the 3-qubit phase-flip quantum error correction code.

@@ -1,5 +1,6 @@
 from qutip_qip.circuit import QubitCircuit
 
+
 class BitFlipCode:
     """
     Implementation of the 3-qubit bit-flip quantum error correction code using
