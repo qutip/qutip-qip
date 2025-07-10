@@ -4,7 +4,7 @@ from qutip_qip.circuit import QubitCircuit
 class PhaseFlipCode:
     """
     Implementation of the 3-qubit phase-flip quantum error correction code.
-    
+
     This code protects against a single Z (phase) error by encoding the logical
     qubit into a 3-qubit entangled state using Hadamard transformations and
     CNOT gates, then measuring parity between pairs of qubits using ancilla qubits.
@@ -104,9 +104,24 @@ class PhaseFlipCode:
         qc.add_measurement(sq[1], sq[1], classical_store=1)
 
         # Classically controlled Z corrections
-        qc.add_gate("Z", targets=dq[0], classical_controls=[0, 1], classical_control_value=2)
-        qc.add_gate("Z", targets=dq[1], classical_controls=[0, 1], classical_control_value=3)
-        qc.add_gate("Z", targets=dq[2], classical_controls=[0, 1], classical_control_value=1)
+        qc.add_gate(
+            "Z",
+            targets=dq[0],
+            classical_controls=[0, 1],
+            classical_control_value=2,
+        )
+        qc.add_gate(
+            "Z",
+            targets=dq[1],
+            classical_controls=[0, 1],
+            classical_control_value=3,
+        )
+        qc.add_gate(
+            "Z",
+            targets=dq[2],
+            classical_controls=[0, 1],
+            classical_control_value=1,
+        )
 
         return qc
 

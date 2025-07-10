@@ -32,19 +32,19 @@ def test_shor_encodes_one(code):
 
 def test_shor_linearity(code):
     qc = code.encode_circuit()
-    
+
     # Encode |0⟩ and |1⟩
     zero_input = qutip.tensor([qutip.basis(2, 0)] + [qutip.basis(2, 0)] * 8)
     one_input = qutip.tensor([qutip.basis(2, 1)] + [qutip.basis(2, 0)] * 8)
     encoded_zero = qc.run(zero_input)
     encoded_one = qc.run(one_input)
-    
+
     # Encode superposition
     alpha, beta = 0.6, 0.8
     superpos = alpha * qutip.basis(2, 0) + beta * qutip.basis(2, 1)
     superpos_input = qutip.tensor([superpos] + [qutip.basis(2, 0)] * 8)
     encoded_superpos = qc.run(superpos_input)
-    
+
     # Check linearity
     expected = alpha * encoded_zero + beta * encoded_one
     fidelity = qutip.fidelity(encoded_superpos, expected)
@@ -53,13 +53,13 @@ def test_shor_linearity(code):
 
 def test_shor_orthogonality(code):
     qc = code.encode_circuit()
-    
+
     zero_input = qutip.tensor([qutip.basis(2, 0)] + [qutip.basis(2, 0)] * 8)
     one_input = qutip.tensor([qutip.basis(2, 1)] + [qutip.basis(2, 0)] * 8)
-    
+
     encoded_zero = qc.run(zero_input)
     encoded_one = qc.run(one_input)
-    
+
     # Should be orthogonal
     overlap = abs(encoded_zero.overlap(encoded_one))
     assert overlap < 0.1

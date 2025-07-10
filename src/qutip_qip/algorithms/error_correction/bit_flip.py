@@ -48,7 +48,9 @@ class BitFlipCode:
             ValueError: If the number of data qubits is not 3.
         """
         if len(data_qubits) != self.n_data:
-            raise ValueError(f"Expected {self.n_data} data qubits, got {len(data_qubits)}.")
+            raise ValueError(
+                f"Expected {self.n_data} data qubits, got {len(data_qubits)}."
+            )
         qc = QubitCircuit(max(data_qubits) + 1)
         control = data_qubits[0]
         for target in data_qubits[1:]:
@@ -71,9 +73,13 @@ class BitFlipCode:
             ValueError: If the number of data or syndrome qubits is incorrect.
         """
         if len(data_qubits) != self.n_data:
-            raise ValueError(f"Expected {self.n_data} data qubits, got {len(data_qubits)}.")
+            raise ValueError(
+                f"Expected {self.n_data} data qubits, got {len(data_qubits)}."
+            )
         if len(syndrome_qubits) != self.n_syndrome:
-            raise ValueError(f"Expected {self.n_syndrome} syndrome qubits, got {len(syndrome_qubits)}.")
+            raise ValueError(
+                f"Expected {self.n_syndrome} syndrome qubits, got {len(syndrome_qubits)}."
+            )
 
         total_qubits = max(data_qubits + syndrome_qubits) + 1
         classical_bits = len(syndrome_qubits)
@@ -94,9 +100,24 @@ class BitFlipCode:
 
         # Classical-controlled corrections based on measurement outcomes
         # 2 (10): X on qubit 0, 3 (11): X on qubit 1, 1 (01): X on qubit 2
-        qc.add_gate("X", targets=dq[0], classical_controls=[0, 1], classical_control_value=2)
-        qc.add_gate("X", targets=dq[1], classical_controls=[0, 1], classical_control_value=3)
-        qc.add_gate("X", targets=dq[2], classical_controls=[0, 1], classical_control_value=1)
+        qc.add_gate(
+            "X",
+            targets=dq[0],
+            classical_controls=[0, 1],
+            classical_control_value=2,
+        )
+        qc.add_gate(
+            "X",
+            targets=dq[1],
+            classical_controls=[0, 1],
+            classical_control_value=3,
+        )
+        qc.add_gate(
+            "X",
+            targets=dq[2],
+            classical_controls=[0, 1],
+            classical_control_value=1,
+        )
 
         return qc
 
@@ -115,7 +136,9 @@ class BitFlipCode:
             ValueError: If the number of data qubits is not 3.
         """
         if len(data_qubits) != self.n_data:
-            raise ValueError(f"Expected {self.n_data} data qubits, got {len(data_qubits)}.")
+            raise ValueError(
+                f"Expected {self.n_data} data qubits, got {len(data_qubits)}."
+            )
         qc = QubitCircuit(max(data_qubits) + 1)
         control = data_qubits[0]
         for target in reversed(data_qubits[1:]):

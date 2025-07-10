@@ -28,11 +28,7 @@ class ShorCode:
         qc.gates.extend(bit_encode.gates)
 
         # Step 2: Phase-flip encode each of [0,1,2] across 3 qubits each:
-        phase_blocks = [
-            [0, 3, 6],
-            [1, 4, 7],
-            [2, 5, 8]
-        ]
+        phase_blocks = [[0, 3, 6], [1, 4, 7], [2, 5, 8]]
 
         for block in phase_blocks:
             phase_code = PhaseFlipCode()

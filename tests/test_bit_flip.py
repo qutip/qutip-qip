@@ -32,7 +32,7 @@ def test_encode_circuit_structure(code, data_qubits):
 def test_bitflip_correction(code, data_qubits, syndrome_qubits):
     # Initial random state |ψ⟩ on qubit 0
     psi = qutip.rand_ket(2)
-    
+
     # Full state: |ψ⟩ ⊗ |0000⟩ (qubits 1,2,3,4)
     state = qutip.tensor([psi] + [qutip.basis(2, 0)] * 4)
 
@@ -46,7 +46,9 @@ def test_bitflip_correction(code, data_qubits, syndrome_qubits):
     state = qc_error.run(state)
 
     # Step 3: Syndrome + correction
-    qc_correct = code.syndrome_and_correction_circuit(data_qubits, syndrome_qubits)
+    qc_correct = code.syndrome_and_correction_circuit(
+        data_qubits, syndrome_qubits
+    )
     state = qc_correct.run(state)
 
     # Step 4: Decode
