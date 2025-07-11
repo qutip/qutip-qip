@@ -164,8 +164,6 @@ def test_render_str_len(request, qc_fixture):
 
 
 @pytest.mark.parametrize("qc_fixture", ["qc1", "qc2", "qc3"])
-# Deprecation warning for python = 3.9 with matplotlib 3.9.4
-@pytest.mark.filterwarnings("ignore:'mode' parameter is deprecated")
 def test_matrenderer(request, qc_fixture):
     """
     Check if Matplotlib renderer works without error.
@@ -177,8 +175,6 @@ def test_matrenderer(request, qc_fixture):
 
 
 @pytest.mark.parametrize("qc_fixture", ["qc1", "qc2", "qc3"])
-# Deprecation warning for python = 3.9 with matplotlib 3.9.4
-@pytest.mark.filterwarnings("ignore:'mode' parameter is deprecated")
 def test_circuit_saving(request, qc_fixture, tmpdir):
     """
     Test if the different renderers can save the circuit in different formats.
