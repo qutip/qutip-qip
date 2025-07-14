@@ -118,8 +118,8 @@ class TestVQACircuit:
         vqa = VQA(num_qubits=1, cost_method="STATE")
         vqa.add_block(block)
         # try to reach the |1> state from the |0> state
-        vqa.cost_func = lambda s: 1 - s.overlap(qutip.basis(2, 1)).real
-        res = vqa.optimize_parameters(initial=[np.pi / 2])
+        vqa.cost_func = lambda s: 1 - np.abs(s.overlap(qutip.basis(2, 1)))
+        res = vqa.optimize_parameters(initial=[np.pi / 3.])
         assert res.get_top_bitstring() == "|1>"
 
     def test_layer_by_layer(self):
@@ -129,9 +129,9 @@ class TestVQACircuit:
         vqa = VQA(num_qubits=1, cost_method="STATE", num_layers=4)
         block = VQABlock(qutip.sigmax())
         vqa.add_block(block)
-        vqa.cost_func = lambda s: 1 - s.overlap(qutip.basis(2, 1)).real
+        vqa.cost_func = lambda s: 1 - np.abs(s.overlap(qutip.basis(2, 1)))
         res = vqa.optimize_parameters(
-            initial=[np.pi / 2, 0, 0, 0], layer_by_layer=True
+            initial=[np.pi / 3., 0, 0, 0], layer_by_layer=True
         )
         assert res.get_top_bitstring() == "|1>"
 
