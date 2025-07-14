@@ -778,11 +778,7 @@ class OptimizationResult:
         display: bool, optional
             Display the plot with the pyplot plot.show() method
         """
-        try:
-            import matplotlib.pyplot as plt
-        except Exception:
-            print("could not import matplotlib.pyplot")
-            quit()
+        import matplotlib.pyplot as plt
         state = self.final_state
         min_cost = self.min_cost
 
