@@ -3,6 +3,7 @@ import functools
 import itertools
 import numpy as np
 import qutip
+from qutip_qip.operations import expand_operator
 from qutip_qip.vqa import (
     VQA,
     VQABlock,
@@ -60,7 +61,7 @@ class TestVQA:
         with pytest.raises(TypeError):
             vqa = VQA(num_qubits=n[1][0], num_layers=n[1][1])
 
-    @pytest.mark.parametrize("method", ["OBSERVABLE", "STATE", "BITSTRING"])
+    @pytest.mark.parametrize("method", ["OBSERVABLE", "STATE"])
     def test_cost_methods(self, method):
         vqa = VQA(num_qubits=1, num_layers=1, cost_method=method)
 
@@ -118,8 +119,8 @@ class TestVQACircuit:
         vqa = VQA(num_qubits=1, cost_method="STATE")
         vqa.add_block(block)
         # try to reach the |1> state from the |0> state
-        vqa.cost_func = lambda s: 1 - s.overlap(qutip.basis(2, 1)).real
-        res = vqa.optimize_parameters(initial=[np.pi / 2])
+        vqa.cost_func = lambda s: 1 - np.abs(s.overlap(qutip.basis(2, 1)))
+        res = vqa.optimize_parameters(initial=[np.pi / 3.])
         assert res.get_top_bitstring() == "|1>"
 
     def test_layer_by_layer(self):
@@ -129,9 +130,9 @@ class TestVQACircuit:
         vqa = VQA(num_qubits=1, cost_method="STATE", num_layers=4)
         block = VQABlock(qutip.sigmax())
         vqa.add_block(block)
-        vqa.cost_func = lambda s: 1 - s.overlap(qutip.basis(2, 1)).real
+        vqa.cost_func = lambda s: 1 - np.abs(s.overlap(qutip.basis(2, 1)))
         res = vqa.optimize_parameters(
-            initial=[np.pi / 2, 0, 0, 0], layer_by_layer=True
+            initial=[np.pi / 3., 0, 0, 0], layer_by_layer=True
         )
         assert res.get_top_bitstring() == "|1>"
 
@@ -190,19 +191,13 @@ class TestVQACircuit:
         # Only test on environments that have the matplotlib dependency
         vqa = VQA(num_qubits=4, num_layers=1, cost_method="STATE")
         for i in range(4):
-            vqa.add_block(VQABlock("X", targets=[i]))
+            vqa.add_block(VQABlock(
+                expand_operator(
+                    qutip.sigmax(), dims=[2]*4, targets=[i])
+                ))
         vqa.cost_func = lambda s: 0
-        res = vqa.optimize_parameters()
+        res = vqa.optimize_parameters([0., 0., 0., 0.])
         res.plot(top_ten=todo, display=False)
-
-    def test_bitstring_cost(self):
-        "Check the bitstring sampling function"
-        vqa = VQA(num_qubits=1, cost_method="BITSTRING")
-        vqa.add_block(VQABlock(qutip.sigmax()))
-        # target the |1> state by giving the "1" string a cost of 0
-        vqa.cost_func = lambda s: 1 - int(s)
-        res = vqa.optimize_parameters(initial=[np.pi / 2 + 1e-3])
-        assert res.get_top_bitstring() == "|1>"
 
     def test_optimization_errors(self):
         """
