@@ -765,6 +765,7 @@ class OptimizationResult:
             Display the plot with the pyplot plot.show() method
         """
         import matplotlib.pyplot as plt
+
         state = self.final_state
         min_cost = self.min_cost
 
