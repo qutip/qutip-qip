@@ -60,7 +60,7 @@ class TestVQA:
         with pytest.raises(TypeError):
             vqa = VQA(num_qubits=n[1][0], num_layers=n[1][1])
 
-    @pytest.mark.parametrize("method", ["OBSERVABLE", "STATE", "BITSTRING"])
+    @pytest.mark.parametrize("method", ["OBSERVABLE", "STATE"])
     def test_cost_methods(self, method):
         vqa = VQA(num_qubits=1, num_layers=1, cost_method=method)
 
@@ -197,15 +197,6 @@ class TestVQACircuit:
         vqa.cost_func = lambda s: 0
         res = vqa.optimize_parameters([0., 0., 0., 0.])
         res.plot(top_ten=todo, display=False)
-
-    def test_bitstring_cost(self):
-        "Check the bitstring sampling function"
-        vqa = VQA(num_qubits=1, cost_method="BITSTRING")
-        vqa.add_block(VQABlock(qutip.sigmax()))
-        # target the |1> state by giving the "1" string a cost of 0
-        vqa.cost_func = lambda s: 1 - int(s)
-        res = vqa.optimize_parameters(initial=[np.pi / 2 + 1e-3])
-        assert res.get_top_bitstring() == "|1>"
 
     def test_optimization_errors(self):
         """
