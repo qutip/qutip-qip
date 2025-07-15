@@ -190,9 +190,12 @@ class TestVQACircuit:
         # Only test on environments that have the matplotlib dependency
         vqa = VQA(num_qubits=4, num_layers=1, cost_method="STATE")
         for i in range(4):
-            vqa.add_block(VQABlock("X", targets=[i]))
+            vqa.add_block(VQABlock(
+                qutip.expand_operator(
+                    qutip.sigmax(), dims=[2]*4, targets=[i])
+                ))
         vqa.cost_func = lambda s: 0
-        res = vqa.optimize_parameters()
+        res = vqa.optimize_parameters([0., 0., 0., 0.])
         res.plot(top_ten=todo, display=False)
 
     def test_bitstring_cost(self):
