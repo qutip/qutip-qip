@@ -3,6 +3,7 @@ import functools
 import itertools
 import numpy as np
 import qutip
+from qutip_qip.operations import expand_operator
 from qutip_qip.vqa import (
     VQA,
     VQABlock,
@@ -191,7 +192,7 @@ class TestVQACircuit:
         vqa = VQA(num_qubits=4, num_layers=1, cost_method="STATE")
         for i in range(4):
             vqa.add_block(VQABlock(
-                qutip.expand_operator(
+                expand_operator(
                     qutip.sigmax(), dims=[2]*4, targets=[i])
                 ))
         vqa.cost_func = lambda s: 0
