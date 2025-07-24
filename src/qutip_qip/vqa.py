@@ -28,8 +28,7 @@ class VQA:
         number of layers used by the algorihtm
     cost_method: str
         method used to compute the cost of an instance of the circuit
-        constructed by fixing its free parameters. Can be one of `OBSERVABLE`,
-        `BITSTRING` or `STATE`.
+        constructed by fixing its free parameters. Can be one of `OBSERVABLE` or `STATE`.
 
         #.  If `OBSERVABLE` is set, then the attribute
             ``VQA.cost_observable`` needs to be specified as a ``Qobj``.
@@ -38,9 +37,6 @@ class VQA:
         #.  If `STATE` is set, then ``VQA.cost_func`` needs to be specified
             as a callable that takes in a quantum state, as a ``Qobj``, and
             returns a float.
-        #.  If `BITSTRING` is set, then ``VQA.cost_func`` needs to be
-            specified as a callable that takes in a bitstring and returns
-            a float.
     """
 
     def __init__(self, num_qubits, num_layers=1, cost_method="OBSERVABLE"):
@@ -48,7 +44,7 @@ class VQA:
         self.num_layers = num_layers
         self.blocks = []
         self.user_gates = {}
-        self._cost_methods = ["OBSERVABLE", "STATE", "BITSTRING"]
+        self._cost_methods = ["OBSERVABLE", "STATE"]
         self.cost_method = cost_method
         self.cost_func = None
         self.cost_observable = None
@@ -223,17 +219,7 @@ class VQA:
         cost: float
         """
         final_state = self.get_final_state(angles)
-        if self.cost_method == "BITSTRING":
-            if self.cost_func is None:
-                raise ValueError(
-                    "To use BITSTRING as the cost method, please"
-                    " specify the attribute cost_func"
-                )
-            else:
-                return self.cost_func(
-                    self._sample_bitstring_from_state(final_state)
-                )
-        elif self.cost_method == "STATE":
+        if self.cost_method == "STATE":
             if self.cost_func is None:
                 raise ValueError(
                     "To use STATE as the cost method, please"
@@ -778,11 +764,8 @@ class OptimizationResult:
         display: bool, optional
             Display the plot with the pyplot plot.show() method
         """
-        try:
-            import matplotlib.pyplot as plt
-        except Exception:
-            print("could not import matplotlib.pyplot")
-            quit()
+        import matplotlib.pyplot as plt
+
         state = self.final_state
         min_cost = self.min_cost
 

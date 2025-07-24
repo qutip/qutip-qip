@@ -73,6 +73,7 @@ __all__ = [
     "R",
     "QASMU",
     "SWAP",
+    "ControlledGate",
     "ISWAP",
     "CNOT",
     "SQRTSWAP",
