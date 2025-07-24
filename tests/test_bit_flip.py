@@ -1,6 +1,6 @@
 import pytest
 import qutip
-from qutip_qip.algorithms.error_correction import BitFlipCode
+from qutip_qip.algorithms import BitFlipCode
 from qutip_qip.circuit import QubitCircuit
 
 
