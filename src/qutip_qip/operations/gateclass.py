@@ -413,6 +413,15 @@ class Gate:
             dims=dims,
             targets=all_targets,
         )
+    def decompose_to_basis(self, basis_1q: list[str], basis_2q: list[str]) -> list["Gate"]:
+        """
+        Return a decomposition of this gate into the given basis.
+        This default method raises an error unless overridden in subclasses.
+        """
+        raise NotImplementedError(
+            f"Decomposition not implemented for {self.name} to basis {basis_2q}"
+        )
+
 
 
 class SingleQubitGate(Gate):
@@ -580,6 +589,14 @@ class H(SingleQubitGate):
 
     def get_compact_qobj(self):
         return snot()
+    
+    def decompose_to_basis(self, basis_1q, basis_2q):
+        if "RX" in basis_1q and "RY" in basis_1q:
+            return [
+                RY(self.targets[0], arg_value=np.pi / 2, arg_label=r"\pi/2"),
+                RX(self.targets[0], arg_value=np.pi, arg_label=r"\pi")
+            ]
+        raise NotImplementedError("Cannot decompose Hadamard to given basis")
 
 
 SNOT = H
@@ -606,6 +623,7 @@ class SQRTNOT(SingleQubitGate):
 
     def get_compact_qobj(self):
         return sqrtnot()
+    
 
 
 class S(SingleQubitGate):
