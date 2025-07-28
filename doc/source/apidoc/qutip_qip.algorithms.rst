@@ -3,7 +3,7 @@
 qutip\_qip.algorithms
 ==================
 
-.. automodule:: qutip_qip.circuit
+.. automodule:: qutip_qip.algorithms
    :members:
    :show-inheritance:
    :imported-members:
@@ -14,6 +14,6 @@ qutip\_qip.algorithms
    
       BitFlipCode
       PhaseFlipCode
-      QFT
-      QPE
+      qft
+      qpe
       ShorCode
