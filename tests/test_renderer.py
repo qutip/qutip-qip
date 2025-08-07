@@ -61,6 +61,32 @@ def qc3():
     return qc
 
 
+@pytest.fixture
+def qc4():
+    qc = QubitCircuit(5, num_cbits=2)
+    qc.add_gate(
+        "X", targets=0, classical_controls=[0, 1], classical_control_value=0
+    )
+    qc.add_gate("i", targets=1, controls=2)
+    qc.add_gate(
+        "ii",
+        targets=1,
+        classical_controls=1,
+        controls=[3, 4],
+        classical_control_value=1,
+    )
+    qc.add_gate(
+        "iii",
+        targets=1,
+        classical_controls=1,
+        controls=4,
+        classical_control_value=1,
+    )
+    qc.add_gate("ii", targets=2, controls=[4, 3])
+    qc.add_gate("SWAP", targets=[0, 1])
+    return qc
+
+
 def test_layout_qc1(qc1):
     tr = TextRenderer(qc1)
     tr.layout()
@@ -144,6 +170,40 @@ def test_layout_qc3(qc3):
             "                                    │   │          │       │                                │                └────┬───┘  │       │          ",
             "                                                                                                                                            ",
             "                                                                                      ║                                                     ",
+        ],
+    }
+
+
+def test_layout_qc4(qc4):
+    tr = TextRenderer(qc4)
+    tr.layout()
+    assert tr._render_strs == {
+        "top_frame": [
+            "        ┌───┐     ║       ║      │       ",
+            "        ┌─┴─┐  ┌──┴─┐  ┌──┴──┐           ",
+            "                  │       │     ┌──┴─┐   ",
+            "                  │       │        │     ",
+            "                                         ",
+            "          ║                              ",
+            "          ║       ║       ║              ",
+        ],
+        "mid_frame": [
+            " q0 :───┤ X ├─────║───────║──────╳───────",
+            " q1 :───┤ i ├──┤ ii ├──┤ iii ├───╳───────",
+            " q2 :─────█───────│───────│─────┤ ii ├───",
+            " q3 :─────────────█───────│────────█─────",
+            " q4 :─────────────█───────█────────█─────",
+            " c0 :═════█══════════════════════════════",
+            " c1 :═════█═══════█═══════█══════════════",
+        ],
+        "bot_frame": [
+            "        └─╥─┘     ║       ║              ",
+            "        └───┘  └──╥─┘  └──╥──┘   │       ",
+            "          │       │       │     └────┘   ",
+            "                  │       │        │     ",
+            "                  │       │        │     ",
+            "                                         ",
+            "          ║                              ",
         ],
     }
 

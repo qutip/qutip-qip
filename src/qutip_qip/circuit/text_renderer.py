@@ -20,7 +20,6 @@ class TextRenderer(BaseRenderer):
     """
 
     def __init__(self, qc: QubitCircuit, **style):
-
         # user defined style
         style = {} if style is None else style
         style["gate_margin"] = 0
@@ -146,13 +145,12 @@ class TextRenderer(BaseRenderer):
         mid_frame = f" │{pad}{' ' * len(gate_text)}{pad}│ "
         mid_connect = f"─┤{pad}{' ' * len(gate_text)}{pad}├─"
         mid_connect_label = f"─┤{pad}{gate_text}{pad}├─"
+        mid_index = len(bot_frame) // 2
 
+        sorted_targets = sorted(gate.targets)
         # Adjust top_frame or bottom if there is a control wire
         if gate.controls:
             sorted_controls = sorted(gate.controls)
-            sorted_targets = sorted(gate.targets)
-
-            mid_index = len(bot_frame) // 2
             top_frame = (
                 (top_frame[:mid_index] + "┴" + top_frame[mid_index + 1 :])
                 if sorted_controls[-1] > sorted_targets[0]
@@ -163,6 +161,22 @@ class TextRenderer(BaseRenderer):
                 if sorted_controls[0] < sorted_targets[-1]
                 else bot_frame
             )
+
+        # Adjust the frames for classical_controls
+        if gate.classical_controls is not None:
+            for c in gate.classical_controls:
+                if c + self._qwires > sorted_targets[0]:
+                    bot_frame = (
+                        bot_frame[:mid_index]
+                        + "╥"
+                        + bot_frame[mid_index + 1 :]
+                    )
+                else:
+                    top_frame = (
+                        top_frame[:mid_index]
+                        + "╨"
+                        + top_frame[mid_index + 1 :]
+                    )
 
         # check for equal part lengths
         assert (
@@ -202,7 +216,13 @@ class TextRenderer(BaseRenderer):
 
         return (top_frame, mid_frame, bot_frame), width
 
-    def _update_cbridge(self, gate: Gate, wire_list: List[int], width: int):
+    def _update_cbridge(
+        self,
+        gate: Gate,
+        wire_list: List[int],
+        width: int,
+        is_arrow: bool = True,
+    ):
         """
         Update the render strings for the control bridge
 
@@ -218,20 +238,40 @@ class TextRenderer(BaseRenderer):
             The width of the gate.
         """
 
-        bar_conn = " " * (width // 2) + "║" + " " * (width // 2)
-        mid_bar_conn = "─" * (width // 2) + "║" + "─" * (width // 2)
-        mid_bar_classical_conn = "═" * (width // 2) + "║" + "═" * (width // 2)
-        classical_conn = "═" * (width // 2) + "╩" + "═" * (width // 2)
+        bar_conn = " " * (width // 2) + "║" + " " * (width // 2 - 1)
+        mid_bar_conn = "─" * (width // 2) + "║" + "─" * (width // 2 - 1)
+        mid_bar_classical_conn = (
+            "═" * (width // 2) + "║" + "═" * (width // 2 - 1)
+        )
+        classical_conn = (
+            "═" * (width // 2)
+            + ("╩" if is_arrow else "█")
+            + "═" * (width // 2 - 1)
+        )
+
+        classical_wire = list(
+            map(
+                lambda x: x + self._qwires,
+                (
+                    gate.classical_controls
+                    if isinstance(gate, Gate)
+                    else [gate.classical_store]
+                ),
+            )
+        )
+        classical_wire.sort()
 
         for wire in wire_list:
-
             if wire == gate.targets[0]:
                 continue
-
-            if wire == self._qwires + gate.classical_store:
+            if wire in classical_wire:
                 self._render_strs["top_frame"][wire] += bar_conn
                 self._render_strs["mid_frame"][wire] += classical_conn
-                self._render_strs["bot_frame"][wire] += " " * len(bar_conn)
+                self._render_strs["bot_frame"][wire] += (
+                    " " * len(bar_conn)
+                    if wire < classical_wire[-1] or len(classical_wire) == 1
+                    else bar_conn
+                )
             else:
                 self._render_strs["top_frame"][wire] += bar_conn
                 self._render_strs["bot_frame"][wire] += bar_conn
@@ -383,7 +423,6 @@ class TextRenderer(BaseRenderer):
         self._add_wire_labels()
 
         for gate in self._qc.gates:
-
             if isinstance(gate, Gate):
                 gate_text = (
                     gate.arg_label if gate.arg_label is not None else gate.name
@@ -398,17 +437,32 @@ class TextRenderer(BaseRenderer):
                     )
                 )
                 parts, width = self._draw_measurement_gate(gate)
-            elif len(gate.targets) == 1 and gate.controls is None:
-                wire_list = gate.targets
-                parts, width = self._draw_singleq_gate(gate_text)
             elif gate.name == "SWAP":
                 wire_list = list(
                     range(min(gate.targets), max(gate.targets) + 1)
                 )
                 width = 4 * ceil(self.style.gate_pad) + 1
             else:
-                merged_wire = sorted(gate.targets + (gate.controls or []))
-                wire_list = list(range(merged_wire[0], merged_wire[-1] + 1))
+                sorted_targets = sorted(gate.targets)
+                merged_wire = sorted_targets + (gate.controls or [])
+                if gate.classical_controls is not None:
+                    c_control = sorted(gate.classical_controls)
+                    merged_wire += list(range(sorted_targets[0] + 1))
+                    merged_wire.sort()
+                    wire_list = list(
+                        range(merged_wire[0], merged_wire[-1] + 1)
+                    )
+                    wire_list += list(
+                        range(
+                            c_control[0] + self._qwires,
+                            self._qwires + self._cwires,
+                        )
+                    )
+                else:
+                    merged_wire.sort()
+                    wire_list = list(
+                        range(merged_wire[0], merged_wire[-1] + 1)
+                    )
                 parts, width = self._draw_multiq_gate(gate, gate_text)
 
             # update the render strings for the gate
@@ -420,12 +474,9 @@ class TextRenderer(BaseRenderer):
             if isinstance(gate, Measurement):
                 self._update_singleq(gate.targets, parts)
                 self._update_cbridge(gate, wire_list, width)
-            elif len(gate.targets) == 1 and gate.controls is None:
-                self._update_singleq(wire_list, parts)
             elif gate.name == "SWAP":
                 self._update_swap_gate(wire_list)
             else:
-                sorted_targets = sorted(gate.targets)
                 self._update_target_multiq(
                     gate,
                     list(range(sorted_targets[0], sorted_targets[-1] + 1)),
@@ -444,7 +495,7 @@ class TextRenderer(BaseRenderer):
                             gate,
                             list(
                                 range(
-                                    sorted_targets[0],
+                                    sorted_targets[-1],
                                     sorted_controls[-1] + 1,
                                 )
                             ),
@@ -464,6 +515,20 @@ class TextRenderer(BaseRenderer):
                             width,
                             not is_bot,
                         )
+
+                if gate.classical_controls is not None:
+                    self._update_cbridge(
+                        gate,
+                        list(range(sorted_targets[0] + 1))
+                        + list(
+                            range(
+                                gate.classical_controls[0] + self._qwires,
+                                self._qwires + self._cwires,
+                            )
+                        ),
+                        width,
+                        is_arrow=False,
+                    )
 
         max_layer_len = max(sum(layer) for layer in self._layer_list)
         self._adjust_layer_pad(
