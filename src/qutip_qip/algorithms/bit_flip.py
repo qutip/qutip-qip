@@ -1,5 +1,6 @@
 from qutip_qip.circuit import QubitCircuit
 
+__all__ = ["BitFlipCode"]
 
 class BitFlipCode:
     """
