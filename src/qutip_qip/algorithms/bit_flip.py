@@ -38,7 +38,8 @@ class BitFlipCode:
     def encode_circuit(self, data_qubits):
         """
         Constructs the encoding circuit for the bit-flip code. The first qubit is the control,
-        and CNOT gates are applied from it to the other data qubits to encode logical |0⟩ or |1⟩.
+        and CNOT gates are applied from it to the other data qubits to encode logical states
+        :math:`|0\\rangle` or :math:`|1\\rangle`.
 
         Args:
             data_qubits (list[int]): List of 3 integers representing data qubit indices.
@@ -49,6 +50,7 @@ class BitFlipCode:
         Raises:
             ValueError: If the number of data qubits is not 3.
         """
+
         if len(data_qubits) != self.n_data:
             raise ValueError(
                 f"Expected {self.n_data} data qubits, got {len(data_qubits)}."
