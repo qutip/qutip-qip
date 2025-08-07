@@ -38,14 +38,12 @@ class PhaseFlipCode:
 
     def encode_circuit(self, data_qubits):
         """
-        Constructs the encoding circuit for the phase-flip code.
-
-        The logical qubit is encoded into an entangled state in the X-basis using Hadamard
-        (SNOT) gates followed by two CNOT gates. This creates redundancy to detect and correct
-        a single phase error.
+        Constructs the encoding circuit for the bit-flip code. The first qubit is the control,
+        and CNOT gates are applied from it to the other data qubits to encode logical states 
+        :math:`|0\\rangle` or :math:`|1\\rangle`.
 
         Args:
-            data_qubits (list[int]): Indices of 3 data qubits.
+            data_qubits (list[int]): List of 3 integers representing data qubit indices.
 
         Returns:
             QubitCircuit: The encoding quantum circuit.
