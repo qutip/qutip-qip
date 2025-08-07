@@ -1,7 +1,7 @@
 :orphan:
 
 qutip\_qip.algorithms
-==================
+======================
 
 .. automodule:: qutip_qip.algorithms
    :members:
@@ -14,6 +14,11 @@ qutip\_qip.algorithms
    
       BitFlipCode
       PhaseFlipCode
+      ShorCode
+
+   .. rubric:: Functions
+
+   .. autosummary::
+
       qft
       qpe
-      ShorCode
