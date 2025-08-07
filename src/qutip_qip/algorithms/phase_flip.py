@@ -2,6 +2,7 @@ from qutip_qip.circuit import QubitCircuit
 
 __all__ = ["PhaseFlipCode"]
 
+
 class PhaseFlipCode:
     """
     Implementation of the 3-qubit phase-flip quantum error correction code.
