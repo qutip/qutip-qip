@@ -168,6 +168,7 @@ def test_matrenderer(request, qc_fixture):
     """
     Check if Matplotlib renderer works without error.
     """
+    pytest.importorskip("matplotlib")
     qc = request.getfixturevalue(qc_fixture)
 
     with patch("matplotlib.pyplot.show"):  # to avoid showing the plot
@@ -179,7 +180,7 @@ def test_circuit_saving(request, qc_fixture, tmpdir):
     """
     Test if the different renderers can save the circuit in different formats.
     """
-
+    pytest.importorskip("matplotlib")
     qc = request.getfixturevalue(qc_fixture)
 
     # test MatRenderer
