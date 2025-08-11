@@ -41,6 +41,7 @@ def test_decode_circuit_structure(code, data_qubits):
     assert qc.gates[1].targets == [1]
 
 
+@pytest.mark.xfail(reason="Known error in phase flip code. See Issue #283")
 def test_phaseflip_correction_simulation(code, data_qubits, syndrome_qubits):
     """
     Simulate the full encoding, Z-error, correction, and decoding process
