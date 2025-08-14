@@ -46,7 +46,6 @@ class MatRenderer(BaseRenderer):
         ax: Axes = None,
         **style,
     ) -> None:
-
         # user defined style
         style = {} if style is None else style
         self.style = StyleConfig(**style)
@@ -351,7 +350,12 @@ class MatRenderer(BaseRenderer):
         self._ax.add_line(bridge)
 
     def _draw_cbridge(
-        self, c_pos: int, q_pos: int, xskip: float, color: str
+        self,
+        c_pos: int,
+        q_pos: int,
+        xskip: float,
+        color: str,
+        is_arrow: bool = True,
     ) -> None:
         """
         Draw the bridge between the classical and quantum wires for the measurement gate.
@@ -367,6 +371,9 @@ class MatRenderer(BaseRenderer):
         xskip : float
             The horizontal value for getting to requested layer.
 
+        is_bool : bool
+            Renders a arrow at classical end (if True), else (if False) renders a node.
+
         color : str
             The color of the bridge.
         """
@@ -374,14 +381,8 @@ class MatRenderer(BaseRenderer):
 
         cbridge_l = plt.Line2D(
             (
-                xskip
-                + self.style.gate_margin
-                + self._min_gate_width / 2
-                - self._cwire_sep,
-                xskip
-                + self.style.gate_margin
-                + self._min_gate_width / 2
-                - self._cwire_sep,
+                xskip - self._cwire_sep,
+                xskip - self._cwire_sep,
             ),
             (
                 c_pos * self.style.wire_sep + self._arrow_lenght,
@@ -392,14 +393,8 @@ class MatRenderer(BaseRenderer):
         )
         cbridge_r = plt.Line2D(
             (
-                xskip
-                + self.style.gate_margin
-                + self._min_gate_width / 2
-                + self._cwire_sep,
-                xskip
-                + self.style.gate_margin
-                + self._min_gate_width / 2
-                + self._cwire_sep,
+                xskip + self._cwire_sep,
+                xskip + self._cwire_sep,
             ),
             (
                 c_pos * self.style.wire_sep + self._arrow_lenght,
@@ -408,21 +403,35 @@ class MatRenderer(BaseRenderer):
             color=color,
             zorder=self._zorder["bridge"],
         )
-        end_arrow = FancyArrow(
-            xskip + self.style.gate_margin + self._min_gate_width / 2,
-            c_pos * self.style.wire_sep + self._arrow_lenght,
-            0,
-            -self._cwire_sep * 3,
-            width=0,
-            head_width=self._cwire_sep * 5,
-            head_length=self._cwire_sep * 3,
-            length_includes_head=True,
-            color=color,
-            zorder=self._zorder["bridge"],
-        )
         self._ax.add_line(cbridge_l)
         self._ax.add_line(cbridge_r)
-        self._ax.add_artist(end_arrow)
+
+        if is_arrow:
+            end_arrow = FancyArrow(
+                xskip,
+                c_pos * self.style.wire_sep + self._arrow_lenght,
+                0,
+                -self._cwire_sep * 3,
+                width=0,
+                head_width=self._cwire_sep * 5,
+                head_length=self._cwire_sep * 3,
+                length_includes_head=True,
+                color=color,
+                zorder=self._zorder["bridge"],
+            )
+
+            self._ax.add_artist(end_arrow)
+        else:
+            target_node = Circle(
+                (
+                    xskip,
+                    c_pos * self.style.wire_sep,
+                ),
+                self._control_node_r,
+                color=color,
+                zorder=self._zorder["node"],
+            )
+            self._ax.add_artist(target_node)
 
     def _draw_swap_mark(self, pos: int, xskip: int, color: str) -> None:
         """
@@ -516,71 +525,6 @@ class MatRenderer(BaseRenderer):
 
         return f"[{round(value, 2)}]"
 
-    def _draw_singleq_gate(self, gate: Gate, layer: int) -> None:
-        """
-        Draw the single qubit gate.
-
-        Parameters
-        ----------
-        gate : Gate Object
-            The gate to be plotted.
-
-        layer : int
-            The layer the gate is acting on.
-        """
-
-        gate_wire = gate.targets[0]
-        if gate.arg_value is not None and self.showarg is True:
-            pi_frac = self.to_pi_fraction(gate.arg_value)
-            text = f"${{{self.text}}}_{{{pi_frac}}}$"
-        else:
-            text = self.text
-
-        text_width = self._get_text_width(
-            text,
-            self.fontsize,
-            self.fontweight,
-            self.fontfamily,
-            self.fontstyle,
-        )
-        gate_width = max(
-            text_width + self.style.gate_pad * 2, self._min_gate_width
-        )
-
-        gate_text = plt.Text(
-            self._get_xskip([gate_wire], layer)
-            + self.style.gate_margin
-            + gate_width / 2,
-            (gate_wire + self._cwires) * self.style.wire_sep,
-            text,
-            color=self.fontcolor,
-            fontsize=self.fontsize,
-            fontweight=self.fontweight,
-            fontfamily=self.fontfamily,
-            fontstyle=self.fontstyle,
-            verticalalignment="center",
-            horizontalalignment="center",
-            zorder=self._zorder["gate_label"],
-        )
-        gate_patch = FancyBboxPatch(
-            (
-                self._get_xskip([gate_wire], layer) + self.style.gate_margin,
-                (gate_wire + self._cwires) * self.style.wire_sep
-                - self._min_gate_height / 2,
-            ),
-            gate_width,
-            self._min_gate_height,
-            boxstyle=self.style.bulge,
-            mutation_scale=0.3,
-            facecolor=self.color,
-            edgecolor=self.color,
-            zorder=self._zorder["gate"],
-        )
-
-        self._ax.add_artist(gate_text)
-        self._ax.add_patch(gate_patch)
-        self._manage_layers(gate_width, [gate_wire], layer)
-
     def _draw_multiq_gate(self, gate: Gate, layer: int) -> None:
         """
         Draw the multi-qubit gate.
@@ -643,7 +587,6 @@ class MatRenderer(BaseRenderer):
             )
 
         else:
-
             adj_targets = [
                 i + self._cwires
                 for i in sorted(
@@ -722,7 +665,7 @@ class MatRenderer(BaseRenderer):
                     self._ax.add_artist(connector_l)
                     self._ax.add_artist(connector_r)
 
-            # add cbridge if control qubits are present
+            # add qbridge if control qubits are present
             if gate.controls is not None:
                 for control in gate.controls:
                     self._draw_control_node(
@@ -733,6 +676,16 @@ class MatRenderer(BaseRenderer):
                         gate.targets[0],
                         xskip + text_width / 2,
                         self.color,
+                    )
+            # add cbridge if classical controls qubits are present
+            if gate.classical_controls is not None:
+                for c in gate.classical_controls:
+                    self._draw_cbridge(
+                        c,
+                        gate.targets[0],
+                        xskip + self.style.gate_margin + gate_width / 2,
+                        self.color,
+                        is_arrow=False,
                     )
 
             self._ax.add_artist(gate_text)
@@ -801,7 +754,12 @@ class MatRenderer(BaseRenderer):
             zorder=self._zorder["gate_label"],
         )
 
-        self._draw_cbridge(c_pos, q_pos, xskip, color=self.style.measure_color)
+        self._draw_cbridge(
+            c_pos,
+            q_pos,
+            xskip + self.style.gate_margin + self._min_gate_width / 2,
+            color=self.style.measure_color,
+        )
         self._manage_layers(
             self._min_gate_width,
             list(range(0, self.merged_wires[-1] + 1)),
@@ -820,7 +778,6 @@ class MatRenderer(BaseRenderer):
         self._add_wire_labels()
 
         for gate in self._qc.gates:
-
             if isinstance(gate, Measurement):
                 self.merged_wires = gate.targets.copy()
                 self.merged_wires.sort()
@@ -852,34 +809,25 @@ class MatRenderer(BaseRenderer):
                 self.fontfamily = style.get("fontfamily", "monospace")
                 self.showarg = style.get("showarg", False)
 
-                # multi-qubit gate
-                if (
-                    gate.targets is None
-                    or len(gate.targets) > 1
-                    or getattr(gate, "controls", False) is not None
-                ):
-                    # If targets=None, it implies globalphase. Adaptation for the renderer: targets=all-qubits.
-                    self.merged_wires = (
-                        gate.targets.copy()
-                        if gate.targets is not None
-                        else list(range(self._qwires))
+                self.merged_wires = (
+                    gate.targets.copy()
+                    if gate.targets is not None
+                    else list(range(self._qwires))
+                )
+                if gate.controls is not None:
+                    self.merged_wires += gate.controls.copy()
+                self.merged_wires.sort()
+                if gate.classical_controls is not None:
+                    self.merged_wires = list(
+                        range(0, self.merged_wires[-1] + 1)
                     )
-                    if gate.controls is not None:
-                        self.merged_wires += gate.controls.copy()
-                    self.merged_wires.sort()
-
-                    find_layer = [
-                        len(self._layer_list[i])
-                        for i in range(
-                            self.merged_wires[0], self.merged_wires[-1] + 1
-                        )
-                    ]
-                    self._draw_multiq_gate(gate, max(find_layer))
-
-                else:
-                    self._draw_singleq_gate(
-                        gate, len(self._layer_list[gate.targets[0]])
+                find_layer = [
+                    len(self._layer_list[i])
+                    for i in range(
+                        self.merged_wires[0], self.merged_wires[-1] + 1
                     )
+                ]
+                self._draw_multiq_gate(gate, max(find_layer))
 
         self._add_wire()
         self._fig_config()
