@@ -1,6 +1,6 @@
+from typing import Union, List, Optional
 from collections.abc import Iterable
 import numbers
-import os
 
 import numpy as np
 
@@ -9,6 +9,7 @@ from qutip import basis, Qobj
 from qutip.measurement import measurement_statistics
 from .gates import expand_operator
 
+QubitSpecifier = Union[int, Iterable[int]]
 
 __all__ = ["Measurement"]
 
@@ -29,7 +30,13 @@ class Measurement:
         classical register of the circuit.
     """
 
-    def __init__(self, name, targets=None, index=None, classical_store=None):
+    def __init__(
+        self,
+        name: str,
+        targets: QubitSpecifier = None,
+        index: Optional[int] = None,
+        classical_store: Optional[int] = None,
+    ) -> None:
         """
         Create a measurement with specified parameters.
         """
@@ -52,7 +59,9 @@ class Measurement:
                 if not all_integer:
                     raise ValueError("Index of a qubit must be an integer")
 
-    def measurement_comp_basis(self, state):
+    def measurement_comp_basis(
+        self, state: Qobj
+    ) -> tuple[List[Optional[Qobj]], List[float]]:
         """
         Measures a particular qubit (determined by the target)
         whose ket vector/ density matrix is specified in the
@@ -106,7 +115,7 @@ class Measurement:
         ]
         return states, probabilities
 
-    def __str__(self):
+    def __str__(self) -> str:
         str_name = ("Measurement(%s, target=%s, classical_store=%s)") % (
             self.name,
             self.targets,
@@ -114,13 +123,13 @@ class Measurement:
         )
         return str_name
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)
 
-    def _repr_latex_(self):
+    def _repr_latex_(self) -> str:
         return str(self)
 
-    def _to_qasm(self, qasm_out):
+    def _to_qasm(self, qasm_out) -> None:
         """
         Pipe output of measurement to QasmOutput object.
 
