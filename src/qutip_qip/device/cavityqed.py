@@ -70,7 +70,7 @@ class DispersiveCavityQED(ModelProcessor):
         processor.load_circuit(qc)
         result = processor.run_state(
             qutip.basis([10, 2, 2], [0, 0, 0]),
-            options=qutip.Options(nsteps=5000))
+            options={"nsteps": 5000})
         final_qubit_state = result.states[-1].ptrace([1, 2])
         print(round(qutip.fidelity(
             final_qubit_state,
