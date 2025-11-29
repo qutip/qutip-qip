@@ -19,9 +19,6 @@ from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations import Gate
 from qutip_qip.device import ModelProcessor, Model
 from qutip_qip.compiler import GateCompiler, Instruction
-import qutip
-from packaging.version import parse as parse_version
-from qutip import Options
 from qutip_qip.noise import Noise
 
 
@@ -217,7 +214,7 @@ def single_crosstalk_simulation(num_gates):
     init_state = tensor(
         [Qobj([[init_fid, 0], [0, 0.025]]), Qobj([[init_fid, 0], [0, 0.025]])]
     )
-    options = Options(nsteps=10000)  # increase the maximal allowed steps
+    options = {"nsteps": 10000}  # increase the maximal allowed steps
     e_ops = [tensor([qeye(2), fock_dm(2)])]  # observable
 
     # compute results of the run using a solver of choice with custom options
