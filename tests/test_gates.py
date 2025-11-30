@@ -1,5 +1,4 @@
 from copy import deepcopy
-from packaging.version import parse as parse_version
 import pytest
 import functools
 import itertools
@@ -24,15 +23,13 @@ def _infidelity(a, b):
 
 def _make_random_three_qubit_gate():
     """Create a random three-qubit gate."""
-    if parse_version(qutip.__version__) < parse_version('5.dev'):
-        operation = qutip.rand_unitary(8, dims=[[2] * 3] * 2)
-    else:
-        operation = qutip.rand_unitary([2] * 3)
+    operation = qutip.rand_unitary([2] * 3)
 
     def gate(N=None, controls=None, target=None):
         if N is None:
             return operation
         return expand_operator(operation, dims=[2]*N, targets=controls + [target])
+    
     return gate
 
 
@@ -278,10 +275,8 @@ class Test_expand_operator:
     def test_general_qubit_expansion(self, n_targets):
         # Test all permutations with the given number of targets.
         n_qubits = 5
-        if parse_version(qutip.__version__) < parse_version('5.dev'):
-            operation = qutip.rand_unitary(2**n_targets, dims=[[2]*n_targets]*2)
-        else:
-            operation = qutip.rand_unitary([2]*n_targets)
+        operation = qutip.rand_unitary([2]*n_targets)
+
         for targets in itertools.permutations(range(n_qubits), n_targets):
             expected = _tensor_with_entanglement([qutip.qeye(2)] * n_qubits,
                                                  operation, targets)
@@ -338,11 +333,6 @@ class Test_expand_operator:
             assert test.dims == expected.dims
             np.testing.assert_allclose(test.full(), expected.full())
 
-    @pytest.mark.skipif(
-        not parse_version(qutip.__version__) >= parse_version('5.dev'),
-        reason=
-        "Data type only exist in v5."
-        )
     def test_dtype(self):
         expanded_qobj = expand_operator(gates.cnot(), dims=[2, 2, 2]).data
         assert isinstance(expanded_qobj, qutip.data.CSR)
@@ -352,10 +342,7 @@ class Test_expand_operator:
 
 
 def test_gates_class():
-    if parse_version(qutip.__version__) < parse_version('5.dev'):
-        init_state = qutip.rand_ket(8, dims=[[2, 2, 2], [1, 1, 1]])
-    else:
-        init_state = qutip.rand_ket([2, 2, 2])
+    init_state = qutip.rand_ket([2, 2, 2])
 
     circuit1 = QubitCircuit(3)
     circuit1.add_gate("X", 1)

@@ -1,31 +1,18 @@
-from packaging.version import parse as parse_version
 from collections.abc import Iterable
 import warnings
 from copy import deepcopy
-from typing import Any, List, Tuple, Hashable
+from typing import List, Tuple, Hashable
 
 import numpy as np
-from scipy.interpolate import CubicSpline
 
 import qutip
-from qutip import Qobj, QobjEvo, identity, tensor, mesolve, mcsolve
-from ..operations import expand_operator, globalphase
-from ..circuit import QubitCircuit
+from qutip import Qobj, QobjEvo, mesolve, mcsolve
+from ..operations import globalphase
 from ..noise import (
     Noise,
-    RelaxationNoise,
-    DecoherenceNoise,
-    ControlAmpNoise,
-    RandomNoise,
     process_noise,
 )
-from ..pulse import Pulse, Drift, _merge_qobjevo, _fill_coeff
-
-
-if parse_version(qutip.__version__) >= parse_version("5.dev"):
-    is_qutip5 = True
-else:
-    is_qutip5 = False
+from ..pulse import Pulse, Drift, _fill_coeff
 
 
 __all__ = ["Processor"]
@@ -997,19 +984,8 @@ class Processor(object):
                 qu = pulse.get_ideal_qobjevo(dims=self.dims)
             qu_list.append(qu)
 
-        if is_qutip5:
-            final_qu = sum(qu_list)
-            final_qu.arguments(args)
-        else:
-            final_qu = _merge_qobjevo(qu_list)
-            final_qu.args.update(args)
-
-        # bring all c_ops to the same tlist, won't need it in QuTiP 5
-        if not parse_version(qutip.__version__) >= parse_version("5.dev"):
-            temp = []
-            for c_op in c_ops:
-                temp.append(_merge_qobjevo([c_op], final_qu.tlist))
-            c_ops = temp
+        final_qu = sum(qu_list)
+        final_qu.arguments(args)
 
         if noisy:
             return final_qu, c_ops
@@ -1197,21 +1173,17 @@ class Processor(object):
             # TODO, this can be simplified further, tlist in the solver only
             # determines the time step for intermediate result.
             tlist = self.get_full_tlist()
+
         # Set the max step size as 1/10 of the total circuit time.
         # A better solution is to use the gate, which
         # is however, much harder to implement at this stage, see also
         # https://github.com/qutip/qutip-qip/issues/184.
-        if is_qutip5:
-            options = kwargs.get("options", qutip.Options())
-            if options.get("max_step", 0.0) == 0.0:
-                options["max_step"] = self._get_max_step()
-            options["progress_bar"] = False
-        else:
-            options = kwargs.get("options", qutip.Options())
-            if options.max_step == 0.0:
-                options.max_step = self._get_max_step()
-            options.progress_bar = False
+        options = kwargs.get("options", qutip.Options())
+        if options.get("max_step", 0.0) == 0.0:
+            options["max_step"] = self._get_max_step()
+        options["progress_bar"] = False
         kwargs["options"] = options
+
         # choose solver:
         if solver == "mesolve":
             evo_result = mesolve(

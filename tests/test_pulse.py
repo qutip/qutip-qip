@@ -1,7 +1,5 @@
-from packaging.version import parse as parse_version
 import numpy as np
 from numpy.testing import assert_, assert_allclose
-import pytest
 
 import qutip
 from qutip import (
@@ -42,18 +40,11 @@ class TestPulse:
         assert_allclose(pulse1.targets, 3)
         pulse1.targets = 1
         qobjevo = pulse1.get_ideal_qobjevo(2)
-        if parse_version(qutip.__version__) >= parse_version('5.dev'):
-            expected = QobjEvo(
-                [tensor(identity(2), sigmaz()), coeff],
-                tlist=tlist,
-                order=0
-                )
-        else:
-            expected = QobjEvo(
-                [tensor(identity(2), sigmaz()), coeff],
-                tlist=tlist,
-                args={"_step_func_coeff": True}
-                )
+        expected = QobjEvo(
+            [tensor(identity(2), sigmaz()), coeff],
+            tlist=tlist,
+            order=0
+            )
         _compare_qobjevo(qobjevo, expected, 0, 3)
 
     def test_coherent_noise(self):
@@ -95,28 +86,21 @@ class TestPulse:
 
         assert_allclose(
             pulse1.get_ideal_qobjevo(2)(0).full(),
-            tensor(identity(2), sigmaz()).full() * 0.1)
+            tensor(identity(2), sigmaz()).full() * 0.1
+        )
+
         noise_qu, c_ops = pulse1.get_noisy_qobjevo(2)
         assert_allclose(
             pulse1.get_full_tlist(), np.array([0., 0.5,  1., 2., 2.5, 3.]))
-        if parse_version(qutip.__version__) >= parse_version('5.dev'):
-            expected = QobjEvo([
-                    [tensor(identity(2), sigmaz()),
-                        np.array([0.1, 0.1, 0.2, 0.3, 0.3, 0.4])],
-                    [tensor(sigmay(), identity(2)),
-                        np.array([0., 0., 0.5, 0.5, 0.1, 0.5])]
-                ],
-                tlist=np.array([0., 0.5,  1., 2., 2.5, 3.]),
-                order=0)
-        else:
-            expected = QobjEvo([
-                    [tensor(identity(2), sigmaz()),
-                        np.array([0.1, 0.1, 0.2, 0.3, 0.3, 0.4])],
-                    [tensor(sigmay(), identity(2)),
-                        np.array([0., 0., 0.5, 0.5, 0.1, 0.5])]
-                ],
-                tlist=np.array([0., 0.5,  1., 2., 2.5, 3.]),
-                args={"_step_func_coeff": True})
+        
+        expected = QobjEvo([
+                [tensor(identity(2), sigmaz()),
+                    np.array([0.1, 0.1, 0.2, 0.3, 0.3, 0.4])],
+                [tensor(sigmay(), identity(2)),
+                    np.array([0., 0., 0.5, 0.5, 0.1, 0.5])]
+            ],
+            tlist=np.array([0., 0.5,  1., 2., 2.5, 3.]),
+            order=0)
         _compare_qobjevo(noise_qu, expected, 0, 3)
 
         for c_op in c_ops:
@@ -128,18 +112,11 @@ class TestPulse:
                 assert_allclose(c_op(0).full(),
                                 tensor(identity(2), sigmax()).full())
             else:
-                if parse_version(qutip.__version__) >= parse_version('5.dev'):
-                    expected = QobjEvo(
-                        [tensor(sigmax(), identity(2)),
-                            np.array([0., 0.1, 0.1, 0.2, 0.2, 0.3])],
-                        tlist=np.array([0., 0.5,  1., 2., 2.5, 3.]),
-                        order=0)
-                else:
-                    expected = QobjEvo(
-                        [tensor(sigmax(), identity(2)),
-                            np.array([0., 0.1, 0.1, 0.2, 0.2, 0.3])],
-                        tlist=np.array([0., 0.5,  1., 2., 2.5, 3.]),
-                        args={"_step_func_coeff": True})
+                expected = QobjEvo(
+                    [tensor(sigmax(), identity(2)),
+                        np.array([0., 0.1, 0.1, 0.2, 0.2, 0.3])],
+                    tlist=np.array([0., 0.5,  1., 2., 2.5, 3.]),
+                    order=0)
                 _compare_qobjevo(c_op, expected, 0, 3)
 
     def test_pulse_constructor(self):
@@ -170,23 +147,14 @@ class TestPulse:
         pulse5.add_coherent_noise(sigmay(), 1, tlist_noise, coeff_noise)
         pulse5.add_lindblad_noise(
             random_qobj, 0, tlist=tlist_noise2, coeff=coeff_noise2)
-        qu, c_ops = pulse5.get_noisy_qobjevo(dims=[3, 2])
-        if parse_version(qutip.__version__) >= parse_version('5.dev'):
-            expected = QobjEvo(
-                [
-                    tensor([identity(3), sigmaz()]),
-                    [tensor([identity(3), sigmay()]), coeff_noise]
-                ],
-                tlist=tlist_noise,
-                order=0)
-        else:
-            expected = QobjEvo(
-                [
-                    tensor([identity(3), sigmaz()]),
-                    [tensor([identity(3), sigmay()]), coeff_noise]
-                ],
-                tlist=tlist_noise,
-                args={"_step_func_coeff": True})
+        qu, _ = pulse5.get_noisy_qobjevo(dims=[3, 2])
+        expected = QobjEvo(
+            [
+                tensor([identity(3), sigmaz()]),
+                [tensor([identity(3), sigmay()]), coeff_noise]
+            ],
+            tlist=tlist_noise,
+            order=0)
         _compare_qobjevo(qu, expected, 0, 3)
 
     def test_drift(self):

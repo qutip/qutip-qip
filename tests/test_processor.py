@@ -9,7 +9,7 @@ import pytest
 import qutip
 from qutip_qip.device import Processor, LinearSpinChain
 from qutip import (
-    basis, sigmaz, sigmax, sigmay, identity, destroy, tensor,
+    basis, sigmaz, sigmax, identity, destroy, tensor,
     rand_ket, rand_dm, fidelity)
 from qutip_qip.operations import hadamard_transform
 from qutip_qip.noise import (
