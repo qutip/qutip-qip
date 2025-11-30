@@ -166,47 +166,37 @@ class TestCircuitProcessor:
         # left open, so we politely close it:
         plt.close(fig)
 
-    @pytest.mark.skipif(
-        parse_version(qutip.__version__) >= parse_version('5.dev'),
-        reason=
-        "QobjEvo in qutip 5 changes significantly."
-        "A new test needs to be built separately."
-        )
     def testSpline(self):
         """
-        Test if the spline kind is correctly transfered into
-        the arguments in QobjEvo
+        Test if the spline kind is correctly transferred into
+        the arguments in QobjEvo.
         """
-        tlist = np.array([1, 2, 3, 4, 5, 6], dtype=float)
-        coeff = np.array([1, 1, 1, 1, 1, 1], dtype=float)
+        # We use a varying coefficient to distinctively test 
+        # step_func vs cubic interpolation behavior.
+        tlist = np.array([0, 1, 2, 3], dtype=float)
+        coeff = np.array([0, 1, 2, 3], dtype=float)
+        
         processor = Processor(N=1, spline_kind="step_func")
         processor.add_control(sigmaz(), label="sz")
         processor.set_all_coeffs({"sz": coeff})
         processor.set_tlist(tlist)
 
         ideal_qobjevo, _ = processor.get_qobjevo(noisy=False)
-        assert_(ideal_qobjevo.args["_step_func_coeff"])
-        noisy_qobjevo, c_ops = processor.get_qobjevo(noisy=True)
-        assert_(noisy_qobjevo.args["_step_func_coeff"])
-        processor.add_noise(ControlAmpNoise(coeff=coeff, tlist=tlist))
-        noisy_qobjevo, c_ops = processor.get_qobjevo(noisy=True)
-        assert_(noisy_qobjevo.args["_step_func_coeff"])
+        assert_allclose(ideal_qobjevo(0.5).data.to_array(), sigmaz().data.to_array() * 0.0)
 
-        tlist = np.array([1, 2, 3, 4, 5, 6], dtype=float)
-        coeff = np.array([1, 1, 1, 1, 1, 1], dtype=float)
-        processor = Processor(N=1, spline_kind="cubic")
-        processor.add_control(sigmaz(), label="sz")
-        processor.set_all_coeffs({"sz": coeff})
-        processor.set_all_tlist(tlist)
+        # Verify noise inherits the step property
+        noisy_qobjevo, c_ops = processor.get_qobjevo(noisy=True)
+        assert_allclose(noisy_qobjevo(0.5).data.to_array(), sigmaz().data.to_array() * 0.0)
 
-        ideal_qobjevo, _ = processor.get_qobjevo(noisy=False)
-        assert ("_step_func_coeff" not in ideal_qobjevo.args)
-        noisy_qobjevo, c_ops = processor.get_qobjevo(noisy=True)
-        assert ("_step_func_coeff" not in noisy_qobjevo.args)
-        processor.t1 = 100.
-        processor.add_noise(ControlAmpNoise(coeff=coeff, tlist=tlist))
-        noisy_qobjevo, c_ops = processor.get_qobjevo(noisy=True)
-        assert ("_step_func_coeff" not in noisy_qobjevo.args)
+        processor_cubic = Processor(N=1, spline_kind="cubic")
+        processor_cubic.add_control(sigmaz(), label="sz")
+        processor_cubic.set_all_coeffs({"sz": coeff})
+        processor_cubic.set_all_tlist(tlist)
+
+        ideal_qobjevo_cubic, _ = processor_cubic.get_qobjevo(noisy=False)
+        val_at_half = ideal_qobjevo_cubic(0.5).data.to_array()[0,0]
+        assert abs(val_at_half - 0.5) < 0.1 
+        assert abs(val_at_half - 0.0) > 0.1
 
     @pytest.mark.skipif(
         parse_version(qutip.__version__) >= parse_version('5.dev'),
