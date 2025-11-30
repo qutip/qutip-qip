@@ -17,19 +17,10 @@ jobs:
             os: ubuntu-latest
             qutip-version: '==5.*'
             python-version: '3.11'
-          - case-name: qutip@qutip-4.7.X
-            os: ubuntu-latest
-            qutip-version: '@qutip-4.7.X'
-            python-version: '3.10'
           - case-name: qutip@master
             os: ubuntu-latest
             qutip-version: '@master'
             python-version: '3.12'
-          - case-name: qutip@4.7
-            os: macOS-latest
-            qutip-version: '==4.7.*'
-            qiskit-version: ''
-            python-version: '3.11'
           - case-name: qiskit
             os: windows-latest
             qutip-version: ''
