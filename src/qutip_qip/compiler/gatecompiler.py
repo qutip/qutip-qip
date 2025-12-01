@@ -5,7 +5,6 @@ from scipy import signal
 from .instruction import Instruction
 from .scheduler import Scheduler
 from ..circuit import QubitCircuit
-from ..operations import Gate
 
 
 __all__ = ["GateCompiler"]

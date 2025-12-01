@@ -1,8 +1,5 @@
-from functools import partial
 import numpy as np
 
-from ..circuit import QubitCircuit
-from ..operations import Gate
 from ..compiler import GateCompiler, Instruction
 
 
