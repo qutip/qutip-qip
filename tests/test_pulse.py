@@ -1,7 +1,6 @@
 import numpy as np
 from numpy.testing import assert_, assert_allclose
 
-import qutip
 from qutip import (
     Qobj, sigmax, sigmay, sigmaz, identity, tensor, QobjEvo
 )

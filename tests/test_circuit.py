@@ -14,7 +14,6 @@ from qutip import (
     rand_ket,
     fock_dm,
     basis,
-    rand_dm,
     bell_state,
     ket2dm,
     identity,

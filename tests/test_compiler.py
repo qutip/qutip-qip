@@ -7,7 +7,7 @@ from qutip_qip.compiler.gatecompiler import _default_window_t_max
 from qutip_qip.device import (
     DispersiveCavityQED, CircularSpinChain, LinearSpinChain)
 from qutip_qip.compiler import (
-    SpinChainCompiler, CavityQEDCompiler, Instruction, GateCompiler
+    SpinChainCompiler, Instruction, GateCompiler
     )
 from qutip_qip.circuit import QubitCircuit
 from qutip import basis, fidelity

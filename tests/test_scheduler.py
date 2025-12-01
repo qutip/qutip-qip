@@ -3,8 +3,8 @@ from copy import deepcopy
 
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.compiler import Instruction, Scheduler
-from qutip_qip.operations import Gate, gate_sequence_product
-from qutip import process_fidelity, qeye, tracedist
+from qutip_qip.operations import Gate
+from qutip import qeye, tracedist
 
 
 def _verify_scheduled_circuit(circuit, gate_cycle_indices):
