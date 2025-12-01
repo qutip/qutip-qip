@@ -2,18 +2,14 @@
 Quantum circuit representation and simulation.
 """
 
-import os
 import inspect
-from io import BytesIO
-from itertools import product
-from functools import partialmethod
-from typing import Optional, Union, Tuple, List, Dict, Any
 from collections.abc import Iterable
+from math import pi
 
 import numpy as np
 from copy import deepcopy
 
-from .texrenderer import TeXRenderer, CONVERTERS
+from .texrenderer import TeXRenderer
 from ._decompose import _resolve_to_universal, _resolve_2q_basis
 from ..operations import (
     Gate,
