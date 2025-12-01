@@ -6,8 +6,7 @@ from collections.abc import Iterable
 from copy import deepcopy
 import numpy as np
 
-from qutip import Qobj, QobjEvo, basis, sigmaz, destroy, num, qeye, tensor
-from .operations import expand_operator
+from qutip import Qobj, basis, destroy, num, qeye, tensor
 from .pulse import Pulse
 
 

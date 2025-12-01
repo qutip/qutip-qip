@@ -49,13 +49,6 @@ from .gates import (
     expand_operator,
 )
 
-from packaging.version import parse as parse_version
-
-if parse_version(qutip.__version__) >= parse_version("5.dev"):
-    is_qutip5 = True
-else:
-    is_qutip5 = False
-
 __all__ = [
     "Gate",
     "GATE_CLASS_MAP",
@@ -447,7 +440,7 @@ class X(SingleQubitGate):
         self.latex_str = r"X"
 
     def get_compact_qobj(self):
-        return qutip.sigmax() if not is_qutip5 else qutip.sigmax(dtype="dense")
+        return qutip.sigmax(dtype="dense")
 
 
 class Y(SingleQubitGate):
@@ -469,7 +462,7 @@ class Y(SingleQubitGate):
         self.latex_str = r"Y"
 
     def get_compact_qobj(self):
-        return qutip.sigmay() if not is_qutip5 else qutip.sigmay(dtype="dense")
+        return qutip.sigmay(dtype="dense")
 
 
 class Z(SingleQubitGate):
@@ -491,7 +484,7 @@ class Z(SingleQubitGate):
         self.latex_str = r"Z"
 
     def get_compact_qobj(self):
-        return qutip.sigmaz() if not is_qutip5 else qutip.sigmaz(dtype="dense")
+        return qutip.sigmaz(dtype="dense")
 
 
 class RX(SingleQubitGate):

@@ -1,15 +1,14 @@
 import os
 
-from packaging.version import parse as parse_version
 from numpy.testing import (
-    assert_, assert_allclose, assert_equal)
+    assert_allclose, assert_equal)
 import numpy as np
 import pytest
 
 import qutip
 from qutip_qip.device import Processor, LinearSpinChain
 from qutip import (
-    basis, sigmaz, sigmax, sigmay, identity, destroy, tensor,
+    basis, sigmaz, sigmax, identity, destroy, tensor,
     rand_ket, rand_dm, fidelity)
 from qutip_qip.operations import hadamard_transform
 from qutip_qip.noise import (
@@ -17,7 +16,6 @@ from qutip_qip.noise import (
 from qutip_qip.qubits import qubit_states
 from qutip_qip.pulse import Pulse
 from qutip_qip.circuit import QubitCircuit
-from qutip import Options
 
 
 class TestCircuitProcessor:
@@ -89,7 +87,7 @@ class TestCircuitProcessor:
         tlist = [0., 1., 2.]
         proc.add_pulse(Pulse(identity(2), 0, tlist, False))
         result = proc.run_state(
-            init_state, options=Options(store_final_state=True))
+            init_state, options={'store_final_state': True})
         global_phase = init_state[0, 0]/result.final_state[0, 0]
         assert_allclose(
             global_phase*result.final_state.full(), init_state.full())
@@ -167,55 +165,42 @@ class TestCircuitProcessor:
         # left open, so we politely close it:
         plt.close(fig)
 
-    @pytest.mark.skipif(
-        parse_version(qutip.__version__) >= parse_version('5.dev'),
-        reason=
-        "QobjEvo in qutip 5 changes significantly."
-        "A new test needs to be built separately."
-        )
     def testSpline(self):
         """
-        Test if the spline kind is correctly transfered into
-        the arguments in QobjEvo
+        Test if the spline kind is correctly transferred into
+        the arguments in QobjEvo.
         """
-        tlist = np.array([1, 2, 3, 4, 5, 6], dtype=float)
-        coeff = np.array([1, 1, 1, 1, 1, 1], dtype=float)
+        # We use a varying coefficient to distinctively test 
+        # step_func vs cubic interpolation behavior.
+        tlist = np.array([0, 1, 2, 3], dtype=float)
+        coeff = np.array([0, 1, 2, 3], dtype=float)
+        
         processor = Processor(N=1, spline_kind="step_func")
         processor.add_control(sigmaz(), label="sz")
         processor.set_all_coeffs({"sz": coeff})
         processor.set_tlist(tlist)
 
         ideal_qobjevo, _ = processor.get_qobjevo(noisy=False)
-        assert_(ideal_qobjevo.args["_step_func_coeff"])
-        noisy_qobjevo, c_ops = processor.get_qobjevo(noisy=True)
-        assert_(noisy_qobjevo.args["_step_func_coeff"])
-        processor.add_noise(ControlAmpNoise(coeff=coeff, tlist=tlist))
-        noisy_qobjevo, c_ops = processor.get_qobjevo(noisy=True)
-        assert_(noisy_qobjevo.args["_step_func_coeff"])
+        assert_allclose(ideal_qobjevo(0.5).data.to_array(), sigmaz().data.to_array() * 0.0)
 
-        tlist = np.array([1, 2, 3, 4, 5, 6], dtype=float)
-        coeff = np.array([1, 1, 1, 1, 1, 1], dtype=float)
-        processor = Processor(N=1, spline_kind="cubic")
-        processor.add_control(sigmaz(), label="sz")
-        processor.set_all_coeffs({"sz": coeff})
-        processor.set_all_tlist(tlist)
-
-        ideal_qobjevo, _ = processor.get_qobjevo(noisy=False)
-        assert ("_step_func_coeff" not in ideal_qobjevo.args)
+        # Verify noise inherits the step property
         noisy_qobjevo, c_ops = processor.get_qobjevo(noisy=True)
-        assert ("_step_func_coeff" not in noisy_qobjevo.args)
-        processor.t1 = 100.
-        processor.add_noise(ControlAmpNoise(coeff=coeff, tlist=tlist))
-        noisy_qobjevo, c_ops = processor.get_qobjevo(noisy=True)
-        assert ("_step_func_coeff" not in noisy_qobjevo.args)
+        assert_allclose(noisy_qobjevo(0.5).data.to_array(), sigmaz().data.to_array() * 0.0)
 
-    @pytest.mark.skipif(
-        parse_version(qutip.__version__) >= parse_version('5.dev'),
-        reason=
-        "QobjEvo in qutip 5 changes significantly."
-        "A new test needs to be built separately."
-        )
+        processor_cubic = Processor(N=1, spline_kind="cubic")
+        processor_cubic.add_control(sigmaz(), label="sz")
+        processor_cubic.set_all_coeffs({"sz": coeff})
+        processor_cubic.set_all_tlist(tlist)
+
+        ideal_qobjevo_cubic, _ = processor_cubic.get_qobjevo(noisy=False)
+        val_at_half = ideal_qobjevo_cubic(0.5).data.to_array()[0,0]
+        assert abs(val_at_half - 0.5) < 0.1 
+        assert abs(val_at_half - 0.0) > 0.1
+
     def testGetObjevo(self):
+        """
+        Test structure of QobjEvo (Adapted for QuTiP v5).
+        """
         tlist = np.array([1, 2, 3, 4, 5, 6], dtype=float)
         coeff = np.array([1, 1, 1, 1, 1, 1], dtype=float)
         processor = Processor(N=1)
@@ -223,49 +208,70 @@ class TestCircuitProcessor:
         processor.set_all_coeffs({"sz": coeff})
         processor.set_all_tlist(tlist)
 
-        # without noise
-        unitary_qobjevo, _ = processor.get_qobjevo(
-            args={"test": True}, noisy=False)
-        assert_allclose(unitary_qobjevo.ops[0].qobj, sigmaz())
-        assert_allclose(unitary_qobjevo.tlist, tlist)
-        assert_allclose(unitary_qobjevo.ops[0].coeff, coeff[0])
-        assert_(unitary_qobjevo.args["test"],
-                msg="Arguments not correctly passed on")
-
-        # with decoherence noise
+        unitary_qobjevo, _ = processor.get_qobjevo(args={"test": True}, noisy=False)
+        components = unitary_qobjevo.to_list()
+        assert_allclose(
+            components[0][0].data.to_array(), 
+            sigmaz().data.to_array()
+        )
+        
+        # For v5: QobjEvo has no public .tlist attribute.
+        # Instead, verify the time-dependence works by evaluating it at t=1.0.
+        assert_allclose(unitary_qobjevo(1.0).data.to_array(), sigmaz().data.to_array())
+        
+        # With Decoherence Noise
         dec_noise = DecoherenceNoise(
             c_ops=sigmax(), coeff=coeff, tlist=tlist)
         processor.add_noise(dec_noise)
-        assert_equal(unitary_qobjevo.to_list(),
-                     processor.get_qobjevo(noisy=False)[0].to_list())
+        
+        assert_equal(unitary_qobjevo.to_list()[0][0],
+                     processor.get_qobjevo(noisy=False)[0].to_list()[0][0]) #We index [0] to get the Hamiltonian before calling .to_list()
 
-        noisy_qobjevo, c_ops = processor.get_qobjevo(
-            args={"test": True}, noisy=True)
-        assert_(noisy_qobjevo.args["_step_func_coeff"],
-                msg="Spline type not correctly passed on")
-        assert_(noisy_qobjevo.args["test"],
-                msg="Arguments not correctly passed on")
-        assert_(sigmaz() in [pair[0] for pair in noisy_qobjevo.to_list()])
-        assert_equal(c_ops[0].ops[0].qobj, sigmax())
-        assert_equal(c_ops[0].tlist, tlist)
+        # Check that sigmaz is present in the Hamiltonian components with noise
+        noisy_qobjevo, c_ops = processor.get_qobjevo(args={"test": True}, noisy=True)
+        hamiltonian_parts = [pair[0] for pair in noisy_qobjevo.to_list()]
+        assert any(pair == sigmaz() for pair in hamiltonian_parts)
 
-        # with amplitude noise
+        # Check collapse operators - c_ops[0] is a QobjEvo. We inspect its components.
+        c_op_comp = c_ops[0].to_list()
+        assert_equal(c_op_comp[0][0], sigmax())
+        
+        # For v5: Verify value at t=1.0 instead of checking .tlist attribute
+        assert_allclose(c_ops[0](1.0).data.to_array(), sigmax().data.to_array())
+
+        # With Amplitude Noise
         processor = Processor(N=1, spline_kind="cubic")
         processor.add_control(sigmaz(), label="sz")
         tlist = np.linspace(1, 6, int(5/0.2))
+        
+        # Use random coeff to verify values explicitly
         coeff = np.random.rand(len(tlist))
         processor.set_all_coeffs({"sz": coeff})
         processor.set_all_tlist(tlist)
 
         amp_noise = ControlAmpNoise(coeff=coeff, tlist=tlist)
         processor.add_noise(amp_noise)
+        
         noisy_qobjevo, c_ops = processor.get_qobjevo(
             args={"test": True}, noisy=True)
-        assert ("_step_func_coeff" not in noisy_qobjevo.args)
-        assert noisy_qobjevo.args["test"]
-        assert_equal(len(noisy_qobjevo.ops), 2)
-        assert_equal(sigmaz(), noisy_qobjevo.ops[0].qobj)
-        assert_allclose(coeff, noisy_qobjevo.ops[0].coeff, rtol=1.e-10)
+
+        # We verify the total physical value: (Signal + Noise).
+        # At t = tlist[0], the total coefficient should be:
+        # Signal (coeff[0]) + Noise (coeff[0]) = 2 * coeff[0]
+        t_check = tlist[0]
+        expected_coeff_val = coeff[0] + coeff[0]
+        qobj_at_t = noisy_qobjevo(t_check)
+        
+        # Extract the scalar value at index [0,0] (corresponding to sigmaz diagonal)
+        # sigmaz is diag(1, -1), so element [0,0] is +1 * coefficient
+        actual_val = qobj_at_t.data.to_array()[0, 0]
+        assert_allclose(actual_val, expected_coeff_val, rtol=1.e-5)
+        
+        # Verify the operator structure is still sigmaz
+        # If we divide by the expected coefficient, we should get exactly sigmaz
+        if abs(expected_coeff_val) > 1e-9:
+            normalized_qobj = qobj_at_t / expected_coeff_val
+            assert_allclose(normalized_qobj.data.to_array(), sigmaz().data.to_array(), atol=1e-5)
 
     def testNoise(self):
         """
@@ -398,7 +404,7 @@ class TestCircuitProcessor:
         # No max_step
         final_state = processor.run_state(
             init_state,
-            options=Options(max_step=10000)  # too large max_step
+            options={'max_step': 10000} # too large max_step
         ).states[-1]
         expected_state = tensor([basis(2, 0), basis(2, 1)])
         assert pytest.approx(fidelity(final_state, expected_state), 0.001) == 0

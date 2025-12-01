@@ -1,14 +1,10 @@
 import numbers
-from packaging.version import parse as parse_version
 from collections.abc import Iterable
 from itertools import product
 from functools import partial, reduce
 from operator import mul
 
 import warnings
-import inspect
-from copy import deepcopy
-
 import numpy as np
 import scipy.sparse as sp
 
@@ -1276,10 +1272,9 @@ def expand_operator(
      [0. 0. 0. 0. 0. 0. 1. 0.]
      [0. 0. 0. 1. 0. 0. 0. 0.]]
     """
-    if parse_version(qutip.__version__) >= parse_version("5.dev"):
-        # If no data type specified, use CSR
-        dtype = dtype or qutip.settings.core["default_dtype"] or qutip.data.CSR
-        oper = oper.to(dtype)
+    dtype = dtype or qutip.settings.core["default_dtype"] or qutip.data.CSR
+    oper = oper.to(dtype)
+
     if N is not None:
         warnings.warn(
             "The function expand_operator has been generalized to "
@@ -1288,10 +1283,12 @@ def expand_operator(
             "expand_operator(oper, dims=[2, 3, 2, 2], targets=2)",
             DeprecationWarning,
         )
+
     if dims is not None and N is None:
         if not isinstance(dims, Iterable):
             f"dims needs to be an interable {not type(dims)}."
         N = len(dims)  # backward compatibility
+
     if dims is None:
         dims = [2] * N
     targets = _targets_to_list(targets, oper=oper, N=N)
@@ -1327,9 +1324,7 @@ def expand_operator(
         new_order[ind] = rest_qubits[i]
     id_list = [identity(dims[i]) for i in rest_pos]
     out = tensor([oper] + id_list).permute(new_order)
-    if parse_version(qutip.__version__) >= parse_version("5.dev"):
-        out = out.to(dtype)
-    return out
+    return out.to(dtype)
 
 
 def gate_sequence_product(

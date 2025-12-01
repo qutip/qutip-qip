@@ -9,17 +9,16 @@ except:
     pass
 plt.rcParams.update({"text.usetex": False, "font.size": 10})
 
-num_qubits = 3
                 
 import numpy as np
 import matplotlib.pyplot as plt
-np.random.seed(2)
 from qutip_qip.device import (
     OptPulseProcessor, LinearSpinChain, SCQubits, SpinChainModel)
 from qutip_qip.circuit import QubitCircuit
-from qutip import sigmaz, sigmax, identity, tensor, basis
-from qutip_qip.compat import to_scalar
+from qutip import basis
 
+num_qubits = 3
+np.random.seed(2)
 
 # Deutsch-Josza algorithm
 dj_circuit = QubitCircuit(num_qubits)
@@ -146,7 +145,7 @@ expect = []
 for state in result1.states:
     tmp = state.ptrace([0,1])
     tmp = basis([2,2], [0,0]).dag() * tmp * basis([2,2], [0,0])
-    expect.append(np.real(to_scalar(tmp)))
+    expect.append(np.real(tmp))
 
 fig5, ax5 = plt.subplots(figsize=(LINEWIDTH, LINEWIDTH*0.7), dpi=200)
 ax5.plot(t_record, expect, color="slategrey")

@@ -13,9 +13,6 @@ from qutip_qip.noise import (
 from qutip_qip.pulse import Pulse, Drift
 from qutip_qip.circuit import QubitCircuit
 
-import qutip
-from packaging.version import parse as parse_version
-
 
 class TestNoise:
     def test_decoherence_noise(self):

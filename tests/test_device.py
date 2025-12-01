@@ -12,9 +12,6 @@ from qutip_qip.operations import Gate, gate_sequence_product, RZX
 from qutip_qip.device import (DispersiveCavityQED, LinearSpinChain,
                                 CircularSpinChain, SCQubits)
 
-from packaging.version import parse as parse_version
-from qutip import Options
-
 _tol = 3.e-2
 
 _x = Gate("X", targets=[0])
@@ -136,7 +133,7 @@ def _test_numerical_evolution_helper(num_qubits, gates, device_class, kwargs):
         init_state = _ket_expaned_dims(state, device.dims)
     else:
         init_state = state
-    options = Options(store_final_state=True, nsteps=50_000)
+    options = {'store_final_state': True, 'nsteps': 50000}
     result = device.run_state(init_state=init_state,
                               analytical=False,
                               options=options)
@@ -193,7 +190,7 @@ def test_numerical_circuit(circuit, device_class, kwargs, schedule_mode):
         init_state = _ket_expaned_dims(state, device.dims)
     else:
         init_state = state
-    options = Options(store_final_state=True, nsteps=50_000)
+    options = {'store_final_state': True, 'nsteps': 50000}
     result = device.run_state(init_state=init_state,
                               analytical=False,
                               options=options)
@@ -221,15 +218,11 @@ def test_pulse_plotting(processor_class):
 
 def _compute_propagator(processor, circuit):
     qevo, _ = processor.get_qobjevo(noisy=True)
-    if parse_version(qutip.__version__) < parse_version("5.dev"):
-        qevo = qevo.to_list()
-        result = qutip.propagator(qevo, t=processor.get_full_tlist())[-1]
-    else:
-        result = qutip.propagator(
-            qevo,
-            t=processor.get_full_tlist(),
-            parallel=False
-            )[-1]
+    result = qutip.propagator(
+        qevo,
+        t=processor.get_full_tlist(),
+        parallel=False
+        )[-1]
     return result
 
 

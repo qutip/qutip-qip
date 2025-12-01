@@ -8,7 +8,6 @@ from qutip_qip.circuit import QubitCircuit
 from scipy.optimize import minimize
 from scipy.linalg import expm_frechet
 from .operations import gate_sequence_product
-from .compat import to_scalar
 
 
 class VQA:
@@ -417,7 +416,6 @@ class VQA:
         dCost = (init.dag() * dU.dag()) * obs * (U * init) + (
             init.dag() * U.dag()
         ) * obs * (dU * init)
-        dCost = to_scalar(dCost)
         return np.real(dCost)
 
     def compute_jac(self, angles, indices_to_compute=None):

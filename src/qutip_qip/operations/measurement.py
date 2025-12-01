@@ -90,12 +90,7 @@ class Measurement:
             for op in measurement_ops
         ]
 
-        try:
-            # qutip-v5
-            measurement_tol = qutip.settings.core["atol"] ** 2
-        except AttributeError:
-            # qutip-v4
-            measurement_tol = qutip.settings.atol**2
+        measurement_tol = qutip.settings.core["atol"] ** 2
         states, probabilities = measurement_statistics(state, measurement_ops)
         probabilities = [
             p if p > measurement_tol else 0.0 for p in probabilities

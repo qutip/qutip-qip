@@ -23,7 +23,7 @@ state1 = qc.run(basis([2]*num_qubits, [0]*num_qubits))
 # Pulse-level simulation
 processor = LinearSpinChain(num_qubits)
 processor.load_circuit(qc)
-options = Options(max_step=5000, rtol=1.e-8)
+options = {'max_step': 5000, 'rtol': 1.e-8}
 state2 = processor.run_state(
     basis([2]*num_qubits, [0]*num_qubits),
     options=options

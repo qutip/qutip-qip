@@ -1,10 +1,8 @@
 """Pulse representation of a quantum circuit."""
 
-from packaging.version import parse as parse_version
 import numpy as np
 from scipy.interpolate import CubicSpline
 
-import qutip
 from qutip import QobjEvo, Qobj, identity
 from .operations import expand_operator
 
@@ -82,14 +80,7 @@ class _EvoElement:
             elif spline_kind == "step_func":
                 if len(self.coeff) == len(self.tlist) - 1:
                     self.coeff = np.concatenate([self.coeff, [0.0]])
-                if parse_version(qutip.__version__) >= parse_version("5.dev"):
-                    qu = QobjEvo([mat, self.coeff], tlist=self.tlist, order=0)
-                else:
-                    qu = QobjEvo(
-                        [mat, self.coeff],
-                        tlist=self.tlist,
-                        args={"_step_func_coeff": True},
-                    )
+                qu = QobjEvo([mat, self.coeff], tlist=self.tlist, order=0)
             else:
                 # The spline will follow other pulses or
                 # use the default value of QobjEvo
@@ -417,10 +408,7 @@ class Pulse:
             noise.get_qobjevo(self.spline_kind, dims)
             for noise in self.coherent_noise
         ]
-        if parse_version(qutip.__version__) < parse_version("5.dev"):
-            qu = _merge_qobjevo([ideal_qu] + noise_qu_list)
-        else:
-            qu = sum(noise_qu_list, ideal_qu)
+        qu = sum(noise_qu_list, ideal_qu)
         c_ops = [
             noise.get_qobjevo(self.spline_kind, dims)
             for noise in self.lindblad_noise
@@ -575,24 +563,6 @@ class Drift:
         return None
 
 
-def _find_common_tlist(qobjevo_list, tol=1.0e-10):
-    """
-    Find the common ``tlist`` of a list of :class:`qutip.QobjEvo`.
-    """
-    all_tlists = [
-        qu.tlist
-        for qu in qobjevo_list
-        if isinstance(qu, QobjEvo) and qu.tlist is not None
-    ]
-    if not all_tlists:
-        return None
-    full_tlist = np.unique(np.sort(np.hstack(all_tlists)))
-    full_tlist = np.concatenate(
-        (full_tlist[:1], full_tlist[1:][np.diff(full_tlist) > tol])
-    )
-    return full_tlist
-
-
 def _merge_qobjevo(qobjevo_list, full_tlist=None):
     """
     Combine a list of `:class:qutip.QobjEvo` into one,
@@ -602,40 +572,7 @@ def _merge_qobjevo(qobjevo_list, full_tlist=None):
     if not qobjevo_list:
         raise ValueError("qobjevo_list is empty.")
 
-    # In qutip5 this can be done automatically.
-    if parse_version(qutip.__version__) >= parse_version("5.dev"):
-        return sum(
-            [op for op in qobjevo_list if isinstance(op, (Qobj, QobjEvo))]
-        )
-
-    if full_tlist is None:
-        full_tlist = _find_common_tlist(qobjevo_list)
-    spline_types_num = set()
-    args = {}
-    for qu in qobjevo_list:
-        if isinstance(qu, QobjEvo):
-            try:
-                spline_types_num.add(qu.args["_step_func_coeff"])
-            except Exception:
-                pass
-            args.update(qu.args)
-    if len(spline_types_num) > 1:
-        raise ValueError("Cannot merge Qobjevo with different spline kinds.")
-
-    for i, qobjevo in enumerate(qobjevo_list):
-        if isinstance(qobjevo, Qobj):
-            qobjevo_list[i] = QobjEvo(qobjevo)
-            qobjevo = qobjevo_list[i]
-        for j, ele in enumerate(qobjevo.ops):
-            if isinstance(ele.coeff, np.ndarray):
-                new_coeff = _fill_coeff(
-                    ele.coeff, qobjevo.tlist, full_tlist, args
-                )
-                qobjevo_list[i].ops[j].coeff = new_coeff
-        qobjevo_list[i].tlist = full_tlist
-
-    qobjevo = sum(qobjevo_list)
-    return qobjevo
+    return sum([op for op in qobjevo_list if isinstance(op, (Qobj, QobjEvo))])
 
 
 def _fill_coeff(old_coeffs, old_tlist, full_tlist, args=None, tol=1.0e-10):
