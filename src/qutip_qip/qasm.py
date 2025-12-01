@@ -6,7 +6,6 @@ from itertools import chain
 from copy import deepcopy
 import warnings
 
-from math import pi
 import numpy as np
 
 from .circuit import QubitCircuit
@@ -15,7 +14,6 @@ from .operations import (
     qasmu_gate,
     rz,
     snot,
-    gate_sequence_product,
 )
 
 

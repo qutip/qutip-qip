@@ -563,24 +563,6 @@ class Drift:
         return None
 
 
-def _find_common_tlist(qobjevo_list, tol=1.0e-10):
-    """
-    Find the common ``tlist`` of a list of :class:`qutip.QobjEvo`.
-    """
-    all_tlists = [
-        qu.tlist
-        for qu in qobjevo_list
-        if isinstance(qu, QobjEvo) and qu.tlist is not None
-    ]
-    if not all_tlists:
-        return None
-    full_tlist = np.unique(np.sort(np.hstack(all_tlists)))
-    full_tlist = np.concatenate(
-        (full_tlist[:1], full_tlist[1:][np.diff(full_tlist) > tol])
-    )
-    return full_tlist
-
-
 def _merge_qobjevo(qobjevo_list, full_tlist=None):
     """
     Combine a list of `:class:qutip.QobjEvo` into one,
@@ -590,9 +572,7 @@ def _merge_qobjevo(qobjevo_list, full_tlist=None):
     if not qobjevo_list:
         raise ValueError("qobjevo_list is empty.")
 
-    return sum(
-        [op for op in qobjevo_list if isinstance(op, (Qobj, QobjEvo))]
-    )
+    return sum([op for op in qobjevo_list if isinstance(op, (Qobj, QobjEvo))])
 
 
 def _fill_coeff(old_coeffs, old_tlist, full_tlist, args=None, tol=1.0e-10):

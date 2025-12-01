@@ -9,6 +9,7 @@ from scipy.optimize import minimize
 from scipy.linalg import expm_frechet
 from .operations import gate_sequence_product
 
+
 class VQA:
     """
     Optimizes free parameters to generate :obj:`.QubitCircuit` instances
