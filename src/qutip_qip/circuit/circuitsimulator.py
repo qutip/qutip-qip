@@ -8,7 +8,7 @@ from ..operations import (
     Measurement,
     expand_operator,
 )
-from qutip import basis, ket2dm, Qobj, tensor
+from qutip import ket2dm, Qobj, tensor
 import warnings
 
 

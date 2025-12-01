@@ -2,8 +2,7 @@
 Module for rendering a quantum circuit using matplotlib library.
 """
 
-from typing import Union, Optional, List, Dict
-from dataclasses import dataclass
+from typing import Union
 
 import numpy as np
 import matplotlib.pyplot as plt

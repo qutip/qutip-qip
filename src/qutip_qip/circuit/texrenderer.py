@@ -3,7 +3,6 @@ import sys
 import shutil
 import tempfile
 import warnings
-import functools
 import subprocess
 import collections
 

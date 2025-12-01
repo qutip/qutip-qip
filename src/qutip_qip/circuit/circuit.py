@@ -4,7 +4,6 @@ Quantum circuit representation and simulation.
 
 import inspect
 from collections.abc import Iterable
-from math import pi
 
 import numpy as np
 from copy import deepcopy
