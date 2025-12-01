@@ -1,19 +1,11 @@
 import numbers
 from collections.abc import Iterable
-from itertools import product, chain
-from functools import partial, reduce
-from operator import mul
+from functools import partial
 from typing import Optional
 
-import warnings
-import inspect
-from copy import deepcopy
-
 import numpy as np
-import scipy.sparse as sp
-
 import qutip
-from qutip import Qobj, identity, qeye, sigmax, sigmay, sigmaz, tensor, fock_dm
+from qutip import Qobj, qeye
 from .gates import (
     rx,
     ry,

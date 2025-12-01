@@ -1,11 +1,10 @@
 from collections.abc import Iterable
 import numbers
-import os
 
 import numpy as np
 
 import qutip
-from qutip import basis, Qobj
+from qutip import basis
 from qutip.measurement import measurement_statistics
 from .gates import expand_operator
 
