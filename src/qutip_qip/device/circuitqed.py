@@ -8,7 +8,6 @@ from .modelprocessor import ModelProcessor, _to_array
 from ..transpiler import to_chain_structure
 from ..compiler import SCQubitsCompiler
 from ..noise import ZZCrossTalk
-from ..operations import expand_operator
 
 
 __all__ = ["SCQubits"]

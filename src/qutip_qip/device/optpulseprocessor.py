@@ -1,10 +1,9 @@
 from collections.abc import Iterable
 import warnings
-import numbers
 
 import numpy as np
 
-from qutip import Qobj, identity, tensor, mesolve
+from qutip import Qobj, identity
 from ..circuit import QubitCircuit
 from .processor import Processor
 from ..operations import gate_sequence_product, expand_operator

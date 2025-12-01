@@ -3,12 +3,8 @@ import numbers
 
 import numpy as np
 
-from qutip import Qobj, QobjEvo, tensor, mesolve, basis
-from ..operations import globalphase
-from ..circuit import QubitCircuit
+from qutip import Qobj, basis
 from .processor import Processor
-from ..compiler import GateCompiler
-from ..pulse import Pulse
 
 
 __all__ = ["ModelProcessor"]

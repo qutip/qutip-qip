@@ -3,10 +3,8 @@ from copy import deepcopy
 import numpy as np
 
 from qutip import sigmax, sigmay, sigmaz, tensor
-from ..circuit import QubitCircuit
 from .processor import Model
 from .modelprocessor import ModelProcessor, _to_array
-from ..pulse import Pulse
 from ..compiler import SpinChainCompiler
 from ..transpiler import to_chain_structure
 

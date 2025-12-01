@@ -11,14 +11,10 @@ from qutip import (
     sigmaz,
     basis,
     Qobj,
-    QobjEvo,
 )
-from ..circuit import QubitCircuit
-from ..operations import Gate
-from .processor import Processor, Model
+from .processor import Model
 from .modelprocessor import ModelProcessor, _to_array
-from ..pulse import Pulse
-from ..compiler import GateCompiler, CavityQEDCompiler
+from ..compiler import CavityQEDCompiler
 
 
 __all__ = ["DispersiveCavityQED"]
