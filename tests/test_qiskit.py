@@ -13,6 +13,15 @@ from qutip_qip.device import (
 # if qiskit is not installed
 pytest.importorskip("qiskit")
 
+from packaging import version
+import qiskit
+
+if version.parse(qiskit.__version__) >= version.parse("1.0.0"):
+    pytest.skip(
+        "qiskit < 1.0.0 required",
+        allow_module_level=True,
+    )
+
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
 from qutip_qip.qiskit.provider import (
