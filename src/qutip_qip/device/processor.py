@@ -1,8 +1,6 @@
 from collections.abc import Iterable
 import warnings
 from copy import deepcopy
-from typing import List, Tuple, Hashable
-
 import numpy as np
 
 import qutip
@@ -12,10 +10,8 @@ from ..noise import (
     Noise,
     process_noise,
 )
+from .model import Model
 from ..pulse import Pulse, Drift, _fill_coeff
-
-
-__all__ = ["Processor"]
 
 
 class Processor(object):
@@ -37,9 +33,8 @@ class Processor(object):
 
     Parameters
     ----------
-    num_qubits : int, optional
+    num_qubits : int
         The number of qubits.
-        It replaces the old API ``N``.
 
     dims : list, optional
         The dimension of each component system.
@@ -75,15 +70,13 @@ class Processor(object):
 
     def __init__(
         self,
-        num_qubits=None,
+        num_qubits,
         dims=None,
         spline_kind="step_func",
         model=None,
-        N=None,
         t1=None,
         t2=None,
     ):
-        num_qubits = num_qubits if num_qubits is not None else N
         if model is None:
             self.model = Model(num_qubits=num_qubits, dims=dims, t1=t1, t2=t2)
         else:
@@ -154,10 +147,6 @@ class Processor(object):
         """.coverage"""
         return self.get_noise()
 
-    @property
-    def N(self):
-        return self.num_qubits
-
     ####################################################################
     # Hamiltonian model
     def get_all_drift(self):
@@ -184,7 +173,6 @@ class Processor(object):
         """generate the Drift representation"""
         drift_obj = Drift()
         for qobj, targets in self.model.get_all_drift():
-            num_qubits = len(qobj.dims[0])
             drift_obj.add_drift(qobj, targets)
         return drift_obj
 
@@ -1249,120 +1237,3 @@ def _pulse_interpolate(pulse, tlist):
         pulse.tlist, coeff, kind=kind, bounds_error=False, fill_value=0.0
     )
     return inter(tlist)
-
-
-class Model:
-    """
-    Template class for a physical model representing quantum hardware.
-    The concrete model class does not have to inherit from this,
-    as long as the following methods are defined.
-
-    Parameters
-    ----------
-    num_The number of qubits
-        The number of qubits.
-    dims : list, optional
-        The dimension of each component system.
-        Default value is a qubit system of ``dim=[2,2,2,...,2]``.
-    **params :
-        Hardware parameters for the model.
-
-    Attributes
-    ----------
-    num_The number of qubits
-        The number of qubits.
-    dims : list, optional
-        The dimension of each component system.
-    params : dict
-        Hardware parameters for the model.
-    """
-
-    def __init__(self, num_qubits, dims=None, **params):
-        self.num_qubits = num_qubits if num_qubits is not None else N
-        self.dims = dims if dims is not None else num_qubits * [2]
-        self.params = deepcopy(params)
-        self._controls = {}
-        self._drift = []
-        self._noise = []
-
-    def get_all_drift(self) -> List[Tuple[Qobj, List[int]]]:
-        """
-        Get all the drift Hamiltonians.
-
-        Returns
-        -------
-        drift_hamiltonian_list : list
-            A list of drift Hamiltonians in the form of
-            ``[(qobj, targets), ...]``.
-        """
-        return self._drift
-
-    def get_control(self, label: Hashable) -> Tuple[Qobj, List[int]]:
-        """
-        Get the control Hamiltonian corresponding to the label.
-
-        Parameters
-        ----------
-        label : hashable object
-            A label that identifies the Hamiltonian.
-
-        Returns
-        -------
-        control_hamiltonian : tuple
-            The control Hamiltonian in the form of ``(qobj, targets)``.
-        """
-        if hasattr(self, "_old_index_label_map"):
-            _old_index_label_map = self._old_index_label_map
-            if isinstance(label, int):
-                label = _old_index_label_map[label]
-        return self._controls[label]
-
-    def get_control_labels(self) -> List[Hashable]:
-        """
-        Get a list of all available control Hamiltonians.
-        Optional, required only when plotting the pulses or
-        using the optimal control algorithm.
-
-        Returns
-        -------
-        label_list : list of hashable objects
-            A list of hashable objects each corresponds to
-            an available control Hamiltonian.
-        """
-        return list(self._controls.keys())
-
-    def get_noise(self) -> List[Noise]:
-        """
-        Get a list of :obj:`.Noise` objects.
-        Single qubit relaxation (T1, T2) are not included here.
-        Optional method.
-
-        Returns
-        -------
-        noise_list : list
-            A list of :obj:`.Noise`.
-        """
-        if not hasattr(self, "_noise"):
-            return []
-        return self._noise
-
-    def _add_drift(self, qobj, targets):
-        if not hasattr(self, "_drift"):
-            raise NotImplementedError(
-                "The model does not support adding drift."
-            )
-        self._drift.append((qobj, targets))
-
-    def _add_control(self, label, qobj, targets):
-        if not hasattr(self, "_controls"):
-            raise NotImplementedError(
-                "The model does not support adding controls."
-            )
-        self._controls[label] = (qobj, targets)
-
-    def _add_noise(self, noise):
-        if not hasattr(self, "_noise"):
-            raise NotImplementedError(
-                "The model does not support adding noise objects."
-            )
-        self._noise.append(noise)

@@ -45,13 +45,13 @@ class TestCircuitProcessor:
         """
         Test for saving and reading a pulse matrix
         """
-        proc = Processor(N=2)
+        proc = Processor(num_qubits=2)
         proc.add_control(sigmaz(), label="sz")
         proc.add_control(sigmax(), label="sx")
-        proc1 = Processor(N=2)
+        proc1 = Processor(num_qubits=2)
         proc1.add_control(sigmaz(), label="sz")
         proc1.add_control(sigmax(), label="sx")
-        proc2 = Processor(N=2)
+        proc2 = Processor(num_qubits=2)
         proc2.add_control(sigmaz(), label="sz")
         proc2.add_control(sigmax(), label="sx")
         # TODO generalize to different tlist
@@ -82,7 +82,7 @@ class TestCircuitProcessor:
         Test for identity evolution
         """
         N = 1
-        proc = Processor(N=N)
+        proc = Processor(num_qubits=N)
         init_state = rand_ket(2)
         tlist = [0., 1., 2.]
         proc.add_pulse(Pulse(identity(2), 0, tlist, False))
@@ -145,7 +145,7 @@ class TestCircuitProcessor:
 
         # step_func
         tlist = np.linspace(0., 2*np.pi, 20)
-        processor = Processor(N=1, spline_kind="step_func")
+        processor = Processor(num_qubits=1, spline_kind="step_func")
         processor.add_control(sigmaz(), label="sz")
         processor.set_all_coeffs({"sz": np.array([np.sin(t) for t in tlist])})
         processor.set_all_tlist(tlist)
@@ -156,7 +156,7 @@ class TestCircuitProcessor:
 
         # cubic spline
         tlist = np.linspace(0., 2*np.pi, 20)
-        processor = Processor(N=1, spline_kind="cubic")
+        processor = Processor(num_qubits=1, spline_kind="cubic")
         processor.add_control(sigmaz(), label="sz")
         processor.set_all_coeffs({"sz": np.array([np.sin(t) for t in tlist])})
         processor.set_all_tlist(tlist)
@@ -175,7 +175,7 @@ class TestCircuitProcessor:
         tlist = np.array([0, 1, 2, 3], dtype=float)
         coeff = np.array([0, 1, 2, 3], dtype=float)
         
-        processor = Processor(N=1, spline_kind="step_func")
+        processor = Processor(num_qubits=1, spline_kind="step_func")
         processor.add_control(sigmaz(), label="sz")
         processor.set_all_coeffs({"sz": coeff})
         processor.set_tlist(tlist)
@@ -187,7 +187,7 @@ class TestCircuitProcessor:
         noisy_qobjevo, c_ops = processor.get_qobjevo(noisy=True)
         assert_allclose(noisy_qobjevo(0.5).data.to_array(), sigmaz().data.to_array() * 0.0)
 
-        processor_cubic = Processor(N=1, spline_kind="cubic")
+        processor_cubic = Processor(num_qubits=1, spline_kind="cubic")
         processor_cubic.add_control(sigmaz(), label="sz")
         processor_cubic.set_all_coeffs({"sz": coeff})
         processor_cubic.set_all_tlist(tlist)
@@ -203,7 +203,7 @@ class TestCircuitProcessor:
         """
         tlist = np.array([1, 2, 3, 4, 5, 6], dtype=float)
         coeff = np.array([1, 1, 1, 1, 1, 1], dtype=float)
-        processor = Processor(N=1)
+        processor = Processor(num_qubits=1)
         processor.add_control(sigmaz(), label="sz")
         processor.set_all_coeffs({"sz": coeff})
         processor.set_all_tlist(tlist)
@@ -240,7 +240,7 @@ class TestCircuitProcessor:
         assert_allclose(c_ops[0](1.0).data.to_array(), sigmax().data.to_array())
 
         # With Amplitude Noise
-        processor = Processor(N=1, spline_kind="cubic")
+        processor = Processor(num_qubits=1, spline_kind="cubic")
         processor.add_control(sigmaz(), label="sz")
         tlist = np.linspace(1, 6, int(5/0.2))
         
@@ -281,7 +281,7 @@ class TestCircuitProcessor:
         init_state = qubit_states(2, [0, 0, 0, 0])
         tlist = np.array([0., np.pi/2.])
         a = destroy(2)
-        proc = Processor(N=2)
+        proc = Processor(num_qubits=2)
         proc.add_control(sigmax(), targets=1, label="sx")
         proc.set_all_coeffs({"sx": np.array([1.])})
         proc.set_all_tlist(tlist)
@@ -317,7 +317,7 @@ class TestCircuitProcessor:
         Test for processor with multi-level system
         """
         N = 2
-        proc = Processor(N=N, dims=[2, 3])
+        proc = Processor(num_qubits=N, dims=[2, 3])
         proc.add_control(tensor(sigmaz(), rand_dm(3, density=1.)), label="sz0")
         proc.set_all_coeffs({"sz0": np.array([1, 2])})
         proc.set_all_tlist(np.array([0., 1., 2]))
@@ -327,7 +327,7 @@ class TestCircuitProcessor:
         """
         Test for the drift Hamiltonian
         """
-        processor = Processor(N=1)
+        processor = Processor(num_qubits=1)
         processor.add_drift(sigmax() / 2, 0)
         tlist = np.array([0., np.pi, 2*np.pi, 3*np.pi])
         processor.add_pulse(Pulse(None, None, tlist, False))
@@ -347,7 +347,7 @@ class TestCircuitProcessor:
         init_state = qubit_states(2, [0, 0, 0, 0])
         tlist = np.linspace(0., np.pi/2., 10)
         a = destroy(2)
-        proc = Processor(N=2, t2=100)
+        proc = Processor(num_qubits=2, t2=100)
         proc.add_control(sigmax(), targets=1, label="sx")
         proc.set_all_coeffs({"sx": np.array([1.] * len(tlist))})
         proc.set_all_tlist(tlist)
