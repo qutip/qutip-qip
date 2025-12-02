@@ -9,9 +9,6 @@ from ..compiler import SpinChainCompiler
 from ..transpiler import to_chain_structure
 
 
-__all__ = ["SpinChain", "LinearSpinChain", "CircularSpinChain"]
-
-
 class SpinChain(ModelProcessor):
     """
     The processor based on the physical implementation of

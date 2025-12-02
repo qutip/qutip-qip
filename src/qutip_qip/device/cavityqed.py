@@ -17,9 +17,6 @@ from .modelprocessor import ModelProcessor, _to_array
 from ..compiler import CavityQEDCompiler
 
 
-__all__ = ["DispersiveCavityQED"]
-
-
 class DispersiveCavityQED(ModelProcessor):
     """
     The processor based on the physical implementation of

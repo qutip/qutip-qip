@@ -4,6 +4,7 @@ from typing import List, Tuple, Hashable
 from ..noise import Noise
 from qutip import Qobj
 
+
 class Model:
     """
     Template class for a physical model representing quantum hardware.

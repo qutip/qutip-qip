@@ -10,9 +10,6 @@ from ..compiler import SCQubitsCompiler
 from ..noise import ZZCrossTalk
 
 
-__all__ = ["SCQubits"]
-
-
 class SCQubits(ModelProcessor):
     """
     A chain of superconducting qubits with fixed frequency

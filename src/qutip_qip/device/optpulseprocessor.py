@@ -9,9 +9,6 @@ from .processor import Processor
 from ..operations import gate_sequence_product, expand_operator
 
 
-__all__ = ["OptPulseProcessor"]
-
-
 class OptPulseProcessor(Processor):
     """
     A processor that uses

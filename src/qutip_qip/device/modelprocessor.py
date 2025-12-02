@@ -7,9 +7,6 @@ from qutip import Qobj, basis
 from .processor import Processor
 
 
-__all__ = ["ModelProcessor"]
-
-
 class ModelProcessor(Processor):
     """
     The base class for a circuit processor simulating a physical device,
