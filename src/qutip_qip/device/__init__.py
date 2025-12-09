@@ -25,5 +25,5 @@ __all__ = [
     "LinearSpinChain",
     "CircularSpinChain",
     "SpinChainModel",
-    "OptPulseProcessor"
+    "OptPulseProcessor",
 ]

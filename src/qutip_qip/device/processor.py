@@ -70,7 +70,7 @@ class Processor(object):
 
     def __init__(
         self,
-        num_qubits,
+        num_qubits=None,
         dims=None,
         spline_kind="step_func",
         model=None,
