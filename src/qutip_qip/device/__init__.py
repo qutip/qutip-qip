@@ -2,16 +2,16 @@
 Simulation of quantum hardware.
 """
 
-from .cavityqed import DispersiveCavityQED, CavityQEDModel
-from .circuitqed import SCQubits, SCQubitsModel
 from .model import Model
-from .modelprocessor import ModelProcessor
 from .processor import Processor
+from .modelprocessor import ModelProcessor
 from .spinchain import (
     LinearSpinChain,
     CircularSpinChain,
     SpinChainModel,
 )
+from .cavityqed import DispersiveCavityQED, CavityQEDModel
+from .circuitqed import SCQubits, SCQubitsModel
 from .optpulseprocessor import OptPulseProcessor
 
 __all__ = [

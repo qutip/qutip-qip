@@ -1,10 +1,7 @@
-from collections.abc import Iterable
-import numbers
-
 import numpy as np
 
 from qutip import Qobj, basis
-from .processor import Processor
+from qutip_qip.device import Processor
 
 
 class ModelProcessor(Processor):
@@ -274,13 +271,3 @@ class ModelProcessor(Processor):
             Return the final state with the dimensions of the circuit.
         """
         return final_processor_state
-
-
-def _to_array(params, num_qubits):
-    """
-    Transfer a parameter to an array.
-    """
-    if isinstance(params, numbers.Real):
-        return np.asarray([params] * num_qubits)
-    elif isinstance(params, Iterable):
-        return np.asarray(params)

@@ -1,6 +1,5 @@
-import warnings
 from copy import deepcopy
-
+import warnings
 import numpy as np
 
 from qutip import (
@@ -12,9 +11,10 @@ from qutip import (
     basis,
     Qobj,
 )
-from .processor import Model
-from .modelprocessor import ModelProcessor, _to_array
-from ..compiler import CavityQEDCompiler
+from qutip_qip.device import Model
+from qutip_qip.device import ModelProcessor
+from qutip_qip.compiler import CavityQEDCompiler
+from qutip_qip.device.utils import _to_array
 
 
 class DispersiveCavityQED(ModelProcessor):

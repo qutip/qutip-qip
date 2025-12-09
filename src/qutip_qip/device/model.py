@@ -1,8 +1,8 @@
 from copy import deepcopy
 from typing import List, Tuple, Hashable
 
-from ..noise import Noise
 from qutip import Qobj
+from qutip_qip.noise import Noise
 
 
 class Model:

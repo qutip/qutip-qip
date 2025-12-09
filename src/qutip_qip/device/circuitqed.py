@@ -1,13 +1,12 @@
 from copy import deepcopy
-
 import numpy as np
 
 from qutip import qeye, tensor, destroy, basis
-from .processor import Model
-from .modelprocessor import ModelProcessor, _to_array
-from ..transpiler import to_chain_structure
-from ..compiler import SCQubitsCompiler
-from ..noise import ZZCrossTalk
+from qutip_qip.device import Model, ModelProcessor
+from qutip_qip.transpiler import to_chain_structure
+from qutip_qip.compiler import SCQubitsCompiler
+from qutip_qip.noise import ZZCrossTalk
+from qutip_qip.device.utils import _to_array
 
 
 class SCQubits(ModelProcessor):

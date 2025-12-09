@@ -5,13 +5,10 @@ import numpy as np
 
 import qutip
 from qutip import Qobj, QobjEvo, mesolve, mcsolve
-from ..operations import globalphase
-from ..noise import (
-    Noise,
-    process_noise,
-)
-from .model import Model
-from ..pulse import Pulse, Drift, _fill_coeff
+from qutip_qip.operations import globalphase
+from qutip_qip.noise import Noise, process_noise
+from qutip_qip.device import Model
+from qutip_qip.pulse import Pulse, Drift, _fill_coeff
 
 
 class Processor(object):

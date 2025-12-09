@@ -4,9 +4,9 @@ import warnings
 import numpy as np
 
 from qutip import Qobj, identity
-from ..circuit import QubitCircuit
-from .processor import Processor
-from ..operations import gate_sequence_product, expand_operator
+from qutip_qip.circuit import QubitCircuit
+from qutip_qip.device import Processor
+from qutip_qip.operations import gate_sequence_product, expand_operator
 
 
 class OptPulseProcessor(Processor):
