@@ -41,14 +41,20 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
         "gates": [],
     }
 
-    def __init__(self, configuration=None, **fields):
-        super().__init__(configuration=configuration, **fields)
+    def __init__(self, configuration: dict = None, **fields):
+        if configuration is None:
+            configuration = self._DEFAULT_CONFIGURATION
+
+        super().__init__(
+            name = configuration.backend_name,
+            description = configuration.description,
+        )
 
     def _parse_results(
         self,
-        statistics: CircuitResult,
         job_id: str,
         qutip_circuit: QubitCircuit,
+        statistics: CircuitResult,
     ) -> qiskit.result.Result:
         """
         Returns a parsed object of type :class:`qiskit.result.Result`
@@ -147,19 +153,3 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
         return self._parse_results(
             statistics=statistics, job_id=job_id, qutip_circuit=qutip_circuit
         )
-
-    @classmethod
-    def _default_options(cls):
-        """
-        Default options for the backend.
-
-        Options
-        -------
-        shots : int
-            Number of times to sample the results.
-
-        allow_custom_gate : bool
-            Allow conversion of circuit using unitary matrices
-            for custom gates.
-        """
-        return Options(shots=1024, allow_custom_gate=True)

@@ -1,16 +1,18 @@
 """Backends for simulating qiskit circuits."""
 
-import numpy as np
 import uuid
 import random
 from collections import Counter
+from abc import abstractmethod
+import numpy as np
 
-from .job import Job
-from .converter import convert_qiskit_circuit_to_qutip
-from qiskit.providers import BackendV2
-from qiskit.providers import Options
-from qiskit.result import Counts
 from qiskit.circuit import QuantumCircuit
+from qiskit.providers import BackendV2, Options
+from qiskit.result import Counts, Result
+
+from qutip_qip.circuit import QubitCircuit
+from qutip_qip.qiskit.job import Job
+from qutip_qip.qiskit.converter import convert_qiskit_circuit_to_qutip
 
 
 class QiskitSimulatorBase(BackendV2):
@@ -25,12 +27,22 @@ class QiskitSimulatorBase(BackendV2):
         )
         self._provider = "QuTiP-qip"
         
-    def _default_options(self):
+    @classmethod
+    def _default_options(cls):
         """
-        This method is defined in BackendV2 and will run during __init__ to set self._options
+        Default options for the backend.
+
+        Options
+        -------
+        shots : int
+            Number of times to sample the results.
+
+        allow_custom_gate : bool
+            Allow conversion of circuit using unitary matrices
+            for custom gates.
         """
         options = Options()
-        options.shots = 1000
+        options.shots = 1024
         options.allow_custom_gate = True
 
         options.set_validator("shots", int)
@@ -38,6 +50,9 @@ class QiskitSimulatorBase(BackendV2):
 
         return options
 
+    @abstractmethod
+    def _run_job(self, job_id: str, qutip_circuit: QubitCircuit) -> Result:
+        pass
 
     def run(self, run_input: QuantumCircuit, **run_options) -> Job:
         """

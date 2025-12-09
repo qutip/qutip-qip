@@ -59,8 +59,11 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
         super().__init__(configuration=configuration, **fields)
 
     def _parse_results(
-        self, final_state: qutip.Qobj, job_id: str, qutip_circuit: QubitCircuit
-    ) -> qiskit.result.Result:
+        self,
+        job_id: str,
+        qutip_circuit: QubitCircuit,
+        final_state: qutip.Qobj,
+    ) -> Result:
         """
         Returns a parsed object of type :class:`qiskit.result.Result`
         for the pulse simulators.
@@ -159,19 +162,3 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
         return self._parse_results(
             final_state=final_state, job_id=job_id, qutip_circuit=qutip_circuit
         )
-
-    @classmethod
-    def _default_options(cls):
-        """
-        Default options for the backend.
-
-        Options
-        -------
-        shots : int
-            Number of times to sample the results.
-
-        allow_custom_gate : bool
-            Allow conversion of circuit using unitary matrices
-            for custom gates.
-        """
-        return Options(shots=1024, allow_custom_gate=True)
