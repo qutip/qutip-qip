@@ -4,7 +4,7 @@ import numpy as np
 from scipy.interpolate import CubicSpline
 
 from qutip import QobjEvo, Qobj, identity
-from .operations import expand_operator
+from qutip_qip.operations import expand_operator
 
 
 __all__ = ["Pulse", "Drift"]

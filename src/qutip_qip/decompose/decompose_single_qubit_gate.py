@@ -11,9 +11,6 @@ from qutip_qip.decompose._utility import (
 from qutip_qip.operations import Gate
 
 
-__all__ = ["decompose_one_qubit_gate"]
-
-
 def _angles_for_ZYZ(input_gate):
     """Finds and returns the angles for ZYZ rotation matrix. These are
     used to change ZYZ to other combinations.
