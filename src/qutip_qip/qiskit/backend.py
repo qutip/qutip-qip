@@ -6,7 +6,7 @@ import random
 from collections import Counter
 
 from .job import Job
-from .converter import convert_qiskit_circuit
+from .converter import convert_qiskit_circuit_to_qutip
 from qiskit.providers import BackendV2
 from qiskit.providers.models import QasmBackendConfiguration
 from qiskit.result import Counts
@@ -72,7 +72,7 @@ class QiskitSimulatorBase(BackendV2):
                 else self._default_options().allow_custom_gate
             ),
         )
-        qutip_circ = convert_qiskit_circuit(
+        qutip_circ = convert_qiskit_circuit_to_qutip(
             qiskit_circuit,
             allow_custom_gate=self.options.allow_custom_gate,
         )

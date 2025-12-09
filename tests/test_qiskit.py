@@ -20,7 +20,7 @@ from qutip_qip.qiskit.provider import (
     QiskitPulseSimulator,
 )
 from qutip_qip.qiskit.converter import (
-    convert_qiskit_circuit,
+    convert_qiskit_circuit_to_qutip,
     _get_qutip_index,
 )
 
@@ -114,7 +114,7 @@ class TestConverter:
         """
         qiskit_circuit = QuantumCircuit(1)
         qiskit_circuit.x(0)
-        result_circuit = convert_qiskit_circuit(qiskit_circuit)
+        result_circuit = convert_qiskit_circuit_to_qutip(qiskit_circuit)
         required_circuit = QubitCircuit(1)
         required_circuit.add_gate("X", targets=[0])
 
@@ -127,7 +127,7 @@ class TestConverter:
         """
         qiskit_circuit = QuantumCircuit(2)
         qiskit_circuit.cx(1, 0)
-        result_circuit = convert_qiskit_circuit(qiskit_circuit)
+        result_circuit = convert_qiskit_circuit_to_qutip(qiskit_circuit)
 
         required_circuit = QubitCircuit(2)
         required_circuit.add_gate("CX", targets=[0], controls=[1])
@@ -141,7 +141,7 @@ class TestConverter:
         """
         qiskit_circuit = QuantumCircuit(1)
         qiskit_circuit.rx(np.pi / 3, 0)
-        result_circuit = convert_qiskit_circuit(qiskit_circuit)
+        result_circuit = convert_qiskit_circuit_to_qutip(qiskit_circuit)
         required_circuit = QubitCircuit(1)
         required_circuit.add_gate("RX", targets=[0], arg_value=np.pi / 3)
 

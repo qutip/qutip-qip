@@ -70,7 +70,8 @@ def _get_qutip_index(bit_index: Union[int, list], total_bits: int) -> int:
     Note
     ----
     When we convert a circuit from qiskit to qutip,
-    the 0st bit is mapped to the (n-1)th bit and so on.
+    the 0st bit is mapped to the (n-1)th bit and 1st bit to (n-2)th bit
+    and so on. Essentially the bit order is reversed.
 
 
     """
@@ -85,7 +86,7 @@ def _get_mapped_bits(bits: Union[list, tuple], bit_map: dict) -> list:
     return [bit_map[bit] for bit in bits]
 
 
-def convert_qiskit_circuit(
+def convert_qiskit_circuit_to_qutip(
     qiskit_circuit: QuantumCircuit, allow_custom_gate=True
 ) -> QubitCircuit:
     """

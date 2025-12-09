@@ -1,10 +1,10 @@
 """Simulation of qiskit circuits in ``qutip_qip``."""
 
 from .provider import Provider
+from .converter import convert_qiskit_circuit_to_qutip
 from .backend import QiskitSimulatorBase
 from .circuit_simulator import QiskitCircuitSimulator
 from .pulse_simulator import QiskitPulseSimulator
-from .converter import convert_qiskit_circuit
 from .job import Job
 
 __all__ = [
@@ -12,6 +12,6 @@ __all__ = [
     "QiskitSimulatorBase",
     "QiskitCircuitSimulator",
     "QiskitPulseSimulator",
-    "convert_qiskit_circuit",
+    "convert_qiskit_circuit_to_qutip",
     "Job",
 ]

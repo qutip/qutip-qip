@@ -22,4 +22,4 @@ qutip\_qip.qiskit
 
    .. autosummary::
      
-      convert_qiskit_circuit       
+      convert_qiskit_circuit_to_qutip      
