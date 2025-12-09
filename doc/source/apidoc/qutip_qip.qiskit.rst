@@ -15,7 +15,6 @@ qutip\_qip.qiskit
       QiskitSimulatorBase
       QiskitCircuitSimulator       
       QiskitPulseSimulator     
-      Provider       
       Job
       
    .. rubric:: Fucntions
