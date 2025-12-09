@@ -2,10 +2,15 @@
 
 import warnings
 
-from .circuit import *
-from .circuitsimulator import *
-from ..operations import Gate, Measurement
+from .circuitsimulator import CircuitResult, CircuitSimulator
+from .circuit import QubitCircuit
+from qutip_qip.operations import Gate, Measurement
 
+__all__ = [
+    "CircuitSimulator",
+    "CircuitResult",
+    "QubitCircuit",
+]
 
 def _add_deprecation(fun, msg):
     def newfun(*args, **kwargs):

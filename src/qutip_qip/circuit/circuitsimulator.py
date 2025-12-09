@@ -3,16 +3,13 @@ from operator import mul
 from functools import reduce
 import numpy as np
 
-from ..operations import (
+from qutip_qip.operations import (
     Gate,
     Measurement,
     expand_operator,
 )
 from qutip import ket2dm, Qobj, tensor
 import warnings
-
-
-__all__ = ["CircuitSimulator", "CircuitResult"]
 
 
 def _flatten(lst):
