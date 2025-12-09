@@ -42,7 +42,6 @@ from qutip_qip.operations import (
 )
 
 
-
 """
 .. testsetup::
 

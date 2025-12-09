@@ -2,6 +2,7 @@ from collections.abc import Iterable
 import numbers
 import numpy as np
 
+
 def _to_array(params, num_qubits):
     """
     Transfer a parameter to an array.
