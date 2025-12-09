@@ -8,7 +8,7 @@ from collections import Counter
 from .job import Job
 from .converter import convert_qiskit_circuit_to_qutip
 from qiskit.providers import BackendV2
-from qiskit.providers.models import QasmBackendConfiguration
+from qiskit.providers import Options
 from qiskit.result import Counts
 from qiskit.circuit import QuantumCircuit
 
@@ -18,29 +18,35 @@ class QiskitSimulatorBase(BackendV2):
     The base class for ``qutip_qip`` based ``qiskit`` backends.
     """
 
-    def __init__(self, configuration=None, **fields):
-        if configuration is None:
-            configuration_dict = self._DEFAULT_CONFIGURATION
-        else:
-            configuration_dict = self._DEFAULT_CONFIGURATION.copy()
-            for k, v in configuration.items():
-                configuration_dict[k] = v
-
-        configuration = QasmBackendConfiguration.from_dict(configuration_dict)
-
-        super().__init__(configuration=configuration)
-
-        self.options.set_validator(
-            "shots", (1, self.configuration().max_shots)
+    def __init__(self, name=None, description=None):
+        super().__init__(
+            name=name, 
+            description=description
         )
+        self._provider = "QuTiP-qip"
+        
+    def _default_options(self):
+        """
+        This method is defined in BackendV2 and will run during __init__ to set self._options
+        """
+        options = Options()
+        options.shots = 1000
+        options.allow_custom_gate = True
 
-    def run(self, qiskit_circuit: QuantumCircuit, **run_options) -> Job:
+        options.set_validator("shots", int)
+        options.set_validator("allow_custom_gate", bool)
+
+        return options
+
+
+    def run(self, run_input: QuantumCircuit, **run_options) -> Job:
         """
         Simulates a circuit on the required backend.
 
         Parameters
         ----------
-        qiskit_circuit : :class:`qiskit.circuit.QuantumCircuit`
+        # In V2 this can be a list of QuantumCircuits to be simulated
+        run_input : :class:`qiskit.circuit.QuantumCircuit`
             The ``qiskit`` circuit to be simulated.
 
         **run_options:
@@ -59,21 +65,21 @@ class QiskitSimulatorBase(BackendV2):
         :class:`.Job`
             Job object that stores results and execution data.
         """
-        # configure the options
-        self.set_options(
-            shots=(
-                run_options["shots"]
-                if "shots" in run_options
-                else self._default_options().shots
-            ),
-            allow_custom_gate=(
-                run_options["allow_custom_gate"]
-                if "allow_custom_gate" in run_options
-                else self._default_options().allow_custom_gate
-            ),
-        )
+        # Set the no. of shots
+        if "shots" in run_options:
+            shots = run_options["shots"]
+            if (shots <= 0):
+                raise ValueError(f'shots ${shots} must be a positive number')
+
+            self.set_options({"shots": shots})
+
+        # Set allow_custom_gate
+        if ("allow_custom_gate" in run_options):
+            allow_custom_gate = run_options["allow_custom_gate"]
+            self.set_options({"allow_custom_gate": allow_custom_gate})
+
         qutip_circ = convert_qiskit_circuit_to_qutip(
-            qiskit_circuit,
+            run_input,
             allow_custom_gate=self.options.allow_custom_gate,
         )
 
@@ -102,7 +108,7 @@ class QiskitSimulatorBase(BackendV2):
             Returns the ``Counts`` object sampled according to
             the given probabilities and configured shots.
         """
-        shots = self.options.shots
+        shots = self._options["shots"]
         samples = random.choices(
             list(count_probs.keys()), list(count_probs.values()), k=shots
         )
