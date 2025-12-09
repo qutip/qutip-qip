@@ -1,9 +1,6 @@
 import numpy as np
 
-from ..compiler import GateCompiler, Instruction
-
-
-__all__ = ["SpinChainCompiler"]
+from qutip_qip.compiler import GateCompiler, Instruction
 
 
 class SpinChainCompiler(GateCompiler):

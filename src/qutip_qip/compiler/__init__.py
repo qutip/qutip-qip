@@ -3,6 +3,16 @@
 from .instruction import Instruction
 from .scheduler import Scheduler
 from .gatecompiler import GateCompiler
-from .cavityqedcompiler import CavityQEDCompiler
 from .spinchaincompiler import SpinChainCompiler
+from .cavityqedcompiler import CavityQEDCompiler
 from .circuitqedcompiler import SCQubitsCompiler
+
+
+__all__ = [
+    "Instruction",
+    "Scheduler",
+    "GateCompiler",
+    "SpinChainCompiler",
+    "CavityQEDCompiler",
+    "SCQubitsCompiler",
+]
