@@ -1,6 +1,7 @@
 """Class for a running job."""
 
 from qiskit.providers import JobV1, JobStatus
+from qiskit.providers.backend import Backend
 from qiskit.result import Result
 
 
@@ -21,7 +22,7 @@ class Job(JobV1):
         The result of a simulation run.
     """
 
-    def __init__(self, backend, job_id: str, result: Result):
+    def __init__(self, backend: Backend, job_id: str, result: Result):
         super().__init__(backend, job_id)
         self._result = result
 
@@ -29,10 +30,10 @@ class Job(JobV1):
         """Submit the job to the backend for execution."""
         return
 
-    def status(self):
+    def status(self) -> JobStatus:
         """Returns job status"""
         return JobStatus.DONE
 
-    def result(self):
+    def result(self) -> Result:
         """Return the job's result"""
         return self._result
