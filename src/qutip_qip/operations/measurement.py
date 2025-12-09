@@ -6,10 +6,7 @@ import numpy as np
 import qutip
 from qutip import basis
 from qutip.measurement import measurement_statistics
-from .gates import expand_operator
-
-
-__all__ = ["Measurement"]
+from qutip_qip.operations import expand_operator
 
 
 class Measurement:

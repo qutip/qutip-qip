@@ -6,7 +6,7 @@ from typing import Optional
 import numpy as np
 import qutip
 from qutip import Qobj, qeye
-from .gates import (
+from qutip_qip.operations import (
     rx,
     ry,
     rz,
@@ -41,46 +41,7 @@ from .gates import (
     expand_operator,
 )
 
-__all__ = [
-    "Gate",
-    "GATE_CLASS_MAP",
-    "X",
-    "Y",
-    "Z",
-    "RX",
-    "RY",
-    "RZ",
-    "H",
-    "SNOT",
-    "SQRTNOT",
-    "S",
-    "T",
-    "R",
-    "QASMU",
-    "SWAP",
-    "ControlledGate",
-    "ISWAP",
-    "CNOT",
-    "SQRTSWAP",
-    "SQRTISWAP",
-    "SWAPALPHA",
-    "MS",
-    "TOFFOLI",
-    "FREDKIN",
-    "BERKELEY",
-    "CNOT",
-    "CSIGN",
-    "CRX",
-    "CRY",
-    "CRZ",
-    "CY",
-    "CX",
-    "CZ",
-    "CS",
-    "CT",
-    "CPHASE",
-    "RZX",
-]
+
 
 """
 .. testsetup::
