@@ -5,11 +5,8 @@ from qutip_qip.circuit import QubitCircuit
 from qutip_qip.device import Processor
 from qutip_qip.qiskit import QiskitSimulatorBase
 
-import qiskit
-from qiskit.providers import Options
 from qiskit.result import Result
 from qiskit.result.models import ExperimentResult, ExperimentResultData
-from qiskit.qobj import QobjExperimentHeader
 from qiskit.quantum_info import Statevector, DensityMatrix
 
 class QiskitPulseSimulator(QiskitSimulatorBase):
@@ -54,9 +51,22 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
         "gates": [],
     }
 
-    def __init__(self, processor: Processor, configuration=None, **fields):
+    def __init__(self, processor: Processor, configuration=None):
+        if configuration is None:
+            configuration = self._DEFAULT_CONFIGURATION
+
+        super().__init__(
+            name = configuration["backend_name"],
+            description = configuration["description"],
+        )
+        
         self.processor = processor
-        super().__init__(configuration=configuration, **fields)
+
+    def target(self):
+        pass
+
+    def max_circuits(self):
+        pass
 
     def _parse_results(
         self,
@@ -105,17 +115,15 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
             ),
         )
 
-        header = QobjExperimentHeader.from_dict(
-            {
-                "name": (
-                    qutip_circuit.name
-                    if hasattr(qutip_circuit, "name")
-                    else ""
-                ),
-                "n_qubits": qutip_circuit.N,
-            }
-        )
-
+        header = {
+            "name": (
+                qutip_circuit.name
+                if hasattr(qutip_circuit, "name")
+                else ""
+            ),
+            "n_qubits": qutip_circuit.N,
+        }
+        
         exp_res = ExperimentResult(
             shots=self.options.shots,
             success=True,

@@ -18,14 +18,16 @@ from qutip_qip.qiskit.converter import convert_qiskit_circuit_to_qutip
 class QiskitSimulatorBase(BackendV2):
     """
     The base class for ``qutip_qip`` based ``qiskit`` backends.
+    This class must always be inherited, never instantiated as
+    abstract methods target and max_circuits are left to parent class.
     """
 
     def __init__(self, name=None, description=None):
         super().__init__(
+            provider="QuTiP-qip",
             name=name, 
             description=description
         )
-        self._provider = "QuTiP-qip"
         
     @classmethod
     def _default_options(cls):
@@ -95,7 +97,7 @@ class QiskitSimulatorBase(BackendV2):
 
         qutip_circ = convert_qiskit_circuit_to_qutip(
             run_input,
-            allow_custom_gate=self.options.allow_custom_gate,
+            allow_custom_gate=self._options["allow_custom_gate"],
         )
 
         job_id = str(uuid.uuid4())

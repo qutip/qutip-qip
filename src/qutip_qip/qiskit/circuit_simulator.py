@@ -5,10 +5,8 @@ from qutip_qip.circuit import CircuitResult, QubitCircuit
 from qutip_qip.qiskit import QiskitSimulatorBase
 
 import qiskit
-from qiskit.providers import Options
 from qiskit.result import Result
 from qiskit.result.models import ExperimentResult, ExperimentResultData
-from qiskit.qobj import QobjExperimentHeader
 from qiskit.quantum_info import Statevector
 
 class QiskitCircuitSimulator(QiskitSimulatorBase):
@@ -49,6 +47,12 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
             name = configuration.backend_name,
             description = configuration.description,
         )
+
+    def target(self):
+        pass
+
+    def max_circuits(self):
+        pass
 
     def _parse_results(
         self,
@@ -99,16 +103,14 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
             counts=counts, statevector=Statevector(data=statevector.full())
         )
 
-        header = QobjExperimentHeader.from_dict(
-            {
-                "name": (
-                    qutip_circuit.name
-                    if hasattr(qutip_circuit, "name")
-                    else ""
-                ),
-                "n_qubits": qutip_circuit.N,
-            }
-        )
+        header = {
+            "name": (
+                qutip_circuit.name
+                if hasattr(qutip_circuit, "name")
+                else ""
+            ),
+            "n_qubits": qutip_circuit.N,
+        }
 
         exp_res = ExperimentResult(
             shots=self.options.shots,

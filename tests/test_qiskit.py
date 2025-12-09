@@ -13,16 +13,23 @@ from qutip_qip.device import (
 # if qiskit is not installed
 pytest.importorskip("qiskit")
 
+from packaging import version
+import qiskit
+
+if version.parse(qiskit.__version__) >= version.parse("1.0.0"):
+    pytest.skip(
+        "qiskit < 1.0.0 required",
+        allow_module_level=True,
+    )
+
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
-from qutip_qip.qiskit.provider import (
+from qutip_qip.qiskit import (
     QiskitCircuitSimulator,
     QiskitPulseSimulator,
+    convert_qiskit_circuit_to_qutip
 )
-from qutip_qip.qiskit.converter import (
-    convert_qiskit_circuit_to_qutip,
-    _get_qutip_index,
-)
+from qutip_qip.qiskit.converter import _get_qutip_index
 
 
 class TestConverter:
