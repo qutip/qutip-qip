@@ -88,12 +88,11 @@ class QiskitSimulatorBase(BackendV2):
             if (shots <= 0):
                 raise ValueError(f'shots ${shots} must be a positive number')
 
-            self.set_options({"shots": shots})
+            self.set_options(shots=shots)
 
         # Set allow_custom_gate
         if ("allow_custom_gate" in run_options):
-            allow_custom_gate = run_options["allow_custom_gate"]
-            self.set_options({"allow_custom_gate": allow_custom_gate})
+            self.set_options(allow_custom_gate=run_options["allow_custom_gate"])
 
         qutip_circ = convert_qiskit_circuit_to_qutip(
             run_input,
@@ -126,7 +125,12 @@ class QiskitSimulatorBase(BackendV2):
             the given probabilities and configured shots.
         """
         shots = self._options["shots"]
-        weights = [float(p.item()) for p in count_probs.values()]
+        weights = []
+        for p in count_probs.values():
+            if hasattr(p, "item"):
+                weights.append(float(p.item())) # For multiple choice
+            else:
+                weights.append(float(p)) # For a trivial circuit with output 1
 
         samples = random.choices(
             list(count_probs.keys()), weights, k=shots

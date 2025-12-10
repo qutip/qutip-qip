@@ -45,8 +45,8 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
             self.configuration = self._DEFAULT_CONFIGURATION
 
         super().__init__(
-            name = configuration.backend_name,
-            description = configuration.description,
+            name = "Temp",
+            description = "Temp",
         )
 
     def target(self):
