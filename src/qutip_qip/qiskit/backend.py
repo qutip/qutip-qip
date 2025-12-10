@@ -126,8 +126,10 @@ class QiskitSimulatorBase(BackendV2):
             the given probabilities and configured shots.
         """
         shots = self._options["shots"]
+        weights = [float(p.item()) for p in count_probs.values()]
+
         samples = random.choices(
-            list(count_probs.keys()), list(count_probs.values()), k=shots
+            list(count_probs.keys()), weights, k=shots
         )
         return Counts(Counter(samples))
 

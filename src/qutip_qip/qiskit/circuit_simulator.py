@@ -40,8 +40,9 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
     }
 
     def __init__(self, configuration: dict = None, **fields):
+        self.configuration = configuration
         if configuration is None:
-            configuration = self._DEFAULT_CONFIGURATION
+            self.configuration = self._DEFAULT_CONFIGURATION
 
         super().__init__(
             name = configuration.backend_name,
@@ -113,15 +114,15 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
         }
 
         exp_res = ExperimentResult(
-            shots=self.options.shots,
+            shots=self._options.shots,
             success=True,
             data=exp_res_data,
             header=header,
         )
 
         result = Result(
-            backend_name=self.configuration().backend_name,
-            backend_version=self.configuration().backend_version,
+            backend_name=self.BACKEND_NAME,
+            backend_version=0.1,
             qobj_id=id(qutip_circuit),
             job_id=job_id,
             success=True,

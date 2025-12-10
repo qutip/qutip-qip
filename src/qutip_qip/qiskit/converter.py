@@ -128,12 +128,10 @@ def convert_qiskit_circuit_to_qutip(
 
     qutip_circuit.name = qiskit_circuit.name
 
-    for qiskit_gate in qiskit_circuit.data:
-        # qiskit_gate stores info about the gate, target
-        # qubits and classical bits (for measurements)
-        qiskit_instruction = qiskit_gate[0]
-        qiskit_qregs = qiskit_gate[1]
-        qiskit_cregs = qiskit_gate[2]
+    for circuit_instruction in qiskit_circuit.data:
+        qiskit_instruction = circuit_instruction.operation
+        qiskit_qregs = circuit_instruction.qubits
+        qiskit_cregs = circuit_instruction.clbits
 
         # setting the gate argument values according
         # to the required qutip_qip format

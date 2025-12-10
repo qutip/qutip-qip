@@ -125,15 +125,15 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
         }
         
         exp_res = ExperimentResult(
-            shots=self.options.shots,
+            shots=self._options.shots,
             success=True,
             data=exp_res_data,
             header=header,
         )
 
         result = Result(
-            backend_name=self.configuration().backend_name,
-            backend_version=self.configuration().backend_version,
+            backend_name=self.BACKEND_NAME,
+            backend_version=0.1,
             qobj_id=id(qutip_circuit),
             job_id=job_id,
             success=True,
