@@ -12,7 +12,6 @@ from qiskit.result import Counts, Result
 
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.qiskit.job import Job
-from qutip_qip.qiskit.converter import convert_qiskit_circuit_to_qutip
 
 
 class QiskitSimulatorBase(BackendV2):
@@ -38,22 +37,14 @@ class QiskitSimulatorBase(BackendV2):
         -------
         shots : int
             Number of times to sample the results.
-
-        allow_custom_gate : bool
-            Allow conversion of circuit using unitary matrices
-            for custom gates.
         """
         options = Options()
         options.shots = 1024
-        options.allow_custom_gate = True
-
         options.set_validator("shots", int)
-        options.set_validator("allow_custom_gate", bool)
-
         return options
 
     @abstractmethod
-    def _run_job(self, job_id: str, qutip_circuit: QubitCircuit) -> Result:
+    def _run_job(self, job_id: str, qiskit_circuit: QuantumCircuit) -> Result:
         pass
 
     def run(self, run_input: QuantumCircuit, **run_options) -> Job:
@@ -73,9 +64,6 @@ class QiskitSimulatorBase(BackendV2):
 
             shots : int
                 Number of times to sample the results.
-            allow_custom_gate: bool
-                Allow conversion of circuit using unitary matrices
-                for custom gates.
 
         Returns
         -------
@@ -90,21 +78,11 @@ class QiskitSimulatorBase(BackendV2):
 
             self.set_options(shots=shots)
 
-        # Set allow_custom_gate
-        if ("allow_custom_gate" in run_options):
-            self.set_options(allow_custom_gate=run_options["allow_custom_gate"])
-
-        qutip_circ = convert_qiskit_circuit_to_qutip(
-            run_input,
-            allow_custom_gate=self._options["allow_custom_gate"],
-        )
-
         job_id = str(uuid.uuid4())
-
         job = Job(
             backend=self,
             job_id=job_id,
-            result=self._run_job(job_id, qutip_circ),
+            result=self._run_job(job_id, run_input),
         )
         return job
 

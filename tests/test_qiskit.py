@@ -188,25 +188,6 @@ class TestSimulator:
         circ2.cx(0, 1)
         self._compare_results(circ2)
 
-    def test_allow_custom_gate(self):
-        """
-        Asserts whether execution will fail on running a circuit
-        with a custom sub-circuit with the option allow_custom_gate=False
-        """
-        with pytest.raises(RuntimeError):
-            circ = QuantumCircuit(2, 2)
-            circ.h(0)
-            # make a custom sub-circuit
-            sub_circ = QuantumCircuit(1)
-            sub_circ.x(0)
-            my_gate = sub_circ.to_gate()
-            circ.append(my_gate, [1])
-
-            qutip_backend = QiskitCircuitSimulator()
-            # running this with allow_custom_gate=False should raise
-            # a RuntimeError due to the custom sub-circuit
-            qutip_backend.run(circ, allow_custom_gate=False)
-
     def test_measurements(self):
         """
         Tests measurements by setting a predefined seed to

@@ -4,7 +4,9 @@ import qutip
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.device import Processor
 from qutip_qip.qiskit import QiskitSimulatorBase
+from qutip_qip.qiskit.converter import convert_qiskit_circuit_to_qutip
 
+from qiskit import QuantumCircuit
 from qiskit.result import Result
 from qiskit.result.models import ExperimentResult, ExperimentResultData
 from qiskit.quantum_info import Statevector, DensityMatrix
@@ -142,7 +144,7 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
 
         return result
 
-    def _run_job(self, job_id: str, qutip_circuit: QubitCircuit) -> Result:
+    def _run_job(self, job_id: str, qiskit_circuit: QuantumCircuit) -> Result:
         """
         Run a :class:`.QubitCircuit` on the Pulse Simulator.
 
@@ -151,7 +153,7 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
         job_id : str
             Unique ID identifying a job.
 
-        qutip_circuit : :class:`.QubitCircuit`
+        qiskit_circuit : :class:`.QuantumCircuit`
             The circuit obtained after conversion
             from :class:`.QuantumCircuit` to :class:`.QubitCircuit`.
 
@@ -160,11 +162,11 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
         :class:`qiskit.result.Result`
             Result of the simulation.
         """
-        zero_state = self.processor.generate_init_processor_state()
-
+        qutip_circuit = convert_qiskit_circuit_to_qutip(qiskit_circuit)
         self.processor.load_circuit(qutip_circuit)
-        result = self.processor.run_state(zero_state)
 
+        zero_state = self.processor.generate_init_processor_state()
+        result = self.processor.run_state(zero_state)
         final_state = self.processor.get_final_circuit_state(result.states[-1])
 
         return self._parse_results(

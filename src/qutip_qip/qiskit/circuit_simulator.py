@@ -4,9 +4,11 @@ from typing import List, Union
 from qutip import basis
 from qutip_qip.circuit import CircuitResult, QubitCircuit
 from qutip_qip.qiskit import QiskitSimulatorBase
+from qutip_qip.qiskit.converter import convert_qiskit_circuit_to_qutip
 from qutip_qip.qiskit.utils import QUTIP_TO_QISKIT_MAP
 
 import qiskit
+from qiskit import QuantumCircuit, transpile
 from qiskit.circuit.library import Measure
 from qiskit.result import Result
 from qiskit.result.models import ExperimentResult, ExperimentResultData
@@ -104,7 +106,7 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
         return target
 
 
-    def _run_job(self, job_id: str, qutip_circuit: QubitCircuit) -> Result:
+    def _run_job(self, job_id: str, qiskit_circuit: QuantumCircuit) -> Result:
         """
         Run a :class:`.QubitCircuit` on the :class:`.CircuitSimulator`.
 
@@ -123,6 +125,9 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
         :class:`qiskit.result.Result`
             Result of the simulation
         """
+        transpiled_circuit = transpile(qiskit_circuit, backend=self)
+        qutip_circuit = convert_qiskit_circuit_to_qutip(transpiled_circuit)
+
         zero_state = basis([2] * qutip_circuit.N, [0] * qutip_circuit.N)
         statistics = qutip_circuit.run_statistics(state=zero_state)
 
