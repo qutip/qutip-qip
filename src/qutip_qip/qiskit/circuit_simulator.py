@@ -1,5 +1,5 @@
 import random
-from typing import Union
+from typing import List, Union
 
 from qutip import basis
 from qutip_qip.circuit import CircuitResult, QubitCircuit
@@ -20,35 +20,62 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
 
     Parameters
     ----------
-    configuration : dict
-        Configurable attributes of the backend.
+    name : str
+        Name of the backend circuit simulator.
     """
 
-    BACKEND_NAME = "circuit_simulator"
-    _DEFAULT_CONFIGURATION = {
-        "backend_name": BACKEND_NAME,
-        "description": "A qutip-qip based operator-level circuit simulator.",
-        "backend_version": "0.1",
-        "url": "https://github.com/qutip/qutip-qip",
-        "simulator": True,
-        "local": True,
-        "conditional": False,
-        "open_pulse": False,
-        "memory": False,
-        "max_shots": int(1e6),
-    }
+    NAME = "circuit_simulator"
+    DESCRIPTION = "A qutip-qip based operator-level circuit simulator."
+    VERSION = 0.1
+    URL = "https://github.com/qutip/qutip-qip"
+    MAX_SHOTS = 1e6
+    MAX_CIRCUITS = 1
 
-    def __init__(self, configuration: dict = None, **fields):
-        backend_name = "circuit_simulator"
-        if (configuration and backend_name in configuration.keys()):
-            backend_name = configuration["backend_name"]
-
+    def __init__(
+        self,
+        name: str = NAME,
+        description: str = DESCRIPTION,
+        num_qubits: int = 10,
+        basis_gates: List[str] = None,
+        max_shots: int = MAX_SHOTS,
+        max_circuits: int = MAX_CIRCUITS,
+    ):
         super().__init__(
-            name = backend_name,
-            description = self._DEFAULT_CONFIGURATION["description"],
+            name = name,
+            description = description,
         )
 
-        self._target = self._build_target()
+        self._target = self._build_target(
+            num_qubits=num_qubits,
+            basis_gates=basis_gates
+        )
+
+        self.max_shots = max_shots
+        self.max_circuits = max_circuits
+
+
+    @property
+    def max_shots(self) -> int:
+        """The maximum number of shots that can be used by the sampler."""
+        return self._max_shots
+    
+    @max_shots.setter
+    def max_shots(self, value) -> None:
+        """Python Setter function for the max_shots property"""
+        self._max_shots = value
+
+    @property
+    def max_circuits(self) -> Union[int | None]:
+        """The maximum number of circuits that can be
+        run in a single job.
+
+        If there is no limit this will return None."""
+        return self._max_circuits
+    
+    @max_circuits.setter
+    def max_circuits(self, value) -> None:
+        """Python Setter function for the max_circuits property"""
+        self._max_circuits = value
 
     @property
     def target(self) -> Target:
@@ -76,12 +103,6 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
         #target.add_instruction(Barrier(), properties=None)
         return target
 
-    def max_circuits(self) -> Union[int | None]:
-        """The maximum number of circuits that can be
-        run in a single job.
-
-        If there is no limit this will return None."""
-        return self._max_circuits
 
     def _run_job(self, job_id: str, qutip_circuit: QubitCircuit) -> Result:
         """
@@ -176,8 +197,8 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
         )
 
         result = Result(
-            backend_name=self.BACKEND_NAME,
-            backend_version=0.1,
+            backend_name=self.name,
+            backend_version=self.VERSION,
             qobj_id=id(qutip_circuit),
             job_id=job_id,
             success=True,

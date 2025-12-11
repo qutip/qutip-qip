@@ -1,4 +1,10 @@
 import pytest
+
+# will skip tests in this entire file
+# if qiskit is not installed
+pytest.importorskip("qiskit")
+
+
 import numpy as np
 import random
 from numpy.testing import assert_allclose
@@ -9,6 +15,7 @@ from qutip_qip.device import (
     DispersiveCavityQED,
 )
 
+<<<<<<< HEAD
 # will skip tests in this entire file
 # if qiskit is not installed
 pytest.importorskip("qiskit")
@@ -22,6 +29,8 @@ if version.parse(qiskit.__version__) >= version.parse("1.0.0"):
         allow_module_level=True,
     )
 
+=======
+>>>>>>> 68c4637 (Removed the configuration from QiskitCircuitSimulator)
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
 from qutip_qip.qiskit import (
