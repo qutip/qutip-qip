@@ -1,6 +1,7 @@
+from typing import List
 import numpy as np
 
-import qutip
+from qutip import Qobj
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.device import Processor
 from qutip_qip.qiskit import QiskitSimulatorBase
@@ -70,11 +71,40 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
     def max_circuits(self):
         pass
 
+    def _run_job(self, job_id: str, qiskit_circuit: List[QuantumCircuit]) -> Result:
+        """
+        Run a :class:`.QubitCircuit` on the Pulse Simulator.
+
+        Parameters
+        ----------
+        job_id : str
+            Unique ID identifying a job.
+
+        qiskit_circuit : :class:`.QuantumCircuit`
+            The circuit obtained after conversion
+            from :class:`.QuantumCircuit` to :class:`.QubitCircuit`.
+
+        Returns
+        -------
+        :class:`qiskit.result.Result`
+            Result of the simulation.
+        """
+        qutip_circuit = convert_qiskit_circuit_to_qutip(qiskit_circuit)
+        self.processor.load_circuit(qutip_circuit)
+
+        zero_state = self.processor.generate_init_processor_state()
+        result = self.processor.run_state(zero_state)
+        final_state = self.processor.get_final_circuit_state(result.states[-1])
+
+        return self._parse_results(
+            final_state=final_state, job_id=job_id, qutip_circuit=qutip_circuit
+        )
+
     def _parse_results(
         self,
         job_id: str,
         qutip_circuit: QubitCircuit,
-        final_state: qutip.Qobj,
+        final_state: Qobj,
     ) -> Result:
         """
         Returns a parsed object of type :class:`qiskit.result.Result`
@@ -143,32 +173,3 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
         )
 
         return result
-
-    def _run_job(self, job_id: str, qiskit_circuit: QuantumCircuit) -> Result:
-        """
-        Run a :class:`.QubitCircuit` on the Pulse Simulator.
-
-        Parameters
-        ----------
-        job_id : str
-            Unique ID identifying a job.
-
-        qiskit_circuit : :class:`.QuantumCircuit`
-            The circuit obtained after conversion
-            from :class:`.QuantumCircuit` to :class:`.QubitCircuit`.
-
-        Returns
-        -------
-        :class:`qiskit.result.Result`
-            Result of the simulation.
-        """
-        qutip_circuit = convert_qiskit_circuit_to_qutip(qiskit_circuit)
-        self.processor.load_circuit(qutip_circuit)
-
-        zero_state = self.processor.generate_init_processor_state()
-        result = self.processor.run_state(zero_state)
-        final_state = self.processor.get_final_circuit_state(result.states[-1])
-
-        return self._parse_results(
-            final_state=final_state, job_id=job_id, qutip_circuit=qutip_circuit
-        )

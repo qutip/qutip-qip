@@ -7,7 +7,6 @@ from qutip_qip.qiskit import QiskitSimulatorBase
 from qutip_qip.qiskit.converter import convert_qiskit_circuit_to_qutip
 from qutip_qip.qiskit.utils import QUTIP_TO_QISKIT_MAP
 
-import qiskit
 from qiskit import QuantumCircuit, transpile
 from qiskit.circuit.library import Measure
 from qiskit.result import Result
@@ -140,7 +139,7 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
         job_id: str,
         qutip_circuit: QubitCircuit,
         statistics: CircuitResult,
-    ) -> qiskit.result.Result:
+    ) -> Result:
         """
         Returns a parsed object of type :class:`qiskit.result.Result`
         from the results of simulation.

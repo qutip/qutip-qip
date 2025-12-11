@@ -1,16 +1,17 @@
 """Backends for simulating qiskit circuits."""
 
-import uuid
-import random
 from collections import Counter
 from abc import abstractmethod
+from typing import List
+import uuid
+import random
 import numpy as np
 
 from qiskit.circuit import QuantumCircuit
 from qiskit.providers import BackendV2, Options
 from qiskit.result import Counts, Result
 
-from qutip_qip.circuit import QubitCircuit
+from qutip import Qobj
 from qutip_qip.qiskit.job import Job
 
 
@@ -44,18 +45,17 @@ class QiskitSimulatorBase(BackendV2):
         return options
 
     @abstractmethod
-    def _run_job(self, job_id: str, qiskit_circuit: QuantumCircuit) -> Result:
+    def _run_job(self, job_id: str, qiskit_circuits: List[QuantumCircuit]) -> Result:
         pass
 
-    def run(self, run_input: QuantumCircuit, **run_options) -> Job:
+    def run(self, run_input: List[QuantumCircuit], **run_options) -> Job:
         """
         Simulates a circuit on the required backend.
 
         Parameters
         ----------
-        # In V2 this can be a list of QuantumCircuits to be simulated
-        run_input : :class:`qiskit.circuit.QuantumCircuit`
-            The ``qiskit`` circuit to be simulated.
+        run_input : List[:class:`qiskit.circuit.QuantumCircuit`]
+            List of ``qiskit`` circuits to be simulated.
 
         **run_options:
             Additional run options for the backend.
@@ -82,9 +82,33 @@ class QiskitSimulatorBase(BackendV2):
         job = Job(
             backend=self,
             job_id=job_id,
-            result=self._run_job(job_id, run_input),
+            circuit = run_input,
         )
+        job.submit()
         return job
+
+    def _get_probabilities(self, state: Qobj) -> np.ndarray:
+        """
+        Given a state, return an array of corresponding probabilities.
+        
+        Parameters
+        ----------
+        state: Qobj
+            Qobj (type - density matrix, ket) state
+            obtained after circuit application.
+
+        Returns
+        -------
+        :class:`np.ndarray`
+            Returns the ``numpy`` corresponding to the basis state.
+        """
+        if state.type == "oper":
+            # diagonal elements of a density matrix are
+            # the probabilities
+            return state.diag()
+
+        # squares of coefficients are the probabilities for a ket vector
+        return np.square(np.real(state.data_as('ndarray', copy=False)))
 
     def _sample_shots(self, count_probs: dict) -> Counts:
         """
@@ -102,7 +126,6 @@ class QiskitSimulatorBase(BackendV2):
             Returns the ``Counts`` object sampled according to
             the given probabilities and configured shots.
         """
-        shots = self._options["shots"]
         weights = []
         for p in count_probs.values():
             if hasattr(p, "item"):
@@ -111,19 +134,7 @@ class QiskitSimulatorBase(BackendV2):
                 weights.append(float(p)) # For a trivial circuit with output 1
 
         samples = random.choices(
-            list(count_probs.keys()), weights, k=shots
+            list(count_probs.keys()), weights, k=self._options["shots"]
         )
         return Counts(Counter(samples))
-
-    def _get_probabilities(self, state):
-        """
-        Given a state, return an array of corresponding probabilities.
-        """
-        if state.type == "oper":
-            # diagonal elements of a density matrix are
-            # the probabilities
-            return state.diag()
-
-        # squares of coefficients are the probabilities
-        # for a ket vector
-        return np.array([np.abs(coef) ** 2 for coef in state])
+    
