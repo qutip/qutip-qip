@@ -9,16 +9,13 @@ import warnings
 import numpy as np
 from math import pi  # Don't remove
 
-from .circuit import QubitCircuit
-from .operations import (
+from qutip_qip.circuit import QubitCircuit
+from qutip_qip.operations import (
     controlled_gate,
     qasmu_gate,
     rz,
     snot,
 )
-
-
-__all__ = ["read_qasm", "save_qasm", "print_qasm", "circuit_to_qasm_str"]
 
 
 class QasmGate:
