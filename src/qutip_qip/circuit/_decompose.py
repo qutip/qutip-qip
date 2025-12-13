@@ -5,7 +5,7 @@ individual gate classes.
 """
 
 import numpy as np
-from ..operations import Gate
+from qutip_qip.operations import Gate
 
 
 __all__ = ["_resolve_to_universal", "_resolve_2q_basis"]

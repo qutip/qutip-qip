@@ -1,10 +1,7 @@
 import numpy as np
 
-from ..operations import Gate
-from ..compiler import GateCompiler, Instruction
-
-
-__all__ = ["SCQubitsCompiler"]
+from qutip_qip.operations import Gate
+from qutip_qip.compiler import GateCompiler, Instruction
 
 
 class SCQubitsCompiler(GateCompiler):

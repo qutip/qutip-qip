@@ -4,20 +4,19 @@ Quantum circuit representation and simulation.
 
 import inspect
 from collections.abc import Iterable
-from math import pi
 
 import numpy as np
 from copy import deepcopy
 
 from .texrenderer import TeXRenderer
 from ._decompose import _resolve_to_universal, _resolve_2q_basis
-from ..operations import (
+from qutip_qip.operations import (
     Gate,
     Measurement,
     expand_operator,
     GATE_CLASS_MAP,
 )
-from .circuitsimulator import (
+from qutip_qip.circuit import (
     CircuitSimulator,
     CircuitResult,
 )
@@ -34,12 +33,6 @@ except ImportError:
 
     def DisplaySVG(data, *args, **kwargs):
         return data
-
-
-__all__ = [
-    "QubitCircuit",
-    "CircuitResult",
-]
 
 
 class QubitCircuit:

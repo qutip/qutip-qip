@@ -1,11 +1,10 @@
-from collections import deque
 from copy import deepcopy
 from functools import cmp_to_key
 from random import shuffle
 
-from ..circuit import QubitCircuit
-from ..operations import Gate
-from .instruction import Instruction
+from qutip_qip.circuit import QubitCircuit
+from qutip_qip.operations import Gate
+from qutip_qip.compiler import Instruction
 
 
 class InstructionsGraph:

@@ -1,6 +1,5 @@
 TEXTWIDTH = 5.93
 LINEWIDTH = 3.22
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 try:
     from quantum_plots import global_setup
@@ -11,7 +10,7 @@ plt.rcParams.update({"text.usetex": False, "font.size": 10})
 
 
 import numpy as np
-from qutip import basis, fidelity, Options
+from qutip import basis, fidelity
 from qutip_qip.device import LinearSpinChain
 from qutip_qip.algorithms import qft_gate_sequence
 

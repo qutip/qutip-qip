@@ -1,7 +1,5 @@
 import pytest
 import qutip
-import numpy as np
-from qutip_qip.circuit import QubitCircuit
 from qutip_qip.algorithms import ShorCode
 
 

@@ -2,8 +2,7 @@
 Module for rendering a quantum circuit using matplotlib library.
 """
 
-from typing import Union, Optional, List, Dict
-from dataclasses import dataclass
+from typing import Union
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -16,8 +15,8 @@ from matplotlib.patches import (
 )
 
 from .base_renderer import BaseRenderer, StyleConfig
-from ..operations import Gate, Measurement
-from ..circuit import QubitCircuit
+from qutip_qip.operations import Gate, Measurement
+from qutip_qip.circuit import QubitCircuit
 
 __all__ = [
     "MatRenderer",

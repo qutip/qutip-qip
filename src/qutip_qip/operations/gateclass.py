@@ -1,20 +1,12 @@
 import numbers
 from collections.abc import Iterable
-from itertools import product, chain
-from functools import partial, reduce
-from operator import mul
+from functools import partial
 from typing import Optional
 
-import warnings
-import inspect
-from copy import deepcopy
-
 import numpy as np
-import scipy.sparse as sp
-
 import qutip
-from qutip import Qobj, identity, qeye, sigmax, sigmay, sigmaz, tensor, fock_dm
-from .gates import (
+from qutip import Qobj, qeye
+from qutip_qip.operations import (
     rx,
     ry,
     rz,
@@ -49,46 +41,6 @@ from .gates import (
     expand_operator,
 )
 
-__all__ = [
-    "Gate",
-    "GATE_CLASS_MAP",
-    "X",
-    "Y",
-    "Z",
-    "RX",
-    "RY",
-    "RZ",
-    "H",
-    "SNOT",
-    "SQRTNOT",
-    "S",
-    "T",
-    "R",
-    "QASMU",
-    "SWAP",
-    "ControlledGate",
-    "ISWAP",
-    "CNOT",
-    "SQRTSWAP",
-    "SQRTISWAP",
-    "SWAPALPHA",
-    "MS",
-    "TOFFOLI",
-    "FREDKIN",
-    "BERKELEY",
-    "CNOT",
-    "CSIGN",
-    "CRX",
-    "CRY",
-    "CRZ",
-    "CY",
-    "CX",
-    "CZ",
-    "CS",
-    "CT",
-    "CPHASE",
-    "RZX",
-]
 
 """
 .. testsetup::

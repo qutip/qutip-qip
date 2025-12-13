@@ -7,7 +7,7 @@ from copy import deepcopy
 import numpy as np
 
 from qutip import Qobj, basis, destroy, num, qeye, tensor
-from .pulse import Pulse
+from qutip_qip.pulse import Pulse
 
 
 __all__ = [

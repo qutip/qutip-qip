@@ -1,9 +1,8 @@
 import numpy as np
-from numpy.testing import assert_, assert_equal, assert_allclose
+from numpy.testing import assert_, assert_equal
 import unittest
-from qutip import Qobj, sigmax, sigmay, sigmaz, identity, basis, tensor
-from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import gate_sequence_product, ControlledGate
+from qutip import Qobj, sigmaz, tensor
+from qutip_qip.operations import ControlledGate
 
 from qutip_qip.algorithms.qpe import qpe, CustomGate, create_controlled_unitary
 

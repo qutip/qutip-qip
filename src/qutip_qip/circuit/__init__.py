@@ -2,9 +2,9 @@
 
 import warnings
 
-from .circuit import *
-from .circuitsimulator import *
-from ..operations import Gate, Measurement
+from .circuitsimulator import CircuitResult, CircuitSimulator
+from .circuit import QubitCircuit
+from qutip_qip.operations import Gate, Measurement
 
 
 def _add_deprecation(fun, msg):
@@ -29,3 +29,10 @@ Measurement = _add_deprecation(
     "The class Measurement has been moved to qutip_qip.operations."
     "Please use update the import statement.\n",
 )
+
+
+__all__ = [
+    "CircuitSimulator",
+    "CircuitResult",
+    "QubitCircuit",
+]

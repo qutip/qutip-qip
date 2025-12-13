@@ -2,13 +2,9 @@ import warnings
 import numpy as np
 from scipy import signal
 
-from .instruction import Instruction
-from .scheduler import Scheduler
-from ..circuit import QubitCircuit
-from ..operations import Gate
-
-
-__all__ = ["GateCompiler"]
+from qutip_qip.compiler import Instruction
+from qutip_qip.compiler import Scheduler
+from qutip_qip.circuit import QubitCircuit
 
 
 class GateCompiler(object):

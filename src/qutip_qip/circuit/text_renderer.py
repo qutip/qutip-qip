@@ -6,8 +6,8 @@ from math import ceil
 from typing import List
 
 from .base_renderer import BaseRenderer, StyleConfig
-from ..operations import Gate, Measurement
-from . import QubitCircuit
+from qutip_qip.operations import Gate, Measurement
+from qutip_qip.circuit import QubitCircuit
 
 __all__ = [
     "TextRenderer",
