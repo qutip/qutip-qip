@@ -4,9 +4,7 @@ from .output_qasm import (
     print_qasm,
     circuit_to_qasm_str
 )
-from .qasm import (
-    read_qasm,
-)
+from .read_qasm import read_qasm
 
 __all__ = [
     "read_qasm",
