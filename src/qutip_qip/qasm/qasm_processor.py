@@ -8,8 +8,10 @@ import warnings
 import numpy as np
 from math import pi  # Don't remove
 
+from qutip import Qobj
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations import (
+    Gate,
     controlled_gate,
     qasmu_gate,
     rz,
@@ -214,10 +216,10 @@ class QasmProcessor:
                 if command[0] == "{":
                     gate_defn_mode = False
                     open_bracket_mode = True
-                    gate_elems = []
                     continue
                 else:
                     raise SyntaxError("QASM: incorrect bracket formatting")
+            
             elif open_bracket_mode:
                 # Define the decomposition of custom QASM gate
                 if command[0] == "{":
@@ -241,12 +243,14 @@ class QasmProcessor:
                     gate_args, gate_regs = _gate_processor(command)
                     gate_added = self.qasm_gates[name]
                     curr_gate.gates_inside.append([name, gate_args, gate_regs])
+            
             elif command[0] == "gate":
                 # Custom definition of gates.
                 gate_name = command[1]
                 gate_args, gate_regs = _gate_processor(command[1:])
                 curr_gate = QasmGate(gate_name, gate_args, gate_regs)
                 gate_defn_mode = True
+            
             elif command[0] == "qreg":
                 groups = re.match(r"(.*)\[(.*)\]", "".join(command[1:]))
                 if groups:
@@ -270,12 +274,15 @@ class QasmProcessor:
                     self.num_cbits += num_regs
                 else:
                     raise SyntaxError("QASM: incorrect bracket formatting")
+            
             elif command[0] == "reset":
                 raise NotImplementedError(
                     ("QASM: reset functionality " "is not supported.")
                 )
+            
             elif command[0] in ["barrier", "include"]:
                 continue
+            
             else:
                 unprocessed.append(num)
                 continue
@@ -285,7 +292,7 @@ class QasmProcessor:
 
         self.commands = [self.commands[i] for i in unprocessed]
 
-    def _custom_gate(self, qc_temp, gate_call):
+    def _custom_gate(self, qc_temp: QubitCircuit, gate_call: list[str]):
         """
         Recursively process a custom-defined gate with specified arguments
         to produce a dummy circuit with all the gates in the custom-defined
@@ -334,7 +341,7 @@ class QasmProcessor:
             else:
                 self._custom_gate(qc_temp, [name, com_args, com_regs])
 
-    def _regs_processor(self, regs, reg_type):
+    def _regs_processor(self, regs: list[str], reg_type: str):
         """
         Process register tokens: map them to the :class:`.QubitCircuit` indices
         of the respective registers.
@@ -384,6 +391,7 @@ class QasmProcessor:
         if reg_type == "measure":
             # processes register tokens of the form q[i] -> c[i]
             groups = re.match(r"(.*)\[(.*)\]->(.*)\[(.*)\]", "".join(regs))
+            
             if groups:
                 qubit_name = groups.group(1)
                 qubit_ind = int(groups.group(2))
@@ -400,6 +408,7 @@ class QasmProcessor:
                 else:
                     raise ValueError("QASM: cbit index out of bounds")
                 return [(qubit, cbit)]
+            
             # processes register tokens of the form q -> c
             else:
                 qubit_name = regs[0]
@@ -431,6 +440,7 @@ class QasmProcessor:
                     qubit = self.qubit_regs[qubit_name]
                     expand = len(qubit)
                 new_regs.append(qubit)
+            
             if expand:
                 return zip(
                     *list(
@@ -447,12 +457,12 @@ class QasmProcessor:
 
     def _add_qiskit_gates(
         self,
-        qc,
-        name,
-        regs,
-        args=None,
-        classical_controls=None,
-        classical_control_value=None,
+        qc: QubitCircuit,
+        name: str,
+        regs: list[int],
+        args: (float | None) = None,
+        classical_controls: (int | None) = None,
+        classical_control_value: (int | None) = None,
     ):
         """
         Add any gates that are pre-defined in qiskit-style exported
@@ -462,14 +472,19 @@ class QasmProcessor:
         ----------
         qc : :class:`.QubitCircuit`
             the circuit to which the gate is added.
+        
         name : str
             name of gate to be added.
+        
         regs : list of int
             list of qubit register indices to add gates to.
+        
         args : float, optional
             value of args supplied to the gate.
+        
         classical_controls : list of int, optional
             indices of classical bits to control gate on.
+        
         classical_control_value : int, optional
             value of classical bits to control on, the classical controls are
             interpreted as an integer with lowest bit being the first one.
@@ -598,12 +613,12 @@ class QasmProcessor:
 
     def _add_predefined_gates(
         self,
-        qc,
-        name,
+        qc: QubitCircuit,
+        name: str,
         com_regs,
         com_args,
-        classical_controls=None,
-        classical_control_value=None,
+        classical_controls: (int | None) = None,
+        classical_control_value: (int | None) = None,
     ):
         """
         Add any gates that are pre-defined and/or inbuilt
@@ -657,11 +672,11 @@ class QasmProcessor:
 
     def _gate_add(
         self,
-        qc,
-        command,
-        custom_gates,
-        classical_controls=None,
-        classical_control_value=None,
+        qc: QubitCircuit,
+        command: list[str],
+        custom_gates: dict[str: (Gate | Qobj)],
+        classical_controls: (int | list[int] | None) = None,
+        classical_control_value: (int | None) = None,
     ):
         """
         Add gates to :class:`.QubitCircuit` from processed tokens,
@@ -731,7 +746,7 @@ class QasmProcessor:
                     classical_control_value=classical_control_value,
                 )
 
-    def _final_pass(self, qc):
+    def _final_pass(self, qc: QubitCircuit):
         """
         Take a blank circuit, add all the gates and measurements specified
         by QASM.

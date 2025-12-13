@@ -1,5 +1,5 @@
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.qasm.qasm import QasmProcessor
+from qutip_qip.qasm.qasm_processor import QasmProcessor
 from qutip_qip.qasm.tokenize_qasm import tokenize_qasm
 
 
