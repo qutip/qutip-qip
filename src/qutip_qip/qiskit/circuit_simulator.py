@@ -1,18 +1,16 @@
 import random
-from typing import List, Union
+import uuid
+from typing import List
 
 from qutip import basis
 from qutip_qip.circuit import CircuitResult, QubitCircuit
-from qutip_qip.qiskit import QiskitSimulatorBase
+from qutip_qip.qiskit import Job, QiskitSimulatorBase
 from qutip_qip.qiskit.converter import convert_qiskit_circuit_to_qutip
-from qutip_qip.qiskit.utils import QUTIP_TO_QISKIT_MAP
 
 from qiskit import QuantumCircuit, transpile
-from qiskit.circuit.library import Measure
 from qiskit.result import Result
 from qiskit.result.models import ExperimentResult, ExperimentResultData
 from qiskit.quantum_info import Statevector
-from qiskit.transpiler.target import Target
 
 class QiskitCircuitSimulator(QiskitSimulatorBase):
     """
@@ -25,84 +23,67 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
         Name of the backend circuit simulator.
     """
 
-    NAME = "circuit_simulator"
     DESCRIPTION = "A qutip-qip based operator-level circuit simulator."
     VERSION = 0.1
     URL = "https://github.com/qutip/qutip-qip"
-    MAX_SHOTS = 1e6
     MAX_CIRCUITS = 1
 
     def __init__(
         self,
-        name: str = NAME,
+        name: str = "circuit_simulator",
         description: str = DESCRIPTION,
         num_qubits: int = 10,
         basis_gates: List[str] = None,
-        max_shots: int = MAX_SHOTS,
-        max_circuits: int = MAX_CIRCUITS,
+        max_shots: int = 1e6,
+        max_circuits: int = 1,
     ):
         super().__init__(
             name = name,
             description = description,
-        )
-
-        self._target = self._build_target(
             num_qubits=num_qubits,
-            basis_gates=basis_gates
+            basis_gates=basis_gates,
+            max_shots=max_shots,
+            max_circuits=max_circuits
         )
 
-        self.max_shots = max_shots
-        self.max_circuits = max_circuits
-
-
-    @property
-    def max_shots(self) -> int:
-        """The maximum number of shots that can be used by the sampler."""
-        return self._max_shots
-    
-    @max_shots.setter
-    def max_shots(self, value) -> None:
-        """Python Setter function for the max_shots property"""
-        self._max_shots = value
-
-    @property
-    def max_circuits(self) -> Union[int | None]:
-        """The maximum number of circuits that can be
-        run in a single job.
-
-        If there is no limit this will return None."""
-        return self._max_circuits
-    
-    @max_circuits.setter
-    def max_circuits(self, value) -> None:
-        """Python Setter function for the max_circuits property"""
-        self._max_circuits = value
-
-    @property
-    def target(self) -> Target:
-        return self._target
-
-    def _build_target(self, num_qubits:int = 10, basis_gates=None) -> Target:
-        """Builds a :class:`qiskit.transpiler.Target` object for the backend.
-        
-        :rtype: Target
+    def run(self, run_input: List[QuantumCircuit], **run_options) -> Job:
         """
+        Simulates a circuit on the required backend.
 
-        target = Target(num_qubits=num_qubits)
-        if basis_gates is None:
-            basis_gates = list(QUTIP_TO_QISKIT_MAP.keys())
+        Parameters
+        ----------
+        run_input : List[:class:`qiskit.circuit.QuantumCircuit`]
+            List of ``qiskit`` circuits to be simulated.
 
-        # Adding the basis gates
-        # Passing properties=None means "This gate works on ALL qubits with NO error"
-        for gate in basis_gates:
-            target.add_instruction(QUTIP_TO_QISKIT_MAP[gate], properties=None)
+        **run_options:
+            Additional run options for the backend.
 
-        # Essential primitives
-        target.add_instruction(Measure(), properties=None)
-        
-        # TODO: Add Barrier implementation to QuTiP.
-        #target.add_instruction(Barrier(), properties=None)
-        return target
+            Valid options are:
+
+            shots : int
+                Number of times to sample the results.
+
+        Returns
+        -------
+        :class:`.Job`
+            Job object that stores results and execution data.
+        """
+        # Set the no. of shots
+        if "shots" in run_options:
+            shots = run_options["shots"]
+            if (shots <= 0):
+                raise ValueError(f'shots ${shots} must be a positive number')
+
+            self.set_options(shots=shots)
+
+        job_id = str(uuid.uuid4())
+        job = Job(
+            backend=self,
+            job_id=job_id,
+            circuit = run_input,
+        )
+        job.submit()
+        return job
 
 
     def _run_job(self, job_id: str, qiskit_circuit: QuantumCircuit) -> Result:

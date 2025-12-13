@@ -1,10 +1,11 @@
 from typing import List
+import uuid
 import numpy as np
 
 from qutip import Qobj
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.device import Processor
-from qutip_qip.qiskit import QiskitSimulatorBase
+from qutip_qip.qiskit import Job, QiskitSimulatorBase
 from qutip_qip.qiskit.converter import convert_qiskit_circuit_to_qutip
 
 from qiskit import QuantumCircuit
@@ -70,6 +71,45 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
 
     def max_circuits(self):
         pass
+
+    def run(self, run_input: List[QuantumCircuit], **run_options) -> Job:
+        """
+        Simulates a circuit on the required backend.
+
+        Parameters
+        ----------
+        run_input : List[:class:`qiskit.circuit.QuantumCircuit`]
+            List of ``qiskit`` circuits to be simulated.
+
+        **run_options:
+            Additional run options for the backend.
+
+            Valid options are:
+
+            shots : int
+                Number of times to sample the results.
+
+        Returns
+        -------
+        :class:`.Job`
+            Job object that stores results and execution data.
+        """
+        # Set the no. of shots
+        if "shots" in run_options:
+            shots = run_options["shots"]
+            if (shots <= 0):
+                raise ValueError(f'shots ${shots} must be a positive number')
+
+            self.set_options(shots=shots)
+
+        job_id = str(uuid.uuid4())
+        job = Job(
+            backend=self,
+            job_id=job_id,
+            circuit = run_input,
+        )
+        job.submit()
+        return job
 
     def _run_job(self, job_id: str, qiskit_circuit: List[QuantumCircuit]) -> Result:
         """
