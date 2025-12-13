@@ -13,6 +13,7 @@ from qiskit.result import Result
 from qiskit.result.models import ExperimentResult, ExperimentResultData
 from qiskit.quantum_info import Statevector, DensityMatrix
 
+
 class QiskitPulseSimulator(QiskitSimulatorBase):
     """
     ``qiskit`` backend dealing with pulse-level simulation.
@@ -60,10 +61,10 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
             configuration = self._DEFAULT_CONFIGURATION
 
         super().__init__(
-            name = configuration["backend_name"],
-            description = configuration["description"],
+            name=configuration["backend_name"],
+            description=configuration["description"],
         )
-        
+
         self.processor = processor
 
     def target(self):
@@ -97,8 +98,8 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
         # Set the no. of shots
         if "shots" in run_options:
             shots = run_options["shots"]
-            if (shots <= 0):
-                raise ValueError(f'shots ${shots} must be a positive number')
+            if shots <= 0:
+                raise ValueError(f"shots ${shots} must be a positive number")
 
             self.set_options(shots=shots)
 
@@ -106,12 +107,14 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
         job = Job(
             backend=self,
             job_id=job_id,
-            circuit = run_input,
+            circuit=run_input,
         )
         job.submit()
         return job
 
-    def _run_job(self, job_id: str, qiskit_circuit: List[QuantumCircuit]) -> Result:
+    def _run_job(
+        self, job_id: str, qiskit_circuit: List[QuantumCircuit]
+    ) -> Result:
         """
         Run a :class:`.QubitCircuit` on the Pulse Simulator.
 
@@ -189,13 +192,11 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
 
         header = {
             "name": (
-                qutip_circuit.name
-                if hasattr(qutip_circuit, "name")
-                else ""
+                qutip_circuit.name if hasattr(qutip_circuit, "name") else ""
             ),
             "n_qubits": qutip_circuit.N,
         }
-        
+
         exp_res = ExperimentResult(
             shots=self._options.shots,
             success=True,

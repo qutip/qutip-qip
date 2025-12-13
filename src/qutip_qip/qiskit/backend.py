@@ -33,14 +33,11 @@ class QiskitSimulatorBase(BackendV2):
         max_circuits: int = 1,
     ):
         super().__init__(
-            provider="QuTiP-qip",
-            name=name, 
-            description=description
+            provider="QuTiP-qip", name=name, description=description
         )
 
         self._target = self._build_target(
-            num_qubits=num_qubits,
-            basis_gates=basis_gates
+            num_qubits=num_qubits, basis_gates=basis_gates
         )
 
         self.max_shots = max_shots
@@ -50,7 +47,7 @@ class QiskitSimulatorBase(BackendV2):
     def max_shots(self) -> int:
         """The maximum number of shots that can be used by the sampler."""
         return self._max_shots
-    
+
     @max_shots.setter
     def max_shots(self, value) -> None:
         """Python Setter function for the max_shots property"""
@@ -63,7 +60,7 @@ class QiskitSimulatorBase(BackendV2):
 
         If there is no limit this will return None."""
         return self._max_circuits
-    
+
     @max_circuits.setter
     def max_circuits(self, value) -> None:
         """Python Setter function for the max_circuits property"""
@@ -73,9 +70,9 @@ class QiskitSimulatorBase(BackendV2):
     def target(self) -> Target:
         return self._target
 
-    def _build_target(self, num_qubits:int = 10, basis_gates=None) -> Target:
+    def _build_target(self, num_qubits: int = 10, basis_gates=None) -> Target:
         """Builds a :class:`qiskit.transpiler.Target` object for the backend.
-        
+
         :rtype: Target
         """
 
@@ -90,11 +87,11 @@ class QiskitSimulatorBase(BackendV2):
 
         # Essential primitives
         target.add_instruction(Measure(), properties=None)
-        
+
         # TODO: Add Barrier implementation to QuTiP.
-        #target.add_instruction(Barrier(), properties=None)
+        # target.add_instruction(Barrier(), properties=None)
         return target
-        
+
     @classmethod
     def _default_options(cls):
         """
@@ -111,14 +108,15 @@ class QiskitSimulatorBase(BackendV2):
         return options
 
     @abstractmethod
-    def _run_job(self, job_id: str, qiskit_circuits: List[QuantumCircuit]) -> Result:
+    def _run_job(
+        self, job_id: str, qiskit_circuits: List[QuantumCircuit]
+    ) -> Result:
         pass
-
 
     def _get_probabilities(self, state: Qobj) -> np.ndarray:
         """
         Given a state, return an array of corresponding probabilities.
-        
+
         Parameters
         ----------
         state: Qobj
@@ -136,7 +134,7 @@ class QiskitSimulatorBase(BackendV2):
             return state.diag()
 
         # squares of coefficients are the probabilities for a ket vector
-        return np.square(np.real(state.data_as('ndarray', copy=False)))
+        return np.square(np.real(state.data_as("ndarray", copy=False)))
 
     def _sample_shots(self, count_probs: dict) -> Counts:
         """
@@ -157,12 +155,11 @@ class QiskitSimulatorBase(BackendV2):
         weights = []
         for p in count_probs.values():
             if hasattr(p, "item"):
-                weights.append(float(p.item())) # For multiple choice
+                weights.append(float(p.item()))  # For multiple choice
             else:
-                weights.append(float(p)) # For a trivial circuit with output 1
+                weights.append(float(p))  # For a trivial circuit with output 1
 
         samples = random.choices(
             list(count_probs.keys()), weights, k=self._options["shots"]
         )
         return Counts(Counter(samples))
-    

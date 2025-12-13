@@ -8,7 +8,7 @@ from qutip_qip.circuit import QubitCircuit
 from qutip_qip.qiskit.utils import (
     _map_gates,
     _map_controlled_gates,
-    _ignore_gates
+    _ignore_gates,
 )
 
 import qiskit

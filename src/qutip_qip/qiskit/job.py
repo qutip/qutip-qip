@@ -26,10 +26,7 @@ class Job(JobV1):
     """
 
     def __init__(
-        self, 
-        backend: Backend, 
-        job_id: str, 
-        circuit: List[QuantumCircuit]
+        self, backend: Backend, job_id: str, circuit: List[QuantumCircuit]
     ):
         super().__init__(backend, job_id)
         self._run_input = circuit
@@ -45,7 +42,7 @@ class Job(JobV1):
     def status(self) -> JobStatus:
         """Returns job status"""
         return self._status
-    
+
     def cancel(self):
         pass
 

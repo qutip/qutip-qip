@@ -12,6 +12,7 @@ from qiskit.result import Result
 from qiskit.result.models import ExperimentResult, ExperimentResultData
 from qiskit.quantum_info import Statevector
 
+
 class QiskitCircuitSimulator(QiskitSimulatorBase):
     """
     ``qiskit`` backend dealing with operator-level
@@ -38,12 +39,12 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
         max_circuits: int = 1,
     ):
         super().__init__(
-            name = name,
-            description = description,
+            name=name,
+            description=description,
             num_qubits=num_qubits,
             basis_gates=basis_gates,
             max_shots=max_shots,
-            max_circuits=max_circuits
+            max_circuits=max_circuits,
         )
 
     def run(self, run_input: List[QuantumCircuit], **run_options) -> Job:
@@ -71,8 +72,8 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
         # Set the no. of shots
         if "shots" in run_options:
             shots = run_options["shots"]
-            if (shots <= 0):
-                raise ValueError(f'shots ${shots} must be a positive number')
+            if shots <= 0:
+                raise ValueError(f"shots ${shots} must be a positive number")
 
             self.set_options(shots=shots)
 
@@ -80,11 +81,10 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
         job = Job(
             backend=self,
             job_id=job_id,
-            circuit = run_input,
+            circuit=run_input,
         )
         job.submit()
         return job
-
 
     def _run_job(self, job_id: str, qiskit_circuit: QuantumCircuit) -> Result:
         """
@@ -161,15 +161,12 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
         )[0]
 
         exp_res_data = ExperimentResultData(
-            counts=counts,
-            statevector=Statevector(data=statevector.full())
+            counts=counts, statevector=Statevector(data=statevector.full())
         )
 
         header = {
             "name": (
-                qutip_circuit.name
-                if hasattr(qutip_circuit, "name")
-                else ""
+                qutip_circuit.name if hasattr(qutip_circuit, "name") else ""
             ),
             "n_qubits": qutip_circuit.N,
         }

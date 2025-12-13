@@ -1,7 +1,23 @@
 from qiskit.circuit.library import (
-    PhaseGate, XGate, YGate, ZGate, HGate, SGate, TGate, 
-    RXGate, RYGate, RZGate, SwapGate, UGate,
-    CXGate, CYGate, CZGate, CRXGate, CRYGate, CRZGate, CPhaseGate
+    PhaseGate,
+    XGate,
+    YGate,
+    ZGate,
+    HGate,
+    SGate,
+    TGate,
+    RXGate,
+    RYGate,
+    RZGate,
+    SwapGate,
+    UGate,
+    CXGate,
+    CYGate,
+    CZGate,
+    CRXGate,
+    CRYGate,
+    CRZGate,
+    CPhaseGate,
 )
 
 QUTIP_TO_QISKIT_MAP = {
@@ -18,7 +34,6 @@ QUTIP_TO_QISKIT_MAP = {
     "RZ": RZGate(phi=0.0),
     "SWAP": SwapGate(),
     "QASMU": UGate(theta=0.0, phi=0.0, lam=0.0),
-
     # Controlled Gates
     "CX": CXGate(),
     "CY": CYGate(),
