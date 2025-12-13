@@ -16,10 +16,7 @@ from qutip_qip.operations import (
     expand_operator,
     GATE_CLASS_MAP,
 )
-from qutip_qip.circuit import (
-    CircuitSimulator,
-    CircuitResult,
-)
+from qutip_qip.circuit import CircuitSimulator
 from qutip import Qobj, qeye
 
 
@@ -502,8 +499,6 @@ class QubitCircuit:
 
         Returns
         -------
-        result: CircuitResult
-            Return a CircuitResult object containing
             output states and and their probabilities.
         """
         if state.isket:
