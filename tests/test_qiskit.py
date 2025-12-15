@@ -19,9 +19,6 @@ from qutip_qip.device import (
 # if qiskit is not installed
 pytest.importorskip("qiskit")
 
-from packaging import version
-import qiskit
-
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
 from qutip_qip.qiskit import (
@@ -161,7 +158,7 @@ class TestCircuitSimulato:
 
     def _compare_results(self, qiskit_circuit: QuantumCircuit) -> None:
         qutip_backend = QiskitCircuitSimulator()
-        qutip_job = qutip_backend.run(qiskit_circuit)
+        qutip_job = qutip_backend.run([qiskit_circuit])
         qutip_result = qutip_job.result()
         qutip_sv = qutip_result.data()["statevector"]
 
@@ -205,7 +202,7 @@ class TestCircuitSimulato:
         circ.measure(1, 1)
 
         qutip_backend = QiskitCircuitSimulator()
-        qutip_job = qutip_backend.run(circ)
+        qutip_job = qutip_backend.run([circ])
         qutip_result = qutip_job.result()
 
         assert qutip_result.get_counts(circ) == predefined_counts
@@ -217,7 +214,7 @@ class TestPulseSimulator:
 
     def _run_pulse_processor(self, processor, circ):
         qutip_backend = QiskitPulseSimulator(processor)
-        qutip_job = qutip_backend.run(circ)
+        qutip_job = qutip_backend.run([circ])
         return qutip_job.result()
 
     def _init_pulse_test(self):

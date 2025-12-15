@@ -27,7 +27,7 @@ class QiskitSimulatorBase(BackendV2):
         self,
         name: str = None,
         description: str = None,
-        version: str = '0.1',
+        version: str = "0.1",
         num_qubits: int = 10,
         basis_gates: List[str] = None,
         max_shots: int = 1e6,
@@ -74,9 +74,7 @@ class QiskitSimulatorBase(BackendV2):
         return self._target
 
     def _build_target(
-        self,
-        num_qubits: int = 10,
-        basis_gates: list[str] = None
+        self, num_qubits: int = 10, basis_gates: list[str] = None
     ) -> Target:
         """Builds a :class:`qiskit.transpiler.Target` object for the backend.
 
@@ -84,10 +82,12 @@ class QiskitSimulatorBase(BackendV2):
         """
 
         DEFAULT_BASIS_GATE_SET = QUTIP_TO_QISKIT_MAP.keys()
-        if (basis_gates is not None):
+        if basis_gates is not None:
             for gate in basis_gates:
-                if (gate not in DEFAULT_BASIS_GATE_SET):
-                    raise ValueError(f"Invalid basis gate set, contains ${gate}")
+                if gate not in DEFAULT_BASIS_GATE_SET:
+                    raise ValueError(
+                        f"Invalid basis gate set, contains ${gate}"
+                    )
 
         target = Target(num_qubits=num_qubits)
         if basis_gates is None:
