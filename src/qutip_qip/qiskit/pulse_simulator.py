@@ -31,8 +31,8 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
     basis_gates : list[str], Optional
         The basis gates names in QuTip.
         Defaults to (PHASEGATE, X, Y, Z, RX, RY, RZ,
-            Hadamard, S, T, SWAP, QASMU, CX, CY, CZ,
-            CRX, CRY, CRZ, CPHASE)
+        Hadamard, S, T, SWAP, QASMU, CX, CY, CZ,
+        CRX, CRY, CRZ, CPHASE)
 
     max_shots : int, Optional
         Maximum number of shots the Backend support
