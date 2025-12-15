@@ -3,11 +3,10 @@ import sys
 import shutil
 import tempfile
 import warnings
-import functools
 import subprocess
 import collections
 
-from ..operations import Gate
+from qutip_qip.operations import Gate
 
 __all__ = ["TeXRenderer", "CONVERTERS"]
 

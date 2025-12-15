@@ -1,8 +1,7 @@
 import numpy as np
 from qutip import basis
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.device import LinearSpinChain, SpinChainModel, Processor, ModelProcessor
-from qutip_qip.compiler import SpinChainCompiler
+from qutip_qip.device import LinearSpinChain, SpinChainModel, Processor
 from qutip_qip.noise import RelaxationNoise
 qc = QubitCircuit(3)
 qc.add_gate("X", targets=2)

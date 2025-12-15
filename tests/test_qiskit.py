@@ -15,6 +15,13 @@ from qutip_qip.device import (
     DispersiveCavityQED,
 )
 
+# will skip tests in this entire file
+# if qiskit is not installed
+pytest.importorskip("qiskit")
+
+from packaging import version
+import qiskit
+
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
 from qutip_qip.qiskit import (

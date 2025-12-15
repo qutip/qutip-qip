@@ -1,16 +1,12 @@
 from collections.abc import Iterable
 import warnings
-import numbers
 
 import numpy as np
 
-from qutip import Qobj, identity, tensor, mesolve
-from ..circuit import QubitCircuit
-from .processor import Processor
-from ..operations import gate_sequence_product, expand_operator
-
-
-__all__ = ["OptPulseProcessor"]
+from qutip import Qobj, identity
+from qutip_qip.circuit import QubitCircuit
+from qutip_qip.device import Processor
+from qutip_qip.operations import gate_sequence_product, expand_operator
 
 
 class OptPulseProcessor(Processor):

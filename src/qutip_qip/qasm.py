@@ -7,7 +7,7 @@ from copy import deepcopy
 import warnings
 
 import numpy as np
-from math import pi
+from math import pi  # Don't remove
 
 from .circuit import QubitCircuit
 from .operations import (

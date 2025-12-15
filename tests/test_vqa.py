@@ -1,6 +1,4 @@
 import pytest
-import functools
-import itertools
 import numpy as np
 import qutip
 from qutip_qip.operations import expand_operator

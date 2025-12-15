@@ -2,9 +2,6 @@ from copy import deepcopy
 import numpy as np
 
 
-__all__ = ["Instruction"]
-
-
 class Instruction:
     """
     Representation of pulses that implement a quantum gate.

@@ -1,5 +1,4 @@
 import numpy as np
-from qutip import Qobj
 from qutip_qip.operations import Gate, ControlledGate
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.algorithms import qft_gate_sequence

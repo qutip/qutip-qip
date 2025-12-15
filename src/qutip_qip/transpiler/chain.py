@@ -1,11 +1,8 @@
 from copy import deepcopy
-from ..circuit import QubitCircuit
+from qutip_qip.circuit import QubitCircuit
 
 
-__all__ = ["to_chain_structure"]
-
-
-def to_chain_structure(qc, setup="linear"):
+def to_chain_structure(qc: QubitCircuit, setup="linear"):
     """
     Method to resolve 2 qubit gates with non-adjacent control/s or target/s
     in terms of gates with adjacent interactions for linear/circular spin

@@ -1,6 +1,5 @@
-import warnings
 from copy import deepcopy
-
+import warnings
 import numpy as np
 
 from qutip import (
@@ -11,17 +10,11 @@ from qutip import (
     sigmaz,
     basis,
     Qobj,
-    QobjEvo,
 )
-from ..circuit import QubitCircuit
-from ..operations import Gate
-from .processor import Processor, Model
-from .modelprocessor import ModelProcessor, _to_array
-from ..pulse import Pulse
-from ..compiler import GateCompiler, CavityQEDCompiler
-
-
-__all__ = ["DispersiveCavityQED"]
+from qutip_qip.device import Model
+from qutip_qip.device import ModelProcessor
+from qutip_qip.compiler import CavityQEDCompiler
+from qutip_qip.device.utils import _to_array
 
 
 class DispersiveCavityQED(ModelProcessor):

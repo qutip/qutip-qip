@@ -2,7 +2,8 @@
 Simulation of quantum hardware.
 """
 
-from .processor import Processor, Model
+from .model import Model
+from .processor import Processor
 from .modelprocessor import ModelProcessor
 from .spinchain import (
     LinearSpinChain,
@@ -10,5 +11,19 @@ from .spinchain import (
     SpinChainModel,
 )
 from .cavityqed import DispersiveCavityQED, CavityQEDModel
-from .optpulseprocessor import OptPulseProcessor
 from .circuitqed import SCQubits, SCQubitsModel
+from .optpulseprocessor import OptPulseProcessor
+
+__all__ = [
+    "DispersiveCavityQED",
+    "CavityQEDModel",
+    "SCQubits",
+    "SCQubitsModel",
+    "Model",
+    "ModelProcessor",
+    "Processor",
+    "LinearSpinChain",
+    "CircularSpinChain",
+    "SpinChainModel",
+    "OptPulseProcessor",
+]
