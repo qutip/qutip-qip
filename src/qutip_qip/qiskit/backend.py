@@ -3,6 +3,7 @@
 from collections import Counter
 from abc import abstractmethod
 from typing import List, Union
+import uuid
 import random
 import numpy as np
 
@@ -13,6 +14,7 @@ from qiskit.result import Counts, Result
 from qiskit.transpiler.target import Target
 
 from qutip import Qobj
+from qutip_qip.qiskit import Job
 from qutip_qip.qiskit.utils import QUTIP_TO_QISKIT_MAP
 
 
@@ -119,6 +121,57 @@ class QiskitSimulatorBase(BackendV2):
         options.shots = 1024
         options.set_validator("shots", int)
         return options
+
+    def run(
+        self, run_input: QuantumCircuit | list[QuantumCircuit], **run_options
+    ) -> Job:
+        """
+        Simulates a circuit on the required backend.
+
+        Parameters
+        ----------
+        run_input : List[:class:`qiskit.circuit.QuantumCircuit`]
+            List of ``qiskit`` circuits to be simulated.
+
+        **run_options:
+            Additional run options for the backend.
+
+            Valid options are:
+
+            shots : int
+                Number of times to sample the results.
+
+        Returns
+        -------
+        :class:`.Job`
+            Job object that stores results and execution data.
+        """
+
+        if not isinstance(run_input, list):
+            run_input = [run_input]
+
+        if len(run_input) > self.max_circuits:
+            raise ValueError(
+                f"Passed ${len(run_input)} circuits to the backend,\
+                while max_cicruits is defined as ${self.max_circuits}"
+            )
+
+        # Set the no. of shots
+        if "shots" in run_options:
+            shots = run_options["shots"]
+            if shots <= 0:
+                raise ValueError(f"shots ${shots} must be a positive number")
+
+            self.set_options(shots=shots)
+
+        job_id = str(uuid.uuid4())
+        job = Job(
+            backend=self,
+            job_id=job_id,
+            circuit=run_input,
+        )
+        job.submit()
+        return job
 
     @abstractmethod
     def _run_job(
