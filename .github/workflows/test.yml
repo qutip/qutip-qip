@@ -67,10 +67,14 @@ jobs:
       run: |
         pip install matplotlib pytest
         pip install -e .
+        
     - name: Test with pytest and generate coverage report
+      env:
+        MPLBACKEND: Agg
       run: |
         pip install pytest-cov coveralls
         pytest tests --strict-markers --cov=qutip_qip --cov-report= --color=yes
+
     - name: Upload to Coveralls
       env:
         GITHUB_TOKEN: ${{ secrets.github_token }}
