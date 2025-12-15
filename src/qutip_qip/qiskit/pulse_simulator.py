@@ -26,54 +26,85 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
         object is to be provided after initialising
         it with the required parameters.
 
-    configuration : dict
-        Configurable attributes of the backend.
+    num_qubits : int, Optional
+        num_qubits for the Pulse Simulator Backend.
+        Defaults to 10 qubits.
 
+    basis_gates : list[str], Optional
+        The basis gates names in QuTip.
+        Defaults to (PHASEGATE, X, Y, Z, RX, RY, RZ,
+            Hadamard, S, T, SWAP, QASMU, CX, CY, CZ,
+            CRX, CRY, CRZ, CPHASE)
+
+    max_shots : int, Optional
+        Maximum number of shots the Backend support
+        while sampling.
+
+    max_circuits : int, Optional
+        The maximum number of circuits that can be
+        run in a single job.
+
+    name : str, Optional
+        name : str, Optional
+        Name of the Pulse Simulator Backend
+
+    description : str, Optional
+        Description of the Pulse Simulator Backend
+
+    version : str, Optional
+        Version of Pulse Simulator Backend
+    
     Attributes
     ----------
     processor : :class:`.Processor`
         The processor model to be used for simulation.
+
+    target : :class:`qiskit.transpiler.Target`
+        object for the backend.
+
+    max_circuits : int
+        The maximum number of circuits that can be
+        run in a single job.
+
+    name : str
+        Name of the Pulse Simulator Backend
+
+    description : str
+        Description of the Pulse Simulator Backend
+
+    backend_version : str
+        Version of Pulse Simulator Backend
     """
 
-    processor = None
-    MAX_QUBITS_MEMORY = 10
-    BACKEND_NAME = "pulse_simulator"
-    _DEFAULT_CONFIGURATION = {
-        "backend_name": BACKEND_NAME,
-        "backend_version": "0.1",
-        "n_qubits": MAX_QUBITS_MEMORY,
-        "url": "https://github.com/qutip/qutip-qip",
-        "simulator": True,
-        "local": True,
-        "conditional": False,
-        "open_pulse": False,
-        "memory": False,
-        "max_shots": int(1e6),
-        "coupling_map": None,
-        "description": "A qutip-qip based pulse-level \
+    def __init__(
+        self,
+        processor: Processor,
+        num_qubits: int = 10,
+        basis_gates: list[str] = None,
+        max_shots: int = 1e6,
+        max_circuits: int = 1,
+        name: str = "pulse_simulator",
+        description: str = "A qutip-qip based pulse-level \
             simulator based on the open system solver.",
-        "basis_gates": [],
-        "gates": [],
-    }
-
-    def __init__(self, processor: Processor, configuration=None):
-        if configuration is None:
-            configuration = self._DEFAULT_CONFIGURATION
-
+        version: str = '0.1',
+    ):
         super().__init__(
-            name=configuration["backend_name"],
-            description=configuration["description"],
+            name=name,
+            description=description,
+            version=version,
+            num_qubits=num_qubits,
+            basis_gates=basis_gates,
+            max_shots=max_shots,
+            max_circuits=max_circuits,
         )
 
-        self.processor = processor
+        self._processor = processor
 
-    def target(self):
-        pass
+    @property
+    def processor(self) -> Processor:
+        return self._processor
 
-    def max_circuits(self):
-        pass
-
-    def run(self, run_input: List[QuantumCircuit], **run_options) -> Job:
+    def run(self, run_input: list[QuantumCircuit], **run_options) -> Job:
         """
         Simulates a circuit on the required backend.
 
@@ -113,7 +144,7 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
         return job
 
     def _run_job(
-        self, job_id: str, qiskit_circuit: List[QuantumCircuit]
+        self, job_id: str, qiskit_circuit: list[QuantumCircuit]
     ) -> Result:
         """
         Run a :class:`.QubitCircuit` on the Pulse Simulator.
@@ -200,14 +231,13 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
         exp_res = ExperimentResult(
             shots=self._options.shots,
             success=True,
-            data=exp_res_data,
             header=header,
+            data=exp_res_data,
         )
 
         result = Result(
-            backend_name=self.BACKEND_NAME,
-            backend_version=0.1,
-            qobj_id=id(qutip_circuit),
+            backend_name=self.name,
+            backend_version=self.backend_version,
             job_id=job_id,
             success=True,
             results=[exp_res],

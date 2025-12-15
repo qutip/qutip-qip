@@ -47,6 +47,11 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
             max_circuits=max_circuits,
         )
 
+    @property
+    def meas_map(self) -> list[list[int]]:
+        """Simulator allows measuring any qubit independently"""
+        return [[i] for i in range(self.target.num_qubits)]
+
     def run(self, run_input: List[QuantumCircuit], **run_options) -> Job:
         """
         Simulates a circuit on the required backend.
@@ -181,7 +186,6 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
         result = Result(
             backend_name=self.name,
             backend_version=self.VERSION,
-            qobj_id=id(qutip_circuit),
             job_id=job_id,
             success=True,
             results=[exp_res],

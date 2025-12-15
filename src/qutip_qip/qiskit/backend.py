@@ -20,26 +20,29 @@ class QiskitSimulatorBase(BackendV2):
     """
     The base class for ``qutip_qip`` based ``qiskit`` backends.
     This class must always be inherited, never instantiated as
-    abstract methods target and max_circuits are left to parent class.
+    abstract method run, _run_job is left to the child class.
     """
 
     def __init__(
         self,
         name: str = None,
         description: str = None,
+        version: str = '0.1',
         num_qubits: int = 10,
         basis_gates: List[str] = None,
         max_shots: int = 1e6,
         max_circuits: int = 1,
     ):
         super().__init__(
-            provider="QuTiP-qip", name=name, description=description
+            provider="QuTiP-qip",
+            name=name,
+            description=description,
+            backend_version=version,
         )
 
         self._target = self._build_target(
             num_qubits=num_qubits, basis_gates=basis_gates
         )
-
         self.max_shots = max_shots
         self.max_circuits = max_circuits
 
@@ -49,9 +52,9 @@ class QiskitSimulatorBase(BackendV2):
         return self._max_shots
 
     @max_shots.setter
-    def max_shots(self, value) -> None:
+    def max_shots(self, shots: int) -> None:
         """Python Setter function for the max_shots property"""
-        self._max_shots = value
+        self._max_shots = shots
 
     @property
     def max_circuits(self) -> Union[int | None]:
@@ -62,23 +65,33 @@ class QiskitSimulatorBase(BackendV2):
         return self._max_circuits
 
     @max_circuits.setter
-    def max_circuits(self, value) -> None:
+    def max_circuits(self, circuit_count: int) -> None:
         """Python Setter function for the max_circuits property"""
-        self._max_circuits = value
+        self._max_circuits = circuit_count
 
     @property
     def target(self) -> Target:
         return self._target
 
-    def _build_target(self, num_qubits: int = 10, basis_gates=None) -> Target:
+    def _build_target(
+        self,
+        num_qubits: int = 10,
+        basis_gates: list[str] = None
+    ) -> Target:
         """Builds a :class:`qiskit.transpiler.Target` object for the backend.
 
-        :rtype: Target
+        :rtype: :class:`qiskit.transpiler.Target`
         """
+
+        DEFAULT_BASIS_GATE_SET = QUTIP_TO_QISKIT_MAP.keys()
+        if (basis_gates is not None):
+            for gate in basis_gates:
+                if (gate not in DEFAULT_BASIS_GATE_SET):
+                    raise ValueError(f"Invalid basis gate set, contains ${gate}")
 
         target = Target(num_qubits=num_qubits)
         if basis_gates is None:
-            basis_gates = list(QUTIP_TO_QISKIT_MAP.keys())
+            basis_gates = list(DEFAULT_BASIS_GATE_SET)
 
         # Adding the basis gates
         # Passing properties=None means "This gate works on ALL qubits with NO error"
@@ -93,7 +106,7 @@ class QiskitSimulatorBase(BackendV2):
         return target
 
     @classmethod
-    def _default_options(cls):
+    def _default_options(cls) -> Options:
         """
         Default options for the backend.
 

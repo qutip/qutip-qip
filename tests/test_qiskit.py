@@ -147,19 +147,30 @@ class TestConverter:
 
         assert self._compare_circuit(result_circuit, required_circuit)
 
-
-class TestSimulator:
+class TestCircuitSimulato:
     """
-    Class for testing whether a simulator
-    gives correct results.
+    Class for testing whether a Circuit simulator gives correct results.
     """
 
+    def _compare_results(self, qiskit_circuit: QuantumCircuit) -> None:
+        qutip_backend = QiskitCircuitSimulator()
+        qutip_job = qutip_backend.run(qiskit_circuit)
+        qutip_result = qutip_job.result()
+        qutip_sv = qutip_result.data()["statevector"]
+
+        qiskit_backend = AerSimulator(method="statevector")
+        qiskit_circuit.save_state()
+        qiskit_job = qiskit_backend.run(qiskit_circuit)
+        qiskit_result = qiskit_job.result()
+        qiskit_sv = qiskit_result.data()["statevector"]
+
+        assert_allclose(qutip_sv, qiskit_sv)
+    
     def test_circuit_simulator(self):
         """
         Test whether the circuit_simulator matches the
         results of qiskit's statevector simulator.
         """
-
         # test single qubit operations
         circ1 = QuantumCircuit(2, 2)
         circ1.h(0)
@@ -191,6 +202,26 @@ class TestSimulator:
         qutip_result = qutip_job.result()
 
         assert qutip_result.get_counts(circ) == predefined_counts
+
+class TestPulseSimulator:
+    """
+    Class for testing whether a Pulse simulator gives correct results.
+    """
+
+    def _run_pulse_processor(self, processor, circ):
+        qutip_backend = QiskitPulseSimulator(processor)
+        qutip_job = qutip_backend.run(circ)
+        return qutip_job.result()
+
+    def _init_pulse_test(self):
+        random.seed(1)
+
+        circ = QuantumCircuit(2, 2)
+        circ.h(0)
+        circ.h(1)
+
+        predefined_counts = {"0": 233, "11": 267, "1": 254, "10": 270}
+        return circ, predefined_counts
 
     def test_lsc_simulator(self):
         """
@@ -225,34 +256,3 @@ class TestSimulator:
             DispersiveCavityQED(num_qubits=2, num_levels=10), circ
         )
         assert result.get_counts() == predefined_counts
-
-    def _compare_results(self, qiskit_circuit: QuantumCircuit):
-
-        qutip_backend = QiskitCircuitSimulator()
-        qutip_job = qutip_backend.run(qiskit_circuit)
-        qutip_result = qutip_job.result()
-        qutip_sv = qutip_result.data()["statevector"]
-
-        qiskit_backend = AerSimulator(method="statevector")
-        qiskit_circuit.save_state()
-        qiskit_job = qiskit_backend.run(qiskit_circuit)
-        qiskit_result = qiskit_job.result()
-        qiskit_sv = qiskit_result.data()["statevector"]
-
-        assert_allclose(qutip_sv, qiskit_sv)
-
-    def _run_pulse_processor(self, processor, circ):
-        qutip_backend = QiskitPulseSimulator(processor)
-        qutip_job = qutip_backend.run(circ)
-        return qutip_job.result()
-
-    def _init_pulse_test(self):
-        random.seed(1)
-
-        circ = QuantumCircuit(2, 2)
-        circ.h(0)
-        circ.h(1)
-
-        predefined_counts = {"0": 233, "11": 267, "1": 254, "10": 270}
-
-        return circ, predefined_counts
