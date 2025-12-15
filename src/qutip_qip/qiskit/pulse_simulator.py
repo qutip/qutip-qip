@@ -170,14 +170,18 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
         for circuit in qiskit_circuit:
             qutip_circuit = convert_qiskit_circuit_to_qutip(circuit)
             qutip_circuits.append(qutip_circuit)
-            
+
             self.processor.load_circuit(qutip_circuit)
             zero_state = self.processor.generate_init_processor_state()
             result = self.processor.run_state(zero_state)
-            final_states.append(self.processor.get_final_circuit_state(result.states[-1]))
+            final_states.append(
+                self.processor.get_final_circuit_state(result.states[-1])
+            )
 
         return self._parse_results(
-            job_id=job_id, final_states=final_states, qutip_circuits=qutip_circuits
+            job_id=job_id,
+            final_states=final_states,
+            qutip_circuits=qutip_circuits,
         )
 
     def _parse_results(
@@ -208,9 +212,10 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
             Result of the pulse simulation.
         """
 
-        if (len(final_states) != len(qutip_circuits)):
-            raise ValueError("Number of final_states must be equal to\
-                             number of qutip circuits")
+        if len(final_states) != len(qutip_circuits):
+            raise ValueError(
+                "Number of final_states must be = to number of qutip circuits"
+            )
 
         exp_res = []
         num_circuits = len(final_states)
@@ -240,7 +245,9 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
 
             header = {
                 "name": (
-                    qutip_circuit.name if hasattr(qutip_circuit, "name") else ""
+                    qutip_circuit.name
+                    if hasattr(qutip_circuit, "name")
+                    else ""
                 ),
                 "n_qubits": qutip_circuit.N,
             }

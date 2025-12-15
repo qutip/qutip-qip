@@ -49,7 +49,9 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
         """Simulator allows measuring any qubit independently"""
         return [[i] for i in range(self.target.num_qubits)]
 
-    def run(self, run_input: List[QuantumCircuit], **run_options) -> Job:
+    def run(
+        self, run_input: QuantumCircuit | list[QuantumCircuit], **run_options
+    ) -> Job:
         """
         Simulates a circuit on the required backend.
 
@@ -71,9 +73,12 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
         :class:`.Job`
             Job object that stores results and execution data.
         """
-        if (len(run_input) > self.max_circuits):
-            raise ValueError(f"Passed ${len(run_input)} circuits to the backend,\
-                              while max_cicruits is defined as ${self.max_circuits}")
+
+        if len(run_input) > self.max_circuits:
+            raise ValueError(
+                f"Passed ${len(run_input)} circuits to the backend,\
+                while max_cicruits is defined as ${self.max_circuits}"
+            )
 
         # Set the no. of shots
         if "shots" in run_options:
@@ -82,6 +87,9 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
                 raise ValueError(f"shots ${shots} must be a positive number")
 
             self.set_options(shots=shots)
+
+        if not isinstance(run_input, list):
+            run_input = [run_input]
 
         job_id = str(uuid.uuid4())
         job = Job(
@@ -92,7 +100,9 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
         job.submit()
         return job
 
-    def _run_job(self, job_id: str, qiskit_circuit: list[QuantumCircuit]) -> Result:
+    def _run_job(
+        self, job_id: str, qiskit_circuit: list[QuantumCircuit]
+    ) -> Result:
         """
         Run a :class:`.QubitCircuit` on the :class:`.CircuitSimulator`.
 
@@ -113,6 +123,11 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
         statistics = []
 
         for circuit in qiskit_circuit:
+            if not isinstance(circuit, QuantumCircuit):
+                raise ValueError(
+                    "List must only consist of qiskit QuantumCircuit"
+                )
+
             transpiled_circuit = transpile(circuit, backend=self)
             qutip_circuit = convert_qiskit_circuit_to_qutip(transpiled_circuit)
             qutip_circuits.append(qutip_circuit)
@@ -152,9 +167,10 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
             Result of the simulation.
         """
 
-        if (len(statistics) != len(qutip_circuits)):
-            raise ValueError("Number of statistics must be equal to\
-                             number of qutip circuits")
+        if len(statistics) != len(qutip_circuits):
+            raise ValueError(
+                "Number of statistics must be = to number of qutip circuits"
+            )
 
         exp_res = []
         num_circuits = len(qutip_circuits)
@@ -170,9 +186,9 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
 
             if statistic.cbits[0] is not None:
                 for i, count in enumerate(statistic.cbits):
-                    count_probs[convert_to_hex(count)] = statistic.probabilities[
-                        i
-                    ]
+                    count_probs[convert_to_hex(count)] = (
+                        statistic.probabilities[i]
+                    )
                 # sample the shots from obtained probabilities
                 counts = self._sample_shots(count_probs)
 
@@ -186,13 +202,15 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
 
             header = {
                 "name": (
-                    qutip_circuit.name if hasattr(qutip_circuit, "name") else ""
+                    qutip_circuit.name
+                    if hasattr(qutip_circuit, "name")
+                    else ""
                 ),
                 "n_qubits": qutip_circuit.N,
             }
 
             exp_res.append(
-                    ExperimentResult(
+                ExperimentResult(
                     shots=self._options.shots,
                     success=True,
                     data=exp_res_data,
