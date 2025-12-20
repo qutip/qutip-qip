@@ -11,7 +11,7 @@ from qiskit.result import Result
 from qiskit.transpiler.target import Target
 
 from qutip_qip.qiskit import Job
-from qutip_qip.qiskit.utils import QUTIP_TO_QISKIT_MAP
+from qutip_qip.qiskit.utils import QUTIP_TO_QISKIT_GATE_MAP
 
 
 class QiskitSimulatorBase(BackendV2):
@@ -114,7 +114,7 @@ class QiskitSimulatorBase(BackendV2):
             `concurrent_measurements` etc.
         """
 
-        DEFAULT_BASIS_GATE_SET = QUTIP_TO_QISKIT_MAP.keys()
+        DEFAULT_BASIS_GATE_SET = QUTIP_TO_QISKIT_GATE_MAP.keys()
         if basis_gates is not None:
             for gate in basis_gates:
                 if gate not in DEFAULT_BASIS_GATE_SET:
@@ -129,7 +129,9 @@ class QiskitSimulatorBase(BackendV2):
         # Adding the basis gates
         # Passing properties=None means "This gate works on ALL qubits with NO error"
         for gate in basis_gates:
-            target.add_instruction(QUTIP_TO_QISKIT_MAP[gate], properties=None)
+            target.add_instruction(
+                QUTIP_TO_QISKIT_GATE_MAP[gate], properties=None
+            )
 
         # Essential primitives
         target.add_instruction(Measure(), properties=None)

@@ -1,14 +1,7 @@
 """Conversion of circuits from qiskit to qutip_qip."""
 
-from typing import Union
-import numpy as np
-
-from qutip import Qobj
-from qutip_qip.circuit import QubitCircuit
-
-import qiskit
 from qiskit.circuit import QuantumCircuit
-from qiskit.quantum_info import Operator
+from qutip_qip.circuit import QubitCircuit
 
 
 _map_gates : dict[str: str] = {
@@ -38,53 +31,38 @@ _map_controlled_gates: dict[str, str] = {
 
 _ignore_gates: list[str] = ["id", "barrier"]
 
-def _make_user_gate(
-    unitary: np.ndarray, qiskit_instruction: qiskit.circuit.Instruction
-):
+
+def get_qutip_index(bit_index: (int | list), total_bits: int) -> int:
     """
-    Returns a user defined gate from a unitary matrix.
+    Map the bit index from qiskit to qutip.
 
     Parameters
     ----------
-    unitary : numpy.ndarray
-        The unitary matrix describing the gate.
+    bit_index : int
+        Qiskit bit index
 
-    qiskit_instruction : qiskit.circuit.Instruction
-        Qiskit instruction containing info about the gate.
-    """
+    total_bits: int
+        Total number of bits in qiskit circuit.
 
-    def user_gate():
-        return Qobj(
-            unitary,
-            dims=[
-                [2] * qiskit_instruction.num_qubits,
-                [2] * qiskit_instruction.num_qubits,
-            ],
-        )
-
-    return user_gate
-
-
-def _get_qutip_index(bit_index: Union[int, list], total_bits: int) -> int:
-    """
-    Map the bit index from qiskit to qutip.
+    Returns
+    -------
+    int
+        qutip-qip bit index.
 
     Note
     ----
     When we convert a circuit from qiskit to qutip,
     the 0st bit is mapped to the (n-1)th bit and 1st bit to (n-2)th bit
     and so on. Essentially the bit order is reversed.
-
-
     """
 
     if isinstance(bit_index, list):
-        return [_get_qutip_index(bit, total_bits) for bit in bit_index]
+        return [get_qutip_index(bit, total_bits) for bit in bit_index]
     else:
         return total_bits - 1 - bit_index
 
 
-def _get_mapped_bits(bits: Union[list, tuple], bit_map: dict) -> list:
+def _get_mapped_bits(bits: (list | tuple), bit_map: dict[int, int]) -> list:
     return [bit_map[bit] for bit in bits]
 
 
@@ -109,13 +87,13 @@ def convert_qiskit_circuit_to_qutip(
     """
     qubit_map = {}
     for qiskit_index, qubit in enumerate(qiskit_circuit.qubits):
-        qubit_map[qubit] = _get_qutip_index(
+        qubit_map[qubit] = get_qutip_index(
             qiskit_index, total_bits=qiskit_circuit.num_qubits
         )
 
     clbit_map = {}
     for qiskit_index, clbit in enumerate(qiskit_circuit.clbits):
-        clbit_map[clbit] = _get_qutip_index(
+        clbit_map[clbit] = get_qutip_index(
             qiskit_index, total_bits=qiskit_circuit.num_clbits
         )
 

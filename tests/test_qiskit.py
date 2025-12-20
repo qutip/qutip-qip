@@ -26,7 +26,7 @@ from qutip_qip.qiskit import (
     QiskitPulseSimulator,
 )    
 from qutip_qip.qiskit.utils.converter import (
-    _get_qutip_index,
+    get_qutip_index,
     convert_qiskit_circuit_to_qutip,
 )
 
@@ -70,19 +70,19 @@ class TestConverter:
         """Check whether two gates are equivalent"""
         check_condition = (req_gate.name == res_gate.name) and (
             req_gate.targets
-            == _get_qutip_index(res_gate.targets, result_circuit.N)
+            == get_qutip_index(res_gate.targets, result_circuit.N)
         )
         if not check_condition:
             return False
 
         if req_gate.name == "measure":
-            check_condition = req_gate.classical_store == _get_qutip_index(
+            check_condition = req_gate.classical_store == get_qutip_index(
                 res_gate.classical_store, result_circuit.num_cbits
             )
         else:
             # todo: correct for float error in arg_value
             res_controls = (
-                _get_qutip_index(res_gate.controls, result_circuit.N)
+                get_qutip_index(res_gate.controls, result_circuit.N)
                 if res_gate.controls
                 else None
             )

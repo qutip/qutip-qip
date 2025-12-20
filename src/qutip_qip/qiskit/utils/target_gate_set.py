@@ -21,7 +21,7 @@ from qiskit.circuit.library import (
     CPhaseGate,
 )
 
-QUTIP_TO_QISKIT_MAP: dict[str, Gate] = {
+QUTIP_TO_QISKIT_GATE_MAP: dict[str, Gate] = {
     # Single Qubit Gates
     "PHASEGATE": PhaseGate(theta=0.0),
     "X": XGate(),
