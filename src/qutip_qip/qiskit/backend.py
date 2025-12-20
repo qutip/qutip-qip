@@ -103,7 +103,6 @@ class QiskitSimulatorBase(BackendV2):
         ----------
         num_qubits: int
             Number of qubits in the backend processor
-
         basis_gates: list[str]
             QuTiP Basis Quantum Gates supported by the backend.
 
@@ -165,7 +164,6 @@ class QiskitSimulatorBase(BackendV2):
         ----------
         run_input : list[:class:`qiskit.circuit.QuantumCircuit`]
             List of ``qiskit`` circuits to be simulated.
-
         **run_options : dict[str, Any]
             Additional run options for the backend. Valid options are:
             shots : int

@@ -22,19 +22,40 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
 
     Parameters
     ----------
-    name : str
+    num_qubits : int, Optional
+        Number of qubits supported by the backend circuit simulator.
+        Defaults to 10 qubits.
+    basis_gates : list[str], Optional
+        QuTiP Basis Gates supported by the backend circuit simulator.
+        Defaults to `[PHASEGATE, X, Y, Z, RX, RY, RZ, Hadamard, S,
+        T, SWAP, QASMU, CX, CY, CZ, CRX, CRY, CRZ, CPHASE]`
+    max_shots : int, Optional
+        Maximum number of sampling shots supported by the circuit simulator.
+        Defaults to 1e6
+    max_circuits : int, Optional
+        Maximum number of circuits which can be passed to the
+        backend circuit simulator. in a single job. Defaults to 1.
+    name : str, Optional
         Name of the backend circuit simulator.
+    description : str, Optional
+        Description of the backend circuit simulator.
+    version : float, Optional
+        Backend circuit simulator version
+   
+    Notes
+    -----
+    Inherits all attributes and methods from `QiskitSimulatorBase`.
     """
 
     def __init__(
         self,
-        name: str = "circuit_simulator",
-        description: str = "A qutip-qip based operator-level circuit simulator.",
-        version: str = "0.1",
         num_qubits: int = 10,
         basis_gates: List[str] = None,
         max_shots: int = 1e6,
         max_circuits: int = 1,
+        name: str = "circuit_simulator",
+        description: str = "A qutip-qip based operator-level circuit simulator.",
+        version: str = "0.1",
     ):
         super().__init__(
             num_qubits=num_qubits,
@@ -45,11 +66,16 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
             description=description,
             version=version,
         )
+        self._meas_map = self._build_meas_map()
+
+    def _build_meas_map(self) -> list[list[int]]:
+        """Simulator allows measuring any qubit independently"""
+        self._meas_map = [[i] for i in range(self.target.num_qubits)]
 
     @property
     def meas_map(self) -> list[list[int]]:
         """Simulator allows measuring any qubit independently"""
-        return [[i] for i in range(self.target.num_qubits)]
+        return self._meas_map
 
     def _run_job(
         self, job_id: str, qiskit_circuit: list[QuantumCircuit]
@@ -61,9 +87,8 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
         ----------
         job_id : str
             Unique ID identifying a job.
-
-        qiskit_circuit : :class:`qiskit.QuantumCircuit`
-            The qiskits circuit to be simulated.
+        qiskit_circuit : list[:class:`qiskit.QuantumCircuit`]
+            The qiskits circuits to be simulated.
 
         Returns
         -------
@@ -102,14 +127,12 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
 
         Parameters
         ----------
-        statistics : :class:`.CircuitResult`
-            The result obtained from ``run_statistics`` on
-            a circuit on :class:`.CircuitSimulator`.
-
         job_id : str
             Unique ID identifying a job.
-
-        qutip_circuit : :class:`.QubitCircuit`
+        statistics : list[:class:`.CircuitResult`]
+            The result obtained from ``run_statistics`` on
+            a circuit on :class:`.CircuitSimulator`.
+        qutip_circuit : list[:class:`.QubitCircuit`]
             The circuit being simulated
 
         Returns

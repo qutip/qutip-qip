@@ -89,7 +89,7 @@ def _get_mapped_bits(bits: Union[list, tuple], bit_map: dict) -> list:
 
 
 def convert_qiskit_circuit_to_qutip(
-    qiskit_circuit: QuantumCircuit, allow_custom_gate=True
+    qiskit_circuit: QuantumCircuit
 ) -> QubitCircuit:
     """
     Convert a :class:`qiskit.circuit.QuantumCircuit` object
@@ -100,11 +100,6 @@ def convert_qiskit_circuit_to_qutip(
     qiskit_circuit : :class:`qiskit.circuit.QuantumCircuit`
         The :class:`qiskit.circuit.QuantumCircuit` object
         to be converted to :class:`QubitCircuit`.
-
-    allow_custom_gate : bool
-        If False, this function will raise an error if
-        gate conversion is done using a custom gate's
-        unitary matrix.
 
     Returns
     -------
@@ -173,22 +168,5 @@ def convert_qiskit_circuit_to_qutip(
 
         elif qiskit_instruction.name in _ignore_gates:
             pass
-
-        else:
-            if not allow_custom_gate:
-                raise RuntimeError(
-                    f"{qiskit_instruction.name} is not a \
-gate in qutip_qip. To simulate this gate using it's corresponding \
-unitary matrix, set allow_custom_gate=True."
-                )
-
-            unitary = np.array(Operator(qiskit_instruction))
-            qutip_circuit.user_gates[qiskit_instruction.name] = (
-                _make_user_gate(unitary, qiskit_instruction)
-            )
-            qutip_circuit.add_gate(
-                qiskit_instruction.name,
-                targets=_get_mapped_bits(qiskit_qregs, bit_map=qubit_map),
-            )
 
     return qutip_circuit

@@ -27,32 +27,24 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
         An instance of the required :class:`.Processor`
         object is to be provided after initialising
         it with the required parameters.
-
     num_qubits : int, Optional
         num_qubits for the Pulse Simulator Backend.
         Defaults to 10 qubits.
-
     basis_gates : list[str], Optional
         The basis gates names in QuTip.
         Defaults to (PHASEGATE, X, Y, Z, RX, RY, RZ,
         Hadamard, S, T, SWAP, QASMU, CX, CY, CZ,
         CRX, CRY, CRZ, CPHASE)
-
     max_shots : int, Optional
         Maximum number of shots the Backend support
         while sampling.
-
     max_circuits : int, Optional
         The maximum number of circuits that can be
         run in a single job.
-
     name : str, Optional
-        name : str, Optional
         Name of the Pulse Simulator Backend
-
     description : str, Optional
         Description of the Pulse Simulator Backend
-
     version : str, Optional
         Version of Pulse Simulator Backend
 
@@ -60,22 +52,6 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
     ----------
     processor : :class:`.Processor`
         The processor model to be used for simulation.
-
-    target : :class:`qiskit.transpiler.Target`
-        object for the backend.
-
-    max_circuits : int
-        The maximum number of circuits that can be
-        run in a single job.
-
-    name : str
-        Name of the Pulse Simulator Backend
-
-    description : str
-        Description of the Pulse Simulator Backend
-
-    backend_version : str
-        Version of Pulse Simulator Backend
     """
 
     def __init__(
@@ -116,8 +92,7 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
         ----------
         job_id : str
             Unique ID identifying a job.
-
-        qiskit_circuit : :class:`.QuantumCircuit`
+        qiskit_circuit : list[:class:`.QuantumCircuit`]
             The circuit obtained after conversion
             from :class:`.QuantumCircuit` to :class:`.QubitCircuit`.
 
@@ -161,13 +136,11 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
         ----------
         job_id : str
             Unique ID identifying a job.
-
+        qutip_circuits : list[:class:`.QubitCircuit`]
+            The circuits being simulated.
         final_states : list[:class:`.Qobj`]
             The resulting density matrices obtained from `run_state` on
             circuits using the Pulse simulator processors.
-
-        qutip_circuits : list[:class:`.QubitCircuit`]
-            The circuits being simulated.
 
         Returns
         -------
