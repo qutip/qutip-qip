@@ -17,9 +17,9 @@ from qutip_qip.qiskit.utils import QUTIP_TO_QISKIT_GATE_MAP
 class QiskitSimulatorBase(BackendV2):
     """
     The base class for ``qutip_qip`` based ``qiskit`` backends.
-    This class must always be inherited, never instantiated as the 
+    This class must always be inherited, never instantiated as the
     implementation of abstract method `_run_job` is left to the child class.
-    
+
     Parameters
     ----------
     name : str
@@ -77,7 +77,7 @@ class QiskitSimulatorBase(BackendV2):
         self._max_shots = shots
 
     @property
-    def max_circuits(self) -> (int | None):
+    def max_circuits(self) -> int | None:
         """The maximum number of circuits that can be
         run in a single job.
 
@@ -166,10 +166,9 @@ class QiskitSimulatorBase(BackendV2):
         ----------
         run_input : list[:class:`qiskit.circuit.QuantumCircuit`]
             List of ``qiskit`` circuits to be simulated.
-        **run_options : dict[str, Any]
-            Additional run options for the backend. Valid options are:
-            shots : int
-                Number of times to sample the results.
+        run_options : dict[str, Any], Optional
+            Additional run options for the backend. Valid options are
+            shots - Number of times to sample the results.
 
         Returns
         -------

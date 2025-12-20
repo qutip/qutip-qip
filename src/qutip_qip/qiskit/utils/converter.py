@@ -4,7 +4,7 @@ from qiskit.circuit import QuantumCircuit
 from qutip_qip.circuit import QubitCircuit
 
 
-_map_gates : dict[str: str] = {
+_map_gates: dict[str, str] = {
     "p": "PHASEGATE",
     "x": "X",
     "y": "Y",
@@ -32,7 +32,7 @@ _map_controlled_gates: dict[str, str] = {
 _ignore_gates: list[str] = ["id", "barrier"]
 
 
-def get_qutip_index(bit_index: (int | list), total_bits: int) -> int:
+def get_qutip_index(bit_index: int | list, total_bits: int) -> int:
     """
     Map the bit index from qiskit to qutip.
 
@@ -62,12 +62,12 @@ def get_qutip_index(bit_index: (int | list), total_bits: int) -> int:
         return total_bits - 1 - bit_index
 
 
-def _get_mapped_bits(bits: (list | tuple), bit_map: dict[int, int]) -> list:
+def _get_mapped_bits(bits: list | tuple, bit_map: dict[int, int]) -> list:
     return [bit_map[bit] for bit in bits]
 
 
 def convert_qiskit_circuit_to_qutip(
-    qiskit_circuit: QuantumCircuit
+    qiskit_circuit: QuantumCircuit,
 ) -> QubitCircuit:
     """
     Convert a :class:`qiskit.circuit.QuantumCircuit` object

@@ -41,7 +41,7 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
         Description of the backend circuit simulator.
     version : float, Optional
         Backend circuit simulator version
-   
+
     Notes
     -----
     Inherits all attributes and methods from `QiskitSimulatorBase`.

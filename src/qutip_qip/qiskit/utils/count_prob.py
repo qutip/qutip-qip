@@ -5,6 +5,7 @@ import numpy as np
 from qutip import Qobj
 from qiskit.result import Counts
 
+
 def get_probabilities(state: Qobj) -> np.ndarray:
     """
     Given a state, return an array of corresponding probabilities.
