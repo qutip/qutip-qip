@@ -5,16 +5,38 @@ import numpy as np
 
 from qutip import Qobj
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.qiskit.utils import (
-    _map_gates,
-    _map_controlled_gates,
-    _ignore_gates,
-)
 
 import qiskit
 from qiskit.circuit import QuantumCircuit
 from qiskit.quantum_info import Operator
 
+
+_map_gates : dict[str: str] = {
+    "p": "PHASEGATE",
+    "x": "X",
+    "y": "Y",
+    "z": "Z",
+    "h": "SNOT",
+    "s": "S",
+    "t": "T",
+    "rx": "RX",
+    "ry": "RY",
+    "rz": "RZ",
+    "swap": "SWAP",
+    "u": "QASMU",
+}
+
+_map_controlled_gates: dict[str, str] = {
+    "cx": "CX",
+    "cy": "CY",
+    "cz": "CZ",
+    "crx": "CRX",
+    "cry": "CRY",
+    "crz": "CRZ",
+    "cp": "CPHASE",
+}
+
+_ignore_gates: list[str] = ["id", "barrier"]
 
 def _make_user_gate(
     unitary: np.ndarray, qiskit_instruction: qiskit.circuit.Instruction

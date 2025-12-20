@@ -4,7 +4,11 @@ from qutip import Qobj
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.device import Processor
 from qutip_qip.qiskit import QiskitSimulatorBase
-from qutip_qip.qiskit.converter import convert_qiskit_circuit_to_qutip
+from qutip_qip.qiskit.utils import (
+    convert_qiskit_circuit_to_qutip,
+    get_probabilities,
+    sample_shots,
+)
 
 from qiskit import QuantumCircuit
 from qiskit.result import Result
@@ -187,11 +191,11 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
 
             # calculate probabilities of required states
             if final_state:
-                for i, prob in enumerate(self._get_probabilities(final_state)):
+                for i, prob in enumerate(get_probabilities(final_state)):
                     if not np.isclose(prob, 0):
                         count_probs[hex(i)] = prob
                 # sample the shots from obtained probabilities
-                counts = self._sample_shots(count_probs)
+                counts = sample_shots(count_probs, self.options["shots"])
 
             exp_res_data = ExperimentResultData(
                 counts=counts,

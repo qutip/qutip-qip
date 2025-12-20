@@ -24,9 +24,11 @@ from qiskit_aer import AerSimulator
 from qutip_qip.qiskit import (
     QiskitCircuitSimulator,
     QiskitPulseSimulator,
-    convert_qiskit_circuit_to_qutip
+)    
+from qutip_qip.qiskit.utils.converter import (
+    _get_qutip_index,
+    convert_qiskit_circuit_to_qutip,
 )
-from qutip_qip.qiskit.converter import _get_qutip_index
 
 
 class TestConverter:

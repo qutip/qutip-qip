@@ -4,7 +4,10 @@ from typing import List
 from qutip import basis
 from qutip_qip.circuit import CircuitResult, QubitCircuit
 from qutip_qip.qiskit import QiskitSimulatorBase
-from qutip_qip.qiskit.converter import convert_qiskit_circuit_to_qutip
+from qutip_qip.qiskit.utils import (
+    convert_qiskit_circuit_to_qutip,
+    sample_shots,
+)
 
 from qiskit import QuantumCircuit, transpile
 from qiskit.result import Result
@@ -138,7 +141,7 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
                         statistic.probabilities[i]
                     )
                 # sample the shots from obtained probabilities
-                counts = self._sample_shots(count_probs)
+                counts = sample_shots(count_probs, self.options["shots"])
 
             statevector = random.choices(
                 statistic.final_states, weights=statistic.probabilities
@@ -159,7 +162,7 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
 
             exp_res.append(
                 ExperimentResult(
-                    shots=self._options.shots,
+                    shots=self.options["shots"],
                     success=True,
                     data=exp_res_data,
                     header=header,

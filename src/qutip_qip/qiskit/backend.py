@@ -1,19 +1,15 @@
 """Backends for simulating qiskit circuits."""
 
-from collections import Counter
 from abc import abstractmethod
-from typing import List, Union
+from typing import List
 import uuid
-import random
-import numpy as np
 
 from qiskit.circuit import QuantumCircuit
 from qiskit.circuit.library import Measure
 from qiskit.providers import BackendV2, Options
-from qiskit.result import Counts, Result
+from qiskit.result import Result
 from qiskit.transpiler.target import Target
 
-from qutip import Qobj
 from qutip_qip.qiskit import Job
 from qutip_qip.qiskit.utils import QUTIP_TO_QISKIT_MAP
 
@@ -21,8 +17,31 @@ from qutip_qip.qiskit.utils import QUTIP_TO_QISKIT_MAP
 class QiskitSimulatorBase(BackendV2):
     """
     The base class for ``qutip_qip`` based ``qiskit`` backends.
-    This class must always be inherited, never instantiated as
-    abstract method run, _run_job is left to the child class.
+    This class must always be inherited, never instantiated as the 
+    implementation of abstract method `_run_job` is left to the child class.
+    
+    Parameters
+    ----------
+    name : str
+        Backend name.
+    description : str
+        Backend description.
+    version : float
+        Backend version
+    num_qubits : int
+        Number of qubits supported by the backend.
+    basis_gates : list[str]
+        QuTiP Basis Gates supported by the backend.
+    max_shots : int
+        Maximum number of sampling shots supported by the backend.
+        Defaults to 1e6
+    max_circuits : int
+        Maximum number of circuits which can be passed to the
+        backend in a single job. Defaults to 1.
+
+    Notes
+    -----
+    Inherits all attributes from `BackendV2`.
     """
 
     def __init__(
@@ -36,7 +55,6 @@ class QiskitSimulatorBase(BackendV2):
         max_circuits: int = 1,
     ):
         super().__init__(
-            provider="QuTiP-qip",
             name=name,
             description=description,
             backend_version=version,
@@ -59,7 +77,7 @@ class QiskitSimulatorBase(BackendV2):
         self._max_shots = shots
 
     @property
-    def max_circuits(self) -> Union[int | None]:
+    def max_circuits(self) -> (int | None):
         """The maximum number of circuits that can be
         run in a single job.
 
@@ -78,9 +96,23 @@ class QiskitSimulatorBase(BackendV2):
     def _build_target(
         self, num_qubits: int = 10, basis_gates: list[str] = None
     ) -> Target:
-        """Builds a :class:`qiskit.transpiler.Target` object for the backend.
+        """
+        Builds a :class:`qiskit.transpiler.Target` object for the backend.
 
-        :rtype: :class:`qiskit.transpiler.Target`
+        Parameters
+        ----------
+        num_qubits: int
+            Number of qubits in the backend processor
+
+        basis_gates: list[str]
+            QuTiP Basis Quantum Gates supported by the backend.
+
+        Returns
+        -------
+        :class:`qiskit.transpiler.Target`
+            Target object that defines the configuration for the backend.
+            `num_qubits`, `qubit_properties`, `basis_gates`,
+            `concurrent_measurements` etc.
         """
 
         DEFAULT_BASIS_GATE_SET = QUTIP_TO_QISKIT_MAP.keys()
@@ -112,10 +144,11 @@ class QiskitSimulatorBase(BackendV2):
         """
         Default options for the backend.
 
-        Options
+        Returns
         -------
-        shots : int
-            Number of times to sample the results.
+        :class:`qiskit.providers.Option`
+            Option object that stores stores the different options
+            (e.g. shots) for the backend.
         """
         options = Options()
         options.shots = 1024
@@ -130,14 +163,11 @@ class QiskitSimulatorBase(BackendV2):
 
         Parameters
         ----------
-        run_input : List[:class:`qiskit.circuit.QuantumCircuit`]
+        run_input : list[:class:`qiskit.circuit.QuantumCircuit`]
             List of ``qiskit`` circuits to be simulated.
 
-        **run_options:
-            Additional run options for the backend.
-
-            Valid options are:
-
+        **run_options : dict[str, Any]
+            Additional run options for the backend. Valid options are:
             shots : int
                 Number of times to sample the results.
 
@@ -177,55 +207,8 @@ class QiskitSimulatorBase(BackendV2):
     def _run_job(
         self, job_id: str, qiskit_circuits: List[QuantumCircuit]
     ) -> Result:
+        """
+        Given the `job_id` and `qiskit_circuits` list implement the
+        simulation logic and return :class:`qiskit.result.Result` object.
+        """
         pass
-
-    def _get_probabilities(self, state: Qobj) -> np.ndarray:
-        """
-        Given a state, return an array of corresponding probabilities.
-
-        Parameters
-        ----------
-        state: Qobj
-            Qobj (type - density matrix, ket) state
-            obtained after circuit application.
-
-        Returns
-        -------
-        :class:`np.ndarray`
-            Returns the ``numpy`` corresponding to the basis state.
-        """
-        if state.type == "oper":
-            # diagonal elements of a density matrix are
-            # the probabilities
-            return state.diag()
-
-        # squares of coefficients are the probabilities for a ket vector
-        return np.square(np.real(state.data_as("ndarray", copy=False)))
-
-    def _sample_shots(self, count_probs: dict) -> Counts:
-        """
-        Sample measurements from a given probability distribution.
-
-        Parameters
-        ----------
-        count_probs: dict
-            Probability distribution corresponding
-            to different classical outputs.
-
-        Returns
-        -------
-        :class:`qiskit.result.Counts`
-            Returns the ``Counts`` object sampled according to
-            the given probabilities and configured shots.
-        """
-        weights = []
-        for p in count_probs.values():
-            if hasattr(p, "item"):
-                weights.append(float(p.item()))  # For multiple choice
-            else:
-                weights.append(float(p))  # For a trivial circuit with output 1
-
-        samples = random.choices(
-            list(count_probs.keys()), weights, k=self._options["shots"]
-        )
-        return Counts(Counter(samples))
