@@ -5,11 +5,12 @@
 **********************************
 
 This submodule was implemented by `Shreyas Pradhan <shpradhan12@gmail.com>`_ as part of Google Summer of Code 2022.
+And later updated by `Mayank Goel <mayank.goel447@gmail.com>`_ for Qiskit v2.
 
 Overview
 ===============
 
-This submodule provides an interface to simulate circuits made in qiskit.
+This submodule provides an interface to simulate circuits made in qiskit both at Gate and Pulse level.
 
 Gate-level simulation on qiskit circuits is possible with :class:`.QiskitCircuitSimulator`. Pulse-level simulation is possible with :class:`.QiskitPulseSimulator` which supports simulation using the :class:`.LinearSpinChain`, :class:`.CircularSpinChain` and :class:`.DispersiveCavityQED` pulse processors.
 
@@ -56,7 +57,8 @@ We define a simple circuit as follows:
         >>> job = backend.run(circ)
         >>> result = job.result()
     
-    The result object inherits from the :class:`qiskit.result.Result` class. Hence, we can use it's functions like ``result.get_counts()`` as required. We can also access the final state with ``result.data()['statevector']``.
+    The result object inherits from the :class:`qiskit.result.Result` class. Hence, we can use it's functions like ``result.get_counts()`` as required.
+    We can also access the final state with ``result.data()['statevector']``.
     
     .. code-block::
 
@@ -73,15 +75,15 @@ We define a simple circuit as follows:
     :context: close-figs
 
     Now, let's run the same circuit on :class:`.QiskitPulseSimulator`.
+    To use the :class:`.QiskitPulseSimulator` backend, we first need to define the processor on which we want to run the circuit e.g. :class:`.LinearSpinChain`, :class:`.DispersiveCavityQED` etc.
+    We can specify the parameters of those processor and also include noise models. Please refer to the documentation for details.
 
-    While using a pulse processor, we define the circuit without measurements.
+    .. doctest::
+        :options: +SKIP
+
+        >>> from qutip_qip.device import LinearSpinChain
+        >>> processor = LinearSpinChain(num_qubits=2)
     
-    .. note::
-    
-        The pulse-level simulator does not support measurement. Please use :obj:`qutip.measure` to process the result manually. By default, all the qubits will be measured at the end of the circuit.
-
-    .. _pulse circ:
-
     .. doctest::
         :options: +SKIP
 
@@ -89,18 +91,14 @@ We define a simple circuit as follows:
         >>> pulse_circ.h(0)
         >>> pulse_circ.h(1)
 
-    To use the :class:`.QiskitPulseSimulator` backend, we need to define the processor on which we want to run the circuit. This includes defining the pulse processor model with all the required parameters including noise. 
+    .. _pulse circ:
 
-    Different hardware parameters can be supplied here for :obj:`.LinearSpinChain`. Please refer to the documentation for details.
+    While using a pulse processor, we define the circuit without measurements.
     
-    .. doctest::
-        :options: +SKIP
-
-        >>> from qutip_qip.device import LinearSpinChain
-        >>> processor = LinearSpinChain(num_qubits=2)
-
-    Now that we defined our processor (:class:`.LinearSpinChain` in this case), we can use it to perform the simulation: 
-
+    .. note::
+    
+        The pulse-level simulator does not support measurement. Please use :obj:`qutip.measure` to process the result manually. By default, all the qubits will be measured at the end of the circuit.
+    
     .. doctest::
         :options: +SKIP
 
@@ -127,14 +125,6 @@ Qiskit's interface allows us to provide some options like ``shots`` while runnin
 -------------
 ``shots`` is the number of times measurements are sampled from the simulation result. By default it is set to ``1024``.
 
-``allow_custom_gate``
------------------------
-``allow_custom_gate``, when set to ``False``, does not allowing simulating circuits that have user-defined gates; it will throw an error in that case. By default, it is set to ``True``, in which case, the backend will simulate a user-defined gate by computing its unitary matrix.
-
-.. note::
-    
-    Although you can pass this option while running a circuit on pulse backends, you need to make sure that the gate is supported by the backend simulator :obj:`.Processor` in ``qutip-qip``.
-
 An example demonstrating configuring options:
 
 .. doctest::
@@ -143,7 +133,7 @@ An example demonstrating configuring options:
     job = backend.run(circ, shots=3000)
     result = job.result()
 
-We provided the value of shots explicitly, hence our options for the simulation are set as: ``shots=3000`` and ``allow_custom_gate=True``.
+We provided the value of shots explicitly, hence our options for the simulation are set as: ``shots=3000``.
 
 Another example:
 
