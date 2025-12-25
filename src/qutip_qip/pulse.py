@@ -589,7 +589,7 @@ def _fill_coeff(old_coeffs, old_tlist, full_tlist, args=None, tol=1.0e-10):
             old_coeffs = np.concatenate([old_coeffs, [0]])
         new_n = len(full_tlist)
         old_ind = 0  # index for old coeffs and tlist
-        new_coeff = np.zeros(new_n)
+        new_coeff = np.zeros(new_n, dtype=old_coeffs.dtype)
         for new_ind in range(new_n):
             t = full_tlist[new_ind]
             if old_tlist[0] - t > tol:

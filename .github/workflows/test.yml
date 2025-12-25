@@ -58,6 +58,12 @@ jobs:
       run: |
         python -m pip install 'git+https://github.com/qutip/qutip-qtrl.git${{ matrix.qutip-version }}'
 
+    # For qutip-v5 qutip.control is replaced by qutip-qtrl
+    - name: Install qutip-qtrl from PyPI
+      if: ${{ matrix.qutip-version == '@master'}}
+      run: |
+        python -m pip install qutip-qtrl
+
     - name: Install Qiskit from PyPI
       if: ${{ matrix.qiskit-version != '' }}
       run: python -m pip install 'qiskit${{ matrix.qiskit-version }}' 'qiskit-aer==0.14.0.1'
