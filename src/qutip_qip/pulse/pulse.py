@@ -1,142 +1,5 @@
-"""Pulse representation of a quantum circuit."""
-
 import numpy as np
-from scipy.interpolate import CubicSpline
-
-from qutip import QobjEvo, Qobj, identity
-from qutip_qip.operations import expand_operator
-
-
-__all__ = ["Pulse", "Drift"]
-
-
-class _EvoElement:
-    """
-    The class object saving the information of one evolution element.
-    Each dynamic element is characterized by four variables:
-    ``qobj``, ``targets``, ``tlist`` and ``coeff``.
-
-    For documentation and use instruction of the attributes, please
-    refer to :class:`.Pulse`.
-    """
-
-    def __init__(self, qobj, targets, tlist=None, coeff=None):
-        self.qobj = qobj
-        self.targets = targets
-        self.tlist = tlist
-        self.coeff = coeff
-
-    def get_qobj(self, dims):
-        """
-        Get the `Qobj` representation of the element. If `qobj` is None,
-        a zero :class:`qutip.Qobj` with the corresponding dimension is
-        returned.
-
-        Parameters
-        ----------
-        dims: int or list
-            Dimension of the system.
-            If int, we assume it is the number of qubits in the system.
-            If list, it is the dimension of the component systems.
-
-        Returns
-        -------
-        qobj : :class:`qutip.Qobj`
-            The operator of this element.
-        """
-        if isinstance(dims, (int, np.integer)):
-            dims = [2] * dims
-        if self.qobj is None:
-            qobj = identity(dims[0]) * 0.0
-            targets = 0
-        else:
-            qobj = self.qobj
-            targets = self.targets
-        return expand_operator(qobj, dims=dims, targets=targets)
-
-    def _get_qobjevo_helper(self, spline_kind, dims):
-        """
-        Please refer to `_Evoelement.get_qobjevo` for documentation.
-        """
-        mat = self.get_qobj(dims)
-        if self.tlist is None and self.coeff is None:
-            qu = QobjEvo(mat) * 0.0
-        elif isinstance(self.coeff, bool):
-            if self.coeff:
-                if self.tlist is None:
-                    qu = QobjEvo(mat, tlist=self.tlist)
-                else:
-                    qu = QobjEvo(
-                        [mat, np.ones(len(self.tlist))], tlist=self.tlist
-                    )
-            else:
-                qu = QobjEvo(mat * 0.0, tlist=self.tlist)
-        else:
-            if spline_kind == "cubic":
-                qu = QobjEvo(
-                    [mat, self.coeff],
-                    tlist=self.tlist,
-                )
-            elif spline_kind == "step_func":
-                if len(self.coeff) == len(self.tlist) - 1:
-                    self.coeff = np.concatenate([self.coeff, [0.0]])
-                qu = QobjEvo([mat, self.coeff], tlist=self.tlist, order=0)
-            else:
-                # The spline will follow other pulses or
-                # use the default value of QobjEvo
-                raise ValueError("The pulse has an unknown spline type.")
-        return qu
-
-    def get_qobjevo(self, spline_kind, dims):
-        """
-        Get the `QobjEvo` representation of the evolution element.
-        If both `tlist` and ``coeff`` are None, treated as zero matrix.
-        If ``coeff=True`` and ``tlist=None``,
-        treated as time-independent operator.
-
-        Parameters
-        ----------
-        spline_kind: str
-            Type of the coefficient interpolation.
-            "step_func" or "cubic"
-
-            -"step_func":
-            The coefficient will be treated as a step function.
-            E.g. ``tlist=[0,1,2]`` and ``coeff=[3,2]``, means that the
-            coefficient is 3 in t=[0,1) and 2 in t=[2,3). It requires
-            ``len(coeff)=len(tlist)-1`` or ``len(coeff)=len(tlist)``, but
-            in the second case the last element of ``tlist`` has no effect.
-
-            -"cubic": Use cubic interpolation for the coefficient. It requires
-            ``len(coeff)=len(tlist)``
-        dims: int or list
-            Dimension of the system.
-            If int, we assume it is the number of qubits in the system.
-            If list, it is the dimension of the component systems.
-
-        Returns
-        -------
-        qobjevo: :class:`qutip.QobjEvo`
-            The `QobjEvo` representation of the evolution element.
-        """
-        try:
-            return self._get_qobjevo_helper(spline_kind, dims=dims)
-        except Exception as err:
-            print(
-                "The Evolution element went wrong was\n {}".format(str(self))
-            )
-            raise (err)
-
-    def __str__(self):
-        return str(
-            {
-                "qobj": self.qobj,
-                "targets": self.targets,
-                "tlist": self.tlist,
-                "coeff": self.coeff,
-            }
-        )
-
+from qutip_qip.pulse.utils import EvoElement
 
 class Pulse:
     """
@@ -187,12 +50,12 @@ class Pulse:
 
     Attributes
     ----------
-    ideal_pulse: :class:`.pulse._EvoElement`
+    ideal_pulse: :class:`.pulse.EvoElement`
         The ideal dynamic of the control pulse.
-    coherent_noise: list of :class:`.pulse._EvoElement`
+    coherent_noise: list of :class:`.pulse.EvoElement`
         The coherent noise caused by the control pulse. Each dynamic element is
         still characterized by a time-dependent Hamiltonian.
-    lindblad_noise: list of :class:`.pulse._EvoElement`
+    lindblad_noise: list of :class:`.pulse.EvoElement`
         The dissipative noise of the control pulse. Each dynamic element
         will be treated as a (time-dependent) lindblad operator in the
         master equation.
@@ -239,7 +102,7 @@ class Pulse:
         label="",
     ):
         self.spline_kind = spline_kind
-        self.ideal_pulse = _EvoElement(qobj, targets, tlist, coeff)
+        self.ideal_pulse = EvoElement(qobj, targets, tlist, coeff)
         self.coherent_noise = []
         self.lindblad_noise = []
         self.label = label
@@ -314,7 +177,7 @@ class Pulse:
             the parameter ``spline_kind`` of :class:`.Pulse`.
             If a bool, the coefficient is a constant 1 or 0.
         """
-        self.coherent_noise.append(_EvoElement(qobj, targets, tlist, coeff))
+        self.coherent_noise.append(EvoElement(qobj, targets, tlist, coeff))
 
     def add_control_noise(self, qobj, targets, tlist=None, coeff=None):
         self.add_coherent_noise(qobj, targets, tlist=tlist, coeff=coeff)
@@ -346,7 +209,7 @@ class Pulse:
             the parameter ``spline_kind`` of :class:`.Pulse`.
             If a bool, the coefficient is a constant 1 or 0.
         """
-        self.lindblad_noise.append(_EvoElement(qobj, targets, tlist, coeff))
+        self.lindblad_noise.append(EvoElement(qobj, targets, tlist, coeff))
 
     def get_ideal_qobj(self, dims):
         """
@@ -477,134 +340,3 @@ class Pulse:
             "-----------------------------------"
             "-----------------------------------"
         )
-
-
-class Drift:
-    """
-    Representation of the time-independent drift Hamiltonian.
-    Usually its the intrinsic
-    evolution of the quantum system that can not be tuned.
-
-    Parameters
-    ----------
-    qobj : :class:`qutip.Qobj` or list of :class:`qutip.Qobj`, optional
-        The drift Hamiltonians.
-
-    Attributes
-    ----------
-    qobj: list of :class:`qutip.Qobj`
-        A list of the the drift Hamiltonians.
-    """
-
-    def __init__(self, qobj=None):
-        if qobj is None:
-            self.drift_hamiltonians = []
-        elif isinstance(qobj, list):
-            self.drift_hamiltonians = qobj
-        else:
-            self.drift_hamiltonians = [qobj]
-
-    def add_drift(self, qobj, targets):
-        """
-        Add a Hamiltonian to the drift.
-
-        Parameters
-        ----------
-        qobj: :class:`qutip.Qobj`
-            The collapse operator of the lindblad noise.
-        targets: list
-            target qubits of the collapse operator
-            (or subquantum system of other dimensions).
-        """
-        self.drift_hamiltonians.append(_EvoElement(qobj, targets))
-
-    def get_ideal_qobjevo(self, dims):
-        """
-        Get the QobjEvo representation of the drift Hamiltonian.
-
-        Parameters
-        ----------
-        dims: int or list
-            Dimension of the system.
-            If int, we assume it is the number of qubits in the system.
-            If list, it is the dimension of the component systems.
-
-        Returns
-        -------
-        ideal_evo: :class:`qutip.QobjEvo`
-            A `QobjEvo` representing the drift evolution.
-        """
-        if not self.drift_hamiltonians:
-            self.drift_hamiltonians = [_EvoElement(None, None)]
-        qu_list = [
-            QobjEvo(evo.get_qobj(dims)) for evo in self.drift_hamiltonians
-        ]
-        return _merge_qobjevo(qu_list)
-
-    def get_noisy_qobjevo(self, dims):
-        """
-        Same as the `get_ideal_qobjevo` method. There is no additional noise
-        for the drift evolution.
-
-        Returns
-        -------
-        noisy_evo: :class:`qutip.QobjEvo`
-            A `QobjEvo` representing the ideal evolution and coherent noise.
-        c_ops: list of :class:`qutip.QobjEvo`
-            Always an empty list for Drift
-        """
-        return self.get_ideal_qobjevo(dims), []
-
-    def get_full_tlist(self):
-        """
-        Drift has no tlist, this is just a place holder to keep it unified
-        with :class:`.Pulse`. It returns None.
-        """
-        return None
-
-
-def _merge_qobjevo(qobjevo_list, full_tlist=None):
-    """
-    Combine a list of `:class:qutip.QobjEvo` into one,
-    different tlist will be merged.
-    """
-    # no qobjevo
-    if not qobjevo_list:
-        raise ValueError("qobjevo_list is empty.")
-
-    return sum([op for op in qobjevo_list if isinstance(op, (Qobj, QobjEvo))])
-
-
-def _fill_coeff(old_coeffs, old_tlist, full_tlist, args=None, tol=1.0e-10):
-    """
-    Make a step function coefficients compatible with a longer ``tlist`` by
-    filling the empty slot with the nearest left value.
-    The returned ``coeff`` always have the same size as the ``tlist``.
-    If `step_func`, the last element is 0.
-    """
-    if args is None:
-        args = {}
-    if "_step_func_coeff" in args and args["_step_func_coeff"]:
-        if len(old_coeffs) == len(old_tlist) - 1:
-            old_coeffs = np.concatenate([old_coeffs, [0]])
-        new_n = len(full_tlist)
-        old_ind = 0  # index for old coeffs and tlist
-        new_coeff = np.zeros(new_n)
-        for new_ind in range(new_n):
-            t = full_tlist[new_ind]
-            if old_tlist[0] - t > tol:
-                new_coeff[new_ind] = 0.0
-                continue
-            if t - old_tlist[-1] > tol:
-                new_coeff[new_ind] = 0.0
-                continue
-            # tol is required because of the floating-point error
-            if old_tlist[old_ind + 1] <= t + tol:
-                old_ind += 1
-            new_coeff[new_ind] = old_coeffs[old_ind]
-    else:
-        sp = CubicSpline(old_tlist, old_coeffs)
-        new_coeff = sp(full_tlist)
-        new_coeff *= full_tlist <= old_tlist[-1]
-        new_coeff *= full_tlist >= old_tlist[0]
-    return new_coeff
