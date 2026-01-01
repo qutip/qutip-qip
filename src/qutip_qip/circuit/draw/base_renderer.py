@@ -49,7 +49,7 @@ class StyleConfig:
         Align the layers of the gates across different wires. The default is False.
         Available to TextRender and MatRender.
 
-    theme : Optional[Union[str, Dict]], optional
+    theme : Union[str, Dict], optional
         Color theme of the circuit. The default is "qutip".
         The available themes are 'qutip', 'light', 'dark' and 'modern'.
 
@@ -83,7 +83,7 @@ class StyleConfig:
     label_pad: float = 0.1
     bulge: str | bool = True
     align_layer: bool = False
-    theme: str | dict | None = "qutip"
+    theme: str | dict = "qutip"
     title: str | None = None
     bgcolor: str | None = None
     color: str | None = None

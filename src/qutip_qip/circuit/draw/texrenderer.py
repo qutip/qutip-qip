@@ -11,10 +11,13 @@ from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations import Gate
 
 
+# As a general note wherever you see {{}} in a python rf string that represents a {}
+# , since {} is used for eval in python f strings.
 class TeXRenderer:
     """
     Class to render the circuit in latex format.
     """
+
     # TODO add the documentation
 
     def __init__(self, qc: QubitCircuit):
@@ -41,8 +44,8 @@ class TeXRenderer:
     def _gate_label(self, gate) -> str:
         gate_label = gate.latex_str
         if gate.arg_label is not None:
-            return r"%s(%s)" % (gate_label, gate.arg_label)
-        return r"%s" % gate_label
+            return rf"{gate_label}({gate.arg_label})"
+        return rf"{gate_label}"
 
     def latex_code(self) -> str:
         """
@@ -55,14 +58,15 @@ class TeXRenderer:
         """
 
         rows = []
-
-        ops = self.gates
         col = []
+        ops = self.gates
+
         for op in ops:
             if isinstance(op, Gate):
                 gate = op
                 col = []
                 _swap_processing = False
+
                 for n in range(self.N + self.num_cbits):
                     if gate.targets and n in gate.targets:
                         if len(gate.targets) > 1:
@@ -73,9 +77,10 @@ class TeXRenderer:
                                 distance = abs(
                                     gate.targets[1] - gate.targets[0]
                                 )
+
                                 if self.reverse_states:
                                     distance = -distance
-                                col.append(r" \qswap \qwx[%d] \qw" % distance)
+                                col.append(rf" \qswap \qwx[{distance}] \qw")
                                 _swap_processing = True
 
                             elif (
@@ -84,16 +89,15 @@ class TeXRenderer:
                                 not self.reverse_states
                                 and n == min(gate.targets)
                             ):
+                                # Python automatically concatenates adjacent string literals
+                                # No new line is added in the process
                                 col.append(
-                                    r" \multigate{%d}{%s} "
-                                    % (
-                                        len(gate.targets) - 1,
-                                        self._gate_label(gate),
-                                    )
+                                    rf" \multigate{{{len(gate.targets) - 1}}}"
+                                    rf"{{{self._gate_label(gate)}}} "
                                 )
                             else:
                                 col.append(
-                                    r" \ghost{%s} " % (self._gate_label(gate))
+                                    rf" \ghost{{{self._gate_label(gate)}}} "
                                 )
 
                         elif gate.name == "CNOT":
@@ -109,13 +113,13 @@ class TeXRenderer:
                         elif gate.name == "TOFFOLI":
                             col.append(r" \targ ")
                         else:
-                            col.append(r" \gate{%s} " % self._gate_label(gate))
+                            col.append(rf" \gate{{{self._gate_label(gate)}}} ")
 
                     elif gate.controls and n in gate.controls:
                         control_tag = (-1 if self.reverse_states else 1) * (
                             gate.targets[0] - n
                         )
-                        col.append(r" \ctrl{%d} " % control_tag)
+                        col.append(rf" \ctrl{{{control_tag}}} ")
 
                     elif (
                         gate.classical_controls
@@ -124,7 +128,7 @@ class TeXRenderer:
                         control_tag = (-1 if self.reverse_states else 1) * (
                             gate.targets[0] - n
                         )
-                        col.append(r" \ctrl{%d} " % control_tag)
+                        col.append(rf" \ctrl{{{control_tag}}} ")
 
                     elif not gate.controls and not gate.targets:
                         # global gate
@@ -132,16 +136,11 @@ class TeXRenderer:
                             not self.reverse_states and n == 0
                         ):
                             col.append(
-                                r" \multigate{%d}{%s} "
-                                % (
-                                    self.N - 1,
-                                    self._gate_label(gate),
-                                )
+                                rf" \multigate{{{self.N - 1}}}"
+                                rf"{{{self._gate_label(gate)}}} "
                             )
                         else:
-                            col.append(
-                                r" \ghost{%s} " % (self._gate_label(gate))
-                            )
+                            col.append(rf" \ghost{self._gate_label(gate)} ")
                     else:
                         col.append(r" \qw ")
 
@@ -154,7 +153,7 @@ class TeXRenderer:
                     elif (n - self.N) == measurement.classical_store:
                         sgn = 1 if self.reverse_states else -1
                         store_tag = sgn * (n - measurement.targets[0])
-                        col.append(r" \qw \cwx[%d] " % store_tag)
+                        col.append(rf" \qw \cwx[{store_tag}] ")
                     else:
                         col.append(r" \qw ")
 
@@ -178,9 +177,9 @@ class TeXRenderer:
             else range(self.N + self.num_cbits)
         )
         for n in n_iter:
-            code += r" & %s" % input_states[n]
+            code += rf" & {input_states[n]}"
             for m in range(len(ops)):
-                code += r" & %s" % rows[m][n]
+                code += rf" & {rows[m][n]}"
             code += r" & \qw \\ " + "\n"
 
         return self._latex_template % code
@@ -277,7 +276,7 @@ class TeXRenderer:
     @classmethod
     def _make_converter(
         self, configuration: dict
-    ) -> Callable[dict, [str | bytes]]:
+    ) -> Callable[dict, str | bytes]:
         """
         Create the actual conversion function of signature
             file_stem: str -> 'T,
@@ -303,13 +302,13 @@ class TeXRenderer:
             """
             in_file = file_stem + ".pdf"
             out_file = file_stem + "." + configuration.file_type
-            
+
             if "-density" in configuration.arguments:
                 arguments = list(configuration.arguments)
                 arguments[arguments.index("-density") + 1] = str(dpi)
             else:
                 arguments = configuration.arguments
-            
+
             self._run_command((which, *arguments, in_file, out_file))
             with open(out_file, mode) as file:
                 return file.read()
