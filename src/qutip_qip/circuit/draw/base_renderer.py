@@ -4,11 +4,7 @@ Base class Implementation for Renderers
 
 from dataclasses import dataclass
 from typing import Union, Optional, List, Dict
-
-from .color_theme import qutip, light, dark, modern
-
-
-__all__ = ["BaseRenderer", "StyleConfig"]
+from qutip_qip.circuit.draw.color_theme import qutip, light, dark, modern
 
 
 @dataclass

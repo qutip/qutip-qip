@@ -5,13 +5,9 @@ Module for rendering a quantum circuit in text format.
 from math import ceil
 from typing import List
 
-from .base_renderer import BaseRenderer, StyleConfig
-from qutip_qip.operations import Gate, Measurement
 from qutip_qip.circuit import QubitCircuit
-
-__all__ = [
-    "TextRenderer",
-]
+from qutip_qip.circuit.draw import BaseRenderer, StyleConfig
+from qutip_qip.operations import Gate, Measurement
 
 
 class TextRenderer(BaseRenderer):

@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 from qutip_qip.circuit import QubitCircuit, CircuitSimulator
-from qutip_qip.circuit.texrenderer import TeXRenderer
+from qutip_qip.circuit.draw import TeXRenderer
 from qutip import (
     tensor,
     Qobj,

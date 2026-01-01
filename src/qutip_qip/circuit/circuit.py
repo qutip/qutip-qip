@@ -8,7 +8,6 @@ from collections.abc import Iterable
 import numpy as np
 from copy import deepcopy
 
-from .texrenderer import TeXRenderer
 from ._decompose import _resolve_to_universal, _resolve_2q_basis
 from qutip_qip.operations import (
     Gate,
@@ -16,10 +15,7 @@ from qutip_qip.operations import (
     expand_operator,
     GATE_CLASS_MAP,
 )
-from qutip_qip.circuit import (
-    CircuitSimulator,
-    CircuitResult,
-)
+from qutip_qip.circuit import CircuitSimulator
 from qutip import Qobj, qeye
 
 
@@ -961,6 +957,8 @@ class QubitCircuit:
         """
 
         if renderer == "latex":
+            from qutip_qip.circuit.draw import TeXRenderer
+
             if file_type == "png" and dpi is None:
                 dpi = 100
 
@@ -979,7 +977,7 @@ class QubitCircuit:
             )
 
         elif renderer == "matplotlib":
-            from .mat_renderer import MatRenderer
+            from qutip_qip.circuit.draw import MatRenderer
 
             if dpi is not None:
                 kwargs["dpi"] = dpi
@@ -990,7 +988,7 @@ class QubitCircuit:
                 mat.save(file_path)
 
         elif renderer == "text":
-            from .text_renderer import TextRenderer
+            from qutip_qip.circuit.draw import TextRenderer
 
             text = TextRenderer(self, **kwargs)
             text.layout()

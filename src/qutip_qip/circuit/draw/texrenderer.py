@@ -8,8 +8,6 @@ import collections
 
 from qutip_qip.operations import Gate
 
-__all__ = ["TeXRenderer", "CONVERTERS"]
-
 
 class TeXRenderer:
     """

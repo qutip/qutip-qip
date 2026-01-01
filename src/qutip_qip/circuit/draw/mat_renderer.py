@@ -14,13 +14,9 @@ from matplotlib.patches import (
     FancyArrow,
 )
 
-from .base_renderer import BaseRenderer, StyleConfig
-from qutip_qip.operations import Gate, Measurement
 from qutip_qip.circuit import QubitCircuit
-
-__all__ = [
-    "MatRenderer",
-]
+from qutip_qip.circuit.draw import BaseRenderer, StyleConfig
+from qutip_qip.operations import Gate, Measurement
 
 
 class MatRenderer(BaseRenderer):
