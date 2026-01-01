@@ -58,7 +58,7 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
         self,
         processor: Processor,
         num_qubits: int = 10,
-        basis_gates: list[str] = None,
+        basis_gates: list[str] | None = None,
         max_shots: int = 1e6,
         max_circuits: int = 1,
         name: str = "pulse_simulator",
@@ -103,7 +103,6 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
         """
         final_states = []
         qutip_circuits = []
-        print(qiskit_circuit)
 
         for circuit in qiskit_circuit:
             qutip_circuit = convert_qiskit_circuit_to_qutip(circuit)

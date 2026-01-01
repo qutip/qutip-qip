@@ -18,8 +18,6 @@ from qutip import (
 from qutip_qip.operations import (
     cnot,
 )
-import qutip
-from qutip import SolverOptions
 
 
 class TestOptPulseProcessor:
@@ -54,7 +52,6 @@ class TestOptPulseProcessor:
         """
         N = 3
         H_d = tensor([sigmaz()] * 3)
-        H_c = []
 
         # test empty ctrls
         num_tslots = 30
@@ -62,9 +59,8 @@ class TestOptPulseProcessor:
         test = OptPulseProcessor(N)
         test.add_drift(H_d, [0, 1, 2])
         test.add_control(tensor([sigmax(), sigmax()]), cyclic_permutation=True)
+
         # test periodically adding ctrls
-        sx = sigmax()
-        iden = identity(2)
         assert len(test.get_control_labels()) == 3
         test.add_control(sigmax(), cyclic_permutation=True)
         test.add_control(sigmay(), cyclic_permutation=True)
@@ -76,13 +72,12 @@ class TestOptPulseProcessor:
         )
         rho0 = qubit_states(3, [1, 1, 1])
         rho1 = qubit_states(3, [1, 1, 0])
-        result = test.run_state(rho0, options=SolverOptions(store_states=True))
+        result = test.run_state(rho0, options={"store_states": True})
         assert_(fidelity(result.states[-1], rho1) > 1 - 1.0e-6)
 
     def test_multi_gates(self):
         N = 2
         H_d = tensor([sigmaz()] * 2)
-        H_c = []
 
         test = OptPulseProcessor(N)
         test.add_drift(H_d, [0, 1])

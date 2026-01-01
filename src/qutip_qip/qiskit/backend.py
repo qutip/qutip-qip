@@ -1,7 +1,6 @@
 """Backends for simulating qiskit circuits."""
 
 from abc import abstractmethod
-from typing import List
 import uuid
 
 from qiskit.circuit import QuantumCircuit
@@ -12,6 +11,8 @@ from qiskit.transpiler.target import Target
 
 from qutip_qip.qiskit import Job
 from qutip_qip.qiskit.utils import QUTIP_TO_QISKIT_GATE_MAP
+
+DEFAULT_BASIS_GATE_SET = QUTIP_TO_QISKIT_GATE_MAP.keys()
 
 
 class QiskitSimulatorBase(BackendV2):
@@ -46,11 +47,11 @@ class QiskitSimulatorBase(BackendV2):
 
     def __init__(
         self,
-        name: str = None,
-        description: str = None,
+        name: str,
+        description: str,
         version: str = "0.1",
         num_qubits: int = 10,
-        basis_gates: List[str] = None,
+        basis_gates: list[str] = list(DEFAULT_BASIS_GATE_SET),
         max_shots: int = 1e6,
         max_circuits: int = 1,
     ):
@@ -94,7 +95,7 @@ class QiskitSimulatorBase(BackendV2):
         return self._target
 
     def _build_target(
-        self, num_qubits: int = 10, basis_gates: list[str] = None
+        self, basis_gates: list[str], num_qubits: int = 10
     ) -> Target:
         """
         Builds a :class:`qiskit.transpiler.Target` object for the backend.
@@ -114,7 +115,6 @@ class QiskitSimulatorBase(BackendV2):
             `concurrent_measurements` etc.
         """
 
-        DEFAULT_BASIS_GATE_SET = QUTIP_TO_QISKIT_GATE_MAP.keys()
         if basis_gates is not None:
             for gate in basis_gates:
                 if gate not in DEFAULT_BASIS_GATE_SET:
@@ -179,6 +179,13 @@ class QiskitSimulatorBase(BackendV2):
         if not isinstance(run_input, list):
             run_input = [run_input]
 
+        for circuit in run_input:
+            if not isinstance(circuit, QuantumCircuit):
+                raise ValueError(
+                    f"Must pass a list of qiskit.QuantumCircuit type object,\
+                    instead passed {type(circuit)}"
+                )
+
         if len(run_input) > self.max_circuits:
             raise ValueError(
                 f"Passed ${len(run_input)} circuits to the backend,\
@@ -204,7 +211,7 @@ class QiskitSimulatorBase(BackendV2):
 
     @abstractmethod
     def _run_job(
-        self, job_id: str, qiskit_circuits: List[QuantumCircuit]
+        self, job_id: str, qiskit_circuits: list[QuantumCircuit]
     ) -> Result:
         """
         Given the `job_id` and `qiskit_circuits` list implement the

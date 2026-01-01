@@ -1,6 +1,4 @@
 import random
-from typing import List
-
 from qutip import basis
 from qutip_qip.circuit import CircuitResult, QubitCircuit
 from qutip_qip.qiskit import QiskitSimulatorBase
@@ -50,7 +48,7 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
     def __init__(
         self,
         num_qubits: int = 10,
-        basis_gates: List[str] = None,
+        basis_gates: list[str] | None = None,
         max_shots: int = 1e6,
         max_circuits: int = 1,
         name: str = "circuit_simulator",
@@ -99,11 +97,6 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
         statistics = []
 
         for circuit in qiskit_circuit:
-            if not isinstance(circuit, QuantumCircuit):
-                raise ValueError(
-                    "List must only consist of qiskit QuantumCircuit"
-                )
-
             transpiled_circuit = transpile(circuit, backend=self)
             qutip_circuit = convert_qiskit_circuit_to_qutip(transpiled_circuit)
             qutip_circuits.append(qutip_circuit)
