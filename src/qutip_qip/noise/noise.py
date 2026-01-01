@@ -9,7 +9,12 @@ class Noise(object):
     contributes to evolution.
     """
 
-    def get_noisy_pulses(self, dims: list[int] = None, pulses: list[Pulse] = None, systematic_noise: Pulse = None):
+    def get_noisy_pulses(
+        self,
+        dims: list[int] | None = None,
+        pulses: list[Pulse] | None = None,
+        systematic_noise: Pulse | None = None
+    ) -> tuple[list[Pulse], Pulse]:
         """
         Return the input pulses list with noise added and
         the pulse independent noise in a dummy :class:`.Pulse` object.
@@ -37,6 +42,7 @@ class Noise(object):
             The dummy pulse representing pulse-independent noise.
         """
         get_noisy_dynamics = getattr(self, "get_noisy_dynamics", None)
+
         if get_noisy_dynamics is not None:
             warnings.warn(
                 "Using get_noisy_dynamics as the hook function for custom "
@@ -45,12 +51,18 @@ class Noise(object):
                 PendingDeprecationWarning,
             )
             return self.get_noisy_dynamics(dims, pulses, systematic_noise)
+
         raise NotImplementedError(
             "Subclass error needs a method"
             "`get_noisy_pulses` to process the noise."
         )
 
-    def _apply_noise(self, pulses=None, systematic_noise=None, dims=None):
+    def _apply_noise(
+        self,
+        dims: list[int] | None = None,
+        pulses: list[Pulse] | None = None,
+        systematic_noise: Pulse | None = None
+    ) -> tuple[list[Pulse], Pulse]:
         """
         For backward compatibility, in case the method has no return value
         or only return the pulse.
@@ -58,10 +70,12 @@ class Noise(object):
         result = self.get_noisy_pulses(
             pulses=pulses, systematic_noise=systematic_noise, dims=dims
         )
+
         if result is None:  # in-place change
             pass
         elif isinstance(result, tuple) and len(result) == 2:
             pulses, systematic_noise = result
+        
         # only pulse
         elif isinstance(result, list) and len(result) == len(pulses):
             pulses = result
@@ -69,4 +83,5 @@ class Noise(object):
             raise TypeError(
                 "Returned value of get_noisy_pulses not understood."
             )
+        
         return pulses, systematic_noise

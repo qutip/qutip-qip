@@ -31,8 +31,8 @@ class ControlAmpNoise(Noise):
     def __init__(
         self,
         coeff: list[complex],
-        tlist: ArrayLike = None,
-        indices: list[int] = None
+        tlist: ArrayLike | None = None,
+        indices: list[int] | None = None
     ):
         self.coeff = coeff
         self.tlist = tlist
@@ -40,10 +40,10 @@ class ControlAmpNoise(Noise):
 
     def get_noisy_pulses(
         self,
-        dims = None,
-        pulses: list[Pulse] = None,
-        systematic_noise: Pulse = None
-    ):
+        dims: list[int] | None = None,
+        pulses: list[Pulse] | None = None,
+        systematic_noise: Pulse | None = None
+    ) -> tuple[list[Pulse], Pulse]:
         if pulses is None:
             pulses = []
 

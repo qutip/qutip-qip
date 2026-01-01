@@ -1,3 +1,4 @@
+from numpy.typing import ArrayLike
 from qutip import Qobj
 from qutip_qip.noise import Noise
 from qutip_qip.pulse import Pulse
@@ -25,7 +26,7 @@ class DecoherenceNoise(Noise):
 
     Attributes
     ----------
-    c_ops : :class:`qutip.Qobj` or list
+    c_ops : :class:`qutip.Qobj` or list of :class:`qutip.Qobj`
         The Hamiltonian representing the dynamics of the noise.
     targets: int or list
         The indices of qubits that are acted on.
@@ -39,7 +40,12 @@ class DecoherenceNoise(Noise):
     """
 
     def __init__(
-        self, c_ops, targets=None, coeff=None, tlist=None, all_qubits=False
+        self,
+        c_ops: Qobj | list[Qobj],
+        targets: int | list[int] | None = None,
+        coeff: list[complex] = None,
+        tlist: ArrayLike = None,
+        all_qubits: bool = False,
     ):
         if isinstance(c_ops, Qobj):
             self.c_ops = [c_ops]
@@ -48,6 +54,7 @@ class DecoherenceNoise(Noise):
         self.coeff = coeff
         self.tlist = tlist
         self.targets = targets
+        
         if all_qubits:
             if not all([c_op.dims == [[2], [2]] for c_op in self.c_ops]):
                 raise ValueError(
@@ -56,7 +63,12 @@ class DecoherenceNoise(Noise):
                 )
         self.all_qubits = all_qubits
 
-    def get_noisy_pulses(self, dims=None, pulses=None, systematic_noise=None):
+    def get_noisy_pulses(
+        self,
+        dims: list[int] | None = None,
+        pulses: list[Pulse] | None = None,
+        systematic_noise: Pulse | None = None
+    ) -> tuple[list[Pulse], Pulse]:
         """
         Return the input pulses list with noise added and
         the pulse independent noise in a dummy :class:`.Pulse` object.
@@ -81,6 +93,7 @@ class DecoherenceNoise(Noise):
         if systematic_noise is None:
             systematic_noise = Pulse(None, None, label="system")
         N = len(dims)
+
         # time-independent
         if (self.coeff is None) and (self.tlist is None):
             self.coeff = True
@@ -95,4 +108,5 @@ class DecoherenceNoise(Noise):
                 systematic_noise.add_lindblad_noise(
                     c_op, self.targets, self.tlist, self.coeff
                 )
+
         return pulses, systematic_noise

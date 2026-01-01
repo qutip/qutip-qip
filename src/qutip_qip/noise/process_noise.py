@@ -1,18 +1,18 @@
 from copy import deepcopy
 
-from qutip_qip.noise import DecoherenceNoise, RelaxationNoise
+from qutip_qip.noise import DecoherenceNoise, Noise, RelaxationNoise
 from qutip_qip.pulse import Pulse
 
 
 def process_noise(
-    pulses,
-    noise_list,
-    dims,
-    t1=None,
-    t2=None,
-    device_noise=False,
-    spline_kind=None,
-):
+    pulses: list[Pulse],
+    noise_list: list[Noise],
+    dims: int | list[int],
+    t1: float | list[float] | None = None,
+    t2: float | list[float] | None = None,
+    device_noise: bool = False,
+    spline_kind: str | None = None,
+) -> list[Pulse]:
     """
     Apply noise to the input list of pulses. It does not modify the input
     pulse, but return a new one containing the noise.
@@ -36,6 +36,9 @@ def process_noise(
     device_noise: bool
         If pulse independent noise such as relaxation are included.
         Default is False.
+    spline_kind: str, optional
+        Type of the coefficient interpolation:
+        "step_func" or "cubic".
 
     Returns
     -------

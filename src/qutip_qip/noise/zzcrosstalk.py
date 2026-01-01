@@ -21,9 +21,9 @@ class ZZCrossTalk(Noise):
         self.params = params
 
     def get_noisy_pulses(self,
-        dims: list[int] = None,
-        pulses: list[Pulse] = None,
-        systematic_noise: Pulse = None
+        dims: list[int] | None = None,
+        pulses: list[Pulse] | None = None,
+        systematic_noise: Pulse | None = None
     ) -> tuple[list[Pulse], Pulse]:
         """
         Return the input pulses list with noise added and
@@ -56,38 +56,46 @@ class ZZCrossTalk(Noise):
         wq = self.params["wq"]
         alpha = self.params["alpha"]
         omega = self.params["omega_cr"]
+
         for i in range(len(dims) - 1):
             d1 = dims[i]
             d2 = dims[i + 1]
             destroy_op1 = destroy(d1)
             destroy_op2 = destroy(d2)
+
             projector1 = (
                 basis(d1, 0) * basis(d1, 0).dag()
                 + basis(d1, 1) * basis(d2, 1).dag()
             )
+
             projector2 = (
                 basis(d2, 0) * basis(d2, 0).dag()
                 + basis(d2, 1) * basis(d2, 1).dag()
             )
+
             z1 = (
                 projector1
                 * (destroy_op1.dag() * destroy_op1 * 2 - qeye(d1))
                 * projector1
             )
+
             z2 = (
                 projector2
                 * (destroy_op2.dag() * destroy_op2 * 2 - qeye(d1))
                 * projector2
             )
+
             zz_op = tensor(z1, z2)
             zz_coeff = (
                 1 / (wq_dr_cav[i] - wq_dr_cav[i + 1] - alpha[i + 1])
                 - 1 / (wq_dr_cav[i] - wq_dr_cav[i + 1] + alpha[i])
             ) * J[i] ** 2
+
             systematic_noise.add_control_noise(
                 zz_coeff * zz_op / 2,
                 targets=[i, i + 1],
                 coeff=True,
                 tlist=None,
             )
+
         return pulses, systematic_noise

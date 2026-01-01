@@ -35,25 +35,30 @@ class RelaxationNoise(Noise):
         The indices of qubits that are acted on.
     """
 
-    def __init__(self, t1=None, t2=None, targets=None):
+    def __init__(
+        self,
+        t1: float | list[float],
+        t2: float | list[float] = None,
+        targets: int | list[int] | None = None
+    ):
         self.t1 = t1
         self.t2 = t2
         self.targets = targets
 
-    def _T_to_list(self, T, N):
+    def _T_to_list(self, T: float | list[float], N: int) -> list[float]:
         """
         Check if the relaxation time is valid
 
         Parameters
         ----------
-        T: float or list
+        T: float or list of float
             The relaxation time
         N: int
             The number of qubits.
 
         Returns
         -------
-        T: list
+        T: list of float
             The relaxation time in Python list form
         """
         if (isinstance(T, numbers.Real) and T > 0) or T is None:
@@ -67,7 +72,12 @@ class RelaxationNoise(Noise):
                 "or T is not a positive number.".format(T)
             )
 
-    def get_noisy_pulses(self, dims=None, pulses=None, systematic_noise=None):
+    def get_noisy_pulses(
+        self,
+        dims: list[int] | None = None,
+        pulses: list[Pulse] | None = None,
+        systematic_noise: Pulse | None = None,
+    ) -> tuple[list[Pulse], Pulse]:
         """
         Return the input pulses list with noise added and
         the pulse independent noise in a dummy :class:`.Pulse` object.
@@ -77,9 +87,9 @@ class RelaxationNoise(Noise):
         dims: list, optional
             The dimension of the components system, the default value is
             [2,2...,2] for qubits system.
-        pulses : list of :class:`.Pulse`
+        pulses : list of :class:`.Pulse`, optional
             The input pulses. The noise will be added to pulses in this list.
-        systematic_noise : :class:`.Pulse`
+        systematic_noise : :class:`.Pulse`, optional
             The dummy pulse with no ideal control element.
 
         Returns
@@ -105,12 +115,15 @@ class RelaxationNoise(Noise):
             targets = range(N)
         else:
             targets = self.targets
+
         for qu_ind in targets:
             t1 = self.t1[qu_ind]
             t2 = self.t2[qu_ind]
+
             if t1 is not None:
                 op = 1 / np.sqrt(t1) * destroy(dims[qu_ind])
                 systematic_noise.add_lindblad_noise(op, qu_ind, coeff=True)
+
             if t2 is not None:
                 # Keep the total dephasing ~ exp(-t/t2)
                 if t1 is not None:
@@ -122,6 +135,8 @@ class RelaxationNoise(Noise):
                     T2_eff = 1.0 / (1.0 / t2 - 1.0 / 2.0 / t1)
                 else:
                     T2_eff = t2
+
                 op = 1 / np.sqrt(2 * T2_eff) * 2 * num(dims[qu_ind])
                 systematic_noise.add_lindblad_noise(op, qu_ind, coeff=True)
+
         return pulses, systematic_noise

@@ -85,7 +85,7 @@ def test_define_model_in_processor():
     assert processor.t2 == 60.0
 
     # Noise
-    noise_object = RelaxationNoise(t1=20.0)
+    noise_object = RelaxationNoise(t1=20.0, t2=10.0)
     processor.add_noise(noise_object)
     assert noise_object in processor.noise
     with pytest.raises(TypeError):

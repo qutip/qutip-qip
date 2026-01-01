@@ -1,5 +1,6 @@
 import numpy as np
 from qutip_qip.noise import ControlAmpNoise
+from qutip_qip.pulse import Pulse
 
 
 class RandomNoise(ControlAmpNoise):
@@ -22,7 +23,7 @@ class RandomNoise(ControlAmpNoise):
 
     Attributes
     ----------
-    dt: float, optional
+    dt: float
         The time interval between two random amplitude. The coefficients
         of the noise are the same within this time range.
     rand_gen: numpy.random, optional
@@ -40,7 +41,13 @@ class RandomNoise(ControlAmpNoise):
             # doctest: +SKIP
     """
 
-    def __init__(self, dt, rand_gen, indices=None, **kwargs):
+    def __init__(
+        self,
+        dt: float,
+        rand_gen, #TODO add the typing for it
+        indices: list[int] | None = None,
+        **kwargs,
+    ):
         super(RandomNoise, self).__init__(coeff=None, tlist=None)
         self.rand_gen = rand_gen
         self.kwargs = kwargs
@@ -49,7 +56,12 @@ class RandomNoise(ControlAmpNoise):
         self.dt = dt
         self.indices = indices
 
-    def get_noisy_pulses(self, dims=None, pulses=None, systematic_noise=None):
+    def get_noisy_pulses(
+        self,
+        dims: list[int] | None = None,
+        pulses: list[Pulse] | None = None,
+        systematic_noise: Pulse | None = None
+    ) -> tuple[list[Pulse], Pulse]:
         """
         Return the input pulses list with noise added and
         the pulse independent noise in a dummy :class:`.Pulse` object.
@@ -77,11 +89,13 @@ class RandomNoise(ControlAmpNoise):
             indices = range(len(pulses))
         else:
             indices = self.indices
+
         t_max = -np.inf
         t_min = np.inf
         for pulse in pulses:
             t_max = max(max(pulse.tlist), t_max)
             t_min = min(min(pulse.tlist), t_min)
+
         # create new tlist and random coeff
         num_rand = int(np.floor((t_max - t_min) / self.dt)) + 1
         tlist = np.arange(0, self.dt * num_rand, self.dt)[:num_rand] + t_min
@@ -93,4 +107,5 @@ class RandomNoise(ControlAmpNoise):
             pulses[i].add_coherent_noise(
                 pulse.qobj, pulse.targets, tlist, coeff
             )
+
         return pulses, systematic_noise
