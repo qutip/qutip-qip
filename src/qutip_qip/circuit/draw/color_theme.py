@@ -2,7 +2,7 @@
 Color theme for different gates in the circuit diagram.
 """
 
-qutip = {
+qutip: dict[str, str] = {
     "bgcolor": "#FFFFFF",  # White
     "color": "#FFFFFF",  # White
     "wire_color": "#000000",  # Black
@@ -33,7 +33,7 @@ qutip = {
     "FREDKIN": "#7648CB",  # Dark Orchid
 }
 
-light = {
+light: dict[str, str] = {
     "bgcolor": "#EEEEEE",  # Light Gray
     "color": "#000000",  # Black
     "wire_color": "#000000",  # Black
@@ -64,7 +64,7 @@ light = {
     "FREDKIN": "#CDC1E8",  # Light Purple
 }
 
-dark = {
+dark: dict[str, str] = {
     "bgcolor": "#000000",  # Black
     "color": "#000000",  # Black
     "wire_color": "#989898",  # Dark Gray
@@ -96,7 +96,7 @@ dark = {
 }
 
 
-modern = {
+modern: dict[str, str] = {
     "bgcolor": "#FFFFFF",  # White
     "color": "#FFFFFF",  # White
     "wire_color": "#000000",  # Black

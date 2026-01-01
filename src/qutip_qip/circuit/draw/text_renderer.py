@@ -3,7 +3,6 @@ Module for rendering a quantum circuit in text format.
 """
 
 from math import ceil
-from typing import List
 
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.circuit.draw import BaseRenderer, StyleConfig
@@ -15,7 +14,7 @@ class TextRenderer(BaseRenderer):
     A class to render a quantum circuit in text format.
     """
 
-    def __init__(self, qc: QubitCircuit, **style):
+    def __init__(self, qc: QubitCircuit, **style) -> None:
         # user defined style
         style = {} if style is None else style
         style["gate_margin"] = 0
@@ -33,7 +32,7 @@ class TextRenderer(BaseRenderer):
             "bot_frame": ["  "] * (self._qwires + self._cwires),
         }
 
-    def _adjust_layer_pad(self, wire_list: List[int], xskip: int):
+    def _adjust_layer_pad(self, wire_list: list[int], xskip: int) -> None:
         """
         Adjust the layers by filling the empty spaces with respective characters
         """
@@ -54,7 +53,7 @@ class TextRenderer(BaseRenderer):
                     xskip - len(self._render_strs["mid_frame"][wire])
                 )
 
-    def _add_wire_labels(self):
+    def _add_wire_labels(self) -> None:
         """
         Add wire labels to the circuit
         """
@@ -84,7 +83,9 @@ class TextRenderer(BaseRenderer):
 
             self._layer_list[i].append(update_len)
 
-    def _draw_singleq_gate(self, gate_name: str):
+    def _draw_singleq_gate(
+        self, gate_name: str
+    ) -> tuple[tuple[str, str, str], int]:
         """
         Draw a single qubit gate
 
@@ -97,7 +98,6 @@ class TextRenderer(BaseRenderer):
         -------
         tuple
             The parts of the gate to be drawn. The parts are the top_frame, mid_frame, and bot_frame.
-
         int
             The width of the gate.
         """
@@ -114,7 +114,9 @@ class TextRenderer(BaseRenderer):
 
         return (top_frame, mid_frame, bot_frame), len(top_frame)
 
-    def _draw_multiq_gate(self, gate: Gate, gate_text: str):
+    def _draw_multiq_gate(
+        self, gate: Gate, gate_text: str
+    ) -> tuple[tuple[str, str, str, str, str], int]:
         """
         Draw a multi qubit gate
 
@@ -128,7 +130,6 @@ class TextRenderer(BaseRenderer):
         tuple
             The parts of the gate to be drawn.
             i.e. the top_frame, mid_frame, mid_connect, mid_connect_label, and bot_frame.
-
         int
             The width of the gate.
         """
@@ -191,7 +192,9 @@ class TextRenderer(BaseRenderer):
             bot_frame,
         ), len(top_frame)
 
-    def _draw_measurement_gate(self, measurement: Measurement):
+    def _draw_measurement_gate(
+        self, measurement: Measurement
+    ) -> tuple[tuple[str, str, str], int]:
         """
         Draw a measurement gate
         """
@@ -215,10 +218,10 @@ class TextRenderer(BaseRenderer):
     def _update_cbridge(
         self,
         gate: Gate,
-        wire_list: List[int],
+        wire_list: list[int],
         width: int,
         is_arrow: bool = True,
-    ):
+    ) -> None:
         """
         Update the render strings for the control bridge
 
@@ -280,7 +283,7 @@ class TextRenderer(BaseRenderer):
                 else:
                     self._render_strs["mid_frame"][wire] += mid_bar_conn
 
-    def _update_singleq(self, wire_list, parts):
+    def _update_singleq(self, wire_list, parts) -> None:
         """
         Update the render strings for single qubit gates
         """
@@ -291,8 +294,8 @@ class TextRenderer(BaseRenderer):
             self._render_strs["bot_frame"][wire] += bot_frame
 
     def _update_target_multiq(
-        self, gate: Gate, wire_list: List[int], parts: List[str]
-    ):
+        self, gate: Gate, wire_list: list[int], parts: list[str]
+    ) -> None:
         """
         Update the render strings for part of the multi qubit gate drawn on the target wires.
 
@@ -334,10 +337,10 @@ class TextRenderer(BaseRenderer):
     def _update_qbridge(
         self,
         gate: Gate,
-        wire_list_control: List[int],
+        wire_list_control: list[int],
         width: int,
         is_top: bool,
-    ):
+    ) -> None:
         """
         Update the render strings for part of the multi qubit gate drawn on the control wires.
 
@@ -388,7 +391,7 @@ class TextRenderer(BaseRenderer):
                     self._render_strs["mid_frame"][wire] += mid_bar_conn
                     self._render_strs["bot_frame"][wire] += bar_conn
 
-    def _update_swap_gate(self, wire_list: List[int]):
+    def _update_swap_gate(self, wire_list: list[int]) -> None:
         """
         Update the render strings for the SWAP gate
         """
@@ -412,7 +415,7 @@ class TextRenderer(BaseRenderer):
                 self._render_strs["mid_frame"][wire] += mid_bar_conn
                 self._render_strs["bot_frame"][wire] += bar_conn
 
-    def layout(self):
+    def layout(self) -> None:
         """
         Layout the circuit
         """
@@ -533,7 +536,7 @@ class TextRenderer(BaseRenderer):
         )
         self.print_circuit()
 
-    def print_circuit(self):
+    def print_circuit(self) -> None:
         """
         Print the circuit
         """
@@ -548,7 +551,7 @@ class TextRenderer(BaseRenderer):
             print(self._render_strs["mid_frame"][i])
             print(self._render_strs["bot_frame"][i])
 
-    def save(self, filename: str):
+    def save(self, filename: str) -> None:
         """
         Save the circuit to a file
 
