@@ -12,8 +12,6 @@ from qiskit.transpiler.target import Target
 from qutip_qip.qiskit import Job
 from qutip_qip.qiskit.utils import QUTIP_TO_QISKIT_GATE_MAP
 
-DEFAULT_BASIS_GATE_SET = QUTIP_TO_QISKIT_GATE_MAP.keys()
-
 
 class QiskitSimulatorBase(BackendV2):
     """
@@ -49,11 +47,11 @@ class QiskitSimulatorBase(BackendV2):
         self,
         name: str,
         description: str,
-        version: str = "0.1",
-        num_qubits: int = 10,
-        basis_gates: list[str] = list(DEFAULT_BASIS_GATE_SET),
-        max_shots: int = 1e6,
-        max_circuits: int = 1,
+        version: str,
+        num_qubits: int,
+        basis_gates: list[str],
+        max_shots: int,
+        max_circuits: int,
     ):
         super().__init__(
             name=name,
@@ -114,6 +112,8 @@ class QiskitSimulatorBase(BackendV2):
             `num_qubits`, `qubit_properties`, `basis_gates`,
             `concurrent_measurements` etc.
         """
+
+        DEFAULT_BASIS_GATE_SET = QUTIP_TO_QISKIT_GATE_MAP.keys()
 
         if basis_gates is not None:
             for gate in basis_gates:

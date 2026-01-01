@@ -5,6 +5,7 @@ from qutip_qip.circuit import QubitCircuit
 from qutip_qip.device import Processor
 from qutip_qip.qiskit import QiskitSimulatorBase
 from qutip_qip.qiskit.utils import (
+    QUTIP_TO_QISKIT_GATE_MAP,
     convert_qiskit_circuit_to_qutip,
     get_probabilities,
     sample_shots,
@@ -14,6 +15,8 @@ from qiskit import QuantumCircuit
 from qiskit.result import Result
 from qiskit.result.models import ExperimentResult, ExperimentResultData
 from qiskit.quantum_info import Statevector, DensityMatrix
+
+DEFAULT_BASIS_GATE_LIST = list(QUTIP_TO_QISKIT_GATE_MAP.keys())
 
 
 class QiskitPulseSimulator(QiskitSimulatorBase):
@@ -58,7 +61,7 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
         self,
         processor: Processor,
         num_qubits: int = 10,
-        basis_gates: list[str] | None = None,
+        basis_gates: list[str] = DEFAULT_BASIS_GATE_LIST,
         max_shots: int = 1e6,
         max_circuits: int = 1,
         name: str = "pulse_simulator",
