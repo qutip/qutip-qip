@@ -2,6 +2,7 @@ import numpy as np
 from qutip import QobjEvo, Qobj
 from qutip_qip.pulse.utils import EvoElement
 
+
 class Pulse:
     """
     Representation of a control pulse and the pulse dependent noise.

@@ -1,6 +1,7 @@
 from qutip import QobjEvo, Qobj
 from qutip_qip.pulse.utils import EvoElement, merge_qobjevo
 
+
 class Drift:
     """
     Representation of the time-independent drift Hamiltonian.

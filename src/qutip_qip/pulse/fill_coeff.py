@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.interpolate import CubicSpline
 
+
 def fill_coeff(
     old_coeffs: list,
     old_tlist: list[list[float]],
