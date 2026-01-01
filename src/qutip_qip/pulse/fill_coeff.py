@@ -1,7 +1,14 @@
 import numpy as np
 from scipy.interpolate import CubicSpline
 
-def fill_coeff(old_coeffs, old_tlist, full_tlist, args=None, tol=1.0e-10):
+def fill_coeff(
+    old_coeffs: list,
+    old_tlist: list[list[float]],
+    full_tlist: list[list[float]],
+    args: dict[str] = None,
+    tol: float = 1.0e-10
+):
+    #TODO add the return type in typehint
     """
     Make a step function coefficients compatible with a longer ``tlist`` by
     filling the empty slot with the nearest left value.

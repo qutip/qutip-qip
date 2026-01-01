@@ -1,4 +1,5 @@
 import numpy as np
+from qutip import QobjEvo, Qobj
 from qutip_qip.pulse.utils import EvoElement
 
 class Pulse:
@@ -94,12 +95,12 @@ class Pulse:
 
     def __init__(
         self,
-        qobj,
-        targets,
-        tlist=None,
-        coeff=None,
-        spline_kind="step_func",
-        label="",
+        qobj: Qobj,
+        targets: list[int],
+        tlist: list[float] = None,
+        coeff: list[float] | bool = None,
+        spline_kind: str = "step_func",
+        label: str = "",
     ):
         self.spline_kind = spline_kind
         self.ideal_pulse = EvoElement(qobj, targets, tlist, coeff)
@@ -108,50 +109,56 @@ class Pulse:
         self.label = label
 
     @property
-    def qobj(self):
+    def qobj(self) -> Qobj:
         """
         See parameter `qobj`.
         """
         return self.ideal_pulse.qobj
 
     @qobj.setter
-    def qobj(self, x):
+    def qobj(self, x: Qobj):
         self.ideal_pulse.qobj = x
 
     @property
-    def targets(self):
+    def targets(self) -> list[int]:
         """
         See parameter `targets`.
         """
         return self.ideal_pulse.targets
 
     @targets.setter
-    def targets(self, x):
+    def targets(self, x: list[int]):
         self.ideal_pulse.targets = x
 
     @property
-    def tlist(self):
+    def tlist(self) -> list[float]:
         """
         See parameter `tlist`
         """
         return self.ideal_pulse.tlist
 
     @tlist.setter
-    def tlist(self, x):
+    def tlist(self, x: list[float]):
         self.ideal_pulse.tlist = x
 
     @property
-    def coeff(self):
+    def coeff(self) -> list[float] | bool:
         """
         See parameter ``coeff``.
         """
         return self.ideal_pulse.coeff
 
     @coeff.setter
-    def coeff(self, x):
+    def coeff(self, x: list[float] | bool):
         self.ideal_pulse.coeff = x
 
-    def add_coherent_noise(self, qobj, targets, tlist=None, coeff=None):
+    def add_coherent_noise(
+        self,
+        qobj: Qobj,
+        targets: list[int],
+        tlist: list[float] = None,
+        coeff: list[float] | bool = None
+    ):
         """
         Add a new (time-dependent) Hamiltonian to the coherent noise.
 
@@ -179,10 +186,22 @@ class Pulse:
         """
         self.coherent_noise.append(EvoElement(qobj, targets, tlist, coeff))
 
-    def add_control_noise(self, qobj, targets, tlist=None, coeff=None):
+    def add_control_noise(
+        self,
+        qobj: Qobj,
+        targets: list[int],
+        tlist: list[float] = None,
+        coeff: list[float] | bool = None
+    ):
         self.add_coherent_noise(qobj, targets, tlist=tlist, coeff=coeff)
 
-    def add_lindblad_noise(self, qobj, targets, tlist=None, coeff=None):
+    def add_lindblad_noise(
+        self,
+        qobj: Qobj,
+        targets: list[int],
+        tlist: list[float] = None,
+        coeff: list[float] | bool = None
+    ):
         """
         Add a new (time-dependent) lindblad noise to the coherent noise.
 
@@ -211,7 +230,7 @@ class Pulse:
         """
         self.lindblad_noise.append(EvoElement(qobj, targets, tlist, coeff))
 
-    def get_ideal_qobj(self, dims):
+    def get_ideal_qobj(self, dims: int | list[int]) -> Qobj:
         """
         Get the Hamiltonian of the ideal pulse.
 
@@ -229,7 +248,7 @@ class Pulse:
         """
         return self.ideal_pulse.get_qobj(dims)
 
-    def get_ideal_qobjevo(self, dims):
+    def get_ideal_qobjevo(self, dims: int | list[int]) -> QobjEvo:
         """
         Get a `QobjEvo` representation of the ideal evolution.
 
@@ -247,7 +266,7 @@ class Pulse:
         """
         return self.ideal_pulse.get_qobjevo(self.spline_kind, dims)
 
-    def get_noisy_qobjevo(self, dims):
+    def get_noisy_qobjevo(self, dims: int | list[int]) -> QobjEvo:
         """
         Get the `QobjEvo` representation of the noisy evolution. The result
         can be used directly as input for the qutip solvers.
@@ -278,7 +297,7 @@ class Pulse:
         ]
         return qu, c_ops
 
-    def get_full_tlist(self, tol=1.0e-10):
+    def get_full_tlist(self, tol: float = 1.0e-10) -> list[list[float]]:
         """
         Return the full tlist of the pulses and noise.
         It means that if different ``tlist`` are present,

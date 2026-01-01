@@ -13,13 +13,13 @@ class EvoElement:
     refer to :class:`.Pulse`.
     """
 
-    def __init__(self, qobj, targets, tlist=None, coeff=None):
+    def __init__(self, qobj: Qobj, targets, tlist=None, coeff=None):
         self.qobj = qobj
         self.targets = targets
         self.tlist = tlist
         self.coeff = coeff
 
-    def get_qobj(self, dims):
+    def get_qobj(self, dims: int | list[int]) -> Qobj:
         """
         Get the `Qobj` representation of the element. If `qobj` is None,
         a zero :class:`qutip.Qobj` with the corresponding dimension is
@@ -39,21 +39,26 @@ class EvoElement:
         """
         if isinstance(dims, (int, np.integer)):
             dims = [2] * dims
+
         if self.qobj is None:
             qobj = identity(dims[0]) * 0.0
             targets = 0
         else:
             qobj = self.qobj
             targets = self.targets
+
         return expand_operator(qobj, dims=dims, targets=targets)
 
-    def _get_qobjevo_helper(self, spline_kind, dims):
+    def _get_qobjevo_helper(
+        self, spline_kind: str, dims: int | list[int]
+    ) -> QobjEvo:
         """
         Please refer to `_Evoelement.get_qobjevo` for documentation.
         """
         mat = self.get_qobj(dims)
         if self.tlist is None and self.coeff is None:
             qu = QobjEvo(mat) * 0.0
+
         elif isinstance(self.coeff, bool):
             if self.coeff:
                 if self.tlist is None:
@@ -64,6 +69,7 @@ class EvoElement:
                     )
             else:
                 qu = QobjEvo(mat * 0.0, tlist=self.tlist)
+
         else:
             if spline_kind == "cubic":
                 qu = QobjEvo(
@@ -80,7 +86,9 @@ class EvoElement:
                 raise ValueError("The pulse has an unknown spline type.")
         return qu
 
-    def get_qobjevo(self, spline_kind, dims):
+    def get_qobjevo(
+        self, spline_kind: str, dims: int | list[int]
+    ) -> QobjEvo:
         """
         Get the `QobjEvo` representation of the evolution element.
         If both `tlist` and ``coeff`` are None, treated as zero matrix.
@@ -120,7 +128,7 @@ class EvoElement:
             )
             raise (err)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(
             {
                 "qobj": self.qobj,
@@ -130,7 +138,9 @@ class EvoElement:
             }
         )
 
-def merge_qobjevo(qobjevo_list, full_tlist=None):
+def merge_qobjevo(
+    qobjevo_list: list[tuple[Qobj, QobjEvo]], full_tlist=None
+) -> tuple[Qobj, QobjEvo]:
     """
     Combine a list of `:class:qutip.QobjEvo` into one,
     different tlist will be merged.

@@ -1,4 +1,4 @@
-from qutip import QobjEvo
+from qutip import QobjEvo, Qobj
 from qutip_qip.pulse.utils import EvoElement, merge_qobjevo
 
 class Drift:
@@ -18,7 +18,7 @@ class Drift:
         A list of the the drift Hamiltonians.
     """
 
-    def __init__(self, qobj=None):
+    def __init__(self, qobj: Qobj = None):
         if qobj is None:
             self.drift_hamiltonians = []
         elif isinstance(qobj, list):
@@ -26,7 +26,8 @@ class Drift:
         else:
             self.drift_hamiltonians = [qobj]
 
-    def add_drift(self, qobj, targets):
+    def add_drift(self, qobj: Qobj, targets: list):
+        #TODO add the list type in typehint
         """
         Add a Hamiltonian to the drift.
 
@@ -40,7 +41,7 @@ class Drift:
         """
         self.drift_hamiltonians.append(EvoElement(qobj, targets))
 
-    def get_ideal_qobjevo(self, dims):
+    def get_ideal_qobjevo(self, dims: int | list[int]) -> QobjEvo:
         """
         Get the QobjEvo representation of the drift Hamiltonian.
 
@@ -63,7 +64,9 @@ class Drift:
         ]
         return merge_qobjevo(qu_list)
 
-    def get_noisy_qobjevo(self, dims):
+    def get_noisy_qobjevo(
+        self, dims: int | list[int]
+    ) -> tuple[QobjEvo, list[QobjEvo]]:
         """
         Same as the `get_ideal_qobjevo` method. There is no additional noise
         for the drift evolution.
@@ -77,7 +80,7 @@ class Drift:
         """
         return self.get_ideal_qobjevo(dims), []
 
-    def get_full_tlist(self):
+    def get_full_tlist(self) -> None:
         """
         Drift has no tlist, this is just a place holder to keep it unified
         with :class:`.Pulse`. It returns None.
