@@ -10,5 +10,5 @@ numpydoc==1.8.0
 matplotlib==3.9.2
 docutils==0.20.1
 sphinxcontrib-bibtex==2.6.2
-qiskit==0.46.2
-qiskit-aer==0.14.2
+qiskit==2.2.0
+qiskit-aer==0.17.2

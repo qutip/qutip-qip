@@ -3,7 +3,6 @@ import warnings
 from copy import deepcopy
 import numpy as np
 
-import qutip
 from qutip import Qobj, QobjEvo, mesolve, mcsolve
 from qutip_qip.operations import globalphase
 from qutip_qip.noise import Noise, process_noise
@@ -1163,7 +1162,7 @@ class Processor(object):
         # A better solution is to use the gate, which
         # is however, much harder to implement at this stage, see also
         # https://github.com/qutip/qutip-qip/issues/184.
-        options = kwargs.get("options", qutip.Options())
+        options = kwargs.get("options", {})
         if options.get("max_step", 0.0) == 0.0:
             options["max_step"] = self._get_max_step()
         options["progress_bar"] = False

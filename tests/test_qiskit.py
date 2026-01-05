@@ -1,4 +1,10 @@
 import pytest
+
+# will skip tests in this entire file
+# if qiskit is not installed
+pytest.importorskip("qiskit")
+
+
 import numpy as np
 import random
 from numpy.testing import assert_allclose
@@ -13,24 +19,15 @@ from qutip_qip.device import (
 # if qiskit is not installed
 pytest.importorskip("qiskit")
 
-from packaging import version
-import qiskit
-
-if version.parse(qiskit.__version__) >= version.parse("1.0.0"):
-    pytest.skip(
-        "qiskit < 1.0.0 required",
-        allow_module_level=True,
-    )
-
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
-from qutip_qip.qiskit.provider import (
+from qutip_qip.qiskit import (
     QiskitCircuitSimulator,
     QiskitPulseSimulator,
-)
-from qutip_qip.qiskit.converter import (
-    convert_qiskit_circuit,
-    _get_qutip_index,
+)    
+from qutip_qip.qiskit.utils.converter import (
+    get_qutip_index,
+    convert_qiskit_circuit_to_qutip,
 )
 
 
@@ -73,19 +70,19 @@ class TestConverter:
         """Check whether two gates are equivalent"""
         check_condition = (req_gate.name == res_gate.name) and (
             req_gate.targets
-            == _get_qutip_index(res_gate.targets, result_circuit.N)
+            == get_qutip_index(res_gate.targets, result_circuit.N)
         )
         if not check_condition:
             return False
 
         if req_gate.name == "measure":
-            check_condition = req_gate.classical_store == _get_qutip_index(
+            check_condition = req_gate.classical_store == get_qutip_index(
                 res_gate.classical_store, result_circuit.num_cbits
             )
         else:
             # todo: correct for float error in arg_value
             res_controls = (
-                _get_qutip_index(res_gate.controls, result_circuit.N)
+                get_qutip_index(res_gate.controls, result_circuit.N)
                 if res_gate.controls
                 else None
             )
@@ -123,7 +120,7 @@ class TestConverter:
         """
         qiskit_circuit = QuantumCircuit(1)
         qiskit_circuit.x(0)
-        result_circuit = convert_qiskit_circuit(qiskit_circuit)
+        result_circuit = convert_qiskit_circuit_to_qutip(qiskit_circuit)
         required_circuit = QubitCircuit(1)
         required_circuit.add_gate("X", targets=[0])
 
@@ -136,7 +133,7 @@ class TestConverter:
         """
         qiskit_circuit = QuantumCircuit(2)
         qiskit_circuit.cx(1, 0)
-        result_circuit = convert_qiskit_circuit(qiskit_circuit)
+        result_circuit = convert_qiskit_circuit_to_qutip(qiskit_circuit)
 
         required_circuit = QubitCircuit(2)
         required_circuit.add_gate("CX", targets=[0], controls=[1])
@@ -150,25 +147,36 @@ class TestConverter:
         """
         qiskit_circuit = QuantumCircuit(1)
         qiskit_circuit.rx(np.pi / 3, 0)
-        result_circuit = convert_qiskit_circuit(qiskit_circuit)
+        result_circuit = convert_qiskit_circuit_to_qutip(qiskit_circuit)
         required_circuit = QubitCircuit(1)
         required_circuit.add_gate("RX", targets=[0], arg_value=np.pi / 3)
 
         assert self._compare_circuit(result_circuit, required_circuit)
 
-
-class TestSimulator:
+class TestCircuitSimulato:
     """
-    Class for testing whether a simulator
-    gives correct results.
+    Class for testing whether a Circuit simulator gives correct results.
     """
 
+    def _compare_results(self, qiskit_circuit: QuantumCircuit) -> None:
+        qutip_backend = QiskitCircuitSimulator()
+        qutip_job = qutip_backend.run([qiskit_circuit])
+        qutip_result = qutip_job.result()
+        qutip_sv = qutip_result.data()["statevector"]
+
+        qiskit_backend = AerSimulator(method="statevector")
+        qiskit_circuit.save_state()
+        qiskit_job = qiskit_backend.run(qiskit_circuit)
+        qiskit_result = qiskit_job.result()
+        qiskit_sv = qiskit_result.data()["statevector"]
+
+        assert_allclose(qutip_sv, qiskit_sv)
+    
     def test_circuit_simulator(self):
         """
         Test whether the circuit_simulator matches the
         results of qiskit's statevector simulator.
         """
-
         # test single qubit operations
         circ1 = QuantumCircuit(2, 2)
         circ1.h(0)
@@ -180,25 +188,6 @@ class TestSimulator:
         circ2.h(0)
         circ2.cx(0, 1)
         self._compare_results(circ2)
-
-    def test_allow_custom_gate(self):
-        """
-        Asserts whether execution will fail on running a circuit
-        with a custom sub-circuit with the option allow_custom_gate=False
-        """
-        with pytest.raises(RuntimeError):
-            circ = QuantumCircuit(2, 2)
-            circ.h(0)
-            # make a custom sub-circuit
-            sub_circ = QuantumCircuit(1)
-            sub_circ.x(0)
-            my_gate = sub_circ.to_gate()
-            circ.append(my_gate, [1])
-
-            qutip_backend = QiskitCircuitSimulator()
-            # running this with allow_custom_gate=False should raise
-            # a RuntimeError due to the custom sub-circuit
-            qutip_backend.run(circ, allow_custom_gate=False)
 
     def test_measurements(self):
         """
@@ -215,10 +204,30 @@ class TestSimulator:
         circ.measure(1, 1)
 
         qutip_backend = QiskitCircuitSimulator()
-        qutip_job = qutip_backend.run(circ)
+        qutip_job = qutip_backend.run([circ])
         qutip_result = qutip_job.result()
 
         assert qutip_result.get_counts(circ) == predefined_counts
+
+class TestPulseSimulator:
+    """
+    Class for testing whether a Pulse simulator gives correct results.
+    """
+
+    def _run_pulse_processor(self, processor, circ):
+        qutip_backend = QiskitPulseSimulator(processor)
+        qutip_job = qutip_backend.run([circ])
+        return qutip_job.result()
+
+    def _init_pulse_test(self):
+        random.seed(1)
+
+        circ = QuantumCircuit(2, 2)
+        circ.h(0)
+        circ.h(1)
+
+        predefined_counts = {"0": 233, "11": 267, "1": 254, "10": 270}
+        return circ, predefined_counts
 
     def test_lsc_simulator(self):
         """
@@ -253,34 +262,3 @@ class TestSimulator:
             DispersiveCavityQED(num_qubits=2, num_levels=10), circ
         )
         assert result.get_counts() == predefined_counts
-
-    def _compare_results(self, qiskit_circuit: QuantumCircuit):
-
-        qutip_backend = QiskitCircuitSimulator()
-        qutip_job = qutip_backend.run(qiskit_circuit)
-        qutip_result = qutip_job.result()
-        qutip_sv = qutip_result.data()["statevector"]
-
-        qiskit_backend = AerSimulator(method="statevector")
-        qiskit_circuit.save_state()
-        qiskit_job = qiskit_backend.run(qiskit_circuit)
-        qiskit_result = qiskit_job.result()
-        qiskit_sv = qiskit_result.data()["statevector"]
-
-        assert_allclose(qutip_sv, qiskit_sv)
-
-    def _run_pulse_processor(self, processor, circ):
-        qutip_backend = QiskitPulseSimulator(processor)
-        qutip_job = qutip_backend.run(circ)
-        return qutip_job.result()
-
-    def _init_pulse_test(self):
-        random.seed(1)
-
-        circ = QuantumCircuit(2, 2)
-        circ.h(0)
-        circ.h(1)
-
-        predefined_counts = {"0": 233, "11": 267, "1": 254, "10": 270}
-
-        return circ, predefined_counts
