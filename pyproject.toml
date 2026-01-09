@@ -1,6 +1,7 @@
 [build-system]
 requires = [
     "setuptools>=42",
+    "setuptools-scm",
     "packaging",
     "wheel",
 ]
@@ -11,8 +12,7 @@ name = "qutip-qip"
 dynamic = ["version"]
 description = "The QuTiP quantum information processing package"
 readme = "README.md"
-license = "BSD 3-Clause License"
-license-files = ["LICENSE"]
+license = { file = "LICENSE" }
 requires-python = ">=3.10"
 dependencies = [
     "numpy>=1.16.6",
@@ -84,6 +84,9 @@ package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools_scm]
+write_to = "src/qutip_qip/version.py"
 
 [tool.black]
 line-length = 79
