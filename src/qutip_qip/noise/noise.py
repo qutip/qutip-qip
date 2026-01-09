@@ -13,7 +13,7 @@ class Noise(object):
         self,
         dims: list[int] | None = None,
         pulses: list[Pulse] | None = None,
-        systematic_noise: Pulse | None = None
+        systematic_noise: Pulse | None = None,
     ) -> tuple[list[Pulse], Pulse]:
         """
         Return the input pulses list with noise added and
@@ -61,7 +61,7 @@ class Noise(object):
         self,
         dims: list[int] | None = None,
         pulses: list[Pulse] | None = None,
-        systematic_noise: Pulse | None = None
+        systematic_noise: Pulse | None = None,
     ) -> tuple[list[Pulse], Pulse]:
         """
         For backward compatibility, in case the method has no return value
@@ -75,7 +75,7 @@ class Noise(object):
             pass
         elif isinstance(result, tuple) and len(result) == 2:
             pulses, systematic_noise = result
-        
+
         # only pulse
         elif isinstance(result, list) and len(result) == len(pulses):
             pulses = result
@@ -83,5 +83,5 @@ class Noise(object):
             raise TypeError(
                 "Returned value of get_noisy_pulses not understood."
             )
-        
+
         return pulses, systematic_noise

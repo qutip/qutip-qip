@@ -7,9 +7,9 @@ def fill_coeff(
     old_tlist: list[list[float]],
     full_tlist: list[list[float]],
     args: dict[str] = None,
-    tol: float = 1.0e-10
+    tol: float = 1.0e-10,
 ):
-    #TODO add the return type in typehint
+    # FIXME add the return type in typehint
     """
     Make a step function coefficients compatible with a longer ``tlist`` by
     filling the empty slot with the nearest left value.
@@ -48,5 +48,5 @@ def fill_coeff(
         new_coeff = sp(full_tlist)
         new_coeff *= full_tlist <= old_tlist[-1]
         new_coeff *= full_tlist >= old_tlist[0]
-        
+
     return new_coeff

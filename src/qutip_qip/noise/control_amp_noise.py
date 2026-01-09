@@ -2,6 +2,7 @@ from numpy.typing import ArrayLike
 from qutip_qip.noise import Noise
 from qutip_qip.pulse import Pulse
 
+
 class ControlAmpNoise(Noise):
     """
     The noise in the amplitude of the control pulse.
@@ -32,7 +33,7 @@ class ControlAmpNoise(Noise):
         self,
         coeff: list[complex],
         tlist: ArrayLike | None = None,
-        indices: list[int] | None = None
+        indices: list[int] | None = None,
     ):
         self.coeff = coeff
         self.tlist = tlist
@@ -42,7 +43,7 @@ class ControlAmpNoise(Noise):
         self,
         dims: list[int] | None = None,
         pulses: list[Pulse] | None = None,
-        systematic_noise: Pulse | None = None
+        systematic_noise: Pulse | None = None,
     ) -> tuple[list[Pulse], Pulse]:
         if pulses is None:
             pulses = []

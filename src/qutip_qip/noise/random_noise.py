@@ -44,7 +44,7 @@ class RandomNoise(ControlAmpNoise):
     def __init__(
         self,
         dt: float,
-        rand_gen, #TODO add the typing for it
+        rand_gen, # FIXME add the typing for it (Use Generator instead)
         indices: list[int] | None = None,
         **kwargs,
     ):
@@ -60,7 +60,7 @@ class RandomNoise(ControlAmpNoise):
         self,
         dims: list[int] | None = None,
         pulses: list[Pulse] | None = None,
-        systematic_noise: Pulse | None = None
+        systematic_noise: Pulse | None = None,
     ) -> tuple[list[Pulse], Pulse]:
         """
         Return the input pulses list with noise added and

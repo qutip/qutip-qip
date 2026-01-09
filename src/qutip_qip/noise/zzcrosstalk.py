@@ -20,10 +20,11 @@ class ZZCrossTalk(Noise):
     def __init__(self, params):
         self.params = params
 
-    def get_noisy_pulses(self,
+    def get_noisy_pulses(
+        self,
         dims: list[int] | None = None,
         pulses: list[Pulse] | None = None,
-        systematic_noise: Pulse | None = None
+        systematic_noise: Pulse | None = None,
     ) -> tuple[list[Pulse], Pulse]:
         """
         Return the input pulses list with noise added and
@@ -47,7 +48,7 @@ class ZZCrossTalk(Noise):
             The dummy pulse representing pulse-independent noise.
         """
 
-        #TODO check these unused parameters
+        # FIXME check these unused parameters
         J = self.params["J"]
         wr_dr = self.params["wr_dressed"]
         wr = self.params["wr"]

@@ -98,8 +98,8 @@ class Pulse:
         self,
         qobj: Qobj,
         targets: list[int],
-        tlist: list[float] = None,
-        coeff: list[float] | bool = None,
+        tlist: list[float] | None = None,
+        coeff: list[float] | bool | None = None,
         spline_kind: str = "step_func",
         label: str = "",
     ):
@@ -191,8 +191,8 @@ class Pulse:
         self,
         qobj: Qobj,
         targets: list[int],
-        tlist: list[float] = None,
-        coeff: list[float] | bool = None
+        tlist: list[float] | None = None,
+        coeff: list[float] | bool | None = None
     ):
         self.add_coherent_noise(qobj, targets, tlist=tlist, coeff=coeff)
 
@@ -200,8 +200,8 @@ class Pulse:
         self,
         qobj: Qobj,
         targets: list[int],
-        tlist: list[float] = None,
-        coeff: list[float] | bool = None
+        tlist: list[float] | None = None,
+        coeff: list[float] | bool | None = None
     ):
         """
         Add a new (time-dependent) lindblad noise to the coherent noise.

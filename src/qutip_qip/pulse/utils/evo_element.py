@@ -14,7 +14,13 @@ class EvoElement:
     refer to :class:`.Pulse`.
     """
 
-    def __init__(self, qobj: Qobj, targets, tlist=None, coeff=None):
+    def __init__(
+        self,
+        qobj: Qobj,
+        targets: list[int],
+        tlist: list[list[float]] | None = None,
+        coeff=None
+    ) -> None:
         self.qobj = qobj
         self.targets = targets
         self.tlist = tlist
@@ -51,7 +57,9 @@ class EvoElement:
         return expand_operator(qobj, dims=dims, targets=targets)
 
     def _get_qobjevo_helper(
-        self, spline_kind: str, dims: int | list[int]
+        self,
+        spline_kind: str,
+        dims: int | list[int],
     ) -> QobjEvo:
         """
         Please refer to `_Evoelement.get_qobjevo` for documentation.
@@ -139,6 +147,7 @@ class EvoElement:
             }
         )
 
+
 def merge_qobjevo(
     qobjevo_list: list[tuple[Qobj, QobjEvo]], full_tlist=None
 ) -> tuple[Qobj, QobjEvo]:
@@ -150,4 +159,5 @@ def merge_qobjevo(
     if not qobjevo_list:
         raise ValueError("qobjevo_list is empty.")
 
+    # FIXME full_tlist is unused
     return sum([op for op in qobjevo_list if isinstance(op, (Qobj, QobjEvo))])

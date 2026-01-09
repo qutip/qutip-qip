@@ -54,7 +54,7 @@ class DecoherenceNoise(Noise):
         self.coeff = coeff
         self.tlist = tlist
         self.targets = targets
-        
+
         if all_qubits:
             if not all([c_op.dims == [[2], [2]] for c_op in self.c_ops]):
                 raise ValueError(
@@ -67,7 +67,7 @@ class DecoherenceNoise(Noise):
         self,
         dims: list[int] | None = None,
         pulses: list[Pulse] | None = None,
-        systematic_noise: Pulse | None = None
+        systematic_noise: Pulse | None = None,
     ) -> tuple[list[Pulse], Pulse]:
         """
         Return the input pulses list with noise added and

@@ -39,7 +39,7 @@ class RelaxationNoise(Noise):
         self,
         t1: float | list[float],
         t2: float | list[float] = None,
-        targets: int | list[int] | None = None
+        targets: int | list[int] | None = None,
     ):
         self.t1 = t1
         self.t2 = t2

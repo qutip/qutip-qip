@@ -28,7 +28,7 @@ class Drift:
             self.drift_hamiltonians = [qobj]
 
     def add_drift(self, qobj: Qobj, targets: list):
-        #TODO add the list type in typehint
+        # TODO add the list type in typehint
         """
         Add a Hamiltonian to the drift.
 
