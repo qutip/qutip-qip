@@ -1,1 +1,2 @@
-from .version import version as __version__  # noqa
+from importlib import metadata
+__version__ = metadata.version("qutip-qip")
