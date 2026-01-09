@@ -44,7 +44,7 @@ class ModelProcessor(Processor):
         dims=None,
         correct_global_phase=True,
         model=None,
-        **params
+        **params,
     ):
         super(ModelProcessor, self).__init__(
             num_qubits=num_qubits, dims=dims, model=model, **params
@@ -111,7 +111,7 @@ class ModelProcessor(Processor):
             init_state=init_state,
             analytical=analytical,
             states=states,
-            **kwargs
+            **kwargs,
         )
 
     def get_ops_and_u(self):

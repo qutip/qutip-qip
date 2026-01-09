@@ -1060,7 +1060,7 @@ class Processor(object):
         states=None,
         noisy=True,
         solver="mesolve",
-        **kwargs
+        **kwargs,
     ):
         """
         If `analytical` is False, use :func:`qutip.mesolve` to
