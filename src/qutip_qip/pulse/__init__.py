@@ -2,7 +2,7 @@
 
 from .drift import Drift
 from .pulse import Pulse
-from .fill_coeff import fill_coeff
+from .utils.fill_coeff import fill_coeff
 
 __all__ = [
     "Pulse",

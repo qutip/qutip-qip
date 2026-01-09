@@ -1,6 +1,6 @@
 import numpy as np
 from qutip import QobjEvo, Qobj
-from qutip_qip.pulse.utils import EvoElement
+from qutip_qip.pulse.evo_element import EvoElement
 
 
 class Pulse:
@@ -158,7 +158,7 @@ class Pulse:
         qobj: Qobj,
         targets: list[int],
         tlist: list[float] = None,
-        coeff: list[float] | bool = None
+        coeff: list[float] | bool = None,
     ):
         """
         Add a new (time-dependent) Hamiltonian to the coherent noise.
@@ -192,7 +192,7 @@ class Pulse:
         qobj: Qobj,
         targets: list[int],
         tlist: list[float] | None = None,
-        coeff: list[float] | bool | None = None
+        coeff: list[float] | bool | None = None,
     ):
         self.add_coherent_noise(qobj, targets, tlist=tlist, coeff=coeff)
 
@@ -201,7 +201,7 @@ class Pulse:
         qobj: Qobj,
         targets: list[int],
         tlist: list[float] | None = None,
-        coeff: list[float] | bool | None = None
+        coeff: list[float] | bool | None = None,
     ):
         """
         Add a new (time-dependent) lindblad noise to the coherent noise.

@@ -44,7 +44,7 @@ class RandomNoise(ControlAmpNoise):
     def __init__(
         self,
         dt: float,
-        rand_gen, # FIXME add the typing for it (Use Generator instead)
+        rand_gen,  # FIXME add the typing for it (Use Generator instead)
         indices: list[int] | None = None,
         **kwargs,
     ):

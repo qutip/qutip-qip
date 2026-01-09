@@ -37,8 +37,8 @@ class RelaxationNoise(Noise):
 
     def __init__(
         self,
-        t1: float | list[float],
-        t2: float | list[float] = None,
+        t1: float | list[float] | None = None,
+        t2: float | list[float] | None = None,
         targets: int | list[int] | None = None,
     ):
         self.t1 = t1

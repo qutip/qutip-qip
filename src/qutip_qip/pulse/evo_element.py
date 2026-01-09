@@ -19,7 +19,7 @@ class EvoElement:
         qobj: Qobj,
         targets: list[int],
         tlist: list[list[float]] | None = None,
-        coeff=None
+        coeff: list[float] | bool | None = None,
     ) -> None:
         self.qobj = qobj
         self.targets = targets
@@ -96,7 +96,9 @@ class EvoElement:
         return qu
 
     def get_qobjevo(
-        self, spline_kind: str, dims: int | list[int]
+        self,
+        spline_kind: str,
+        dims: int | list[int],
     ) -> QobjEvo:
         """
         Get the `QobjEvo` representation of the evolution element.

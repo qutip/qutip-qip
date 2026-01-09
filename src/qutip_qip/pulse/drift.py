@@ -1,5 +1,5 @@
 from qutip import QobjEvo, Qobj
-from qutip_qip.pulse.utils import EvoElement, merge_qobjevo
+from qutip_qip.pulse.evo_element import EvoElement, merge_qobjevo
 
 
 class Drift:
