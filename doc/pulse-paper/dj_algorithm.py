@@ -21,7 +21,7 @@ num_qubits = 3
 np.random.seed(2)
 
 # Deutsch-Josza algorithm
-dj_circuit = QubitCircuit(num_qubits)
+dj_circuit = QubitCircuit(num_qubits=num_qubits)
 dj_circuit.add_gate("X", targets=2)
 dj_circuit.add_gate("SNOT", targets=0)
 dj_circuit.add_gate("SNOT", targets=1)
