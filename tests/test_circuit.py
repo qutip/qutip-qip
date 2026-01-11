@@ -38,7 +38,7 @@ def _op_dist(A, B):
 
 def _teleportation_circuit():
     teleportation = QubitCircuit(
-        3, num_cbits=2, input_states=["q0", "0", "0", "c0", "c1"]
+        num_qubits=3, num_cbits=2, input_states=["q0", "0", "0", "c0", "c1"]
     )
 
     teleportation.add_gate("SNOT", targets=[1])
@@ -55,7 +55,7 @@ def _teleportation_circuit():
 
 def _teleportation_circuit2():
     teleportation = QubitCircuit(
-        3, num_cbits=2, input_states=["q0", "0", "0", "c0", "c1"]
+        num_qubits=3, num_cbits=2, input_states=["q0", "0", "0", "c0", "c1"]
     )
 
     teleportation.add_gate("SNOT", targets=[1])
@@ -69,7 +69,7 @@ def _teleportation_circuit2():
 
 
 def _measurement_circuit():
-    qc = QubitCircuit(2, num_cbits=2)
+    qc = QubitCircuit(num_qubits=2, num_cbits=2)
 
     qc.add_measurement("M0", targets=[0], classical_store=0)
     qc.add_measurement("M1", targets=[1], classical_store=1)
@@ -95,7 +95,7 @@ class TestQubitCircuit:
         ],
     )
     def testresolve(self, gate_from, gate_to, targets, controls):
-        qc1 = QubitCircuit(2)
+        qc1 = QubitCircuit(num_qubits=2)
         qc1.add_gate(gate_from, targets=targets, controls=controls)
         U1 = qc1.compute_unitary()
         qc2 = qc1.resolve_gates(basis=gate_to)
@@ -107,7 +107,7 @@ class TestQubitCircuit:
         SNOT to rotation: compare unitary matrix for SNOT and product of
         resolved matrices in terms of rotation gates.
         """
-        qc1 = QubitCircuit(1)
+        qc1 = QubitCircuit(num_qubits=1)
         qc1.add_gate("SNOT", targets=0)
         U1 = qc1.compute_unitary()
         qc2 = qc1.resolve_gates()
@@ -119,7 +119,7 @@ class TestQubitCircuit:
         FREDKIN to rotation and CNOT: compare unitary matrix for FREDKIN and product of
         resolved matrices in terms of rotation gates and CNOT.
         """
-        qc1 = QubitCircuit(3)
+        qc1 = QubitCircuit(num_qubits=3)
         qc1.add_gate("FREDKIN", targets=[0, 1], controls=[2])
         U1 = qc1.compute_unitary()
         qc2 = qc1.resolve_gates()
@@ -131,7 +131,7 @@ class TestQubitCircuit:
         Adjacent Gates: compare unitary matrix for ISWAP and product of
         resolved matrices in terms of adjacent gates interaction.
         """
-        qc1 = QubitCircuit(3)
+        qc1 = QubitCircuit(num_qubits=3)
         qc1.add_gate("ISWAP", targets=[0, 2])
         U1 = qc1.compute_unitary()
         qc0 = qc1.adjacent_gates()
@@ -143,7 +143,7 @@ class TestQubitCircuit:
         """
         Addition of a gate object directly to a `QubitCircuit`
         """
-        qc = QubitCircuit(6)
+        qc = QubitCircuit(num_qubits=6)
         qc.add_gate("CNOT", targets=[1], controls=[0])
         test_gate = Gate("SWAP", targets=[1, 4])
         qc.add_gate(test_gate)
@@ -238,10 +238,10 @@ class TestQubitCircuit:
             mat[2:4, 2:4] = gates.rx(arg_values)
             return Qobj(mat, dims=[[2, 2], [2, 2]])
 
-        qc = QubitCircuit(6)
+        qc = QubitCircuit(num_qubits=6)
         qc.user_gates = {"CTRLRX": customer_gate1}
 
-        qc = QubitCircuit(6)
+        qc = QubitCircuit(num_qubits=6)
         qc.add_gate("CNOT", targets=[1], controls=[0])
         test_gate = Gate("SWAP", targets=[1, 4])
         qc.add_gate(test_gate)
@@ -252,7 +252,7 @@ class TestQubitCircuit:
         qc.add_1q_gate("RY", start=4, end=5, arg_value=1.570796)
         qc.add_gate("CTRLRX", targets=[1, 2], arg_value=np.pi / 2)
 
-        qc1 = QubitCircuit(6)
+        qc1 = QubitCircuit(num_qubits=6)
 
         qc1.add_circuit(qc)
 
@@ -283,7 +283,7 @@ class TestQubitCircuit:
         # Test exception when qubit out of range
         pytest.raises(NotImplementedError, qc1.add_circuit, qc, start=4)
 
-        qc2 = QubitCircuit(8)
+        qc2 = QubitCircuit(num_qubits=8)
         qc2.add_circuit(qc, start=2)
 
         # Test if all gates are added
@@ -307,7 +307,7 @@ class TestQubitCircuit:
         """
         Addition of input and output states to a circuit.
         """
-        qc = QubitCircuit(3)
+        qc = QubitCircuit(num_qubits=3)
 
         qc.add_state("0", targets=[0])
         qc.add_state("+", targets=[1], state_type="output")
@@ -317,7 +317,7 @@ class TestQubitCircuit:
         assert qc.input_states[2] is None
         assert qc.output_states[1] == "+"
 
-        qc1 = QubitCircuit(10)
+        qc1 = QubitCircuit(num_qubits=10)
 
         qc1.add_state("0", targets=[2, 3, 5, 6])
         qc1.add_state("+", targets=[1, 4, 9])
@@ -344,7 +344,7 @@ class TestQubitCircuit:
         Addition of Measurement Object to a circuit.
         """
 
-        qc = QubitCircuit(3, num_cbits=2)
+        qc = QubitCircuit(num_qubits=3, num_cbits=2)
 
         qc.add_measurement("M0", targets=[0], classical_store=1)
         qc.add_gate("CNOT", targets=[1], controls=[0])
@@ -368,11 +368,11 @@ class TestQubitCircuit:
         """
         Text exceptions are thrown correctly for inadequate inputs
         """
-        qc = QubitCircuit(2)
+        qc = QubitCircuit(num_qubits=2)
         pytest.raises(ValueError, qc.add_gate, gate, targets=[1], controls=[0])
 
     def test_globalphase_gate_propagators(self):
-        qc = QubitCircuit(2)
+        qc = QubitCircuit(num_qubits=2)
         qc.add_gate("GLOBALPHASE", arg_value=np.pi / 2)
 
         [gate] = qc.gates
@@ -389,7 +389,7 @@ class TestQubitCircuit:
         """
         Text single qubit gates are added correctly
         """
-        qc = QubitCircuit(3)
+        qc = QubitCircuit(num_qubits=3)
 
         qc.add_gate("X", targets=[0])
         qc.add_gate("CY", targets=[1], controls=[0])
@@ -430,7 +430,7 @@ class TestQubitCircuit:
         """
         Reverse a quantum circuit
         """
-        qc = QubitCircuit(3)
+        qc = QubitCircuit(num_qubits=3)
 
         qc.add_gate("RX", targets=[0], arg_value=3.141, arg_label=r"\pi/2")
         qc.add_gate("CNOT", targets=[1], controls=[0])
@@ -468,7 +468,7 @@ class TestQubitCircuit:
             mat = np.array([[1.0, 0], [0.0, 1.0j]])
             return Qobj(mat, dims=[[2], [2]])
 
-        qc = QubitCircuit(3)
+        qc = QubitCircuit(num_qubits=3)
         qc.user_gates = {"CTRLRX": customer_gate1, "T1": customer_gate2}
         qc.add_gate("CTRLRX", targets=[1, 2], arg_value=np.pi / 2)
         qc.add_gate("T1", targets=[1])
@@ -494,7 +494,7 @@ class TestQubitCircuit:
                 fock_dm(2, 1 - control_value), identity(dim)
             )
 
-        qc = QubitCircuit(2, dims=[3, 2])
+        qc = QubitCircuit(num_qubits=2, dims=[3, 2])
         qc.user_gates = {"CTRLMAT3": controlled_mat3}
         qc.add_gate("CTRLMAT3", targets=[1, 0], arg_value=1)
         props = qc.propagators()
@@ -534,7 +534,7 @@ class TestQubitCircuit:
         np.testing.assert_allclose(initial_probabilities, final_probabilities)
 
     def test_classical_control(self):
-        qc = QubitCircuit(1, num_cbits=2)
+        qc = QubitCircuit(num_qubits=1, num_cbits=2)
         qc.add_gate(
             "X",
             targets=[0],
@@ -545,7 +545,7 @@ class TestQubitCircuit:
         fid = qp.fidelity(result, basis(2, 0))
         assert pytest.approx(fid, 1.0e-6) == 1
 
-        qc = QubitCircuit(1, num_cbits=2)
+        qc = QubitCircuit(num_qubits=1, num_cbits=2)
         qc.add_gate(
             "X",
             targets=[0],
@@ -611,7 +611,7 @@ class TestQubitCircuit:
                 assert simulator.cbits[0] != simulator.cbits[1]
 
     def test_circuit_with_selected_measurement_result(self):
-        qc = QubitCircuit(N=1, num_cbits=1)
+        qc = QubitCircuit(num_qubits=1, num_cbits=1)
         qc.add_gate("SNOT", targets=0)
         qc.add_measurement("M0", targets=0, classical_store=0)
 
@@ -709,7 +709,7 @@ class TestQubitCircuit:
         )
 
     def test_latex_code_classical_controls(self):
-        qc = QubitCircuit(1, num_cbits=1, reverse_states=True)
+        qc = QubitCircuit(num_qubits=1, num_cbits=1, reverse_states=True)
         qc.add_gate("X", targets=0, classical_controls=[0])
         renderer = TeXRenderer(qc)
         latex = TeXRenderer(qc).latex_code()
@@ -721,7 +721,7 @@ class TestQubitCircuit:
             ]
         )
 
-        qc = QubitCircuit(1, num_cbits=1, reverse_states=False)
+        qc = QubitCircuit(num_qubits=1, num_cbits=1, reverse_states=False)
         qc.add_gate("X", targets=0, classical_controls=[0])
         renderer = TeXRenderer(qc)
         latex = TeXRenderer(qc).latex_code()
@@ -737,10 +737,10 @@ class TestQubitCircuit:
         [[1 / np.sqrt(2), 1 / np.sqrt(2)], [1 / np.sqrt(2), -1 / np.sqrt(2)]]
     )
     H_zyz_gates = _ZYZ_rotation(H)
-    H_zyz_quantum_circuit = QubitCircuit(1)
+    H_zyz_quantum_circuit = QubitCircuit(num_qubits=1)
     H_zyz_quantum_circuit.add_gates(H_zyz_gates)
     sigmax_zyz_gates = _ZYZ_rotation(sigmax())
-    sigmax_zyz_quantum_circuit = QubitCircuit(1)
+    sigmax_zyz_quantum_circuit = QubitCircuit(num_qubits=1)
     sigmax_zyz_quantum_circuit.add_gates(sigmax_zyz_gates)
 
     @pytest.mark.parametrize(
@@ -748,7 +748,7 @@ class TestQubitCircuit:
         [(H_zyz_gates, H), (sigmax_zyz_gates, sigmax())],
     )
     def test_add_gates(self, valid_input, correct_result):
-        circuit = QubitCircuit(1)
+        circuit = QubitCircuit(num_qubits=1)
         circuit.add_gates(valid_input)
         result = gate_sequence_product(circuit.propagators())
         assert result == correct_result
@@ -763,7 +763,7 @@ class TestQubitCircuit:
         assert final_output == correct_result
 
     def test_latex_code(self):
-        qc = QubitCircuit(1, num_cbits=1, reverse_states=True)
+        qc = QubitCircuit(num_qubits=1, num_cbits=1, reverse_states=True)
         qc.add_measurement("M0", targets=0, classical_store=0)
         exp = (
             " &  &  \\qw \\cwx[1]  & \\qw \\\\ \n &  &  \\meter & \\qw \\\\ \n"
@@ -773,7 +773,7 @@ class TestQubitCircuit:
         assert renderer.latex_code() == renderer._latex_template % exp
 
     def test_latex_code_non_reversed(self):
-        qc = QubitCircuit(1, num_cbits=1, reverse_states=False)
+        qc = QubitCircuit(num_qubits=1, num_cbits=1, reverse_states=False)
         qc.add_measurement("M0", targets=0, classical_store=0)
         exp = (
             " &  &  \\meter & \\qw \\\\ \n &  "
@@ -788,7 +788,7 @@ class TestQubitCircuit:
     def test_export_image(self, in_temporary_directory):
         from qutip_qip.circuit.texrenderer import CONVERTERS
 
-        qc = QubitCircuit(2, reverse_states=False)
+        qc = QubitCircuit(num_qubits=2, reverse_states=False)
         qc.add_gate("CSIGN", controls=[0], targets=[1])
 
         if "png" in CONVERTERS:
@@ -815,7 +815,7 @@ class TestQubitCircuit:
         """
         Test if the transpiler correctly inherit the properties of a circuit.
         """
-        qc = QubitCircuit(3, reverse_states=True)
+        qc = QubitCircuit(num_qubits=3, reverse_states=True)
         qc.add_gate("CNOT", 2, 0)
         qc2 = to_chain_structure(qc)
 
