@@ -1,10 +1,96 @@
 [build-system]
 requires = [
     "setuptools>=42",
-    "packaging",
+    "setuptools-git-versioning",
     "wheel",
 ]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "qutip-qip"
+dynamic = ["version"]
+description = "The QuTiP quantum information processing package"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.16.6",
+    "scipy>=1.0",
+    "qutip>=5.0",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: BSD License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX",
+    "Operating System :: Unix",
+    "Operating System :: Microsoft :: Windows",
+]
+keywords = [
+    "quantum",
+    "physics",
+    "pulse-level-control",
+    "noisy-simulation",
+    "quantum-computing",
+    "quantum-circuits",
+    "quantum-devices",
+    "quantum-information",
+]
+authors = [
+    {name = "Alexander Pitchford"},
+    {name = "Paul D. Nation"},
+    {name = "Robert J. Johansson"},
+    {name = "Chris Granade"},
+    {name = "Arne Grimsmo"},
+    {name = "Nathan Shammah"},
+    {name = "Shahnawaz Ahmed"},
+    {name = "Neill Lambert"},
+    {name = "Eric Giguere"},
+    {name = "Boxi Li"},
+    {name = "Jake Lishman"},
+    {email = "qutip-admin@googlegroups.com"}
+]
+
+[project.urls]
+Homepage = "https://qutip.org"
+Documentation = "https://qutip-qip.readthedocs.io/en/stable/"
+Repository = "https://github.com/qutip/qutip-qip"
+Issues = "https://github.com/qutip/qutip-qip/issues"
+
+[project.optional-dependencies]
+graphics = ["matplotlib>=1.3.0"]
+tests = [
+    "pytest>=5.2",
+    "pytest-repeat",
+]
+qiskit = [
+    "qiskit>=2.0.0",
+    "qiskit_aer>=0.17.0",
+]
+full = [
+    "qutip-qip[graphics,tests,qiskit]",
+]
+
+[project.entry-points."qutip.family"]
+qutip_qip = "qutip_qip.family"
+
+[tool.setuptools]
+include-package-data = true
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools-git-versioning]
+enabled = true
+version_file = "VERSION"
+count_commits_from_version_file = true
+dev_template = "{tag}.dev{ccount}+git.{sha}"
+dirty_template = "{tag}.dev{ccount}+git.{sha}.dirty"
 
 [tool.black]
 line-length = 79

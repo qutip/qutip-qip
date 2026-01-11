@@ -55,7 +55,7 @@ class OptPulseProcessor(Processor):
         merge_gates=True,
         setting_args=None,
         verbose=False,
-        **kwargs
+        **kwargs,
     ):
         """
         Find the pulses realizing a given :class:`.Circuit` using
