@@ -145,7 +145,7 @@ def _test_numerical_evolution_helper(num_qubits, gates, device_class, kwargs):
     assert _tol > abs(1 - qutip.metrics.fidelity(numerical_result, target))
 
 
-circuit = QubitCircuit(3)
+circuit = QubitCircuit(num_qubits=3)
 circuit.add_gate("RX", targets=[0], arg_value=np.pi/2)
 circuit.add_gate("RZ", targets=[2], arg_value=np.pi)
 circuit.add_gate("CNOT", targets=[0], controls=[1])
@@ -206,7 +206,7 @@ def test_numerical_circuit(circuit, device_class, kwargs, schedule_mode):
     [DispersiveCavityQED, LinearSpinChain, CircularSpinChain, SCQubits])
 def test_pulse_plotting(processor_class):
     plt = pytest.importorskip("matplotlib.pyplot")
-    qc = QubitCircuit(3)
+    qc = QubitCircuit(num_qubits=3)
     qc.add_gate("CNOT", 1, 0)
     qc.add_gate("X", 1)
 
@@ -228,7 +228,7 @@ def _compute_propagator(processor, circuit):
 
 def test_scqubits_single_qubit_gate():
     # Check the accuracy of the single-qubit gate for SCQubits.
-    circuit = QubitCircuit(1)
+    circuit = QubitCircuit(num_qubits=1)
     circuit.add_gate("X", targets=[0])
     processor = SCQubits(1, omega_single=0.04)
     processor.load_circuit(circuit)
@@ -246,7 +246,7 @@ def test_idling_accuracy():
     during the idling period.
     """
     processor = SCQubits(2, omega_single=0.04)
-    circuit = QubitCircuit(1)
+    circuit = QubitCircuit(num_qubits=1)
     circuit.add_gate("X", targets=[0])
     processor.load_circuit(circuit)
     U = _compute_propagator(processor, circuit)
@@ -254,7 +254,7 @@ def test_idling_accuracy():
         qutip.Qobj(U.full()[:2, :2]), qutip.sigmax()
     )
 
-    circuit = QubitCircuit(2)
+    circuit = QubitCircuit(num_qubits=2)
     circuit.add_gate("X", targets=[0])
     circuit.add_gate("X", targets=[1])
     # Turning off scheduling to keep the idling.
