@@ -25,16 +25,16 @@ class TestOptPulseProcessor:
         """
         Test for optimizing a simple hadamard gate
         """
-        N = 1
+        num_qubits = 1
         H_d = sigmaz()
         H_c = sigmax()
-        qc = QubitCircuit(N)
+        qc = QubitCircuit(num_qubits=num_qubits)
         qc.add_gate("SNOT", 0)
 
         # test load_circuit, with verbose info
         num_tslots = 10
         evo_time = 10
-        test = OptPulseProcessor(N, drift=H_d)
+        test = OptPulseProcessor(num_qubits, drift=H_d)
         test.add_control(H_c, targets=0)
         tlist, coeffs = test.load_circuit(
             qc, num_tslots=num_tslots, evo_time=evo_time, verbose=True
