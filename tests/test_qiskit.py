@@ -118,10 +118,10 @@ class TestConverter:
         Test to check conversion of a circuit
         containing a single qubit gate.
         """
-        qiskit_circuit = QuantumCircuit(num_qubits=1)
+        qiskit_circuit = QuantumCircuit(1)
         qiskit_circuit.x(0)
         result_circuit = convert_qiskit_circuit_to_qutip(qiskit_circuit)
-        required_circuit = QubitCircuit(num_qubits=1)
+        required_circuit = QubitCircuit(1)
         required_circuit.add_gate("X", targets=[0])
 
         assert self._compare_circuit(result_circuit, required_circuit)

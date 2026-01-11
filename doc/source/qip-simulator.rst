@@ -20,7 +20,7 @@ examples of circuit evolution. We take a circuit from
         # Controlled Hadamard
         return controlled_gate(
             hadamard_transform(1), controls=0, targets=1, control_value=1)
-    qc = QubitCircuit(N=3, num_cbits=3)
+    qc = QubitCircuit(num_qubits=3, num_cbits=3)
     qc.user_gates = {"cH": controlled_hadamard}
     qc.add_gate("QASMU", targets=[0], arg_value=[1.91063, 0, 0])
     qc.add_gate("cH", targets=[0,1])
@@ -210,7 +210,7 @@ just by measurement on the first qubit:
 
 .. testcode::
 
-    qc = QubitCircuit(N=3, num_cbits=3)
+    qc = QubitCircuit(num_qubits=3, num_cbits=3)
     qc.user_gates = {"cH": controlled_hadamard}
     qc.add_gate("QASMU", targets=[0], arg_value=[1.91063, 0, 0])
     qc.add_gate("cH", targets=[0,1])
