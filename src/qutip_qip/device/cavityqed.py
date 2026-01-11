@@ -54,7 +54,7 @@ class DispersiveCavityQED(ModelProcessor):
         from qutip_qip.circuit import QubitCircuit
         from qutip_qip.device import DispersiveCavityQED
 
-        qc = QubitCircuit(2)
+        qc = QubitCircuit(num_qubits=2)
         qc.add_gate("RX", 0, arg_value=np.pi)
         qc.add_gate("RY", 1, arg_value=np.pi)
         qc.add_gate("ISWAP", [1, 0])
