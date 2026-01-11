@@ -131,7 +131,10 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
                         temp.add_gate("SWAP", [i, i + 1])
                         temp.add_gate(
                             "SWAP",
-                            [num_qubits + start - end - i - 1, num_qubits + start - end - i],
+                            [
+                                num_qubits + start - end - i - 1,
+                                num_qubits + start - end - i,
+                            ],
                         )
                     i += 1
 
@@ -232,7 +235,10 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
                         temp.add_gate("SWAP", [i, i + 1])
                         temp.add_gate(
                             "SWAP",
-                            [num_qubits + start - end - i - 1, num_qubits + start - end - i],
+                            [
+                                num_qubits + start - end - i - 1,
+                                num_qubits + start - end - i,
+                            ],
                         )
                     i += 1
 
