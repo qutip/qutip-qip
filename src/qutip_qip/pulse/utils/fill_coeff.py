@@ -4,9 +4,9 @@ from scipy.interpolate import CubicSpline
 
 def fill_coeff(
     old_coeffs: list,
-    old_tlist: list[list[float]],
-    full_tlist: list[list[float]],
-    args: dict[str] = None,
+    old_tlist: list[float],
+    full_tlist: list[float],
+    args: dict[str, any] = None,
     tol: float = 1.0e-10,
 ):
     # FIXME add the return type in typehint

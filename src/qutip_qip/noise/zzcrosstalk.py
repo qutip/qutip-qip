@@ -7,7 +7,7 @@ class ZZCrossTalk(Noise):
     """
     An always-on ZZ cross talk noise with the corresponding coefficient
     on each pair of qubits.
-    The operator acts only one the lowerest two levels and
+    The operator acts only one the lowest two levels and
     is 0 on higher level.
     Equivalent to ``tensor(sigmaz(), sigmaz())``.
 

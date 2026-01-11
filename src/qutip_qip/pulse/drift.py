@@ -1,5 +1,5 @@
 from qutip import QobjEvo, Qobj
-from qutip_qip.pulse.evo_element import EvoElement, merge_qobjevo
+from qutip_qip.pulse.evo_element import _EvoElement, _merge_qobjevo
 
 
 class Drift:
@@ -40,7 +40,7 @@ class Drift:
             target qubits of the collapse operator
             (or subquantum system of other dimensions).
         """
-        self.drift_hamiltonians.append(EvoElement(qobj, targets))
+        self.drift_hamiltonians.append(_EvoElement(qobj, targets))
 
     def get_ideal_qobjevo(self, dims: int | list[int]) -> QobjEvo:
         """
@@ -59,11 +59,11 @@ class Drift:
             A `QobjEvo` representing the drift evolution.
         """
         if not self.drift_hamiltonians:
-            self.drift_hamiltonians = [EvoElement(None, None)]
+            self.drift_hamiltonians = [_EvoElement(None, None)]
         qu_list = [
             QobjEvo(evo.get_qobj(dims)) for evo in self.drift_hamiltonians
         ]
-        return merge_qobjevo(qu_list)
+        return _merge_qobjevo(qu_list)
 
     def get_noisy_qobjevo(
         self, dims: int | list[int]

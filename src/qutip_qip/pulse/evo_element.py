@@ -4,7 +4,7 @@ from qutip import QobjEvo, Qobj, identity
 from qutip_qip.operations import expand_operator
 
 
-class EvoElement:
+class _EvoElement:
     """
     The class object saving the information of one evolution element.
     Each dynamic element is characterized by four variables:
@@ -18,7 +18,7 @@ class EvoElement:
         self,
         qobj: Qobj,
         targets: list[int],
-        tlist: list[list[float]] | None = None,
+        tlist: list[float] | None = None,
         coeff: list[float] | bool | None = None,
     ) -> None:
         self.qobj = qobj
@@ -150,9 +150,9 @@ class EvoElement:
         )
 
 
-def merge_qobjevo(
+def _merge_qobjevo(
     qobjevo_list: list[tuple[Qobj, QobjEvo]], full_tlist=None
-) -> tuple[Qobj, QobjEvo]:
+) -> Qobj | QobjEvo:
     """
     Combine a list of `:class:qutip.QobjEvo` into one,
     different tlist will be merged.

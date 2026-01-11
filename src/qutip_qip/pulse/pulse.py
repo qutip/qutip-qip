@@ -1,6 +1,6 @@
 import numpy as np
 from qutip import QobjEvo, Qobj
-from qutip_qip.pulse.evo_element import EvoElement
+from qutip_qip.pulse.evo_element import _EvoElement
 
 
 class Pulse:
@@ -52,12 +52,12 @@ class Pulse:
 
     Attributes
     ----------
-    ideal_pulse: :class:`.pulse.EvoElement`
+    ideal_pulse: :class:`.pulse._EvoElement`
         The ideal dynamic of the control pulse.
-    coherent_noise: list of :class:`.pulse.EvoElement`
+    coherent_noise: list of :class:`.pulse._EvoElement`
         The coherent noise caused by the control pulse. Each dynamic element is
         still characterized by a time-dependent Hamiltonian.
-    lindblad_noise: list of :class:`.pulse.EvoElement`
+    lindblad_noise: list of :class:`.pulse._EvoElement`
         The dissipative noise of the control pulse. Each dynamic element
         will be treated as a (time-dependent) lindblad operator in the
         master equation.
@@ -104,7 +104,7 @@ class Pulse:
         label: str = "",
     ):
         self.spline_kind = spline_kind
-        self.ideal_pulse = EvoElement(qobj, targets, tlist, coeff)
+        self.ideal_pulse = _EvoElement(qobj, targets, tlist, coeff)
         self.coherent_noise = []
         self.lindblad_noise = []
         self.label = label
@@ -185,7 +185,7 @@ class Pulse:
             the parameter ``spline_kind`` of :class:`.Pulse`.
             If a bool, the coefficient is a constant 1 or 0.
         """
-        self.coherent_noise.append(EvoElement(qobj, targets, tlist, coeff))
+        self.coherent_noise.append(_EvoElement(qobj, targets, tlist, coeff))
 
     def add_control_noise(
         self,
@@ -229,7 +229,7 @@ class Pulse:
             the parameter ``spline_kind`` of :class:`.Pulse`.
             If a bool, the coefficient is a constant 1 or 0.
         """
-        self.lindblad_noise.append(EvoElement(qobj, targets, tlist, coeff))
+        self.lindblad_noise.append(_EvoElement(qobj, targets, tlist, coeff))
 
     def get_ideal_qobj(self, dims: int | list[int]) -> Qobj:
         """
