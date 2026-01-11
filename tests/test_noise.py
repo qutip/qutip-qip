@@ -63,7 +63,7 @@ class TestNoise:
         """
         Test if there are errors raised because of wrong tlist handling.
         """
-        qc = QubitCircuit(1)
+        qc = QubitCircuit(num_qubits=1)
         qc.add_gate("X", 0)
         proc = LinearSpinChain(1)
         proc.load_circuit(qc)
@@ -180,7 +180,7 @@ class TestNoise:
             np.linspace(1, 6, int(5/0.2) + 1))
 
     def test_zz_cross_talk(self):
-        circuit = QubitCircuit(2)
+        circuit = QubitCircuit(num_qubits=2)
         circuit.add_gate("X", 0)
         processor = SCQubits(2)
         processor.add_noise(ZZCrossTalk(processor.params))
