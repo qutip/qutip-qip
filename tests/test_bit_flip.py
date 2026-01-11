@@ -41,7 +41,7 @@ def test_bitflip_correction(code, data_qubits, syndrome_qubits):
     state = qc_encode.run(state)
 
     # Step 2: Apply bit-flip error to qubit 0
-    qc_error = QubitCircuit(N=5)
+    qc_error = QubitCircuit(num_qubits=5)
     qc_error.add_gate("X", targets=[0])
     state = qc_error.run(state)
 

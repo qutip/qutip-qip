@@ -108,7 +108,7 @@ def qft_gate_sequence(N=1, swapping=True, to_cnot=False):
     if N < 1:
         raise ValueError("Minimum value of N can be 1")
 
-    qc = QubitCircuit(N)
+    qc = QubitCircuit(num_qubits=N)
     if N == 1:
         qc.add_gate("SNOT", targets=[0])
     else:

@@ -19,7 +19,7 @@ class TeXRenderer:
     def __init__(self, qc):
 
         self.qc = qc
-        self.N = qc.N
+        self.N = qc.num_qubits
         self.num_cbits = qc.num_cbits
         self.gates = qc.gates
         self.input_states = qc.input_states

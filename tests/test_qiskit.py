@@ -70,7 +70,7 @@ class TestConverter:
         """Check whether two gates are equivalent"""
         check_condition = (req_gate.name == res_gate.name) and (
             req_gate.targets
-            == get_qutip_index(res_gate.targets, result_circuit.N)
+            == get_qutip_index(res_gate.targets, result_circuit.num_qubits)
         )
         if not check_condition:
             return False
@@ -82,7 +82,7 @@ class TestConverter:
         else:
             # todo: correct for float error in arg_value
             res_controls = (
-                get_qutip_index(res_gate.controls, result_circuit.N)
+                get_qutip_index(res_gate.controls, result_circuit.num_qubits)
                 if res_gate.controls
                 else None
             )
@@ -100,7 +100,7 @@ class TestConverter:
         """
         Check whether two circuits are equivalent.
         """
-        if result_circuit.N != required_circuit.N or len(
+        if result_circuit.num_qubits != required_circuit.num_qubits or len(
             result_circuit.gates
         ) != len(required_circuit.gates):
             return False
@@ -118,10 +118,10 @@ class TestConverter:
         Test to check conversion of a circuit
         containing a single qubit gate.
         """
-        qiskit_circuit = QuantumCircuit(1)
+        qiskit_circuit = QuantumCircuit(num_qubits=1)
         qiskit_circuit.x(0)
         result_circuit = convert_qiskit_circuit_to_qutip(qiskit_circuit)
-        required_circuit = QubitCircuit(1)
+        required_circuit = QubitCircuit(num_qubits=1)
         required_circuit.add_gate("X", targets=[0])
 
         assert self._compare_circuit(result_circuit, required_circuit)
@@ -145,10 +145,10 @@ class TestConverter:
         Test to check conversion of a circuit
         containing a single qubit rotation gate.
         """
-        qiskit_circuit = QuantumCircuit(1)
+        qiskit_circuit = QuantumCircuit(num_qubits=1)
         qiskit_circuit.rx(np.pi / 3, 0)
         result_circuit = convert_qiskit_circuit_to_qutip(qiskit_circuit)
-        required_circuit = QubitCircuit(1)
+        required_circuit = QubitCircuit(num_qubits=1)
         required_circuit.add_gate("RX", targets=[0], arg_value=np.pi / 3)
 
         assert self._compare_circuit(result_circuit, required_circuit)

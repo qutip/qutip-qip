@@ -95,7 +95,7 @@ def qpe(U, num_counting_qubits, target_qubits=None, to_cnot=False):
         num_target_qubits = len(target_qubits)
 
     total_qubits = num_counting_qubits + num_target_qubits
-    qc = QubitCircuit(total_qubits)
+    qc = QubitCircuit(num_qubits=total_qubits)
 
     # Apply Hadamard gates to all counting qubits
     for i in range(num_counting_qubits):

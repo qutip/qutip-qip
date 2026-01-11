@@ -121,7 +121,7 @@ class MyCompiler(GateCompiler):
 # Define a circuit and run the simulation
 num_qubits = 1
 
-circuit = QubitCircuit(1)
+circuit = QubitCircuit(num_qubits=1)
 circuit.add_gate("RX", targets=0, arg_value=np.pi / 2)
 circuit.add_gate("Z", targets=0)
 result1 = circuit.run(basis(2, 0))

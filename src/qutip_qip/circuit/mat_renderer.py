@@ -52,7 +52,7 @@ class MatRenderer(BaseRenderer):
         super().__init__(self.style)
         self._qc = qc
         self._ax = ax
-        self._qwires = qc.N
+        self._qwires = qc.num_qubits
         self._cwires = qc.num_cbits
 
         # default values

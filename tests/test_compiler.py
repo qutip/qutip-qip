@@ -19,7 +19,7 @@ def test_compiling_with_scheduler():
     The non scheduled pulse should be twice as long as the scheduled one.
     The numerical results are tested in test_device.py
     """
-    circuit = QubitCircuit(2)
+    circuit = QubitCircuit(num_qubits=2)
     circuit.add_gate("X", 0)
     circuit.add_gate("X", 1)
     processor = DispersiveCavityQED(2)
@@ -70,7 +70,7 @@ def test_compiling_gates_different_sampling_number():
             ]
 
     num_qubits = 2
-    circuit = QubitCircuit(num_qubits)
+    circuit = QubitCircuit(num_qubits=num_qubits)
     circuit.add_gate("U1", targets=0, arg_value=1.0)
     circuit.add_gate("U2", targets=[0, 1], arg_value=1.0)
     circuit.add_gate("U1", targets=0, arg_value=1.0)
@@ -124,7 +124,7 @@ schedule_mode = [
 @pytest.mark.parametrize("schedule_mode", schedule_mode)
 def test_compiler_with_continous_pulse(spline_kind, schedule_mode):
     num_qubits = 2
-    circuit = QubitCircuit(num_qubits)
+    circuit = QubitCircuit(num_qubits=num_qubits)
     circuit.add_gate("X", targets=0)
     circuit.add_gate("X", targets=1)
     circuit.add_gate("X", targets=0)
@@ -156,7 +156,7 @@ def test_compiler_without_pulse_dict():
     Test for a compiler function without pulse_dict and using args.
     """
     num_qubits = 2
-    circuit = QubitCircuit(num_qubits)
+    circuit = QubitCircuit(num_qubits=num_qubits)
     circuit.add_gate("X", targets=[0])
     circuit.add_gate("X", targets=[1])
     processor = CircularSpinChain(num_qubits)
@@ -174,7 +174,7 @@ def test_compiler_result_format():
     and if processor can successfully read them.
     """
     num_qubits = 1
-    circuit = QubitCircuit(num_qubits)
+    circuit = QubitCircuit(num_qubits=num_qubits)
     circuit.add_gate("RX", targets=[0], arg_value=np.pi/2)
     processor = LinearSpinChain(num_qubits)
     compiler = SpinChainCompiler(num_qubits, params=processor.params, setup="circular")

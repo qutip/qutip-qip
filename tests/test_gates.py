@@ -344,7 +344,7 @@ class Test_expand_operator:
 def test_gates_class():
     init_state = qutip.rand_ket([2, 2, 2])
 
-    circuit1 = QubitCircuit(3)
+    circuit1 = QubitCircuit(num_qubits=3)
     circuit1.add_gate("X", 1)
     circuit1.add_gate("Y", 1)
     circuit1.add_gate("Z", 2)
@@ -372,7 +372,7 @@ def test_gates_class():
     circuit1.add_gate("RZX", [1, 0], arg_value=1.)
     result1 = circuit1.run(init_state)
 
-    circuit2 = QubitCircuit(3)
+    circuit2 = QubitCircuit(num_qubits=3)
     circuit2.add_gate(X(1))
     circuit2.add_gate(Y(1))
     circuit2.add_gate(Z(2))
