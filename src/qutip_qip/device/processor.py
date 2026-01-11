@@ -7,7 +7,7 @@ from qutip import Qobj, QobjEvo, mesolve, mcsolve
 from qutip_qip.operations import globalphase
 from qutip_qip.noise import Noise, process_noise
 from qutip_qip.device import Model
-from qutip_qip.pulse import Pulse, Drift, _fill_coeff
+from qutip_qip.pulse import Pulse, Drift, fill_coeff
 
 
 class Processor(object):
@@ -510,11 +510,11 @@ class Processor(object):
             if self.spline_kind == "step_func":
                 arg = {"_step_func_coeff": True}
                 coeffs_list.append(
-                    _fill_coeff(pulse.coeff, pulse.tlist, full_tlist, arg)
+                    fill_coeff(pulse.coeff, pulse.tlist, full_tlist, arg)
                 )
             elif self.spline_kind == "cubic":
                 coeffs_list.append(
-                    _fill_coeff(pulse.coeff, pulse.tlist, full_tlist)
+                    fill_coeff(pulse.coeff, pulse.tlist, full_tlist)
                 )
             else:
                 raise ValueError("Unknown spline kind.")
