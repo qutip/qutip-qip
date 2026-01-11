@@ -7,7 +7,7 @@ from qutip_qip.circuit.text_renderer import TextRenderer
 
 @pytest.fixture
 def qc1():
-    qc = QubitCircuit(4)
+    qc = QubitCircuit(num_qubits=4)
     qc.add_gate("ISWAP", targets=[2, 3])
     qc.add_gate("CTRLRX", targets=[0, 1], controls=[2, 3], arg_value=np.pi / 2)
     qc.add_gate("SWAP", targets=[0, 3])
@@ -22,7 +22,7 @@ def qc1():
 
 @pytest.fixture
 def qc2():
-    qc = QubitCircuit(4, num_cbits=2)
+    qc = QubitCircuit(num_qubits=4, num_cbits=2)
     qc.add_gate("H", targets=[0])
     qc.add_gate("H", targets=[0])
     qc.add_gate("CNOT", controls=[1], targets=[0])
@@ -42,7 +42,7 @@ def qc2():
 
 @pytest.fixture
 def qc3():
-    qc = QubitCircuit(4, num_cbits=2)
+    qc = QubitCircuit(num_qubits=4, num_cbits=2)
     qc.add_gate("H", targets=[0])
     qc.add_gate("CNOT", controls=[1], targets=[0])
     qc.add_gate("X", targets=[2])
@@ -63,7 +63,7 @@ def qc3():
 
 @pytest.fixture
 def qc4():
-    qc = QubitCircuit(5, num_cbits=2)
+    qc = QubitCircuit(num_qubits=5, num_cbits=2)
     qc.add_gate(
         "X", targets=0, classical_controls=[0, 1], classical_control_value=0
     )

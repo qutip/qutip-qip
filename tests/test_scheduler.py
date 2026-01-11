@@ -23,7 +23,7 @@ def _verify_scheduled_circuit(circuit, gate_cycle_indices):
 
 
 def test_allow_permutation():
-    circuit = QubitCircuit(2)
+    circuit = QubitCircuit(num_qubits=2)
     circuit.add_gate("X", 0)
     circuit.add_gate("CNOT", 0, 1)
     circuit.add_gate("X", 1)
@@ -38,7 +38,7 @@ def test_allow_permutation():
 
 
 def _circuit_cnot_x():
-    circuit = QubitCircuit(2)
+    circuit = QubitCircuit(num_qubits=2)
     circuit.add_gate("X", 0)
     circuit.add_gate("CNOT", 0, 1)
     circuit.add_gate("X", 1)
@@ -46,7 +46,7 @@ def _circuit_cnot_x():
 
 
 def _circuit_cnot_z():
-    circuit = QubitCircuit(2)
+    circuit = QubitCircuit(num_qubits=2)
     circuit.add_gate("Z", 0)
     circuit.add_gate("CNOT", 0, 1)
     circuit.add_gate("Z", 1)
@@ -68,7 +68,7 @@ def test_commutation_rules(circuit, expected_length):
 
 
 def _circuit1():
-    circuit1 = QubitCircuit(6)
+    circuit1 = QubitCircuit(num_qubits=6)
     circuit1.add_gate("SNOT", 2)
     circuit1.add_gate("CNOT", 4, 2)
     circuit1.add_gate("CNOT", 3, 2)
@@ -80,7 +80,7 @@ def _circuit1():
 
 
 def _circuit2():
-    circuit2 = QubitCircuit(8)
+    circuit2 = QubitCircuit(num_qubits=8)
     circuit2.add_gate("SNOT", 1)
     circuit2.add_gate("SNOT", 2)
     circuit2.add_gate("SNOT", 3)
@@ -99,7 +99,7 @@ def _circuit2():
 
 
 def _instructions1():
-    circuit3 = QubitCircuit(6)
+    circuit3 = QubitCircuit(num_qubits=6)
     circuit3.add_gate("SNOT", 0)
     circuit3.add_gate("SNOT", 1)
     circuit3.add_gate("CNOT", 2, 3)
@@ -263,7 +263,7 @@ def test_scheduling_gates4(
 def test_scheduling_pulse(
     instructions, method, expected_length, random_shuffle, gates_schedule
 ):
-    circuit = QubitCircuit(4)
+    circuit = QubitCircuit(num_qubits=4)
     for instruction in instructions:
         circuit.add_gate(
             Gate(instruction.name, instruction.targets, instruction.controls)
