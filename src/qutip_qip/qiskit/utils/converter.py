@@ -98,7 +98,7 @@ def convert_qiskit_circuit_to_qutip(
         )
 
     qutip_circuit = QubitCircuit(
-        N=qiskit_circuit.num_qubits, num_cbits=qiskit_circuit.num_clbits
+        num_qubits=qiskit_circuit.num_qubits, num_cbits=qiskit_circuit.num_clbits
     )
 
     qutip_circuit.name = qiskit_circuit.name
