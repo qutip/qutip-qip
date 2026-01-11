@@ -69,7 +69,7 @@ class SCQubitsCompiler(GateCompiler):
     >>> from qutip_qip.device import ModelProcessor, SCQubitsModel
     >>> from qutip_qip.compiler import SCQubitsCompiler
     >>>
-    >>> qc = QubitCircuit(2)
+    >>> qc = QubitCircuit(num_qubits=2)
     >>> qc.add_gate("CNOT", targets=0, controls=1)
     >>>
     >>> model = SCQubitsModel(2)
