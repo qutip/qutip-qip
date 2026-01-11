@@ -1,7 +1,7 @@
 [build-system]
 requires = [
     "setuptools>=42",
-    "packaging",
+    "setuptools-git-versioning",
     "wheel",
 ]
 build-backend = "setuptools.build_meta"
@@ -17,7 +17,6 @@ dependencies = [
     "numpy>=1.16.6",
     "scipy>=1.0",
     "qutip>=5.0",
-    "packaging",
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -86,8 +85,12 @@ package-dir = {"" = "src"}
 [tool.setuptools.packages.find]
 where = ["src"]
 
-[tool.setuptools.dynamic]
-version = { file = "VERSION" }
+[tool.setuptools-git-versioning]
+enabled = true
+version_file = "VERSION"
+count_commits_from_version_file = true
+dev_template = "{tag}.dev{ccount}+git.{sha}"
+dirty_template = "{tag}.dev{ccount}+git.{sha}.dirty"
 
 [tool.black]
 line-length = 79
