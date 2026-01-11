@@ -14,7 +14,7 @@ The most common model for quantum computing is the quantum circuit model.
 In QuTiP, we use :class:`.QubitCircuit` to represent a quantum circuit.
 The circuit is characterized by registers and gates:
 
-- **Registers**: The argument ``N`` specifies the number of qubit registers in the circuit
+- **Registers**: The argument ``num_qubits`` specifies the number of qubit registers in the circuit
   and the argument ``num_cbits`` (optional) specifies the number of classical bits available for measurement
   and control.
 
@@ -36,7 +36,7 @@ A circuit with the various gates and registers available is demonstrated below:
   from qutip_qip.operations import Gate
   from qutip import tensor, basis
 
-  qc = QubitCircuit(N=2, num_cbits=1)
+  qc = QubitCircuit(num_qubits=2, num_cbits=1)
   swap_gate = Gate(name="SWAP", targets=[0, 1])
 
   qc.add_gate(swap_gate)
@@ -286,7 +286,7 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
   from qutip_qip.operations import Gate
 
   # create the quantum circuit
-  qc = QubitCircuit(2, num_cbits=1)
+  qc = QubitCircuit(num_qubits=2, num_cbits=1)
   qc.add_gate("CNOT", controls=0, targets=1)
   qc.add_gate("SNOT", targets=1)
   qc.add_gate("ISWAP", targets=[0,1])
@@ -303,7 +303,7 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
   from qutip_qip.operations import Gate
 
   # create the quantum circuit
-  qc = QubitCircuit(2, num_cbits=1)
+  qc = QubitCircuit(num_qubits=2, num_cbits=1)
   qc.add_gate("CNOT", controls=0, targets=1)
   qc.add_gate("SNOT", targets=1)
   qc.add_gate("ISWAP", targets=[0,1])
@@ -368,7 +368,7 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
   from qutip_qip.operations import Gate
 
   # create the quantum circuit
-  qc = QubitCircuit(2, num_cbits=1)
+  qc = QubitCircuit(num_qubits=2, num_cbits=1)
   qc.add_gate("CNOT", controls=0, targets=1)
   qc.add_gate("SNOT", targets=1)
   qc.add_gate("ISWAP", targets=[0,1])
@@ -423,7 +423,7 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
       from qutip_qip.operations import Gate
 
       # create the quantum circuit
-      qc = QubitCircuit(2, num_cbits=1)
+      qc = QubitCircuit(num_qubits=2, num_cbits=1)
       qc.add_gate("CNOT", controls=0, targets=1)
       qc.add_gate("SNOT", targets=1)
       qc.add_gate("ISWAP", targets=[0,1])
