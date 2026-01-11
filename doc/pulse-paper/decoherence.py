@@ -33,7 +33,7 @@ proc.add_control(
 
 # Define a Ramsey experiment.
 def ramsey(t, proc):
-    qc = QubitCircuit(1)
+    qc = QubitCircuit(num_qubits=1)
     qc.add_gate("RX", 0, arg_value=pi/2)
     qc.add_gate("IDLE", 0, arg_value=t)
     qc.add_gate("RX", 0, arg_value=pi/2)
