@@ -2,8 +2,6 @@
 Module for rendering a quantum circuit using matplotlib library.
 """
 
-from typing import Union
-
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
@@ -14,13 +12,9 @@ from matplotlib.patches import (
     FancyArrow,
 )
 
-from .base_renderer import BaseRenderer, StyleConfig
-from qutip_qip.operations import Gate, Measurement
 from qutip_qip.circuit import QubitCircuit
-
-__all__ = [
-    "MatRenderer",
-]
+from qutip_qip.circuit.draw import BaseRenderer, StyleConfig
+from qutip_qip.operations import Gate, Measurement
 
 
 class MatRenderer(BaseRenderer):
@@ -42,7 +36,7 @@ class MatRenderer(BaseRenderer):
     def __init__(
         self,
         qc: QubitCircuit,
-        ax: Axes = None,
+        ax: Axes | None = None,
         **style,
     ) -> None:
         # user defined style
@@ -90,7 +84,7 @@ class MatRenderer(BaseRenderer):
         self,
         text: str,
         fontsize: float,
-        fontweight: Union[float, str],
+        fontweight: float | str,
         fontfamily: str,
         fontstyle: str,
     ) -> float:

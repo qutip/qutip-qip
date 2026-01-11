@@ -5,18 +5,22 @@ import tempfile
 import warnings
 import subprocess
 import collections
+from typing import Callable
 
+from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations import Gate
 
-__all__ = ["TeXRenderer", "CONVERTERS"]
 
-
+# As a general note wherever you see {{}} in a python rf string that represents a {}
+# , since {} is used for eval in python f strings.
 class TeXRenderer:
     """
     Class to render the circuit in latex format.
     """
 
-    def __init__(self, qc):
+    # TODO add the documentation
+
+    def __init__(self, qc: QubitCircuit):
 
         self.qc = qc
         self.N = qc.N
@@ -37,13 +41,13 @@ class TeXRenderer:
         self._pdflatex = self._find_system_command(["pdflatex"])
         self._pdfcrop = self._find_system_command(["pdfcrop"])
 
-    def _gate_label(self, gate):
+    def _gate_label(self, gate) -> str:
         gate_label = gate.latex_str
         if gate.arg_label is not None:
-            return r"%s(%s)" % (gate_label, gate.arg_label)
-        return r"%s" % gate_label
+            return rf"{gate_label}({gate.arg_label})"
+        return rf"{gate_label}"
 
-    def latex_code(self):
+    def latex_code(self) -> str:
         """
         Generate the latex code for the circuit.
 
@@ -54,14 +58,15 @@ class TeXRenderer:
         """
 
         rows = []
-
-        ops = self.gates
         col = []
+        ops = self.gates
+
         for op in ops:
             if isinstance(op, Gate):
                 gate = op
                 col = []
                 _swap_processing = False
+
                 for n in range(self.N + self.num_cbits):
                     if gate.targets and n in gate.targets:
                         if len(gate.targets) > 1:
@@ -72,9 +77,10 @@ class TeXRenderer:
                                 distance = abs(
                                     gate.targets[1] - gate.targets[0]
                                 )
+
                                 if self.reverse_states:
                                     distance = -distance
-                                col.append(r" \qswap \qwx[%d] \qw" % distance)
+                                col.append(rf" \qswap \qwx[{distance}] \qw")
                                 _swap_processing = True
 
                             elif (
@@ -83,16 +89,15 @@ class TeXRenderer:
                                 not self.reverse_states
                                 and n == min(gate.targets)
                             ):
+                                # Python automatically concatenates adjacent string literals
+                                # No new line is added in the process
                                 col.append(
-                                    r" \multigate{%d}{%s} "
-                                    % (
-                                        len(gate.targets) - 1,
-                                        self._gate_label(gate),
-                                    )
+                                    rf" \multigate{{{len(gate.targets) - 1}}}"
+                                    rf"{{{self._gate_label(gate)}}} "
                                 )
                             else:
                                 col.append(
-                                    r" \ghost{%s} " % (self._gate_label(gate))
+                                    rf" \ghost{{{self._gate_label(gate)}}} "
                                 )
 
                         elif gate.name == "CNOT":
@@ -108,13 +113,13 @@ class TeXRenderer:
                         elif gate.name == "TOFFOLI":
                             col.append(r" \targ ")
                         else:
-                            col.append(r" \gate{%s} " % self._gate_label(gate))
+                            col.append(rf" \gate{{{self._gate_label(gate)}}} ")
 
                     elif gate.controls and n in gate.controls:
                         control_tag = (-1 if self.reverse_states else 1) * (
                             gate.targets[0] - n
                         )
-                        col.append(r" \ctrl{%d} " % control_tag)
+                        col.append(rf" \ctrl{{{control_tag}}} ")
 
                     elif (
                         gate.classical_controls
@@ -123,7 +128,7 @@ class TeXRenderer:
                         control_tag = (-1 if self.reverse_states else 1) * (
                             gate.targets[0] - n
                         )
-                        col.append(r" \ctrl{%d} " % control_tag)
+                        col.append(rf" \ctrl{{{control_tag}}} ")
 
                     elif not gate.controls and not gate.targets:
                         # global gate
@@ -131,16 +136,11 @@ class TeXRenderer:
                             not self.reverse_states and n == 0
                         ):
                             col.append(
-                                r" \multigate{%d}{%s} "
-                                % (
-                                    self.N - 1,
-                                    self._gate_label(gate),
-                                )
+                                rf" \multigate{{{self.N - 1}}}"
+                                rf"{{{self._gate_label(gate)}}} "
                             )
                         else:
-                            col.append(
-                                r" \ghost{%s} " % (self._gate_label(gate))
-                            )
+                            col.append(rf" \ghost{self._gate_label(gate)} ")
                     else:
                         col.append(r" \qw ")
 
@@ -153,7 +153,7 @@ class TeXRenderer:
                     elif (n - self.N) == measurement.classical_store:
                         sgn = 1 if self.reverse_states else -1
                         store_tag = sgn * (n - measurement.targets[0])
-                        col.append(r" \qw \cwx[%d] " % store_tag)
+                        col.append(rf" \qw \cwx[{store_tag}] ")
                     else:
                         col.append(r" \qw ")
 
@@ -177,18 +177,18 @@ class TeXRenderer:
             else range(self.N + self.num_cbits)
         )
         for n in n_iter:
-            code += r" & %s" % input_states[n]
+            code += rf" & {input_states[n]}"
             for m in range(len(ops)):
-                code += r" & %s" % rows[m][n]
+                code += rf" & {rows[m][n]}"
             code += r" & \qw \\ " + "\n"
 
         return self._latex_template % code
 
-    def raw_img(self, file_type="png", dpi=100):
+    def raw_img(self, file_type: str = "png", dpi: int = 100) -> bytes:
         return self.image_from_latex(self.latex_code(), file_type, dpi)
 
     @classmethod
-    def _run_command(self, command, *args, **kwargs):
+    def _run_command(self, command: str, *args, **kwargs):
         """
         Run a command with stdout explicitly thrown away, raising
         `RuntimeError` with the system error message
@@ -206,7 +206,7 @@ class TeXRenderer:
         except subprocess.CalledProcessError as e:
             raise RuntimeError(e.stderr.decode(sys.stderr.encoding)) from None
 
-    def _force_remove(self, *filenames):
+    def _force_remove(self, filenames: list[str]) -> None:
         """`rm -f`: try to remove a file, ignoring errors if it doesn't exist."""
         for filename in filenames:
             try:
@@ -215,13 +215,14 @@ class TeXRenderer:
                 pass
 
     @classmethod
-    def _test_convert_is_imagemagick(self):
+    def _test_convert_is_imagemagick(self) -> bool:
         """
         Test to see if the `convert` command behaves like we'd expect ImageMagick
         to.  On Windows if ImageMagick is not installed then `convert` may refer to
         a system utility.
         """
         try:
+            # TODO Replace with `capture_output`
             # Don't use `capture_output` because we're still supporting Python 3.6
             process = subprocess.run(
                 ("convert", "-version"),
@@ -233,7 +234,7 @@ class TeXRenderer:
             return False
 
     @staticmethod
-    def _find_system_command(names):
+    def _find_system_command(names: list[str]) -> str | None:
         """
         Given a list of possible system commands (as strings), return the first one
         which has a locatable executable form, or `None` if none of them do.  We
@@ -247,7 +248,7 @@ class TeXRenderer:
                     return name
         return None
 
-    def _crop_pdf(self, filename):
+    def _crop_pdf(self, filename: str) -> None:
         if self._pdfcrop is not None:
             """Crop the pdf file `filename` in place."""
             temporary = ".tmp." + filename
@@ -263,7 +264,7 @@ class TeXRenderer:
             )
 
     @staticmethod
-    def _convert_pdf(file_stem, dpi=None):
+    def _convert_pdf(file_stem: str, dpi: int | None = None) -> bytes:
         """
         'Convert' to pdf: since LaTeX outputs a PDF file, there's nothing to do.
         """
@@ -273,7 +274,9 @@ class TeXRenderer:
             return file.read()
 
     @classmethod
-    def _make_converter(self, configuration):
+    def _make_converter(
+        self, configuration: dict
+    ) -> Callable[dict, str | bytes]:
         """
         Create the actual conversion function of signature
             file_stem: str -> 'T,
@@ -284,7 +287,7 @@ class TeXRenderer:
             return None
         mode = "rb" if configuration.binary else "r"
 
-        def converter(file_stem, dpi=100):
+        def converter(file_stem: str, dpi: int = 100) -> str:
             """
             Convert a file located in the current directory named `<file_stem>.pdf`
             to an image format with the name `<file_stem>.xxx`, where `xxx` is
@@ -299,18 +302,22 @@ class TeXRenderer:
             """
             in_file = file_stem + ".pdf"
             out_file = file_stem + "." + configuration.file_type
+
             if "-density" in configuration.arguments:
                 arguments = list(configuration.arguments)
                 arguments[arguments.index("-density") + 1] = str(dpi)
             else:
                 arguments = configuration.arguments
+
             self._run_command((which, *arguments, in_file, out_file))
             with open(out_file, mode) as file:
                 return file.read()
 
         return converter
 
-    def image_from_latex(self, code, file_type="png", dpi=100):
+    def image_from_latex(
+        self, code: str, file_type: str = "png", dpi: int = 100
+    ) -> str | bytes:
         """
         Convert the LaTeX `code` into an image format, defined by the
         `file_type`.  Returns a string or bytes object, depending on whether
@@ -344,6 +351,7 @@ class TeXRenderer:
                     os.chdir(temporary_dir)
                     with open(filename + ".tex", "w") as file:
                         file.write(code)
+
                     try:
                         self._run_command(
                             (
@@ -365,6 +373,7 @@ class TeXRenderer:
                             + code
                         )
                         raise RuntimeError(message) from e
+
                     self._crop_pdf(filename + ".pdf")
                     if file_type in _MISSING_CONVERTERS:
                         dependency = _MISSING_CONVERTERS[file_type]
@@ -380,6 +389,7 @@ class TeXRenderer:
                             ]
                         )
                         raise RuntimeError(message)
+
                     if file_type not in CONVERTERS:
                         raise ValueError(
                             "".join(
@@ -387,11 +397,13 @@ class TeXRenderer:
                             )
                         )
                     out = CONVERTERS[file_type](filename, dpi)
+
                 finally:
                     # Leave the temporary directory before it is removed (necessary
                     # on Windows, but it doesn't hurt on POSIX).
                     os.chdir(previous_dir)
             return out
+
         else:
             raise RuntimeError("Could not find system 'pdflatex'.")
 

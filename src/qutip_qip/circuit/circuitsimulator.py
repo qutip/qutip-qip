@@ -182,6 +182,7 @@ def _gate_sequence_product(U_list, ind_list):
         # expand the tensor_list to a unitary and call _gate_sequence_product
         # recursively on the rest of the U_list.
         if len(overall_inds) == 1 and len(overall_inds[0]) == num_qubits:
+            # TODO undefined variable tensor_list
             U_overall, overall_inds = _expand_overall(
                 tensor_list, overall_inds
             )

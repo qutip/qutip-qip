@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 from unittest.mock import patch
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.circuit.text_renderer import TextRenderer
+from qutip_qip.circuit.draw import TextRenderer
 
 
 @pytest.fixture

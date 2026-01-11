@@ -3,12 +3,7 @@ Base class Implementation for Renderers
 """
 
 from dataclasses import dataclass
-from typing import Union, Optional, List, Dict
-
-from .color_theme import qutip, light, dark, modern
-
-
-__all__ = ["BaseRenderer", "StyleConfig"]
+from qutip_qip.circuit.draw.color_theme import qutip, light, dark, modern
 
 
 @dataclass
@@ -54,7 +49,7 @@ class StyleConfig:
         Align the layers of the gates across different wires. The default is False.
         Available to TextRender and MatRender.
 
-    theme : Optional[Union[str, Dict]], optional
+    theme : Union[str, Dict], optional
         Color theme of the circuit. The default is "qutip".
         The available themes are 'qutip', 'light', 'dark' and 'modern'.
 
@@ -86,14 +81,14 @@ class StyleConfig:
     layer_sep: float = 0.5
     gate_pad: float = 0.05
     label_pad: float = 0.1
-    bulge: Union[str, bool] = True
+    bulge: str | bool = True
     align_layer: bool = False
-    theme: Optional[Union[str, Dict]] = "qutip"
-    title: Optional[str] = None
-    bgcolor: Optional[str] = None
-    color: Optional[str] = None
-    wire_label: Optional[List] = None
-    wire_color: Optional[str] = None
+    theme: str | dict = "qutip"
+    title: str | None = None
+    bgcolor: str | None = None
+    color: str | None = None
+    wire_label: list[str] | None = None
+    wire_color: str | None = None
 
     def __post_init__(self):
         if isinstance(self.bulge, bool):
@@ -136,7 +131,7 @@ class BaseRenderer:
         self._layer_list = []
         self.style = style
 
-    def _get_xskip(self, wire_list: List[int], layer: int) -> float:
+    def _get_xskip(self, wire_list: list[int], layer: int) -> float:
         """
         Get the xskip (horizontal value for getting to requested layer) for the gate to be plotted.
 
@@ -166,9 +161,9 @@ class BaseRenderer:
     def _manage_layers(
         self,
         gate_width: float,
-        wire_list: List[int],
+        wire_list: list[int],
         layer: int,
-        xskip: float = 0,
+        xskip: float = 0.0,
     ) -> None:
         """
         Manages and updates the layer widths according to the gate's width just plotted.
