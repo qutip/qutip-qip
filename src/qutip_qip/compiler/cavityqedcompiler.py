@@ -48,7 +48,7 @@ class CavityQEDCompiler(GateCompiler):
     >>> from qutip_qip.device import ModelProcessor, CavityQEDModel
     >>> from qutip_qip.compiler import CavityQEDCompiler
     >>>
-    >>> qc = QubitCircuit(2)
+    >>> qc = QubitCircuit(num_qubits=2)
     >>> qc.add_gate("ISWAP", targets=[0, 1])
     >>>
     >>> model = CavityQEDModel(2)
