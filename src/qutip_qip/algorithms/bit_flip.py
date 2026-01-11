@@ -55,7 +55,7 @@ class BitFlipCode:
             raise ValueError(
                 f"Expected {self.n_data} data qubits, got {len(data_qubits)}."
             )
-        qc = QubitCircuit(max(data_qubits) + 1)
+        qc = QubitCircuit(num_qubits=max(data_qubits) + 1)
         control = data_qubits[0]
         for target in data_qubits[1:]:
             qc.add_gate("CNOT", controls=control, targets=target)
@@ -87,7 +87,7 @@ class BitFlipCode:
 
         total_qubits = max(data_qubits + syndrome_qubits) + 1
         classical_bits = len(syndrome_qubits)
-        qc = QubitCircuit(N=total_qubits, num_cbits=classical_bits)
+        qc = QubitCircuit(num_qubits=total_qubits, num_cbits=classical_bits)
 
         dq = data_qubits
         sq = syndrome_qubits
@@ -143,7 +143,7 @@ class BitFlipCode:
             raise ValueError(
                 f"Expected {self.n_data} data qubits, got {len(data_qubits)}."
             )
-        qc = QubitCircuit(max(data_qubits) + 1)
+        qc = QubitCircuit(num_qubits=max(data_qubits) + 1)
         control = data_qubits[0]
         for target in reversed(data_qubits[1:]):
             qc.add_gate("CNOT", controls=control, targets=target)
