@@ -88,12 +88,16 @@ class QubitCircuit:
         if input_states:
             self.input_states = input_states
         else:
-            self.input_states = [None for i in range(self._num_qubits + num_cbits)]
+            self.input_states = [
+                None for i in range(self._num_qubits + num_cbits)
+            ]
 
         if output_states:
             self.output_states = output_states
         else:
-            self.output_states = [None for i in range(self._num_qubits + num_cbits)]
+            self.output_states = [
+                None for i in range(self._num_qubits + num_cbits)
+            ]
 
         if user_gates is None:
             self.user_gates = {}
@@ -105,10 +109,11 @@ class QubitCircuit:
                     "`user_gate` takes a python dictionary of the form"
                     "{{str: gate_function}}, not {}".format(user_gates)
                 )
+
     @property
     def num_qubits(self):
         return self._num_qubits
-    
+
     @property
     def N(self):
         warnings.warn(
