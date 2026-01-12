@@ -22,6 +22,8 @@ from qutip_qip.circuit import (
 )
 from qutip import Qobj, qeye
 
+import warnings
+
 
 try:
     from IPython.display import Image as DisplayImage, SVG as DisplaySVG
@@ -77,21 +79,21 @@ class QubitCircuit:
         num_cbits=0,
     ):
         # number of qubits in the register
-        self.num_qubits = num_qubits
+        self._num_qubits = num_qubits
         self.reverse_states = reverse_states
         self.gates = []
-        self.dims = dims if dims is not None else [2] * num_qubits
+        self.dims = dims if dims is not None else [2] * self._num_qubits
         self.num_cbits = num_cbits
 
         if input_states:
             self.input_states = input_states
         else:
-            self.input_states = [None for i in range(num_qubits + num_cbits)]
+            self.input_states = [None for i in range(self._num_qubits + num_cbits)]
 
         if output_states:
             self.output_states = output_states
         else:
-            self.output_states = [None for i in range(num_qubits + num_cbits)]
+            self.output_states = [None for i in range(self._num_qubits + num_cbits)]
 
         if user_gates is None:
             self.user_gates = {}
@@ -103,6 +105,18 @@ class QubitCircuit:
                     "`user_gate` takes a python dictionary of the form"
                     "{{str: gate_function}}, not {}".format(user_gates)
                 )
+    @property
+    def num_qubits(self):
+        return self._num_qubits
+    
+    @property
+    def N(self):
+        warnings.warn(
+            "QubitCircuit.N is deprecated. Use QubitCircuit.num_qubits instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self._num_qubits
 
     def __repr__(self) -> str:
         return ""
@@ -321,7 +335,7 @@ class QubitCircuit:
         start : int
             The qubit on which the first gate is applied.
         """
-        if self.num_qubits - start < qc.num_qubits:
+        if self._num_qubits - start < qc._num_qubits:
             raise NotImplementedError("Targets exceed number of qubits.")
 
         # Inherit the user gates
@@ -386,7 +400,7 @@ class QubitCircuit:
             if end is not None and end <= len(self.gates):
                 for i in range(end - index):
                     self.gates.pop(index + i)
-            elif end is not None and end > self.num_qubits:
+            elif end is not None and end > self._num_qubits:
                 raise ValueError(
                     "End target exceeds number \
                                     of gates + measurements."
@@ -426,7 +440,7 @@ class QubitCircuit:
 
         """
         temp = QubitCircuit(
-            self.num_qubits,
+            self._num_qubits,
             reverse_states=self.reverse_states,
             num_cbits=self.num_cbits,
             input_states=self.input_states,
@@ -537,7 +551,7 @@ class QubitCircuit:
             for the qubit circuit in the desired basis.
         """
         qc_temp = QubitCircuit(
-            self.num_qubits,
+            self._num_qubits,
             reverse_states=self.reverse_states,
             num_cbits=self.num_cbits,
         )
@@ -712,7 +726,7 @@ class QubitCircuit:
 
         """
         temp = QubitCircuit(
-            self.num_qubits,
+            self._num_qubits,
             reverse_states=self.reverse_states,
             num_cbits=self.num_cbits,
         )
@@ -864,7 +878,7 @@ class QubitCircuit:
             )
         for gate in gates:
             if gate.name == "GLOBALPHASE":
-                qobj = gate.get_qobj(self.num_qubits)
+                qobj = gate.get_qobj(self._num_qubits)
             else:
                 qobj = self._get_gate_unitary(gate)
                 if expand:
@@ -1012,7 +1026,7 @@ class QubitCircuit:
             object to store QASM output.
         """
 
-        qasm_out.output("qreg q[{}];".format(self.num_qubits))
+        qasm_out.output("qreg q[{}];".format(self._num_qubits))
         if self.num_cbits:
             qasm_out.output("creg c[{}];".format(self.num_cbits))
         qasm_out.output(n=1)
