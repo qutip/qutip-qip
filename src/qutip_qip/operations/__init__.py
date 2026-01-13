@@ -41,9 +41,9 @@ from .gates import (
     gate_sequence_product,
 )
 
-from .gateclass import (
-    Gate,
-    GATE_CLASS_MAP,
+from .gateclass import Gate
+from .single_qubit_gates import (
+    SingleQubitGate,
     X,
     Y,
     Z,
@@ -56,7 +56,22 @@ from .gateclass import (
     S,
     T,
     R,
-    CNOT,
+    QASMU,
+)
+
+from .two_qubit_gates import (
+    TwoQubitGate,
+    SWAP,
+    ISWAP,
+    SQRTSWAP,
+    SQRTISWAP,
+    SWAPALPHA,
+    BERKELEY,
+    MS,
+    RZX,
+)
+from .controlled_gates import (
+    ControlledGate,
     CX,
     CY,
     CZ,
@@ -65,25 +80,58 @@ from .gateclass import (
     CRZ,
     CS,
     CT,
+    CNOT,
     CPHASE,
-    QASMU,
-    SWAP,
-    ControlledGate,
-    ISWAP,
-    SWAPALPHA,
-    SQRTISWAP,
-    SQRTSWAP,
-    MS,
-    TOFFOLI,
-    FREDKIN,
-    BERKELEY,
     CSIGN,
-    RZX,
 )
-
+from .special_gates import TOFFOLI, FREDKIN
 from .measurement import Measurement
 
+
+GATE_CLASS_MAP: dict[str, Gate] = {
+    "X": X,
+    "Y": Y,
+    "Z": Z,
+    "RX": RX,
+    "RY": RY,
+    "RZ": RZ,
+    "H": H,
+    "SNOT": SNOT,
+    "SQRTNOT": SQRTNOT,
+    "S": S,
+    "T": T,
+    "R": R,
+    "QASMU": QASMU,
+    "SWAP": SWAP,
+    "ISWAP": ISWAP,
+    "iSWAP": ISWAP,
+    "CNOT": CNOT,
+    "SQRTSWAP": SQRTSWAP,
+    "SQRTISWAP": SQRTISWAP,
+    "SWAPALPHA": SWAPALPHA,
+    "SWAPalpha": SWAPALPHA,
+    "BERKELEY": BERKELEY,
+    "MS": MS,
+    "TOFFOLI": TOFFOLI,
+    "FREDKIN": FREDKIN,
+    "CSIGN": CSIGN,
+    "CRX": CRX,
+    "CRY": CRY,
+    "CRZ": CRZ,
+    "CY": CY,
+    "CX": CX,
+    "CZ": CZ,
+    "CS": CS,
+    "CT": CT,
+    "CPHASE": CPHASE,
+    "RZX": RZX,
+}
+
 __all__ = [
+    "Gate",
+    "SingleQubitGate",
+    "TwoQubitGate",
+    "ControlledGate",
     "Measurement",
     "rx",
     "ry",
@@ -121,7 +169,6 @@ __all__ = [
     "qubit_clifford_group",
     "expand_operator",
     "gate_sequence_product",
-    "Gate",
     "GATE_CLASS_MAP",
     "X",
     "Y",
@@ -137,7 +184,6 @@ __all__ = [
     "R",
     "QASMU",
     "SWAP",
-    "ControlledGate",
     "ISWAP",
     "CNOT",
     "SQRTSWAP",
