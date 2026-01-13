@@ -58,3 +58,21 @@ class FREDKIN(Gate):
 
     def get_compact_qobj(self):
         return fredkin()
+    
+class GLOBALPHASE(Gate):
+    """
+    GLOBALPHASE gate.
+
+    Examples
+    --------
+    >>> from qutip_qip.operations import GLOBALPHASE
+    """
+
+    def __init__(self, arg_value: float, arg_label: str):
+        super().__init__(arg_value=arg_value, arg_label=arg_label)
+        self.latex_str = r"{\rm GLOBALPHASE}"
+
+    def get_compact_qobj(self):
+        raise NotImplementedError(
+            "GlobalPhase gate has no compack qobj representation."
+        )

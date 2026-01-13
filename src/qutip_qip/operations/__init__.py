@@ -84,7 +84,7 @@ from .controlled_gates import (
     CPHASE,
     CSIGN,
 )
-from .special_gates import TOFFOLI, FREDKIN
+from .special_gates import TOFFOLI, FREDKIN, GLOBALPHASE
 from .measurement import Measurement
 
 
@@ -133,6 +133,7 @@ __all__ = [
     "TwoQubitGate",
     "ControlledGate",
     "Measurement",
+    "GLOBALPHASE",
     "rx",
     "ry",
     "rz",

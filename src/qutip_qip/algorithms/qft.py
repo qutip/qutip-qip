@@ -143,12 +143,12 @@ def _cphase_to_cnot(targets, controls, arg_value):
     gate = decomposed_gates[0]
     gate.targets = targets
     new_gates.append(gate)
-    new_gates.append(Gate("CNOT", targets=targets, controls=controls))
+    new_gates.append(Gate(name = "CNOT", targets=targets, controls=controls))
     gate = decomposed_gates[4]
     gate.targets = targets
     new_gates.append(gate)
-    new_gates.append(Gate("CNOT", targets=targets, controls=controls))
-    new_gates.append(Gate("RZ", targets=controls, arg_value=arg_value / 2))
+    new_gates.append(Gate(name = "CNOT", targets=targets, controls=controls))
+    new_gates.append(Gate(name = "RZ", targets=controls, arg_value=arg_value / 2))
     gate = decomposed_gates[7]
     gate.arg_value += arg_value / 4
     new_gates.append(gate)
