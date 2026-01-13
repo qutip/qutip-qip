@@ -1,8 +1,25 @@
-from qutip_qip.operations import (
-    Gate,
-    fredkin,
-    toffoli,
-)
+from qutip import Qobj
+from qutip_qip.operations import Gate
+
+
+class GLOBALPHASE(Gate):
+    """
+    GLOBALPHASE gate.
+
+    Examples
+    --------
+    >>> from qutip_qip.operations import GLOBALPHASE
+    """
+
+    def __init__(self, arg_value: float, arg_label: str = None):
+        super().__init__(arg_value=arg_value, arg_label=arg_label)
+        self.latex_str = r"{\rm GLOBALPHASE}"
+
+    def get_compact_qobj(self):
+        raise NotImplementedError(
+            "GlobalPhase gate has no compack qobj representation."
+        )
+
 
 class TOFFOLI(Gate):
     """
@@ -29,7 +46,19 @@ class TOFFOLI(Gate):
         self.latex_str = r"{\rm TOFFOLI}"
 
     def get_compact_qobj(self):
-        return toffoli()
+        return Qobj(
+            [
+                [1, 0, 0, 0, 0, 0, 0, 0],
+                [0, 1, 0, 0, 0, 0, 0, 0],
+                [0, 0, 1, 0, 0, 0, 0, 0],
+                [0, 0, 0, 1, 0, 0, 0, 0],
+                [0, 0, 0, 0, 1, 0, 0, 0],
+                [0, 0, 0, 0, 0, 1, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 1],
+                [0, 0, 0, 0, 0, 0, 1, 0],
+            ],
+            dims=[[2, 2, 2], [2, 2, 2]],
+        )
 
 
 class FREDKIN(Gate):
@@ -57,22 +86,16 @@ class FREDKIN(Gate):
         self.latex_str = r"{\rm FREDKIN}"
 
     def get_compact_qobj(self):
-        return fredkin()
-    
-class GLOBALPHASE(Gate):
-    """
-    GLOBALPHASE gate.
-
-    Examples
-    --------
-    >>> from qutip_qip.operations import GLOBALPHASE
-    """
-
-    def __init__(self, arg_value: float, arg_label: str = None):
-        super().__init__(arg_value=arg_value, arg_label=arg_label)
-        self.latex_str = r"{\rm GLOBALPHASE}"
-
-    def get_compact_qobj(self):
-        raise NotImplementedError(
-            "GlobalPhase gate has no compack qobj representation."
+        return Qobj(
+            [
+                [1, 0, 0, 0, 0, 0, 0, 0],
+                [0, 1, 0, 0, 0, 0, 0, 0],
+                [0, 0, 1, 0, 0, 0, 0, 0],
+                [0, 0, 0, 1, 0, 0, 0, 0],
+                [0, 0, 0, 0, 1, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 1, 0],
+                [0, 0, 0, 0, 0, 1, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 1],
+            ],
+            dims=[[2, 2, 2], [2, 2, 2]],
         )

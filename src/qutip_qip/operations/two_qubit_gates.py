@@ -3,13 +3,6 @@ from qutip import Qobj
 from qutip_qip.operations import (
     Gate,
     RZ,
-    berkeley,
-    swapalpha,
-    molmer_sorensen,
-    swap,
-    iswap,
-    sqrtswap,
-    sqrtiswap,
 )
 
 class TwoQubitGate(Gate):
@@ -44,7 +37,10 @@ class SWAP(TwoQubitGate):
         self.latex_str = r"{\rm SWAP}"
 
     def get_compact_qobj(self):
-        return swap()
+        return Qobj(
+            [[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]],
+            dims=[[2, 2], [2, 2]],
+        )
 
 
 class ISWAP(TwoQubitGate):
@@ -68,7 +64,10 @@ class ISWAP(TwoQubitGate):
         self.latex_str = r"{i}{\rm SWAP}"
 
     def get_compact_qobj(self):
-        return iswap()
+        return Qobj(
+            [[1, 0, 0, 0], [0, 0, 1j, 0], [0, 1j, 0, 0], [0, 0, 0, 1]],
+            dims=[[2, 2], [2, 2]],
+        )
 
 
 class SQRTSWAP(TwoQubitGate):
@@ -92,7 +91,15 @@ class SQRTSWAP(TwoQubitGate):
         self.latex_str = r"\sqrt{\rm SWAP}"
 
     def get_compact_qobj(self):
-        return sqrtswap()
+        return Qobj(
+            np.array([
+                [1, 0, 0, 0],
+                [0, 0.5 + 0.5j, 0.5 - 0.5j, 0],
+                [0, 0.5 - 0.5j, 0.5 + 0.5j, 0],
+                [0, 0, 0, 1],
+            ]),
+            dims=[[2, 2], [2, 2]],
+        )
 
 
 class SQRTISWAP(TwoQubitGate):
@@ -116,7 +123,15 @@ class SQRTISWAP(TwoQubitGate):
         self.latex_str = r"\sqrt{{i}\rm SWAP}"
 
     def get_compact_qobj(self):
-        return sqrtiswap()
+        return Qobj(
+            np.array([
+                [1, 0, 0, 0],
+                [0, 1 / np.sqrt(2), 1j / np.sqrt(2), 0],
+                [0, 1j / np.sqrt(2), 1 / np.sqrt(2), 0],
+                [0, 0, 0, 1],
+            ]),
+            dims=[[2, 2], [2, 2]]
+        )
 
 
 class BERKELEY(TwoQubitGate):
@@ -149,7 +164,14 @@ class BERKELEY(TwoQubitGate):
         self.latex_str = r"{\rm BERKELEY}"
 
     def get_compact_qobj(self):
-        return berkeley()
+        return Qobj([
+                [np.cos(np.pi / 8), 0, 0, 1.0j * np.sin(np.pi / 8)],
+                [0, np.cos(3 * np.pi / 8), 1.0j * np.sin(3 * np.pi / 8), 0],
+                [0, 1.0j * np.sin(3 * np.pi / 8), np.cos(3 * np.pi / 8), 0],
+                [1.0j * np.sin(np.pi / 8), 0, 0, np.cos(np.pi / 8)],
+            ],
+            dims=[[2, 2], [2, 2]],
+        )
 
 
 class SWAPALPHA(TwoQubitGate):
@@ -182,7 +204,26 @@ class SWAPALPHA(TwoQubitGate):
         self.latex_str = r"{\rm SWAPALPHA}"
 
     def get_compact_qobj(self):
-        return swapalpha(self.arg_value)
+        alpha = self.arg_value
+        return Qobj(
+            [
+                [1, 0, 0, 0],
+                [
+                    0,
+                    0.5 * (1 + np.exp(1.0j * np.pi * alpha)),
+                    0.5 * (1 - np.exp(1.0j * np.pi * alpha)),
+                    0,
+                ],
+                [
+                    0,
+                    0.5 * (1 - np.exp(1.0j * np.pi * alpha)),
+                    0.5 * (1 + np.exp(1.0j * np.pi * alpha)),
+                    0,
+                ],
+                [0, 0, 0, 1],
+            ],
+            dims=[[2, 2], [2, 2]],
+        )
 
 
 class MS(TwoQubitGate):
@@ -215,7 +256,26 @@ class MS(TwoQubitGate):
         self.latex_str = r"{\rm MS}"
 
     def get_compact_qobj(self):
-        return molmer_sorensen(*self.arg_value)
+        theta, phi = self.arg_value
+        return Qobj(
+            [
+                [
+                    np.cos(theta / 2),
+                    0,
+                    0,
+                    -1j * np.exp(-1j * 2 * phi) * np.sin(theta / 2),
+                ],
+                [0, np.cos(theta / 2), -1j * np.sin(theta / 2), 0],
+                [0, -1j * np.sin(theta / 2), np.cos(theta / 2), 0],
+                [
+                    -1j * np.exp(1j * 2 * phi) * np.sin(theta / 2),
+                    0,
+                    0,
+                    np.cos(theta / 2),
+                ],
+            ],
+            dims=[[2, 2], [2, 2]],
+        )
 
 
 class RZX(TwoQubitGate):

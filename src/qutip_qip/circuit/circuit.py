@@ -11,6 +11,7 @@ from copy import deepcopy
 from ._decompose import _resolve_to_universal, _resolve_2q_basis
 from qutip_qip.operations import (
     Gate,
+    GLOBALPHASE,
     SWAP,
     RX,
     RY,
@@ -581,7 +582,7 @@ class QubitCircuit:
 
         for gate in self.gates:
             if gate.name in ("X", "Y", "Z"):
-                qc_temp.gates.append(Gate("GLOBALPHASE", arg_value=np.pi / 2))
+                qc_temp.gates.append(GLOBALPHASE(arg_value=np.pi / 2))
                 gate = Gate(
                     "R" + gate.name, targets=gate.targets, arg_value=np.pi
                 )

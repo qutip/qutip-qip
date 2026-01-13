@@ -1,14 +1,7 @@
-import qutip
+import numpy as np
+from qutip import Qobj, sigmax, sigmay, sigmaz
 from qutip_qip.operations import (
     Gate,
-    rx,
-    ry,
-    rz,
-    sqrtnot,
-    snot,
-    s_gate,
-    t_gate,
-    qrot,
     qasmu_gate,
 )
 
@@ -43,7 +36,7 @@ class X(SingleQubitGate):
         self.latex_str = r"X"
 
     def get_compact_qobj(self):
-        return qutip.sigmax(dtype="dense")
+        return sigmax(dtype="dense")
 
 
 class Y(SingleQubitGate):
@@ -65,7 +58,7 @@ class Y(SingleQubitGate):
         self.latex_str = r"Y"
 
     def get_compact_qobj(self):
-        return qutip.sigmay(dtype="dense")
+        return sigmay(dtype="dense")
 
 
 class Z(SingleQubitGate):
@@ -87,7 +80,7 @@ class Z(SingleQubitGate):
         self.latex_str = r"Z"
 
     def get_compact_qobj(self):
-        return qutip.sigmaz(dtype="dense")
+        return sigmaz(dtype="dense")
 
 
 class RX(SingleQubitGate):
@@ -109,7 +102,11 @@ class RX(SingleQubitGate):
         self.latex_str = r"R_x"
 
     def get_compact_qobj(self):
-        return rx(self.arg_value)
+        phi = self.arg_value
+        return Qobj([
+            [np.cos(phi / 2), -1j * np.sin(phi / 2)],
+            [-1j * np.sin(phi / 2), np.cos(phi / 2)],
+        ])
 
 
 class RY(SingleQubitGate):
@@ -131,7 +128,11 @@ class RY(SingleQubitGate):
         self.latex_str = r"R_y"
 
     def get_compact_qobj(self):
-        return ry(self.arg_value)
+        phi = self.arg_value
+        return Qobj([
+            [np.cos(phi / 2), -np.sin(phi / 2)],
+            [np.sin(phi / 2), np.cos(phi / 2)],
+        ])
 
 
 class RZ(SingleQubitGate):
@@ -153,7 +154,8 @@ class RZ(SingleQubitGate):
         self.latex_str = r"R_z"
 
     def get_compact_qobj(self):
-        return rz(self.arg_value)
+        phi = self.arg_value
+        return Qobj([[np.exp(-1j * phi / 2), 0], [0, np.exp(1j * phi / 2)]])
 
 
 class H(SingleQubitGate):
@@ -175,7 +177,7 @@ class H(SingleQubitGate):
         self.latex_str = r"{\rm H}"
 
     def get_compact_qobj(self):
-        return snot()
+        return 1 / np.sqrt(2.0) * Qobj([[1, 1], [1, -1]])
 
 
 SNOT = H
@@ -201,7 +203,7 @@ class SQRTNOT(SingleQubitGate):
         self.latex_str = r"\sqrt{\rm NOT}"
 
     def get_compact_qobj(self):
-        return sqrtnot()
+        return Qobj([[0.5 + 0.5j, 0.5 - 0.5j], [0.5 - 0.5j, 0.5 + 0.5j]])
 
 
 class S(SingleQubitGate):
@@ -223,7 +225,7 @@ class S(SingleQubitGate):
         self.latex_str = r"{\rm S}"
 
     def get_compact_qobj(self):
-        return s_gate()
+        return Qobj([[1, 0], [0, 1j]])
 
 
 class T(SingleQubitGate):
@@ -245,7 +247,7 @@ class T(SingleQubitGate):
         self.latex_str = r"{\rm T}"
 
     def get_compact_qobj(self):
-        return t_gate()
+        return Qobj([[1, 0], [0, np.exp(1j * np.pi / 4)]])
 
 
 class R(SingleQubitGate):
@@ -274,7 +276,17 @@ class R(SingleQubitGate):
         self.latex_str = r"{\rm R}"
 
     def get_compact_qobj(self):
-        return qrot(*self.arg_value)
+        phi, theta = self.arg_value
+        return Qobj([
+            [
+                np.cos(theta / 2.0),
+                -1.0j * np.exp(-1.0j * phi) * np.sin(theta / 2.0),
+            ],
+            [
+                -1.0j * np.exp(1.0j * phi) * np.sin(theta / 2.0),
+                np.cos(theta / 2.0),
+            ],
+        ])
 
 
 class QASMU(SingleQubitGate):

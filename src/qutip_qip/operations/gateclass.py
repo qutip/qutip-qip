@@ -113,9 +113,6 @@ class Gate:
         Create a gate with specified parameters.
         """
         self.name = name if name is not None else self.__class__.__name__
-        self.targets = None
-        self.controls = None
-        self.classical_controls = None
         self.style = style
 
         if not isinstance(targets, Iterable) and targets is not None:
@@ -150,8 +147,6 @@ class Gate:
         self.latex_str = r"U"
 
         self.arg_label = arg_label
-        if arg_label is None and arg_value is not None:
-            self.arg_label = str(arg_value)
 
         for ind_list in [self.targets, self.controls, self.classical_controls]:
             if ind_list is None:
@@ -351,9 +346,9 @@ class Gate:
         all_targets = self.get_all_qubits()
         if num_qubits is None:
             num_qubits = max(all_targets) + 1
+        
         return expand_operator(
             self.get_compact_qobj(),
             dims=dims,
             targets=all_targets,
         )
-
