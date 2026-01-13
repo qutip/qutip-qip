@@ -1,6 +1,6 @@
 import numpy as np
 
-from qutip_qip.operations import Gate
+from qutip_qip.operations import GLOBALPHASE, RZ
 from qutip_qip.compiler import GateCompiler, Instruction
 
 
@@ -190,13 +190,13 @@ class CavityQEDCompiler(GateCompiler):
         instruction_list = [Instruction(gate, tlist, pulse_info)]
 
         # corrections
-        gate1 = Gate("RZ", [q1], None, arg_value=correction_angle)
+        gate1 = RZ(targets = q1, arg_value=correction_angle)
         compiled_gate1 = self.gate_compiler["RZ"](gate1, args)
         instruction_list += compiled_gate1
-        gate2 = Gate("RZ", [q2], None, arg_value=correction_angle)
+        gate2 = RZ(targets = q2, arg_value=correction_angle)
         compiled_gate2 = self.gate_compiler["RZ"](gate2, args)
         instruction_list += compiled_gate2
-        gate3 = Gate("GLOBALPHASE", None, None, arg_value=correction_angle)
+        gate3 = GLOBALPHASE(arg_value=correction_angle)
         self.globalphase_compiler(gate3, args)
         return instruction_list
 

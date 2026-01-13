@@ -147,8 +147,11 @@ class Gate:
             self.classical_control_value = classical_control_value
         self.control_value = control_value
         self.arg_value = arg_value
-        self.arg_label = arg_label
         self.latex_str = r"U"
+
+        self.arg_label = arg_label
+        if arg_label is None and arg_value is not None:
+            self.arg_label = str(arg_value)
 
         for ind_list in [self.targets, self.controls, self.classical_controls]:
             if ind_list is None:
