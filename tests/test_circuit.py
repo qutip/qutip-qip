@@ -22,6 +22,7 @@ from qutip import (
 from qutip_qip.qasm import read_qasm
 from qutip_qip.operations import (
     Gate,
+    SWAP,
     gates,
     Measurement,
     gate_sequence_product,
@@ -145,7 +146,7 @@ class TestQubitCircuit:
         """
         qc = QubitCircuit(6)
         qc.add_gate("CNOT", targets=[1], controls=[0])
-        test_gate = Gate("SWAP", targets=[1, 4])
+        test_gate = SWAP(targets=[1, 4])
         qc.add_gate(test_gate)
         qc.add_gate("TOFFOLI", controls=[0, 1], targets=[2])
         qc.add_gate("SNOT", targets=[3])
@@ -243,7 +244,7 @@ class TestQubitCircuit:
 
         qc = QubitCircuit(6)
         qc.add_gate("CNOT", targets=[1], controls=[0])
-        test_gate = Gate("SWAP", targets=[1, 4])
+        test_gate = SWAP(targets=[1, 4])
         qc.add_gate(test_gate)
         qc.add_gate("TOFFOLI", controls=[0, 1], targets=[2])
         qc.add_gate("SNOT", targets=[3])
@@ -807,8 +808,7 @@ class TestQubitCircuit:
     def test_deprecation_warning(self):
         # Make them available for backward compatibility.
         with pytest.warns(DeprecationWarning):
-            from qutip_qip.circuit import Gate, Measurement
-
+            from qutip_qip.circuit import Gate
             Gate("X", 0)
 
     def test_circuit_chain_structure(self):

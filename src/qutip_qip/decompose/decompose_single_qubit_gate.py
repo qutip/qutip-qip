@@ -2,13 +2,19 @@ import warnings
 import numpy as np
 import cmath
 
-
 from qutip_qip.decompose._utility import (
     check_gate,
     MethodError,
 )
 
-from qutip_qip.operations import Gate
+from qutip_qip.operations import (
+    Gate,
+    GLOBALPHASE,
+    X,
+    RX,
+    RY,
+    RZ,
+)
 
 
 def _angles_for_ZYZ(input_gate):
@@ -57,26 +63,21 @@ def _ZYZ_rotation(input_gate):
     check_gate(input_gate, num_qubits=1)
     alpha, theta, beta, global_phase_angle = _angles_for_ZYZ(input_gate)
 
-    Phase_gate = Gate(
-        "GLOBALPHASE",
-        targets=[0],
+    Phase_gate = GLOBALPHASE(
         arg_value=global_phase_angle,
         arg_label=r"{:0.2f} \times \pi".format(global_phase_angle / np.pi),
     )
-    Rz_beta = Gate(
-        "RZ",
+    Rz_beta = RZ(
         targets=[0],
         arg_value=beta,
-        arg_label=r"{:0.2f} \times \pi".format(beta / np.pi),
+        arg_label=r"{:0.2f} \times \pi".format(beta / np.pi)
     )
-    Ry_theta = Gate(
-        "RY",
+    Ry_theta = RY(
         targets=[0],
         arg_value=theta,
         arg_label=r"{:0.2f} \times \pi".format(theta / np.pi),
     )
-    Rz_alpha = Gate(
-        "RZ",
+    Rz_alpha = RZ(
         targets=[0],
         arg_value=alpha,
         arg_label=r"{:0.2f} \times \pi".format(alpha / np.pi),
@@ -100,26 +101,21 @@ def _ZXZ_rotation(input_gate):
     beta = beta + np.pi / 2
     # theta and global phase are same as ZYZ values
 
-    Phase_gate = Gate(
-        "GLOBALPHASE",
-        targets=[0],
+    Phase_gate = GLOBALPHASE(
         arg_value=global_phase_angle,
         arg_label=r"{:0.2f} \times \pi".format(global_phase_angle / np.pi),
     )
-    Rz_alpha = Gate(
-        "RZ",
+    Rz_alpha = RZ(
         targets=[0],
         arg_value=alpha,
         arg_label=r"{:0.2f} \times \pi".format(alpha / np.pi),
     )
-    Rx_theta = Gate(
-        "RX",
+    Rx_theta = RX(
         targets=[0],
         arg_value=theta,
         arg_label=r"{:0.2f} \times \pi".format(theta / np.pi),
     )
-    Rz_beta = Gate(
-        "RZ",
+    Rz_beta = RZ(
         targets=[0],
         arg_value=beta,
         arg_label=r"{:0.2f} \times \pi".format(beta / np.pi),
@@ -130,46 +126,38 @@ def _ZXZ_rotation(input_gate):
 
 # Functions for ABC_decomposition
 
-
 def _ZYZ_pauli_X(input_gate):
     """Returns a 1 qubit unitary as a product of ZYZ rotation matrices and
     Pauli X."""
     check_gate(input_gate, num_qubits=1)
     alpha, theta, beta, global_phase_angle = _angles_for_ZYZ(input_gate)
 
-    Phase_gate = Gate(
-        "GLOBALPHASE",
-        targets=[0],
+    Phase_gate = GLOBALPHASE(
         arg_value=global_phase_angle,
         arg_label=r"{:0.2f} \times \pi".format(global_phase_angle / np.pi),
     )
-    Rz_A = Gate(
-        "RZ",
+    Rz_A = RZ(
         targets=[0],
         arg_value=alpha,
         arg_label=r"{:0.2f} \times \pi".format(alpha / np.pi),
     )
-    Ry_A = Gate(
-        "RY",
+    Ry_A = RY(
         targets=[0],
         arg_value=theta / 2,
         arg_label=r"{:0.2f} \times \pi".format(theta / np.pi),
     )
-    Pauli_X = Gate("X", targets=[0])
-    Ry_B = Gate(
-        "RY",
+    Pauli_X = X(targets=[0])
+    Ry_B = RY(
         targets=[0],
         arg_value=-theta / 2,
         arg_label=r"{:0.2f} \times \pi".format(-theta / np.pi),
     )
-    Rz_B = Gate(
-        "RZ",
+    Rz_B = RZ(
         targets=[0],
         arg_value=-(alpha + beta) / 2,
         arg_label=r"{:0.2f} \times \pi".format(-(alpha + beta) / (2 * np.pi)),
     )
-    Rz_C = Gate(
-        "RZ",
+    Rz_C = RZ(
         targets=[0],
         arg_value=(-alpha + beta) / 2,
         arg_label=r"{:0.2f} \times \pi".format((-alpha + beta) / (2 * np.pi)),

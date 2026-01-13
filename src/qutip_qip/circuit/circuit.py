@@ -11,6 +11,7 @@ from copy import deepcopy
 from ._decompose import _resolve_to_universal, _resolve_2q_basis
 from qutip_qip.operations import (
     Gate,
+    SWAP,
     Measurement,
     expand_operator,
     GATE_CLASS_MAP,
@@ -753,7 +754,7 @@ class QubitCircuit:
                         # the required gate if and then another swap if control
                         # and target have one qubit between them, provided
                         # |control-target| is odd.
-                        temp.gates.append(Gate("SWAP", targets=[i, i + 1]))
+                        temp.gates.append(SWAP(targets=[i, i + 1]))
                         if end == gate.controls[0]:
                             temp.gates.append(
                                 Gate(
@@ -770,17 +771,14 @@ class QubitCircuit:
                                     controls=[i + 1],
                                 )
                             )
-                        temp.gates.append(Gate("SWAP", targets=[i, i + 1]))
+                        temp.gates.append(SWAP(targets=[i, i + 1]))
                         i += 1
                     else:
                         # Swap the target/s and/or control with their adjacent
                         # qubit to bring them closer.
-                        temp.gates.append(Gate("SWAP", targets=[i, i + 1]))
+                        temp.gates.append(SWAP(targets=[i, i + 1]))
                         temp.gates.append(
-                            Gate(
-                                "SWAP",
-                                targets=[start + end - i - 1, start + end - i],
-                            )
+                            SWAP(targets=[start+end - i - 1, start+end - i])
                         )
                     i += 1
 
@@ -794,19 +792,16 @@ class QubitCircuit:
                     elif (start + end - i - i) == 2 and (
                         end - start + 1
                     ) % 2 == 1:
-                        temp.gates.append(Gate("SWAP", targets=[i, i + 1]))
+                        temp.gates.append(SWAP(targets=[i, i + 1]))
                         temp.gates.append(
                             Gate(gate.name, targets=[i + 1, i + 2])
                         )
-                        temp.gates.append(Gate("SWAP", targets=[i, i + 1]))
+                        temp.gates.append(SWAP(targets=[i, i + 1]))
                         i += 1
                     else:
-                        temp.gates.append(Gate("SWAP", targets=[i, i + 1]))
+                        temp.gates.append(SWAP(targets=[i, i + 1]))
                         temp.gates.append(
-                            Gate(
-                                "SWAP",
-                                targets=[start + end - i - 1, start + end - i],
-                            )
+                            SWAP(targets=[start + end - i - 1, start + end - i])
                         )
                     i += 1
 

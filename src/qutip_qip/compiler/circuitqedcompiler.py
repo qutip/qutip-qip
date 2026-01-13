@@ -1,6 +1,6 @@
 import numpy as np
 
-from qutip_qip.operations import Gate
+from qutip_qip.operations import (RX, RY, RZX)
 from qutip_qip.compiler import GateCompiler, Instruction
 
 
@@ -268,16 +268,16 @@ class SCQubitsCompiler(GateCompiler):
         q1 = gate.controls[0]
         q2 = gate.targets[0]
 
-        gate1 = Gate("RX", q2, arg_value=-np.pi / 2)
+        gate1 = RX(targets = q2, arg_value=-np.pi / 2)
         result += self.gate_compiler[gate1.name](gate1, args)
 
-        gate2 = Gate("RZX", targets=[q1, q2], arg_value=np.pi / 2)
+        gate2 = RZX(targets=[q1, q2], arg_value=np.pi / 2)
         result += self.rzx_compiler(gate2, args)
 
-        gate3 = Gate("RX", q1, arg_value=-np.pi / 2)
+        gate3 = RX(targets = q1, arg_value=-np.pi / 2)
         result += self.gate_compiler[gate3.name](gate3, args)
-        gate4 = Gate("RY", q1, arg_value=-np.pi / 2)
+        gate4 = RY(targets = q1, arg_value=-np.pi / 2)
         result += self.gate_compiler[gate4.name](gate4, args)
-        gate5 = Gate("RX", q1, arg_value=np.pi / 2)
+        gate5 = RX(targets = q1, arg_value=np.pi / 2)
         result += self.gate_compiler[gate5.name](gate5, args)
         return result
