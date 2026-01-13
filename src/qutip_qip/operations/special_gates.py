@@ -68,7 +68,7 @@ class GLOBALPHASE(Gate):
     >>> from qutip_qip.operations import GLOBALPHASE
     """
 
-    def __init__(self, arg_value: float, arg_label: str):
+    def __init__(self, arg_value: float, arg_label: str = None):
         super().__init__(arg_value=arg_value, arg_label=arg_label)
         self.latex_str = r"{\rm GLOBALPHASE}"
 

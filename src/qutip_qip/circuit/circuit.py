@@ -11,6 +11,10 @@ from copy import deepcopy
 from ._decompose import _resolve_to_universal, _resolve_2q_basis
 from qutip_qip.operations import (
     Gate,
+    SWAP,
+    RX,
+    RY,
+    RZ,
     Measurement,
     expand_operator,
     GATE_CLASS_MAP,
@@ -606,84 +610,66 @@ class QubitCircuit:
             for gate in temp_resolved:
                 if gate.name == "RX" and "RX" not in basis_1q:
                     qc_temp.gates.append(
-                        Gate(
-                            "RY",
-                            gate.targets,
-                            None,
+                        RY(
+                            targets=gate.targets,
                             arg_value=-half_pi,
                             arg_label=r"-\pi/2",
                         )
                     )
                     qc_temp.gates.append(
-                        Gate(
-                            "RZ",
+                        RZ(
                             gate.targets,
-                            None,
                             gate.arg_value,
                             gate.arg_label,
                         )
                     )
                     qc_temp.gates.append(
-                        Gate(
-                            "RY",
+                        RY(
                             gate.targets,
-                            None,
                             arg_value=half_pi,
                             arg_label=r"\pi/2",
                         )
                     )
                 elif gate.name == "RY" and "RY" not in basis_1q:
                     qc_temp.gates.append(
-                        Gate(
-                            "RZ",
-                            gate.targets,
-                            None,
+                        RZ(
+                            targets=gate.targets,
                             arg_value=-half_pi,
                             arg_label=r"-\pi/2",
                         )
                     )
                     qc_temp.gates.append(
-                        Gate(
-                            "RX",
-                            gate.targets,
-                            None,
-                            gate.arg_value,
-                            gate.arg_label,
+                        RX(
+                            targets=gate.targets,
+                            arg_value=gate.arg_value,
+                            arg_label=gate.arg_label,
                         )
                     )
                     qc_temp.gates.append(
-                        Gate(
-                            "RZ",
-                            gate.targets,
-                            None,
+                        RZ(
+                            targets=gate.targets,
                             arg_value=half_pi,
                             arg_label=r"\pi/2",
                         )
                     )
                 elif gate.name == "RZ" and "RZ" not in basis_1q:
                     qc_temp.gates.append(
-                        Gate(
-                            "RX",
-                            gate.targets,
-                            None,
+                        RX(
+                            targets = gate.targets,
                             arg_value=-half_pi,
                             arg_label=r"-\pi/2",
                         )
                     )
                     qc_temp.gates.append(
-                        Gate(
-                            "RY",
-                            gate.targets,
-                            None,
-                            gate.arg_value,
-                            gate.arg_label,
+                        RY(
+                            targets=gate.targets,
+                            arg_value=gate.arg_value,
+                            arg_label=gate.arg_label,
                         )
                     )
                     qc_temp.gates.append(
-                        Gate(
-                            "RX",
-                            gate.targets,
-                            None,
+                        RX(
+                            targets=gate.targets,
                             arg_value=half_pi,
                             arg_label=r"\pi/2",
                         )
@@ -753,7 +739,7 @@ class QubitCircuit:
                         # the required gate if and then another swap if control
                         # and target have one qubit between them, provided
                         # |control-target| is odd.
-                        temp.gates.append(Gate("SWAP", targets=[i, i + 1]))
+                        temp.gates.append(SWAP(targets=[i, i + 1]))
                         if end == gate.controls[0]:
                             temp.gates.append(
                                 Gate(
@@ -770,17 +756,14 @@ class QubitCircuit:
                                     controls=[i + 1],
                                 )
                             )
-                        temp.gates.append(Gate("SWAP", targets=[i, i + 1]))
+                        temp.gates.append(SWAP(targets=[i, i + 1]))
                         i += 1
                     else:
                         # Swap the target/s and/or control with their adjacent
                         # qubit to bring them closer.
-                        temp.gates.append(Gate("SWAP", targets=[i, i + 1]))
+                        temp.gates.append(SWAP(targets=[i, i + 1]))
                         temp.gates.append(
-                            Gate(
-                                "SWAP",
-                                targets=[start + end - i - 1, start + end - i],
-                            )
+                            SWAP(targets=[start+end - i - 1, start+end - i])
                         )
                     i += 1
 
@@ -794,19 +777,16 @@ class QubitCircuit:
                     elif (start + end - i - i) == 2 and (
                         end - start + 1
                     ) % 2 == 1:
-                        temp.gates.append(Gate("SWAP", targets=[i, i + 1]))
+                        temp.gates.append(SWAP(targets=[i, i + 1]))
                         temp.gates.append(
                             Gate(gate.name, targets=[i + 1, i + 2])
                         )
-                        temp.gates.append(Gate("SWAP", targets=[i, i + 1]))
+                        temp.gates.append(SWAP(targets=[i, i + 1]))
                         i += 1
                     else:
-                        temp.gates.append(Gate("SWAP", targets=[i, i + 1]))
+                        temp.gates.append(SWAP(targets=[i, i + 1]))
                         temp.gates.append(
-                            Gate(
-                                "SWAP",
-                                targets=[start + end - i - 1, start + end - i],
-                            )
+                            SWAP(targets=[start + end - i - 1, start + end - i])
                         )
                     i += 1
 
