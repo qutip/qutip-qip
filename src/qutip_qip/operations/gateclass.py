@@ -1,40 +1,8 @@
 import numbers
 from collections.abc import Iterable
 
-from qutip import qeye
-from qutip_qip.operations import (
-    rx,
-    ry,
-    rz,
-    sqrtnot,
-    snot,
-    phasegate,
-    x_gate,
-    y_gate,
-    z_gate,
-    cy_gate,
-    cz_gate,
-    s_gate,
-    t_gate,
-    cs_gate,
-    qrot,
-    qasmu_gate,
-    ct_gate,
-    cphase,
-    cnot,
-    csign,
-    berkeley,
-    swapalpha,
-    swap,
-    iswap,
-    sqrtswap,
-    sqrtiswap,
-    fredkin,
-    toffoli,
-    controlled_gate,
-    globalphase,
-    expand_operator,
-)
+from qutip import Qobj
+from qutip_qip.operations import controlled_gate, expand_operator
 
 
 """
@@ -225,7 +193,8 @@ class Gate:
                 )
             )
 
-    def get_compact_qobj(self):
+
+    def get_compact_qobj(self) -> Qobj:
         """
         Get the compact :class:`qutip.Qobj` representation of the gate
         operator, ignoring the controls and targets.
@@ -238,85 +207,12 @@ class Gate:
         qobj : :obj:`qutip.Qobj`
             The compact gate operator as a unitary matrix.
         """
-        # TODO This will be moved to each sub-class of Gate.
-        # However, one first needs to replace the direct use of Gate in
-        # other modules.
-        if self.name == "RX":
-            qobj = rx(self.arg_value)
-        elif self.name == "RY":
-            qobj = ry(self.arg_value)
-        elif self.name == "RZ":
-            qobj = rz(self.arg_value)
-        elif self.name == "X":
-            qobj = x_gate()
-        elif self.name == "Y":
-            qobj = y_gate()
-        elif self.name == "CY":
-            qobj = cy_gate()
-        elif self.name == "Z":
-            qobj = z_gate()
-        elif self.name == "CZ":
-            qobj = cz_gate()
-        elif self.name == "T":
-            qobj = t_gate()
-        elif self.name == "CT":
-            qobj = ct_gate()
-        elif self.name == "S":
-            qobj = s_gate()
-        elif self.name == "CS":
-            qobj = cs_gate()
-        elif self.name == "SQRTNOT":
-            qobj = sqrtnot()
-        elif self.name == "SNOT":
-            qobj = snot()
-        elif self.name == "PHASEGATE":
-            qobj = phasegate(self.arg_value)
-        elif self.name == "R":
-            qobj = qrot(*self.arg_value)
-        elif self.name == "QASMU":
-            qobj = qasmu_gate(self.arg_value)
-        elif self.name == "CRX":
-            qobj = controlled_gate(rx(self.arg_value))
-        elif self.name == "CRY":
-            qobj = controlled_gate(ry(self.arg_value))
-        elif self.name == "CRZ":
-            qobj = controlled_gate(rz(self.arg_value))
-        elif self.name == "CPHASE":
-            qobj = cphase(self.arg_value)
-        elif self.name == "CNOT":
-            qobj = cnot()
-        elif self.name == "CSIGN":
-            qobj = csign()
-        elif self.name == "BERKELEY":
-            qobj = berkeley()
-        elif self.name == "SWAPalpha":
-            qobj = swapalpha(self.arg_value)
-        elif self.name == "SWAP":
-            qobj = swap()
-        elif self.name == "ISWAP":
-            qobj = iswap()
-        elif self.name == "SQRTSWAP":
-            qobj = sqrtswap()
-        elif self.name == "SQRTISWAP":
-            qobj = sqrtiswap()
-        elif self.name == "FREDKIN":
-            qobj = fredkin()
-        elif self.name == "TOFFOLI":
-            qobj = toffoli()
-        elif self.name == "IDLE":
-            qobj = qeye(2)
-        elif self.name == "GLOBALPHASE":
-            raise NotImplementedError(
-                "Globalphase gate has no compack qobj representation."
-            )
-        else:
-            raise NotImplementedError(f"{self.name} is an unknown gate.")
-        return qobj
+        pass
 
     def get_qobj(self, num_qubits=None, dims=None):
         """
         Get the :class:`qutip.Qobj` representation of the gate operator.
-        The operator is expanded to the full Herbert space according to
+        The operator is expanded to the full Hilbert space according to
         the controls and targets qubits defined for the gate.
 
         Parameters
@@ -334,14 +230,6 @@ class Gate:
         qobj : :obj:`qutip.Qobj`
             The compact gate operator as a unitary matrix.
         """
-        if self.name == "GLOBALPHASE":
-            if num_qubits is not None:
-                return globalphase(self.arg_value, num_qubits)
-            else:
-                raise ValueError(
-                    "The number of qubits must be provided for "
-                    "global phase gates."
-                )
 
         all_targets = self.get_all_qubits()
         if num_qubits is None:

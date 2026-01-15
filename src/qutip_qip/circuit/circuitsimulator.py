@@ -528,9 +528,11 @@ class CircuitSimulator:
             # Transform the gate and state array to the corresponding
             # tensor form.
             state = state.reshape(self._tensor_dims)
+
         # Prepare the gate tensor.
         gate = self.qc._get_gate_unitary(gate)
         gate_array = gate.full().reshape(gate.dims[0] + gate.dims[1])
+
         # Compute the tensor indices and call einsum.
         num_site = len(state.shape)
         ancillary_indices = range(num_site, num_site + len(targets_indices))

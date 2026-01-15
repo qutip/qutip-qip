@@ -1,7 +1,8 @@
 from functools import partial
 import numpy as np
+import scipy.sparse as sp
 
-from qutip import Qobj, sigmax, sigmay, sigmaz
+from qutip import Qobj, sigmax, sigmay, sigmaz, qeye
 from qutip_qip.operations import (
     Gate,
     SingleQubitGate,
@@ -825,14 +826,40 @@ class GLOBALPHASE(Gate):
     >>> from qutip_qip.operations import GLOBALPHASE
     """
 
-    def __init__(self, arg_value: float, arg_label: str = None):
-        super().__init__(arg_value=arg_value, arg_label=arg_label)
+    def __init__(self, arg_value: float, arg_label: str = None, **kwargs):
+        super().__init__(arg_value=arg_value, arg_label=arg_label, **kwargs)
         self.latex_str = r"{\rm GLOBALPHASE}"
 
     def get_compact_qobj(self):
         raise NotImplementedError(
             "GlobalPhase gate has no compack qobj representation."
         )
+
+    def get_qobj(self, num_qubits):
+        theta = self.arg_value
+        N = 2**num_qubits
+
+        return Qobj(
+            np.exp(1.0j * theta) * 
+            sp.eye(N, N, dtype=complex, format="csr")
+            , dims=[[2] * num_qubits, [2] * num_qubits]
+        )
+
+class IDLE(Gate):
+    """
+    IDLE gate.
+
+    Examples
+    --------
+    >>> from qutip_qip.operations import IDLE
+    """
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.latex_str = r"{\rm IDLE}"
+
+    def get_compact_qobj(self):
+        return qeye(2)
 
 
 class TOFFOLI(Gate):

@@ -83,11 +83,14 @@ from .std_gates import (
     TOFFOLI,
     FREDKIN,
     GLOBALPHASE,
+    IDLE,
 )
 from .measurement import Measurement
 
 
 GATE_CLASS_MAP: dict[str, Gate] = {
+    "GLOBALPHASE": GLOBALPHASE,
+    "IDLE": IDLE,
     "X": X,
     "Y": Y,
     "Z": Z,
