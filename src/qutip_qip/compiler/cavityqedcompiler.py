@@ -190,10 +190,10 @@ class CavityQEDCompiler(GateCompiler):
         instruction_list = [Instruction(gate, tlist, pulse_info)]
 
         # corrections
-        gate1 = RZ(targets = q1, arg_value=correction_angle)
+        gate1 = RZ(targets=q1, arg_value=correction_angle)
         compiled_gate1 = self.gate_compiler["RZ"](gate1, args)
         instruction_list += compiled_gate1
-        gate2 = RZ(targets = q2, arg_value=correction_angle)
+        gate2 = RZ(targets=q2, arg_value=correction_angle)
         compiled_gate2 = self.gate_compiler["RZ"](gate2, args)
         instruction_list += compiled_gate2
         gate3 = GLOBALPHASE(arg_value=correction_angle)

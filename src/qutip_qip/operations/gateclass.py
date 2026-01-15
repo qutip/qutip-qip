@@ -193,7 +193,6 @@ class Gate:
                 )
             )
 
-
     def get_compact_qobj(self) -> Qobj:
         """
         Get the compact :class:`qutip.Qobj` representation of the gate
@@ -234,7 +233,7 @@ class Gate:
         all_targets = self.get_all_qubits()
         if num_qubits is None:
             num_qubits = max(all_targets) + 1
-        
+
         return expand_operator(
             self.get_compact_qobj(),
             dims=dims,
@@ -253,7 +252,7 @@ class SingleQubitGate(Gate):
             raise ValueError(
                 f"Gate {self.__class__.__name__} cannot have a control"
             )
-        
+
 
 class TwoQubitGate(Gate):
     """Abstract two-qubit gate."""

@@ -12,6 +12,7 @@ from qutip_qip.operations import (
 
 ######################### Single Qubit Gates ############################
 
+
 class X(SingleQubitGate):
     """
     Single-qubit X gate.
@@ -98,10 +99,12 @@ class RX(SingleQubitGate):
 
     def get_compact_qobj(self):
         phi = self.arg_value
-        return Qobj([
-            [np.cos(phi / 2), -1j * np.sin(phi / 2)],
-            [-1j * np.sin(phi / 2), np.cos(phi / 2)],
-        ])
+        return Qobj(
+            [
+                [np.cos(phi / 2), -1j * np.sin(phi / 2)],
+                [-1j * np.sin(phi / 2), np.cos(phi / 2)],
+            ]
+        )
 
 
 class RY(SingleQubitGate):
@@ -124,10 +127,12 @@ class RY(SingleQubitGate):
 
     def get_compact_qobj(self):
         phi = self.arg_value
-        return Qobj([
-            [np.cos(phi / 2), -np.sin(phi / 2)],
-            [np.sin(phi / 2), np.cos(phi / 2)],
-        ])
+        return Qobj(
+            [
+                [np.cos(phi / 2), -np.sin(phi / 2)],
+                [np.sin(phi / 2), np.cos(phi / 2)],
+            ]
+        )
 
 
 class RZ(SingleQubitGate):
@@ -272,16 +277,18 @@ class R(SingleQubitGate):
 
     def get_compact_qobj(self):
         phi, theta = self.arg_value
-        return Qobj([
+        return Qobj(
             [
-                np.cos(theta / 2.0),
-                -1.0j * np.exp(-1.0j * phi) * np.sin(theta / 2.0),
-            ],
-            [
-                -1.0j * np.exp(1.0j * phi) * np.sin(theta / 2.0),
-                np.cos(theta / 2.0),
-            ],
-        ])
+                [
+                    np.cos(theta / 2.0),
+                    -1.0j * np.exp(-1.0j * phi) * np.sin(theta / 2.0),
+                ],
+                [
+                    -1.0j * np.exp(1.0j * phi) * np.sin(theta / 2.0),
+                    np.cos(theta / 2.0),
+                ],
+            ]
+        )
 
 
 class QASMU(SingleQubitGate):
@@ -307,16 +314,18 @@ class QASMU(SingleQubitGate):
 
     def get_compact_qobj(self):
         theta, phi, gamma = self.arg_value
-        return Qobj([
+        return Qobj(
             [
-                np.exp(-1j*(phi+gamma)/2)*np.cos(theta/2),
-                -np.exp(-1j*(phi-gamma)/2)*np.sin(theta/2)
-            ],
-            [
-                np.exp(1j*(phi-gamma)/2)*np.sin(theta/2),
-                np.exp(1j*(phi+gamma)/2)*np.cos(theta/2)
+                [
+                    np.exp(-1j * (phi + gamma) / 2) * np.cos(theta / 2),
+                    -np.exp(-1j * (phi - gamma) / 2) * np.sin(theta / 2),
+                ],
+                [
+                    np.exp(1j * (phi - gamma) / 2) * np.sin(theta / 2),
+                    np.exp(1j * (phi + gamma) / 2) * np.cos(theta / 2),
+                ],
             ]
-        ])
+        )
 
 
 ############################ Two Qubit Gates #########################
@@ -398,12 +407,14 @@ class SQRTSWAP(TwoQubitGate):
 
     def get_compact_qobj(self):
         return Qobj(
-            np.array([
-                [1, 0, 0, 0],
-                [0, 0.5 + 0.5j, 0.5 - 0.5j, 0],
-                [0, 0.5 - 0.5j, 0.5 + 0.5j, 0],
-                [0, 0, 0, 1],
-            ]),
+            np.array(
+                [
+                    [1, 0, 0, 0],
+                    [0, 0.5 + 0.5j, 0.5 - 0.5j, 0],
+                    [0, 0.5 - 0.5j, 0.5 + 0.5j, 0],
+                    [0, 0, 0, 1],
+                ]
+            ),
             dims=[[2, 2], [2, 2]],
         )
 
@@ -430,13 +441,15 @@ class SQRTISWAP(TwoQubitGate):
 
     def get_compact_qobj(self):
         return Qobj(
-            np.array([
-                [1, 0, 0, 0],
-                [0, 1 / np.sqrt(2), 1j / np.sqrt(2), 0],
-                [0, 1j / np.sqrt(2), 1 / np.sqrt(2), 0],
-                [0, 0, 0, 1],
-            ]),
-            dims=[[2, 2], [2, 2]]
+            np.array(
+                [
+                    [1, 0, 0, 0],
+                    [0, 1 / np.sqrt(2), 1j / np.sqrt(2), 0],
+                    [0, 1j / np.sqrt(2), 1 / np.sqrt(2), 0],
+                    [0, 0, 0, 1],
+                ]
+            ),
+            dims=[[2, 2], [2, 2]],
         )
 
 
@@ -470,7 +483,8 @@ class BERKELEY(TwoQubitGate):
         self.latex_str = r"{\rm BERKELEY}"
 
     def get_compact_qobj(self):
-        return Qobj([
+        return Qobj(
+            [
                 [np.cos(np.pi / 8), 0, 0, 1.0j * np.sin(np.pi / 8)],
                 [0, np.cos(3 * np.pi / 8), 1.0j * np.sin(3 * np.pi / 8), 0],
                 [0, 1.0j * np.sin(3 * np.pi / 8), np.cos(3 * np.pi / 8), 0],
@@ -793,12 +807,16 @@ class CPHASE(_OneControlledGate):
         )
 
     def get_compact_qobj(self):
-        return Qobj([
-            [1, 0, 0, 0],
-            [0, 1, 0, 0],
-            [0, 0, 1, 0],
-            [0, 0, 0, np.exp(1j*self.arg_value)]
-        ], dims=[[2, 2], [2, 2]])
+        return Qobj(
+            [
+                [1, 0, 0, 0],
+                [0, 1, 0, 0],
+                [0, 0, 1, 0],
+                [0, 0, 0, np.exp(1j * self.arg_value)],
+            ],
+            dims=[[2, 2], [2, 2]],
+        )
+
 
 CRY = partial(_OneControlledGate, target_gate=RY)
 CRY.__doc__ = "Controlled Y rotation."
@@ -816,6 +834,7 @@ CS = partial(_OneControlledGate, target_gate=S)
 CS.__doc__ = "Controlled S gate."
 
 ########################### Special Gates #########################
+
 
 class GLOBALPHASE(Gate):
     """
@@ -840,10 +859,10 @@ class GLOBALPHASE(Gate):
         N = 2**num_qubits
 
         return Qobj(
-            np.exp(1.0j * theta) * 
-            sp.eye(N, N, dtype=complex, format="csr")
-            , dims=[[2] * num_qubits, [2] * num_qubits]
+            np.exp(1.0j * theta) * sp.eye(N, N, dtype=complex, format="csr"),
+            dims=[[2] * num_qubits, [2] * num_qubits],
         )
+
 
 class IDLE(Gate):
     """

@@ -70,7 +70,7 @@ def _ZYZ_rotation(input_gate):
     Rz_beta = RZ(
         targets=[0],
         arg_value=beta,
-        arg_label=r"{:0.2f} \times \pi".format(beta / np.pi)
+        arg_label=r"{:0.2f} \times \pi".format(beta / np.pi),
     )
     Ry_theta = RY(
         targets=[0],
@@ -125,6 +125,7 @@ def _ZXZ_rotation(input_gate):
 
 
 # Functions for ABC_decomposition
+
 
 def _ZYZ_pauli_X(input_gate):
     """Returns a 1 qubit unitary as a product of ZYZ rotation matrices and

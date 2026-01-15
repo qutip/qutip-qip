@@ -583,14 +583,14 @@ class QubitCircuit:
         for gate in self.gates:
             if gate.name in ("X", "Y", "Z"):
                 qc_temp.gates.append(GLOBALPHASE(arg_value=np.pi / 2))
-                
-                if gate.name == 'X':
+
+                if gate.name == "X":
                     gate = RX(targets=gate.targets, arg_value=np.pi)
-                elif gate.name == 'Y':
+                elif gate.name == "Y":
                     gate = RY(targets=gate.targets, arg_value=np.pi)
                 else:
                     gate = RZ(targets=gate.targets, arg_value=np.pi)
-            
+
             try:
                 _resolve_to_universal(gate, temp_resolved, basis_1q, basis_2q)
             except KeyError:
@@ -661,7 +661,7 @@ class QubitCircuit:
                 elif gate.name == "RZ" and "RZ" not in basis_1q:
                     qc_temp.gates.append(
                         RX(
-                            targets = gate.targets,
+                            targets=gate.targets,
                             arg_value=-half_pi,
                             arg_label=r"-\pi/2",
                         )
@@ -770,7 +770,9 @@ class QubitCircuit:
                         # qubit to bring them closer.
                         temp.gates.append(SWAP(targets=[i, i + 1]))
                         temp.gates.append(
-                            SWAP(targets=[start+end - i - 1, start+end - i])
+                            SWAP(
+                                targets=[start + end - i - 1, start + end - i]
+                            )
                         )
                     i += 1
 
@@ -786,15 +788,15 @@ class QubitCircuit:
                         end - start + 1
                     ) % 2 == 1:
                         temp.gates.append(SWAP(targets=[i, i + 1]))
-                        temp.gates.append(
-                            gate_cls(targets=[i + 1, i + 2])
-                        )
+                        temp.gates.append(gate_cls(targets=[i + 1, i + 2]))
                         temp.gates.append(SWAP(targets=[i, i + 1]))
                         i += 1
                     else:
                         temp.gates.append(SWAP(targets=[i, i + 1]))
                         temp.gates.append(
-                            SWAP(targets=[start + end - i - 1, start + end - i])
+                            SWAP(
+                                targets=[start + end - i - 1, start + end - i]
+                            )
                         )
                     i += 1
 

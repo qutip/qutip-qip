@@ -266,12 +266,13 @@ def test_scheduling_pulse(
     circuit = QubitCircuit(4)
     for instruction in instructions:
         gate_cls = GATE_CLASS_MAP[instruction.name]
-        
+
         if issubclass(gate_cls, ControlledGate):
-            circuit.add_gate(gate_cls(
-                targets=instruction.targets,
-                controls=instruction.controls
-            ))
+            circuit.add_gate(
+                gate_cls(
+                    targets=instruction.targets, controls=instruction.controls
+                )
+            )
         else:
             circuit.add_gate(gate_cls(instruction.targets))
 
