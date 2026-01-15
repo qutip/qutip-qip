@@ -7,8 +7,6 @@ from qutip_qip.operations import (
     SingleQubitGate,
     TwoQubitGate,
     ControlledGate,
-    qasmu_gate,
-    cphase,
 )
 
 ######################### Single Qubit Gates ############################
@@ -307,7 +305,17 @@ class QASMU(SingleQubitGate):
         self.latex_str = r"{\rm QASM-U}"
 
     def get_compact_qobj(self):
-        return qasmu_gate(self.arg_value)
+        theta, phi, gamma = self.arg_value
+        return Qobj([
+            [
+                np.exp(-1j*(phi+gamma)/2)*np.cos(theta/2),
+                -np.exp(-1j*(phi-gamma)/2)*np.sin(theta/2)
+            ],
+            [
+                np.exp(1j*(phi-gamma)/2)*np.sin(theta/2),
+                np.exp(1j*(phi+gamma)/2)*np.cos(theta/2)
+            ]
+        ])
 
 
 ############################ Two Qubit Gates #########################
@@ -784,7 +792,12 @@ class CPHASE(_OneControlledGate):
         )
 
     def get_compact_qobj(self):
-        return cphase(self.arg_value).tidyup()
+        return Qobj([
+            [1, 0, 0, 0],
+            [0, 1, 0, 0],
+            [0, 0, 1, 0],
+            [0, 0, 0, np.exp(1j*self.arg_value)]
+        ], dims=[[2, 2], [2, 2]])
 
 CRY = partial(_OneControlledGate, target_gate=RY)
 CRY.__doc__ = "Controlled Y rotation."
