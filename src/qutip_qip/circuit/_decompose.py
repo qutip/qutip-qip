@@ -165,18 +165,6 @@ def _gate_TOFFOLI(gate, temp_resolved):
     ])
 
 
-def _gate_GLOBALPHASE(gate, temp_resolved):
-    temp_resolved.append(
-        Gate(
-            gate.name,
-            gate.targets,
-            gate.controls,
-            gate.arg_value,
-            gate.arg_label,
-        )
-    )
-
-
 def _basis_CSIGN(qc_temp, temp_resolved):
     half_pi = np.pi / 2
     for gate in temp_resolved:

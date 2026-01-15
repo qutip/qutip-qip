@@ -583,9 +583,14 @@ class QubitCircuit:
         for gate in self.gates:
             if gate.name in ("X", "Y", "Z"):
                 qc_temp.gates.append(GLOBALPHASE(arg_value=np.pi / 2))
-                gate = Gate(
-                    "R" + gate.name, targets=gate.targets, arg_value=np.pi
-                )
+                
+                if gate.name == 'X':
+                    gate = RX(targets=gate.targets, arg_value=np.pi)
+                elif gate.name == 'Y':
+                    gate = RY(targets=gate.targets, arg_value=np.pi)
+                else:
+                    gate = RZ(targets=gate.targets, arg_value=np.pi)
+            
             try:
                 _resolve_to_universal(gate, temp_resolved, basis_1q, basis_2q)
             except KeyError:
@@ -725,13 +730,14 @@ class QubitCircuit:
                     if start + end - i - i == 1 and (end - start + 1) % 2 == 0:
                         # Apply required gate if control, target are adjacent
                         # to each other, provided |control-target| is even.
+                        gate_cls = GATE_CLASS_MAP[gate.name]
                         if end == gate.controls[0]:
                             temp.gates.append(
-                                Gate(gate.name, targets=[i], controls=[i + 1])
+                                gate_cls(targets=[i], controls=[i + 1])
                             )
                         else:
                             temp.gates.append(
-                                Gate(gate.name, targets=[i + 1], controls=[i])
+                                gate_cls(targets=[i + 1], controls=[i])
                             )
                     elif (
                         start + end - i - i == 2 and (end - start + 1) % 2 == 1
@@ -741,18 +747,18 @@ class QubitCircuit:
                         # and target have one qubit between them, provided
                         # |control-target| is odd.
                         temp.gates.append(SWAP(targets=[i, i + 1]))
+                        gate_cls = GATE_CLASS_MAP[gate.name]
+
                         if end == gate.controls[0]:
                             temp.gates.append(
-                                Gate(
-                                    gate.name,
+                                gate_cls(
                                     targets=[i + 1],
                                     controls=[i + 2],
                                 )
                             )
                         else:
                             temp.gates.append(
-                                Gate(
-                                    gate.name,
+                                gate_cls(
                                     targets=[i + 2],
                                     controls=[i + 1],
                                 )
@@ -773,14 +779,15 @@ class QubitCircuit:
                 end = max([gate.targets[0], gate.targets[1]])
                 i = start
                 while i < end:
+                    gate_cls = GATE_CLASS_MAP[gate.name]
                     if start + end - i - i == 1 and (end - start + 1) % 2 == 0:
-                        temp.gates.append(Gate(gate.name, targets=[i, i + 1]))
+                        temp.gates.append(gate_cls(targets=[i, i + 1]))
                     elif (start + end - i - i) == 2 and (
                         end - start + 1
                     ) % 2 == 1:
                         temp.gates.append(SWAP(targets=[i, i + 1]))
                         temp.gates.append(
-                            Gate(gate.name, targets=[i + 1, i + 2])
+                            gate_cls(targets=[i + 1, i + 2])
                         )
                         temp.gates.append(SWAP(targets=[i, i + 1]))
                         i += 1
