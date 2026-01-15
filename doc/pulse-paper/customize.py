@@ -25,7 +25,7 @@ from qutip import (
     fock_dm,
 )
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import Gate
+from qutip_qip.operations import Gate, GLOBALPHASE
 from qutip_qip.device import ModelProcessor, Model
 from qutip_qip.compiler import GateCompiler, Instruction
 from qutip_qip.noise import Noise
@@ -86,6 +86,7 @@ class MyCompiler(GateCompiler):
             Instruction (qutip_qip.compiler.instruction.Instruction): An instruction
             to implement a gate containing the control pulses.
         """
+
         pulse_info = [
             # (control label, coeff)
             ("sx" + str(gate.targets[0]), np.cos(phase) * coeff),
@@ -219,10 +220,10 @@ def single_crosstalk_simulation(num_gates):
     myprocessor.add_noise(ClassicalCrossTalk(1.0))
     # Define a randome circuit.
     gates_set = [
-        Gate(name="ROT", target=0, arg_value=0),
-        Gate(name="ROT", target=0, arg_value=np.pi / 2),
-        Gate(name="ROT", target=0, arg_value=np.pi),
-        Gate(name="ROT", target=0, arg_value=np.pi / 2 * 3),
+        Gate(name="ROT", targets=0, arg_value=0),
+        Gate(name="ROT", targets=0, arg_value=np.pi / 2),
+        Gate(name="ROT", targets=0, arg_value=np.pi),
+        Gate(name="ROT", targets=0, arg_value=np.pi / 2 * 3),
     ]
     circuit = QubitCircuit(num_qubits)
     for ind in np.random.randint(0, 4, num_gates):

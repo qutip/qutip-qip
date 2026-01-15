@@ -785,7 +785,7 @@ class CPHASE(_OneControlledGate):
     Examples
     --------
     >>> from qutip_qip.operations import CPHASE
-    >>> CPHASE(0, 1, np.pi/2).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> CPHASE(0, 1, np.pi/2).get_compact_qobj().tidyup() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[1.+0.j 0.+0.j 0.+0.j 0.+0.j]

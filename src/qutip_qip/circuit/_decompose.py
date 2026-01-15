@@ -100,6 +100,11 @@ def _gate_SWAP(gate, temp_resolved):
     )
 
 
+# FIXME the below method needs to be removed
+def _gate_GLOBALPHASE(gate, temp_resolved):
+    return temp_resolved
+
+
 def _gate_ISWAP(gate, temp_resolved):
     half_pi = np.pi / 2
     temp_resolved.extend(
