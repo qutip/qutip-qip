@@ -352,3 +352,70 @@ class Gate:
             dims=dims,
             targets=all_targets,
         )
+
+
+class SingleQubitGate(Gate):
+    def __init__(self, targets, **kwargs):
+        super().__init__(targets=targets, **kwargs)
+        if self.targets is None or len(self.targets) != 1:
+            raise ValueError(
+                f"Gate {self.__class__.__name__} requires one target"
+            )
+        if self.controls:
+            raise ValueError(
+                f"Gate {self.__class__.__name__} cannot have a control"
+            )
+        
+
+class TwoQubitGate(Gate):
+    """Abstract two-qubit gate."""
+
+    def __init__(self, targets, **kwargs):
+        super().__init__(targets=targets, **kwargs)
+        if len(self.get_all_qubits()) != 2:
+            raise ValueError(
+                f"Gate {self.__class__.__name__} requires two targets"
+            )
+
+
+class ControlledGate(Gate):
+    def __init__(
+        self,
+        target_gate,
+        controls,
+        targets,
+        control_value,
+        **kwargs,
+    ):
+        super().__init__(
+            controls=controls,
+            targets=targets,
+            control_value=control_value,
+            target_gate=target_gate,
+            **kwargs,
+        )
+        self.controls = (
+            [controls] if not isinstance(controls, list) else controls
+        )
+        self.control_value = control_value
+        self.target_gate = target_gate
+        self.kwargs = kwargs
+        # In the circuit plot, only the target gate is shown.
+        # The control has its own symbol.
+        self.latex_str = target_gate(
+            targets=self.targets, **self.kwargs
+        ).latex_str
+
+    def get_compact_qobj(self):
+        return controlled_gate(
+            U=self.target_gate(
+                targets=self.targets, **self.kwargs
+            ).get_compact_qobj(),
+            controls=list(range(len(self.controls))),
+            targets=list(
+                range(
+                    len(self.controls), len(self.targets) + len(self.controls)
+                )
+            ),
+            control_value=self.control_value,
+        )

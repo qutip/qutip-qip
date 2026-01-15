@@ -41,9 +41,13 @@ from .gates import (
     gate_sequence_product,
 )
 
-from .gateclass import Gate
-from .single_qubit_gates import (
+from .gateclass import (
+    Gate,
     SingleQubitGate,
+    TwoQubitGate,
+    ControlledGate,
+)
+from .std_gates import (
     X,
     Y,
     Z,
@@ -57,10 +61,6 @@ from .single_qubit_gates import (
     T,
     R,
     QASMU,
-)
-
-from .two_qubit_gates import (
-    TwoQubitGate,
     SWAP,
     ISWAP,
     SQRTSWAP,
@@ -69,9 +69,6 @@ from .two_qubit_gates import (
     BERKELEY,
     MS,
     RZX,
-)
-from .controlled_gates import (
-    ControlledGate,
     CX,
     CY,
     CZ,
@@ -83,8 +80,10 @@ from .controlled_gates import (
     CNOT,
     CPHASE,
     CSIGN,
+    TOFFOLI,
+    FREDKIN,
+    GLOBALPHASE,
 )
-from .special_gates import TOFFOLI, FREDKIN, GLOBALPHASE
 from .measurement import Measurement
 
 
@@ -133,6 +132,7 @@ __all__ = [
     "TwoQubitGate",
     "ControlledGate",
     "Measurement",
+    "GATE_CLASS_MAP",
     "GLOBALPHASE",
     "rx",
     "ry",
@@ -170,7 +170,6 @@ __all__ = [
     "qubit_clifford_group",
     "expand_operator",
     "gate_sequence_product",
-    "GATE_CLASS_MAP",
     "X",
     "Y",
     "Z",
