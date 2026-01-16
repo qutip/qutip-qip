@@ -22,6 +22,7 @@ from qutip import (
 from qutip_qip.qasm import read_qasm
 from qutip_qip.operations import (
     Gate,
+    SWAP,
     gates,
     Measurement,
     gate_sequence_product,
@@ -145,7 +146,7 @@ class TestQubitCircuit:
         """
         qc = QubitCircuit(6)
         qc.add_gate("CNOT", targets=[1], controls=[0])
-        test_gate = Gate("SWAP", targets=[1, 4])
+        test_gate = SWAP(targets=[1, 4])
         qc.add_gate(test_gate)
         qc.add_gate("TOFFOLI", controls=[0, 1], targets=[2])
         qc.add_gate("SNOT", targets=[3])
@@ -174,7 +175,7 @@ class TestQubitCircuit:
         assert qc.gates[6].targets == [5]
         assert qc.gates[6].arg_value == 1.570796
 
-        # Test adding 1 qubit gate on qubits [3] 
+        # Test adding 1 qubit gate on qubits [3]
         assert qc.gates[7].name == "RX"
         assert qc.gates[7].targets == [3]
         assert qc.gates[7].arg_value == -1.570796
@@ -187,18 +188,18 @@ class TestQubitCircuit:
         # NOTE: Every insertion shifts the indices in the original list of
         #       gates by an additional position to the right.
         expected_gate_names = [
-            'CNOT',     # 0
-            'DUMMY1',   # 1
-            'SWAP',     # 2
-            'TOFFOLI',  # 3
-            'DUMMY1',   # 4
-            'SWAP',     # 5
-            'DUMMY1',   # 6
-            'SNOT',     # 7
-            'RY',       # 8
-            'DUMMY1',   # 9
-            'RY',       # 10
-            'RX',       # 11
+            "CNOT",  # 0
+            "DUMMY1",  # 1
+            "SWAP",  # 2
+            "TOFFOLI",  # 3
+            "DUMMY1",  # 4
+            "SWAP",  # 5
+            "DUMMY1",  # 6
+            "SNOT",  # 7
+            "RY",  # 8
+            "DUMMY1",  # 9
+            "RY",  # 10
+            "RX",  # 11
         ]
         actual_gate_names = [gate.name for gate in qc.gates]
         assert actual_gate_names == expected_gate_names
@@ -209,20 +210,20 @@ class TestQubitCircuit:
 
         # Test adding gates at multiple (unsorted) indices at once.
         expected_gate_names = [
-            'DUMMY2',   # 0
-            'CNOT',     # 1
-            'DUMMY1',   # 2
-            'SWAP',     # 3
-            'TOFFOLI',  # 4
-            'DUMMY1',   # 5
-            'SWAP',     # 6
-            'DUMMY1',   # 7
-            'SNOT',     # 8
-            'RY',       # 9
-            'DUMMY1',   # 10
-            'RY',       # 11
-            'DUMMY2',   # 12
-            'RX',       # 13
+            "DUMMY2",  # 0
+            "CNOT",  # 1
+            "DUMMY1",  # 2
+            "SWAP",  # 3
+            "TOFFOLI",  # 4
+            "DUMMY1",  # 5
+            "SWAP",  # 6
+            "DUMMY1",  # 7
+            "SNOT",  # 8
+            "RY",  # 9
+            "DUMMY1",  # 10
+            "RY",  # 11
+            "DUMMY2",  # 12
+            "RX",  # 13
         ]
         actual_gate_names = [gate.name for gate in qc.gates]
         assert actual_gate_names == expected_gate_names
@@ -243,7 +244,7 @@ class TestQubitCircuit:
 
         qc = QubitCircuit(6)
         qc.add_gate("CNOT", targets=[1], controls=[0])
-        test_gate = Gate("SWAP", targets=[1, 4])
+        test_gate = SWAP(targets=[1, 4])
         qc.add_gate(test_gate)
         qc.add_gate("TOFFOLI", controls=[0, 1], targets=[2])
         qc.add_gate("SNOT", targets=[3])
@@ -807,7 +808,7 @@ class TestQubitCircuit:
     def test_deprecation_warning(self):
         # Make them available for backward compatibility.
         with pytest.warns(DeprecationWarning):
-            from qutip_qip.circuit import Gate, Measurement
+            from qutip_qip.circuit import Gate
 
             Gate("X", 0)
 

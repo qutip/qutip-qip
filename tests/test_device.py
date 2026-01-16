@@ -1,6 +1,7 @@
 from itertools import product
 from functools import reduce
 from operator import mul
+from copy import deepcopy
 
 import warnings
 import numpy as np
@@ -8,22 +9,39 @@ import pytest
 
 import qutip
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import Gate, gate_sequence_product, RZX
-from qutip_qip.device import (DispersiveCavityQED, LinearSpinChain,
-                                CircularSpinChain, SCQubits)
+from qutip_qip.operations import (
+    X,
+    Y,
+    Z,
+    SNOT,
+    RX,
+    RY,
+    RZ,
+    ISWAP,
+    SQRTISWAP,
+    CNOT,
+    RZX,
+    gate_sequence_product,
+)
+from qutip_qip.device import (
+    DispersiveCavityQED,
+    LinearSpinChain,
+    CircularSpinChain,
+    SCQubits,
+)
 
-_tol = 3.e-2
+_tol = 3.0e-2
 
-_x = Gate("X", targets=[0])
-_z = Gate("Z", targets=[0])
-_y = Gate("Y", targets=[0])
-_snot = Gate("SNOT", targets=[0])
-_rz = Gate("RZ", targets=[0], arg_value=np.pi/2, arg_label=r"\pi/2")
-_rx = Gate("RX", targets=[0], arg_value=np.pi/2, arg_label=r"\pi/2")
-_ry = Gate("RY", targets=[0], arg_value=np.pi/2, arg_label=r"\pi/2")
-_iswap = Gate("ISWAP", targets=[0, 1])
-_cnot = Gate("CNOT", targets=[0], controls=[1])
-_sqrt_iswap = Gate("SQRTISWAP", targets=[0, 1])
+_x = X(targets=[0])
+_y = Y(targets=[0])
+_z = Z(targets=[0])
+_snot = SNOT(targets=[0])
+_rx = RX(targets=[0], arg_value=np.pi / 2, arg_label=r"\pi/2")
+_ry = RY(targets=[0], arg_value=np.pi / 2, arg_label=r"\pi/2")
+_rz = RZ(targets=[0], arg_value=np.pi / 2, arg_label=r"\pi/2")
+_iswap = ISWAP(targets=[0, 1])
+_cnot = CNOT(targets=[0], controls=[1])
+_sqrt_iswap = SQRTISWAP(targets=[0, 1])
 
 
 single_gate_tests = [
@@ -44,32 +62,33 @@ def _ket_expaned_dims(qubit_state, expanded_dims):
     all_qubit_basis = list(product([0, 1], repeat=len(expanded_dims)))
     old_dims = qubit_state.dims[0]
     expanded_qubit_state = np.zeros(
-        reduce(mul, expanded_dims, 1), dtype=np.complex128)
+        reduce(mul, expanded_dims, 1), dtype=np.complex128
+    )
     for basis_state in all_qubit_basis:
         old_ind = np.ravel_multi_index(basis_state, old_dims)
         new_ind = np.ravel_multi_index(basis_state, expanded_dims)
         expanded_qubit_state[new_ind] = qubit_state[old_ind, 0]
     expanded_qubit_state.reshape((reduce(mul, expanded_dims, 1), 1))
     return qutip.Qobj(
-        expanded_qubit_state, dims=[expanded_dims, [1]*len(expanded_dims)])
+        expanded_qubit_state, dims=[expanded_dims, [1] * len(expanded_dims)]
+    )
 
 
 device_lists_analytic = [
-    pytest.param(DispersiveCavityQED, {"g":0.1}, id = "DispersiveCavityQED"),
-    pytest.param(LinearSpinChain, {}, id = "LinearSpinChain"),
-    pytest.param(CircularSpinChain, {}, id = "CircularSpinChain"),
+    pytest.param(DispersiveCavityQED, {"g": 0.1}, id="DispersiveCavityQED"),
+    pytest.param(LinearSpinChain, {}, id="LinearSpinChain"),
+    pytest.param(CircularSpinChain, {}, id="CircularSpinChain"),
 ]
 
 device_lists_numeric = device_lists_analytic + [
     # Does not support global phase
-    pytest.param(SCQubits, {}, id = "SCQubits"),
+    pytest.param(SCQubits, {}, id="SCQubits"),
 ]
 
 
 @pytest.mark.parametrize(("num_qubits", "gates"), single_gate_tests)
 @pytest.mark.parametrize(("device_class", "kwargs"), device_lists_analytic)
-def test_device_against_gate_sequence(
-    num_qubits, gates, device_class, kwargs):
+def test_device_against_gate_sequence(num_qubits, gates, device_class, kwargs):
     circuit = QubitCircuit(num_qubits)
     for gate in gates:
         circuit.add_gate(gate)
@@ -87,7 +106,7 @@ def test_analytical_evolution(num_qubits, gates, device_class, kwargs):
     for gate in gates:
         circuit.add_gate(gate)
     state = qutip.rand_ket(2**num_qubits)
-    state.dims = [[2]*num_qubits, [1]*num_qubits]
+    state.dims = [[2] * num_qubits, [1] * num_qubits]
     ideal = circuit.run(state)
     device = device_class(num_qubits)
     operators = device.run_state(init_state=state, qc=circuit, analytical=True)
@@ -103,11 +122,13 @@ def test_numerical_evolution(num_qubits, gates, device_class, kwargs):
 
 
 # Test for RZX gate, only available on SCQubits.
-_rzx = RZX([0, 1], arg_value=np.pi/2)
+_rzx = RZX([0, 1], arg_value=np.pi / 2)
+
+
 @pytest.mark.parametrize(
-    ("num_qubits", "gates", "device_class", "kwargs"), 
-    [pytest.param(2, [_rzx], SCQubits, {}, id="RZX-SCQubits")]
-    )
+    ("num_qubits", "gates", "device_class", "kwargs"),
+    [pytest.param(2, [_rzx], SCQubits, {}, id="RZX-SCQubits")],
+)
 def test_numerical_evolution_zx(num_qubits, gates, device_class, kwargs):
     _test_numerical_evolution_helper(num_qubits, gates, device_class, kwargs)
 
@@ -121,22 +142,22 @@ def _test_numerical_evolution_helper(num_qubits, gates, device_class, kwargs):
     device.load_circuit(circuit)
 
     state = qutip.rand_ket(2**num_qubits)
-    state.dims = [[2]*num_qubits, [1]*num_qubits]
+    state.dims = [[2] * num_qubits, [1] * num_qubits]
     target = circuit.run(state)
     if isinstance(device, DispersiveCavityQED):
-        num_ancilla = len(device.dims)-num_qubits
+        num_ancilla = len(device.dims) - num_qubits
         ancilla_indices = slice(0, num_ancilla)
-        extra = qutip.basis(device.dims[ancilla_indices], [0]*num_ancilla)
+        extra = qutip.basis(device.dims[ancilla_indices], [0] * num_ancilla)
         init_state = qutip.tensor(extra, state)
     elif isinstance(device, SCQubits):
         # expand to 3-level represetnation
         init_state = _ket_expaned_dims(state, device.dims)
     else:
         init_state = state
-    options = {'store_final_state': True, 'nsteps': 50000}
-    result = device.run_state(init_state=init_state,
-                              analytical=False,
-                              options=options)
+    options = {"store_final_state": True, "nsteps": 50000}
+    result = device.run_state(
+        init_state=init_state, analytical=False, options=options
+    )
     numerical_result = result.final_state
     if isinstance(device, DispersiveCavityQED):
         target = qutip.tensor(extra, target)
@@ -146,30 +167,36 @@ def _test_numerical_evolution_helper(num_qubits, gates, device_class, kwargs):
 
 
 circuit = QubitCircuit(3)
-circuit.add_gate("RX", targets=[0], arg_value=np.pi/2)
+circuit.add_gate("RX", targets=[0], arg_value=np.pi / 2)
 circuit.add_gate("RZ", targets=[2], arg_value=np.pi)
 circuit.add_gate("CNOT", targets=[0], controls=[1])
 circuit.add_gate("ISWAP", targets=[2, 1])
 circuit.add_gate("Y", targets=[2])
 circuit.add_gate("Z", targets=[0])
-circuit.add_gate("IDLE", targets=[1], arg_value=1.)
+circuit.add_gate("IDLE", targets=[1], arg_value=1.0)
 circuit.add_gate("CNOT", targets=[0], controls=[2])
 circuit.add_gate("Z", targets=[1])
 circuit.add_gate("X", targets=[1])
 
-from copy import deepcopy
 circuit2 = deepcopy(circuit)
 circuit2.add_gate("SQRTISWAP", targets=[0, 2])  # supported only by SpinChain
 
 
 @pytest.mark.filterwarnings("ignore:Not in the dispersive regime")
-@pytest.mark.parametrize(("circuit", "device_class", "kwargs"), [
-    pytest.param(circuit, DispersiveCavityQED, {"g":0.1}, id = "DispersiveCavityQED"),
-    pytest.param(circuit2, LinearSpinChain, {}, id = "LinearSpinChain"),
-    pytest.param(circuit2, CircularSpinChain, {}, id = "CircularSpinChain"),
-    # The length of circuit is limited for SCQubits due to leakage
-    pytest.param(circuit, SCQubits, {"omega_single":[0.02]*3}, id = "SCQubits"),
-])
+@pytest.mark.parametrize(
+    ("circuit", "device_class", "kwargs"),
+    [
+        pytest.param(
+            circuit, DispersiveCavityQED, {"g": 0.1}, id="DispersiveCavityQED"
+        ),
+        pytest.param(circuit2, LinearSpinChain, {}, id="LinearSpinChain"),
+        pytest.param(circuit2, CircularSpinChain, {}, id="CircularSpinChain"),
+        # The length of circuit is limited for SCQubits due to leakage
+        pytest.param(
+            circuit, SCQubits, {"omega_single": [0.02] * 3}, id="SCQubits"
+        ),
+    ],
+)
 @pytest.mark.parametrize(("schedule_mode"), ["ASAP", "ALAP", None])
 def test_numerical_circuit(circuit, device_class, kwargs, schedule_mode):
     num_qubits = circuit.N
@@ -178,22 +205,22 @@ def test_numerical_circuit(circuit, device_class, kwargs, schedule_mode):
     device.load_circuit(circuit, schedule_mode=schedule_mode)
 
     state = qutip.rand_ket(2**num_qubits)
-    state.dims = [[2]*num_qubits, [1]*num_qubits]
+    state.dims = [[2] * num_qubits, [1] * num_qubits]
     target = circuit.run(state)
     if isinstance(device, DispersiveCavityQED):
-        num_ancilla = len(device.dims)-num_qubits
+        num_ancilla = len(device.dims) - num_qubits
         ancilla_indices = slice(0, num_ancilla)
-        extra = qutip.basis(device.dims[ancilla_indices], [0]*num_ancilla)
+        extra = qutip.basis(device.dims[ancilla_indices], [0] * num_ancilla)
         init_state = qutip.tensor(extra, state)
     elif isinstance(device, SCQubits):
         # expand to 3-level represetnation
         init_state = _ket_expaned_dims(state, device.dims)
     else:
         init_state = state
-    options = {'store_final_state': True, 'nsteps': 50000}
-    result = device.run_state(init_state=init_state,
-                              analytical=False,
-                              options=options)
+    options = {"store_final_state": True, "nsteps": 50000}
+    result = device.run_state(
+        init_state=init_state, analytical=False, options=options
+    )
     if isinstance(device, DispersiveCavityQED):
         target = qutip.tensor(extra, target)
     elif isinstance(device, SCQubits):
@@ -203,7 +230,8 @@ def test_numerical_circuit(circuit, device_class, kwargs, schedule_mode):
 
 @pytest.mark.parametrize(
     "processor_class",
-    [DispersiveCavityQED, LinearSpinChain, CircularSpinChain, SCQubits])
+    [DispersiveCavityQED, LinearSpinChain, CircularSpinChain, SCQubits],
+)
 def test_pulse_plotting(processor_class):
     plt = pytest.importorskip("matplotlib.pyplot")
     qc = QubitCircuit(3)
@@ -219,10 +247,8 @@ def test_pulse_plotting(processor_class):
 def _compute_propagator(processor, circuit):
     qevo, _ = processor.get_qobjevo(noisy=True)
     result = qutip.propagator(
-        qevo,
-        t=processor.get_full_tlist(),
-        parallel=False
-        )[-1]
+        qevo, t=processor.get_full_tlist(), parallel=False
+    )[-1]
     return result
 
 
