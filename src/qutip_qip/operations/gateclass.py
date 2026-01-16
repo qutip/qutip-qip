@@ -1,5 +1,6 @@
 import numbers
 from collections.abc import Iterable
+from abc import ABC, abstractmethod
 
 from qutip import Qobj
 from qutip_qip.operations import controlled_gate, expand_operator
@@ -13,7 +14,7 @@ from qutip_qip.operations import controlled_gate, expand_operator
 """
 
 
-class Gate:
+class Gate(ABC):
     r"""
     Base class for a quantum gate,
     concrete gate classes need to be defined as subclasses.
@@ -195,6 +196,7 @@ class Gate:
                 )
             )
 
+    @abstractmethod
     def get_compact_qobj(self) -> Qobj:
         """
         Get the compact :class:`qutip.Qobj` representation of the gate

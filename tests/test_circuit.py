@@ -184,6 +184,15 @@ class TestQubitCircuit:
         class DUMMY1(Gate):
             def __init__(self, **kwargs):
                 super().__init__(**kwargs)
+            def get_compact_qobj(self):
+                pass
+
+        class DUMMY2(Gate):
+            def __init__(self, **kwargs):
+                super().__init__(**kwargs)
+            def get_compact_qobj(self):
+                pass
+
         inds = [1, 3, 4, 6]
         qc.add_gate(DUMMY1, index=inds)
 
@@ -207,9 +216,6 @@ class TestQubitCircuit:
         actual_gate_names = [gate.name for gate in qc.gates]
         assert actual_gate_names == expected_gate_names
 
-        class DUMMY2(Gate):
-            def __init__(self, **kwargs):
-                super().__init__(**kwargs)
         inds = [11, 0]
         qc.add_gate(DUMMY2, index=inds)
 
@@ -804,13 +810,6 @@ class TestQubitCircuit:
             file_svg = "exported_pic.svg"
             qc.draw("svg", file_svg.split(".")[0], True)
             assert file_svg in os.listdir(".")
-
-    def test_deprecation_warning(self):
-        # Make them available for backward compatibility.
-        with pytest.warns(DeprecationWarning):
-            from qutip_qip.circuit import Gate
-
-            Gate("X", 0)
 
     def test_circuit_chain_structure(self):
         """
