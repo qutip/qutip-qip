@@ -215,12 +215,10 @@ class QubitCircuit:
             elif gate in GATE_CLASS_MAP:
                 gate_class = GATE_CLASS_MAP[gate]
             else:
-                gate_class = Gate
-            # else:
-            #     raise ValueError(
-            #         "Can only pass standard gate name as strings"\
-            #         "or Gate class or its object instantiation"
-            #     )
+                raise ValueError(
+                    "Can only pass standard gate name as strings"\
+                    "or Gate class or its object instantiation"
+                )
 
             gate = gate_class(
                 name=name_arg,

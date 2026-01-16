@@ -3,13 +3,14 @@ import numpy as np
 from unittest.mock import patch
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.circuit.draw import TextRenderer
+from qutip_qip.operations import Gate
 
 
 @pytest.fixture
 def qc1():
     qc = QubitCircuit(4)
     qc.add_gate("ISWAP", targets=[2, 3])
-    qc.add_gate("CTRLRX", targets=[0, 1], controls=[2, 3], arg_value=np.pi / 2)
+    qc.add_gate("CRX", targets=[0], controls=[1], arg_value=np.pi / 2)
     qc.add_gate("SWAP", targets=[0, 3])
     qc.add_gate("BERKELEY", targets=[0, 3])
     qc.add_gate("FREDKIN", controls=[3], targets=[1, 2])
@@ -63,26 +64,38 @@ def qc3():
 
 @pytest.fixture
 def qc4():
+    class i(Gate):
+        def get_compact_qobj(self):
+            pass
+
+    class ii(Gate):
+        def get_compact_qobj(self):
+            pass
+
+    class iii(Gate):
+        def get_compact_qobj(self):
+            pass
+
     qc = QubitCircuit(5, num_cbits=2)
     qc.add_gate(
         "X", targets=0, classical_controls=[0, 1], classical_control_value=0
     )
-    qc.add_gate("i", targets=1, controls=2)
+    qc.add_gate(i, targets=1, controls=2)
     qc.add_gate(
-        "ii",
+        ii,
         targets=1,
         classical_controls=1,
         controls=[3, 4],
         classical_control_value=1,
     )
     qc.add_gate(
-        "iii",
+        iii,
         targets=1,
         classical_controls=1,
         controls=4,
         classical_control_value=1,
     )
-    qc.add_gate("ii", targets=2, controls=[4, 3])
+    qc.add_gate(ii, targets=2, controls=[4, 3])
     qc.add_gate("SWAP", targets=[0, 1])
     return qc
 
@@ -92,22 +105,22 @@ def test_layout_qc1(qc1):
     tr.layout()
     assert tr._render_strs == {
         "top_frame": [
-            "                   │        │   │   │          │                    │          │      │    ",
-            "                   ┌────┴───┐   │   │          │  │         │  ┌────┴────┐  ┌────┐    │    ",
-            "        │       │       │       │   │          │  ┌────┴────┐                  │      │    ",
-            "        ┌───────┐                   ┌──────────┐                            ┌─────┐        ",
+            "        ┌──┴──┐     │   │          │                    │          │      │    ",
+            "                    │   │          │  │         │  ┌────┴────┐  ┌────┐    │    ",
+            "        │       │   │   │          │  ┌────┴────┐                  │      │    ",
+            "        ┌───────┐       ┌──────────┐                            ┌─────┐        ",
         ],
         "mid_frame": [
-            " q0 :──────────────┤ CTRLRX ├───╳───┤ BERKELEY ├────────────────────█──────────█──────╳────",
-            " q1 :──────────────┤        ├───│── │          │ ─┤ FREDKIN ├──┤ TOFFOLI ├──┤ CX ├────│────",
-            " q2 :───┤ ISWAP ├───────█───────│── │          │ ─┤         ├───────█──────────█──────│────",
-            " q3 :───┤       ├───────█───────╳───┤          ├───────█────────────────────┤ CRX ├───╳────",
+            " q0 :───┤ CRX ├─────╳───┤ BERKELEY ├────────────────────█──────────█──────╳────",
+            " q1 :──────█────────│── │          │ ─┤ FREDKIN ├──┤ TOFFOLI ├──┤ CX ├────│────",
+            " q2 :───┤ ISWAP ├───│── │          │ ─┤         ├───────█──────────█──────│────",
+            " q3 :───┤       ├───╳───┤          ├───────█────────────────────┤ CRX ├───╳────",
         ],
         "bot_frame": [
-            "                   └────────┘       └──────────┘                                           ",
-            "                   │        │   │   │          │  └─────────┘  └────┬────┘  └──┬─┘    │    ",
-            "        └───────┘       │       │   │          │  │         │       │                 │    ",
-            "        │       │       │       │   │          │       │                    └──┬──┘   │    ",
+            "        └─────┘         └──────────┘                                           ",
+            "           │        │   │          │  └─────────┘  └────┬────┘  └──┬─┘    │    ",
+            "        └───────┘   │   │          │  │         │       │                 │    ",
+            "        │       │   │   │          │       │                    └──┬──┘   │    ",
         ],
     }
 
