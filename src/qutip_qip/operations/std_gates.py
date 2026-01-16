@@ -32,7 +32,8 @@ class X(SingleQubitGate):
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
 
-    def get_compact_qobj(self):
+    @staticmethod
+    def get_compact_qobj():
         return sigmax(dtype="dense")
 
 
@@ -55,7 +56,8 @@ class Y(SingleQubitGate):
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
 
-    def get_compact_qobj(self):
+    @staticmethod
+    def get_compact_qobj():
         return sigmay(dtype="dense")
 
 
@@ -78,7 +80,8 @@ class Z(SingleQubitGate):
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
 
-    def get_compact_qobj(self):
+    @staticmethod
+    def get_compact_qobj():
         return sigmaz(dtype="dense")
 
 
@@ -183,7 +186,8 @@ class H(SingleQubitGate):
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
 
-    def get_compact_qobj(self):
+    @staticmethod
+    def get_compact_qobj():
         return 1 / np.sqrt(2.0) * Qobj([[1, 1], [1, -1]])
 
 
@@ -210,7 +214,8 @@ class SQRTNOT(SingleQubitGate):
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
 
-    def get_compact_qobj(self):
+    @staticmethod
+    def get_compact_qobj():
         return Qobj([[0.5 + 0.5j, 0.5 - 0.5j], [0.5 - 0.5j, 0.5 + 0.5j]])
 
 
@@ -233,7 +238,8 @@ class S(SingleQubitGate):
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
 
-    def get_compact_qobj(self):
+    @staticmethod
+    def get_compact_qobj():
         return Qobj([[1, 0], [0, 1j]])
 
 
@@ -256,7 +262,8 @@ class T(SingleQubitGate):
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
 
-    def get_compact_qobj(self):
+    @staticmethod
+    def get_compact_qobj():
         return Qobj([[1, 0], [0, np.exp(1j * np.pi / 4)]])
 
 
@@ -364,7 +371,8 @@ class SWAP(TwoQubitGate):
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
 
-    def get_compact_qobj(self):
+    @staticmethod
+    def get_compact_qobj():
         return Qobj(
             [[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]],
             dims=[[2, 2], [2, 2]],
@@ -392,7 +400,8 @@ class ISWAP(TwoQubitGate):
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
 
-    def get_compact_qobj(self):
+    @staticmethod
+    def get_compact_qobj():
         return Qobj(
             [[1, 0, 0, 0], [0, 0, 1j, 0], [0, 1j, 0, 0], [0, 0, 0, 1]],
             dims=[[2, 2], [2, 2]],
@@ -420,7 +429,8 @@ class SQRTSWAP(TwoQubitGate):
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
 
-    def get_compact_qobj(self):
+    @staticmethod
+    def get_compact_qobj():
         return Qobj(
             np.array(
                 [
@@ -455,7 +465,8 @@ class SQRTISWAP(TwoQubitGate):
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
 
-    def get_compact_qobj(self):
+    @staticmethod
+    def get_compact_qobj():
         return Qobj(
             np.array(
                 [
@@ -499,7 +510,8 @@ class BERKELEY(TwoQubitGate):
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
 
-    def get_compact_qobj(self):
+    @staticmethod
+    def get_compact_qobj():
         return Qobj(
             [
                 [np.cos(np.pi / 8), 0, 0, 1.0j * np.sin(np.pi / 8)],
@@ -718,7 +730,8 @@ class CNOT(_OneControlledGate):
             **kwargs,
         )
 
-    def get_compact_qobj(self):
+    @staticmethod
+    def get_compact_qobj():
         return Qobj(
             [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]],
             dims=[[2, 2], [2, 2]],
@@ -752,7 +765,8 @@ class CZ(_OneControlledGate):
             **kwargs,
         )
 
-    def get_compact_qobj(self):
+    @staticmethod
+    def get_compact_qobj():
         return Qobj(
             [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]],
             dims=[[2, 2], [2, 2]],
@@ -786,7 +800,8 @@ class CSIGN(_OneControlledGate):
             **kwargs,
         )
 
-    def get_compact_qobj(self):
+    @staticmethod
+    def get_compact_qobj():
         return Qobj(
             [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]],
             dims=[[2, 2], [2, 2]],
@@ -854,8 +869,6 @@ CX = partial(_OneControlledGate, target_gate=X)
 CX.__doc__ = "Controlled X gate."
 CY = partial(_OneControlledGate, target_gate=Y)
 CY.__doc__ = "Controlled Y gate."
-CX = partial(_OneControlledGate, target_gate=X)
-CX.__doc__ = "Controlled X gate."
 CT = partial(_OneControlledGate, target_gate=T)
 CT.__doc__ = "Controlled T gate."
 CS = partial(_OneControlledGate, target_gate=S)
@@ -907,7 +920,8 @@ class IDLE(Gate):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def get_compact_qobj(self):
+    @staticmethod
+    def get_compact_qobj():
         return qeye(2)
 
 
@@ -936,7 +950,8 @@ class TOFFOLI(Gate):
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
 
-    def get_compact_qobj(self):
+    @staticmethod
+    def get_compact_qobj():
         return Qobj(
             [
                 [1, 0, 0, 0, 0, 0, 0, 0],
@@ -977,7 +992,8 @@ class FREDKIN(Gate):
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
 
-    def get_compact_qobj(self):
+    @staticmethod
+    def get_compact_qobj():
         return Qobj(
             [
                 [1, 0, 0, 0, 0, 0, 0, 0],
