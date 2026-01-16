@@ -1,4 +1,3 @@
-from functools import partial
 import numpy as np
 import scipy.sparse as sp
 
@@ -191,8 +190,8 @@ class H(SingleQubitGate):
         return 1 / np.sqrt(2.0) * Qobj([[1, 1], [1, -1]])
 
 
-SNOT = H
-SNOT.__doc__ = H.__doc__
+class SNOT(H):
+    pass
 
 
 class SQRTNOT(SingleQubitGate):
@@ -738,8 +737,8 @@ class CNOT(_OneControlledGate):
         )
 
 
-CX = CNOT
-CX.__doc__ = CNOT.__doc__
+class CX(CNOT):
+    pass
 
 
 class CY(_OneControlledGate):
@@ -809,8 +808,8 @@ class CZ(_OneControlledGate):
         )
 
 
-CSIGN = CZ
-CSIGN.__doc__ = CSIGN
+class CSIGN(CZ):
+    pass
 
 
 class CH(_OneControlledGate):

@@ -707,10 +707,10 @@ class TestQubitCircuit:
                 r"  &  \qw  &  \qw \cwx[2]  &  \ctrl{1}  &  \qw  & \qw \\ ",
                 r" & \lstick{\ket{0}} &  \qw  &  \targ  &  \qw  &  \qw"
                 r"  &  \qw  &  \qw  &  \gate{X}  &  \gate{Z}  & \qw \\ ",
-                r" & \lstick{\ket{0}} &  \gate{H}  &  \ctrl{-1}  &"
+                r" & \lstick{\ket{0}} &  \gate{SNOT}  &  \ctrl{-1}  &"
                 r"  \targ  &  \qw  &  \qw  &  \meter &  \qw  &  \qw  & \qw \\ ",
                 r" & \lstick{\ket{q0}} &  \qw  &  \qw  &  \ctrl{-1}  &"
-                r"  \gate{H}  &  \meter &  \qw  &  \qw  &  \qw  & \qw \\ ",
+                r"  \gate{SNOT}  &  \meter &  \qw  &  \qw  &  \qw  & \qw \\ ",
                 "",
             ]
         )

@@ -208,10 +208,8 @@ class QubitCircuit:
             (i.e. all classical controls are 1).
         """
         if not isinstance(gate, Gate):
-            name_arg = gate
             if isinstance(gate, type) and issubclass(gate, Gate):
                 gate_class = gate
-                name_arg = None
             elif gate in GATE_CLASS_MAP:
                 gate_class = GATE_CLASS_MAP[gate]
             else:
@@ -221,7 +219,6 @@ class QubitCircuit:
                 )
 
             gate = gate_class(
-                name=name_arg,
                 targets=targets,
                 controls=controls,
                 arg_value=arg_value,
