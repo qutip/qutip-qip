@@ -7,7 +7,7 @@ from qutip import basis, tensor, Qobj, qeye, expect
 from qutip_qip.circuit import QubitCircuit
 from scipy.optimize import minimize
 from scipy.linalg import expm_frechet
-from qutip_qip.operations import gate_sequence_product
+from qutip_qip.operations import gate_sequence_product, CustomGate
 
 
 class VQA:
@@ -42,7 +42,6 @@ class VQA:
         self.num_qubits = num_qubits
         self.num_layers = num_layers
         self.blocks = []
-        self.user_gates = {}
         self._cost_methods = ["OBSERVABLE", "STATE"]
         self.cost_method = cost_method
         self.cost_func = None
@@ -75,8 +74,7 @@ class VQA:
 
     def add_block(self, block):
         """
-        Append a :obj:`.VQABlock` instance to the circuit, and update the
-        user_gates dictionary if necessary.
+        Append a :obj:`.VQABlock` instance to the circuit.
 
         Parameters
         ----------
@@ -87,9 +85,6 @@ class VQA:
         if block.name in list(map(lambda b: b.name, self.blocks)):
             raise ValueError("Duplicate Block name in blocks dict")
         self.blocks.append(block)
-        self.user_gates[block.name] = lambda angles=None: block.get_unitary(
-            angles
-        )
 
     def get_free_parameters_num(self):
         """
@@ -130,7 +125,6 @@ class VQA:
         circ: :obj:`.QubitCircuit`
         """
         circ = QubitCircuit(self.num_qubits)
-        circ.user_gates = self.user_gates
         i = 0
         for layer_num in range(self.num_layers):
             for block in self.blocks:
@@ -140,11 +134,15 @@ class VQA:
                     circ.add_gate(block.operator, targets=block.targets)
                 else:
                     n = block.get_free_parameters_num()
-                    circ.add_gate(
-                        block.name,
+
+                    current_params = angles[i : i + n] if n > 0 else []
+                    gate_instance = CustomGate(
+                        name=block.name,
                         targets=list(range(self.num_qubits)),
-                        arg_value=angles[i : i + n] if n > 0 else None,
+                        U=block.get_unitary(current_params),
                     )
+
+                    circ.add_gate(gate_instance)
                     i += n
         return circ
 
@@ -536,8 +534,7 @@ class VQABlock:
         Specifies that the operator  was already in Unitary form,
         and does not need to be exponentiated, or take a parameter.
     name: str, optional
-        Name of the block. This will be used in the custom
-        ``user_gates`` dict of the circuit. If not provided,
+        Name of the block. If not provided,
         a name will be generated as "U"+str(len(VQA.blocks)).
     targets: list of int, optional
         The qubits targetted by the gate. By default, applied
@@ -605,6 +602,9 @@ class VQABlock:
                 f"Expected {self.get_free_parameters_num()} angles"
                 f" but got {len(angles)}."
             )
+
+        if self.is_unitary:
+            return self.operator
 
         # Case where the operator is a string referring to an existing gate.
         if self.is_native_gate:

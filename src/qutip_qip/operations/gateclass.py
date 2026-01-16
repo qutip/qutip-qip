@@ -1,5 +1,6 @@
 import numbers
 from collections.abc import Iterable
+from abc import ABC, abstractmethod
 
 from qutip import Qobj
 from qutip_qip.operations import controlled_gate, expand_operator
@@ -13,7 +14,7 @@ from qutip_qip.operations import controlled_gate, expand_operator
 """
 
 
-class Gate:
+class Gate(ABC):
     r"""
     Base class for a quantum gate,
     concrete gate classes need to be defined as subclasses.
@@ -64,6 +65,12 @@ class Gate:
         The default is None.
     """
 
+    latex_str = r"U"
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        cls.latex_str = cls.__name__
+
     def __init__(
         self,
         name: str = None,
@@ -75,7 +82,6 @@ class Gate:
         classical_control_value: int | None = None,
         arg_label: str | None = None,
         style: dict | None = None,
-        **kwargs,
     ):
         """
         Create a gate with specified parameters.
@@ -112,8 +118,6 @@ class Gate:
             self.classical_control_value = classical_control_value
         self.control_value = control_value
         self.arg_value = arg_value
-        self.latex_str = r"U"
-
         self.arg_label = arg_label
 
         for ind_list in [self.targets, self.controls, self.classical_controls]:
@@ -193,6 +197,7 @@ class Gate:
                 )
             )
 
+    @abstractmethod
     def get_compact_qobj(self) -> Qobj:
         """
         Get the compact :class:`qutip.Qobj` representation of the gate
@@ -278,26 +283,21 @@ class ControlledGate(Gate):
             controls=controls,
             targets=targets,
             control_value=control_value,
-            target_gate=target_gate,
             **kwargs,
         )
+        self.target_gate = target_gate
         self.controls = (
             [controls] if not isinstance(controls, list) else controls
         )
         self.control_value = control_value
-        self.target_gate = target_gate
         self.kwargs = kwargs
         # In the circuit plot, only the target gate is shown.
         # The control has its own symbol.
-        self.latex_str = target_gate(
-            targets=self.targets, **self.kwargs
-        ).latex_str
+        self.latex_str = target_gate.latex_str
 
     def get_compact_qobj(self):
         return controlled_gate(
-            U=self.target_gate(
-                targets=self.targets, **self.kwargs
-            ).get_compact_qobj(),
+            U=self.target_gate.get_compact_qobj(),
             controls=list(range(len(self.controls))),
             targets=list(
                 range(
@@ -306,3 +306,18 @@ class ControlledGate(Gate):
             ),
             control_value=self.control_value,
         )
+
+
+class CustomGate(Gate):
+    """
+    Custom gate that wraps an arbitrary quantum operator.
+    """
+
+    latex_str = r"U"
+
+    def __init__(self, targets, U, **kwargs):
+        super().__init__(targets=targets, **kwargs)
+        self._U = U
+
+    def get_compact_qobj(self):
+        return self._U

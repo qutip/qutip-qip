@@ -20,7 +20,7 @@ _map_gates: dict[str, str] = {
 }
 
 _map_controlled_gates: dict[str, str] = {
-    "cx": "CX",
+    "cx": "CNOT",
     "cy": "CY",
     "cz": "CZ",
     "crx": "CRX",

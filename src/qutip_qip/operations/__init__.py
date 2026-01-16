@@ -46,6 +46,7 @@ from .gateclass import (
     SingleQubitGate,
     TwoQubitGate,
     ControlledGate,
+    CustomGate,
 )
 from .std_gates import (
     X,
@@ -77,9 +78,11 @@ from .std_gates import (
     CRZ,
     CS,
     CT,
+    CH,
     CNOT,
     CPHASE,
     CSIGN,
+    CQASMU,
     TOFFOLI,
     FREDKIN,
     GLOBALPHASE,
@@ -120,13 +123,15 @@ GATE_CLASS_MAP: dict[str, Gate] = {
     "CRX": CRX,
     "CRY": CRY,
     "CRZ": CRZ,
-    "CY": CY,
     "CX": CX,
+    "CY": CY,
     "CZ": CZ,
     "CS": CS,
     "CT": CT,
+    "CH": CH,
     "CPHASE": CPHASE,
     "RZX": RZX,
+    "CQASMU": CQASMU,
 }
 
 __all__ = [
@@ -134,6 +139,7 @@ __all__ = [
     "SingleQubitGate",
     "TwoQubitGate",
     "ControlledGate",
+    "CustomGate",
     "Measurement",
     "GATE_CLASS_MAP",
     "GLOBALPHASE",
@@ -204,8 +210,10 @@ __all__ = [
     "CY",
     "CX",
     "CZ",
+    "CH",
     "CS",
     "CT",
     "CPHASE",
     "RZX",
+    "CQASMU",
 ]
