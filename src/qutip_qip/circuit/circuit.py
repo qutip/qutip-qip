@@ -2,7 +2,6 @@
 Quantum circuit representation and simulation.
 """
 
-import inspect
 from collections.abc import Iterable
 
 import numpy as np
@@ -21,7 +20,7 @@ from qutip_qip.operations import (
     GATE_CLASS_MAP,
 )
 from qutip_qip.circuit import CircuitSimulator
-from qutip import Qobj, qeye
+from qutip import qeye
 
 
 try:
@@ -590,71 +589,59 @@ class QubitCircuit:
             half_pi = np.pi / 2
             for gate in temp_resolved:
                 if gate.name == "RX" and "RX" not in basis_1q:
-                    qc_temp.gates.append(
+                    qc_temp.gates.extend([
                         RY(
                             targets=gate.targets,
                             arg_value=-half_pi,
                             arg_label=r"-\pi/2",
-                        )
-                    )
-                    qc_temp.gates.append(
+                        ),
                         RZ(
                             gate.targets,
                             gate.arg_value,
                             gate.arg_label,
-                        )
-                    )
-                    qc_temp.gates.append(
+                        ),
                         RY(
                             gate.targets,
                             arg_value=half_pi,
                             arg_label=r"\pi/2",
                         )
-                    )
+                    ])
                 elif gate.name == "RY" and "RY" not in basis_1q:
-                    qc_temp.gates.append(
+                    qc_temp.gates.extend([
                         RZ(
                             targets=gate.targets,
                             arg_value=-half_pi,
                             arg_label=r"-\pi/2",
-                        )
-                    )
-                    qc_temp.gates.append(
+                        ),
                         RX(
                             targets=gate.targets,
                             arg_value=gate.arg_value,
                             arg_label=gate.arg_label,
-                        )
-                    )
-                    qc_temp.gates.append(
+                        ),
                         RZ(
                             targets=gate.targets,
                             arg_value=half_pi,
                             arg_label=r"\pi/2",
                         )
-                    )
+                    ])
                 elif gate.name == "RZ" and "RZ" not in basis_1q:
-                    qc_temp.gates.append(
+                    qc_temp.gates.extend([
                         RX(
                             targets=gate.targets,
                             arg_value=-half_pi,
                             arg_label=r"-\pi/2",
-                        )
-                    )
-                    qc_temp.gates.append(
+                        ),
                         RY(
                             targets=gate.targets,
                             arg_value=gate.arg_value,
                             arg_label=gate.arg_label,
-                        )
-                    )
-                    qc_temp.gates.append(
+                        ),
                         RX(
                             targets=gate.targets,
                             arg_value=half_pi,
                             arg_label=r"\pi/2",
                         )
-                    )
+                    ])
                 else:
                     qc_temp.gates.append(gate)
 
