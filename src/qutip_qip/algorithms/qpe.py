@@ -11,43 +11,16 @@ class CustomGate(Gate):
     Custom gate that wraps an arbitrary quantum operator.
     """
 
+    latex_str = r"U"
+
     def __init__(self, targets, U, **kwargs):
         super().__init__(targets=targets, **kwargs)
         self.targets = targets if isinstance(targets, list) else [targets]
-        self.U = U
+        self._U = U
         self.kwargs = kwargs
-        self.latex_str = r"U"
 
     def get_compact_qobj(self):
-        return self.U
-
-
-def create_controlled_unitary(controls, targets, U, control_value=1):
-    """
-    Create a controlled unitary gate.
-
-    Parameters
-    ----------
-    controls : list
-        Control qubits
-    targets : list
-        Target qubits
-    U : Qobj
-        Unitary operator to apply on target qubits
-    control_value : int, optional
-        Control value (default: 1)
-
-    Returns
-    -------
-    ControlledGate
-        The controlled unitary gate
-    """
-    return ControlledGate(
-        controls=controls,
-        targets=targets,
-        control_value=control_value,
-        target_gate=CustomGate(targets=targets, U=U),
-    )
+        return self._U
 
 
 def qpe(U, num_counting_qubits, target_qubits=None, to_cnot=False):
@@ -107,7 +80,12 @@ def qpe(U, num_counting_qubits, target_qubits=None, to_cnot=False):
         U_power = U if power == 1 else U**power
 
         # Add controlled-U^power gate
-        controlled_u = create_controlled_unitary
+        controlled_u = ControlledGate(
+            controls=[i],
+            targets=target_qubits,
+            control_value=1,
+            target_gate=CustomGate(target_qubits, U_power),
+        )
         qc.add_gate(controlled_u)
 
     # Add inverse QFT on counting qubits

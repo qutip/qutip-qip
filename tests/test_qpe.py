@@ -42,10 +42,10 @@ class TestQPE(unittest.TestCase):
         assert_equal(controlled_u.targets, [1])
         assert_equal(controlled_u.control_value, 1)
 
-        assert_(controlled_u.target_gate == CustomGate)
-
-        assert_("U" in controlled_u.kwargs)
-        assert_((controlled_u.kwargs["U"] - U).norm() < 1e-12)
+        print(controlled_u.target_gate)
+        assert_((
+            controlled_u.target_gate.get_compact_qobj() - U
+        ).norm() < 1e-12)
 
     def test_qpe_validation(self):
         """
@@ -126,7 +126,9 @@ class TestQPE(unittest.TestCase):
             gate = circuit.gates[num_counting + i]
             power = 2 ** (num_counting - i - 1)
 
-            u_power = gate.kwargs["U"]
+            print(gate)
+            print(gate.target_gate)
+            u_power = gate.target_gate.get_compact_qobj()
             expected_u_power = U if power == 1 else U**power
 
             assert_((u_power - expected_u_power).norm() < 1e-12)

@@ -282,7 +282,7 @@ class ControlledGate(Gate):
             control_value=control_value,
             **kwargs,
         )
-        self.target_gate=target_gate,
+        self.target_gate=target_gate
         self.controls = (
             [controls] if not isinstance(controls, list) else controls
         )

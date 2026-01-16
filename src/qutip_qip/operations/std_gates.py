@@ -850,6 +850,8 @@ CRX = partial(_OneControlledGate, target_gate=RX)
 CRX.__doc__ = "Controlled X rotation."
 CRZ = partial(_OneControlledGate, target_gate=RZ)
 CRZ.__doc__ = "Controlled Z rotation."
+CX = partial(_OneControlledGate, target_gate=X)
+CX.__doc__ = "Controlled X gate."
 CY = partial(_OneControlledGate, target_gate=Y)
 CY.__doc__ = "Controlled Y gate."
 CX = partial(_OneControlledGate, target_gate=X)
