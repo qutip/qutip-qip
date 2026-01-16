@@ -2,9 +2,9 @@ import numpy as np
 from numpy.testing import assert_, assert_equal
 import unittest
 from qutip import Qobj, sigmaz, tensor
-from qutip_qip.operations import ControlledGate
+from qutip_qip.operations import ControlledGate, CustomGate
 
-from qutip_qip.algorithms.qpe import qpe, CustomGate
+from qutip_qip.algorithms.qpe import qpe
 
 
 class TestQPE(unittest.TestCase):

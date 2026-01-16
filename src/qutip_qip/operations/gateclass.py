@@ -303,3 +303,18 @@ class ControlledGate(Gate):
             ),
             control_value=self.control_value,
         )
+
+
+class CustomGate(Gate):
+    """
+    Custom gate that wraps an arbitrary quantum operator.
+    """
+
+    latex_str = r"U"
+
+    def __init__(self, targets, U, **kwargs):
+        super().__init__(targets=targets, **kwargs)
+        self._U = U
+
+    def get_compact_qobj(self):
+        return self._U

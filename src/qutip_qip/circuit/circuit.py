@@ -45,8 +45,6 @@ class QubitCircuit:
     ----------
     N : int
         Number of qubits in the system.
-    user_gates : dict
-        Define a dictionary of the custom gates. See examples for detail.
     input_states : list
         A list of string such as `0`,'+', "A", "Y". Only used for latex.
     dims : list
@@ -55,16 +53,6 @@ class QubitCircuit:
         will be the default option.
     num_cbits : int
         Number of classical bits in the system.
-
-    Examples
-    --------
-    >>> from qutip_qip.circuit import QubitCircuit
-    >>> def user_gate():
-    ...     mat = np.array([[1.,   0],
-    ...                     [0., 1.j]])
-    ...     return Qobj(mat, dims=[[2], [2]])
-    >>> qubit_circuit = QubitCircuit(2, user_gates={"T":user_gate})
-    >>> qubit_circuit.add_gate("T", targets=[0])
     """
 
     def __init__(

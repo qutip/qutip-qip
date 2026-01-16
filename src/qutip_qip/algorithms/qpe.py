@@ -1,26 +1,9 @@
 import numpy as np
-from qutip_qip.operations import Gate, ControlledGate
+from qutip_qip.operations import CustomGate, ControlledGate
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.algorithms import qft_gate_sequence
 
 __all__ = ["qpe"]
-
-
-class CustomGate(Gate):
-    """
-    Custom gate that wraps an arbitrary quantum operator.
-    """
-
-    latex_str = r"U"
-
-    def __init__(self, targets, U, **kwargs):
-        super().__init__(targets=targets, **kwargs)
-        self.targets = targets if isinstance(targets, list) else [targets]
-        self._U = U
-        self.kwargs = kwargs
-
-    def get_compact_qobj(self):
-        return self._U
 
 
 def qpe(U, num_counting_qubits, target_qubits=None, to_cnot=False):

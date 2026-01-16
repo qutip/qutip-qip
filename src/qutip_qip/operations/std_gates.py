@@ -813,6 +813,42 @@ CSIGN = CZ
 CSIGN.__doc__ = CSIGN
 
 
+class CH(_OneControlledGate):
+    r"""
+    CH gate.
+
+    .. math::
+
+        \begin{pmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & 1 & 0 & 0 \\
+        0 & 0 & 1 & 0 \\
+        0 & 0 & 0 & e^{i\theta} \\
+        \end{pmatrix}
+
+    Examples
+    --------
+    >>> from qutip_qip.operations import CH
+    """
+
+    latex_str = r"{\rm CH}"
+    def __init__(self, controls, targets, **kwargs):
+        super().__init__(
+            targets=targets,
+            controls=controls,
+            target_gate=H,
+            **kwargs,
+        )
+
+    @staticmethod
+    def get_compact_qobj():
+        sq_2 = 1/np.sqrt(2)
+        return Qobj(
+            [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, sq_2, sq_2], [0, 0, sq_2, -sq_2]],
+            dims=[[2, 2], [2, 2]],
+        )
+
+
 class CT(_OneControlledGate):
     r"""
     CT gate.
@@ -829,13 +865,6 @@ class CT(_OneControlledGate):
     Examples
     --------
     >>> from qutip_qip.operations import CPHASE
-    >>> CPHASE(0, 1, np.pi/2).get_compact_qobj().tidyup() # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
-    Qobj data =
-    [[1.+0.j 0.+0.j 0.+0.j 0.+0.j]
-     [0.+0.j 1.+0.j 0.+0.j 0.+0.j]
-     [0.+0.j 0.+0.j 1.+0.j 0.+0.j]
-     [0.+0.j 0.+0.j 0.+0.j 0.+1.j]]
     """
 
     latex_str = r"{\rm CT}"
@@ -871,13 +900,6 @@ class CS(_OneControlledGate):
     Examples
     --------
     >>> from qutip_qip.operations import CPHASE
-    >>> CPHASE(0, 1, np.pi/2).get_compact_qobj().tidyup() # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
-    Qobj data =
-    [[1.+0.j 0.+0.j 0.+0.j 0.+0.j]
-     [0.+0.j 1.+0.j 0.+0.j 0.+0.j]
-     [0.+0.j 0.+0.j 1.+0.j 0.+0.j]
-     [0.+0.j 0.+0.j 0.+0.j 0.+1.j]]
     """
 
     latex_str = r"{\rm CS}"
