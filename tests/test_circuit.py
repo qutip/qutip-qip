@@ -184,12 +184,14 @@ class TestQubitCircuit:
         class DUMMY1(Gate):
             def __init__(self, **kwargs):
                 super().__init__(**kwargs)
+
             def get_compact_qobj(self):
                 pass
 
         class DUMMY2(Gate):
             def __init__(self, **kwargs):
                 super().__init__(**kwargs)
+
             def get_compact_qobj(self):
                 pass
 
@@ -467,7 +469,7 @@ class TestQubitCircuit:
         class T1(Gate):
             def __init__(self, targets, **kwargs):
                 super().__init__(targets=targets)
-            
+
             @staticmethod
             def get_compact_qobj():
                 mat = np.array([[1.0, 0], [0.0, 1.0j]])

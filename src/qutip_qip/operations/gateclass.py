@@ -66,6 +66,7 @@ class Gate(ABC):
     """
 
     latex_str = r"U"
+
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         cls.latex_str = cls.__name__
@@ -284,7 +285,7 @@ class ControlledGate(Gate):
             control_value=control_value,
             **kwargs,
         )
-        self.target_gate=target_gate
+        self.target_gate = target_gate
         self.controls = (
             [controls] if not isinstance(controls, list) else controls
         )

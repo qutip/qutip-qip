@@ -20,6 +20,7 @@ def qc1():
     qc.add_gate("SWAP", targets=[0, 3])
     return qc
 
+
 def test_layout_qc1(qc1):
     tr = TextRenderer(qc1)
     tr.layout()
@@ -64,6 +65,7 @@ def qc2():
     qc.add_measurement("M", targets=[1], classical_store=1)
     return qc
 
+
 def test_layout_qc2(qc2):
     tr = TextRenderer(qc2)
     tr.layout()
@@ -93,6 +95,7 @@ def test_layout_qc2(qc2):
             "                                                                                                       ║            ",
         ],
     }
+
 
 def test_layout_qc3(qc3):
     tr = TextRenderer(qc3)
@@ -182,6 +185,7 @@ def qc4():
     qc.add_gate(ii, targets=2, controls=[4, 3])
     qc.add_gate("SWAP", targets=[0, 1])
     return qc
+
 
 def test_layout_qc4(qc4):
     tr = TextRenderer(qc4)

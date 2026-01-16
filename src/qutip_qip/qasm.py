@@ -597,25 +597,25 @@ class QasmProcessor:
                 classical_control_value=classical_control_value,
             )
         elif name == "id":
-             qc.add_gate(
+            qc.add_gate(
                 "IDLE",
                 targets=regs[0],
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
             )
         elif name == "sdg":
-             qc.add_gate(
+            qc.add_gate(
                 "RZ",
                 targets=regs[0],
-                arg_value=-np.pi/2,
+                arg_value=-np.pi / 2,
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
             )
         elif name == "tdg":
-             qc.add_gate(
+            qc.add_gate(
                 "RZ",
                 targets=regs[0],
-                arg_value=-np.pi/4,
+                arg_value=-np.pi / 4,
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
             )
@@ -802,9 +802,7 @@ class QasmProcessor:
 
         # creates custom-gate (if required) using gate defn and provided args
         custom_gate_unitary = None
-        if (
-            command[0] not in self.predefined_gates
-        ):
+        if command[0] not in self.predefined_gates:
             n = len(reg_set[0])
             qc_temp = QubitCircuit(n)
             self._custom_gate(
@@ -828,7 +826,7 @@ class QasmProcessor:
             else:
                 if not isinstance(regs, list):
                     regs = [regs]
-                
+
                 if custom_gate_unitary is not None:
                     # Instantiate the wrapper gate
                     gate_obj = CustomGate(

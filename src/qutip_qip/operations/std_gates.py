@@ -774,6 +774,7 @@ class CY(_OneControlledGate):
             dims=[[2, 2], [2, 2]],
         )
 
+
 class CZ(_OneControlledGate):
     """
     Controlled Z gate. Identical to the CSIGN gate.
@@ -831,6 +832,7 @@ class CH(_OneControlledGate):
     """
 
     latex_str = r"{\rm CH}"
+
     def __init__(self, controls, targets, **kwargs):
         super().__init__(
             targets=targets,
@@ -841,9 +843,14 @@ class CH(_OneControlledGate):
 
     @staticmethod
     def get_compact_qobj():
-        sq_2 = 1/np.sqrt(2)
+        sq_2 = 1 / np.sqrt(2)
         return Qobj(
-            [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, sq_2, sq_2], [0, 0, sq_2, -sq_2]],
+            [
+                [1, 0, 0, 0],
+                [0, 1, 0, 0],
+                [0, 0, sq_2, sq_2],
+                [0, 0, sq_2, -sq_2],
+            ],
             dims=[[2, 2], [2, 2]],
         )
 
@@ -867,6 +874,7 @@ class CT(_OneControlledGate):
     """
 
     latex_str = r"{\rm CT}"
+
     def __init__(self, controls, targets, **kwargs):
         super().__init__(
             targets=targets,
@@ -878,7 +886,12 @@ class CT(_OneControlledGate):
     @staticmethod
     def get_compact_qobj():
         return Qobj(
-            [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, (1+1j)/np.sqrt(2)]],
+            [
+                [1, 0, 0, 0],
+                [0, 1, 0, 0],
+                [0, 0, 1, 0],
+                [0, 0, 0, (1 + 1j) / np.sqrt(2)],
+            ],
             dims=[[2, 2], [2, 2]],
         )
 
@@ -902,6 +915,7 @@ class CS(_OneControlledGate):
     """
 
     latex_str = r"{\rm CS}"
+
     def __init__(self, controls, targets, **kwargs):
         super().__init__(
             targets=targets,
@@ -912,9 +926,11 @@ class CS(_OneControlledGate):
 
     @staticmethod
     def get_compact_qobj():
-        return Qobj(np.array(
-            [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1j]]
-            ), dims=[[2, 2], [2, 2]],
+        return Qobj(
+            np.array(
+                [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1j]]
+            ),
+            dims=[[2, 2], [2, 2]],
         )
 
 
@@ -984,7 +1000,7 @@ class CRX(_OneControlledGate):
         self, controls, targets, arg_value, control_value=1, **kwargs
     ):
         super().__init__(
-            target_gate=RX(targets=targets, arg_value=arg_value), 
+            target_gate=RX(targets=targets, arg_value=arg_value),
             controls=controls,
             control_value=control_value,
             targets=targets,
@@ -1007,7 +1023,7 @@ class CRY(_OneControlledGate):
         self, controls, targets, arg_value, control_value=1, **kwargs
     ):
         super().__init__(
-            target_gate=RY(targets=targets, arg_value=arg_value), 
+            target_gate=RY(targets=targets, arg_value=arg_value),
             controls=controls,
             control_value=control_value,
             targets=targets,
@@ -1030,7 +1046,7 @@ class CRZ(_OneControlledGate):
         self, controls, targets, arg_value, control_value=1, **kwargs
     ):
         super().__init__(
-            target_gate=RZ(targets=targets, arg_value=arg_value), 
+            target_gate=RZ(targets=targets, arg_value=arg_value),
             controls=controls,
             control_value=control_value,
             targets=targets,
@@ -1053,7 +1069,7 @@ class CQASMU(_OneControlledGate):
         self, controls, targets, arg_value, control_value=1, **kwargs
     ):
         super().__init__(
-            target_gate=QASMU(targets=targets, arg_value=arg_value), 
+            target_gate=QASMU(targets=targets, arg_value=arg_value),
             controls=controls,
             control_value=control_value,
             targets=targets,

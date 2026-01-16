@@ -139,7 +139,7 @@ class VQA:
                     gate_instance = CustomGate(
                         name=block.name,
                         targets=list(range(self.num_qubits)),
-                        U=block.get_unitary(current_params)
+                        U=block.get_unitary(current_params),
                     )
 
                     circ.add_gate(gate_instance)
@@ -602,7 +602,7 @@ class VQABlock:
                 f"Expected {self.get_free_parameters_num()} angles"
                 f" but got {len(angles)}."
             )
-        
+
         if self.is_unitary:
             return self.operator
 
