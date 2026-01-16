@@ -64,6 +64,11 @@ class Gate:
         The default is None.
     """
 
+    latex_str = r"U"
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        cls.latex_str = cls.__name__
+
     def __init__(
         self,
         name: str = None,
@@ -111,8 +116,6 @@ class Gate:
             self.classical_control_value = classical_control_value
         self.control_value = control_value
         self.arg_value = arg_value
-        self.latex_str = r"U"
-
         self.arg_label = arg_label
 
         for ind_list in [self.targets, self.controls, self.classical_controls]:
@@ -287,6 +290,7 @@ class ControlledGate(Gate):
         self.kwargs = kwargs
         # In the circuit plot, only the target gate is shown.
         # The control has its own symbol.
+        print(target_gate)
         self.latex_str = target_gate.latex_str
 
     def get_compact_qobj(self):

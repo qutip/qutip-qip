@@ -27,9 +27,10 @@ class X(SingleQubitGate):
      [1. 0.]]
     """
 
+    latex_str = r"X"
+
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
-        self.latex_str = r"X"
 
     def get_compact_qobj(self):
         return sigmax(dtype="dense")
@@ -49,9 +50,10 @@ class Y(SingleQubitGate):
      [0.+1.j 0.+0.j]]
     """
 
+    latex_str = r"Y"
+
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
-        self.latex_str = r"Y"
 
     def get_compact_qobj(self):
         return sigmay(dtype="dense")
@@ -71,9 +73,10 @@ class Z(SingleQubitGate):
      [ 0. -1.]]
     """
 
+    latex_str = r"Z"
+
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
-        self.latex_str = r"Z"
 
     def get_compact_qobj(self):
         return sigmaz(dtype="dense")
@@ -93,9 +96,10 @@ class RX(SingleQubitGate):
      [0.     -0.70711j 0.70711+0.j     ]]
     """
 
+    latex_str = r"R_x"
+
     def __init__(self, targets, arg_value, **kwargs):
         super().__init__(targets=targets, arg_value=arg_value, **kwargs)
-        self.latex_str = r"R_x"
 
     def get_compact_qobj(self):
         phi = self.arg_value
@@ -121,9 +125,10 @@ class RY(SingleQubitGate):
      [ 0.70711  0.70711]]
     """
 
+    latex_str = r"R_y"
+
     def __init__(self, targets, arg_value, **kwargs):
         super().__init__(targets=targets, arg_value=arg_value, **kwargs)
-        self.latex_str = r"R_y"
 
     def get_compact_qobj(self):
         phi = self.arg_value
@@ -149,9 +154,10 @@ class RZ(SingleQubitGate):
      [0.     +0.j      0.70711+0.70711j]]
     """
 
+    latex_str = r"R_z"
+
     def __init__(self, targets, arg_value, **kwargs):
         super().__init__(targets=targets, arg_value=arg_value, **kwargs)
-        self.latex_str = r"R_z"
 
     def get_compact_qobj(self):
         phi = self.arg_value
@@ -172,9 +178,10 @@ class H(SingleQubitGate):
      [ 0.70711 -0.70711]]
     """
 
+    latex_str = r"H"
+
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
-        self.latex_str = r"{\rm H}"
 
     def get_compact_qobj(self):
         return 1 / np.sqrt(2.0) * Qobj([[1, 1], [1, -1]])
@@ -198,9 +205,10 @@ class SQRTNOT(SingleQubitGate):
      [0.5-0.5j 0.5+0.5j]]
     """
 
+    latex_str = r"\sqrt{\rm NOT}"
+
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
-        self.latex_str = r"\sqrt{\rm NOT}"
 
     def get_compact_qobj(self):
         return Qobj([[0.5 + 0.5j, 0.5 - 0.5j], [0.5 - 0.5j, 0.5 + 0.5j]])
@@ -220,9 +228,10 @@ class S(SingleQubitGate):
      [0.+0.j 0.+1.j]]
     """
 
+    latex_str = r"{\rm S}"
+
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
-        self.latex_str = r"{\rm S}"
 
     def get_compact_qobj(self):
         return Qobj([[1, 0], [0, 1j]])
@@ -242,9 +251,10 @@ class T(SingleQubitGate):
      [0.     +0.j      0.70711+0.70711j]]
     """
 
+    latex_str = r"{\rm T}"
+
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
-        self.latex_str = r"{\rm T}"
 
     def get_compact_qobj(self):
         return Qobj([[1, 0], [0, np.exp(1j * np.pi / 4)]])
@@ -271,9 +281,10 @@ class R(SingleQubitGate):
      [ 0.70711  0.70711]]
     """
 
+    latex_str = r"{\rm R}"
+
     def __init__(self, targets, arg_value=None, **kwargs):
         super().__init__(targets=targets, arg_value=arg_value, **kwargs)
-        self.latex_str = r"{\rm R}"
 
     def get_compact_qobj(self):
         phi, theta = self.arg_value
@@ -308,9 +319,10 @@ class QASMU(SingleQubitGate):
      [ 0.5+0.5j -0.5+0.5j]]
     """
 
+    latex_str = r"{\rm QASM-U}"
+
     def __init__(self, targets, arg_value=None, **kwargs):
         super().__init__(targets=targets, arg_value=arg_value, **kwargs)
-        self.latex_str = r"{\rm QASM-U}"
 
     def get_compact_qobj(self):
         theta, phi, gamma = self.arg_value
@@ -347,9 +359,10 @@ class SWAP(TwoQubitGate):
      [0. 0. 0. 1.]]
     """
 
+    latex_str = r"{\rm SWAP}"
+
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
-        self.latex_str = r"{\rm SWAP}"
 
     def get_compact_qobj(self):
         return Qobj(
@@ -374,9 +387,10 @@ class ISWAP(TwoQubitGate):
      [0.+0.j 0.+0.j 0.+0.j 1.+0.j]]
     """
 
+    latex_str = r"{i}{\rm SWAP}"
+
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
-        self.latex_str = r"{i}{\rm SWAP}"
 
     def get_compact_qobj(self):
         return Qobj(
@@ -401,9 +415,10 @@ class SQRTSWAP(TwoQubitGate):
      [0. +0.j  0. +0.j  0. +0.j  1. +0.j ]]
     """
 
+    latex_str = r"\sqrt{\rm SWAP}"
+
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
-        self.latex_str = r"\sqrt{\rm SWAP}"
 
     def get_compact_qobj(self):
         return Qobj(
@@ -435,9 +450,10 @@ class SQRTISWAP(TwoQubitGate):
      [0.     +0.j      0.     +0.j      0.     +0.j      1.     +0.j     ]]
     """
 
+    latex_str = r"\sqrt{{i}\rm SWAP}"
+
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
-        self.latex_str = r"\sqrt{{i}\rm SWAP}"
 
     def get_compact_qobj(self):
         return Qobj(
@@ -478,9 +494,10 @@ class BERKELEY(TwoQubitGate):
      [0.     +0.38268j 0.     +0.j      0.     +0.j      0.92388+0.j     ]]
     """
 
+    latex_str = r"{\rm BERKELEY}"
+
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
-        self.latex_str = r"{\rm BERKELEY}"
 
     def get_compact_qobj(self):
         return Qobj(
@@ -519,9 +536,10 @@ class SWAPALPHA(TwoQubitGate):
      [0. +0.j  0. +0.j  0. +0.j  1. +0.j ]]
     """
 
+    latex_str = r"{\rm SWAPALPHA}"
+
     def __init__(self, targets, arg_value, **kwargs):
         super().__init__(targets=targets, arg_value=arg_value, **kwargs)
-        self.latex_str = r"{\rm SWAPALPHA}"
 
     def get_compact_qobj(self):
         alpha = self.arg_value
@@ -571,9 +589,10 @@ class MS(TwoQubitGate):
      [0.     -0.70711j 0.     +0.j      0.     +0.j      0.70711+0.j     ]]
     """
 
+    latex_str = r"{\rm MS}"
+
     def __init__(self, targets, arg_value, **kwargs):
         super().__init__(targets=targets, arg_value=arg_value, **kwargs)
-        self.latex_str = r"{\rm MS}"
 
     def get_compact_qobj(self):
         theta, phi = self.arg_value
@@ -622,6 +641,8 @@ class RZX(TwoQubitGate):
     [0.+0.j 0.+0.j 0.+0.j 0.+1.j]
     [0.+0.j 0.+0.j 0.+1.j 0.+0.j]]
     """
+
+    latex_str = r"{\rm RZX}"
 
     def __init__(self, targets, arg_value, **kwargs):
         self.target_gate = RZ
@@ -687,15 +708,15 @@ class CNOT(_OneControlledGate):
      [0. 0. 1. 0.]]
     """
 
+    latex_str = r"{\rm CNOT}"
+
     def __init__(self, controls, targets, **kwargs):
-        self.target_gate = X
         super().__init__(
             targets=targets,
             controls=controls,
-            target_gate=self.target_gate,
+            target_gate=X,
             **kwargs,
         )
-        self.latex_str = r"{\rm CNOT}"
 
     def get_compact_qobj(self):
         return Qobj(
@@ -719,6 +740,8 @@ class CZ(_OneControlledGate):
      [ 0.  0.  1.  0.]
      [ 0.  0.  0. -1.]]
     """
+
+    latex_str = r"{\rm CZ}"
 
     def __init__(self, controls, targets, **kwargs):
         self.target_gate = Z
@@ -751,6 +774,8 @@ class CSIGN(_OneControlledGate):
      [ 0.  0.  1.  0.]
      [ 0.  0.  0. -1.]]
     """
+
+    latex_str = r"{\rm CSIGN}"
 
     def __init__(self, controls, targets, **kwargs):
         self.target_gate = Z
@@ -792,6 +817,8 @@ class CPHASE(_OneControlledGate):
      [0.+0.j 0.+0.j 1.+0.j 0.+0.j]
      [0.+0.j 0.+0.j 0.+0.j 0.+1.j]]
     """
+
+    latex_str = r"{\rm CPHASE}"
 
     def __init__(
         self, controls, targets, arg_value, control_value=1, **kwargs
@@ -844,9 +871,10 @@ class GLOBALPHASE(Gate):
     >>> from qutip_qip.operations import GLOBALPHASE
     """
 
+    latex_str = r"{\rm GLOBALPHASE}"
+
     def __init__(self, arg_value: float, arg_label: str = None, **kwargs):
         super().__init__(arg_value=arg_value, arg_label=arg_label, **kwargs)
-        self.latex_str = r"{\rm GLOBALPHASE}"
 
     def get_compact_qobj(self):
         raise NotImplementedError(
@@ -872,9 +900,10 @@ class IDLE(Gate):
     >>> from qutip_qip.operations import IDLE
     """
 
+    latex_str = r"{\rm IDLE}"
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.latex_str = r"{\rm IDLE}"
 
     def get_compact_qobj(self):
         return qeye(2)
@@ -900,9 +929,10 @@ class TOFFOLI(Gate):
      [0. 0. 0. 0. 0. 0. 1. 0.]]
     """
 
+    latex_str = r"{\rm TOFFOLI}"
+
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
-        self.latex_str = r"{\rm TOFFOLI}"
 
     def get_compact_qobj(self):
         return Qobj(
@@ -940,9 +970,10 @@ class FREDKIN(Gate):
      [0. 0. 0. 0. 0. 0. 0. 1.]]
     """
 
+    latex_str = r"{\rm FREDKIN}"
+
     def __init__(self, targets, **kwargs):
         super().__init__(targets=targets, **kwargs)
-        self.latex_str = r"{\rm FREDKIN}"
 
     def get_compact_qobj(self):
         return Qobj(

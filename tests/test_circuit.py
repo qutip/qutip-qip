@@ -78,6 +78,16 @@ def _measurement_circuit():
     return qc
 
 
+class CTRLRX(Gate):
+    def __init__(self, targets, arg_value):
+        super.__init__(targets=targets, arg_value=arg_value)
+    
+    def get_compact_qobj(arg_values):
+        mat = np.zeros((4, 4), dtype=np.complex128)
+        mat[0, 0] = mat[1, 1] = 1.0
+        mat[2:4, 2:4] = gates.rx(arg_values)
+        return Qobj(mat, dims=[[2, 2], [2, 2]])
+
 class TestQubitCircuit:
     """
     A test class for the QuTiP functions for Circuit resolution.
@@ -233,15 +243,6 @@ class TestQubitCircuit:
         Addition of a circuit to a `QubitCircuit`
         """
 
-        def customer_gate1(arg_values):
-            mat = np.zeros((4, 4), dtype=np.complex128)
-            mat[0, 0] = mat[1, 1] = 1.0
-            mat[2:4, 2:4] = gates.rx(arg_values)
-            return Qobj(mat, dims=[[2, 2], [2, 2]])
-
-        qc = QubitCircuit(6)
-        qc.user_gates = {"CTRLRX": customer_gate1}
-
         qc = QubitCircuit(6)
         qc.add_gate("CNOT", targets=[1], controls=[0])
         test_gate = SWAP(targets=[1, 4])
@@ -251,7 +252,7 @@ class TestQubitCircuit:
         qc.add_gate(test_gate, index=[3])
         qc.add_measurement("M0", targets=[0], classical_store=[1])
         qc.add_1q_gate("RY", start=4, end=5, arg_value=1.570796)
-        qc.add_gate("CTRLRX", targets=[1, 2], arg_value=np.pi / 2)
+        qc.add_gate(CTRLRX, targets=[1, 2], arg_value=np.pi / 2)
 
         qc1 = QubitCircuit(6)
 
@@ -701,10 +702,10 @@ class TestQubitCircuit:
                 r"  &  \qw  &  \qw \cwx[2]  &  \ctrl{1}  &  \qw  & \qw \\ ",
                 r" & \lstick{\ket{0}} &  \qw  &  \targ  &  \qw  &  \qw"
                 r"  &  \qw  &  \qw  &  \gate{X}  &  \gate{Z}  & \qw \\ ",
-                r" & \lstick{\ket{0}} &  \gate{{\rm H}}  &  \ctrl{-1}  &"
+                r" & \lstick{\ket{0}} &  \gate{H}  &  \ctrl{-1}  &"
                 r"  \targ  &  \qw  &  \qw  &  \meter &  \qw  &  \qw  & \qw \\ ",
                 r" & \lstick{\ket{q0}} &  \qw  &  \qw  &  \ctrl{-1}  &"
-                r"  \gate{{\rm H}}  &  \meter &  \qw  &  \qw  &  \qw  & \qw \\ ",
+                r"  \gate{H}  &  \meter &  \qw  &  \qw  &  \qw  & \qw \\ ",
                 "",
             ]
         )
