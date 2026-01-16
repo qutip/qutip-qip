@@ -82,6 +82,7 @@ from .std_gates import (
     CNOT,
     CPHASE,
     CSIGN,
+    CQASMU,
     TOFFOLI,
     FREDKIN,
     GLOBALPHASE,
@@ -130,6 +131,7 @@ GATE_CLASS_MAP: dict[str, Gate] = {
     "CH": CH,
     "CPHASE": CPHASE,
     "RZX": RZX,
+    "CQASMU": CQASMU,
 }
 
 __all__ = [
@@ -213,4 +215,5 @@ __all__ = [
     "CT",
     "CPHASE",
     "RZX",
+    "CQASMU",
 ]

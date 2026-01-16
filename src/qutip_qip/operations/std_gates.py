@@ -1039,6 +1039,29 @@ class CRZ(_OneControlledGate):
         )
 
 
+class CQASMU(_OneControlledGate):
+    r"""
+    Controlled QASMU rotation.
+
+    Examples
+    --------
+    >>> from qutip_qip.operations import CQASMU
+    """
+
+    latex_str = r"{\rm CQASMU}"
+
+    def __init__(
+        self, controls, targets, arg_value, control_value=1, **kwargs
+    ):
+        super().__init__(
+            target_gate=QASMU(targets=targets, arg_value=arg_value), 
+            controls=controls,
+            control_value=control_value,
+            targets=targets,
+            arg_value=arg_value,
+        )
+
+
 ########################### Special Gates #########################
 
 
