@@ -628,7 +628,6 @@ class RZX(TwoQubitGate):
         super().__init__(
             targets=targets,
             arg_value=arg_value,
-            target_gate=self.target_gate,
             **kwargs,
         )
 

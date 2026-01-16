@@ -46,8 +46,7 @@ def create_controlled_unitary(controls, targets, U, control_value=1):
         controls=controls,
         targets=targets,
         control_value=control_value,
-        target_gate=CustomGate,
-        U=U,
+        target_gate=CustomGate(targets=targets, U=U),
     )
 
 
@@ -108,9 +107,7 @@ def qpe(U, num_counting_qubits, target_qubits=None, to_cnot=False):
         U_power = U if power == 1 else U**power
 
         # Add controlled-U^power gate
-        controlled_u = create_controlled_unitary(
-            controls=[i], targets=target_qubits, U=U_power
-        )
+        controlled_u = create_controlled_unitary
         qc.add_gate(controlled_u)
 
     # Add inverse QFT on counting qubits

@@ -4,7 +4,7 @@ import unittest
 from qutip import Qobj, sigmaz, tensor
 from qutip_qip.operations import ControlledGate
 
-from qutip_qip.algorithms.qpe import qpe, CustomGate, create_controlled_unitary
+from qutip_qip.algorithms.qpe import qpe, CustomGate
 
 
 class TestQPE(unittest.TestCase):
@@ -31,8 +31,11 @@ class TestQPE(unittest.TestCase):
         """
         U = Qobj([[0, 1], [1, 0]])
 
-        controlled_u = create_controlled_unitary(
-            controls=[0], targets=[1], U=U
+        controlled_u = ControlledGate(
+            controls=[0],
+            targets=[1],
+            control_value=1,
+            target_gate=CustomGate(targets=[1], U=U),
         )
 
         assert_equal(controlled_u.controls, [0])

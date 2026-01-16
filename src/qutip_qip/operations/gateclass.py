@@ -75,7 +75,6 @@ class Gate:
         classical_control_value: int | None = None,
         arg_label: str | None = None,
         style: dict | None = None,
-        **kwargs,
     ):
         """
         Create a gate with specified parameters.
@@ -278,26 +277,21 @@ class ControlledGate(Gate):
             controls=controls,
             targets=targets,
             control_value=control_value,
-            target_gate=target_gate,
             **kwargs,
         )
+        self.target_gate=target_gate,
         self.controls = (
             [controls] if not isinstance(controls, list) else controls
         )
         self.control_value = control_value
-        self.target_gate = target_gate
         self.kwargs = kwargs
         # In the circuit plot, only the target gate is shown.
         # The control has its own symbol.
-        self.latex_str = target_gate(
-            targets=self.targets, **self.kwargs
-        ).latex_str
+        self.latex_str = target_gate.latex_str
 
     def get_compact_qobj(self):
         return controlled_gate(
-            U=self.target_gate(
-                targets=self.targets, **self.kwargs
-            ).get_compact_qobj(),
+            U=self.target_gate.get_compact_qobj(),
             controls=list(range(len(self.controls))),
             targets=list(
                 range(
