@@ -136,7 +136,7 @@ class TestConverter:
         result_circuit = convert_qiskit_circuit_to_qutip(qiskit_circuit)
 
         required_circuit = QubitCircuit(2)
-        required_circuit.add_gate("CX", targets=[0], controls=[1])
+        required_circuit.add_gate("CNOT", targets=[0], controls=[1])
 
         assert self._compare_circuit(result_circuit, required_circuit)
 

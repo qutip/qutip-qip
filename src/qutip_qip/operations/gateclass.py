@@ -290,7 +290,6 @@ class ControlledGate(Gate):
         self.kwargs = kwargs
         # In the circuit plot, only the target gate is shown.
         # The control has its own symbol.
-        print(target_gate)
         self.latex_str = target_gate.latex_str
 
     def get_compact_qobj(self):
