@@ -738,6 +738,43 @@ class CNOT(_OneControlledGate):
         )
 
 
+CX = CNOT
+CX.__doc__ = CNOT.__doc__
+
+
+class CY(_OneControlledGate):
+    """
+    Controlled CY gate.
+
+    Examples
+    --------
+    >>> from qutip_qip.operations import CY
+    >>> CSIGN(0, 1).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
+    Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=True
+    Qobj data =
+    [[ 1.+0j  0.+0j  0.+0j  0.+0j]
+     [ 0.+0j  1.+0j  0.+0j  0.+0j]
+     [ 0.+0j  0.+0j  0.+0j  0.-1j]
+     [ 0+0j.  0.+0j  0.+1j. 0.+0j]]
+    """
+
+    latex_str = r"{\rm CY}"
+
+    def __init__(self, controls, targets, **kwargs):
+        super().__init__(
+            targets=targets,
+            controls=controls,
+            target_gate=Y,
+            **kwargs,
+        )
+
+    @staticmethod
+    def get_compact_qobj():
+        return Qobj(
+            [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]],
+            dims=[[2, 2], [2, 2]],
+        )
+
 class CZ(_OneControlledGate):
     """
     Controlled Z gate. Identical to the CSIGN gate.
@@ -757,11 +794,10 @@ class CZ(_OneControlledGate):
     latex_str = r"{\rm CZ}"
 
     def __init__(self, controls, targets, **kwargs):
-        self.target_gate = Z
         super().__init__(
             targets=targets,
             controls=controls,
-            target_gate=self.target_gate,
+            target_gate=Z,
             **kwargs,
         )
 
@@ -773,38 +809,91 @@ class CZ(_OneControlledGate):
         )
 
 
-class CSIGN(_OneControlledGate):
-    """
-    Controlled CSIGN gate. Identical to the CZ gate.
+CSIGN = CZ
+CSIGN.__doc__ = CSIGN
+
+
+class CT(_OneControlledGate):
+    r"""
+    CT gate.
+
+    .. math::
+
+        \begin{pmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & 1 & 0 & 0 \\
+        0 & 0 & 1 & 0 \\
+        0 & 0 & 0 & e^{i\theta} \\
+        \end{pmatrix}
 
     Examples
     --------
-    >>> from qutip_qip.operations import CSIGN
-    >>> CSIGN(0, 1).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=True
+    >>> from qutip_qip.operations import CPHASE
+    >>> CPHASE(0, 1, np.pi/2).get_compact_qobj().tidyup() # doctest: +NORMALIZE_WHITESPACE
+    Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
     Qobj data =
-    [[ 1.  0.  0.  0.]
-     [ 0.  1.  0.  0.]
-     [ 0.  0.  1.  0.]
-     [ 0.  0.  0. -1.]]
+    [[1.+0.j 0.+0.j 0.+0.j 0.+0.j]
+     [0.+0.j 1.+0.j 0.+0.j 0.+0.j]
+     [0.+0.j 0.+0.j 1.+0.j 0.+0.j]
+     [0.+0.j 0.+0.j 0.+0.j 0.+1.j]]
     """
 
-    latex_str = r"{\rm CSIGN}"
-
+    latex_str = r"{\rm CT}"
     def __init__(self, controls, targets, **kwargs):
-        self.target_gate = Z
         super().__init__(
             targets=targets,
             controls=controls,
-            target_gate=self.target_gate,
+            target_gate=T,
             **kwargs,
         )
 
     @staticmethod
     def get_compact_qobj():
         return Qobj(
-            [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]],
+            [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, (1+1j)/np.sqrt(2)]],
             dims=[[2, 2], [2, 2]],
+        )
+
+
+class CS(_OneControlledGate):
+    r"""
+    CS gate.
+
+    .. math::
+
+        \begin{pmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & 1 & 0 & 0 \\
+        0 & 0 & 1 & 0 \\
+        0 & 0 & 0 & e^{i\theta} \\
+        \end{pmatrix}
+
+    Examples
+    --------
+    >>> from qutip_qip.operations import CPHASE
+    >>> CPHASE(0, 1, np.pi/2).get_compact_qobj().tidyup() # doctest: +NORMALIZE_WHITESPACE
+    Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
+    Qobj data =
+    [[1.+0.j 0.+0.j 0.+0.j 0.+0.j]
+     [0.+0.j 1.+0.j 0.+0.j 0.+0.j]
+     [0.+0.j 0.+0.j 1.+0.j 0.+0.j]
+     [0.+0.j 0.+0.j 0.+0.j 0.+1.j]]
+    """
+
+    latex_str = r"{\rm CS}"
+    def __init__(self, controls, targets, **kwargs):
+        super().__init__(
+            targets=targets,
+            controls=controls,
+            target_gate=S,
+            **kwargs,
+        )
+
+    @staticmethod
+    def get_compact_qobj():
+        return Qobj(np.array(
+            [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1j]]
+            ), dims=[[2, 2], [2, 2]],
         )
 
 
@@ -859,20 +948,74 @@ class CPHASE(_OneControlledGate):
         )
 
 
-CRY = partial(_OneControlledGate, target_gate=RY)
-CRY.__doc__ = "Controlled Y rotation."
-CRX = partial(_OneControlledGate, target_gate=RX)
-CRX.__doc__ = "Controlled X rotation."
-CRZ = partial(_OneControlledGate, target_gate=RZ)
-CRZ.__doc__ = "Controlled Z rotation."
-CX = partial(_OneControlledGate, target_gate=X)
-CX.__doc__ = "Controlled X gate."
-CY = partial(_OneControlledGate, target_gate=Y)
-CY.__doc__ = "Controlled Y gate."
-CT = partial(_OneControlledGate, target_gate=T)
-CT.__doc__ = "Controlled T gate."
-CS = partial(_OneControlledGate, target_gate=S)
-CS.__doc__ = "Controlled S gate."
+class CRX(_OneControlledGate):
+    r"""
+    Controlled X rotation.
+
+    Examples
+    --------
+    >>> from qutip_qip.operations import CRX
+    """
+
+    latex_str = r"{\rm CRX}"
+
+    def __init__(
+        self, controls, targets, arg_value, control_value=1, **kwargs
+    ):
+        super().__init__(
+            target_gate=RX(targets=targets, arg_value=arg_value), 
+            controls=controls,
+            control_value=control_value,
+            targets=targets,
+            arg_value=arg_value,
+        )
+
+
+class CRY(_OneControlledGate):
+    r"""
+    Controlled Y rotation.
+
+    Examples
+    --------
+    >>> from qutip_qip.operations import CRY
+    """
+
+    latex_str = r"{\rm CRY}"
+
+    def __init__(
+        self, controls, targets, arg_value, control_value=1, **kwargs
+    ):
+        super().__init__(
+            target_gate=RY(targets=targets, arg_value=arg_value), 
+            controls=controls,
+            control_value=control_value,
+            targets=targets,
+            arg_value=arg_value,
+        )
+
+
+class CRZ(_OneControlledGate):
+    r"""
+    Controlled z rotation.
+
+    Examples
+    --------
+    >>> from qutip_qip.operations import CRZ
+    """
+
+    latex_str = r"{\rm CRZ}"
+
+    def __init__(
+        self, controls, targets, arg_value, control_value=1, **kwargs
+    ):
+        super().__init__(
+            target_gate=RZ(targets=targets, arg_value=arg_value), 
+            controls=controls,
+            control_value=control_value,
+            targets=targets,
+            arg_value=arg_value,
+        )
+
 
 ########################### Special Gates #########################
 
