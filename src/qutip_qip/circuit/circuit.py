@@ -61,7 +61,6 @@ class QubitCircuit:
         input_states=None,
         output_states=None,
         reverse_states=True,
-        user_gates=None,
         dims=None,
         num_cbits=0,
     ):
@@ -81,17 +80,6 @@ class QubitCircuit:
             self.output_states = output_states
         else:
             self.output_states = [None for i in range(N + num_cbits)]
-
-        if user_gates is None:
-            self.user_gates = {}
-        else:
-            if isinstance(user_gates, dict):
-                self.user_gates = user_gates
-            else:
-                raise ValueError(
-                    "`user_gate` takes a python dictionary of the form"
-                    "{{str: gate_function}}, not {}".format(user_gates)
-                )
 
     def __repr__(self) -> str:
         return ""
@@ -308,7 +296,7 @@ class QubitCircuit:
         for q in qubits:
             self.add_gate(name, targets=q, **kwargs)
 
-    def add_circuit(self, qc, start=0, overwrite_user_gates=False):
+    def add_circuit(self, qc, start=0):
         """
         Adds a block of a qubit circuit to the main circuit.
         Globalphase gates are not added.
@@ -322,12 +310,6 @@ class QubitCircuit:
         """
         if self.N - start < qc.N:
             raise NotImplementedError("Targets exceed number of qubits.")
-
-        # Inherit the user gates
-        for user_gate in qc.user_gates:
-            if user_gate in self.user_gates and not overwrite_user_gates:
-                continue
-            self.user_gates[user_gate] = qc.user_gates[user_gate]
 
         for circuit_op in qc.gates:
             if isinstance(circuit_op, Gate):
@@ -850,7 +832,7 @@ class QubitCircuit:
             if gate.name == "GLOBALPHASE":
                 qobj = gate.get_qobj(self.N)
             else:
-                qobj = self._get_gate_unitary(gate)
+                qobj = gate.get_compact_qobj()
                 print(gate)
                 print(gate.get_compact_qobj())
                 print(qobj)
@@ -861,33 +843,6 @@ class QubitCircuit:
                     )
             U_list.append(qobj)
         return U_list
-
-    def _get_gate_unitary(self, gate):
-        if gate.name in self.user_gates:
-            if gate.controls is not None:
-                raise ValueError(
-                    "A user defined gate {} takes only  "
-                    "`targets` variable.".format(gate.name)
-                )
-            func_or_oper = self.user_gates[gate.name]
-            if inspect.isfunction(func_or_oper):
-                func = func_or_oper
-                para_num = len(inspect.getfullargspec(func)[0])
-                if para_num == 0:
-                    qobj = func()
-                elif para_num == 1:
-                    qobj = func(gate.arg_value)
-                else:
-                    raise ValueError(
-                        "gate function takes at most one parameters."
-                    )
-            elif isinstance(func_or_oper, Qobj):
-                qobj = func_or_oper
-            else:
-                raise ValueError("gate is neither function nor operator")
-        else:
-            qobj = gate.get_compact_qobj()
-        return qobj
 
     def compute_unitary(self):
         """Evaluates the matrix of all the gates in a quantum circuit.
