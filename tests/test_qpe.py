@@ -42,7 +42,6 @@ class TestQPE(unittest.TestCase):
         assert_equal(controlled_u.targets, [1])
         assert_equal(controlled_u.control_value, 1)
 
-        print(controlled_u.target_gate)
         assert_(
             (controlled_u.target_gate.get_compact_qobj() - U).norm() < 1e-12
         )
@@ -126,8 +125,6 @@ class TestQPE(unittest.TestCase):
             gate = circuit.gates[num_counting + i]
             power = 2 ** (num_counting - i - 1)
 
-            print(gate)
-            print(gate.target_gate)
             u_power = gate.target_gate.get_compact_qobj()
             expected_u_power = U if power == 1 else U**power
 

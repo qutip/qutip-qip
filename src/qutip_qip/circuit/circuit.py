@@ -821,9 +821,6 @@ class QubitCircuit:
                 qobj = gate.get_qobj(self.N)
             else:
                 qobj = gate.get_compact_qobj()
-                print(gate)
-                print(gate.get_compact_qobj())
-                print(qobj)
                 if expand:
                     all_targets = gate.get_all_qubits()
                     qobj = expand_operator(
