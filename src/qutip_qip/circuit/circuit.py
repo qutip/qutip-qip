@@ -232,12 +232,22 @@ class QubitCircuit:
             (i.e. all classical controls are 1).
         """
         if not isinstance(gate, Gate):
-            if gate in GATE_CLASS_MAP:
+            name_arg = gate
+            if isinstance(gate, type) and issubclass(gate, Gate):
+                gate_class = gate
+                name_arg = None
+            elif gate in GATE_CLASS_MAP:
                 gate_class = GATE_CLASS_MAP[gate]
             else:
                 gate_class = Gate
+            # else:
+            #     raise ValueError(
+            #         "Can only pass standard gate name as strings"\
+            #         "or Gate class or its object instantiation"
+            #     )
+
             gate = gate_class(
-                name=gate,
+                name=name_arg,
                 targets=targets,
                 controls=controls,
                 arg_value=arg_value,
@@ -853,6 +863,9 @@ class QubitCircuit:
                 qobj = gate.get_qobj(self.N)
             else:
                 qobj = self._get_gate_unitary(gate)
+                print(gate)
+                print(gate.get_compact_qobj())
+                print(qobj)
                 if expand:
                     all_targets = gate.get_all_qubits()
                     qobj = expand_operator(

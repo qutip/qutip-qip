@@ -22,6 +22,7 @@ from qutip import (
 from qutip_qip.qasm import read_qasm
 from qutip_qip.operations import (
     Gate,
+    CRX,
     SWAP,
     gates,
     Measurement,
@@ -77,16 +78,6 @@ def _measurement_circuit():
 
     return qc
 
-
-class CTRLRX(Gate):
-    def __init__(self, targets, arg_value):
-        super.__init__(targets=targets, arg_value=arg_value)
-    
-    def get_compact_qobj(arg_values):
-        mat = np.zeros((4, 4), dtype=np.complex128)
-        mat[0, 0] = mat[1, 1] = 1.0
-        mat[2:4, 2:4] = gates.rx(arg_values)
-        return Qobj(mat, dims=[[2, 2], [2, 2]])
 
 class TestQubitCircuit:
     """
@@ -190,9 +181,11 @@ class TestQubitCircuit:
         assert qc.gates[7].targets == [3]
         assert qc.gates[7].arg_value == -1.570796
 
-        dummy_gate1 = Gate("DUMMY1")
+        class DUMMY1(Gate):
+            def __init__(self, **kwargs):
+                super().__init__(**kwargs)
         inds = [1, 3, 4, 6]
-        qc.add_gate(dummy_gate1, index=inds)
+        qc.add_gate(DUMMY1, index=inds)
 
         # Test adding gates at multiple (sorted) indices at once.
         # NOTE: Every insertion shifts the indices in the original list of
@@ -214,9 +207,11 @@ class TestQubitCircuit:
         actual_gate_names = [gate.name for gate in qc.gates]
         assert actual_gate_names == expected_gate_names
 
-        dummy_gate2 = Gate("DUMMY2")
+        class DUMMY2(Gate):
+            def __init__(self, **kwargs):
+                super().__init__(**kwargs)
         inds = [11, 0]
-        qc.add_gate(dummy_gate2, index=inds)
+        qc.add_gate(DUMMY2, index=inds)
 
         # Test adding gates at multiple (unsorted) indices at once.
         expected_gate_names = [
@@ -252,7 +247,7 @@ class TestQubitCircuit:
         qc.add_gate(test_gate, index=[3])
         qc.add_measurement("M0", targets=[0], classical_store=[1])
         qc.add_1q_gate("RY", start=4, end=5, arg_value=1.570796)
-        qc.add_gate(CTRLRX, targets=[1, 2], arg_value=np.pi / 2)
+        qc.add_gate(CRX, controls=[1], targets=[2], arg_value=np.pi / 2)
 
         qc1 = QubitCircuit(6)
 
@@ -260,9 +255,6 @@ class TestQubitCircuit:
 
         # Test if all gates and measurements are added
         assert len(qc1.gates) == len(qc.gates)
-
-        # Test if the definitions of user gates are added
-        assert qc1.user_gates == qc.user_gates
 
         for i in range(len(qc1.gates)):
             assert qc1.gates[i].name == qc.gates[i].name
@@ -466,18 +458,22 @@ class TestQubitCircuit:
             mat[2:4, 2:4] = gates.rx(arg_values).full()
             return Qobj(mat, dims=[[2, 2], [2, 2]])
 
-        def customer_gate2():
-            mat = np.array([[1.0, 0], [0.0, 1.0j]])
-            return Qobj(mat, dims=[[2], [2]])
+        class T1(Gate):
+            def __init__(self, targets, **kwargs):
+                super().__init__(targets=targets)
+            
+            @staticmethod
+            def get_compact_qobj():
+                mat = np.array([[1.0, 0], [0.0, 1.0j]])
+                return Qobj(mat, dims=[[2], [2]])
 
         qc = QubitCircuit(3)
-        qc.user_gates = {"CTRLRX": customer_gate1, "T1": customer_gate2}
-        qc.add_gate("CTRLRX", targets=[1, 2], arg_value=np.pi / 2)
-        qc.add_gate("T1", targets=[1])
+        qc.add_gate(CRX, targets=[2], controls=[1], arg_value=np.pi / 2)
+        qc.add_gate(T1, targets=[1])
         props = qc.propagators()
         result1 = tensor(identity(2), customer_gate1(np.pi / 2))
         np.testing.assert_allclose(props[0].full(), result1.full())
-        result2 = tensor(identity(2), customer_gate2(), identity(2))
+        result2 = tensor(identity(2), T1.get_compact_qobj(), identity(2))
         np.testing.assert_allclose(props[1].full(), result2.full())
 
     def test_N_level_system(self):
@@ -486,19 +482,22 @@ class TestQubitCircuit:
         """
         mat3 = qp.rand_unitary(3)
 
-        def controlled_mat3(arg_value):
-            """
-            A qubit control an operator acting on a 3 level system
-            """
-            control_value = arg_value
-            dim = mat3.dims[0][0]
-            return tensor(fock_dm(2, control_value), mat3) + tensor(
-                fock_dm(2, 1 - control_value), identity(dim)
-            )
+        class CTRLMAT3(Gate):
+            def __init__(self, targets, arg_value, **kwargs):
+                super().__init__(targets=targets, arg_value=arg_value)
+
+            def get_compact_qobj(self):
+                """
+                A qubit control an operator acting on a 3 level system
+                """
+                control_value = self.arg_value
+                dim = mat3.dims[0][0]
+                return tensor(fock_dm(2, control_value), mat3) + tensor(
+                    fock_dm(2, 1 - control_value), identity(dim)
+                )
 
         qc = QubitCircuit(2, dims=[3, 2])
-        qc.user_gates = {"CTRLMAT3": controlled_mat3}
-        qc.add_gate("CTRLMAT3", targets=[1, 0], arg_value=1)
+        qc.add_gate(CTRLMAT3, targets=[1, 0], arg_value=1)
         props = qc.propagators()
         final_fid = qp.average_gate_fidelity(mat3, ptrace(props[0], 0) - 1)
         assert pytest.approx(final_fid, 1.0e-6) == 1
