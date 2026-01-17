@@ -232,7 +232,7 @@ class QubitCircuit:
                     style=style,
                 )
 
-            elif gate_class==GLOBALPHASE:
+            elif gate_class == GLOBALPHASE:
                 gate = gate_class(
                     arg_value=arg_value,
                     arg_label=arg_label,

@@ -94,7 +94,7 @@ class PHASE(ParametrizedSingleQubitGate):
         return Qobj(
             [
                 [1, 0],
-                [0, np.exp(1j*phi)],
+                [0, np.exp(1j * phi)],
             ]
         )
 
@@ -858,6 +858,7 @@ class _ControlledParamTwoQubitGate(ControlledParamGate):
     ``CNOT(0, 1, control_value=1)``,
     and raise an error if it is 0.
     """
+
     ...
 
 
@@ -969,7 +970,6 @@ class CQASMU(_ControlledParamTwoQubitGate):
     _target_gate_class = QASMU
 
 
-
 ########################### Special Gates #########################
 
 
@@ -998,7 +998,7 @@ class GLOBALPHASE(ParametrizedGate):
             arg_label=arg_label,
             classical_controls=classical_controls,
             classical_control_value=classical_control_value,
-            style=style
+            style=style,
         )
 
     def get_compact_qobj(self):

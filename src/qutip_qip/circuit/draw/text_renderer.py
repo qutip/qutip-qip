@@ -10,7 +10,7 @@ from qutip_qip.operations import (
     Gate,
     Measurement,
     ControlledGate,
-    ParametrizedGate
+    ParametrizedGate,
 )
 
 
@@ -432,7 +432,9 @@ class TextRenderer(BaseRenderer):
 
                 if isinstance(gate, ParametrizedGate):
                     gate_text = (
-                        gate.arg_label if gate.arg_label is not None else gate.name
+                        gate.arg_label
+                        if gate.arg_label is not None
+                        else gate.name
                     )
 
             # generate the parts, width and wire_list for the gates

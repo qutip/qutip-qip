@@ -1058,7 +1058,7 @@ class QasmOutput:
                     q_name=curr_gate.name.lower(),
                     q_targets=q_targets,
                     q_controls=q_controls,
-                    q_args=arg_name
+                    q_args=arg_name,
                 )[:-1]
             )
         )

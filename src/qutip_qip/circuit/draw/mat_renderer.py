@@ -795,9 +795,11 @@ class MatRenderer(BaseRenderer):
 
                 if isinstance(gate, ParametrizedGate):
                     self.text = (
-                        gate.arg_label if gate.arg_label is not None else gate.name
+                        gate.arg_label
+                        if gate.arg_label is not None
+                        else gate.name
                     )
-                    
+
                 self.color = style.get(
                     "color",
                     self.style.theme.get(

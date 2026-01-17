@@ -229,7 +229,9 @@ class ControlledGate(Gate):
             if self._target_gate_class is not None:
                 target_gate = self._target_gate_class
             else:
-                raise ValueError("target_gate must be provided either as argument or class attribute.")
+                raise ValueError(
+                    "target_gate must be provided either as argument or class attribute."
+                )
 
         super().__init__(
             targets=targets,
@@ -242,16 +244,16 @@ class ControlledGate(Gate):
             [controls] if not isinstance(controls, list) else controls
         )
         if control_value is None:
-             self.control_value = 2**len(self.controls) - 1
+            self.control_value = 2 ** len(self.controls) - 1
         else:
-             self.control_value = control_value
+            self.control_value = control_value
         # In the circuit plot, only the target gate is shown.
         # The control has its own symbol.
         self.latex_str = target_gate.latex_str
 
     def get_all_qubits(self):
         return self.controls + self.targets
-    
+
     def __str__(self):
         return f"""
             Gate({self.name}, targets={self.targets},
@@ -300,6 +302,7 @@ class ControlledGate(Gate):
                 )
             )
 
+
 class ParametrizedGate(Gate):
     def __init__(
         self,
@@ -316,8 +319,8 @@ class ParametrizedGate(Gate):
             classical_control_value=classical_control_value,
             style=style,
         )
-        self.arg_label=arg_label
-        self.arg_value=arg_value
+        self.arg_label = arg_label
+        self.arg_value = arg_value
 
     def __str__(self):
         return f"""
@@ -350,7 +353,7 @@ class ParametrizedGate(Gate):
                 qasm_out._qasm_str(
                     q_name=qasm_gate,
                     q_targets=self.targets,
-                    q_args=self.arg_value
+                    q_args=self.arg_value,
                 )
             )
 
@@ -372,25 +375,25 @@ class ControlledParamGate(ParametrizedGate, ControlledGate):
             if self._target_gate_class is not None:
                 target_gate = self._target_gate_class
             else:
-                raise ValueError("target_gate must be provided either as argument or class attribute.")
+                raise ValueError(
+                    "target_gate must be provided either as argument or class attribute."
+                )
 
         ControlledGate.__init__(
             self,
             controls=controls,
             targets=targets,
-            target_gate = target_gate(
-                targets=targets, 
-                arg_value=arg_value,
-                arg_label=arg_label
+            target_gate=target_gate(
+                targets=targets, arg_value=arg_value, arg_label=arg_label
             ),
             control_value=control_value,
             classical_controls=classical_controls,
             classical_control_value=classical_control_value,
             style=style,
         )
-        self.arg_label=arg_label
-        self.arg_value=arg_value
-    
+        self.arg_label = arg_label
+        self.arg_value = arg_value
+
     def __str__(self):
         return f"""
             Gate({self.name}, targets={self.targets},
@@ -425,7 +428,7 @@ class ControlledParamGate(ParametrizedGate, ControlledGate):
                     q_name=qasm_gate,
                     q_targets=self.targets,
                     q_controls=self.controls,
-                    q_args=self.arg_value
+                    q_args=self.arg_value,
                 )
             )
 
@@ -459,8 +462,7 @@ class CustomGate(Gate):
         return self._U
 
 
-class SingleQubitGate(Gate):
-    ...
+class SingleQubitGate(Gate): ...
 
 
 class ParametrizedSingleQubitGate(ParametrizedGate):
@@ -477,5 +479,4 @@ class TwoQubitGate(Gate):
     ...
 
 
-class ParametrizedTwoQubitGate(ParametrizedGate):
-    ...
+class ParametrizedTwoQubitGate(ParametrizedGate): ...
