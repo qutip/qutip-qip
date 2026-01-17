@@ -14,7 +14,7 @@ from matplotlib.patches import (
 
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.circuit.draw import BaseRenderer, StyleConfig
-from qutip_qip.operations import Gate, Measurement
+from qutip_qip.operations import Gate, Measurement, ParametrizedGate
 
 
 class MatRenderer(BaseRenderer):
@@ -786,9 +786,13 @@ class MatRenderer(BaseRenderer):
 
             if isinstance(gate, Gate):
                 style = gate.style if gate.style is not None else {}
-                self.text = (
-                    gate.arg_label if gate.arg_label is not None else gate.name
-                )
+                self.text = gate.name
+
+                if isinstance(gate, ParametrizedGate):
+                    self.text = (
+                        gate.arg_label if gate.arg_label is not None else gate.name
+                    )
+                    
                 self.color = style.get(
                     "color",
                     self.style.theme.get(

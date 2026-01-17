@@ -6,7 +6,7 @@ from math import ceil
 
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.circuit.draw import BaseRenderer, StyleConfig
-from qutip_qip.operations import Gate, Measurement
+from qutip_qip.operations import Gate, Measurement, ParametrizedGate
 
 
 class TextRenderer(BaseRenderer):
@@ -423,9 +423,12 @@ class TextRenderer(BaseRenderer):
 
         for gate in self._qc.gates:
             if isinstance(gate, Gate):
-                gate_text = (
-                    gate.arg_label if gate.arg_label is not None else gate.name
-                )
+                gate_text = gate.name
+
+                if isinstance(gate, ParametrizedGate):
+                    gate_text = (
+                        gate.arg_label if gate.arg_label is not None else gate.name
+                    )
 
             # generate the parts, width and wire_list for the gates
             if isinstance(gate, Measurement):

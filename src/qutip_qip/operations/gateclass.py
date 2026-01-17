@@ -118,7 +118,6 @@ class Gate(ABC):
             self.classical_control_value = classical_control_value
         self.control_value = control_value
         self.arg_value = arg_value
-        self.arg_label = arg_label
 
         for ind_list in [self.targets, self.controls, self.classical_controls]:
             if ind_list is None:
@@ -307,7 +306,6 @@ class ParametrizedGate(Gate):
             classical_controls=classical_controls,
             classical_control_value=classical_control_value,
             style=style,
-            
         )
         self.arg_label=arg_label
         self.arg_value=arg_value
