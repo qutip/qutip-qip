@@ -631,7 +631,7 @@ class MS(TwoQubitGate):
         )
 
 
-class RZX(TwoQubitGate):
+class RZX(ParametrizedTwoQubitGate):
     r"""
     RZX gate.
 
@@ -681,7 +681,7 @@ class RZX(TwoQubitGate):
         )
 
 
-class _OneControlledGate(ControlledGate, TwoQubitGate):
+class _ControlledTwoQubitGate(ControlledGate, TwoQubitGate):
     """
     This class allows correctly generating the gate instance
     when a redundant control_value is given, e.g.
@@ -699,7 +699,7 @@ class _OneControlledGate(ControlledGate, TwoQubitGate):
         )
 
 
-class CNOT(_OneControlledGate):
+class CNOT(_ControlledTwoQubitGate):
     """
     CNOT gate.
 
@@ -737,7 +737,7 @@ class CX(CNOT):
     pass
 
 
-class CY(_OneControlledGate):
+class CY(_ControlledTwoQubitGate):
     """
     Controlled CY gate.
 
@@ -771,7 +771,7 @@ class CY(_OneControlledGate):
         )
 
 
-class CZ(_OneControlledGate):
+class CZ(_ControlledTwoQubitGate):
     """
     Controlled Z gate. Identical to the CSIGN gate.
 
@@ -809,7 +809,7 @@ class CSIGN(CZ):
     pass
 
 
-class CH(_OneControlledGate):
+class CH(_ControlledTwoQubitGate):
     r"""
     CH gate.
 
@@ -851,7 +851,7 @@ class CH(_OneControlledGate):
         )
 
 
-class CT(_OneControlledGate):
+class CT(_ControlledTwoQubitGate):
     r"""
     CT gate.
 
@@ -892,7 +892,7 @@ class CT(_OneControlledGate):
         )
 
 
-class CS(_OneControlledGate):
+class CS(_ControlledTwoQubitGate):
     r"""
     CS gate.
 
@@ -930,7 +930,36 @@ class CS(_OneControlledGate):
         )
 
 
-class CPHASE(_OneControlledGate):
+class _ControlledParamTwoQubitGate(ControlledGate, ParametrizedTwoQubitGate):
+    """
+    This class allows correctly generating the gate instance
+    when a redundant control_value is given, e.g.
+    ``CNOT(0, 1, control_value=1)``,
+    and raise an error if it is 0.
+    """
+
+    def __init__(
+        self,
+        target_gate,
+        arg_value,
+        targets,
+        controls,
+        arg_label=None,
+        control_value=1,
+        **kwargs
+    ):
+        super().__init__(
+            target_gate=target_gate,
+            arg_value=arg_value,
+            arg_label=arg_label,
+            controls=controls,
+            targets=targets,
+            control_value=control_value,
+            **kwargs
+        )
+
+
+class CPHASE(_ControlledParamTwoQubitGate):
     r"""
     CPHASE gate.
 
@@ -958,14 +987,19 @@ class CPHASE(_OneControlledGate):
     latex_str = r"{\rm CPHASE}"
 
     def __init__(
-        self, controls, targets, arg_value, control_value=1, **kwargs
+        self,
+        controls,
+        targets,
+        arg_value,
+        control_value=1,
+        arg_label=None,
+        **kwargs
     ):
-        self.target_gate = RZ
         super().__init__(
+            target_gate=RZ,
             targets=targets,
             controls=controls,
             arg_value=arg_value,
-            target_gate=self.target_gate,
             **kwargs,
         )
 
@@ -981,7 +1015,7 @@ class CPHASE(_OneControlledGate):
         )
 
 
-class CRX(_OneControlledGate):
+class CRX(_ControlledParamTwoQubitGate):
     r"""
     Controlled X rotation.
 
@@ -1004,7 +1038,7 @@ class CRX(_OneControlledGate):
         )
 
 
-class CRY(_OneControlledGate):
+class CRY(_ControlledParamTwoQubitGate):
     r"""
     Controlled Y rotation.
 
@@ -1027,14 +1061,31 @@ class CRY(_OneControlledGate):
         )
 
 
-class CRZ(_OneControlledGate):
+class CRZ(_ControlledParamTwoQubitGate):
     r"""
-    Controlled z rotation.
+    CRZ gate.
+
+    .. math::
+
+        \begin{pmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & 1 & 0 & 0 \\
+        0 & 0 & e^{-i\frac{\theta}{2}} & 0 \\
+        0 & 0 & 0 & e^{i\frac{\theta}{2}} \\
+        \end{pmatrix}
 
     Examples
     --------
     >>> from qutip_qip.operations import CRZ
+    >>> CRZ(0, 1, np.pi).get_compact_qobj().tidyup() # doctest: +NORMALIZE_WHITESPACE
+    Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
+    Qobj data =
+    [[1.+0.j 0.+0.j 0.+0.j 0.+0.j]
+     [0.+0.j 1.+0.j 0.+0.j 0.+0.j]
+     [0.+0.j 0.+0.j 0.-1.j 0.+0.j]
+     [0.+0.j 0.+0.j 0.+0.j 0.+1.j]]
     """
+
 
     latex_str = r"{\rm CRZ}"
 
@@ -1050,7 +1101,7 @@ class CRZ(_OneControlledGate):
         )
 
 
-class CQASMU(_OneControlledGate):
+class CQASMU(_ControlledParamTwoQubitGate):
     r"""
     Controlled QASMU rotation.
 
