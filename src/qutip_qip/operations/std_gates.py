@@ -77,6 +77,27 @@ class Z(SingleQubitGate):
         return sigmaz(dtype="dense")
 
 
+class PHASE(ParametrizedSingleQubitGate):
+    """
+    PHASE Gate.
+
+    Examples
+    --------
+    >>> from qutip_qip.operations import PHASE
+    """
+
+    latex_str = r"PHASE"
+
+    def get_compact_qobj(self):
+        phi = self.arg_value
+        return Qobj(
+            [
+                [1, 0],
+                [0, np.exp(1j*phi)],
+            ]
+        )
+
+
 class RX(ParametrizedSingleQubitGate):
     """
     Single-qubit rotation RX.
@@ -92,9 +113,6 @@ class RX(ParametrizedSingleQubitGate):
     """
 
     latex_str = r"R_x"
-
-    def __init__(self, targets, arg_value, **kwargs):
-        super().__init__(targets=targets, arg_value=arg_value, **kwargs)
 
     def get_compact_qobj(self):
         phi = self.arg_value
@@ -122,9 +140,6 @@ class RY(ParametrizedSingleQubitGate):
 
     latex_str = r"R_y"
 
-    def __init__(self, targets, arg_value, **kwargs):
-        super().__init__(targets=targets, arg_value=arg_value, **kwargs)
-
     def get_compact_qobj(self):
         phi = self.arg_value
         return Qobj(
@@ -150,9 +165,6 @@ class RZ(ParametrizedSingleQubitGate):
     """
 
     latex_str = r"R_z"
-
-    def __init__(self, targets, arg_value, **kwargs):
-        super().__init__(targets=targets, arg_value=arg_value, **kwargs)
 
     def get_compact_qobj(self):
         phi = self.arg_value
@@ -286,9 +298,6 @@ class R(ParametrizedSingleQubitGate):
 
     latex_str = r"{\rm R}"
 
-    def __init__(self, targets, arg_value, **kwargs):
-        super().__init__(targets=targets, arg_value=arg_value, **kwargs)
-
     def get_compact_qobj(self):
         phi, theta = self.arg_value
         return Qobj(
@@ -323,9 +332,6 @@ class QASMU(ParametrizedSingleQubitGate):
     """
 
     latex_str = r"{\rm QASM-U}"
-
-    def __init__(self, targets, arg_value, **kwargs):
-        super().__init__(targets=targets, arg_value=arg_value, **kwargs)
 
     def get_compact_qobj(self):
         theta, phi, gamma = self.arg_value
@@ -654,26 +660,6 @@ class _ControlledTwoQubitGate(ControlledGate, TwoQubitGate):
     and raise an error if it is 0.
     """
 
-    def __init__(
-        self,
-        controls,
-        targets,
-        target_gate,
-        control_value=1,
-        classical_controls=None,
-        classical_control_value=None,
-        style=None
-    ):
-        super().__init__(
-            target_gate=target_gate,
-            targets=targets,
-            controls=controls,
-            control_value=control_value,
-            classical_controls=classical_controls,
-            classical_control_value=classical_control_value,
-            style=style,
-        )
-
 
 class CNOT(_ControlledTwoQubitGate):
     """
@@ -692,25 +678,7 @@ class CNOT(_ControlledTwoQubitGate):
     """
 
     latex_str = r"{\rm CNOT}"
-
-    def __init__(
-        self,
-        controls,
-        targets,
-        control_value=None,
-        classical_controls=None,
-        classical_control_value=None,
-        style=None
-    ):
-        super().__init__(
-            target_gate=X,
-            targets=targets,
-            controls=controls,
-            control_value=control_value,
-            classical_controls=classical_controls,
-            classical_control_value=classical_control_value,
-            style=style,
-        )
+    _target_gate_class = X
 
     @staticmethod
     def get_compact_qobj():
@@ -741,25 +709,7 @@ class CY(_ControlledTwoQubitGate):
     """
 
     latex_str = r"{\rm CY}"
-
-    def __init__(
-        self,
-        controls,
-        targets,
-        control_value=None,
-        classical_controls=None,
-        classical_control_value=None,
-        style=None
-    ):
-        super().__init__(
-            target_gate=Y,
-            targets=targets,
-            controls=controls,
-            control_value=control_value,
-            classical_controls=classical_controls,
-            classical_control_value=classical_control_value,
-            style=style,
-        )
+    _target_gate_class = Y
 
     @staticmethod
     def get_compact_qobj():
@@ -786,25 +736,7 @@ class CZ(_ControlledTwoQubitGate):
     """
 
     latex_str = r"{\rm CZ}"
-
-    def __init__(
-        self,
-        controls,
-        targets,
-        control_value=None,
-        classical_controls=None,
-        classical_control_value=None,
-        style=None
-    ):
-        super().__init__(
-            target_gate=Z,
-            targets=targets,
-            controls=controls,
-            control_value=control_value,
-            classical_controls=classical_controls,
-            classical_control_value=classical_control_value,
-            style=style,
-        )
+    _target_gate_class = Z
 
     @staticmethod
     def get_compact_qobj():
@@ -837,25 +769,7 @@ class CH(_ControlledTwoQubitGate):
     """
 
     latex_str = r"{\rm CH}"
-
-    def __init__(
-        self,
-        controls,
-        targets,
-        control_value=None,
-        classical_controls=None,
-        classical_control_value=None,
-        style=None
-    ):
-        super().__init__(
-            target_gate=H,
-            targets=targets,
-            controls=controls,
-            control_value=control_value,
-            classical_controls=classical_controls,
-            classical_control_value=classical_control_value,
-            style=style,
-        )
+    _target_gate_class = H
 
     @staticmethod
     def get_compact_qobj():
@@ -890,25 +804,7 @@ class CT(_ControlledTwoQubitGate):
     """
 
     latex_str = r"{\rm CT}"
-
-    def __init__(
-        self,
-        controls,
-        targets,
-        control_value=None,
-        classical_controls=None,
-        classical_control_value=None,
-        style=None
-    ):
-        super().__init__(
-            target_gate=T,
-            targets=targets,
-            controls=controls,
-            control_value=control_value,
-            classical_controls=classical_controls,
-            classical_control_value=classical_control_value,
-            style=style,
-        )
+    _target_gate_class = T
 
     @staticmethod
     def get_compact_qobj():
@@ -942,25 +838,7 @@ class CS(_ControlledTwoQubitGate):
     """
 
     latex_str = r"{\rm CS}"
-
-    def __init__(
-        self,
-        controls,
-        targets,
-        control_value=None,
-        classical_controls=None,
-        classical_control_value=None,
-        style=None
-    ):
-        super().__init__(
-            target_gate=S,
-            targets=targets,
-            controls=controls,
-            control_value=control_value,
-            classical_controls=classical_controls,
-            classical_control_value=classical_control_value,
-            style=style,
-        )
+    _target_gate_class = S
 
     @staticmethod
     def get_compact_qobj():
@@ -979,30 +857,7 @@ class _ControlledParamTwoQubitGate(ControlledGate, ParametrizedTwoQubitGate):
     ``CNOT(0, 1, control_value=1)``,
     and raise an error if it is 0.
     """
-
-    def __init__(
-        self,
-        target_gate,
-        arg_value,
-        targets,
-        controls,
-        arg_label=None,
-        control_value=1,
-        classical_controls=None,
-        classical_control_value=None,
-        style=None,
-    ):
-        super().__init__(
-            target_gate=target_gate,
-            arg_value=arg_value,
-            arg_label=arg_label,
-            controls=controls,
-            targets=targets,
-            control_value=control_value,
-            classical_controls=classical_controls,
-            classical_control_value=classical_control_value,
-            style=style,
-        )
+    ...
 
 
 class CPHASE(_ControlledParamTwoQubitGate):
@@ -1031,7 +886,7 @@ class CPHASE(_ControlledParamTwoQubitGate):
     """
 
     latex_str = r"{\rm CPHASE}"
-
+    
     def __init__(
         self,
         controls,
@@ -1039,12 +894,12 @@ class CPHASE(_ControlledParamTwoQubitGate):
         arg_value,
         control_value=1,
         arg_label=None,
-        style=None,
         classical_controls=None,
         classical_control_value=None,
+        style=None,
     ):
         super().__init__(
-            target_gate=RZ,
+            target_gate=PHASE(targets=targets, arg_value=arg_value),
             targets=targets,
             arg_value=arg_value,
             arg_label=arg_label,

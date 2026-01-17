@@ -1007,7 +1007,7 @@ class QasmOutput:
         self.lines = []
         self.gate_name_map = deepcopy(_GATE_NAME_TO_QASM_NAME)
 
-    def _qasm_str(self, q_name, q_controls, q_targets, q_args):
+    def _qasm_str(self, q_name, q_targets, q_controls=None, q_args=None):
         """
         Returns QASM string for gate definition or gate application given
         name, registers, arguments.
@@ -1055,7 +1055,10 @@ class QasmOutput:
         self.output(
             "gate {} {{".format(
                 self._qasm_str(
-                    curr_gate.name.lower(), q_controls, q_targets, arg_name
+                    q_name=curr_gate.name.lower(),
+                    q_targets=q_targets,
+                    q_controls=q_controls,
+                    q_args=arg_name
                 )[:-1]
             )
         )
@@ -1067,10 +1070,10 @@ class QasmOutput:
                     gate.controls = [reg_map[i] for i in gate.controls]
                 self.output(
                     self._qasm_str(
-                        self.gate_name_map[gate.name],
-                        gate.controls,
-                        gate.targets,
-                        gate.arg_value,
+                        q_name=self.gate_name_map[gate.name],
+                        q_targets=gate.targets,
+                        q_controls=gate.controls,
+                        q_args=gate.arg_value,
                     )
                 )
             elif gate.name in forbidden_gates:
