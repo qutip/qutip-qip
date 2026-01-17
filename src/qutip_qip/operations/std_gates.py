@@ -7,6 +7,7 @@ from qutip_qip.operations import (
     TwoQubitGate,
     ControlledGate,
     ParametrizedGate,
+    ControlledParamGate,
     ParametrizedSingleQubitGate,
     ParametrizedTwoQubitGate,
 )
@@ -850,7 +851,7 @@ class CS(_ControlledTwoQubitGate):
         )
 
 
-class _ControlledParamTwoQubitGate(ControlledGate, ParametrizedTwoQubitGate):
+class _ControlledParamTwoQubitGate(ControlledParamGate):
     """
     This class allows correctly generating the gate instance
     when a redundant control_value is given, e.g.
@@ -886,29 +887,7 @@ class CPHASE(_ControlledParamTwoQubitGate):
     """
 
     latex_str = r"{\rm CPHASE}"
-    
-    def __init__(
-        self,
-        controls,
-        targets,
-        arg_value,
-        control_value=1,
-        arg_label=None,
-        classical_controls=None,
-        classical_control_value=None,
-        style=None,
-    ):
-        super().__init__(
-            target_gate=PHASE(targets=targets, arg_value=arg_value),
-            targets=targets,
-            arg_value=arg_value,
-            arg_label=arg_label,
-            controls=controls,
-            control_value=control_value,
-            classical_controls=classical_controls,
-            classical_control_value=classical_control_value,
-            style=style,
-        )
+    _target_gate_class = PHASE
 
     def get_compact_qobj(self):
         return Qobj(
@@ -932,29 +911,7 @@ class CRX(_ControlledParamTwoQubitGate):
     """
 
     latex_str = r"{\rm CRX}"
-
-    def __init__(
-        self,
-        controls,
-        targets,
-        arg_value,
-        control_value=1,
-        arg_label=None,
-        classical_controls=None,
-        classical_control_value=None,
-        style=None,
-    ):
-        super().__init__(
-            target_gate=RX(targets=targets, arg_value=arg_value),
-            targets=targets,
-            arg_value=arg_value,
-            arg_label=arg_label,
-            controls=controls,
-            control_value=control_value,
-            classical_controls=classical_controls,
-            classical_control_value=classical_control_value,
-            style=style,
-        )
+    _target_gate_class = RX
 
 
 class CRY(_ControlledParamTwoQubitGate):
@@ -967,29 +924,7 @@ class CRY(_ControlledParamTwoQubitGate):
     """
 
     latex_str = r"{\rm CRY}"
-
-    def __init__(
-        self,
-        controls,
-        targets,
-        arg_value,
-        control_value=1,
-        arg_label=None,
-        classical_controls=None,
-        classical_control_value=None,
-        style=None,
-    ):
-        super().__init__(
-            target_gate=RY(targets=targets, arg_value=arg_value),
-            targets=targets,
-            arg_value=arg_value,
-            arg_label=arg_label,
-            controls=controls,
-            control_value=control_value,
-            classical_controls=classical_controls,
-            classical_control_value=classical_control_value,
-            style=style,
-        )
+    _target_gate_class = RY
 
 
 class CRZ(_ControlledParamTwoQubitGate):
@@ -1017,31 +952,8 @@ class CRZ(_ControlledParamTwoQubitGate):
      [0.+0.j 0.+0.j 0.+0.j 0.+1.j]]
     """
 
-
     latex_str = r"{\rm CRZ}"
-
-    def __init__(
-        self,
-        controls,
-        targets,
-        arg_value,
-        control_value=1,
-        arg_label=None,
-        classical_controls=None,
-        classical_control_value=None,
-        style=None,
-    ):
-        super().__init__(
-            target_gate=RZ(targets=targets, arg_value=arg_value),
-            targets=targets,
-            arg_value=arg_value,
-            arg_label=arg_label,
-            controls=controls,
-            control_value=control_value,
-            classical_controls=classical_controls,
-            classical_control_value=classical_control_value,
-            style=style,
-        )
+    _target_gate_class = RZ
 
 
 class CQASMU(_ControlledParamTwoQubitGate):
@@ -1054,29 +966,8 @@ class CQASMU(_ControlledParamTwoQubitGate):
     """
 
     latex_str = r"{\rm CQASMU}"
+    _target_gate_class = QASMU
 
-    def __init__(
-        self,
-        controls,
-        targets,
-        arg_value,
-        control_value=1,
-        arg_label=None,
-        classical_controls=None,
-        classical_control_value=None,
-        style=None,
-    ):
-        super().__init__(
-            target_gate=QASMU(targets=targets, arg_value=arg_value),
-            targets=targets,
-            arg_value=arg_value,
-            arg_label=arg_label,
-            controls=controls,
-            control_value=control_value,
-            classical_controls=classical_controls,
-            classical_control_value=classical_control_value,
-            style=style,
-        )
 
 
 ########################### Special Gates #########################

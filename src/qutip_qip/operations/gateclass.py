@@ -382,6 +382,82 @@ class ParametrizedGate(Gate):
                 )
             )
 
+
+class ControlledParamGate(ControlledGate):
+    def __init__(
+        self,
+        controls,
+        targets,
+        arg_value,
+        target_gate=None,
+        arg_label=None,
+        control_value=1,
+        classical_controls=None,
+        classical_control_value=None,
+        style=None,
+    ):
+        if target_gate is None:
+            if self._target_gate_class is not None:
+                target_gate = self._target_gate_class
+            else:
+                raise ValueError("target_gate must be provided either as argument or class attribute.")
+
+        print(target_gate)
+        super().__init__(
+            target_gate=target_gate(
+                targets=targets,
+                arg_value=arg_value,
+                arg_label=arg_label
+            ),
+            targets=targets,
+            controls=controls,
+            control_value=control_value,
+            classical_controls=classical_controls,
+            classical_control_value=classical_control_value,
+            style=style,
+        )
+        self.arg_label=arg_label
+        self.arg_value=arg_value
+    
+    def __str__(self):
+        return f"""
+            Gate({self.name}, targets={self.targets},
+            arg_value={self.arg_value}, arg_label={self.arg_label},
+            controls={self.controls}, control_value={self.control_value},
+            classical controls={self.classical_controls},
+            classical_control_value={self.classical_control_value})
+        """
+
+    def _to_qasm(self, qasm_out):
+        """
+        Pipe output of gate signature and application to QasmOutput object.
+
+        Parameters
+        ----------
+        qasm_out: QasmOutput
+            object to store QASM output.
+        """
+
+        qasm_gate = qasm_out.qasm_name(self.name)
+
+        if not qasm_gate:
+            error_str = f"{self.name} gate's qasm defn is not specified"
+            raise NotImplementedError(error_str)
+
+        if self.classical_controls:
+            err_msg = "Exporting controlled gates is not implemented yet."
+            raise NotImplementedError(err_msg)
+        else:
+            qasm_out.output(
+                qasm_out._qasm_str(
+                    q_name=qasm_gate,
+                    q_targets=self.targets,
+                    q_controls=self.controls,
+                    q_args=self.arg_value
+                )
+            )
+
+
 class CustomGate(Gate):
     """
     Custom gate that wraps an arbitrary quantum operator.

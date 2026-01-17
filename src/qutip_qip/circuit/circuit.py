@@ -12,6 +12,7 @@ from qutip_qip.operations import (
     Gate,
     ControlledGate,
     ParametrizedGate,
+    ControlledParamGate,
     GLOBALPHASE,
     SWAP,
     RX,
@@ -219,10 +220,7 @@ class QubitCircuit:
                     "or Gate class or its object instantiation"
                 )
 
-            is_controlled = issubclass(gate_class, ControlledGate)
-            is_parametrized = issubclass(gate_class, ParametrizedGate)
-
-            if is_controlled and is_parametrized:
+            if issubclass(gate_class, ControlledParamGate):
                 gate = gate_class(
                     targets=targets,
                     controls=controls,
@@ -243,7 +241,7 @@ class QubitCircuit:
                     style=style,
                 )
 
-            elif is_parametrized:
+            elif issubclass(gate_class, ParametrizedGate):
                 gate = gate_class(
                     targets=targets,
                     arg_value=arg_value,
@@ -253,7 +251,7 @@ class QubitCircuit:
                     style=style,
                 )
 
-            elif is_controlled:
+            elif issubclass(gate_class, ControlledGate):
                 gate = gate_class(
                     targets=targets,
                     controls=controls,
