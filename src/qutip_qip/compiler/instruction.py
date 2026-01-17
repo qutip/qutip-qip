@@ -1,5 +1,6 @@
 from copy import deepcopy
 import numpy as np
+from qutip_qip.operations import ControlledGate
 
 
 class Instruction:
@@ -76,4 +77,6 @@ class Instruction:
 
         :type: list
         """
-        return self.gate.controls
+        if isinstance(self.gate, ControlledGate):
+            return self.gate.controls
+        return None

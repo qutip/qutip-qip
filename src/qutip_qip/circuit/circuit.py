@@ -352,16 +352,20 @@ class QubitCircuit:
                     tar = [target + start for target in circuit_op.targets]
                 else:
                     tar = None
-                if circuit_op.controls is not None:
+                if isinstance(circuit_op, ControlledGate):
                     ctrl = [control + start for control in circuit_op.controls]
                 else:
                     ctrl = None
+
+                arg = None
+                if isinstance(circuit_op, ParametrizedGate):
+                    circuit_op.arg_value
 
                 self.add_gate(
                     circuit_op.name,
                     targets=tar,
                     controls=ctrl,
-                    arg_value=circuit_op.arg_value,
+                    arg_value=arg,
                 )
             elif isinstance(circuit_op, Measurement):
                 self.add_measurement(

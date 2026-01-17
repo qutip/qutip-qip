@@ -272,7 +272,8 @@ class TestQubitCircuit:
             if isinstance(qc1.gates[i], Gate) and isinstance(
                 qc.gates[i], Gate
             ):
-                assert qc1.gates[i].controls == qc.gates[i].controls
+                if isinstance(qc.gates[i], ControlledGate):
+                    assert qc1.gates[i].controls == qc.gates[i].controls
                 assert (
                     qc1.gates[i].classical_controls
                     == qc.gates[i].classical_controls

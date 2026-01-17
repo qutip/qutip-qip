@@ -1,4 +1,3 @@
-import numbers
 from collections.abc import Iterable
 from abc import ABC, abstractmethod
 
@@ -75,12 +74,8 @@ class Gate(ABC):
         self,
         name: str = None,
         targets: int | list[int] = None,
-        controls: int | list[int] = None,
-        arg_value=None,
-        control_value: int | None = None,
         classical_controls: int | list[int] | None = None,
         classical_control_value: int | None = None,
-        arg_label: str | None = None,
         style: dict | None = None,
     ):
         """
@@ -93,11 +88,6 @@ class Gate(ABC):
             self.targets = [targets]
         else:
             self.targets = targets
-
-        if not isinstance(controls, Iterable) and controls is not None:
-            self.controls = [controls]
-        else:
-            self.controls = controls
 
         if (
             not isinstance(classical_controls, Iterable)
@@ -116,17 +106,6 @@ class Gate(ABC):
             )
         else:
             self.classical_control_value = classical_control_value
-        self.control_value = control_value
-        self.arg_value = arg_value
-
-        for ind_list in [self.targets, self.controls, self.classical_controls]:
-            if ind_list is None:
-                continue
-            all_integer = all(
-                [isinstance(ind, numbers.Integral) for ind in ind_list]
-            )
-            if not all_integer:
-                raise ValueError("Index of a qubit must be an integer")
 
     def get_all_qubits(self):
         """
@@ -245,7 +224,6 @@ class ControlledGate(Gate):
         classical_controls=None,
         classical_control_value=None,
         style=None,
-        **kwargs
     ):
         if target_gate is None:
             if self._target_gate_class is not None:
@@ -258,7 +236,6 @@ class ControlledGate(Gate):
             classical_controls=classical_controls,
             classical_control_value=classical_control_value,
             style=style,
-            **kwargs,
         )
         self.target_gate = target_gate
         self.controls = (
@@ -320,7 +297,6 @@ class ControlledGate(Gate):
                     q_name=qasm_gate,
                     q_targets=self.targets,
                     q_controls=self.controls,
-                    q_args=self.arg_value
                 )
             )
 
@@ -349,10 +325,6 @@ class ParametrizedGate(Gate):
             classical controls={self.classical_controls}, arg_label={self.arg_label},
             classical_control_value={self.classical_control_value})
         """
-
-    @abstractmethod
-    def get_compact_qobj(self):
-        pass
 
     def _to_qasm(self, qasm_out):
         """
@@ -402,7 +374,6 @@ class ControlledParamGate(ControlledGate):
             else:
                 raise ValueError("target_gate must be provided either as argument or class attribute.")
 
-        print(target_gate)
         super().__init__(
             target_gate=target_gate(
                 targets=targets,
@@ -488,27 +459,7 @@ class CustomGate(Gate):
 
 
 class SingleQubitGate(Gate):
-    def __init__(
-        self,
-        targets,
-        classical_controls=None,
-        classical_control_value=None,
-        style=None,
-    ):
-        super().__init__(
-            targets=targets,
-            classical_controls=classical_controls,
-            classical_control_value=classical_control_value,
-            style=style,
-        )
-        if self.targets is None or len(self.targets) != 1:
-            raise ValueError(
-                f"Gate {self.__class__.__name__} requires one target"
-            )
-        if self.controls:
-            raise ValueError(
-                f"Gate {self.__class__.__name__} cannot have a control"
-            )
+    ...
 
 
 class ParametrizedSingleQubitGate(ParametrizedGate):
@@ -522,19 +473,7 @@ class ParametrizedSingleQubitGate(ParametrizedGate):
 class TwoQubitGate(Gate):
     """Abstract two-qubit gate."""
 
-    def __init__(
-        self,
-        targets,
-        classical_controls=None,
-        classical_control_value=None,
-        style=None,
-    ):
-        super().__init__(
-            targets=targets,
-            classical_controls=classical_controls,
-            classical_control_value=classical_control_value,
-            style=style,
-        )
+    ...
 
 
 class ParametrizedTwoQubitGate(ParametrizedGate):
