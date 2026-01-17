@@ -141,8 +141,6 @@ class Gate(ABC):
         targets_list : list of int
             A list of all qubits, including controls and targets.
         """
-        if self.controls is not None:
-            return self.controls + self.targets
         if self.targets is not None:
             return self.targets
         else:
@@ -150,18 +148,11 @@ class Gate(ABC):
             return []
 
     def __str__(self):
-        str_name = (
-            "Gate(%s, targets=%s, controls=%s,"
-            " classical controls=%s, control_value=%s, classical_control_value=%s)"
-        ) % (
-            self.name,
-            self.targets,
-            self.controls,
-            self.classical_controls,
-            self.control_value,
-            self.classical_control_value,
-        )
-        return str_name
+        return f"""
+            Gate({self.name}, targets={self.targets},
+            classical controls={self.classical_controls},
+            classical_control_value={self.classical_control_value})
+        """
 
     def __repr__(self):
         return str(self)
@@ -277,6 +268,17 @@ class ControlledGate(Gate):
         # The control has its own symbol.
         self.latex_str = target_gate.latex_str
 
+    def get_all_qubits(self):
+        return self.controls + self.targets
+    
+    def __str__(self):
+        return f"""
+            Gate({self.name}, targets={self.targets},
+            controls={self.controls}, control_value={self.control_value},
+            classical controls={self.classical_controls},
+            classical_control_value={self.classical_control_value})
+        """
+
     def get_compact_qobj(self):
         return controlled_gate(
             U=self.target_gate.get_compact_qobj(),
@@ -294,18 +296,28 @@ class ParametrizedGate(Gate):
     def __init__(
         self,
         targets,
-        arg_value,
-        arg_label=None,
+        arg_value: float,
+        arg_label: str = None,
+        classical_controls=None,
+        classical_control_value=None,
         style=None,
-        **kwargs,
     ):
         super().__init__(
             targets=targets,
-            arg_value=arg_value,
-            arg_label=arg_label,
+            classical_controls=classical_controls,
+            classical_control_value=classical_control_value,
             style=style,
-            **kwargs,
+            
         )
+        self.arg_label=arg_label
+        self.arg_value=arg_value
+
+    def __str__(self):
+        return f"""
+            Gate({self.name}, targets={self.targets}, arg_value={self.arg_value},
+            classical controls={self.classical_controls}, arg_label={self.arg_label},
+            classical_control_value={self.classical_control_value})
+        """
 
     @abstractmethod
     def get_compact_qobj(self):
@@ -319,8 +331,22 @@ class CustomGate(Gate):
 
     latex_str = r"U"
 
-    def __init__(self, targets, U, **kwargs):
-        super().__init__(targets=targets, **kwargs)
+    def __init__(
+        self,
+        name,
+        targets,
+        U,
+        classical_controls=None,
+        classical_control_value=None,
+        style=None,
+    ):
+        super().__init__(
+            name=name,
+            targets=targets,
+            classical_controls=classical_controls,
+            classical_control_value=classical_control_value,
+            style=style,
+        )
         self._U = U
 
     def get_compact_qobj(self):
@@ -328,8 +354,19 @@ class CustomGate(Gate):
 
 
 class SingleQubitGate(Gate):
-    def __init__(self, targets, **kwargs):
-        super().__init__(targets=targets, **kwargs)
+    def __init__(
+        self,
+        targets,
+        classical_controls=None,
+        classical_control_value=None,
+        style=None,
+    ):
+        super().__init__(
+            targets=targets,
+            classical_controls=classical_controls,
+            classical_control_value=classical_control_value,
+            style=style,
+        )
         if self.targets is None or len(self.targets) != 1:
             raise ValueError(
                 f"Gate {self.__class__.__name__} requires one target"
@@ -341,8 +378,7 @@ class SingleQubitGate(Gate):
 
 
 class ParametrizedSingleQubitGate(ParametrizedGate):
-    def __init__(self, targets, arg_value, **kwargs):
-        super().__init__(targets=targets, arg_value=arg_value, **kwargs)
+    def _verify_parameters(self):
         if self.targets is None or len(self.targets) != 1:
             raise ValueError(
                 f"Gate {self.__class__.__name__} requires one target"
@@ -352,10 +388,20 @@ class ParametrizedSingleQubitGate(ParametrizedGate):
 class TwoQubitGate(Gate):
     """Abstract two-qubit gate."""
 
-    def __init__(self, targets, **kwargs):
-        super().__init__(targets=targets, **kwargs)
+    def __init__(
+        self,
+        targets,
+        classical_controls=None,
+        classical_control_value=None,
+        style=None,
+    ):
+        super().__init__(
+            targets=targets,
+            classical_controls=classical_controls,
+            classical_control_value=classical_control_value,
+            style=style,
+        )
 
 
 class ParametrizedTwoQubitGate(ParametrizedGate):
-    def __init__(self, targets, arg_value, **kwargs):
-        super().__init__(targets=targets, arg_value=arg_value, **kwargs)
+    ...
