@@ -525,7 +525,7 @@ class BERKELEY(TwoQubitGate):
         )
 
 
-class SWAPALPHA(TwoQubitGate):
+class SWAPALPHA(ParametrizedTwoQubitGate):
     r"""
     SWAPALPHA gate.
 
@@ -578,7 +578,7 @@ class SWAPALPHA(TwoQubitGate):
         )
 
 
-class MS(TwoQubitGate):
+class MS(ParametrizedTwoQubitGate):
     r"""
     Mølmer–Sørensen gate.
 
@@ -946,7 +946,9 @@ class _ControlledParamTwoQubitGate(ControlledGate, ParametrizedTwoQubitGate):
         controls,
         arg_label=None,
         control_value=1,
-        **kwargs
+        classical_controls=None,
+        classical_control_value=None,
+        style=None,
     ):
         super().__init__(
             target_gate=target_gate,
@@ -955,7 +957,9 @@ class _ControlledParamTwoQubitGate(ControlledGate, ParametrizedTwoQubitGate):
             controls=controls,
             targets=targets,
             control_value=control_value,
-            **kwargs
+            classical_controls=classical_controls,
+            classical_control_value=classical_control_value,
+            style=style,
         )
 
 
@@ -993,14 +997,20 @@ class CPHASE(_ControlledParamTwoQubitGate):
         arg_value,
         control_value=1,
         arg_label=None,
-        **kwargs
+        style=None,
+        classical_controls=None,
+        classical_control_value=None,
     ):
         super().__init__(
             target_gate=RZ,
             targets=targets,
-            controls=controls,
             arg_value=arg_value,
-            **kwargs,
+            arg_label=arg_label,
+            controls=controls,
+            control_value=control_value,
+            style=style,
+            classical_controls=classical_controls,
+            classical_control_value=classical_control_value,
         )
 
     def get_compact_qobj(self):
@@ -1027,14 +1037,26 @@ class CRX(_ControlledParamTwoQubitGate):
     latex_str = r"{\rm CRX}"
 
     def __init__(
-        self, controls, targets, arg_value, control_value=1, **kwargs
+        self,
+        controls,
+        targets,
+        arg_value,
+        control_value=1,
+        arg_label=None,
+        classical_controls=None,
+        classical_control_value=None,
+        style=None,
     ):
         super().__init__(
             target_gate=RX(targets=targets, arg_value=arg_value),
-            controls=controls,
-            control_value=control_value,
             targets=targets,
             arg_value=arg_value,
+            arg_label=arg_label,
+            controls=controls,
+            control_value=control_value,
+            classical_controls=classical_controls,
+            classical_control_value=classical_control_value,
+            style=style,
         )
 
 
@@ -1050,14 +1072,26 @@ class CRY(_ControlledParamTwoQubitGate):
     latex_str = r"{\rm CRY}"
 
     def __init__(
-        self, controls, targets, arg_value, control_value=1, **kwargs
+        self,
+        controls,
+        targets,
+        arg_value,
+        control_value=1,
+        arg_label=None,
+        classical_controls=None,
+        classical_control_value=None,
+        style=None,
     ):
         super().__init__(
             target_gate=RY(targets=targets, arg_value=arg_value),
-            controls=controls,
-            control_value=control_value,
             targets=targets,
             arg_value=arg_value,
+            arg_label=arg_label,
+            controls=controls,
+            control_value=control_value,
+            classical_controls=classical_controls,
+            classical_control_value=classical_control_value,
+            style=style,
         )
 
 
@@ -1090,14 +1124,26 @@ class CRZ(_ControlledParamTwoQubitGate):
     latex_str = r"{\rm CRZ}"
 
     def __init__(
-        self, controls, targets, arg_value, control_value=1, **kwargs
+        self,
+        controls,
+        targets,
+        arg_value,
+        control_value=1,
+        arg_label=None,
+        classical_controls=None,
+        classical_control_value=None,
+        style=None,
     ):
         super().__init__(
             target_gate=RZ(targets=targets, arg_value=arg_value),
-            controls=controls,
-            control_value=control_value,
             targets=targets,
             arg_value=arg_value,
+            arg_label=arg_label,
+            controls=controls,
+            control_value=control_value,
+            classical_controls=classical_controls,
+            classical_control_value=classical_control_value,
+            style=style,
         )
 
 
@@ -1113,21 +1159,33 @@ class CQASMU(_ControlledParamTwoQubitGate):
     latex_str = r"{\rm CQASMU}"
 
     def __init__(
-        self, controls, targets, arg_value, control_value=1, **kwargs
+        self,
+        controls,
+        targets,
+        arg_value,
+        control_value=1,
+        arg_label=None,
+        classical_controls=None,
+        classical_control_value=None,
+        style=None,
     ):
         super().__init__(
             target_gate=QASMU(targets=targets, arg_value=arg_value),
-            controls=controls,
-            control_value=control_value,
             targets=targets,
             arg_value=arg_value,
+            arg_label=arg_label,
+            controls=controls,
+            control_value=control_value,
+            classical_controls=classical_controls,
+            classical_control_value=classical_control_value,
+            style=style,
         )
 
 
 ########################### Special Gates #########################
 
 
-class GLOBALPHASE(Gate):
+class GLOBALPHASE(ParametrizedGate):
     """
     GLOBALPHASE gate.
 
@@ -1139,7 +1197,12 @@ class GLOBALPHASE(Gate):
     latex_str = r"{\rm GLOBALPHASE}"
 
     def __init__(self, arg_value: float, arg_label: str = None, **kwargs):
-        super().__init__(arg_value=arg_value, arg_label=arg_label, **kwargs)
+        super().__init__(
+            targets=None,
+            arg_value=arg_value,
+            arg_label=arg_label,
+            **kwargs
+        )
 
     def get_compact_qobj(self):
         raise NotImplementedError(
@@ -1167,15 +1230,15 @@ class IDLE(Gate):
 
     latex_str = r"{\rm IDLE}"
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, targets, **kwargs):
+        super().__init__(targets=targets, **kwargs)
 
     @staticmethod
     def get_compact_qobj():
         return qeye(2)
 
 
-class TOFFOLI(Gate):
+class TOFFOLI(ControlledGate):
     """
     TOFFOLI gate.
 
@@ -1197,8 +1260,13 @@ class TOFFOLI(Gate):
 
     latex_str = r"{\rm TOFFOLI}"
 
-    def __init__(self, targets, **kwargs):
-        super().__init__(targets=targets, **kwargs)
+    def __init__(self, targets, controls, **kwargs):
+        super().__init__(
+            targets=targets,
+            controls=controls,
+            target_gate=X,
+            **kwargs
+        )
 
     @staticmethod
     def get_compact_qobj():
@@ -1217,7 +1285,7 @@ class TOFFOLI(Gate):
         )
 
 
-class FREDKIN(Gate):
+class FREDKIN(ControlledGate):
     """
     FREDKIN gate.
 
@@ -1239,8 +1307,13 @@ class FREDKIN(Gate):
 
     latex_str = r"{\rm FREDKIN}"
 
-    def __init__(self, targets, **kwargs):
-        super().__init__(targets=targets, **kwargs)
+    def __init__(self, targets, controls, **kwargs):
+        super().__init__(
+            targets=targets,
+            controls=controls,
+            target_gate=SWAP,
+            **kwargs
+        )
 
     @staticmethod
     def get_compact_qobj():

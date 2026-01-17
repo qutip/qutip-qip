@@ -40,7 +40,7 @@ def test_allow_permutation():
 def _circuit_cnot_x():
     circuit = QubitCircuit(2)
     circuit.add_gate("X", 0)
-    circuit.add_gate("CNOT", 0, 1)
+    circuit.add_gate("CNOT", targets=0, controls=1)
     circuit.add_gate("X", 1)
     return circuit
 

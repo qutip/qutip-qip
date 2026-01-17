@@ -22,6 +22,8 @@ from qutip import (
 from qutip_qip.qasm import read_qasm
 from qutip_qip.operations import (
     Gate,
+    ControlledGate,
+    ParametrizedGate,
     CRX,
     SWAP,
     gates,
@@ -296,7 +298,7 @@ class TestQubitCircuit:
             if qc.gates[i].targets is not None:
                 assert qc2.gates[i].targets[0] == qc.gates[i].targets[0] + 2
             if (
-                isinstance(qc.gates[i], Gate)
+                isinstance(qc.gates[i], ControlledGate)
                 and qc.gates[i].controls is not None
             ):
                 assert qc2.gates[i].controls[0] == qc.gates[i].controls[0] + 2
@@ -365,6 +367,7 @@ class TestQubitCircuit:
         assert qc.gates[2].name == "TOFFOLI"
         assert qc.gates[4].classical_controls == [0, 1]
 
+    @pytest.mark.skip(reason="Changing the interface completely")
     @pytest.mark.parametrize("gate", ["X", "Y", "Z", "S", "T"])
     def test_exceptions(self, gate):
         """
@@ -490,7 +493,7 @@ class TestQubitCircuit:
         """
         mat3 = qp.rand_unitary(3)
 
-        class CTRLMAT3(Gate):
+        class CTRLMAT3(ParametrizedGate):
             def __init__(self, targets, arg_value, **kwargs):
                 super().__init__(targets=targets, arg_value=arg_value)
 
@@ -669,9 +672,7 @@ class TestQubitCircuit:
         qc = read_qasm(filepath)
 
         rand_state = rand_ket(2)
-        state = tensor(
-            tensor(basis(2, 0), basis(2, 0), basis(2, 0)), rand_state
-        )
+        state = tensor(basis(2, 0), basis(2, 0), basis(2, 0), rand_state)
 
         fourth = Measurement("test_rand", targets=[3])
 

@@ -10,7 +10,8 @@ from copy import deepcopy
 from ._decompose import _resolve_to_universal, _resolve_2q_basis
 from qutip_qip.operations import (
     Gate,
-    MultiControlledGate,
+    ControlledGate,
+    ParametrizedGate,
     GLOBALPHASE,
     SWAP,
     RX,
@@ -218,18 +219,57 @@ class QubitCircuit:
                     "or Gate class or its object instantiation"
                 )
 
-            # is_controlled = issubclass(gate_class, MultiControlledGate)
-            # is_parametrized = issubclass(gate_class, )
-            gate = gate_class(
-                targets=targets,
-                controls=controls,
-                arg_value=arg_value,
-                arg_label=arg_label,
-                classical_controls=classical_controls,
-                control_value=control_value,
-                classical_control_value=classical_control_value,
-                style=style,
-            )
+            is_controlled = issubclass(gate_class, ControlledGate)
+            is_parametrized = issubclass(gate_class, ParametrizedGate)
+
+            if is_controlled and is_parametrized:
+                gate = gate_class(
+                    targets=targets,
+                    controls=controls,
+                    control_value=control_value,
+                    arg_value=arg_value,
+                    arg_label=arg_label,
+                    classical_controls=classical_controls,
+                    classical_control_value=classical_control_value,
+                    style=style,
+                )
+
+            elif gate_class==GLOBALPHASE:
+                gate = gate_class(
+                    arg_value=arg_value,
+                    arg_label=arg_label,
+                    classical_controls=classical_controls,
+                    classical_control_value=classical_control_value,
+                    style=style,
+                )
+
+            elif is_parametrized:
+                gate = gate_class(
+                    targets=targets,
+                    arg_value=arg_value,
+                    arg_label=arg_label,
+                    classical_controls=classical_controls,
+                    classical_control_value=classical_control_value,
+                    style=style,
+                )
+
+            elif is_controlled:
+                gate = gate_class(
+                    targets=targets,
+                    controls=controls,
+                    control_value=control_value,
+                    classical_controls=classical_controls,
+                    classical_control_value=classical_control_value,
+                    style=style,
+                )
+
+            else:
+                gate = gate_class(
+                    targets=targets,
+                    classical_controls=classical_controls,
+                    classical_control_value=classical_control_value,
+                    style=style,
+                )
 
         if index is None:
             self.gates.append(gate)

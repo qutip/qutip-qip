@@ -3,7 +3,7 @@ import numpy as np
 from unittest.mock import patch
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.circuit.draw import TextRenderer
-from qutip_qip.operations import Gate
+from qutip_qip.operations import ControlledGate, IDLE 
 
 
 @pytest.fixture
@@ -151,17 +151,31 @@ def qc3():
 
 @pytest.fixture
 def qc4():
-    class i(Gate):
+    class i(ControlledGate):
+        def __init__(
+            self,
+            targets,
+            controls,
+            classical_controls,
+            classical_control_value,
+            **kwargs
+        ):
+            super().__init__(
+                targets=targets,
+                controls=controls,
+                classical_controls=classical_controls,
+                classical_control_value=classical_control_value,
+                target_gate=IDLE,
+                **kwargs
+            )
         def get_compact_qobj(self):
             pass
 
-    class ii(Gate):
-        def get_compact_qobj(self):
-            pass
+    class ii(i):
+        pass
 
-    class iii(Gate):
-        def get_compact_qobj(self):
-            pass
+    class iii(i):
+        pass
 
     qc = QubitCircuit(5, num_cbits=2)
     qc.add_gate(
