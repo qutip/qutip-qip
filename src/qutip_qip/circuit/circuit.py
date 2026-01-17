@@ -10,6 +10,7 @@ from copy import deepcopy
 from ._decompose import _resolve_to_universal, _resolve_2q_basis
 from qutip_qip.operations import (
     Gate,
+    MultiControlledGate,
     GLOBALPHASE,
     SWAP,
     RX,
@@ -217,6 +218,8 @@ class QubitCircuit:
                     "or Gate class or its object instantiation"
                 )
 
+            # is_controlled = issubclass(gate_class, MultiControlledGate)
+            # is_parametrized = issubclass(gate_class, )
             gate = gate_class(
                 targets=targets,
                 controls=controls,

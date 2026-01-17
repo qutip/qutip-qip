@@ -64,10 +64,9 @@ def qpe(U, num_counting_qubits, target_qubits=None, to_cnot=False):
 
         # Add controlled-U^power gate
         controlled_u = ControlledGate(
+            target_gate=CustomGate(target_qubits, U_power),
             controls=[i],
             targets=target_qubits,
-            control_value=1,
-            target_gate=CustomGate(target_qubits, U_power),
         )
         qc.add_gate(controlled_u)
 

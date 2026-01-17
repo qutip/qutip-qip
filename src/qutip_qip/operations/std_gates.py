@@ -7,6 +7,9 @@ from qutip_qip.operations import (
     SingleQubitGate,
     TwoQubitGate,
     ControlledGate,
+    ParametrizedGate,
+    ParametrizedSingleQubitGate,
+    ParametrizedTwoQubitGate,
 )
 
 ######################### Single Qubit Gates ############################
@@ -84,7 +87,7 @@ class Z(SingleQubitGate):
         return sigmaz(dtype="dense")
 
 
-class RX(SingleQubitGate):
+class RX(ParametrizedSingleQubitGate):
     """
     Single-qubit rotation RX.
 
@@ -113,7 +116,7 @@ class RX(SingleQubitGate):
         )
 
 
-class RY(SingleQubitGate):
+class RY(ParametrizedSingleQubitGate):
     """
     Single-qubit rotation RY.
 
@@ -142,7 +145,7 @@ class RY(SingleQubitGate):
         )
 
 
-class RZ(SingleQubitGate):
+class RZ(ParametrizedSingleQubitGate):
     """
     Single-qubit rotation RZ.
 
@@ -266,7 +269,7 @@ class T(SingleQubitGate):
         return Qobj([[1, 0], [0, np.exp(1j * np.pi / 4)]])
 
 
-class R(SingleQubitGate):
+class R(ParametrizedSingleQubitGate):
     r"""
     Arbitrary single-qubit rotation
 
@@ -289,7 +292,7 @@ class R(SingleQubitGate):
 
     latex_str = r"{\rm R}"
 
-    def __init__(self, targets, arg_value=None, **kwargs):
+    def __init__(self, targets, arg_value, **kwargs):
         super().__init__(targets=targets, arg_value=arg_value, **kwargs)
 
     def get_compact_qobj(self):
@@ -308,7 +311,7 @@ class R(SingleQubitGate):
         )
 
 
-class QASMU(SingleQubitGate):
+class QASMU(ParametrizedSingleQubitGate):
     r"""
     QASMU gate.
 
@@ -327,7 +330,7 @@ class QASMU(SingleQubitGate):
 
     latex_str = r"{\rm QASM-U}"
 
-    def __init__(self, targets, arg_value=None, **kwargs):
+    def __init__(self, targets, arg_value, **kwargs):
         super().__init__(targets=targets, arg_value=arg_value, **kwargs)
 
     def get_compact_qobj(self):
@@ -686,20 +689,13 @@ class _OneControlledGate(ControlledGate, TwoQubitGate):
     and raise an error if it is 0.
     """
 
-    def __init__(self, controls, targets, target_gate, **kwargs):
-        _control_value = kwargs.get("control_value", None)
-        if _control_value is not None:
-            if _control_value != 1:
-                raise ValueError(
-                    f"{self.__class__.__name__} must has control_value=1"
-                )
-        else:
-            kwargs["control_value"] = 1
+    def __init__(self, controls, targets, target_gate, control_value=1, **kwargs):
         super().__init__(
-            targets=targets,
-            controls=controls,
             target_gate=target_gate,
-            **kwargs,
+            controls=controls,
+            targets=targets,
+            control_value=control_value,
+            **kwargs
         )
 
 

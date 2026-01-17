@@ -246,51 +246,31 @@ class Gate(ABC):
         )
 
 
-class SingleQubitGate(Gate):
-    def __init__(self, targets, **kwargs):
-        super().__init__(targets=targets, **kwargs)
-        if self.targets is None or len(self.targets) != 1:
-            raise ValueError(
-                f"Gate {self.__class__.__name__} requires one target"
-            )
-        if self.controls:
-            raise ValueError(
-                f"Gate {self.__class__.__name__} cannot have a control"
-            )
-
-
-class TwoQubitGate(Gate):
-    """Abstract two-qubit gate."""
-
-    def __init__(self, targets, **kwargs):
-        super().__init__(targets=targets, **kwargs)
-        if len(self.get_all_qubits()) != 2:
-            raise ValueError(
-                f"Gate {self.__class__.__name__} requires two targets"
-            )
-
-
-class ControlledGate(Gate):
+class MultiControlledGate(Gate):
     def __init__(
         self,
         target_gate,
         controls,
         targets,
         control_value,
+        style=None,
         **kwargs,
     ):
         super().__init__(
             controls=controls,
             targets=targets,
             control_value=control_value,
-            **kwargs,
+            style=style,
+            **kwargs
         )
         self.target_gate = target_gate
         self.controls = (
             [controls] if not isinstance(controls, list) else controls
         )
-        self.control_value = control_value
-        self.kwargs = kwargs
+        if control_value is None:
+             self.control_value = 2**len(self.controls) - 1
+        else:
+             self.control_value = control_value
         # In the circuit plot, only the target gate is shown.
         # The control has its own symbol.
         self.latex_str = target_gate.latex_str
@@ -308,6 +288,48 @@ class ControlledGate(Gate):
         )
 
 
+class ControlledGate(MultiControlledGate):
+    def __init__(
+        self,
+        target_gate,
+        controls,
+        targets,
+        control_value=1,
+        style=None,
+        **kwargs
+    ):
+        super().__init__(
+            target_gate=target_gate,
+            controls=controls,
+            targets=targets,
+            control_value=control_value,
+            style=style,
+            **kwargs
+        )
+    
+
+class ParametrizedGate(Gate):
+    def __init__(
+        self,
+        targets,
+        arg_value,
+        arg_label=None,
+        style=None,
+        **kwargs,
+    ):
+        super().__init__(
+            targets=targets,
+            arg_value=arg_value,
+            arg_label=arg_label,
+            style=style,
+            **kwargs,
+        )
+
+    @abstractmethod
+    def get_compact_qobj(self):
+        pass
+
+
 class CustomGate(Gate):
     """
     Custom gate that wraps an arbitrary quantum operator.
@@ -321,3 +343,45 @@ class CustomGate(Gate):
 
     def get_compact_qobj(self):
         return self._U
+
+
+class SingleQubitGate(Gate):
+    def __init__(self, targets, **kwargs):
+        super().__init__(targets=targets, **kwargs)
+        if self.targets is None or len(self.targets) != 1:
+            raise ValueError(
+                f"Gate {self.__class__.__name__} requires one target"
+            )
+        if self.controls:
+            raise ValueError(
+                f"Gate {self.__class__.__name__} cannot have a control"
+            )
+
+
+class ParametrizedSingleQubitGate(ParametrizedGate):
+    def __init__(self, targets, arg_value, **kwargs):
+        super().__init__(targets=targets, arg_value=arg_value, **kwargs)
+        if self.targets is None or len(self.targets) != 1:
+            raise ValueError(
+                f"Gate {self.__class__.__name__} requires one target"
+            )
+
+
+class TwoQubitGate(Gate):
+    """Abstract two-qubit gate."""
+
+    def __init__(self, targets, **kwargs):
+        super().__init__(targets=targets, **kwargs)
+        if len(self.get_all_qubits()) != 2:
+            raise ValueError(
+                f"Gate {self.__class__.__name__} requires two targets"
+            )
+
+
+class ParametrizedTwoQubitGate(ParametrizedGate):
+    def __init__(self, targets, arg_value, **kwargs):
+        super().__init__(targets=targets, arg_value=arg_value, **kwargs)
+        if len(self.get_all_qubits()) != 2:
+            raise ValueError(
+                f"Gate {self.__class__.__name__} requires two qubits"
+            )

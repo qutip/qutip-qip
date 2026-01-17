@@ -698,7 +698,7 @@ class QasmProcessor:
                 args = None
             qc.add_gate(
                 gate_name_map_1q[name],
-                targets=regs[0],
+                targets=int(regs[0]),
                 arg_value=args,
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
@@ -948,7 +948,6 @@ def read_qasm(qasm_input, mode="default", version="2.0", strmode=False):
     qc = QubitCircuit(qasm_obj.num_qubits, num_cbits=qasm_obj.num_cbits)
 
     qasm_obj._final_pass(qc)
-
     return qc
 
 
