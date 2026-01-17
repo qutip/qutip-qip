@@ -355,7 +355,7 @@ class ParametrizedGate(Gate):
             )
 
 
-class ControlledParamGate(ControlledGate):
+class ControlledParamGate(ParametrizedGate, ControlledGate):
     def __init__(
         self,
         controls,
@@ -374,14 +374,15 @@ class ControlledParamGate(ControlledGate):
             else:
                 raise ValueError("target_gate must be provided either as argument or class attribute.")
 
-        super().__init__(
-            target_gate=target_gate(
-                targets=targets,
+        ControlledGate.__init__(
+            self,
+            controls=controls,
+            targets=targets,
+            target_gate = target_gate(
+                targets=targets, 
                 arg_value=arg_value,
                 arg_label=arg_label
             ),
-            targets=targets,
-            controls=controls,
             control_value=control_value,
             classical_controls=classical_controls,
             classical_control_value=classical_control_value,

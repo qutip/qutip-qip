@@ -1037,25 +1037,7 @@ class TOFFOLI(ControlledGate):
     """
 
     latex_str = r"{\rm TOFFOLI}"
-
-    def __init__(
-        self,
-        targets,
-        controls,
-        control_value=None,
-        classical_controls=None,
-        classical_control_value=None,
-        style=None,
-    ):
-        super().__init__(
-            target_gate=X,
-            targets=targets,
-            controls=controls,
-            control_value=control_value,
-            classical_controls=classical_controls,
-            classical_control_value=classical_control_value,
-            style=style,
-        )
+    _target_gate_class = X
 
     @staticmethod
     def get_compact_qobj():
@@ -1095,25 +1077,7 @@ class FREDKIN(ControlledGate):
     """
 
     latex_str = r"{\rm FREDKIN}"
-
-    def __init__(
-        self,
-        targets,
-        controls,
-        control_value=None,
-        classical_controls=None,
-        classical_control_value=None,
-        style=None,
-    ):
-        super().__init__(
-            target_gate=SWAP,
-            targets=targets,
-            controls=controls,
-            control_value=control_value,
-            classical_controls=classical_controls,
-            classical_control_value=classical_control_value,
-            style=style,
-        )
+    _target_gate_class = SWAP
 
     @staticmethod
     def get_compact_qobj():
