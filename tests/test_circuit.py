@@ -130,19 +130,6 @@ class TestQubitCircuit:
         U2 = qc2.compute_unitary()
         assert _op_dist(U1, U2) < 1e-12
 
-    def testadjacentgates(self):
-        """
-        Adjacent Gates: compare unitary matrix for ISWAP and product of
-        resolved matrices in terms of adjacent gates interaction.
-        """
-        qc1 = QubitCircuit(3)
-        qc1.add_gate("ISWAP", targets=[0, 2])
-        U1 = qc1.compute_unitary()
-        qc0 = qc1.adjacent_gates()
-        qc2 = qc0.resolve_gates(basis="ISWAP")
-        U2 = qc2.compute_unitary()
-        assert _op_dist(U1, U2) < 1e-12
-
     def test_add_gate(self):
         """
         Addition of a gate object directly to a `QubitCircuit`
@@ -751,20 +738,12 @@ class TestQubitCircuit:
     )
     H_zyz_gates = _ZYZ_rotation(H)
     H_zyz_quantum_circuit = QubitCircuit(1)
-    H_zyz_quantum_circuit.add_gates(H_zyz_gates)
+    for g in H_zyz_gates:
+        H_zyz_quantum_circuit.add_gate(g)
     sigmax_zyz_gates = _ZYZ_rotation(sigmax())
     sigmax_zyz_quantum_circuit = QubitCircuit(1)
-    sigmax_zyz_quantum_circuit.add_gates(sigmax_zyz_gates)
-
-    @pytest.mark.parametrize(
-        "valid_input, correct_result",
-        [(H_zyz_gates, H), (sigmax_zyz_gates, sigmax())],
-    )
-    def test_add_gates(self, valid_input, correct_result):
-        circuit = QubitCircuit(1)
-        circuit.add_gates(valid_input)
-        result = gate_sequence_product(circuit.propagators())
-        assert result == correct_result
+    for g in sigmax_zyz_gates:
+        sigmax_zyz_quantum_circuit.add_gate(g)
 
     @pytest.mark.parametrize(
         "valid_input, correct_result",

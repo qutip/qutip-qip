@@ -43,7 +43,8 @@ def test_single_qubit_to_rotations(gate, method):
     phase."""
     gate_list = method(gate)
     circuit = QubitCircuit(num_qubits)
-    circuit.add_gates(gate_list)
+    for g in gate_list:
+        circuit.add_gate(g)
     decomposed_gates_final_matrix = circuit.compute_unitary()
     fidelity_of_input_output = average_gate_fidelity(
         gate, decomposed_gates_final_matrix
@@ -58,9 +59,11 @@ def test_single_qubit_to_rotations(gate, method):
 def test_check_single_qubit_to_decompose_to_rotations(gate, method):
     """Initial matrix and product of final decompositions are same within some
     phase."""
-    gate_list = decompose_one_qubit_gate(gate, method)
     circuit = QubitCircuit(num_qubits)
-    circuit.add_gates(gate_list)
+    gate_list = decompose_one_qubit_gate(gate, method)
+    for g in gate_list:
+        circuit.add_gate(g)
+
     decomposed_gates_final_matrix = circuit.compute_unitary()
     fidelity_of_input_output = average_gate_fidelity(
         gate, decomposed_gates_final_matrix
