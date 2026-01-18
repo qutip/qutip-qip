@@ -76,15 +76,16 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
                             qc_t.add_gate(
                                 gate.name, targets=[i + 2], controls=[i + 1]
                             )
-                        qc_t.add_gate("SWAP", [i, i + 1])
+                        qc_t.add_gate("SWAP", targets=[i, i + 1])
                         i += 1
 
                     else:
                         # Swap the target/s and/or control with their
                         # adjacent qubit to bring them closer.
-                        qc_t.add_gate("SWAP", [i, i + 1])
+                        qc_t.add_gate("SWAP", targets=[i, i + 1])
                         qc_t.add_gate(
-                            "SWAP", [start + end - i - 1, start + end - i]
+                            "SWAP",
+                            targets=[start + end - i - 1, start + end - i]
                         )
                     i += 1
 
@@ -124,14 +125,17 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
                             temp.add_gate(
                                 gate.name, targets=[i + 1], controls=[i + 2]
                             )
-                        temp.add_gate("SWAP", [i, i + 1])
+                        temp.add_gate("SWAP", targets=[i, i + 1])
                         i += 1
 
                     else:
-                        temp.add_gate("SWAP", [i, i + 1])
+                        temp.add_gate("SWAP", targets=[i, i + 1])
                         temp.add_gate(
                             "SWAP",
-                            [N + start - end - i - 1, N + start - end - i],
+                            targets=[
+                                N + start - end - i - 1,
+                                N + start - end - i
+                            ],
                         )
                     i += 1
 
@@ -141,25 +145,28 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
                         if gate.name in ["CNOT", "CSIGN"]:
                             qc_t.add_gate(
                                 gate.name,
-                                end + gate.targets[0],
-                                end + gate.controls[0],
+                                targets=end + gate.targets[0],
+                                controls=end + gate.controls[0],
                             )
                         else:
                             qc_t.add_gate(
                                 gate.name,
-                                [end + gate.targets[0], end + gate.targets[1]],
+                                targets=[
+                                    end + gate.targets[0],
+                                    end + gate.targets[1]
+                                ],
                             )
                     elif j == N - end - 2:
                         if gate.name in ["CNOT", "CSIGN"]:
                             qc_t.add_gate(
                                 gate.name,
-                                end + gate.targets[0],
-                                (end + gate.controls[0]) % N,
+                                targets=end + gate.targets[0],
+                                controls=(end + gate.controls[0]) % N,
                             )
                         else:
                             qc_t.add_gate(
                                 gate.name,
-                                [
+                                targets = [
                                     end + gate.targets[0],
                                     (end + gate.targets[1]) % N,
                                 ],
@@ -168,13 +175,13 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
                         if gate.name in ["CNOT", "CSIGN"]:
                             qc_t.add_gate(
                                 gate.name,
-                                (end + gate.targets[0]) % N,
-                                (end + gate.controls[0]) % N,
+                                targets=(end + gate.targets[0]) % N,
+                                controls=(end + gate.controls[0]) % N,
                             )
                         else:
                             qc_t.add_gate(
                                 gate.name,
-                                [
+                                targets = [
                                     (end + gate.targets[0]) % N,
                                     (end + gate.targets[1]) % N,
                                 ],
@@ -182,7 +189,11 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
                     j = j + 1
 
             elif (end - start) == N - 1:
-                qc_t.add_gate(gate.name, gate.targets, gate.controls)
+                qc_t.add_gate(
+                    gate.name,
+                    targets=gate.targets,
+                    controls=gate.controls
+                )
 
         elif gate.name in swap_gates:
             start = min([gate.targets[0], gate.targets[1]])
@@ -194,18 +205,19 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
                 i = start
                 while i < end:
                     if start + end - i - i == 1 and (end - start + 1) % 2 == 0:
-                        qc_t.add_gate(gate.name, [i, i + 1])
+                        qc_t.add_gate(gate.name, targets=[i, i + 1])
                     elif (start + end - i - i) == 2 and (
                         end - start + 1
                     ) % 2 == 1:
-                        qc_t.add_gate("SWAP", [i, i + 1])
-                        qc_t.add_gate(gate.name, [i + 1, i + 2])
-                        qc_t.add_gate("SWAP", [i, i + 1])
+                        qc_t.add_gate("SWAP", targets=[i, i + 1])
+                        qc_t.add_gate(gate.name, targets=[i + 1, i + 2])
+                        qc_t.add_gate("SWAP", targets=[i, i + 1])
                         i += 1
                     else:
-                        qc_t.add_gate("SWAP", [i, i + 1])
+                        qc_t.add_gate("SWAP", targets=[i, i + 1])
                         qc_t.add_gate(
-                            "SWAP", [start + end - i - 1, start + end - i]
+                            "SWAP",
+                            targets=[start + end - i - 1, start + end - i]
                         )
                     i += 1
 
@@ -217,22 +229,25 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
                         N + start - end - i - i == 1
                         and (N - end + start + 1) % 2 == 0
                     ):
-                        temp.add_gate(gate.name, [i, i + 1])
+                        temp.add_gate(gate.name, targets=[i, i + 1])
 
                     elif (
                         N + start - end - i - i == 2
                         and (N - end + start + 1) % 2 == 1
                     ):
-                        temp.add_gate("SWAP", [i, i + 1])
-                        temp.add_gate(gate.name, [i + 1, i + 2])
-                        temp.add_gate("SWAP", [i, i + 1])
+                        temp.add_gate("SWAP", targets=[i, i + 1])
+                        temp.add_gate(gate.name, targets=[i + 1, i + 2])
+                        temp.add_gate("SWAP", targets=[i, i + 1])
                         i += 1
 
                     else:
-                        temp.add_gate("SWAP", [i, i + 1])
+                        temp.add_gate("SWAP", targets=[i, i + 1])
                         temp.add_gate(
                             "SWAP",
-                            [N + start - end - i - 1, N + start - end - i],
+                            targets=[
+                                N + start - end - i - 1,
+                                N + start - end - i
+                            ],
                         )
                     i += 1
 
@@ -241,12 +256,15 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
                     if j < N - end - 2:
                         qc_t.add_gate(
                             gate.name,
-                            [end + gate.targets[0], end + gate.targets[1]],
+                            targets=[
+                                end + gate.targets[0],
+                                end + gate.targets[1]
+                            ],
                         )
                     elif j == N - end - 2:
                         qc_t.add_gate(
                             gate.name,
-                            [
+                            targets=[
                                 end + gate.targets[0],
                                 (end + gate.targets[1]) % N,
                             ],
@@ -254,7 +272,7 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
                     else:
                         qc_t.add_gate(
                             gate.name,
-                            [
+                            targets=[
                                 (end + gate.targets[0]) % N,
                                 (end + gate.targets[1]) % N,
                             ],

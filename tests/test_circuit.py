@@ -136,11 +136,10 @@ class TestQubitCircuit:
         """
         qc = QubitCircuit(6)
         qc.add_gate("CNOT", targets=[1], controls=[0])
-        test_gate = SWAP(targets=[1, 4])
-        qc.add_gate(test_gate)
+        qc.add_gate("SWAP", targets=[1, 4])
         qc.add_gate("TOFFOLI", controls=[0, 1], targets=[2])
         qc.add_gate("SNOT", targets=[3])
-        qc.add_gate(test_gate, index=[3])
+        qc.add_gate("SWAP", targets=[1, 4], index=[3])
         qc.add_gate("RY", targets=4, arg_value=1.570796)
         qc.add_gate("RY", targets=5, arg_value=1.570796)
         qc.add_gate("RX", targets=[3], arg_value=-1.570796)
@@ -151,12 +150,12 @@ class TestQubitCircuit:
         assert qc.gates[0].controls == [0]
 
         # Test direct gate addition
-        assert qc.gates[1].name == test_gate.name
-        assert qc.gates[1].targets == test_gate.targets
+        assert qc.gates[1].name == "SWAP"
+        assert qc.gates[1].targets == [1,4]
 
         # Test specified position gate addition
-        assert qc.gates[3].name == test_gate.name
-        assert qc.gates[3].targets == test_gate.targets
+        assert qc.gates[3].name == "SWAP"
+        assert qc.gates[3].targets == [1,4]
 
         # Test adding 1 qubit gate on [start, end] qubits
         assert qc.gates[5].name == "RY"
@@ -238,11 +237,10 @@ class TestQubitCircuit:
 
         qc = QubitCircuit(6)
         qc.add_gate("CNOT", targets=[1], controls=[0])
-        test_gate = SWAP(targets=[1, 4])
-        qc.add_gate(test_gate)
+        qc.add_gate("SWAP", targets=[1, 4])
         qc.add_gate("TOFFOLI", controls=[0, 1], targets=[2])
         qc.add_gate("SNOT", targets=[3])
-        qc.add_gate(test_gate, index=[3])
+        qc.add_gate("SWAP", targets=[1, 4], index=[3])
         qc.add_measurement("M0", targets=[0], classical_store=[1])
         qc.add_gate("RY", targets=4, arg_value=1.570796)
         qc.add_gate("RY", targets=5, arg_value=1.570796)
@@ -801,7 +799,7 @@ class TestQubitCircuit:
         Test if the transpiler correctly inherit the properties of a circuit.
         """
         qc = QubitCircuit(3, reverse_states=True)
-        qc.add_gate("CNOT", 2, 0)
+        qc.add_gate("CNOT", targets=2, controls=0)
         qc2 = to_chain_structure(qc)
 
         assert qc2.reverse_states is True

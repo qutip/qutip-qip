@@ -443,8 +443,8 @@ class CustomGate(Gate):
     def __init__(
         self,
         name,
-        targets,
         U,
+        targets=None,
         classical_controls=None,
         classical_control_value=None,
         style=None,

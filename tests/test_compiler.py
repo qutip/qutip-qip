@@ -22,8 +22,8 @@ def test_compiling_with_scheduler():
     The numerical results are tested in test_device.py
     """
     circuit = QubitCircuit(2)
-    circuit.add_gate("X", 0)
-    circuit.add_gate("X", 1)
+    circuit.add_gate("X", targets=0)
+    circuit.add_gate("X", targets=1)
     processor = DispersiveCavityQED(2)
 
     processor.load_circuit(circuit, schedule_mode=None)

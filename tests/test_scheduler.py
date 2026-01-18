@@ -24,9 +24,9 @@ def _verify_scheduled_circuit(circuit, gate_cycle_indices):
 
 def test_allow_permutation():
     circuit = QubitCircuit(2)
-    circuit.add_gate("X", 0)
-    circuit.add_gate("CNOT", 0, 1)
-    circuit.add_gate("X", 1)
+    circuit.add_gate("X", targets=0)
+    circuit.add_gate("CNOT", targets=0, controls=1)
+    circuit.add_gate("X", targets=1)
 
     scheduler = Scheduler("ASAP", allow_permutation=True)
     gate_cycle_indices = scheduler.schedule(circuit)
@@ -39,17 +39,17 @@ def test_allow_permutation():
 
 def _circuit_cnot_x():
     circuit = QubitCircuit(2)
-    circuit.add_gate("X", 0)
+    circuit.add_gate("X", targets=0)
     circuit.add_gate("CNOT", targets=0, controls=1)
-    circuit.add_gate("X", 1)
+    circuit.add_gate("X", targets=1)
     return circuit
 
 
 def _circuit_cnot_z():
     circuit = QubitCircuit(2)
-    circuit.add_gate("Z", 0)
-    circuit.add_gate("CNOT", 0, 1)
-    circuit.add_gate("Z", 1)
+    circuit.add_gate("Z", targets=0)
+    circuit.add_gate("CNOT", targets=0, controls=1)
+    circuit.add_gate("Z", targets=1)
     return circuit
 
 
@@ -69,45 +69,45 @@ def test_commutation_rules(circuit, expected_length):
 
 def _circuit1():
     circuit1 = QubitCircuit(6)
-    circuit1.add_gate("SNOT", 2)
-    circuit1.add_gate("CNOT", 4, 2)
-    circuit1.add_gate("CNOT", 3, 2)
-    circuit1.add_gate("CNOT", 1, 2)
-    circuit1.add_gate("CNOT", 5, 4)
-    circuit1.add_gate("CNOT", 1, 5)
-    circuit1.add_gate("SWAP", [0, 1])
+    circuit1.add_gate("SNOT", targets=2)
+    circuit1.add_gate("CNOT", targets=4, controls=2)
+    circuit1.add_gate("CNOT", targets=3, controls=2)
+    circuit1.add_gate("CNOT", targets=1, controls=2)
+    circuit1.add_gate("CNOT", targets=5, controls=4)
+    circuit1.add_gate("CNOT", targets=1, controls=5)
+    circuit1.add_gate("SWAP", targets=[0, 1])
     return circuit1
 
 
 def _circuit2():
     circuit2 = QubitCircuit(8)
-    circuit2.add_gate("SNOT", 1)
-    circuit2.add_gate("SNOT", 2)
-    circuit2.add_gate("SNOT", 3)
-    circuit2.add_gate("CNOT", 4, 5)
-    circuit2.add_gate("CNOT", 4, 6)
-    circuit2.add_gate("CNOT", 3, 4)
-    circuit2.add_gate("CNOT", 3, 5)
-    circuit2.add_gate("CNOT", 3, 7)
-    circuit2.add_gate("CNOT", 2, 4)
-    circuit2.add_gate("CNOT", 2, 6)
-    circuit2.add_gate("CNOT", 2, 7)
-    circuit2.add_gate("CNOT", 1, 5)
-    circuit2.add_gate("CNOT", 1, 6)
-    circuit2.add_gate("CNOT", 1, 7)
+    circuit2.add_gate("SNOT", targets=1)
+    circuit2.add_gate("SNOT", targets=2)
+    circuit2.add_gate("SNOT", targets=3)
+    circuit2.add_gate("CNOT", targets=4, controls=5)
+    circuit2.add_gate("CNOT", targets=4, controls=6)
+    circuit2.add_gate("CNOT", targets=3, controls=4)
+    circuit2.add_gate("CNOT", targets=3, controls=5)
+    circuit2.add_gate("CNOT", targets=3, controls=7)
+    circuit2.add_gate("CNOT", targets=2, controls=4)
+    circuit2.add_gate("CNOT", targets=2, controls=6)
+    circuit2.add_gate("CNOT", targets=2, controls=7)
+    circuit2.add_gate("CNOT", targets=1, controls=5)
+    circuit2.add_gate("CNOT", targets=1, controls=6)
+    circuit2.add_gate("CNOT", targets=1, controls=7)
     return circuit2
 
 
 def _instructions1():
     circuit3 = QubitCircuit(6)
-    circuit3.add_gate("SNOT", 0)
-    circuit3.add_gate("SNOT", 1)
-    circuit3.add_gate("CNOT", 2, 3)
-    circuit3.add_gate("CNOT", 1, 2)
-    circuit3.add_gate("CNOT", 1, 0)
-    circuit3.add_gate("SNOT", 3)
-    circuit3.add_gate("CNOT", 1, 3)
-    circuit3.add_gate("CNOT", 1, 3)
+    circuit3.add_gate("SNOT", targets=0)
+    circuit3.add_gate("SNOT", targets=1)
+    circuit3.add_gate("CNOT", targets=2, controls=3)
+    circuit3.add_gate("CNOT", targets=1, controls=2)
+    circuit3.add_gate("CNOT", targets=1, controls=0)
+    circuit3.add_gate("SNOT", targets=3)
+    circuit3.add_gate("CNOT", targets=1, controls=3)
+    circuit3.add_gate("CNOT", targets=1, controls=3)
 
     instruction_list = []
     for gate in circuit3.gates:
@@ -269,12 +269,12 @@ def test_scheduling_pulse(
 
         if issubclass(gate_cls, ControlledGate):
             circuit.add_gate(
-                gate_cls(
-                    targets=instruction.targets, controls=instruction.controls
-                )
+                gate_cls,
+                targets=instruction.targets,
+                controls=instruction.controls
             )
         else:
-            circuit.add_gate(gate_cls(instruction.targets))
+            circuit.add_gate(gate_cls, targets=instruction.targets)
 
     if random_shuffle:
         repeat_num = 5

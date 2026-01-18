@@ -235,8 +235,8 @@ def test_numerical_circuit(circuit, device_class, kwargs, schedule_mode):
 def test_pulse_plotting(processor_class):
     plt = pytest.importorskip("matplotlib.pyplot")
     qc = QubitCircuit(3)
-    qc.add_gate("CNOT", 1, 0)
-    qc.add_gate("X", 1)
+    qc.add_gate("CNOT", targets=1, controls=0)
+    qc.add_gate("X", targets=1)
 
     processor = processor_class(3)
     processor.load_circuit(qc)

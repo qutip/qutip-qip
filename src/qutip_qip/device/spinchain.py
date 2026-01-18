@@ -123,9 +123,9 @@ class LinearSpinChain(SpinChain):
         from qutip_qip.device import LinearSpinChain
 
         qc = QubitCircuit(2)
-        qc.add_gate("RX", 0, arg_value=np.pi)
-        qc.add_gate("RY", 1, arg_value=np.pi)
-        qc.add_gate("ISWAP", [1, 0])
+        qc.add_gate("RX", targets=0, arg_value=np.pi)
+        qc.add_gate("RY", targets=1, arg_value=np.pi)
+        qc.add_gate("ISWAP", targets=[1, 0])
 
         processor = LinearSpinChain(2, g=0.1, t1=300)
         processor.load_circuit(qc)
@@ -207,9 +207,9 @@ class CircularSpinChain(SpinChain):
         from qutip_qip.device import CircularSpinChain
 
         qc = QubitCircuit(2)
-        qc.add_gate("RX", 0, arg_value=np.pi)
-        qc.add_gate("RY", 1, arg_value=np.pi)
-        qc.add_gate("ISWAP", [1, 0])
+        qc.add_gate("RX", targets=0, arg_value=np.pi)
+        qc.add_gate("RY", targets=1, arg_value=np.pi)
+        qc.add_gate("ISWAP", targets=[1, 0])
 
         processor = CircularSpinChain(2, g=0.1, t1=300)
         processor.load_circuit(qc)
