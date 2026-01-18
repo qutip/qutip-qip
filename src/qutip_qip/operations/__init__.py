@@ -50,7 +50,8 @@ from .gateclass import (
     ControlledParamGate,
     ParametrizedSingleQubitGate,
     ParametrizedTwoQubitGate,
-    CustomGate,
+    customGate,
+    controlledGateFactory,
 )
 from .std_gates import (
     X,
@@ -147,7 +148,8 @@ __all__ = [
     "ControlledParamGate",
     "ParametrizedSingleQubitGate",
     "ParametrizedTwoQubitGate",
-    "CustomGate",
+    "customGate",
+    "controlledGateFactory",
     "Measurement",
     "GATE_CLASS_MAP",
     "GLOBALPHASE",

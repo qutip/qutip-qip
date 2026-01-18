@@ -433,36 +433,52 @@ class ControlledParamGate(ParametrizedGate, ControlledGate):
             )
 
 
-class CustomGate(Gate):
+def customGate(name: str, U: Qobj) -> Gate:
     """
-    Custom gate that wraps an arbitrary quantum operator.
+    Gate Factory for Custom Gate that wraps an arbitrary unitary matrix U.
     """
 
-    latex_str = r"U"
+    class CustomGate(Gate):
+        latex_str = r"U"
 
-    def __init__(
-        self,
-        name,
-        U,
-        targets=None,
-        classical_controls=None,
-        classical_control_value=None,
-        style=None,
-    ):
-        super().__init__(
-            name=name,
-            targets=targets,
-            classical_controls=classical_controls,
-            classical_control_value=classical_control_value,
-            style=style,
-        )
-        self._U = U
+        def __init__(
+            self,
+            targets,
+            classical_controls=None,
+            classical_control_value=None,
+            style=None,
+        ):
+            super().__init__(
+                name=name,
+                targets=targets,
+                classical_controls=classical_controls,
+                classical_control_value=classical_control_value,
+                style=style,
+            )
+            self._U = U
 
-    def get_compact_qobj(self):
-        return self._U
+        @staticmethod
+        def get_compact_qobj():
+            return U
+
+    return CustomGate
 
 
-class SingleQubitGate(Gate): ...
+def controlledGateFactory(target_gate: Gate) -> ControlledGate:
+    """
+    Gate Factory for Custom Gate that wraps an arbitrary unitary matrix U.
+    """
+
+    class _CustomGate(ControlledGate):
+        latex_str = r"{\rm CU}"
+        _target_gate_class = target_gate
+
+    return _CustomGate
+
+
+class SingleQubitGate(Gate):
+    """Abstract one-qubit gate."""
+    ...
 
 
 class ParametrizedSingleQubitGate(ParametrizedGate):
@@ -479,4 +495,5 @@ class TwoQubitGate(Gate):
     ...
 
 
-class ParametrizedTwoQubitGate(ParametrizedGate): ...
+class ParametrizedTwoQubitGate(ParametrizedGate):
+    pass

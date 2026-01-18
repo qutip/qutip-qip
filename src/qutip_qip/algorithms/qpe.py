@@ -1,5 +1,5 @@
 import numpy as np
-from qutip_qip.operations import CustomGate, ControlledGate
+from qutip_qip.operations import customGate, controlledGateFactory
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.algorithms import qft_gate_sequence
 
@@ -63,16 +63,17 @@ def qpe(U, num_counting_qubits, target_qubits=None, to_cnot=False):
         U_power = U if power == 1 else U**power
 
         # Add controlled-U^power gate
-        controlled_u = ControlledGate(
-            target_gate=CustomGate(
+        controlled_u = controlledGateFactory(
+            target_gate=customGate(
                 name="U^power gate",
-                targets=target_qubits,
                 U=U_power,
-            ),
-            controls=[i],
-            targets=target_qubits,
+            )
         )
-        qc.add_gate(controlled_u)
+        qc.add_gate(
+            controlled_u,
+            targets=target_qubits,
+            controls=[i]
+        )
 
     # Add inverse QFT on counting qubits
     inverse_qft_circuit = qft_gate_sequence(
