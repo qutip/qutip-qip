@@ -1,5 +1,5 @@
+from .result import CircuitResult
 from .circuitsimulator import (
-    CircuitResult,
     CircuitSimulator,
     gate_sequence_product,
     gate_sequence_product_with_expansion,
