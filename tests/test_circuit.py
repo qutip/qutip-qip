@@ -154,8 +154,9 @@ class TestQubitCircuit:
         qc.add_gate("TOFFOLI", controls=[0, 1], targets=[2])
         qc.add_gate("SNOT", targets=[3])
         qc.add_gate(test_gate, index=[3])
-        qc.add_1q_gate("RY", start=4, end=5, arg_value=1.570796)
-        qc.add_1q_gate("RX", qubits=[3], arg_value=-1.570796)
+        qc.add_gate("RY", targets=4, arg_value=1.570796)
+        qc.add_gate("RY", targets=5, arg_value=1.570796)
+        qc.add_gate("RX", targets=[3], arg_value=-1.570796)
 
         # Test explicit gate addition
         assert qc.gates[0].name == "CNOT"
@@ -256,7 +257,8 @@ class TestQubitCircuit:
         qc.add_gate("SNOT", targets=[3])
         qc.add_gate(test_gate, index=[3])
         qc.add_measurement("M0", targets=[0], classical_store=[1])
-        qc.add_1q_gate("RY", start=4, end=5, arg_value=1.570796)
+        qc.add_gate("RY", targets=4, arg_value=1.570796)
+        qc.add_gate("RY", targets=5, arg_value=1.570796)
         qc.add_gate(CRX, controls=[1], targets=[2], arg_value=np.pi / 2)
 
         qc1 = QubitCircuit(6)

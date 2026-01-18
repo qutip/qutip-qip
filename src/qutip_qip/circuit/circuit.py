@@ -299,45 +299,6 @@ class QubitCircuit:
         for g in gates:
             self.add_gate(g)
 
-    def add_1q_gate(
-        self,
-        name,
-        start=None,
-        end=None,
-        qubits=None,
-        **kwargs,
-    ):
-        """
-        Adds a single qubit gate with specified parameters on a variable
-        number of qubits in the circuit. By default, it applies the given gate
-        to all the qubits in the register.
-
-        Parameters
-        ----------
-        name : string
-            Gate name or the :class:`~.operations.Gate` object.
-        start : int
-            Starting location of qubits.
-        end : int
-            Last qubit for the gate.
-        qubits : list
-            Specific qubits for applying gates.
-        kwargs : dict
-            Keyword arguments for the gate, except for `targets`.
-            See :class:`~.QubitCircuit.add_gate`.
-        """
-        if qubits is None:
-            if start is None or end is None:
-                raise ValueError(
-                    "Both start and end must be specified if target qubits"
-                    " are not provided."
-                )
-            qubits = range(start, end + 1)
-        if not isinstance(qubits, Iterable):
-            qubits = [qubits]
-        for q in qubits:
-            self.add_gate(name, targets=q, **kwargs)
-
     def add_circuit(self, qc, start=0):
         """
         Adds a block of a qubit circuit to the main circuit.
