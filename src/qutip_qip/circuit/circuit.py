@@ -409,7 +409,7 @@ class QubitCircuit:
 
         for circuit_op in reversed(self.gates):
             if isinstance(circuit_op, Gate):
-                temp.add_gate(circuit_op)
+                temp.add_gate(circuit_op)  # TODO add other arguments like target
             else:
                 temp.add_measurement(circuit_op)
 

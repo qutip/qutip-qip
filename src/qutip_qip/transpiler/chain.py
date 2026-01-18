@@ -282,6 +282,6 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
         else:
             # This gate can be general quantum operations
             # such as measurement or global phase.
-            qc_t.add_gate(gate)
+            qc_t.add_gate(gate)  # TODO add arguments
 
     return qc_t

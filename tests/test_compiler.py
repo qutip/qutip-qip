@@ -11,7 +11,7 @@ from qutip_qip.device import (
 )
 from qutip_qip.compiler import SpinChainCompiler, Instruction, GateCompiler
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import Gate
+from qutip_qip.operations import ParametrizedGate
 from qutip import basis, fidelity
 
 
@@ -71,11 +71,11 @@ def test_compiling_gates_different_sampling_number():
                 )
             ]
 
-    class U1(Gate):
+    class U1(ParametrizedGate):
         def get_compact_qobj(self):
             pass
 
-    class U2(Gate):
+    class U2(ParametrizedGate):
         def get_compact_qobj(self):
             pass
 
