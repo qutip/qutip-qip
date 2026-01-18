@@ -419,7 +419,6 @@ class QubitCircuit:
         self,
         state,
         cbits=None,
-        U_list=None,
         measure_results=None,
         precompute_unitary=False,
     ):
@@ -432,8 +431,6 @@ class QubitCircuit:
                 state vector or density matrix input.
         cbits : List of ints, optional
                 initialization of the classical bits.
-        U_list: list of Qobj, optional
-            list of predefined unitaries corresponding to circuit.
         measure_results : tuple of ints, optional
             optional specification of each measurement result to enable
             post-selection. If specified, the measurement results are
@@ -459,7 +456,7 @@ class QubitCircuit:
         return sim.run(state, cbits, measure_results).get_final_states(0)
 
     def run_statistics(
-        self, state, U_list=None, cbits=None, precompute_unitary=False
+        self, state, cbits=None, precompute_unitary=False
     ):
         """
         Calculate all the possible outputs of a circuit
@@ -471,8 +468,6 @@ class QubitCircuit:
                 state vector or density matrix input.
         cbits : List of ints, optional
                 initialization of the classical bits.
-        U_list: list of Qobj, optional
-            list of predefined unitaries corresponding to circuit.
 
         Returns
         -------
@@ -717,8 +712,6 @@ class QubitCircuit:
         result = sim.run(qeye(self.dims))
         circuit_unitary = result.get_final_states()[0]
         return circuit_unitary
-
-        # This slightly convoluted dance with the conversion formats is because
 
     def draw(
         self,
