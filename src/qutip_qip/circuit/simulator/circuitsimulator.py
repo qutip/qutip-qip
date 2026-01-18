@@ -129,7 +129,7 @@ def _expand_overall(tensor_list, overall_inds):
     return U_overall, overall_inds
 
 
-def _gate_sequence_product(U_list, ind_list):
+def gate_sequence_product(U_list, ind_list):
     """
     Calculate the overall unitary matrix for a given list of unitary operations
     that are still of original dimension.
@@ -155,7 +155,7 @@ def _gate_sequence_product(U_list, ind_list):
 
     First, we get some imports out of the way,
 
-    >>> from qutip_qip.operations.gates import _gate_sequence_product
+    >>> from qutip_qip.operations.gates import gate_sequence_product
     >>> from qutip_qip.operations.gates import x_gate, y_gate, toffoli, z_gate
 
     Suppose we have a circuit with gates X, Y, Z, TOFFOLI
@@ -164,11 +164,11 @@ def _gate_sequence_product(U_list, ind_list):
     >>> tensor_lst = [x_gate(), y_gate(), z_gate(), toffoli()]
     >>> overall_inds = [[0], [1], [2], [0, 1, 3]]
 
-    Then, we can use _gate_sequence_product to produce a single unitary
+    Then, we can use gate_sequence_product to produce a single unitary
     obtained by multiplying unitaries in the list using heuristic methods
     to reduce the size of matrices being multiplied.
 
-    >>> U_list, overall_inds = _gate_sequence_product(tensor_lst, overall_inds)
+    >>> U_list, overall_inds = gate_sequence_product(tensor_lst, overall_inds)
     """
     num_qubits = len(set(chain(*ind_list)))
     sorted_inds = sorted(set(_flatten(ind_list)))
@@ -179,14 +179,14 @@ def _gate_sequence_product(U_list, ind_list):
 
     for i, (U, inds) in enumerate(zip(U_list, ind_list)):
         # when the tensor_list covers the full dimension of the circuit, we
-        # expand the tensor_list to a unitary and call _gate_sequence_product
+        # expand the tensor_list to a unitary and call gate_sequence_product
         # recursively on the rest of the U_list.
         if len(overall_inds) == 1 and len(overall_inds[0]) == num_qubits:
             # TODO undefined variable tensor_list
             U_overall, overall_inds = _expand_overall(
                 tensor_list, overall_inds
             )
-            U_left, rem_inds = _gate_sequence_product(U_list[i:], ind_list[i:])
+            U_left, rem_inds = gate_sequence_product(U_list[i:], ind_list[i:])
             U_left = expand_operator(
                 U_left, dims=[2] * num_qubits, targets=rem_inds
             )
@@ -219,7 +219,7 @@ def _gate_sequence_product(U_list, ind_list):
     return U_overall, [sorted_inds[ind] for ind in overall_inds]
 
 
-def _gate_sequence_product_with_expansion(U_list, left_to_right=True):
+def gate_sequence_product_with_expansion(U_list, left_to_right=True):
     """
     Calculate the overall unitary matrix for a given list of unitary
     operations, assuming that all operations have the same dimension.
