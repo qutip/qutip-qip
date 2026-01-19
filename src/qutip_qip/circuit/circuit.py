@@ -3,7 +3,6 @@ Quantum circuit representation and simulation.
 """
 
 import numpy as np
-from copy import deepcopy
 
 from ._decompose import _resolve_to_universal, _resolve_2q_basis
 from qutip_qip.operations import (
@@ -507,7 +506,6 @@ class QubitCircuit:
             reverse_states=self.reverse_states,
             num_cbits=self.num_cbits,
         )
-        temp_resolved = []
 
         basis_1q_valid = ["RX", "RY", "RZ", "IDLE"]
         basis_2q_valid = ["CNOT", "CSIGN", "ISWAP", "SQRTSWAP", "SQRTISWAP"]
@@ -518,12 +516,12 @@ class QubitCircuit:
         if num_measurements > 0:
             raise NotImplementedError(
                 "adjacent_gates must be called before \
-            measurements are added to the circuit"
+                measurements are added to the circuit"
             )
 
+        basis_1q = []
+        basis_2q = []
         if isinstance(basis, list):
-            basis_1q = []
-            basis_2q = []
             for gate in basis:
                 if gate in basis_2q_valid:
                     basis_2q.append(gate)
@@ -545,9 +543,11 @@ class QubitCircuit:
                     "%s is not a valid two-qubit basis gate" % basis
                 )
 
+        match = False
+        temp_resolved = QubitCircuit(self.N)
         for gate in self.gates:
             if gate.name in ("X", "Y", "Z"):
-                qc_temp.gates.append(GLOBALPHASE(arg_value=np.pi / 2))
+                temp_resolved.add_gate("GLOBALPHASE", arg_value=np.pi / 2)
 
                 if gate.name == "X":
                     gate = RX(targets=gate.targets, arg_value=np.pi)
@@ -555,30 +555,32 @@ class QubitCircuit:
                     gate = RY(targets=gate.targets, arg_value=np.pi)
                 else:
                     gate = RZ(targets=gate.targets, arg_value=np.pi)
+                temp_resolved.add_gate(gate)
 
-            try:
-                _resolve_to_universal(gate, temp_resolved, basis_1q, basis_2q)
-            except KeyError:
-                if gate.name in basis:
-                    temp_resolved.append(gate)
-                else:
-                    exception = f"Gate {gate.name} cannot be resolved."
-                    raise NotImplementedError(exception)
+            else:
+                try:
+                    _resolve_to_universal(gate, temp_resolved, basis_1q, basis_2q)
+                except KeyError:
+                    if gate.name in basis:
+                        temp_resolved.add_gate(gate)
+                    else:
+                        exception = f"Gate {gate.name} cannot be resolved."
+                        raise NotImplementedError(exception)
 
-        match = False
         for basis_unit in ["CSIGN", "ISWAP", "SQRTSWAP", "SQRTISWAP"]:
             if basis_unit in basis_2q:
                 match = True
                 _resolve_2q_basis(basis_unit, qc_temp, temp_resolved)
                 break
         if not match:
-            qc_temp.gates = temp_resolved
+            qc_temp.gates = temp_resolved.gates
 
         if len(basis_1q) == 2:
-            temp_resolved = qc_temp.gates
+            temp_resolved.gates = qc_temp.gates
             qc_temp.gates = []
             half_pi = np.pi / 2
-            for gate in temp_resolved:
+
+            for gate in temp_resolved.gates:
                 if gate.name == "RX" and "RX" not in basis_1q:
                     qc_temp.add_gate(
                         "RY",
@@ -639,9 +641,7 @@ class QubitCircuit:
                         arg_label=r"\pi/2",
                     )
                 else:
-                    qc_temp.gates.append(gate)
-
-        qc_temp.gates = deepcopy(qc_temp.gates)
+                    qc_temp.add_gate(gate)
 
         return qc_temp
 
