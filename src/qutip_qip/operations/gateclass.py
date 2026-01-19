@@ -527,10 +527,6 @@ class H(SingleQubitGate):
         return snot()
 
 
-SNOT = H
-SNOT.__doc__ = H.__doc__
-
-
 class SQRTNOT(SingleQubitGate):
     r"""
     :math:`\sqrt{X}` gate.
@@ -1035,35 +1031,6 @@ class CZ(_OneControlledGate):
         return csign()
 
 
-class CSIGN(_OneControlledGate):
-    """
-    Controlled CSIGN gate. Identical to the CZ gate.
-
-    Examples
-    --------
-    >>> from qutip_qip.operations import CSIGN
-    >>> CSIGN(0, 1).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=True
-    Qobj data =
-    [[ 1.  0.  0.  0.]
-     [ 0.  1.  0.  0.]
-     [ 0.  0.  1.  0.]
-     [ 0.  0.  0. -1.]]
-    """
-
-    def __init__(self, controls, targets, **kwargs):
-        self.target_gate = Z
-        super().__init__(
-            targets=targets,
-            controls=controls,
-            target_gate=self.target_gate,
-            **kwargs,
-        )
-
-    def get_compact_qobj(self):
-        return csign()
-
-
 class CPHASE(_OneControlledGate):
     r"""
     CPHASE gate.
@@ -1162,8 +1129,6 @@ CRZ = partial(_OneControlledGate, target_gate=RZ)
 CRZ.__doc__ = "Controlled Z rotation."
 CY = partial(_OneControlledGate, target_gate=Y)
 CY.__doc__ = "Controlled Y gate."
-CX = partial(_OneControlledGate, target_gate=X)
-CX.__doc__ = "Controlled X gate."
 CT = partial(_OneControlledGate, target_gate=T)
 CT.__doc__ = "Controlled T gate."
 CS = partial(_OneControlledGate, target_gate=S)
@@ -1177,7 +1142,6 @@ GATE_CLASS_MAP = {
     "RY": RY,
     "RZ": RZ,
     "H": H,
-    "SNOT": SNOT,
     "SQRTNOT": SQRTNOT,
     "S": S,
     "T": T,
@@ -1196,12 +1160,10 @@ GATE_CLASS_MAP = {
     "TOFFOLI": TOFFOLI,
     "FREDKIN": FREDKIN,
     "CNOT": CNOT,
-    "CSIGN": CSIGN,
     "CRX": CRX,
     "CRY": CRY,
     "CRZ": CRZ,
     "CY": CY,
-    "CX": CX,
     "CZ": CZ,
     "CS": CS,
     "CT": CT,
