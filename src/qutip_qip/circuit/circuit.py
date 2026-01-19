@@ -2,8 +2,6 @@
 Quantum circuit representation and simulation.
 """
 
-from collections.abc import Iterable
-
 import numpy as np
 from copy import deepcopy
 
@@ -14,7 +12,6 @@ from qutip_qip.operations import (
     ParametrizedGate,
     ControlledParamGate,
     GLOBALPHASE,
-    SWAP,
     RX,
     RY,
     RZ,
@@ -583,64 +580,63 @@ class QubitCircuit:
             half_pi = np.pi / 2
             for gate in temp_resolved:
                 if gate.name == "RX" and "RX" not in basis_1q:
-                    qc_temp.gates.extend(
-                        [
-                            RY(
-                                targets=gate.targets,
-                                arg_value=-half_pi,
-                                arg_label=r"-\pi/2",
-                            ),
-                            RZ(
-                                gate.targets,
-                                gate.arg_value,
-                                gate.arg_label,
-                            ),
-                            RY(
-                                gate.targets,
-                                arg_value=half_pi,
-                                arg_label=r"\pi/2",
-                            ),
-                        ]
+                    qc_temp.add_gate(
+                        "RY",
+                        targets=gate.targets,
+                        arg_value=-half_pi,
+                        arg_label=r"-\pi/2",
                     )
+                    qc_temp.add_gate(
+                        "RZ",
+                        targets=gate.targets,
+                        arg_value=gate.arg_value,
+                        arg_label=gate.arg_label,
+                    )
+                    qc_temp.add_gate(
+                        "RY",
+                        targets=gate.targets,
+                        arg_value=-half_pi,
+                        arg_label=r"\pi/2",
+                    )
+
                 elif gate.name == "RY" and "RY" not in basis_1q:
-                    qc_temp.gates.extend(
-                        [
-                            RZ(
-                                targets=gate.targets,
-                                arg_value=-half_pi,
-                                arg_label=r"-\pi/2",
-                            ),
-                            RX(
-                                targets=gate.targets,
-                                arg_value=gate.arg_value,
-                                arg_label=gate.arg_label,
-                            ),
-                            RZ(
-                                targets=gate.targets,
-                                arg_value=half_pi,
-                                arg_label=r"\pi/2",
-                            ),
-                        ]
+                    qc_temp.add_gate(
+                        "RZ",
+                        targets=gate.targets,
+                        arg_value=-half_pi,
+                        arg_label=r"-\pi/2",
                     )
+                    qc_temp.add_gate(
+                        "RX",
+                        targets=gate.targets,
+                        arg_value=gate.arg_value,
+                        arg_label=gate.arg_label,
+                    )
+                    qc_temp.add_gate(
+                        "RZ",
+                        targets=gate.targets,
+                        arg_value=half_pi,
+                        arg_label=r"\pi/2",
+                    )
+
                 elif gate.name == "RZ" and "RZ" not in basis_1q:
-                    qc_temp.gates.extend(
-                        [
-                            RX(
-                                targets=gate.targets,
-                                arg_value=-half_pi,
-                                arg_label=r"-\pi/2",
-                            ),
-                            RY(
-                                targets=gate.targets,
-                                arg_value=gate.arg_value,
-                                arg_label=gate.arg_label,
-                            ),
-                            RX(
-                                targets=gate.targets,
-                                arg_value=half_pi,
-                                arg_label=r"\pi/2",
-                            ),
-                        ]
+                    qc_temp.add_gate(
+                        "RX",
+                        targets=gate.targets,
+                        arg_value=-half_pi,
+                        arg_label=r"-\pi/2",
+                    )
+                    qc_temp.add_gate(
+                        "RY",
+                        targets=gate.targets,
+                        arg_value=gate.arg_value,
+                        arg_label=gate.arg_label,
+                    )
+                    qc_temp.add_gate(
+                        "RX",
+                        targets=gate.targets,
+                        arg_value=half_pi,
+                        arg_label=r"\pi/2",
                     )
                 else:
                     qc_temp.gates.append(gate)

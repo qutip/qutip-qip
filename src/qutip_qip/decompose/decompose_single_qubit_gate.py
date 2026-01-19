@@ -2,19 +2,20 @@ import warnings
 import numpy as np
 import cmath
 
-from qutip_qip.decompose._utility import (
-    check_gate,
-    MethodError,
-)
+from qutip_qip.decompose._utility import check_gate
 
 from qutip_qip.operations import (
-    Gate,
     GLOBALPHASE,
     X,
     RX,
     RY,
     RZ,
 )
+
+
+class MethodError(Exception):
+    """When invalid method is chosen, this error is raised."""
+    pass
 
 
 def _angles_for_ZYZ(input_gate):

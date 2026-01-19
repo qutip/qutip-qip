@@ -6,16 +6,12 @@ individual gate classes.
 
 import numpy as np
 from qutip_qip.operations import (
-    Gate,
     GLOBALPHASE,
     RX,
     RY,
     RZ,
     CSIGN,
     CNOT,
-    ISWAP,
-    SQRTISWAP,
-    SQRTSWAP,
 )
 
 
@@ -214,20 +210,22 @@ def _basis_CSIGN(qc_temp, temp_resolved):
     half_pi = np.pi / 2
     for gate in temp_resolved:
         if gate.name == "CNOT":
-            qc_temp.gates.extend(
-                [
-                    RY(
-                        targets=gate.targets,
-                        arg_value=-half_pi,
-                        arg_label=r"-\pi/2",
-                    ),
-                    CSIGN(targets=gate.targets, controls=gate.controls),
-                    RY(
-                        targets=gate.targets,
-                        arg_value=half_pi,
-                        arg_label=r"\pi/2",
-                    ),
-                ]
+            qc_temp.add_gate(
+                "RY",
+                targets=gate.targets,
+                arg_value=-half_pi,
+                arg_label=r"-\pi/2",
+            )
+            qc_temp.add_gate(
+                "CSIGN",
+                targets=gate.targets,
+                controls=gate.controls
+            )
+            qc_temp.add_gate(
+                "RY",
+                targets=gate.targets,
+                arg_value=half_pi,
+                arg_label=r"\pi/2",
             )
         else:
             qc_temp.gates.append(gate)
@@ -239,60 +237,72 @@ def _basis_ISWAP(qc_temp, temp_resolved):
     for gate in temp_resolved:
 
         if gate.name == "CNOT":
-            qc_temp.gates.extend(
-                [
-                    GLOBALPHASE(arg_value=quarter_pi, arg_label=r"\pi/4"),
-                    ISWAP(targets=[gate.controls[0], gate.targets[0]]),
-                    RZ(
-                        targets=gate.targets,
-                        arg_value=-half_pi,
-                        arg_label=r"-\pi/2",
-                    ),
-                    RY(
-                        targets=gate.controls,
-                        arg_value=-half_pi,
-                        arg_label=r"-\pi/2",
-                    ),
-                    RZ(
-                        targets=gate.controls,
-                        arg_value=half_pi,
-                        arg_label=r"\pi/2",
-                    ),
-                    ISWAP(targets=[gate.controls[0], gate.targets[0]]),
-                    RY(gate.targets, arg_value=-half_pi, arg_label=r"-\pi/2"),
-                    RZ(
-                        targets=gate.targets,
-                        arg_value=half_pi,
-                        arg_label=r"\pi/2",
-                    ),
-                ]
+            qc_temp.add_gate(
+                "GLOBALPHASE",
+                arg_value=quarter_pi,
+                arg_label=r"\pi/4",
+            )
+            qc_temp.add_gate("ISWAP", targets=[gate.controls[0], gate.targets[0]])
+            qc_temp.add_gate(
+                "RZ",
+                targets=gate.targets,
+                arg_value=-half_pi,
+                arg_label=r"-\pi/2",
+            )
+            qc_temp.add_gate(
+                "RY",
+                targets=gate.controls,
+                arg_value=-half_pi,
+                arg_label=r"-\pi/2",
+            )
+            qc_temp.add_gate(
+                "RZ",
+                targets=gate.controls,
+                arg_value=half_pi,
+                arg_label=r"\pi/2",
+            )
+            qc_temp.add_gate("ISWAP", targets=[gate.controls[0], gate.targets[0]])
+            qc_temp.add_gate(
+                "RY",
+                targets=gate.targets,
+                arg_value=-half_pi,
+                arg_label=r"-\pi/2"
+            )
+            qc_temp.add_gate(
+                "RZ",
+                targets=gate.targets,
+                arg_value=half_pi,
+                arg_label=r"\pi/2",
             )
 
         elif gate.name == "SWAP":
-            qc_temp.gates.extend(
-                [
-                    GLOBALPHASE(arg_value=quarter_pi, arg_label=r"\pi/4"),
-                    ISWAP(targets=gate.targets),
-                    RX(
-                        gate.targets[0],
-                        arg_value=-half_pi,
-                        arg_label=r"-\pi/2",
-                    ),
-                    ISWAP(targets=gate.targets),
-                    RX(
-                        targets=gate.targets[1],
-                        arg_value=-half_pi,
-                        arg_label=r"-\pi/2",
-                    ),
-                    ISWAP(targets=[gate.targets[1], gate.targets[0]]),
-                    RX(
-                        gate.targets[0],
-                        arg_value=-half_pi,
-                        arg_label=r"-\pi/2",
-                    ),
-                ]
+            qc_temp.add_gate(
+                "GLOBALPHASE",
+                arg_value=quarter_pi,
+                arg_label=r"\pi/4",
             )
-
+            qc_temp.add_gate("ISWAP", targets=gate.targets)
+            qc_temp.add_gate(
+                "RX",
+                targets=gate.targets[0],
+                arg_value=-half_pi,
+                arg_label=r"-\pi/2",
+            )
+            qc_temp.add_gate("ISWAP", targets=gate.targets)
+            qc_temp.add_gate(
+                "RX",
+                targets=gate.targets[1],
+                arg_value=-half_pi,
+                arg_label=r"-\pi/2",
+            )
+            qc_temp.add_gate("ISWAP", targets=gate.targets)
+            qc_temp.add_gate(
+                "RX",
+                targets=gate.targets[0],
+                arg_value=-half_pi,
+                arg_label=r"-\pi/2",
+            )
+            
         else:
             qc_temp.gates.append(gate)
 
@@ -302,36 +312,41 @@ def _basis_SQRTSWAP(qc_temp, temp_resolved):
     for gate in temp_resolved:
 
         if gate.name == "CNOT":
-            qc_temp.gates.extend(
-                [
-                    RY(
-                        targets=gate.targets,
-                        arg_value=half_pi,
-                        arg_label=r"\pi/2",
-                    ),
-                    SQRTSWAP(targets=[gate.controls[0], gate.targets[0]]),
-                    RZ(
-                        targets=gate.controls,
-                        arg_value=np.pi,
-                        arg_label=r"\pi",
-                    ),
-                    SQRTSWAP(targets=[gate.controls[0], gate.targets[0]]),
-                    RZ(
-                        targets=gate.targets,
-                        arg_value=-half_pi,
-                        arg_label=r"-\pi/2",
-                    ),
-                    RY(
-                        targets=gate.targets,
-                        arg_value=-half_pi,
-                        arg_label=r"-\pi/2",
-                    ),
-                    RZ(
-                        targets=gate.controls,
-                        arg_value=-half_pi,
-                        arg_label=r"-\pi/2",
-                    ),
-                ]
+            qc_temp.add_gate(
+                "RY",
+                targets=gate.targets,
+                arg_value=half_pi,
+                arg_label=r"\pi/2",
+            )
+            qc_temp.add_gate(
+                "SQRTSWAP", targets=[gate.controls[0], gate.targets[0]]
+            )
+            qc_temp.add_gate(
+                "RZ",
+                targets=gate.controls,
+                arg_value=np.pi,
+                arg_label=r"\pi",
+            )
+            qc_temp.add_gate(
+                "SQRTSWAP", targets=[gate.controls[0], gate.targets[0]]
+            )
+            qc_temp.add_gate(
+                "RZ",
+                targets=gate.targets,
+                arg_value=-half_pi,
+                arg_label=r"-\pi/2",
+            )
+            qc_temp.add_gate(
+                "RY",
+                targets=gate.targets,
+                arg_value=-half_pi,
+                arg_label=r"-\pi/2",
+            )
+            qc_temp.add_gate(
+                "RZ",
+                targets=gate.controls,
+                arg_value=-half_pi,
+                arg_label=r"-\pi/2",
             )
         else:
             qc_temp.gates.append(gate)
@@ -339,47 +354,55 @@ def _basis_SQRTSWAP(qc_temp, temp_resolved):
 
 def _basis_SQRTISWAP(qc_temp, temp_resolved):
     half_pi = np.pi / 2
-    quarter_pi = np.pi / 4
     for gate in temp_resolved:
 
         if gate.name == "CNOT":
-            qc_temp.gates.extend(
-                [
-                    RY(
-                        targets=gate.controls,
-                        arg_value=-half_pi,
-                        arg_label=r"-\pi/2",
-                    ),
-                    RX(
-                        targets=gate.controls,
-                        arg_value=half_pi,
-                        arg_label=r"\pi/2",
-                    ),
-                    RX(
-                        targets=gate.targets,
-                        arg_value=-half_pi,
-                        arg_label=r"-\pi/2",
-                    ),
-                    SQRTISWAP(targets=[gate.controls[0], gate.targets[0]]),
-                    RX(
-                        targets=gate.controls,
-                        arg_value=np.pi,
-                        arg_label=r"\pi",
-                    ),
-                    SQRTISWAP(targets=[gate.controls[0], gate.targets[0]]),
-                    RY(
-                        targets=gate.controls,
-                        arg_value=half_pi,
-                        arg_label=r"\pi/2",
-                    ),
-                    GLOBALPHASE(arg_value=quarter_pi, arg_label=r"\pi/4"),
-                    RZ(
-                        targets=gate.controls,
-                        arg_value=np.pi,
-                        arg_label=r"\pi",
-                    ),
-                    GLOBALPHASE(arg_value=3 * half_pi, arg_label=r"3\pi/2"),
-                ]
+            qc_temp.add_gate(
+                "RY",
+                targets=gate.controls,
+                arg_value=-half_pi,
+                arg_label=r"-\pi/2",
+            )
+            qc_temp.add_gate(
+                "RX",
+                targets=gate.controls,
+                arg_value=half_pi,
+                arg_label=r"\pi/2",
+            )
+            qc_temp.add_gate(
+                "RX",
+                targets=gate.targets,
+                arg_value=-half_pi,
+                arg_label=r"-\pi/2",
+            )
+            qc_temp.add_gate(
+                "SQRTISWAP", targets=[gate.controls[0], gate.targets[0]]
+            )
+            qc_temp.add_gate(
+                "RX",
+                targets=gate.controls,
+                arg_value=np.pi,
+                arg_label=r"\pi",
+            )
+            qc_temp.add_gate(
+                "SQRTISWAP", targets=[gate.controls[0], gate.targets[0]]
+            )
+            qc_temp.add_gate(
+                "RY",
+                targets=gate.controls,
+                arg_value=half_pi,
+                arg_label=r"\pi/2",
+            )
+            qc_temp.add_gate(
+                "RZ",
+                targets=gate.controls,
+                arg_value=np.pi,
+                arg_label=r"\pi",
+            )
+            qc_temp.add_gate(
+                "GLOBALPHASE",
+                arg_value=7/4 * np.pi,
+                arg_label=r"7\pi/4",
             )
         else:
             qc_temp.gates.append(gate)
