@@ -174,15 +174,15 @@ class TestQubitCircuit:
             def __init__(self, **kwargs):
                 super().__init__(**kwargs)
 
-            def get_compact_qobj(self):
-                pass
-
-        class DUMMY2(Gate):
-            def __init__(self, **kwargs):
-                super().__init__(**kwargs)
+            @property
+            def qubit_count(self) -> int:
+                return 0
 
             def get_compact_qobj(self):
                 pass
+
+        class DUMMY2(DUMMY1):
+            pass
 
         inds = [1, 3, 4, 6]
         qc.add_gate(DUMMY1, index=inds)
@@ -461,6 +461,10 @@ class TestQubitCircuit:
             def __init__(self, targets, **kwargs):
                 super().__init__(targets=targets)
 
+            @property
+            def qubit_count(self) -> int:
+                return 1
+
             @staticmethod
             def get_compact_qobj():
                 mat = np.array([[1.0, 0], [0.0, 1.0j]])
@@ -484,6 +488,10 @@ class TestQubitCircuit:
         class CTRLMAT3(ParametrizedGate):
             def __init__(self, targets, arg_value, **kwargs):
                 super().__init__(targets=targets, arg_value=arg_value)
+
+            @property
+            def qubit_count(self) -> int:
+                return 2
 
             def get_compact_qobj(self):
                 """

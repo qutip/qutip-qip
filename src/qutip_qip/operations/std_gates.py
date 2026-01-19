@@ -1001,6 +1001,10 @@ class GLOBALPHASE(ParametrizedGate):
             style=style,
         )
 
+    @property
+    def qubit_count(self) -> int:
+        return 0
+
     def get_compact_qobj(self):
         raise NotImplementedError(
             "GlobalPhase gate has no compack qobj representation."
