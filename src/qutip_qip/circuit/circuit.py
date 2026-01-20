@@ -65,6 +65,7 @@ class QubitCircuit:
         reverse_states=True,
         dims=None,
         num_cbits=0,
+        user_gates=None,
     ):
         # number of qubits in the register
         self.N = N
@@ -82,6 +83,12 @@ class QubitCircuit:
             self.output_states = output_states
         else:
             self.output_states = [None for i in range(N + num_cbits)]
+
+        if user_gates is not None:
+            raise ValueError(
+                "`user_gates` has been removed from qutip-qip from version 0.5.0"
+                "To define custom gates refer to this example in documentation <link>"
+            )
 
     def __repr__(self) -> str:
         return ""
@@ -334,7 +341,6 @@ class QubitCircuit:
     def add_circuit(self, qc, start=0):
         """
         Adds a block of a qubit circuit to the main circuit.
-        Globalphase gates are not added.
 
         Parameters
         ----------

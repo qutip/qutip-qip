@@ -28,35 +28,6 @@ class QasmGate:
         self.gates_inside = []
 
 
-# def _get_qiskit_gates():
-#     """
-#     Create and return a dictionary containing a few commonly used qiskit gates
-#     that are not predefined in qutip-qip.
-
-#     Returns a dictionary mapping gate names to QuTiP gates.
-#     """
-
-#     def u2(args):
-#         return qasmu_gate([np.pi / 2, args[0], args[1]])
-
-#     def id():
-#         return qasmu_gate([0, 0, 0])
-
-#     def sdg():
-#         return rz(-1 * np.pi / 2)
-
-#     def tdg():
-#         return rz(-1 * np.pi / 4)
-
-#     def cu3(args):
-#         return controlled_gate(qasmu_gate(args))
-
-#     def ch():
-#         return controlled_gate(snot())
-
-#     return {"ch": ch, "tdg": tdg, "id": id, "u2": u2, "sdg": sdg, "cu3": cu3}
-
-
 def _tokenize_line(command):
     """
     Tokenize (break into several parts a string of) a single line of QASM code.

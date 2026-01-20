@@ -58,7 +58,7 @@ class TestConverter:
                 or type(req_gate.arg_value) is tuple
                 else [req_gate.arg_value]
             )
-            if isinstance(req_gate, ParametrizedGate) and req_gate.arg_value
+            if isinstance(req_gate, ParametrizedGate)
             else []
         )
 
