@@ -340,6 +340,70 @@ class Test_expand_operator:
             gates.cnot(), dims=[2, 2, 2], dtype="dense").data
         assert isinstance(expanded_qobj, qutip.data.Dense)
 
+class TestGateInverse:
+    """
+    Test the .inverse() method for quantum gates.
+    """
+
+    def test_unitary_inverse_identity(self):
+        """
+        Verify that G * G.inverse() == Identity for standard self-inverse gates.
+        """
+        
+        gate_objects = [
+            X(targets=[0]),
+            Y(targets=[0]),
+            Z(targets=[0]),
+            H(targets=[0]),
+            CNOT(controls=0, targets=1),
+            SWAP(targets=[0, 1])
+        ]
+
+        for g in gate_objects:
+            g_inv = g.inverse()
+            
+            num_qubits = 2 
+            
+            u = g.get_qobj(num_qubits=num_qubits)
+            u_inv = g_inv.get_qobj(num_qubits=num_qubits)
+            
+            identity = qutip.qeye([2]*num_qubits)
+            
+            assert np.allclose((u * u_inv).full(), identity.full(), atol=1e-10)
+
+    def test_rotation_gate_inverse(self):
+        """
+        Verify that rotation gates invert by negating the angle.
+        """
+        angle = np.pi / 3
+        
+        rx_gate = RX(targets=0, arg_value=angle)
+        rx_inv = rx_gate.inverse()
+        
+        assert rx_inv.arg_value == -angle
+        assert rx_inv.name == "RX"
+
+        res = rx_gate.get_compact_qobj() * rx_inv.get_compact_qobj()
+        assert np.allclose(res.full(), np.eye(2), atol=1e-10)
+
+    def test_composite_gate_inverse(self):
+        """
+        Verify that a gate composed of sub-gates inverts the order and the gates.
+        (AB)^-1 = B^-1 A^-1
+        """
+        composite = Gate(name="Composite", targets=[0])
+        
+        g1 = RX(targets=0, arg_value=0.5)
+        g2 = H(targets=0) 
+        composite.gates = [g1, g2]
+        
+        comp_inv = composite.inverse()
+        
+        assert len(comp_inv.gates) == 2
+        assert comp_inv.gates[0].name == "H" 
+        assert comp_inv.gates[1].name == "RX"
+        
+        assert comp_inv.gates[1].arg_value == -0.5
 
 def test_gates_class():
     init_state = qutip.rand_ket([2, 2, 2])
