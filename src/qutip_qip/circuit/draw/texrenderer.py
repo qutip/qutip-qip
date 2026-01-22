@@ -8,7 +8,7 @@ import collections
 from typing import Callable
 
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import Gate
+from qutip_qip.operations import Gate, ParametrizedGate, ControlledGate
 
 
 # As a general note wherever you see {{}} in a python rf string that represents a {}
@@ -43,7 +43,7 @@ class TeXRenderer:
 
     def _gate_label(self, gate) -> str:
         gate_label = gate.latex_str
-        if gate.arg_label is not None:
+        if isinstance(gate, ParametrizedGate) and gate.arg_label is not None:
             return rf"{gate_label}({gate.arg_label})"
         return rf"{gate_label}"
 
@@ -115,7 +115,9 @@ class TeXRenderer:
                         else:
                             col.append(rf" \gate{{{self._gate_label(gate)}}} ")
 
-                    elif gate.controls and n in gate.controls:
+                    elif (
+                        isinstance(gate, ControlledGate) and n in gate.controls
+                    ):
                         control_tag = (-1 if self.reverse_states else 1) * (
                             gate.targets[0] - n
                         )
@@ -130,7 +132,10 @@ class TeXRenderer:
                         )
                         col.append(rf" \ctrl{{{control_tag}}} ")
 
-                    elif not gate.controls and not gate.targets:
+                    elif (
+                        not isinstance(gate, ControlledGate)
+                        and not gate.targets
+                    ):
                         # global gate
                         if (self.reverse_states and n == self.N - 1) or (
                             not self.reverse_states and n == 0

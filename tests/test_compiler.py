@@ -11,6 +11,7 @@ from qutip_qip.device import (
 )
 from qutip_qip.compiler import SpinChainCompiler, Instruction, GateCompiler
 from qutip_qip.circuit import QubitCircuit
+from qutip_qip.operations import Gate
 from qutip import basis, fidelity
 
 
@@ -70,11 +71,19 @@ def test_compiling_gates_different_sampling_number():
                 )
             ]
 
+    class U1(Gate):
+        def get_compact_qobj(self):
+            pass
+
+    class U2(Gate):
+        def get_compact_qobj(self):
+            pass
+
     num_qubits = 2
     circuit = QubitCircuit(num_qubits)
-    circuit.add_gate("U1", targets=0, arg_value=1.0)
-    circuit.add_gate("U2", targets=[0, 1], arg_value=1.0)
-    circuit.add_gate("U1", targets=0, arg_value=1.0)
+    circuit.add_gate(U1, targets=0, arg_value=1.0)
+    circuit.add_gate(U2, targets=[0, 1], arg_value=1.0)
+    circuit.add_gate(U1, targets=0, arg_value=1.0)
 
     compiler = MockCompiler(num_qubits=2)
     compiled_tlists, compiled_coeffs = compiler.compile(circuit)

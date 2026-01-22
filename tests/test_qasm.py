@@ -7,7 +7,7 @@ import qutip
 from qutip_qip.qasm import read_qasm, circuit_to_qasm_str
 from qutip_qip.circuit import QubitCircuit
 from qutip import tensor, rand_ket, basis, identity
-from qutip_qip.operations import cnot, ry, Measurement, swap
+from qutip_qip.operations import cnot, ry, Measurement, swap, ControlledGate
 
 
 @pytest.mark.parametrize(
@@ -47,9 +47,10 @@ def check_gate_defn(
 ):
     assert gate.name == gate_name
     assert gate.targets == targets
-    assert gate.controls == controls
     assert gate.classical_controls == classical_controls
     assert gate.classical_control_value == classical_control_value
+    if isinstance(gate, ControlledGate):
+        assert gate.controls == controls
 
 
 def check_measurement_defn(gate, gate_name, targets, classical_store):

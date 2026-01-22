@@ -6,7 +6,12 @@ from math import ceil
 
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.circuit.draw import BaseRenderer, StyleConfig
-from qutip_qip.operations import Gate, Measurement
+from qutip_qip.operations import (
+    Gate,
+    Measurement,
+    ControlledGate,
+    ParametrizedGate,
+)
 
 
 class TextRenderer(BaseRenderer):
@@ -146,7 +151,7 @@ class TextRenderer(BaseRenderer):
 
         sorted_targets = sorted(gate.targets)
         # Adjust top_frame or bottom if there is a control wire
-        if gate.controls:
+        if isinstance(gate, ControlledGate):
             sorted_controls = sorted(gate.controls)
             top_frame = (
                 (top_frame[:mid_index] + "┴" + top_frame[mid_index + 1 :])
@@ -368,7 +373,7 @@ class TextRenderer(BaseRenderer):
 
         for wire in wire_list_control:
             if wire not in gate.targets:
-                if wire in gate.controls:
+                if isinstance(gate, ControlledGate) and wire in gate.controls:
                     # check if the control wire is the first or last control wire.
                     # used in cases of multiple control wires
                     if (
@@ -423,9 +428,14 @@ class TextRenderer(BaseRenderer):
 
         for gate in self._qc.gates:
             if isinstance(gate, Gate):
-                gate_text = (
-                    gate.arg_label if gate.arg_label is not None else gate.name
-                )
+                gate_text = gate.name
+
+                if isinstance(gate, ParametrizedGate):
+                    gate_text = (
+                        gate.arg_label
+                        if gate.arg_label is not None
+                        else gate.name
+                    )
 
             # generate the parts, width and wire_list for the gates
             if isinstance(gate, Measurement):
@@ -443,7 +453,11 @@ class TextRenderer(BaseRenderer):
                 width = 4 * ceil(self.style.gate_pad) + 1
             else:
                 sorted_targets = sorted(gate.targets)
-                merged_wire = sorted_targets + (gate.controls or [])
+                if isinstance(gate, ControlledGate):
+                    merged_wire = sorted_targets + gate.controls
+                else:
+                    merged_wire = sorted_targets + []
+
                 if gate.classical_controls is not None:
                     c_control = sorted(gate.classical_controls)
                     merged_wire += list(range(sorted_targets[0] + 1))
@@ -482,7 +496,7 @@ class TextRenderer(BaseRenderer):
                     parts,
                 )
 
-                if gate.controls:
+                if isinstance(gate, ControlledGate):
                     sorted_controls = sorted(gate.controls)
 
                     # check if there is control wire above the gate top

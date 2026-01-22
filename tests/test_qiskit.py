@@ -14,6 +14,7 @@ from qutip_qip.device import (
     CircularSpinChain,
     DispersiveCavityQED,
 )
+from qutip_qip.operations import ControlledGate, ParametrizedGate
 
 # will skip tests in this entire file
 # if qiskit is not installed
@@ -46,7 +47,7 @@ class TestConverter:
                 or type(res_gate.arg_value) is tuple
                 else [res_gate.arg_value]
             )
-            if res_gate.arg_value
+            if isinstance(res_gate, ParametrizedGate) and res_gate.arg_value
             else []
         )
 
@@ -57,7 +58,7 @@ class TestConverter:
                 or type(req_gate.arg_value) is tuple
                 else [req_gate.arg_value]
             )
-            if req_gate.arg_value
+            if isinstance(req_gate, ParametrizedGate)
             else []
         )
 
@@ -83,10 +84,12 @@ class TestConverter:
             # todo: correct for float error in arg_value
             res_controls = (
                 get_qutip_index(res_gate.controls, result_circuit.N)
-                if res_gate.controls
+                if isinstance(res_gate, ControlledGate)
                 else None
             )
-            req_controls = req_gate.controls if req_gate.controls else None
+            req_controls = None
+            if isinstance(req_gate, ControlledGate):
+                req_controls = req_gate.controls
 
             check_condition = (
                 res_controls == req_controls
@@ -136,7 +139,7 @@ class TestConverter:
         result_circuit = convert_qiskit_circuit_to_qutip(qiskit_circuit)
 
         required_circuit = QubitCircuit(2)
-        required_circuit.add_gate("CX", targets=[0], controls=[1])
+        required_circuit.add_gate("CNOT", targets=[0], controls=[1])
 
         assert self._compare_circuit(result_circuit, required_circuit)
 

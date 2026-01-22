@@ -14,7 +14,12 @@ from matplotlib.patches import (
 
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.circuit.draw import BaseRenderer, StyleConfig
-from qutip_qip.operations import Gate, Measurement
+from qutip_qip.operations import (
+    Gate,
+    Measurement,
+    ControlledGate,
+    ParametrizedGate,
+)
 
 
 class MatRenderer(BaseRenderer):
@@ -659,7 +664,7 @@ class MatRenderer(BaseRenderer):
                     self._ax.add_artist(connector_r)
 
             # add qbridge if control qubits are present
-            if gate.controls is not None:
+            if isinstance(gate, ControlledGate):
                 for control in gate.controls:
                     self._draw_control_node(
                         control, xskip + text_width / 2, self.color
@@ -786,9 +791,15 @@ class MatRenderer(BaseRenderer):
 
             if isinstance(gate, Gate):
                 style = gate.style if gate.style is not None else {}
-                self.text = (
-                    gate.arg_label if gate.arg_label is not None else gate.name
-                )
+                self.text = gate.name
+
+                if isinstance(gate, ParametrizedGate):
+                    self.text = (
+                        gate.arg_label
+                        if gate.arg_label is not None
+                        else gate.name
+                    )
+
                 self.color = style.get(
                     "color",
                     self.style.theme.get(
@@ -807,7 +818,7 @@ class MatRenderer(BaseRenderer):
                     if gate.targets is not None
                     else list(range(self._qwires))
                 )
-                if gate.controls is not None:
+                if isinstance(gate, ControlledGate):
                     self.merged_wires += gate.controls.copy()
                 self.merged_wires.sort()
                 if gate.classical_controls is not None:

@@ -500,7 +500,7 @@ class CircuitSimulator:
             # We need to use the circuit because the custom gates
             # are still saved in circuit instance.
             # This should be changed once that is deprecated.
-            U = self.qc._get_gate_unitary(operation)
+            U = operation.get_compact_qobj()
             U = expand_operator(
                 U,
                 dims=self.dims,
@@ -530,7 +530,7 @@ class CircuitSimulator:
             state = state.reshape(self._tensor_dims)
 
         # Prepare the gate tensor.
-        gate = self.qc._get_gate_unitary(gate)
+        gate = gate.get_compact_qobj()
         gate_array = gate.full().reshape(gate.dims[0] + gate.dims[1])
 
         # Compute the tensor indices and call einsum.

@@ -1,13 +1,15 @@
-from functools import partial
 import numpy as np
 import scipy.sparse as sp
 
 from qutip import Qobj, sigmax, sigmay, sigmaz, qeye
 from qutip_qip.operations import (
-    Gate,
     SingleQubitGate,
     TwoQubitGate,
     ControlledGate,
+    ParametrizedGate,
+    ControlledParamGate,
+    ParametrizedSingleQubitGate,
+    ParametrizedTwoQubitGate,
 )
 
 ######################### Single Qubit Gates ############################
@@ -27,11 +29,10 @@ class X(SingleQubitGate):
      [1. 0.]]
     """
 
-    def __init__(self, targets, **kwargs):
-        super().__init__(targets=targets, **kwargs)
-        self.latex_str = r"X"
+    latex_str = r"X"
 
-    def get_compact_qobj(self):
+    @staticmethod
+    def get_compact_qobj():
         return sigmax(dtype="dense")
 
 
@@ -49,11 +50,10 @@ class Y(SingleQubitGate):
      [0.+1.j 0.+0.j]]
     """
 
-    def __init__(self, targets, **kwargs):
-        super().__init__(targets=targets, **kwargs)
-        self.latex_str = r"Y"
+    latex_str = r"Y"
 
-    def get_compact_qobj(self):
+    @staticmethod
+    def get_compact_qobj():
         return sigmay(dtype="dense")
 
 
@@ -71,15 +71,35 @@ class Z(SingleQubitGate):
      [ 0. -1.]]
     """
 
-    def __init__(self, targets, **kwargs):
-        super().__init__(targets=targets, **kwargs)
-        self.latex_str = r"Z"
+    latex_str = r"Z"
 
-    def get_compact_qobj(self):
+    @staticmethod
+    def get_compact_qobj():
         return sigmaz(dtype="dense")
 
 
-class RX(SingleQubitGate):
+class PHASE(ParametrizedSingleQubitGate):
+    """
+    PHASE Gate.
+
+    Examples
+    --------
+    >>> from qutip_qip.operations import PHASE
+    """
+
+    latex_str = r"PHASE"
+
+    def get_compact_qobj(self):
+        phi = self.arg_value
+        return Qobj(
+            [
+                [1, 0],
+                [0, np.exp(1j * phi)],
+            ]
+        )
+
+
+class RX(ParametrizedSingleQubitGate):
     """
     Single-qubit rotation RX.
 
@@ -93,9 +113,7 @@ class RX(SingleQubitGate):
      [0.     -0.70711j 0.70711+0.j     ]]
     """
 
-    def __init__(self, targets, arg_value, **kwargs):
-        super().__init__(targets=targets, arg_value=arg_value, **kwargs)
-        self.latex_str = r"R_x"
+    latex_str = r"R_x"
 
     def get_compact_qobj(self):
         phi = self.arg_value
@@ -107,7 +125,7 @@ class RX(SingleQubitGate):
         )
 
 
-class RY(SingleQubitGate):
+class RY(ParametrizedSingleQubitGate):
     """
     Single-qubit rotation RY.
 
@@ -121,9 +139,7 @@ class RY(SingleQubitGate):
      [ 0.70711  0.70711]]
     """
 
-    def __init__(self, targets, arg_value, **kwargs):
-        super().__init__(targets=targets, arg_value=arg_value, **kwargs)
-        self.latex_str = r"R_y"
+    latex_str = r"R_y"
 
     def get_compact_qobj(self):
         phi = self.arg_value
@@ -135,7 +151,7 @@ class RY(SingleQubitGate):
         )
 
 
-class RZ(SingleQubitGate):
+class RZ(ParametrizedSingleQubitGate):
     """
     Single-qubit rotation RZ.
 
@@ -149,13 +165,27 @@ class RZ(SingleQubitGate):
      [0.     +0.j      0.70711+0.70711j]]
     """
 
-    def __init__(self, targets, arg_value, **kwargs):
-        super().__init__(targets=targets, arg_value=arg_value, **kwargs)
-        self.latex_str = r"R_z"
+    latex_str = r"R_z"
 
     def get_compact_qobj(self):
         phi = self.arg_value
         return Qobj([[np.exp(-1j * phi / 2), 0], [0, np.exp(1j * phi / 2)]])
+
+
+class IDLE(SingleQubitGate):
+    """
+    IDLE gate.
+
+    Examples
+    --------
+    >>> from qutip_qip.operations import IDLE
+    """
+
+    latex_str = r"{\rm IDLE}"
+
+    @staticmethod
+    def get_compact_qobj():
+        return qeye(2)
 
 
 class H(SingleQubitGate):
@@ -172,16 +202,15 @@ class H(SingleQubitGate):
      [ 0.70711 -0.70711]]
     """
 
-    def __init__(self, targets, **kwargs):
-        super().__init__(targets=targets, **kwargs)
-        self.latex_str = r"{\rm H}"
+    latex_str = r"H"
 
-    def get_compact_qobj(self):
+    @staticmethod
+    def get_compact_qobj():
         return 1 / np.sqrt(2.0) * Qobj([[1, 1], [1, -1]])
 
 
-SNOT = H
-SNOT.__doc__ = H.__doc__
+class SNOT(H):
+    pass
 
 
 class SQRTNOT(SingleQubitGate):
@@ -198,11 +227,10 @@ class SQRTNOT(SingleQubitGate):
      [0.5-0.5j 0.5+0.5j]]
     """
 
-    def __init__(self, targets, **kwargs):
-        super().__init__(targets=targets, **kwargs)
-        self.latex_str = r"\sqrt{\rm NOT}"
+    latex_str = r"\sqrt{\rm NOT}"
 
-    def get_compact_qobj(self):
+    @staticmethod
+    def get_compact_qobj():
         return Qobj([[0.5 + 0.5j, 0.5 - 0.5j], [0.5 - 0.5j, 0.5 + 0.5j]])
 
 
@@ -220,11 +248,10 @@ class S(SingleQubitGate):
      [0.+0.j 0.+1.j]]
     """
 
-    def __init__(self, targets, **kwargs):
-        super().__init__(targets=targets, **kwargs)
-        self.latex_str = r"{\rm S}"
+    latex_str = r"{\rm S}"
 
-    def get_compact_qobj(self):
+    @staticmethod
+    def get_compact_qobj():
         return Qobj([[1, 0], [0, 1j]])
 
 
@@ -242,15 +269,14 @@ class T(SingleQubitGate):
      [0.     +0.j      0.70711+0.70711j]]
     """
 
-    def __init__(self, targets, **kwargs):
-        super().__init__(targets=targets, **kwargs)
-        self.latex_str = r"{\rm T}"
+    latex_str = r"{\rm T}"
 
-    def get_compact_qobj(self):
+    @staticmethod
+    def get_compact_qobj():
         return Qobj([[1, 0], [0, np.exp(1j * np.pi / 4)]])
 
 
-class R(SingleQubitGate):
+class R(ParametrizedSingleQubitGate):
     r"""
     Arbitrary single-qubit rotation
 
@@ -271,9 +297,7 @@ class R(SingleQubitGate):
      [ 0.70711  0.70711]]
     """
 
-    def __init__(self, targets, arg_value=None, **kwargs):
-        super().__init__(targets=targets, arg_value=arg_value, **kwargs)
-        self.latex_str = r"{\rm R}"
+    latex_str = r"{\rm R}"
 
     def get_compact_qobj(self):
         phi, theta = self.arg_value
@@ -291,7 +315,7 @@ class R(SingleQubitGate):
         )
 
 
-class QASMU(SingleQubitGate):
+class QASMU(ParametrizedSingleQubitGate):
     r"""
     QASMU gate.
 
@@ -308,9 +332,7 @@ class QASMU(SingleQubitGate):
      [ 0.5+0.5j -0.5+0.5j]]
     """
 
-    def __init__(self, targets, arg_value=None, **kwargs):
-        super().__init__(targets=targets, arg_value=arg_value, **kwargs)
-        self.latex_str = r"{\rm QASM-U}"
+    latex_str = r"{\rm QASM-U}"
 
     def get_compact_qobj(self):
         theta, phi, gamma = self.arg_value
@@ -347,11 +369,10 @@ class SWAP(TwoQubitGate):
      [0. 0. 0. 1.]]
     """
 
-    def __init__(self, targets, **kwargs):
-        super().__init__(targets=targets, **kwargs)
-        self.latex_str = r"{\rm SWAP}"
+    latex_str = r"{\rm SWAP}"
 
-    def get_compact_qobj(self):
+    @staticmethod
+    def get_compact_qobj():
         return Qobj(
             [[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]],
             dims=[[2, 2], [2, 2]],
@@ -374,11 +395,10 @@ class ISWAP(TwoQubitGate):
      [0.+0.j 0.+0.j 0.+0.j 1.+0.j]]
     """
 
-    def __init__(self, targets, **kwargs):
-        super().__init__(targets=targets, **kwargs)
-        self.latex_str = r"{i}{\rm SWAP}"
+    latex_str = r"{i}{\rm SWAP}"
 
-    def get_compact_qobj(self):
+    @staticmethod
+    def get_compact_qobj():
         return Qobj(
             [[1, 0, 0, 0], [0, 0, 1j, 0], [0, 1j, 0, 0], [0, 0, 0, 1]],
             dims=[[2, 2], [2, 2]],
@@ -401,11 +421,10 @@ class SQRTSWAP(TwoQubitGate):
      [0. +0.j  0. +0.j  0. +0.j  1. +0.j ]]
     """
 
-    def __init__(self, targets, **kwargs):
-        super().__init__(targets=targets, **kwargs)
-        self.latex_str = r"\sqrt{\rm SWAP}"
+    latex_str = r"\sqrt{\rm SWAP}"
 
-    def get_compact_qobj(self):
+    @staticmethod
+    def get_compact_qobj():
         return Qobj(
             np.array(
                 [
@@ -435,11 +454,10 @@ class SQRTISWAP(TwoQubitGate):
      [0.     +0.j      0.     +0.j      0.     +0.j      1.     +0.j     ]]
     """
 
-    def __init__(self, targets, **kwargs):
-        super().__init__(targets=targets, **kwargs)
-        self.latex_str = r"\sqrt{{i}\rm SWAP}"
+    latex_str = r"\sqrt{{i}\rm SWAP}"
 
-    def get_compact_qobj(self):
+    @staticmethod
+    def get_compact_qobj():
         return Qobj(
             np.array(
                 [
@@ -478,11 +496,10 @@ class BERKELEY(TwoQubitGate):
      [0.     +0.38268j 0.     +0.j      0.     +0.j      0.92388+0.j     ]]
     """
 
-    def __init__(self, targets, **kwargs):
-        super().__init__(targets=targets, **kwargs)
-        self.latex_str = r"{\rm BERKELEY}"
+    latex_str = r"{\rm BERKELEY}"
 
-    def get_compact_qobj(self):
+    @staticmethod
+    def get_compact_qobj():
         return Qobj(
             [
                 [np.cos(np.pi / 8), 0, 0, 1.0j * np.sin(np.pi / 8)],
@@ -494,7 +511,7 @@ class BERKELEY(TwoQubitGate):
         )
 
 
-class SWAPALPHA(TwoQubitGate):
+class SWAPALPHA(ParametrizedTwoQubitGate):
     r"""
     SWAPALPHA gate.
 
@@ -519,9 +536,7 @@ class SWAPALPHA(TwoQubitGate):
      [0. +0.j  0. +0.j  0. +0.j  1. +0.j ]]
     """
 
-    def __init__(self, targets, arg_value, **kwargs):
-        super().__init__(targets=targets, arg_value=arg_value, **kwargs)
-        self.latex_str = r"{\rm SWAPALPHA}"
+    latex_str = r"{\rm SWAPALPHA}"
 
     def get_compact_qobj(self):
         alpha = self.arg_value
@@ -546,7 +561,7 @@ class SWAPALPHA(TwoQubitGate):
         )
 
 
-class MS(TwoQubitGate):
+class MS(ParametrizedTwoQubitGate):
     r"""
     Mølmer–Sørensen gate.
 
@@ -571,9 +586,7 @@ class MS(TwoQubitGate):
      [0.     -0.70711j 0.     +0.j      0.     +0.j      0.70711+0.j     ]]
     """
 
-    def __init__(self, targets, arg_value, **kwargs):
-        super().__init__(targets=targets, arg_value=arg_value, **kwargs)
-        self.latex_str = r"{\rm MS}"
+    latex_str = r"{\rm MS}"
 
     def get_compact_qobj(self):
         theta, phi = self.arg_value
@@ -598,7 +611,7 @@ class MS(TwoQubitGate):
         )
 
 
-class RZX(TwoQubitGate):
+class RZX(ParametrizedTwoQubitGate):
     r"""
     RZX gate.
 
@@ -623,14 +636,7 @@ class RZX(TwoQubitGate):
     [0.+0.j 0.+0.j 0.+1.j 0.+0.j]]
     """
 
-    def __init__(self, targets, arg_value, **kwargs):
-        self.target_gate = RZ
-        super().__init__(
-            targets=targets,
-            arg_value=arg_value,
-            target_gate=self.target_gate,
-            **kwargs,
-        )
+    latex_str = r"{\rm RZX}"
 
     def get_compact_qobj(self):
         theta = self.arg_value
@@ -647,7 +653,7 @@ class RZX(TwoQubitGate):
         )
 
 
-class _OneControlledGate(ControlledGate, TwoQubitGate):
+class _ControlledTwoQubitGate(ControlledGate, TwoQubitGate):
     """
     This class allows correctly generating the gate instance
     when a redundant control_value is given, e.g.
@@ -655,24 +661,8 @@ class _OneControlledGate(ControlledGate, TwoQubitGate):
     and raise an error if it is 0.
     """
 
-    def __init__(self, controls, targets, target_gate, **kwargs):
-        _control_value = kwargs.get("control_value", None)
-        if _control_value is not None:
-            if _control_value != 1:
-                raise ValueError(
-                    f"{self.__class__.__name__} must has control_value=1"
-                )
-        else:
-            kwargs["control_value"] = 1
-        super().__init__(
-            targets=targets,
-            controls=controls,
-            target_gate=target_gate,
-            **kwargs,
-        )
 
-
-class CNOT(_OneControlledGate):
+class CNOT(_ControlledTwoQubitGate):
     """
     CNOT gate.
 
@@ -688,24 +678,49 @@ class CNOT(_OneControlledGate):
      [0. 0. 1. 0.]]
     """
 
-    def __init__(self, controls, targets, **kwargs):
-        self.target_gate = X
-        super().__init__(
-            targets=targets,
-            controls=controls,
-            target_gate=self.target_gate,
-            **kwargs,
-        )
-        self.latex_str = r"{\rm CNOT}"
+    latex_str = r"{\rm CNOT}"
+    _target_gate_class = X
 
-    def get_compact_qobj(self):
+    @staticmethod
+    def get_compact_qobj():
         return Qobj(
             [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]],
             dims=[[2, 2], [2, 2]],
         )
 
 
-class CZ(_OneControlledGate):
+class CX(CNOT):
+    pass
+
+
+class CY(_ControlledTwoQubitGate):
+    """
+    Controlled CY gate.
+
+    Examples
+    --------
+    >>> from qutip_qip.operations import CY
+    >>> CSIGN(0, 1).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
+    Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=True
+    Qobj data =
+    [[ 1.+0j  0.+0j  0.+0j  0.+0j]
+     [ 0.+0j  1.+0j  0.+0j  0.+0j]
+     [ 0.+0j  0.+0j  0.+0j  0.-1j]
+     [ 0+0j.  0.+0j  0.+1j. 0.+0j]]
+    """
+
+    latex_str = r"{\rm CY}"
+    _target_gate_class = Y
+
+    @staticmethod
+    def get_compact_qobj():
+        return Qobj(
+            [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]],
+            dims=[[2, 2], [2, 2]],
+        )
+
+
+class CZ(_ControlledTwoQubitGate):
     """
     Controlled Z gate. Identical to the CSIGN gate.
 
@@ -721,55 +736,133 @@ class CZ(_OneControlledGate):
      [ 0.  0.  0. -1.]]
     """
 
-    def __init__(self, controls, targets, **kwargs):
-        self.target_gate = Z
-        super().__init__(
-            targets=targets,
-            controls=controls,
-            target_gate=self.target_gate,
-            **kwargs,
-        )
+    latex_str = r"{\rm CZ}"
+    _target_gate_class = Z
 
-    def get_compact_qobj(self):
+    @staticmethod
+    def get_compact_qobj():
         return Qobj(
             [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]],
             dims=[[2, 2], [2, 2]],
         )
 
 
-class CSIGN(_OneControlledGate):
-    """
-    Controlled CSIGN gate. Identical to the CZ gate.
+class CSIGN(CZ):
+    pass
+
+
+class CH(_ControlledTwoQubitGate):
+    r"""
+    CH gate.
+
+    .. math::
+
+        \begin{pmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & 1 & 0 & 0 \\
+        0 & 0 & 1 & 0 \\
+        0 & 0 & 0 & e^{i\theta} \\
+        \end{pmatrix}
 
     Examples
     --------
-    >>> from qutip_qip.operations import CSIGN
-    >>> CSIGN(0, 1).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=True
-    Qobj data =
-    [[ 1.  0.  0.  0.]
-     [ 0.  1.  0.  0.]
-     [ 0.  0.  1.  0.]
-     [ 0.  0.  0. -1.]]
+    >>> from qutip_qip.operations import CH
     """
 
-    def __init__(self, controls, targets, **kwargs):
-        self.target_gate = Z
-        super().__init__(
-            targets=targets,
-            controls=controls,
-            target_gate=self.target_gate,
-            **kwargs,
-        )
+    latex_str = r"{\rm CH}"
+    _target_gate_class = H
 
-    def get_compact_qobj(self):
+    @staticmethod
+    def get_compact_qobj():
+        sq_2 = 1 / np.sqrt(2)
         return Qobj(
-            [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]],
+            [
+                [1, 0, 0, 0],
+                [0, 1, 0, 0],
+                [0, 0, sq_2, sq_2],
+                [0, 0, sq_2, -sq_2],
+            ],
             dims=[[2, 2], [2, 2]],
         )
 
 
-class CPHASE(_OneControlledGate):
+class CT(_ControlledTwoQubitGate):
+    r"""
+    CT gate.
+
+    .. math::
+
+        \begin{pmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & 1 & 0 & 0 \\
+        0 & 0 & 1 & 0 \\
+        0 & 0 & 0 & e^{i\theta} \\
+        \end{pmatrix}
+
+    Examples
+    --------
+    >>> from qutip_qip.operations import CPHASE
+    """
+
+    latex_str = r"{\rm CT}"
+    _target_gate_class = T
+
+    @staticmethod
+    def get_compact_qobj():
+        return Qobj(
+            [
+                [1, 0, 0, 0],
+                [0, 1, 0, 0],
+                [0, 0, 1, 0],
+                [0, 0, 0, (1 + 1j) / np.sqrt(2)],
+            ],
+            dims=[[2, 2], [2, 2]],
+        )
+
+
+class CS(_ControlledTwoQubitGate):
+    r"""
+    CS gate.
+
+    .. math::
+
+        \begin{pmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & 1 & 0 & 0 \\
+        0 & 0 & 1 & 0 \\
+        0 & 0 & 0 & e^{i\theta} \\
+        \end{pmatrix}
+
+    Examples
+    --------
+    >>> from qutip_qip.operations import CPHASE
+    """
+
+    latex_str = r"{\rm CS}"
+    _target_gate_class = S
+
+    @staticmethod
+    def get_compact_qobj():
+        return Qobj(
+            np.array(
+                [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1j]]
+            ),
+            dims=[[2, 2], [2, 2]],
+        )
+
+
+class _ControlledParamTwoQubitGate(ControlledParamGate):
+    """
+    This class allows correctly generating the gate instance
+    when a redundant control_value is given, e.g.
+    ``CNOT(0, 1, control_value=1)``,
+    and raise an error if it is 0.
+    """
+
+    ...
+
+
+class CPHASE(_ControlledParamTwoQubitGate):
     r"""
     CPHASE gate.
 
@@ -794,17 +887,8 @@ class CPHASE(_OneControlledGate):
      [0.+0.j 0.+0.j 0.+0.j 0.+1.j]]
     """
 
-    def __init__(
-        self, controls, targets, arg_value, control_value=1, **kwargs
-    ):
-        self.target_gate = RZ
-        super().__init__(
-            targets=targets,
-            controls=controls,
-            arg_value=arg_value,
-            target_gate=self.target_gate,
-            **kwargs,
-        )
+    latex_str = r"{\rm CPHASE}"
+    _target_gate_class = PHASE
 
     def get_compact_qobj(self):
         return Qobj(
@@ -818,25 +902,78 @@ class CPHASE(_OneControlledGate):
         )
 
 
-CRY = partial(_OneControlledGate, target_gate=RY)
-CRY.__doc__ = "Controlled Y rotation."
-CRX = partial(_OneControlledGate, target_gate=RX)
-CRX.__doc__ = "Controlled X rotation."
-CRZ = partial(_OneControlledGate, target_gate=RZ)
-CRZ.__doc__ = "Controlled Z rotation."
-CY = partial(_OneControlledGate, target_gate=Y)
-CY.__doc__ = "Controlled Y gate."
-CX = partial(_OneControlledGate, target_gate=X)
-CX.__doc__ = "Controlled X gate."
-CT = partial(_OneControlledGate, target_gate=T)
-CT.__doc__ = "Controlled T gate."
-CS = partial(_OneControlledGate, target_gate=S)
-CS.__doc__ = "Controlled S gate."
+class CRX(_ControlledParamTwoQubitGate):
+    r"""
+    Controlled X rotation.
+
+    Examples
+    --------
+    >>> from qutip_qip.operations import CRX
+    """
+
+    latex_str = r"{\rm CRX}"
+    _target_gate_class = RX
+
+
+class CRY(_ControlledParamTwoQubitGate):
+    r"""
+    Controlled Y rotation.
+
+    Examples
+    --------
+    >>> from qutip_qip.operations import CRY
+    """
+
+    latex_str = r"{\rm CRY}"
+    _target_gate_class = RY
+
+
+class CRZ(_ControlledParamTwoQubitGate):
+    r"""
+    CRZ gate.
+
+    .. math::
+
+        \begin{pmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & 1 & 0 & 0 \\
+        0 & 0 & e^{-i\frac{\theta}{2}} & 0 \\
+        0 & 0 & 0 & e^{i\frac{\theta}{2}} \\
+        \end{pmatrix}
+
+    Examples
+    --------
+    >>> from qutip_qip.operations import CRZ
+    >>> CRZ(0, 1, np.pi).get_compact_qobj().tidyup() # doctest: +NORMALIZE_WHITESPACE
+    Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
+    Qobj data =
+    [[1.+0.j 0.+0.j 0.+0.j 0.+0.j]
+     [0.+0.j 1.+0.j 0.+0.j 0.+0.j]
+     [0.+0.j 0.+0.j 0.-1.j 0.+0.j]
+     [0.+0.j 0.+0.j 0.+0.j 0.+1.j]]
+    """
+
+    latex_str = r"{\rm CRZ}"
+    _target_gate_class = RZ
+
+
+class CQASMU(_ControlledParamTwoQubitGate):
+    r"""
+    Controlled QASMU rotation.
+
+    Examples
+    --------
+    >>> from qutip_qip.operations import CQASMU
+    """
+
+    latex_str = r"{\rm CQASMU}"
+    _target_gate_class = QASMU
+
 
 ########################### Special Gates #########################
 
 
-class GLOBALPHASE(Gate):
+class GLOBALPHASE(ParametrizedGate):
     """
     GLOBALPHASE gate.
 
@@ -845,9 +982,24 @@ class GLOBALPHASE(Gate):
     >>> from qutip_qip.operations import GLOBALPHASE
     """
 
-    def __init__(self, arg_value: float, arg_label: str = None, **kwargs):
-        super().__init__(arg_value=arg_value, arg_label=arg_label, **kwargs)
-        self.latex_str = r"{\rm GLOBALPHASE}"
+    latex_str = r"{\rm GLOBALPHASE}"
+
+    def __init__(
+        self,
+        arg_value: float,
+        arg_label: str = None,
+        classical_controls=None,
+        classical_control_value=None,
+        style=None,
+    ):
+        super().__init__(
+            targets=None,
+            arg_value=arg_value,
+            arg_label=arg_label,
+            classical_controls=classical_controls,
+            classical_control_value=classical_control_value,
+            style=style,
+        )
 
     def get_compact_qobj(self):
         raise NotImplementedError(
@@ -864,24 +1016,7 @@ class GLOBALPHASE(Gate):
         )
 
 
-class IDLE(Gate):
-    """
-    IDLE gate.
-
-    Examples
-    --------
-    >>> from qutip_qip.operations import IDLE
-    """
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.latex_str = r"{\rm IDLE}"
-
-    def get_compact_qobj(self):
-        return qeye(2)
-
-
-class TOFFOLI(Gate):
+class TOFFOLI(ControlledGate):
     """
     TOFFOLI gate.
 
@@ -901,11 +1036,11 @@ class TOFFOLI(Gate):
      [0. 0. 0. 0. 0. 0. 1. 0.]]
     """
 
-    def __init__(self, targets, **kwargs):
-        super().__init__(targets=targets, **kwargs)
-        self.latex_str = r"{\rm TOFFOLI}"
+    latex_str = r"{\rm TOFFOLI}"
+    _target_gate_class = X
 
-    def get_compact_qobj(self):
+    @staticmethod
+    def get_compact_qobj():
         return Qobj(
             [
                 [1, 0, 0, 0, 0, 0, 0, 0],
@@ -921,7 +1056,7 @@ class TOFFOLI(Gate):
         )
 
 
-class FREDKIN(Gate):
+class FREDKIN(ControlledGate):
     """
     FREDKIN gate.
 
@@ -941,11 +1076,11 @@ class FREDKIN(Gate):
      [0. 0. 0. 0. 0. 0. 0. 1.]]
     """
 
-    def __init__(self, targets, **kwargs):
-        super().__init__(targets=targets, **kwargs)
-        self.latex_str = r"{\rm FREDKIN}"
+    latex_str = r"{\rm FREDKIN}"
+    _target_gate_class = SWAP
 
-    def get_compact_qobj(self):
+    @staticmethod
+    def get_compact_qobj():
         return Qobj(
             [
                 [1, 0, 0, 0, 0, 0, 0, 0],

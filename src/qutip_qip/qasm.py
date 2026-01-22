@@ -10,12 +10,7 @@ import numpy as np
 from math import pi  # Don't remove
 
 from .circuit import QubitCircuit
-from .operations import (
-    controlled_gate,
-    qasmu_gate,
-    rz,
-    snot,
-)
+from .operations import CustomGate
 
 
 __all__ = ["read_qasm", "save_qasm", "print_qasm", "circuit_to_qasm_str"]
@@ -31,35 +26,6 @@ class QasmGate:
         self.gate_args = gate_args
         self.gate_regs = gate_regs
         self.gates_inside = []
-
-
-def _get_qiskit_gates():
-    """
-    Create and return a dictionary containing a few commonly used qiskit gates
-    that are not predefined in qutip-qip.
-
-    Returns a dictionary mapping gate names to QuTiP gates.
-    """
-
-    def u2(args):
-        return qasmu_gate([np.pi / 2, args[0], args[1]])
-
-    def id():
-        return qasmu_gate([0, 0, 0])
-
-    def sdg():
-        return rz(-1 * np.pi / 2)
-
-    def tdg():
-        return rz(-1 * np.pi / 4)
-
-    def cu3(args):
-        return controlled_gate(qasmu_gate(args))
-
-    def ch():
-        return controlled_gate(snot())
-
-    return {"ch": ch, "tdg": tdg, "id": id, "u2": u2, "sdg": sdg, "cu3": cu3}
 
 
 def _tokenize_line(command):
@@ -417,7 +383,6 @@ class QasmProcessor:
             com_args = [eval(arg) for arg in com_args]
 
             if name in self.predefined_gates:
-                qc_temp.user_gates = _get_qiskit_gates()
                 com_regs = [int(reg) for reg in com_regs]
                 self._add_predefined_gates(qc_temp, name, com_regs, com_args)
             else:
@@ -594,10 +559,34 @@ class QasmProcessor:
                 classical_control_value=classical_control_value,
             )
         elif name == "u2":
+            u2_args = [np.pi / 2, args[0], args[1]]
             qc.add_gate(
-                "u2",
+                "QASMU",
                 targets=regs[0],
-                arg_value=args,
+                arg_value=u2_args,
+                classical_controls=classical_controls,
+                classical_control_value=classical_control_value,
+            )
+        elif name == "id":
+            qc.add_gate(
+                "IDLE",
+                targets=regs[0],
+                classical_controls=classical_controls,
+                classical_control_value=classical_control_value,
+            )
+        elif name == "sdg":
+            qc.add_gate(
+                "RZ",
+                targets=regs[0],
+                arg_value=-np.pi / 2,
+                classical_controls=classical_controls,
+                classical_control_value=classical_control_value,
+            )
+        elif name == "tdg":
+            qc.add_gate(
+                "RZ",
+                targets=regs[0],
+                arg_value=-np.pi / 4,
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
             )
@@ -627,7 +616,7 @@ class QasmProcessor:
             )
         elif name == "ch":
             qc.add_gate(
-                "ch",
+                "CH",
                 targets=regs,
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
@@ -660,8 +649,9 @@ class QasmProcessor:
             )
         elif name == "cu3":
             qc.add_gate(
-                "cu3",
-                targets=[regs[0], regs[1]],
+                "CQASMU",
+                controls=regs[0],
+                targets=[regs[1]],
                 arg_value=args,
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
@@ -679,7 +669,7 @@ class QasmProcessor:
                 args = None
             qc.add_gate(
                 gate_name_map_1q[name],
-                targets=regs[0],
+                targets=int(regs[0]),
                 arg_value=args,
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
@@ -748,7 +738,6 @@ class QasmProcessor:
         self,
         qc,
         command,
-        custom_gates,
         classical_controls=None,
         classical_control_value=None,
     ):
@@ -783,19 +772,14 @@ class QasmProcessor:
             gate_name = "{}".format(command[0])
 
         # creates custom-gate (if required) using gate defn and provided args
-        if (
-            command[0] not in self.predefined_gates
-            and command[0] not in custom_gates
-        ):
+        custom_gate_unitary = None
+        if command[0] not in self.predefined_gates:
             n = len(reg_set[0])
             qc_temp = QubitCircuit(n)
             self._custom_gate(
                 qc_temp, [command[0], args, [str(i) for i in range(n)]]
             )
-            unitary_mat = qc_temp.compute_unitary()
-            custom_gates[gate_name] = unitary_mat
-
-        qc.user_gates = custom_gates
+            custom_gate_unitary = qc_temp.compute_unitary()
 
         # adds gate to the QubitCircuit
         for regs in reg_set:
@@ -813,12 +797,17 @@ class QasmProcessor:
             else:
                 if not isinstance(regs, list):
                     regs = [regs]
-                qc.add_gate(
-                    gate_name,
-                    targets=regs,
-                    classical_controls=classical_controls,
-                    classical_control_value=classical_control_value,
-                )
+
+                if custom_gate_unitary is not None:
+                    # Instantiate the wrapper gate
+                    gate_obj = CustomGate(
+                        targets=regs,
+                        U=custom_gate_unitary,
+                        name=gate_name,
+                        classical_controls=classical_controls,
+                        classical_control_value=classical_control_value,
+                    )
+                    qc.add_gate(gate_obj)
 
     def _final_pass(self, qc):
         """
@@ -826,14 +815,10 @@ class QasmProcessor:
         by QASM.
         """
 
-        custom_gates = {}
-        if self.mode != "external_only":
-            custom_gates = _get_qiskit_gates()
-
         for command in self.commands:
             if command[0] in self.gate_names:
                 # adds gates to the QubitCircuit
-                self._gate_add(qc, command, custom_gates)
+                self._gate_add(qc, command)
             elif command[0] == "measure":
                 # adds measurement to the QubitCircuit
                 reg_set = self._regs_processor(command[1:], "measure")
@@ -855,7 +840,6 @@ class QasmProcessor:
                 self._gate_add(
                     qc,
                     command[4:],
-                    custom_gates,
                     cbit_inds,
                     classical_control_value,
                 )
@@ -935,7 +919,6 @@ def read_qasm(qasm_input, mode="default", version="2.0", strmode=False):
     qc = QubitCircuit(qasm_obj.num_qubits, num_cbits=qasm_obj.num_cbits)
 
     qasm_obj._final_pass(qc)
-
     return qc
 
 
@@ -995,7 +978,7 @@ class QasmOutput:
         self.lines = []
         self.gate_name_map = deepcopy(_GATE_NAME_TO_QASM_NAME)
 
-    def _qasm_str(self, q_name, q_controls, q_targets, q_args):
+    def _qasm_str(self, q_name, q_targets, q_controls=None, q_args=None):
         """
         Returns QASM string for gate definition or gate application given
         name, registers, arguments.
@@ -1043,7 +1026,10 @@ class QasmOutput:
         self.output(
             "gate {} {{".format(
                 self._qasm_str(
-                    curr_gate.name.lower(), q_controls, q_targets, arg_name
+                    q_name=curr_gate.name.lower(),
+                    q_targets=q_targets,
+                    q_controls=q_controls,
+                    q_args=arg_name,
                 )[:-1]
             )
         )
@@ -1055,10 +1041,10 @@ class QasmOutput:
                     gate.controls = [reg_map[i] for i in gate.controls]
                 self.output(
                     self._qasm_str(
-                        self.gate_name_map[gate.name],
-                        gate.controls,
-                        gate.targets,
-                        gate.arg_value,
+                        q_name=self.gate_name_map[gate.name],
+                        q_targets=gate.targets,
+                        q_controls=gate.controls,
+                        q_args=gate.arg_value,
                     )
                 )
             elif gate.name in forbidden_gates:

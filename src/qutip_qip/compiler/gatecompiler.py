@@ -5,6 +5,7 @@ from scipy import signal
 from qutip_qip.compiler import Instruction
 from qutip_qip.compiler import Scheduler
 from qutip_qip.circuit import QubitCircuit
+from qutip_qip.operations import ParametrizedGate
 
 
 class GateCompiler(object):
@@ -87,7 +88,9 @@ class GateCompiler(object):
         """
         Compiler for the GLOBALPHASE gate
         """
-        idle_time = gate.arg_value
+        idle_time = None
+        if isinstance(gate, ParametrizedGate):
+            idle_time = gate.arg_value
         return [Instruction(gate, idle_time, [])]
 
     def compile(self, circuit, schedule_mode=None, args=None):

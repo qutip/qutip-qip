@@ -1,54 +1,9 @@
 import numpy as np
-from qutip_qip.operations import Gate, ControlledGate
+from qutip_qip.operations import CustomGate, ControlledGate
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.algorithms import qft_gate_sequence
 
 __all__ = ["qpe"]
-
-
-class CustomGate(Gate):
-    """
-    Custom gate that wraps an arbitrary quantum operator.
-    """
-
-    def __init__(self, targets, U, **kwargs):
-        super().__init__(targets=targets, **kwargs)
-        self.targets = targets if isinstance(targets, list) else [targets]
-        self.U = U
-        self.kwargs = kwargs
-        self.latex_str = r"U"
-
-    def get_compact_qobj(self):
-        return self.U
-
-
-def create_controlled_unitary(controls, targets, U, control_value=1):
-    """
-    Create a controlled unitary gate.
-
-    Parameters
-    ----------
-    controls : list
-        Control qubits
-    targets : list
-        Target qubits
-    U : Qobj
-        Unitary operator to apply on target qubits
-    control_value : int, optional
-        Control value (default: 1)
-
-    Returns
-    -------
-    ControlledGate
-        The controlled unitary gate
-    """
-    return ControlledGate(
-        controls=controls,
-        targets=targets,
-        control_value=control_value,
-        target_gate=CustomGate,
-        U=U,
-    )
 
 
 def qpe(U, num_counting_qubits, target_qubits=None, to_cnot=False):
@@ -108,8 +63,14 @@ def qpe(U, num_counting_qubits, target_qubits=None, to_cnot=False):
         U_power = U if power == 1 else U**power
 
         # Add controlled-U^power gate
-        controlled_u = create_controlled_unitary(
-            controls=[i], targets=target_qubits, U=U_power
+        controlled_u = ControlledGate(
+            target_gate=CustomGate(
+                name="U^power gate",
+                targets=target_qubits,
+                U=U_power,
+            ),
+            controls=[i],
+            targets=target_qubits,
         )
         qc.add_gate(controlled_u)
 

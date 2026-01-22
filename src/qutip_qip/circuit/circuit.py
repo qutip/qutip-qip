@@ -2,7 +2,6 @@
 Quantum circuit representation and simulation.
 """
 
-import inspect
 from collections.abc import Iterable
 
 import numpy as np
@@ -11,6 +10,9 @@ from copy import deepcopy
 from ._decompose import _resolve_to_universal, _resolve_2q_basis
 from qutip_qip.operations import (
     Gate,
+    ControlledGate,
+    ParametrizedGate,
+    ControlledParamGate,
     GLOBALPHASE,
     SWAP,
     RX,
@@ -21,7 +23,7 @@ from qutip_qip.operations import (
     GATE_CLASS_MAP,
 )
 from qutip_qip.circuit import CircuitSimulator
-from qutip import Qobj, qeye
+from qutip import qeye
 
 
 try:
@@ -45,8 +47,6 @@ class QubitCircuit:
     ----------
     N : int
         Number of qubits in the system.
-    user_gates : dict
-        Define a dictionary of the custom gates. See examples for detail.
     input_states : list
         A list of string such as `0`,'+', "A", "Y". Only used for latex.
     dims : list
@@ -55,16 +55,6 @@ class QubitCircuit:
         will be the default option.
     num_cbits : int
         Number of classical bits in the system.
-
-    Examples
-    --------
-    >>> from qutip_qip.circuit import QubitCircuit
-    >>> def user_gate():
-    ...     mat = np.array([[1.,   0],
-    ...                     [0., 1.j]])
-    ...     return Qobj(mat, dims=[[2], [2]])
-    >>> qubit_circuit = QubitCircuit(2, user_gates={"T":user_gate})
-    >>> qubit_circuit.add_gate("T", targets=[0])
     """
 
     def __init__(
@@ -73,9 +63,9 @@ class QubitCircuit:
         input_states=None,
         output_states=None,
         reverse_states=True,
-        user_gates=None,
         dims=None,
         num_cbits=0,
+        user_gates=None,
     ):
         # number of qubits in the register
         self.N = N
@@ -94,16 +84,11 @@ class QubitCircuit:
         else:
             self.output_states = [None for i in range(N + num_cbits)]
 
-        if user_gates is None:
-            self.user_gates = {}
-        else:
-            if isinstance(user_gates, dict):
-                self.user_gates = user_gates
-            else:
-                raise ValueError(
-                    "`user_gate` takes a python dictionary of the form"
-                    "{{str: gate_function}}, not {}".format(user_gates)
-                )
+        if user_gates is not None:
+            raise ValueError(
+                "`user_gates` has been removed from qutip-qip from version 0.5.0"
+                "To define custom gates refer to this example in documentation <link>"
+            )
 
     def __repr__(self) -> str:
         return ""
@@ -232,21 +217,64 @@ class QubitCircuit:
             (i.e. all classical controls are 1).
         """
         if not isinstance(gate, Gate):
-            if gate in GATE_CLASS_MAP:
+            if isinstance(gate, type) and issubclass(gate, Gate):
+                gate_class = gate
+            elif gate in GATE_CLASS_MAP:
                 gate_class = GATE_CLASS_MAP[gate]
             else:
-                gate_class = Gate
-            gate = gate_class(
-                name=gate,
-                targets=targets,
-                controls=controls,
-                arg_value=arg_value,
-                arg_label=arg_label,
-                classical_controls=classical_controls,
-                control_value=control_value,
-                classical_control_value=classical_control_value,
-                style=style,
-            )
+                raise ValueError(
+                    "Can only pass standard gate name as strings"
+                    "or Gate class or its object instantiation"
+                )
+
+            if issubclass(gate_class, ControlledParamGate):
+                gate = gate_class(
+                    targets=targets,
+                    controls=controls,
+                    control_value=control_value,
+                    arg_value=arg_value,
+                    arg_label=arg_label,
+                    classical_controls=classical_controls,
+                    classical_control_value=classical_control_value,
+                    style=style,
+                )
+
+            elif gate_class == GLOBALPHASE:
+                gate = gate_class(
+                    arg_value=arg_value,
+                    arg_label=arg_label,
+                    classical_controls=classical_controls,
+                    classical_control_value=classical_control_value,
+                    style=style,
+                )
+
+            elif issubclass(gate_class, ParametrizedGate):
+                gate = gate_class(
+                    targets=targets,
+                    arg_value=arg_value,
+                    arg_label=arg_label,
+                    classical_controls=classical_controls,
+                    classical_control_value=classical_control_value,
+                    style=style,
+                )
+
+            elif issubclass(gate_class, ControlledGate):
+                gate = gate_class(
+                    targets=targets,
+                    controls=controls,
+                    control_value=control_value,
+                    classical_controls=classical_controls,
+                    classical_control_value=classical_control_value,
+                    style=style,
+                )
+
+            else:
+                gate = gate_class(
+                    targets=targets,
+                    classical_controls=classical_controls,
+                    classical_control_value=classical_control_value,
+                    style=style,
+                )
 
         if index is None:
             self.gates.append(gate)
@@ -310,10 +338,9 @@ class QubitCircuit:
         for q in qubits:
             self.add_gate(name, targets=q, **kwargs)
 
-    def add_circuit(self, qc, start=0, overwrite_user_gates=False):
+    def add_circuit(self, qc, start=0):
         """
         Adds a block of a qubit circuit to the main circuit.
-        Globalphase gates are not added.
 
         Parameters
         ----------
@@ -325,28 +352,26 @@ class QubitCircuit:
         if self.N - start < qc.N:
             raise NotImplementedError("Targets exceed number of qubits.")
 
-        # Inherit the user gates
-        for user_gate in qc.user_gates:
-            if user_gate in self.user_gates and not overwrite_user_gates:
-                continue
-            self.user_gates[user_gate] = qc.user_gates[user_gate]
-
         for circuit_op in qc.gates:
             if isinstance(circuit_op, Gate):
                 if circuit_op.targets is not None:
                     tar = [target + start for target in circuit_op.targets]
                 else:
                     tar = None
-                if circuit_op.controls is not None:
+                if isinstance(circuit_op, ControlledGate):
                     ctrl = [control + start for control in circuit_op.controls]
                 else:
                     ctrl = None
+
+                arg = None
+                if isinstance(circuit_op, ParametrizedGate):
+                    circuit_op.arg_value
 
                 self.add_gate(
                     circuit_op.name,
                     targets=tar,
                     controls=ctrl,
-                    arg_value=circuit_op.arg_value,
+                    arg_value=arg,
                 )
             elif isinstance(circuit_op, Measurement):
                 self.add_measurement(
@@ -615,70 +640,64 @@ class QubitCircuit:
             half_pi = np.pi / 2
             for gate in temp_resolved:
                 if gate.name == "RX" and "RX" not in basis_1q:
-                    qc_temp.gates.append(
-                        RY(
-                            targets=gate.targets,
-                            arg_value=-half_pi,
-                            arg_label=r"-\pi/2",
-                        )
-                    )
-                    qc_temp.gates.append(
-                        RZ(
-                            gate.targets,
-                            gate.arg_value,
-                            gate.arg_label,
-                        )
-                    )
-                    qc_temp.gates.append(
-                        RY(
-                            gate.targets,
-                            arg_value=half_pi,
-                            arg_label=r"\pi/2",
-                        )
+                    qc_temp.gates.extend(
+                        [
+                            RY(
+                                targets=gate.targets,
+                                arg_value=-half_pi,
+                                arg_label=r"-\pi/2",
+                            ),
+                            RZ(
+                                gate.targets,
+                                gate.arg_value,
+                                gate.arg_label,
+                            ),
+                            RY(
+                                gate.targets,
+                                arg_value=half_pi,
+                                arg_label=r"\pi/2",
+                            ),
+                        ]
                     )
                 elif gate.name == "RY" and "RY" not in basis_1q:
-                    qc_temp.gates.append(
-                        RZ(
-                            targets=gate.targets,
-                            arg_value=-half_pi,
-                            arg_label=r"-\pi/2",
-                        )
-                    )
-                    qc_temp.gates.append(
-                        RX(
-                            targets=gate.targets,
-                            arg_value=gate.arg_value,
-                            arg_label=gate.arg_label,
-                        )
-                    )
-                    qc_temp.gates.append(
-                        RZ(
-                            targets=gate.targets,
-                            arg_value=half_pi,
-                            arg_label=r"\pi/2",
-                        )
+                    qc_temp.gates.extend(
+                        [
+                            RZ(
+                                targets=gate.targets,
+                                arg_value=-half_pi,
+                                arg_label=r"-\pi/2",
+                            ),
+                            RX(
+                                targets=gate.targets,
+                                arg_value=gate.arg_value,
+                                arg_label=gate.arg_label,
+                            ),
+                            RZ(
+                                targets=gate.targets,
+                                arg_value=half_pi,
+                                arg_label=r"\pi/2",
+                            ),
+                        ]
                     )
                 elif gate.name == "RZ" and "RZ" not in basis_1q:
-                    qc_temp.gates.append(
-                        RX(
-                            targets=gate.targets,
-                            arg_value=-half_pi,
-                            arg_label=r"-\pi/2",
-                        )
-                    )
-                    qc_temp.gates.append(
-                        RY(
-                            targets=gate.targets,
-                            arg_value=gate.arg_value,
-                            arg_label=gate.arg_label,
-                        )
-                    )
-                    qc_temp.gates.append(
-                        RX(
-                            targets=gate.targets,
-                            arg_value=half_pi,
-                            arg_label=r"\pi/2",
-                        )
+                    qc_temp.gates.extend(
+                        [
+                            RX(
+                                targets=gate.targets,
+                                arg_value=-half_pi,
+                                arg_label=r"-\pi/2",
+                            ),
+                            RY(
+                                targets=gate.targets,
+                                arg_value=gate.arg_value,
+                                arg_label=gate.arg_label,
+                            ),
+                            RX(
+                                targets=gate.targets,
+                                arg_value=half_pi,
+                                arg_label=r"\pi/2",
+                            ),
+                        ]
                     )
                 else:
                     qc_temp.gates.append(gate)
@@ -852,7 +871,7 @@ class QubitCircuit:
             if gate.name == "GLOBALPHASE":
                 qobj = gate.get_qobj(self.N)
             else:
-                qobj = self._get_gate_unitary(gate)
+                qobj = gate.get_compact_qobj()
                 if expand:
                     all_targets = gate.get_all_qubits()
                     qobj = expand_operator(
@@ -860,33 +879,6 @@ class QubitCircuit:
                     )
             U_list.append(qobj)
         return U_list
-
-    def _get_gate_unitary(self, gate):
-        if gate.name in self.user_gates:
-            if gate.controls is not None:
-                raise ValueError(
-                    "A user defined gate {} takes only  "
-                    "`targets` variable.".format(gate.name)
-                )
-            func_or_oper = self.user_gates[gate.name]
-            if inspect.isfunction(func_or_oper):
-                func = func_or_oper
-                para_num = len(inspect.getfullargspec(func)[0])
-                if para_num == 0:
-                    qobj = func()
-                elif para_num == 1:
-                    qobj = func(gate.arg_value)
-                else:
-                    raise ValueError(
-                        "gate function takes at most one parameters."
-                    )
-            elif isinstance(func_or_oper, Qobj):
-                qobj = func_or_oper
-            else:
-                raise ValueError("gate is neither function nor operator")
-        else:
-            qobj = gate.get_compact_qobj()
-        return qobj
 
     def compute_unitary(self):
         """Evaluates the matrix of all the gates in a quantum circuit.

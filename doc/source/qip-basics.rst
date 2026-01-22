@@ -208,14 +208,11 @@ gate function returning a :class:`qutip.Qobj` and save it in the attribute ``use
            return Qobj(mat, dims=[[2], [2]])
 
       qc = QubitCircuit(2)
-      qc.user_gates = {"CTRLRX": user_gate1,
-                       "S"     : user_gate2}
-
       # qubit 0 controls qubit 1
-      qc.add_gate("CTRLRX", targets=[0,1], arg_value=np.pi/2)
+      qc.add_gate("CRX", controls=[0], targets=[1], arg_value=np.pi/2)
 
       # qubit 1 controls qubit 0
-      qc.add_gate("CTRLRX", targets=[1,0], arg_value=np.pi/2)
+      qc.add_gate("CRX", controls=[1], targets=[0], arg_value=np.pi/2)
 
       # we also add a gate using a predefined Gate object
       g_T = Gate("S", targets=[1])
