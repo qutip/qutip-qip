@@ -550,12 +550,17 @@ class QubitCircuit:
                 temp_resolved.add_gate("GLOBALPHASE", arg_value=np.pi / 2)
 
                 if gate.name == "X":
-                    gate = RX(targets=gate.targets, arg_value=np.pi)
+                    temp_resolved.add_gate(
+                        "RX", targets=gate.targets, arg_value=np.pi
+                    )
                 elif gate.name == "Y":
-                    gate = RY(targets=gate.targets, arg_value=np.pi)
+                    temp_resolved.add_gate(
+                        "RY", targets=gate.targets, arg_value=np.pi
+                    )
                 else:
-                    gate = RZ(targets=gate.targets, arg_value=np.pi)
-                temp_resolved.add_gate(gate)
+                    temp_resolved.add_gate(
+                        "RZ", targets=gate.targets, arg_value=np.pi
+                    )
 
             else:
                 try:
