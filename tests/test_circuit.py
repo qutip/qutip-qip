@@ -139,7 +139,7 @@ class TestQubitCircuit:
         qc.add_gate("SWAP", targets=[1, 4])
         qc.add_gate("TOFFOLI", controls=[0, 1], targets=[2])
         qc.add_gate("SNOT", targets=[3])
-        qc.add_gate("SWAP", targets=[1, 4], index=[3])
+        qc.add_gate("SWAP", targets=[1, 4])
         qc.add_gate("RY", targets=4, arg_value=1.570796)
         qc.add_gate("RY", targets=5, arg_value=1.570796)
         qc.add_gate("RX", targets=[3], arg_value=-1.570796)
@@ -154,8 +154,8 @@ class TestQubitCircuit:
         assert qc.gates[1].targets == [1,4]
 
         # Test specified position gate addition
-        assert qc.gates[3].name == "SWAP"
-        assert qc.gates[3].targets == [1,4]
+        assert qc.gates[3].name == "SNOT"
+        assert qc.gates[3].targets == [3]
 
         # Test adding 1 qubit gate on [start, end] qubits
         assert qc.gates[5].name == "RY"
@@ -184,48 +184,23 @@ class TestQubitCircuit:
         class DUMMY2(DUMMY1):
             pass
 
-        inds = [1, 3, 4, 6]
-        qc.add_gate(DUMMY1, index=inds)
+        qc.add_gate(DUMMY1)
+        qc.add_gate(DUMMY2)
 
         # Test adding gates at multiple (sorted) indices at once.
         # NOTE: Every insertion shifts the indices in the original list of
         #       gates by an additional position to the right.
         expected_gate_names = [
-            "CNOT",  # 0
-            "DUMMY1",  # 1
-            "SWAP",  # 2
-            "TOFFOLI",  # 3
-            "DUMMY1",  # 4
-            "SWAP",  # 5
-            "DUMMY1",  # 6
-            "SNOT",  # 7
-            "RY",  # 8
-            "DUMMY1",  # 9
-            "RY",  # 10
-            "RX",  # 11
-        ]
-        actual_gate_names = [gate.name for gate in qc.gates]
-        assert actual_gate_names == expected_gate_names
-
-        inds = [11, 0]
-        qc.add_gate(DUMMY2, index=inds)
-
-        # Test adding gates at multiple (unsorted) indices at once.
-        expected_gate_names = [
-            "DUMMY2",  # 0
-            "CNOT",  # 1
-            "DUMMY1",  # 2
-            "SWAP",  # 3
-            "TOFFOLI",  # 4
-            "DUMMY1",  # 5
-            "SWAP",  # 6
-            "DUMMY1",  # 7
-            "SNOT",  # 8
-            "RY",  # 9
-            "DUMMY1",  # 10
-            "RY",  # 11
-            "DUMMY2",  # 12
-            "RX",  # 13
+            "CNOT",
+            "SWAP",
+            "TOFFOLI",
+            "SNOT",
+            "SWAP",
+            "RY",
+            "RY", 
+            "RX", 
+            "DUMMY1",
+            "DUMMY2",
         ]
         actual_gate_names = [gate.name for gate in qc.gates]
         assert actual_gate_names == expected_gate_names
@@ -240,7 +215,7 @@ class TestQubitCircuit:
         qc.add_gate("SWAP", targets=[1, 4])
         qc.add_gate("TOFFOLI", controls=[0, 1], targets=[2])
         qc.add_gate("SNOT", targets=[3])
-        qc.add_gate("SWAP", targets=[1, 4], index=[3])
+        qc.add_gate("SWAP", targets=[1, 4])
         qc.add_measurement("M0", targets=[0], classical_store=[1])
         qc.add_gate("RY", targets=4, arg_value=1.570796)
         qc.add_gate("RY", targets=5, arg_value=1.570796)

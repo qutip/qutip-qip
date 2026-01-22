@@ -11,9 +11,6 @@ from qutip_qip.operations import (
     ParametrizedGate,
     ControlledParamGate,
     GLOBALPHASE,
-    RX,
-    RY,
-    RZ,
     Measurement,
     expand_operator,
     GATE_CLASS_MAP,
@@ -67,6 +64,7 @@ class QubitCircuit:
         self.N = N
         self.reverse_states = reverse_states
         self.gates = []
+        self.instructions = []
         self.dims = dims if dims is not None else [2] * N
         self.num_cbits = num_cbits
 
@@ -176,11 +174,11 @@ class QubitCircuit:
         controls=None,
         arg_value=None,
         arg_label=None,
-        index=None,
         classical_controls=None,
         control_value=None,
         classical_control_value=None,
         style=None,
+        index=None,
     ):
         """
         Adds a gate with specified parameters to the circuit.
@@ -214,6 +212,9 @@ class QubitCircuit:
         """
         if type(targets) is int:
             targets = [targets]
+
+        if index is not None:
+            raise ValueError("argument index is no longer supported")
 
         if not isinstance(gate, Gate):
             if isinstance(gate, type) and issubclass(gate, Gate):
@@ -275,17 +276,10 @@ class QubitCircuit:
                     style=style,
                 )
 
-        if index is None:
-            if (targets is not None):
-                gate.targets = targets
-            self.gates.append(gate)
+        if (targets is not None):
+            gate.targets = targets
+        self.gates.append(gate)
 
-        else:
-            # NOTE: Every insertion shifts the indices in the original list of
-            #       gates by an additional position to the right.
-            shifted_inds = np.sort(index) + np.arange(len(index))
-            for position in shifted_inds:
-                self.gates.insert(position, gate)
 
     def add_circuit(self, qc, start=0):
         """
