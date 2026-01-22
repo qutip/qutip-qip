@@ -69,17 +69,14 @@ def _ZYZ_rotation(input_gate):
         arg_label=r"{:0.2f} \times \pi".format(global_phase_angle / np.pi),
     )
     Rz_beta = RZ(
-        targets=[0],
         arg_value=beta,
         arg_label=r"{:0.2f} \times \pi".format(beta / np.pi),
     )
     Ry_theta = RY(
-        targets=[0],
         arg_value=theta,
         arg_label=r"{:0.2f} \times \pi".format(theta / np.pi),
     )
     Rz_alpha = RZ(
-        targets=[0],
         arg_value=alpha,
         arg_label=r"{:0.2f} \times \pi".format(alpha / np.pi),
     )
@@ -107,17 +104,14 @@ def _ZXZ_rotation(input_gate):
         arg_label=r"{:0.2f} \times \pi".format(global_phase_angle / np.pi),
     )
     Rz_alpha = RZ(
-        targets=[0],
         arg_value=alpha,
         arg_label=r"{:0.2f} \times \pi".format(alpha / np.pi),
     )
     Rx_theta = RX(
-        targets=[0],
         arg_value=theta,
         arg_label=r"{:0.2f} \times \pi".format(theta / np.pi),
     )
     Rz_beta = RZ(
-        targets=[0],
         arg_value=beta,
         arg_label=r"{:0.2f} \times \pi".format(beta / np.pi),
     )
@@ -139,28 +133,23 @@ def _ZYZ_pauli_X(input_gate):
         arg_label=r"{:0.2f} \times \pi".format(global_phase_angle / np.pi),
     )
     Rz_A = RZ(
-        targets=[0],
         arg_value=alpha,
         arg_label=r"{:0.2f} \times \pi".format(alpha / np.pi),
     )
     Ry_A = RY(
-        targets=[0],
         arg_value=theta / 2,
         arg_label=r"{:0.2f} \times \pi".format(theta / np.pi),
     )
-    Pauli_X = X(targets=[0])
+    Pauli_X = X
     Ry_B = RY(
-        targets=[0],
         arg_value=-theta / 2,
         arg_label=r"{:0.2f} \times \pi".format(-theta / np.pi),
     )
     Rz_B = RZ(
-        targets=[0],
         arg_value=-(alpha + beta) / 2,
         arg_label=r"{:0.2f} \times \pi".format(-(alpha + beta) / (2 * np.pi)),
     )
     Rz_C = RZ(
-        targets=[0],
         arg_value=(-alpha + beta) / 2,
         arg_label=r"{:0.2f} \times \pi".format((-alpha + beta) / (2 * np.pi)),
     )

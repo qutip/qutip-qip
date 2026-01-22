@@ -745,11 +745,11 @@ class TestQubitCircuit:
     H_zyz_gates = _ZYZ_rotation(H)
     H_zyz_quantum_circuit = QubitCircuit(1)
     for g in H_zyz_gates:
-        H_zyz_quantum_circuit.add_gate(g)
+        H_zyz_quantum_circuit.add_gate(g, targets=[0])
     sigmax_zyz_gates = _ZYZ_rotation(sigmax())
     sigmax_zyz_quantum_circuit = QubitCircuit(1)
     for g in sigmax_zyz_gates:
-        sigmax_zyz_quantum_circuit.add_gate(g)
+        sigmax_zyz_quantum_circuit.add_gate(g, targets=[0])
 
     @pytest.mark.parametrize(
         "valid_input, correct_result",
@@ -807,7 +807,7 @@ class TestQubitCircuit:
         Test if the transpiler correctly inherit the properties of a circuit.
         """
         qc = QubitCircuit(3, reverse_states=True)
-        qc.add_gate("CNOT", targets=2, controls=0)
+        qc.add_gate("CNOT", targets=[2], controls=[0])
         qc2 = to_chain_structure(qc)
 
         assert qc2.reverse_states is True

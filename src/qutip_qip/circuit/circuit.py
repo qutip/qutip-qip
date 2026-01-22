@@ -212,6 +212,9 @@ class QubitCircuit:
             2 ** len(classical_controls) - 1
             (i.e. all classical controls are 1).
         """
+        if type(targets) is int:
+            targets = [targets]
+
         if not isinstance(gate, Gate):
             if isinstance(gate, type) and issubclass(gate, Gate):
                 gate_class = gate
@@ -273,6 +276,8 @@ class QubitCircuit:
                 )
 
         if index is None:
+            if (targets is not None):
+                gate.targets = targets
             self.gates.append(gate)
 
         else:

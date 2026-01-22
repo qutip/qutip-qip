@@ -128,7 +128,7 @@ class SCQubitsCompiler(GateCompiler):
             maximum=self.params[param_label][targets[0]],
             area=gate.arg_value / 2.0 / np.pi,
         )
-        f = 2 * np.pi * self.params["wq"][targets[0]]
+        f = 2 * np.pi * self.params["wq"][targets[0]]  # FIXME unused variable
         if args["DRAG"]:
             pulse_info = self._drag_pulse(op_label, coeff, tlist, targets[0])
         elif op_label == "sx":

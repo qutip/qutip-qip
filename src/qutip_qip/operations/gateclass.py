@@ -315,9 +315,9 @@ class ControlledGate(Gate):
 class ParametrizedGate(Gate):
     def __init__(
         self,
-        targets,
         arg_value: float,
         arg_label: str = None,
+        targets = None,
         classical_controls=None,
         classical_control_value=None,
         style=None,
@@ -371,10 +371,10 @@ class ControlledParamGate(ParametrizedGate, ControlledGate):
     def __init__(
         self,
         controls,
-        targets,
         arg_value,
-        target_gate=None,
         arg_label=None,
+        targets=None,
+        target_gate=None,
         control_value=1,
         classical_controls=None,
         classical_control_value=None,
