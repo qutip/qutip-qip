@@ -232,32 +232,39 @@ class CircuitSimulator:
                 matched[i] = cbits[cbit_index] == control_value
             return all(matched)
 
-        op = self._qc.gates[self._op_index]
-        self._op_index += 1
+        print("I", self._qc.instructions[self._op_index])
+        op = self._qc.instructions[self._op_index][0]
 
         current_state = self._state
         if isinstance(op, Measurement):
             state = self._apply_measurement(op, current_state)
+
         elif isinstance(op, Gate):
-            if op.classical_controls is not None:
+            qubits = self._qc.instructions[self._op_index][1]
+            classical_controls = self._qc.instructions[self._op_index][2]
+            classical_control_value = self._qc.instructions[self._op_index][3]
+        
+            if classical_controls is not None:
                 apply_gate = _check_classical_control_value(
-                    op.classical_controls,
-                    op.classical_control_value,
+                    classical_controls,
+                    classical_control_value,
                     self.cbits
                 )
             else:
                 apply_gate = True
 
             if not apply_gate:
+                self._op_index += 1
                 return
             if self.mode == "state_vector_simulator":
-                state = self._evolve_state_einsum(op, current_state)
+                state = self._evolve_state_einsum(op, qubits, current_state)
             else:
-                state = self._evolve_state(op, current_state)
+                state = self._evolve_state(op, qubits, current_state)
 
         self._state = state
+        self._op_index += 1
 
-    def _evolve_state(self, operation, state):
+    def _evolve_state(self, operation, targets_indices, state):
         """
         Applies unitary to state.
 
@@ -277,7 +284,7 @@ class CircuitSimulator:
             U = expand_operator(
                 U,
                 dims=self.dims,
-                targets=operation.get_all_qubits(),
+                targets=targets_indices,
             )
         if self.mode == "state_vector_simulator":
             state = U * state
@@ -289,13 +296,12 @@ class CircuitSimulator:
             )
         return state
 
-    def _evolve_state_einsum(self, gate, state):
+    def _evolve_state_einsum(self, gate, targets_indices, state):
         if gate.name == "GLOBALPHASE":
             # This is just a complex number.
             return np.exp(1.0j * gate.arg_value) * state
 
         # Prepare the state tensor.
-        targets_indices = gate.get_all_qubits()
         if isinstance(state, Qobj):
             # If it is a Qobj, transform it to the array representation.
             state = state.full()

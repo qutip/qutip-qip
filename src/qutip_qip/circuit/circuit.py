@@ -125,7 +125,7 @@ class QubitCircuit:
                 self.output_states[i] = state
 
     def add_measurement(
-        self, measurement, targets=None, index=None, classical_store=None
+        self, measurement, targets=None, classical_store=None
     ):
         """
         Adds a measurement with specified parameters to the circuit.
@@ -151,21 +151,12 @@ class QubitCircuit:
         else:
             name = measurement
 
-        if index is None:
-            self.gates.append(
-                Measurement(
-                    name, targets=targets, classical_store=classical_store
-                )
-            )
+        meas = Measurement(
+            name, targets=targets, classical_store=classical_store
+        )
+        self.gates.append(meas)
+        self.instructions.append((meas, targets))
 
-        else:
-            for position in index:
-                self.gates.insert(
-                    position,
-                    Measurement(
-                        name, targets=targets, classical_store=classical_store
-                    ),
-                )
 
     def add_gate(
         self,
@@ -284,13 +275,14 @@ class QubitCircuit:
         self.gates.append(gate)
 
         qubits = []
+
         if controls is not None:
             qubits.extend(controls)
         if targets is not None:
             qubits.extend(targets)
 
         self.instructions.append(
-            (gate, qubits, classical_controls, classical_control_value, style)
+            (gate, qubits, gate.classical_controls, gate.classical_control_value, style)
         )
 
     def add_circuit(self, qc, start=0):
@@ -512,17 +504,9 @@ class QubitCircuit:
             Return :class:`.QubitCircuit` of resolved gates
             for the qubit circuit in the desired basis.
         """
-        qc_temp = QubitCircuit(
-            self.N,
-            reverse_states=self.reverse_states,
-            num_cbits=self.num_cbits,
-        )
-
-        basis_1q_valid = ["RX", "RY", "RZ", "IDLE"]
-        basis_2q_valid = ["CNOT", "CSIGN", "ISWAP", "SQRTSWAP", "SQRTISWAP"]
 
         num_measurements = len(
-            list(filter(lambda x: isinstance(x, Measurement), self.gates))
+            list(filter(lambda x: isinstance(x, Measurement), self.instructions))
         )
         if num_measurements > 0:
             raise NotImplementedError(
@@ -530,16 +514,18 @@ class QubitCircuit:
                 measurements are added to the circuit"
             )
 
+        basis_1q_valid = ["RX", "RY", "RZ", "IDLE"]
+        basis_2q_valid = ["CNOT", "CSIGN", "ISWAP", "SQRTSWAP", "SQRTISWAP"]
         basis_1q = []
         basis_2q = []
+
         if isinstance(basis, list):
             for gate in basis:
                 if gate in basis_2q_valid:
                     basis_2q.append(gate)
                 elif gate in basis_1q_valid:
                     basis_1q.append(gate)
-                else:
-                    pass
+
             if len(basis_1q) == 1:
                 raise ValueError("Not sufficient single-qubit gates in basis")
             if len(basis_1q) == 0:
@@ -555,7 +541,13 @@ class QubitCircuit:
                 )
 
         match = False
+        qc_temp = QubitCircuit(
+            self.N,
+            reverse_states=self.reverse_states,
+            num_cbits=self.num_cbits,
+        )
         temp_resolved = QubitCircuit(self.N)
+
         for gate in self.gates:
             if gate.name in ("X", "Y", "Z"):
                 temp_resolved.add_gate("GLOBALPHASE", arg_value=np.pi / 2)
@@ -590,13 +582,17 @@ class QubitCircuit:
                 break
         if not match:
             qc_temp.gates = temp_resolved.gates
+            qc_temp.instructions = temp_resolved.instructions
 
         if len(basis_1q) == 2:
             temp_resolved.gates = qc_temp.gates
+            temp_resolved.instructions = qc_temp.instructions
             qc_temp.gates = []
+            qc_temp.instructions = []
             half_pi = np.pi / 2
 
-            for gate in temp_resolved.gates:
+            for op in temp_resolved.instructions:
+                gate = op[0]
                 if gate.name == "RX" and "RX" not in basis_1q:
                     qc_temp.add_gate(
                         "RY",

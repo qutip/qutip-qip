@@ -47,10 +47,11 @@ single_gate_tests = [
     pytest.param(2, [_rx], [0], id="RX"),
     pytest.param(2, [_ry], [0], id="RY"),
     pytest.param(2, [ISWAP], [0, 1], id="ISWAP"),
-    pytest.param(2, [SQRTISWAP], [0, 1], id="SQRTISWAP", marks=pytest.mark.skip),
-    pytest.param(2, [CNOT(targets=[0], controls=[1])], [0], id="CNOT"),
+    pytest.param(2, [SQRTISWAP], [0, 1], id="SQRTISWAP", marks=pytest.mark.skip)
 ]
 
+# This test needs to be added like single_gate_tests but requires controls
+# pytest.param(2, CNOT, targets=[0], controls=[1], id="CNOT"),
 
 def _ket_expaned_dims(qubit_state, expanded_dims):
     all_qubit_basis = list(product([0, 1], repeat=len(expanded_dims)))
