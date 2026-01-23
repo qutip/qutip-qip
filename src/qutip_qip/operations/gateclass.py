@@ -112,6 +112,10 @@ class Gate(ABC):
     def qubit_count(self) -> int:
         pass
 
+    @property
+    def num_ctrl_qubits(self) -> int:
+        return 0
+
     def get_all_qubits(self):
         """
         Return a list of all qubits that the gate operator
@@ -248,6 +252,7 @@ class ControlledGate(Gate):
         self.controls = (
             [controls] if not isinstance(controls, list) else controls
         )
+        self._num_ctrl_qubits = len(self.controls)
         if control_value is None:
             self.control_value = 2 ** len(self.controls) - 1
         else:
@@ -258,7 +263,11 @@ class ControlledGate(Gate):
 
     @property
     def qubit_count(self) -> int:
-        return self.target_gate.qubit_count + len(self.controls)
+        return self.target_gate.qubit_count + self.num_ctrl_qubits
+
+    @property
+    def num_ctrl_qubits(self) -> int:
+        return self._num_ctrl_qubits
 
     def get_all_qubits(self):
         return self.controls + self.targets

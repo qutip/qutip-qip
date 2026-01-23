@@ -210,11 +210,14 @@ class QubitCircuit:
             2 ** len(classical_controls) - 1
             (i.e. all classical controls are 1).
         """
+        if index is not None:
+            raise ValueError("argument index is no longer supported")
+        
         if type(targets) is int:
             targets = [targets]
 
-        if index is not None:
-            raise ValueError("argument index is no longer supported")
+        if type(controls) is int:
+            controls = [controls]
 
         if not isinstance(gate, Gate):
             if isinstance(gate, type) and issubclass(gate, Gate):
@@ -276,10 +279,19 @@ class QubitCircuit:
                     style=style,
                 )
 
-        if (targets is not None):
+        if targets is not None:
             gate.targets = targets
         self.gates.append(gate)
 
+        qubits = []
+        if controls is not None:
+            qubits.extend(controls)
+        if targets is not None:
+            qubits.extend(targets)
+
+        self.instructions.append(
+            (gate, qubits, classical_controls, classical_control_value, style)
+        )
 
     def add_circuit(self, qc, start=0):
         """
