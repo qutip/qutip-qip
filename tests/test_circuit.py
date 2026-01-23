@@ -408,10 +408,10 @@ class TestQubitCircuit:
 
         qc_rev = qc.reverse_circuit()
 
-        assert qc_rev.gates[0].name == "SNOT"
-        assert qc_rev.gates[1].name == "M1"
-        assert qc_rev.gates[2].name == "CNOT"
-        assert qc_rev.gates[3].name == "RX"
+        assert qc_rev.instructions[0][0].name == "SNOT"
+        assert qc_rev.instructions[1][0].name == "M1"
+        assert qc_rev.instructions[2][0].name == "CNOT"
+        assert qc_rev.instructions[3][0].name == "RX"
 
         assert qc_rev.input_states[0] == "0"
         assert qc_rev.input_states[2] is None

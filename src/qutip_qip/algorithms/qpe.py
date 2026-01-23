@@ -76,10 +76,10 @@ def qpe(U, num_counting_qubits, target_qubits=None, to_cnot=False):
         )
 
     # Add inverse QFT on counting qubits
-    inverse_qft_circuit = qft_gate_sequence(
-        num_counting_qubits, swapping=True, to_cnot=to_cnot
-    ).reverse_circuit()
-    for gate in inverse_qft_circuit.gates:
-        qc.add_gate(gate)
+    qc.add_circuit(
+        qft_gate_sequence(
+            num_counting_qubits, swapping=True, to_cnot=to_cnot
+        ).reverse_circuit()
+    )
 
     return qc
