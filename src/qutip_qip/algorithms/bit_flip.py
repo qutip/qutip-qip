@@ -35,7 +35,7 @@ class BitFlipCode:
         """
         return self._n_syndrome
 
-    def encode_circuit(self, data_qubits):
+    def encode_circuit(self, qc, data_qubits):
         """
         Constructs the encoding circuit for the bit-flip code. The first qubit is the control,
         and CNOT gates are applied from it to the other data qubits to encode logical states
@@ -55,11 +55,9 @@ class BitFlipCode:
             raise ValueError(
                 f"Expected {self.n_data} data qubits, got {len(data_qubits)}."
             )
-        qc = QubitCircuit(max(data_qubits) + 1)
         control = data_qubits[0]
         for target in data_qubits[1:]:
             qc.add_gate("CNOT", controls=control, targets=target)
-        return qc
 
     def syndrome_and_correction_circuit(self, data_qubits, syndrome_qubits):
         """

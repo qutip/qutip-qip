@@ -20,7 +20,8 @@ def syndrome_qubits():
 
 
 def test_encode_circuit_structure(code, data_qubits):
-    qc = code.encode_circuit(data_qubits)
+    qc = QubitCircuit(max(data_qubits))
+    code.encode_circuit(qc, data_qubits)
     gate_names = [g.name for g in qc.gates]
     assert gate_names.count("SNOT") == 3
     assert gate_names.count("CNOT") == 2
