@@ -95,7 +95,7 @@ def _patched_build_err_msg(
             if isinstance(a, np.ndarray):
                 # precision argument is only needed if the objects are ndarrays
                 r_func = functools.partial(
-                    np.core.array_repr, precision=precision
+                    np.array_repr, precision=precision
                 )
             else:
                 r_func = repr
