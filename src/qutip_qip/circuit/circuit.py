@@ -355,41 +355,44 @@ class QubitCircuit:
             If first or all gates/measurements are to be removed.
         """
         if index is not None:
-            if index > len(self.gates):
+            if index > len(self.instructions):
                 raise ValueError(
                     "Index exceeds number \
-                                    of gates + measurements."
+                    of gates + measurements."
                 )
-            if end is not None and end <= len(self.gates):
+
+            if end is not None and end <= len(self.instructions):
                 for i in range(end - index):
-                    self.gates.pop(index + i)
+                    self.instructions.pop(index + i)
+
             elif end is not None and end > self.N:
                 raise ValueError(
                     "End target exceeds number \
-                                    of gates + measurements."
+                    of gates + measurements."
                 )
+
             else:
-                self.gates.pop(index)
+                self.instructions.pop(index)
 
         elif name is not None and remove == "first":
-            for circuit_op in self.gates:
-                if name == circuit_op.name:
-                    self.gates.remove(circuit_op)
+            for circuit_op in self.instructions:
+                if name == circuit_op[0].name:
+                    self.instructions.remove(circuit_op)
                     break
 
         elif name is not None and remove == "last":
-            for i in reversed(range(len(self.gates))):
-                if name == self.gates[i].name:
-                    self.gates.pop(i)
+            for i in reversed(range(len(self.instructions))):
+                if name == self.instructions[i][0].name:
+                    self.instructions.pop(i)
                     break
 
         elif name is not None and remove == "all":
-            for i in reversed(range(len(self.gates))):
-                if name == self.gates[i].name:
-                    self.gates.pop(i)
+            for i in reversed(range(len(self.instructions))):
+                if name == self.instructions[i][0].name:
+                    self.instructions.pop(i)
 
         else:
-            self.gates.pop()
+            self.instructions.pop()
 
     def reverse_circuit(self):
         """
@@ -550,6 +553,8 @@ class QubitCircuit:
         temp_resolved = QubitCircuit(self.N)
 
         for gate in self.gates:
+        # for op in self.instructions:
+            # gate = op[0]
             if gate.name in ("X", "Y", "Z"):
                 temp_resolved.add_gate("GLOBALPHASE", arg_value=np.pi / 2)
 
@@ -825,11 +830,12 @@ class QubitCircuit:
             qasm_out.output("creg c[{}];".format(self.num_cbits))
         qasm_out.output(n=1)
 
-        for op in self.gates:
-            if (not isinstance(op, Measurement)) and not qasm_out.is_defined(
-                op.name
-            ):
-                qasm_out._qasm_defns(op)
+        for op in self.instructions:
 
-        for op in self.gates:
-            op._to_qasm(qasm_out)
+            if (not isinstance(op[0], Measurement)) and not qasm_out.is_defined(
+                op[0].name
+            ):
+                qasm_out._qasm_defns(op[0])
+
+        for op in self.instructions:
+            op[0]._to_qasm(qasm_out)
