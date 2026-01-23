@@ -1,6 +1,7 @@
 from itertools import product
 from functools import reduce
 from operator import mul
+from copy import deepcopy
 
 import warnings
 import numpy as np
@@ -8,22 +9,35 @@ import pytest
 
 import qutip
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import Gate, gate_sequence_product, RZX
+from qutip_qip.operations import (
+    X,
+    Y,
+    Z,
+    SNOT,
+    RX,
+    RY,
+    RZ,
+    ISWAP,
+    SQRTISWAP,
+    CNOT,
+    RZX,
+    gate_sequence_product,
+)
 from qutip_qip.device import (DispersiveCavityQED, LinearSpinChain,
                                 CircularSpinChain, SCQubits)
 
 _tol = 3.e-2
 
-_x = Gate("X", targets=[0])
-_z = Gate("Z", targets=[0])
-_y = Gate("Y", targets=[0])
-_snot = Gate("SNOT", targets=[0])
-_rz = Gate("RZ", targets=[0], arg_value=np.pi/2, arg_label=r"\pi/2")
-_rx = Gate("RX", targets=[0], arg_value=np.pi/2, arg_label=r"\pi/2")
-_ry = Gate("RY", targets=[0], arg_value=np.pi/2, arg_label=r"\pi/2")
-_iswap = Gate("ISWAP", targets=[0, 1])
-_cnot = Gate("CNOT", targets=[0], controls=[1])
-_sqrt_iswap = Gate("SQRTISWAP", targets=[0, 1])
+_x = X(targets=[0])
+_y = Y(targets=[0])
+_z = Z(targets=[0])
+_snot = SNOT(targets=[0])
+_rx = RX(targets=[0], arg_value=np.pi/2, arg_label=r"\pi/2")
+_ry = RY(targets=[0], arg_value=np.pi/2, arg_label=r"\pi/2")
+_rz = RZ(targets=[0], arg_value=np.pi/2, arg_label=r"\pi/2")
+_iswap = ISWAP(targets=[0, 1])
+_cnot = CNOT(targets=[0], controls=[1])
+_sqrt_iswap = SQRTISWAP(targets=[0, 1])
 
 
 single_gate_tests = [
@@ -157,7 +171,6 @@ circuit.add_gate("CNOT", targets=[0], controls=[2])
 circuit.add_gate("Z", targets=[1])
 circuit.add_gate("X", targets=[1])
 
-from copy import deepcopy
 circuit2 = deepcopy(circuit)
 circuit2.add_gate("SQRTISWAP", targets=[0, 2])  # supported only by SpinChain
 
