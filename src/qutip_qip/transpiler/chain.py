@@ -37,10 +37,18 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
     ]
     N = qc.N
 
-    for gate in qc.gates:
+    for op in qc.instructions:
+        gate = op[0]
+        if gate.num_ctrl_qubits > 0:
+            controls = op[1][: gate.num_ctrl_qubits]
+            targets = op[1][gate.num_ctrl_qubits: ]
+        else:
+            controls = None
+            targets = op[1]
+
         if gate.name == "CNOT" or gate.name == "CSIGN":
-            start = min([gate.targets[0], gate.controls[0]])
-            end = max([gate.targets[0], gate.controls[0]])
+            start = min([targets[0], controls[0]])
+            end = max([targets[0], controls[0]])
 
             if setup == "linear" or (
                 setup == "circular" and (end - start) <= N // 2
@@ -196,8 +204,8 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
                 )
 
         elif gate.name in swap_gates:
-            start = min([gate.targets[0], gate.targets[1]])
-            end = max([gate.targets[0], gate.targets[1]])
+            start = min(targets)
+            end = max(targets)
 
             if setup == "linear" or (
                 setup == "circular" and (end - start) <= N // 2
@@ -252,29 +260,32 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
                     i += 1
 
                 j = 0
-                for gate in temp.gates:
+                for op in temp.instructions:
+                    gate = op[0]
+                    targets = op[1]
+
                     if j < N - end - 2:
                         qc_t.add_gate(
                             gate.name,
                             targets=[
-                                end + gate.targets[0],
-                                end + gate.targets[1]
+                                end + targets[0],
+                                end + targets[1]
                             ],
                         )
                     elif j == N - end - 2:
                         qc_t.add_gate(
                             gate.name,
                             targets=[
-                                end + gate.targets[0],
-                                (end + gate.targets[1]) % N,
+                                end + targets[0],
+                                (end + targets[1]) % N,
                             ],
                         )
                     else:
                         qc_t.add_gate(
                             gate.name,
                             targets=[
-                                (end + gate.targets[0]) % N,
-                                (end + gate.targets[1]) % N,
+                                (end + targets[0]) % N,
+                                (end + targets[1]) % N,
                             ],
                         )
                     j = j + 1
@@ -282,6 +293,13 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
         else:
             # This gate can be general quantum operations
             # such as measurement or global phase.
-            qc_t.add_gate(gate)  # TODO add arguments
+            qc_t.add_gate(
+                gate,
+                targets=targets,
+                controls=controls,
+                classical_controls=op[2],
+                classical_control_value=op[3],
+                style=op[4]
+            )
 
     return qc_t

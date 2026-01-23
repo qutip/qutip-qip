@@ -189,9 +189,6 @@ class QubitCircuit:
             calling the ``get_compact_qobj`` methods of a gate.
         arg_label: string, optional
             Label for gate representation.
-        index : list, optional
-            Positions to add the gate. Each index in the supplied list refers
-            to a position in the original list of gates.
         classical_controls : int or list of int, optional
             Indices of classical bits to control the gate.
         control_value : int, optional
@@ -200,6 +197,8 @@ class QubitCircuit:
             If not specified, then the value is interpreted to be
             2 ** len(classical_controls) - 1
             (i.e. all classical controls are 1).
+        style:
+            For circuit draw
         """
         if index is not None:
             raise ValueError("argument index is no longer supported")
@@ -275,7 +274,6 @@ class QubitCircuit:
         self.gates.append(gate)
 
         qubits = []
-
         if controls is not None:
             qubits.extend(controls)
         if targets is not None:
