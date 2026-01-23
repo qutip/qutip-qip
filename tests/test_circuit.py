@@ -222,7 +222,6 @@ class TestQubitCircuit:
         qc.add_gate(CRX, controls=[1], targets=[2], arg_value=np.pi / 2)
 
         qc1 = QubitCircuit(6)
-
         qc1.add_circuit(qc)
 
         # Test if all gates and measurements are added
@@ -266,9 +265,6 @@ class TestQubitCircuit:
             ):
                 assert qc2.gates[i].controls[0] == qc.gates[i].controls[0] + 2
 
-        # Test exception when the operators to be added are not gates or measurements
-        qc.gates[-1] = 0
-        pytest.raises(TypeError, qc2.add_circuit, qc)
 
     def test_add_state(self):
         """

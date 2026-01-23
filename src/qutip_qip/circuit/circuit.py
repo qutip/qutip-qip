@@ -299,39 +299,45 @@ class QubitCircuit:
         if self.N - start < qc.N:
             raise NotImplementedError("Targets exceed number of qubits.")
 
-        for circuit_op in qc.gates:
-            if isinstance(circuit_op, Gate):
-                if circuit_op.targets is not None:
-                    tar = [target + start for target in circuit_op.targets]
+        for circuit_op in qc.instructions:
+            if isinstance(circuit_op[0], Gate):
+                gate = circuit_op[0]
+                num_ctrl_qubits = gate.num_ctrl_qubits
+
+                if circuit_op[1] is not None:
+                    targets = [t + start for t in circuit_op[1]]
                 else:
-                    tar = None
-                if isinstance(circuit_op, ControlledGate):
-                    ctrl = [control + start for control in circuit_op.controls]
+                    targets = None
+
+                if num_ctrl_qubits > 0:
+                    controls = targets[: num_ctrl_qubits]
+                    targets = targets[num_ctrl_qubits: ]
                 else:
-                    ctrl = None
+                    controls = None
 
                 arg = None
-                if isinstance(circuit_op, ParametrizedGate):
-                    circuit_op.arg_value
+                if isinstance(gate, ParametrizedGate):
+                    gate.arg_value
 
                 self.add_gate(
-                    circuit_op.name,
-                    targets=tar,
-                    controls=ctrl,
+                    gate.name,
+                    targets=targets,
+                    controls=controls,
                     arg_value=arg,
                 )
-            elif isinstance(circuit_op, Measurement):
+
+            elif isinstance(circuit_op[0], Measurement):
+                meas = circuit_op[0]
                 self.add_measurement(
-                    circuit_op.name,
-                    targets=[target + start for target in circuit_op.targets],
-                    classical_store=circuit_op.classical_store,
+                    meas.name,
+                    targets=[target + start for target in meas.targets],
+                    classical_store=meas.classical_store,
                 )
+
             else:
                 raise TypeError(
-                    "The circuit to be added contains unknown \
-                    operator {}".format(
-                        circuit_op
-                    )
+                    f"The circuit to be added contains unknown \
+                    operator {circuit_op[0]}"
                 )
 
     def remove_gate_or_measurement(
