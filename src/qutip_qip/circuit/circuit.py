@@ -506,7 +506,7 @@ class QubitCircuit:
         """
 
         num_measurements = len(
-            list(filter(lambda x: isinstance(x, Measurement), self.instructions))
+            list(filter(lambda x: isinstance(x[0], Measurement), self.instructions))
         )
         if num_measurements > 0:
             raise NotImplementedError(
@@ -581,7 +581,6 @@ class QubitCircuit:
                 _resolve_2q_basis(basis_unit, qc_temp, temp_resolved)
                 break
         if not match:
-            qc_temp.gates = temp_resolved.gates
             qc_temp.instructions = temp_resolved.instructions
 
         if len(basis_1q) == 2:
@@ -689,21 +688,23 @@ class QubitCircuit:
         """
         U_list = []
 
-        gates = [g for g in self.gates if not isinstance(g, Measurement)]
-        if len(gates) < len(self.gates) and not ignore_measurement:
+        gates = [
+            (op[0], op[1])
+            for op in self.instructions if not isinstance(op[0], Measurement)
+        ]
+        if len(gates) < len(self.instructions) and not ignore_measurement:
             raise TypeError(
                 "Cannot compute the propagator of a measurement operator."
                 "Please set ignore_measurement=True."
             )
-        for gate in gates:
+        for gate, targets in gates:
             if gate.name == "GLOBALPHASE":
                 qobj = gate.get_qobj(self.N)
             else:
                 qobj = gate.get_compact_qobj()
                 if expand:
-                    all_targets = gate.get_all_qubits()
                     qobj = expand_operator(
-                        qobj, dims=self.dims, targets=all_targets
+                        qobj, dims=self.dims, targets=targets
                     )
             U_list.append(qobj)
         return U_list

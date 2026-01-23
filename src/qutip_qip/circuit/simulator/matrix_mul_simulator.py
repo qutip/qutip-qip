@@ -156,7 +156,7 @@ class CircuitSimulator:
             output state and probability.
         """
         self.initialize(state, cbits, measure_results)
-        for _ in range(len(self._qc.gates)):
+        for _ in range(len(self._qc.instructions)):
             self.step()
             if self._state is None:
                 # TODO This only happens if there is predefined post-selection on the measurement results and the measurement results is exactly 0. This needs to be improved.
@@ -187,7 +187,7 @@ class CircuitSimulator:
         cbits_results = []
 
         num_measurements = len(
-            list(filter(lambda x: isinstance(x, Measurement), self._qc.gates))
+            list(filter(lambda x: isinstance(x[0], Measurement), self._qc.instructions))
         )
 
         for results in product("01", repeat=num_measurements):
@@ -232,7 +232,6 @@ class CircuitSimulator:
                 matched[i] = cbits[cbit_index] == control_value
             return all(matched)
 
-        print("I", self._qc.instructions[self._op_index])
         op = self._qc.instructions[self._op_index][0]
 
         current_state = self._state
