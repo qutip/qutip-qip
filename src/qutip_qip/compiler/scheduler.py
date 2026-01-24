@@ -476,7 +476,9 @@ class Scheduler:
         if self.allow_permutation:
             commutation_rules = self.commutation_rules
         else:
-            commutation_rules = lambda *args, **kwargs: False  # TODO check this line
+            commutation_rules = (
+                lambda *args, **kwargs: False
+            )  # TODO check this line
         instructions_graph.generate_dependency_graph(
             commuting=commutation_rules
         )

@@ -1,5 +1,6 @@
 from qutip import Qobj
 
+
 class CircuitResult:
     """
     Result of a quantum circuit simulation.

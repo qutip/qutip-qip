@@ -124,9 +124,7 @@ class QubitCircuit:
             for i in targets:
                 self.output_states[i] = state
 
-    def add_measurement(
-        self, measurement, targets=None, classical_store=None
-    ):
+    def add_measurement(self, measurement, targets=None, classical_store=None):
         """
         Adds a measurement with specified parameters to the circuit.
 
@@ -156,7 +154,6 @@ class QubitCircuit:
         )
         self.gates.append(meas)
         self.instructions.append((meas, targets))
-
 
     def add_gate(
         self,
@@ -202,7 +199,7 @@ class QubitCircuit:
         """
         if index is not None:
             raise ValueError("argument index is no longer supported")
-        
+
         if type(targets) is int:
             targets = [targets]
 
@@ -280,7 +277,13 @@ class QubitCircuit:
             qubits.extend(targets)
 
         self.instructions.append(
-            (gate, qubits, gate.classical_controls, gate.classical_control_value, style)
+            (
+                gate,
+                qubits,
+                gate.classical_controls,
+                gate.classical_control_value,
+                style,
+            )
         )
 
     def add_circuit(self, qc, start=0):
@@ -308,8 +311,8 @@ class QubitCircuit:
                     targets = None
 
                 if num_ctrl_qubits > 0:
-                    controls = targets[: num_ctrl_qubits]
-                    targets = targets[num_ctrl_qubits: ]
+                    controls = targets[:num_ctrl_qubits]
+                    targets = targets[num_ctrl_qubits:]
                 else:
                     controls = None
 
@@ -458,9 +461,7 @@ class QubitCircuit:
         )
         return sim.run(state, cbits, measure_results).get_final_states(0)
 
-    def run_statistics(
-        self, state, cbits=None, precompute_unitary=False
-    ):
+    def run_statistics(self, state, cbits=None, precompute_unitary=False):
         """
         Calculate all the possible outputs of a circuit
         (varied by measurement gates).
@@ -510,7 +511,11 @@ class QubitCircuit:
         """
 
         num_measurements = len(
-            list(filter(lambda x: isinstance(x[0], Measurement), self.instructions))
+            list(
+                filter(
+                    lambda x: isinstance(x[0], Measurement), self.instructions
+                )
+            )
         )
         if num_measurements > 0:
             raise NotImplementedError(
@@ -572,10 +577,14 @@ class QubitCircuit:
 
             else:
                 try:
-                    _resolve_to_universal(gate, temp_resolved, basis_1q, basis_2q)
+                    _resolve_to_universal(
+                        gate, temp_resolved, basis_1q, basis_2q
+                    )
                 except KeyError:
                     if gate.name in basis:
-                        temp_resolved.add_gate(gate, targets=gate.targets)  # TODO CHECK
+                        temp_resolved.add_gate(
+                            gate, targets=gate.targets
+                        )  # TODO CHECK
                     else:
                         exception = f"Gate {gate.name} cannot be resolved."
                         raise NotImplementedError(exception)
@@ -693,7 +702,8 @@ class QubitCircuit:
 
         gates = [
             (op[0], op[1])
-            for op in self.instructions if not isinstance(op[0], Measurement)
+            for op in self.instructions
+            if not isinstance(op[0], Measurement)
         ]
         if len(gates) < len(self.instructions) and not ignore_measurement:
             raise TypeError(
@@ -829,9 +839,9 @@ class QubitCircuit:
 
         for op in self.instructions:
 
-            if (not isinstance(op[0], Measurement)) and not qasm_out.is_defined(
-                op[0].name
-            ):
+            if (
+                not isinstance(op[0], Measurement)
+            ) and not qasm_out.is_defined(op[0].name):
                 qasm_out._qasm_defns(op[0])
 
         for op in self.instructions:

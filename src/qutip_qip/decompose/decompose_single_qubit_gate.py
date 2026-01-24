@@ -15,6 +15,7 @@ from qutip_qip.operations import (
 
 class MethodError(Exception):
     """When invalid method is chosen, this error is raised."""
+
     pass
 
 

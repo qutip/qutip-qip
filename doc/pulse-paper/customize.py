@@ -218,7 +218,7 @@ def single_crosstalk_simulation(num_gates):
         num_qubits, {"pulse_amplitude": 0.02, "duration": 25}
     )
     myprocessor.add_noise(ClassicalCrossTalk(1.0))
-    
+
     # Define a randome circuit.
     gates_set = [
         Gate(name="ROT", arg_value=0),

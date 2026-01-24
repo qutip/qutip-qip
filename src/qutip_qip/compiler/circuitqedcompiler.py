@@ -273,7 +273,7 @@ class SCQubitsCompiler(GateCompiler):
         gate3 = RX(targets=q1, arg_value=-np.pi / 2)
         gate4 = RY(targets=q1, arg_value=-np.pi / 2)
         gate5 = RX(targets=q1, arg_value=np.pi / 2)
-        
+
         result += self.gate_compiler["RX"](gate1, args)
         result += self.gate_compiler["RZX"](gate2, args)
         result += self.gate_compiler["RX"](gate3, args)

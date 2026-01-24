@@ -1,7 +1,6 @@
 from qutip import Qobj
 
 
-
 def check_gate(gate, num_qubits):
     """Verifies input is a valid quantum gate.
 

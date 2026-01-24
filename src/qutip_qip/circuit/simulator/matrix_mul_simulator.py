@@ -187,7 +187,12 @@ class CircuitSimulator:
         cbits_results = []
 
         num_measurements = len(
-            list(filter(lambda x: isinstance(x[0], Measurement), self._qc.instructions))
+            list(
+                filter(
+                    lambda x: isinstance(x[0], Measurement),
+                    self._qc.instructions,
+                )
+            )
         )
 
         for results in product("01", repeat=num_measurements):
@@ -216,9 +221,7 @@ class CircuitSimulator:
             return [0] * (length - len(binary)) + binary
 
         def _check_classical_control_value(
-            classical_controls,
-            classical_control_value,
-            cbits
+            classical_controls, classical_control_value, cbits
         ):
             """Check if the gate should be executed, depending on the current value of classical bits."""
             matched = np.empty(len(classical_controls), dtype=bool)
@@ -242,12 +245,10 @@ class CircuitSimulator:
             qubits = self._qc.instructions[self._op_index][1]
             classical_controls = self._qc.instructions[self._op_index][2]
             classical_control_value = self._qc.instructions[self._op_index][3]
-        
+
             if classical_controls is not None:
                 apply_gate = _check_classical_control_value(
-                    classical_controls,
-                    classical_control_value,
-                    self.cbits
+                    classical_controls, classical_control_value, self.cbits
                 )
             else:
                 apply_gate = True
@@ -290,9 +291,7 @@ class CircuitSimulator:
         elif self.mode == "density_matrix_simulator":
             state = U * state * U.dag()
         else:
-            raise NotImplementedError(
-                f"mode {self.mode} is not available."
-            )
+            raise NotImplementedError(f"mode {self.mode} is not available.")
         return state
 
     def _evolve_state_einsum(self, gate, targets_indices, state):

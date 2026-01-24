@@ -141,7 +141,9 @@ class VQA:
                         U=block.get_unitary(current_params),
                     )
 
-                    circ.add_gate(gate_instance, targets=list(range(self.num_qubits)))
+                    circ.add_gate(
+                        gate_instance, targets=list(range(self.num_qubits))
+                    )
                     i += n
         return circ
 

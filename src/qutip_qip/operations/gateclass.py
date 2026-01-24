@@ -326,7 +326,7 @@ class ParametrizedGate(Gate):
         self,
         arg_value: float,
         arg_label: str = None,
-        targets = None,
+        targets=None,
         classical_controls=None,
         classical_control_value=None,
         style=None,
@@ -501,6 +501,7 @@ def controlledGateFactory(target_gate: Gate) -> ControlledGate:
 
 class SingleQubitGate(Gate):
     """Abstract one-qubit gate."""
+
     @staticmethod
     @property
     def qubit_count() -> int:
@@ -512,7 +513,7 @@ class ParametrizedSingleQubitGate(ParametrizedGate):
     @property
     def qubit_count() -> int:
         return 1
-    
+
     def _verify_parameters(self):
         if self.targets is None or len(self.targets) != 1:
             raise ValueError(

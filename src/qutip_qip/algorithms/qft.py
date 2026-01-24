@@ -123,9 +123,7 @@ def qft_gate_sequence(N=1, swapping=True, to_cnot=False):
                         arg_value=np.pi / (2 ** (i - j)),
                     )
                 else:
-                    _cphase_to_cnot(
-                        [j], [i], np.pi / (2 ** (i - j)), qc
-                    )
+                    _cphase_to_cnot([j], [i], np.pi / (2 ** (i - j)), qc)
             qc.add_gate("SNOT", targets=[i])
         if swapping:
             for i in range(N // 2):

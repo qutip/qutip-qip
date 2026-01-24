@@ -2,6 +2,7 @@ from itertools import chain
 from qutip import tensor
 from qutip_qip.operations import expand_operator
 
+
 def _flatten(lst):
     """
     Helper to flatten lists.

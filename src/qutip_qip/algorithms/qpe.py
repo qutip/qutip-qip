@@ -69,11 +69,7 @@ def qpe(U, num_counting_qubits, target_qubits=None, to_cnot=False):
                 U=U_power,
             )
         )
-        qc.add_gate(
-            controlled_u,
-            targets=target_qubits,
-            controls=[i]
-        )
+        qc.add_gate(controlled_u, targets=target_qubits, controls=[i])
 
     # Add inverse QFT on counting qubits
     qc.add_circuit(

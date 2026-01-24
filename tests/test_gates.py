@@ -460,7 +460,9 @@ def test_gates_class():
     circuit2.add_gate(S, targets=2)
     circuit2.add_gate(T, targets=1)
     circuit2.add_gate(R, targets=1, arg_value=(np.pi / 4, np.pi / 6))
-    circuit2.add_gate(QASMU, targets=0, arg_value=(np.pi / 4, np.pi / 4, np.pi / 4))
+    circuit2.add_gate(
+        QASMU, targets=0, arg_value=(np.pi / 4, np.pi / 4, np.pi / 4)
+    )
     circuit2.add_gate(CNOT, controls=0, targets=1)
     circuit2.add_gate(CPHASE, controls=0, targets=1, arg_value=np.pi / 4)
     circuit2.add_gate(SWAP, targets=[0, 1])

@@ -271,7 +271,7 @@ def test_scheduling_pulse(
             circuit.add_gate(
                 gate_cls,
                 targets=instruction.targets,
-                controls=instruction.controls
+                controls=instruction.controls,
             )
         else:
             circuit.add_gate(gate_cls, targets=instruction.targets)

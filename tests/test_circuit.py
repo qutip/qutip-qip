@@ -151,7 +151,7 @@ class TestQubitCircuit:
 
         # Test direct gate addition
         assert qc.gates[1].name == "SWAP"
-        assert qc.gates[1].targets == [1,4]
+        assert qc.gates[1].targets == [1, 4]
 
         # Test specified position gate addition
         assert qc.gates[3].name == "SNOT"
@@ -197,8 +197,8 @@ class TestQubitCircuit:
             "SNOT",
             "SWAP",
             "RY",
-            "RY", 
-            "RX", 
+            "RY",
+            "RX",
             "DUMMY1",
             "DUMMY2",
         ]
@@ -264,7 +264,6 @@ class TestQubitCircuit:
                 and qc.gates[i].controls is not None
             ):
                 assert qc2.gates[i].controls[0] == qc.gates[i].controls[0] + 2
-
 
     def test_add_state(self):
         """
