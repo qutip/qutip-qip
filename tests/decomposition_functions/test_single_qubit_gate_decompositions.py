@@ -43,7 +43,7 @@ def test_single_qubit_to_rotations(gate, method):
     gate_list = method(gate)
     circuit = QubitCircuit(1)
     for g in gate_list:
-        circuit.add_gate(g, targets=[0])  # TODO add arguments
+        circuit.add_gate(g, targets=[0])
     decomposed_gates_final_matrix = circuit.compute_unitary()
     fidelity_of_input_output = average_gate_fidelity(
         gate, decomposed_gates_final_matrix

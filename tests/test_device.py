@@ -86,7 +86,7 @@ device_lists_numeric = device_lists_analytic + [
 def test_device_against_gate_sequence(num_qubits, gates, targets, device_class, kwargs):
     circuit = QubitCircuit(num_qubits)
     for gate in gates:
-        circuit.add_gate(gate, targets=targets)  # TODO add arguments
+        circuit.add_gate(gate, targets=targets)
     U_ideal = circuit.compute_unitary()
 
     device = device_class(num_qubits)
@@ -99,7 +99,7 @@ def test_device_against_gate_sequence(num_qubits, gates, targets, device_class, 
 def test_analytical_evolution(num_qubits, gates, targets, device_class, kwargs):
     circuit = QubitCircuit(num_qubits)
     for gate in gates:
-        circuit.add_gate(gate, targets=targets)  # TODO add arguments
+        circuit.add_gate(gate, targets=targets)
     state = qutip.rand_ket(2**num_qubits)
     state.dims = [[2] * num_qubits, [1] * num_qubits]
     ideal = circuit.run(state)
@@ -132,7 +132,7 @@ def _test_numerical_evolution_helper(num_qubits, gates, targets, device_class, k
     num_qubits = 2
     circuit = QubitCircuit(num_qubits)
     for gate in gates:
-        circuit.add_gate(gate, targets=targets)  # TODO add arguments
+        circuit.add_gate(gate, targets=targets)
     device = device_class(num_qubits, **kwargs)
     device.load_circuit(circuit)
 

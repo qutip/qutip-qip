@@ -576,7 +576,7 @@ class QubitCircuit:
                     _resolve_to_universal(gate, temp_resolved, basis_1q, basis_2q)
                 except KeyError:
                     if gate.name in basis:
-                        temp_resolved.add_gate(gate)
+                        temp_resolved.add_gate(gate, targets=gate.targets)  # TODO CHECK
                     else:
                         exception = f"Gate {gate.name} cannot be resolved."
                         raise NotImplementedError(exception)
@@ -656,7 +656,7 @@ class QubitCircuit:
                         arg_label=r"\pi/2",
                     )
                 else:
-                    qc_temp.add_gate(gate)
+                    qc_temp.add_gate(gate, targets=gate.targets)  # TODO CHECK
 
         return qc_temp
 

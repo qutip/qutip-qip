@@ -18,7 +18,7 @@ __all__ = ["_resolve_to_universal", "_resolve_2q_basis"]
 
 
 def _gate_IGNORED(gate, temp_resolved):
-    temp_resolved.add_gate(gate)
+    temp_resolved.add_gate(gate, targets=gate.targets)
 
 _gate_RX = _gate_RY = _gate_RZ = _gate_CNOT = _gate_IGNORED
 _gate_basis_2q = _gate_GLOBALPHASE = _gate_IDLE = _gate_IGNORED
@@ -38,7 +38,7 @@ def _gate_SQRTNOT(gate, temp_resolved):
         GLOBALPHASE, arg_value=np.pi / 4, arg_label=r"\pi/4"
     )
     temp_resolved.add_gate(
-        RX, target=gate.targets, arg_value=np.pi / 2, arg_label=r"\pi/2"
+        RX, targets=gate.targets, arg_value=np.pi / 2, arg_label=r"\pi/2"
     )
 
 
@@ -310,7 +310,7 @@ def _basis_CSIGN(qc_temp, temp_resolved):
                 arg_label=r"\pi/2",
             )
         else:
-            qc_temp.add_gate(gate)
+            qc_temp.add_gate(gate, targets=gate.targets)  # TODO CHECK
 
 
 def _basis_ISWAP(qc_temp, temp_resolved):
@@ -386,7 +386,7 @@ def _basis_ISWAP(qc_temp, temp_resolved):
             )
             
         else:
-            qc_temp.add_gate(gate)
+            qc_temp.add_gate(gate, targets=gate.targets)  # TODO CHECK
 
 
 def _basis_SQRTSWAP(qc_temp, temp_resolved):
@@ -431,7 +431,7 @@ def _basis_SQRTSWAP(qc_temp, temp_resolved):
                 arg_label=r"-\pi/2",
             )
         else:
-            qc_temp.add_gate(gate)
+            qc_temp.add_gate(gate, targets=gate.targets)  # TODO CHECK
 
 
 def _basis_SQRTISWAP(qc_temp, temp_resolved):
@@ -487,7 +487,7 @@ def _basis_SQRTISWAP(qc_temp, temp_resolved):
                 arg_label=r"7\pi/4",
             )
         else:
-            qc_temp.add_gate(gate)
+            qc_temp.add_gate(gate, targets=gate.targets)  # TODO CHECK
 
 
 def _resolve_2q_basis(basis, qc_temp, temp_resolved):
