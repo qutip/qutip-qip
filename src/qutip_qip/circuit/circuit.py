@@ -590,9 +590,7 @@ class QubitCircuit:
             qc_temp.instructions = temp_resolved.instructions
 
         if len(basis_1q) == 2:
-            temp_resolved.gates = qc_temp.gates
             temp_resolved.instructions = qc_temp.instructions
-            qc_temp.gates = []
             qc_temp.instructions = []
             half_pi = np.pi / 2
 
