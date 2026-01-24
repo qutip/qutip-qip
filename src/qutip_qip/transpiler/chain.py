@@ -25,8 +25,8 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
     # FIXME This huge block has been here for a long time.
     # It could be moved to the new compiler section and carefully
     # splitted into smaller peaces.
-    qc_t = deepcopy(qc)
-    qc_t.gates = []
+    N = qc.N
+    qc_t = QubitCircuit(N)
     swap_gates = [
         "SWAP",
         "ISWAP",
@@ -35,7 +35,6 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
         "BERKELEY",
         "SWAPalpha",
     ]
-    N = qc.N
 
     for op in qc.instructions:
         gate = op[0]
