@@ -1,4 +1,5 @@
 import numpy as np
+from typing import List, Union, Optional
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations import Gate, Z, ControlledGate, CSIGN
 
@@ -31,7 +32,9 @@ class OracleGate(Gate):
         return self.U
 
 
-def grover_oracle(qubits, marked_states):
+def grover_oracle(
+    qubits: Union[int, List[int]], marked_states: Union[int, List[int]]
+) -> QubitCircuit:
     """
     Constructs a Phase Oracle circuit for Grover's algorithm.
 
@@ -78,7 +81,7 @@ def grover_oracle(qubits, marked_states):
         ctrl_val = 2 ** len(ctrls) - 1
 
         if len(ctrls) == 1:
-            qc.add_gate(CSIGN(controls=ctrls, targets=tgt))
+            qc.add_gate("CSIGN", controls=ctrls, targets=tgt)
         else:
             qc.add_gate(
                 ControlledGate(
@@ -97,7 +100,12 @@ def grover_oracle(qubits, marked_states):
     return qc
 
 
-def grover(oracle, qubits, num_iterations=None, num_marked_solutions=1):
+def grover(
+    oracle: QubitCircuit,
+    qubits: Union[int, List[int]],
+    num_solutions: int,
+    num_iterations: Optional[int] = None,
+) -> QubitCircuit:
     """
     Construct the Grover search algorithim's circuit
 
@@ -133,12 +141,19 @@ def grover(oracle, qubits, num_iterations=None, num_marked_solutions=1):
           - X gates
           - Hadamard gates
 
+    References
+    ----------
+    .. [1] L. K. Grover, "A fast quantum mechanical algorithm for database
+       search," Proceedings of the 28th Annual ACM Symposium on Theory of
+       Computing (1996).
+
     Examples
     --------
     Search for state |01⟩ using 2 qubits:
 
         >>> oracle = grover_oracle([0, 1], marked_states=1)
         >>> qc = grover(oracle, qubits=[0, 1])
+
     """
     if isinstance(qubits, int):
         qubits = list(range(qubits))
@@ -153,7 +168,11 @@ def grover(oracle, qubits, num_iterations=None, num_marked_solutions=1):
     # Calculate optimal Iterations if none provided:
     if num_iterations is None:
         N = 2**n_qubits
-        num_iterations = int((np.pi / 4) * np.sqrt(N / num_marked_solutions))
+        if num_solutions >= N:
+            num_iterations = 0
+        else:
+            calc = (np.pi / 4) * np.sqrt(N / num_solutions)
+            num_iterations = max(1, int(np.floor(calc)))
 
     # Grover Iterations:
     for _ in range(num_iterations):
@@ -182,7 +201,7 @@ def grover(oracle, qubits, num_iterations=None, num_marked_solutions=1):
         ctrl_val = 2 ** (len(ctrls)) - 1
 
         if len(ctrls) == 1:
-            qc.add_gate(CSIGN(controls=ctrls, targets=tgt))
+            qc.add_gate("CSIGN", controls=ctrls, targets=tgt)
         else:
             qc.add_gate(
                 ControlledGate(

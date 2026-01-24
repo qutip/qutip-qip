@@ -41,7 +41,7 @@ class TestGrover:
         target_state = 3  # |11>
 
         oracle = grover_oracle(n_qubits, target_state)
-        qc = grover(oracle, n_qubits)
+        qc = grover(oracle, n_qubits, 1)
 
         U_grover = qc.compute_unitary()
         psi0 = tensor([basis(2, 0)] * n_qubits)  # Start at |00>
@@ -65,8 +65,7 @@ class TestGrover:
         oracle = grover_oracle(n_qubits, marked)
 
         # For N=8, M=2, theta = 30 deg. One iteration rotates to 90 deg (solution).
-        # Default calculation gives 2 iterations, so we must force 1.
-        qc = grover(oracle, n_qubits, num_iterations=1)
+        qc = grover(oracle, n_qubits, len(marked))
 
         U_grover = qc.compute_unitary()
         psi0 = tensor([basis(2, 0)] * n_qubits)
@@ -92,7 +91,7 @@ class TestGrover:
         oracle = grover_oracle(search_qubits, target_local_state)
 
         # N=4, M=1. Optimal iterations = 1.
-        qc = grover(oracle, search_qubits, num_iterations=1)
+        qc = grover(oracle, search_qubits, 1)
 
         assert qc.N == 3  # max(1,2) + 1 = 3
 
@@ -114,12 +113,12 @@ class TestGrover:
 
         # Qobj Oracle (Z gate for 1 qubit marks state |1>)
         oracle_qobj = Qobj([[1, 0], [0, -1]])
-        qc_a = grover(oracle_qobj, qubits, num_iterations=1)
+        qc_a = grover(oracle_qobj, qubits, 1)
         assert len(qc_a.gates) > 0
 
         # Gate Oracle
         oracle_gate = Gate("Z", targets=[0])
-        qc_b = grover(oracle_gate, qubits, num_iterations=1)
+        qc_b = grover(oracle_gate, qubits, 1)
         assert len(qc_b.gates) > 0
 
         # Compare unitaries
