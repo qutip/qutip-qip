@@ -39,6 +39,7 @@ class Model:
         self._drift = []
         self._noise = []
 
+    # TODO make this a property
     def get_all_drift(self) -> List[Tuple[Qobj, List[int]]]:
         """
         Get all the drift Hamiltonians.
@@ -66,9 +67,8 @@ class Model:
             The control Hamiltonian in the form of ``(qobj, targets)``.
         """
         if hasattr(self, "_old_index_label_map"):
-            _old_index_label_map = self._old_index_label_map
             if isinstance(label, int):
-                label = _old_index_label_map[label]
+                label = self._old_index_label_map[label]
         return self._controls[label]
 
     def get_control_labels(self) -> List[Hashable]:

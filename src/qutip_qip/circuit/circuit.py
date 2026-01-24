@@ -554,7 +554,7 @@ class QubitCircuit:
 
         for gate in self.gates:
         # for op in self.instructions:
-            # gate = op[0]
+        #     gate = op[0]
             if gate.name in ("X", "Y", "Z"):
                 temp_resolved.add_gate("GLOBALPHASE", arg_value=np.pi / 2)
 
