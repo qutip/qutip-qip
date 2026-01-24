@@ -97,7 +97,7 @@ class SpinChainCompiler(GateCompiler):
         pulse_dict=None,
         N=None,
     ):
-        super(SpinChainCompiler, self).__init__(
+        super().__init__(
             num_qubits, params=params, pulse_dict=pulse_dict, N=N
         )
         self.gate_compiler.update(

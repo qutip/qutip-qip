@@ -72,7 +72,7 @@ class CavityQEDCompiler(GateCompiler):
     def __init__(
         self, num_qubits, params, global_phase=0.0, pulse_dict=None, N=None
     ):
-        super(CavityQEDCompiler, self).__init__(
+        super().__init__(
             num_qubits, params=params, pulse_dict=pulse_dict, N=N
         )
         self.gate_compiler.update(

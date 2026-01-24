@@ -111,7 +111,7 @@ def test_compiling_gates_different_sampling_number():
 # Test the compiler with a physical model.
 class MyCompiler(GateCompiler):  # compiler class
     def __init__(self, num_qubits, params):
-        super(MyCompiler, self).__init__(num_qubits, params=params)
+        super().__init__(num_qubits, params=params)
         # pass our compiler function as a compiler for RX (rotation around X) gate.
         self.gate_compiler["RX"] = self.rx_compiler
         self.args.update({"params": params})

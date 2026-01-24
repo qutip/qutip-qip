@@ -67,7 +67,7 @@ class SCQubits(ModelProcessor):
             zz_crosstalk=zz_crosstalk,
             **params,
         )
-        super(SCQubits, self).__init__(model=model)
+        super().__init__(model=model)
         self.native_gates = ["RX", "RY", "CNOT", "RZX"]
         self._default_compiler = SCQubitsCompiler
         self.pulse_mode = "continuous"

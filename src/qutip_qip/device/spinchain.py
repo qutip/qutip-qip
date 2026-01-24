@@ -36,7 +36,7 @@ class SpinChain(ModelProcessor):
     def __init__(
         self, num_qubits, correct_global_phase=True, model=None, **params
     ):
-        super(SpinChain, self).__init__(
+        super().__init__(
             num_qubits=num_qubits,
             correct_global_phase=correct_global_phase,
             model=model,
@@ -146,7 +146,7 @@ class LinearSpinChain(SpinChain):
         **params,
     ):
         model = SpinChainModel(num_qubits=num_qubits, setup="linear", **params)
-        super(LinearSpinChain, self).__init__(
+        super().__init__(
             num_qubits,
             correct_global_phase=correct_global_phase,
             model=model,
@@ -169,7 +169,7 @@ class LinearSpinChain(SpinChain):
         return self.coeffs[2 * self.num_qubits : 3 * self.num_qubits - 1]
 
     def load_circuit(self, qc, schedule_mode="ASAP", compiler=None):
-        return super(LinearSpinChain, self).load_circuit(
+        return super().load_circuit(
             qc, "linear", schedule_mode=schedule_mode, compiler=compiler
         )
 
@@ -236,7 +236,7 @@ class CircularSpinChain(SpinChain):
         model = SpinChainModel(
             num_qubits=num_qubits, setup="circular", **params
         )
-        super(CircularSpinChain, self).__init__(
+        super().__init__(
             num_qubits,
             correct_global_phase=correct_global_phase,
             model=model,
@@ -259,7 +259,7 @@ class CircularSpinChain(SpinChain):
         return self.coeffs[2 * self.num_qubits : 3 * self.num_qubits]
 
     def load_circuit(self, qc, schedule_mode="ASAP", compiler=None):
-        return super(CircularSpinChain, self).load_circuit(
+        return super().load_circuit(
             qc, "circular", schedule_mode=schedule_mode, compiler=compiler
         )
 

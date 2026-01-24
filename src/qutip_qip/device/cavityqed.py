@@ -82,7 +82,7 @@ class DispersiveCavityQED(ModelProcessor):
         model = CavityQEDModel(
             num_qubits=num_qubits, num_levels=num_levels, **params
         )
-        super(DispersiveCavityQED, self).__init__(
+        super().__init__(
             model=model, correct_global_phase=correct_global_phase
         )
         self.correct_global_phase = correct_global_phase
