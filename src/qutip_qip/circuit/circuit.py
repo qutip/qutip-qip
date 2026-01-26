@@ -70,7 +70,9 @@ class QubitCircuit:
 
     def __init__(
         self,
-        num_qubits,
+        num_qubits=None,
+        *,
+        N=None,
         input_states=None,
         output_states=None,
         reverse_states=True,
@@ -78,8 +80,27 @@ class QubitCircuit:
         dims=None,
         num_cbits=0,
     ):
+        # Handle backward compatibility: accept N as deprecated parameter
+        if num_qubits is None and N is not None:
+            warnings.warn(
+                "The parameter 'N' is deprecated. Use 'num_qubits' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            self._num_qubits = N
+        elif num_qubits is not None and N is not None:
+            raise ValueError(
+                "Cannot specify both 'num_qubits' and 'N'. "
+                "Please use 'num_qubits' only (N is deprecated)."
+            )
+        elif num_qubits is not None:
+            self._num_qubits = num_qubits
+        else:
+            raise ValueError(
+                "Either 'num_qubits' or 'N' (deprecated) must be specified."
+            )
+        
         # number of qubits in the register
-        self._num_qubits = num_qubits
         self.reverse_states = reverse_states
         self.gates = []
         self.dims = dims if dims is not None else [2] * self._num_qubits
