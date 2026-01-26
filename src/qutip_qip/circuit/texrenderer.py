@@ -19,7 +19,7 @@ class TeXRenderer:
     def __init__(self, qc):
 
         self.qc = qc
-        self.N = qc.num_qubits
+        self.num_qubits = qc.num_qubits
         self.num_cbits = qc.num_cbits
         self.gates = qc.gates
         self.input_states = qc.input_states
@@ -62,7 +62,7 @@ class TeXRenderer:
                 gate = op
                 col = []
                 _swap_processing = False
-                for n in range(self.N + self.num_cbits):
+                for n in range(self.num_qubits + self.num_cbits):
                     if gate.targets and n in gate.targets:
                         if len(gate.targets) > 1:
                             if gate.name == "SWAP":
@@ -118,7 +118,7 @@ class TeXRenderer:
 
                     elif (
                         gate.classical_controls
-                        and (n - self.N) in gate.classical_controls
+                        and (n - self.num_qubits) in gate.classical_controls
                     ):
                         control_tag = (-1 if self.reverse_states else 1) * (
                             gate.targets[0] - n
@@ -127,13 +127,13 @@ class TeXRenderer:
 
                     elif not gate.controls and not gate.targets:
                         # global gate
-                        if (self.reverse_states and n == self.N - 1) or (
+                        if (self.reverse_states and n == self.num_qubits - 1) or (
                             not self.reverse_states and n == 0
                         ):
                             col.append(
                                 r" \multigate{%d}{%s} "
                                 % (
-                                    self.N - 1,
+                                    self.num_qubits - 1,
                                     self._gate_label(gate),
                                 )
                             )
@@ -147,10 +147,10 @@ class TeXRenderer:
             else:
                 measurement = op
                 col = []
-                for n in range(self.N + self.num_cbits):
+                for n in range(self.num_qubits + self.num_cbits):
                     if n in measurement.targets:
                         col.append(r" \meter")
-                    elif (n - self.N) == measurement.classical_store:
+                    elif (n - self.num_qubits) == measurement.classical_store:
                         sgn = 1 if self.reverse_states else -1
                         store_tag = sgn * (n - measurement.targets[0])
                         col.append(r" \qw \cwx[%d] " % store_tag)
@@ -162,19 +162,19 @@ class TeXRenderer:
 
         input_states_quantum = [
             r"\lstick{\ket{" + x + "}}" if x is not None else ""
-            for x in self.input_states[: self.N]
+            for x in self.input_states[: self.num_qubits]
         ]
         input_states_classical = [
             r"\lstick{" + x + "}" if x is not None else ""
-            for x in self.input_states[self.N :]
+            for x in self.input_states[self.num_qubits :]
         ]
         input_states = input_states_quantum + input_states_classical
 
         code = ""
         n_iter = (
-            reversed(range(self.N + self.num_cbits))
+            reversed(range(self.num_qubits + self.num_cbits))
             if self.reverse_states
-            else range(self.N + self.num_cbits)
+            else range(self.num_qubits + self.num_cbits)
         )
         for n in n_iter:
             code += r" & %s" % input_states[n]

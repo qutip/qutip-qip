@@ -99,7 +99,7 @@ class QubitCircuit:
             raise ValueError(
                 "Either 'num_qubits' or 'N' (deprecated) must be specified."
             )
-        
+
         # number of qubits in the register
         self.reverse_states = reverse_states
         self.gates = []
