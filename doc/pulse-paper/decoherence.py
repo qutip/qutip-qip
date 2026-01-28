@@ -35,9 +35,9 @@ proc.add_control(resonant_sx, targets=0, label="sx0")
 # Define a Ramsey experiment.
 def ramsey(t, proc):
     qc = QubitCircuit(1)
-    qc.add_gate("RX", 0, arg_value=pi / 2)
-    qc.add_gate("IDLE", 0, arg_value=t)
-    qc.add_gate("RX", 0, arg_value=pi / 2)
+    qc.add_gate("RX", targets=0, arg_value=pi / 2)
+    qc.add_gate("IDLE", targets=0, arg_value=t)
+    qc.add_gate("RX", targets=0, arg_value=pi / 2)
     proc.load_circuit(qc)
     result = proc.run_state(init_state=basis(2, 0), e_ops=sigmaz())
     return result.expect[0][-1]
@@ -82,9 +82,9 @@ fig.show()
 
 
 circuit = QubitCircuit(1)
-circuit.add_gate("RX", 0, arg_value=pi / 2)
-circuit.add_gate("IDLE", 0, arg_value=15.0)
-circuit.add_gate("RX", 0, arg_value=pi / 2)
+circuit.add_gate("RX", targets=0, arg_value=pi / 2)
+circuit.add_gate("IDLE", targets=0, arg_value=15.0)
+circuit.add_gate("RX", targets=0, arg_value=pi / 2)
 proc.load_circuit(circuit)
 fig2, axis = proc.plot_pulses(
     figsize=(LINEWIDTH, LINEWIDTH * 0.15), use_control_latex=False, dpi=200

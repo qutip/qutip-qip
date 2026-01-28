@@ -121,26 +121,26 @@ class SCQubitsCompiler(GateCompiler):
         A list of :obj:`.Instruction`, including the compiled pulse
         information for this gate.
         """
-        targets = gate.targets
+        target = gate.targets[0]
         coeff, tlist = self.generate_pulse_shape(
             args["shape"],
             args["num_samples"],
-            maximum=self.params[param_label][targets[0]],
+            maximum=self.params[param_label][target],
             area=gate.arg_value / 2.0 / np.pi,
         )
-        f = 2 * np.pi * self.params["wq"][targets[0]]
+        f = 2 * np.pi * self.params["wq"][target]  # FIXME unused variable
         if args["DRAG"]:
-            pulse_info = self._drag_pulse(op_label, coeff, tlist, targets[0])
+            pulse_info = self._drag_pulse(op_label, coeff, tlist, target)
         elif op_label == "sx":
             pulse_info = [
-                ("sx" + str(targets[0]), coeff),
+                ("sx" + str(target), coeff),
                 # Add zero here just to make it easier to add the driving frequency later.
-                ("sy" + str(targets[0]), np.zeros(len(coeff))),
+                ("sy" + str(target), np.zeros(len(coeff))),
             ]
         elif op_label == "sy":
             pulse_info = [
-                ("sx" + str(targets[0]), np.zeros(len(coeff))),
-                ("sy" + str(targets[0]), coeff),
+                ("sx" + str(target), np.zeros(len(coeff))),
+                ("sy" + str(target), coeff),
             ]
         else:
             raise RuntimeError("Unknown label.")
@@ -269,15 +269,14 @@ class SCQubitsCompiler(GateCompiler):
         q2 = gate.targets[0]
 
         gate1 = RX(targets=q2, arg_value=-np.pi / 2)
-        result += self.gate_compiler[gate1.name](gate1, args)
-
         gate2 = RZX(targets=[q1, q2], arg_value=np.pi / 2)
-        result += self.rzx_compiler(gate2, args)
-
         gate3 = RX(targets=q1, arg_value=-np.pi / 2)
-        result += self.gate_compiler[gate3.name](gate3, args)
         gate4 = RY(targets=q1, arg_value=-np.pi / 2)
-        result += self.gate_compiler[gate4.name](gate4, args)
         gate5 = RX(targets=q1, arg_value=np.pi / 2)
-        result += self.gate_compiler[gate5.name](gate5, args)
+
+        result += self.gate_compiler["RX"](gate1, args)
+        result += self.gate_compiler["RZX"](gate2, args)
+        result += self.gate_compiler["RX"](gate3, args)
+        result += self.gate_compiler["RY"](gate4, args)
+        result += self.gate_compiler["RX"](gate5, args)
         return result

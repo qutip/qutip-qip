@@ -123,10 +123,7 @@ def qft_gate_sequence(N=1, swapping=True, to_cnot=False):
                         arg_value=np.pi / (2 ** (i - j)),
                     )
                 else:
-                    decomposed_gates = _cphase_to_cnot(
-                        [j], [i], np.pi / (2 ** (i - j))
-                    )
-                    qc.gates.extend(decomposed_gates)
+                    _cphase_to_cnot([j], [i], np.pi / (2 ** (i - j)), qc)
             qc.add_gate("SNOT", targets=[i])
         if swapping:
             for i in range(N // 2):
@@ -134,22 +131,16 @@ def qft_gate_sequence(N=1, swapping=True, to_cnot=False):
     return qc
 
 
-def _cphase_to_cnot(targets, controls, arg_value):
+def _cphase_to_cnot(targets, controls, arg_value, qc: QubitCircuit):
     rotation = Qobj([[1.0, 0.0], [0.0, np.exp(1.0j * arg_value)]])
     decomposed_gates = list(
         decompose_one_qubit_gate(rotation, method="ZYZ_PauliX")
     )
-    new_gates = []
-    gate = decomposed_gates[0]
-    gate.targets = targets
-    new_gates.append(gate)
-    new_gates.append(CNOT(targets=targets, controls=controls))
-    gate = decomposed_gates[4]
-    gate.targets = targets
-    new_gates.append(gate)
-    new_gates.append(CNOT(targets=targets, controls=controls))
-    new_gates.append(RZ(targets=controls, arg_value=arg_value / 2))
+    qc.add_gate(decomposed_gates[0], targets=targets)
+    qc.add_gate(CNOT, targets=targets, controls=controls)
+    qc.add_gate(decomposed_gates[4], targets=targets)
+    qc.add_gate(CNOT, targets=targets, controls=controls)
+    qc.add_gate(RZ, targets=controls, arg_value=arg_value / 2)
     gate = decomposed_gates[7]
     gate.arg_value += arg_value / 4
-    new_gates.append(gate)
-    return new_gates
+    qc.add_gate(gate, targets=targets)

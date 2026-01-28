@@ -37,13 +37,12 @@ A circuit with the various gates and registers available is demonstrated below:
   from qutip import tensor, basis
 
   qc = QubitCircuit(N=2, num_cbits=1)
-  swap_gate = SWAP(targets=[0, 1])
 
-  qc.add_gate(swap_gate)
+  qc.add_gate("SWAP", targets=[0, 1])
   qc.add_measurement("M0", targets=[1], classical_store=0) # measurement gate
   qc.add_gate("CNOT", controls=0, targets=1)
   qc.add_gate("X", targets=0, classical_controls=[0]) # classically controlled gate
-  qc.add_gate(swap_gate)
+  qc.add_gate("SWAP", targets=[0, 1])
 
   print(qc.gates)
 
@@ -215,8 +214,7 @@ gate function returning a :class:`qutip.Qobj` and save it in the attribute ``use
       qc.add_gate("CRX", controls=[1], targets=[0], arg_value=np.pi/2)
 
       # we also add a gate using a predefined Gate object
-      g_T = Gate("S", targets=[1])
-      qc.add_gate(g_T)
+      qc.add_gate("S", targets=[1])
       props = qc.propagators()
 
       print(props[0])

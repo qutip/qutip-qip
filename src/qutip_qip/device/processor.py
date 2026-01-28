@@ -7,6 +7,7 @@ from qutip import Qobj, QobjEvo, mesolve, mcsolve
 from qutip_qip.operations import globalphase
 from qutip_qip.noise import Noise, process_noise
 from qutip_qip.device import Model
+from qutip_qip.device.utils import _pulse_interpolate
 from qutip_qip.pulse import Pulse, Drift, fill_coeff
 
 
@@ -407,7 +408,7 @@ class Processor(object):
         """
         self.clear_pulses()
         iterator = self._generate_iterator_from_dict_or_list(coeffs)
-        for label, coeff in iterator:
+        for label, _ in iterator:
             label = label
             ham, targets = self.model.get_control(label)
             self.add_pulse(
@@ -1204,32 +1205,3 @@ class Processor(object):
         (Defined in subclasses)
         """
         return U
-
-
-def _pulse_interpolate(pulse, tlist):
-    """
-    A function that calls Scipy interpolation routine. Used for plotting.
-    """
-    if pulse.tlist is None and pulse.coeff is None:
-        coeff = np.zeros(len(tlist))
-        return coeff
-    if isinstance(pulse.coeff, bool):
-        if pulse.coeff:
-            coeff = np.ones(len(tlist))
-        else:
-            coeff = np.zeros(len(tlist))
-        return coeff
-    coeff = pulse.coeff
-    if len(coeff) == len(pulse.tlist) - 1:  # for discrete pulse
-        coeff = np.concatenate([coeff, [0]])
-
-    from scipy import interpolate
-
-    if pulse.spline_kind == "step_func":
-        kind = "previous"
-    else:
-        kind = "cubic"
-    inter = interpolate.interp1d(
-        pulse.tlist, coeff, kind=kind, bounds_error=False, fill_value=0.0
-    )
-    return inter(tlist)

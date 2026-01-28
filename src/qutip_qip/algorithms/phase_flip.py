@@ -36,7 +36,7 @@ class PhaseFlipCode:
         """
         return self._n_syndrome
 
-    def encode_circuit(self, data_qubits):
+    def encode_circuit(self, qc, data_qubits):
         """
         Constructs the encoding circuit for the phase-flip code.
 
@@ -55,7 +55,6 @@ class PhaseFlipCode:
         """
         if len(data_qubits) != 3:
             raise ValueError("Expected 3 data qubits.")
-        qc = QubitCircuit(max(data_qubits) + 1)
 
         # Convert to X-basis
         for q in data_qubits:
@@ -65,8 +64,6 @@ class PhaseFlipCode:
         control = data_qubits[0]
         for target in data_qubits[1:]:
             qc.add_gate("CNOT", controls=control, targets=target)
-
-        return qc
 
     def syndrome_and_correction_circuit(self, data_qubits, syndrome_qubits):
         """

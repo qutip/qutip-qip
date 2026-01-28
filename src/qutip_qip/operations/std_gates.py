@@ -22,7 +22,7 @@ class X(SingleQubitGate):
     Examples
     --------
     >>> from qutip_qip.operations import X
-    >>> X(0).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> X.get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=True
     Qobj data =
     [[0. 1.]
@@ -106,7 +106,7 @@ class RX(ParametrizedSingleQubitGate):
     Examples
     --------
     >>> from qutip_qip.operations import RX
-    >>> RX(0, 3.14159/2).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> RX(3.14159/2).get_compact_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[0.70711+0.j      0.     -0.70711j]
@@ -627,7 +627,7 @@ class RZX(ParametrizedTwoQubitGate):
     Examples
     --------
     >>> from qutip_qip.operations import RZX
-    >>> RZX([0, 1], np.pi).get_compact_qobj().tidyup() # doctest: +NORMALIZE_WHITESPACE
+    >>> RZX(np.pi).get_compact_qobj().tidyup() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[0.+0.j 0.-1.j 0.+0.j 0.+0.j]
@@ -1000,6 +1000,10 @@ class GLOBALPHASE(ParametrizedGate):
             classical_control_value=classical_control_value,
             style=style,
         )
+
+    @property
+    def qubit_count(self) -> int:
+        return 0
 
     def get_compact_qobj(self):
         raise NotImplementedError(

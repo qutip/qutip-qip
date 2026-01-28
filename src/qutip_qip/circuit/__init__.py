@@ -2,7 +2,7 @@
 
 import warnings
 
-from .circuitsimulator import CircuitResult, CircuitSimulator
+from .simulator import CircuitResult, CircuitSimulator
 from .circuit import QubitCircuit
 from qutip_qip.operations import Gate, Measurement
 

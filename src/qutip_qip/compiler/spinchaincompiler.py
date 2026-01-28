@@ -73,8 +73,8 @@ class SpinChainCompiler(GateCompiler):
     >>> from qutip_qip.compiler import SpinChainCompiler
     >>>
     >>> qc = QubitCircuit(2)
-    >>> qc.add_gate("RX", 0, arg_value=np.pi)
-    >>> qc.add_gate("RZ", 1, arg_value=np.pi)
+    >>> qc.add_gate("RX", targets=0, arg_value=np.pi)
+    >>> qc.add_gate("RZ", targets=1, arg_value=np.pi)
     >>>
     >>> model = SpinChainModel(2, "linear", g=0.1)
     >>> processor = ModelProcessor(model=model)
@@ -97,9 +97,7 @@ class SpinChainCompiler(GateCompiler):
         pulse_dict=None,
         N=None,
     ):
-        super(SpinChainCompiler, self).__init__(
-            num_qubits, params=params, pulse_dict=pulse_dict, N=N
-        )
+        super().__init__(num_qubits, params=params, pulse_dict=pulse_dict, N=N)
         self.gate_compiler.update(
             {
                 "ISWAP": self.iswap_compiler,

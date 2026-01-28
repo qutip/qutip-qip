@@ -107,6 +107,15 @@ class Gate(ABC):
         else:
             self.classical_control_value = classical_control_value
 
+    @property
+    @abstractmethod
+    def qubit_count(self) -> int:
+        pass
+
+    @property
+    def num_ctrl_qubits(self) -> int:
+        return 0
+
     def get_all_qubits(self):
         """
         Return a list of all qubits that the gate operator
@@ -243,6 +252,7 @@ class ControlledGate(Gate):
         self.controls = (
             [controls] if not isinstance(controls, list) else controls
         )
+        self._num_ctrl_qubits = len(self.controls)
         if control_value is None:
             self.control_value = 2 ** len(self.controls) - 1
         else:
@@ -250,6 +260,14 @@ class ControlledGate(Gate):
         # In the circuit plot, only the target gate is shown.
         # The control has its own symbol.
         self.latex_str = target_gate.latex_str
+
+    @property
+    def qubit_count(self) -> int:
+        return self.target_gate.qubit_count + self.num_ctrl_qubits
+
+    @property
+    def num_ctrl_qubits(self) -> int:
+        return self._num_ctrl_qubits
 
     def get_all_qubits(self):
         return self.controls + self.targets
@@ -306,9 +324,9 @@ class ControlledGate(Gate):
 class ParametrizedGate(Gate):
     def __init__(
         self,
-        targets,
         arg_value: float,
         arg_label: str = None,
+        targets=None,
         classical_controls=None,
         classical_control_value=None,
         style=None,
@@ -362,10 +380,10 @@ class ControlledParamGate(ParametrizedGate, ControlledGate):
     def __init__(
         self,
         controls,
-        targets,
         arg_value,
-        target_gate=None,
         arg_label=None,
+        targets=None,
+        target_gate=None,
         control_value=1,
         classical_controls=None,
         classical_control_value=None,
@@ -433,39 +451,69 @@ class ControlledParamGate(ParametrizedGate, ControlledGate):
             )
 
 
-class CustomGate(Gate):
+def custom_gate_factory(name: str, U: Qobj) -> Gate:
     """
-    Custom gate that wraps an arbitrary quantum operator.
+    Gate Factory for Custom Gate that wraps an arbitrary unitary matrix U.
     """
 
-    latex_str = r"U"
+    class CustomGate(Gate):
+        latex_str = r"U"
 
-    def __init__(
-        self,
-        name,
-        targets,
-        U,
-        classical_controls=None,
-        classical_control_value=None,
-        style=None,
-    ):
-        super().__init__(
-            name=name,
-            targets=targets,
-            classical_controls=classical_controls,
-            classical_control_value=classical_control_value,
-            style=style,
-        )
-        self._U = U
+        def __init__(
+            self,
+            targets,
+            classical_controls=None,
+            classical_control_value=None,
+            style=None,
+        ):
+            super().__init__(
+                name=name,
+                targets=targets,
+                classical_controls=classical_controls,
+                classical_control_value=classical_control_value,
+                style=style,
+            )
+            self._U = U
 
-    def get_compact_qobj(self):
-        return self._U
+        @staticmethod
+        def get_compact_qobj():
+            return U
+
+        @staticmethod
+        @property
+        def qubit_count() -> int:
+            return U.dims
+
+    return CustomGate
 
 
-class SingleQubitGate(Gate): ...
+def controlled_gate_factory(target_gate: Gate) -> ControlledGate:
+    """
+    Gate Factory for Custom Gate that wraps an arbitrary unitary matrix U.
+    """
+
+    class _CustomGate(ControlledGate):
+        latex_str = r"{\rm CU}"
+        _target_gate_class = target_gate
+
+    return _CustomGate
+
+
+class SingleQubitGate(Gate):
+    """Abstract one-qubit gate."""
+
+    @staticmethod
+    @property
+    def qubit_count() -> int:
+        return 1
 
 
 class ParametrizedSingleQubitGate(ParametrizedGate):
+    @staticmethod
+    @property
+    def qubit_count() -> int:
+        return 1
+
     def _verify_parameters(self):
         if self.targets is None or len(self.targets) != 1:
             raise ValueError(
@@ -476,7 +524,14 @@ class ParametrizedSingleQubitGate(ParametrizedGate):
 class TwoQubitGate(Gate):
     """Abstract two-qubit gate."""
 
-    ...
+    @staticmethod
+    @property
+    def qubit_count() -> int:
+        return 2
 
 
-class ParametrizedTwoQubitGate(ParametrizedGate): ...
+class ParametrizedTwoQubitGate(ParametrizedGate):
+    @staticmethod
+    @property
+    def qubit_count() -> int:
+        return 2

@@ -2,7 +2,7 @@ import numpy as np
 from numpy.testing import assert_, assert_equal
 import unittest
 from qutip import Qobj, sigmaz, tensor
-from qutip_qip.operations import ControlledGate, CustomGate
+from qutip_qip.operations import ControlledGate, custom_gate_factory
 
 from qutip_qip.algorithms.qpe import qpe
 
@@ -14,16 +14,13 @@ class TestQPE(unittest.TestCase):
 
     def test_custom_gate(self):
         """
-        Test if CustomGate correctly stores and returns the quantum object
+        Test if custom_gate_factory correctly stores and returns the quantum object
         """
         U = Qobj([[0, 1], [1, 0]])
 
-        custom = CustomGate(name="custom", targets=[0], U=U)
-
+        custom = custom_gate_factory(name="custom", U=U)
         qobj = custom.get_compact_qobj()
         assert_((qobj - U).norm() < 1e-12)
-
-        assert_equal(custom.targets, [0])
 
     def test_controlled_unitary(self):
         """
@@ -35,7 +32,7 @@ class TestQPE(unittest.TestCase):
             controls=[0],
             targets=[1],
             control_value=1,
-            target_gate=CustomGate(name="CU", targets=[1], U=U),
+            target_gate=custom_gate_factory(name="CU", U=U),
         )
 
         assert_equal(controlled_u.controls, [0])
@@ -141,6 +138,8 @@ class TestQPE(unittest.TestCase):
 
         circuit2 = qpe(U, num_counting_qubits=num_counting, to_cnot=True)
 
-        has_cnot = any(gate.name == "CNOT" for gate in circuit2.gates)
+        has_cnot = any(
+            gate[0].name == "CNOT" for gate in circuit2.instructions
+        )
         assert_(has_cnot)
         assert_(len(circuit2.gates) > len(circuit1.gates))

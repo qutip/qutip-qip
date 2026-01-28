@@ -94,9 +94,7 @@ def _patched_build_err_msg(
         for i, a in enumerate(arrays):
             if isinstance(a, np.ndarray):
                 # precision argument is only needed if the objects are ndarrays
-                r_func = functools.partial(
-                    np.core.array_repr, precision=precision
-                )
+                r_func = functools.partial(np.array_repr, precision=precision)
             else:
                 r_func = repr
 

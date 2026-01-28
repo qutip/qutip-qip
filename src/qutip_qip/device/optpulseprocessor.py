@@ -41,9 +41,7 @@ class OptPulseProcessor(Processor):
     """
 
     def __init__(self, num_qubits=None, drift=None, dims=None, **params):
-        super(OptPulseProcessor, self).__init__(
-            num_qubits, dims=dims, **params
-        )
+        super().__init__(num_qubits, dims=dims, **params)
         if drift is not None:
             self.add_drift(drift, list(range(self.num_qubits)))
         self.spline_kind = "step_func"
@@ -73,7 +71,7 @@ class OptPulseProcessor(Processor):
         >>> from qutip_qip.circuit import QubitCircuit
         >>> from qutip_qip.device import OptPulseProcessor
         >>> qc = QubitCircuit(1)
-        >>> qc.add_gate("SNOT", 0)
+        >>> qc.add_gate("SNOT", targets=0)
         >>> num_tslots = 10
         >>> evo_time = 10
         >>> processor = OptPulseProcessor(1, drift=sigmaz())
@@ -87,7 +85,7 @@ class OptPulseProcessor(Processor):
         >>> from qutip_qip.circuit import QubitCircuit
         >>> from qutip_qip.device import OptPulseProcessor
         >>> qc = QubitCircuit(2)
-        >>> qc.add_gate("SNOT", 0)
+        >>> qc.add_gate("SNOT", targets=0)
         >>> qc.add_gate("SWAP", targets=[0, 1])
         >>> qc.add_gate('CNOT', controls=1, targets=[0])
         >>> processor = OptPulseProcessor(2, drift=tensor([sigmaz()]*2))

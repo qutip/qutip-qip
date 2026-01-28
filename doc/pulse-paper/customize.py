@@ -218,16 +218,17 @@ def single_crosstalk_simulation(num_gates):
         num_qubits, {"pulse_amplitude": 0.02, "duration": 25}
     )
     myprocessor.add_noise(ClassicalCrossTalk(1.0))
+
     # Define a randome circuit.
     gates_set = [
-        Gate(name="ROT", targets=0, arg_value=0),
-        Gate(name="ROT", targets=0, arg_value=np.pi / 2),
-        Gate(name="ROT", targets=0, arg_value=np.pi),
-        Gate(name="ROT", targets=0, arg_value=np.pi / 2 * 3),
+        Gate(name="ROT", arg_value=0),
+        Gate(name="ROT", arg_value=np.pi / 2),
+        Gate(name="ROT", arg_value=np.pi),
+        Gate(name="ROT", arg_value=np.pi / 2 * 3),
     ]
     circuit = QubitCircuit(num_qubits)
     for ind in np.random.randint(0, 4, num_gates):
-        circuit.add_gate(gates_set[ind])
+        circuit.add_gate(gates_set[ind], targets=0)
     # Simulate the circuit.
     myprocessor.load_circuit(circuit, compiler=mycompiler)
     init_state = tensor(

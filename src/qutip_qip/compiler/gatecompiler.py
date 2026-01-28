@@ -2,8 +2,7 @@ import warnings
 import numpy as np
 from scipy import signal
 
-from qutip_qip.compiler import Instruction
-from qutip_qip.compiler import Scheduler
+from qutip_qip.compiler import Instruction, Scheduler
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations import ParametrizedGate
 
@@ -128,21 +127,24 @@ class GateCompiler(object):
             if ``return_array`` is false
         """
         if isinstance(circuit, QubitCircuit):
-            gates = circuit.gates
+            instructions = circuit.instructions
         else:
-            gates = circuit
+            instructions = circuit
         if args is not None:
             self.args.update(args)
         instruction_list = []
 
         # compile gates
-        for gate in gates:
+        for op in instructions:
+            gate = op[0]
             if gate.name not in self.gate_compiler:
                 raise ValueError("Unsupported gate %s" % gate.name)
+
             instruction = self.gate_compiler[gate.name](gate, self.args)
             if instruction is None:
                 continue  # neglecting global phase gate
             instruction_list += instruction
+
         if not instruction_list:
             return None, None
 

@@ -11,7 +11,7 @@ from qutip_qip.device import (
 )
 from qutip_qip.compiler import SpinChainCompiler, Instruction, GateCompiler
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import Gate
+from qutip_qip.operations import ParametrizedGate
 from qutip import basis, fidelity
 
 
@@ -22,8 +22,8 @@ def test_compiling_with_scheduler():
     The numerical results are tested in test_device.py
     """
     circuit = QubitCircuit(2)
-    circuit.add_gate("X", 0)
-    circuit.add_gate("X", 1)
+    circuit.add_gate("X", targets=0)
+    circuit.add_gate("X", targets=1)
     processor = DispersiveCavityQED(2)
 
     processor.load_circuit(circuit, schedule_mode=None)
@@ -71,11 +71,19 @@ def test_compiling_gates_different_sampling_number():
                 )
             ]
 
-    class U1(Gate):
+    class U1(ParametrizedGate):
+        @property
+        def qubit_count(self) -> int:
+            return 1
+
         def get_compact_qobj(self):
             pass
 
-    class U2(Gate):
+    class U2(ParametrizedGate):
+        @property
+        def qubit_count(self) -> int:
+            return 2
+
         def get_compact_qobj(self):
             pass
 
@@ -103,7 +111,7 @@ def test_compiling_gates_different_sampling_number():
 # Test the compiler with a physical model.
 class MyCompiler(GateCompiler):  # compiler class
     def __init__(self, num_qubits, params):
-        super(MyCompiler, self).__init__(num_qubits, params=params)
+        super().__init__(num_qubits, params=params)
         # pass our compiler function as a compiler for RX (rotation around X) gate.
         self.gate_compiler["RX"] = self.rx_compiler
         self.args.update({"params": params})

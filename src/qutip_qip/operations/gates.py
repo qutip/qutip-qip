@@ -1315,12 +1315,12 @@ def gate_sequence_product(
     overall_inds : list of int, optional
         List of qubit indices on which U_overall applies.
     """
-    from ..circuit.circuitsimulator import (
-        _gate_sequence_product,
-        _gate_sequence_product_with_expansion,
+    from qutip_qip.circuit.simulator import (
+        gate_sequence_product,
+        gate_sequence_product_with_expansion,
     )
 
     if expand:
-        return _gate_sequence_product(U_list, inds_list)
+        return gate_sequence_product(U_list, inds_list)
     else:
-        return _gate_sequence_product_with_expansion(U_list, left_to_right)
+        return gate_sequence_product_with_expansion(U_list, left_to_right)

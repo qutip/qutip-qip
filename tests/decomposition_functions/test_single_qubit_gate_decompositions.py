@@ -28,7 +28,6 @@ SQRTNOT = sqrtnot()
 T = Qobj([[1, 0], [0, cmath.rect(1, np.pi / 4)]])
 S = Qobj([[1, 0], [0, 1j]])
 target = 0
-num_qubits = 1
 
 
 # Tests for private functions
@@ -42,8 +41,9 @@ def test_single_qubit_to_rotations(gate, method):
     """Initial matrix and product of final decompositions are same within some
     phase."""
     gate_list = method(gate)
-    circuit = QubitCircuit(num_qubits)
-    circuit.add_gates(gate_list)
+    circuit = QubitCircuit(1)
+    for g in gate_list:
+        circuit.add_gate(g, targets=[0])
     decomposed_gates_final_matrix = circuit.compute_unitary()
     fidelity_of_input_output = average_gate_fidelity(
         gate, decomposed_gates_final_matrix
@@ -58,9 +58,11 @@ def test_single_qubit_to_rotations(gate, method):
 def test_check_single_qubit_to_decompose_to_rotations(gate, method):
     """Initial matrix and product of final decompositions are same within some
     phase."""
+    circuit = QubitCircuit(1)
     gate_list = decompose_one_qubit_gate(gate, method)
-    circuit = QubitCircuit(num_qubits)
-    circuit.add_gates(gate_list)
+    for g in gate_list:
+        circuit.add_gate(g, targets=[0])
+
     decomposed_gates_final_matrix = circuit.compute_unitary()
     fidelity_of_input_output = average_gate_fidelity(
         gate, decomposed_gates_final_matrix

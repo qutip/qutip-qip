@@ -31,31 +31,29 @@ from qutip_qip.device import (
 )
 
 _tol = 3.0e-2
+num_qubits = 2
 
-_x = X(targets=[0])
-_y = Y(targets=[0])
-_z = Z(targets=[0])
-_snot = SNOT(targets=[0])
-_rx = RX(targets=[0], arg_value=np.pi / 2, arg_label=r"\pi/2")
-_ry = RY(targets=[0], arg_value=np.pi / 2, arg_label=r"\pi/2")
-_rz = RZ(targets=[0], arg_value=np.pi / 2, arg_label=r"\pi/2")
-_iswap = ISWAP(targets=[0, 1])
-_cnot = CNOT(targets=[0], controls=[1])
-_sqrt_iswap = SQRTISWAP(targets=[0, 1])
+_rx = RX(arg_value=np.pi / 2, arg_label=r"\pi/2")
+_ry = RY(arg_value=np.pi / 2, arg_label=r"\pi/2")
+_rz = RZ(arg_value=np.pi / 2, arg_label=r"\pi/2")
 
 
 single_gate_tests = [
-    pytest.param(2, [_z], id="Z"),
-    pytest.param(2, [_x], id="X"),
-    pytest.param(2, [_y], id="Y"),
-    pytest.param(2, [_snot], id="SNOT"),
-    pytest.param(2, [_rz], id="RZ"),
-    pytest.param(2, [_rx], id="RX"),
-    pytest.param(2, [_ry], id="RY"),
-    pytest.param(2, [_iswap], id="ISWAP"),
-    pytest.param(2, [_sqrt_iswap], id="SQRTISWAP", marks=pytest.mark.skip),
-    pytest.param(2, [_cnot], id="CNOT"),
+    pytest.param(2, [Z], [0], id="Z"),
+    pytest.param(2, [X], [0], id="X"),
+    pytest.param(2, [Y], [0], id="Y"),
+    pytest.param(2, [SNOT], [0], id="SNOT"),
+    pytest.param(2, [_rz], [0], id="RZ"),
+    pytest.param(2, [_rx], [0], id="RX"),
+    pytest.param(2, [_ry], [0], id="RY"),
+    pytest.param(2, [ISWAP], [0, 1], id="ISWAP"),
+    pytest.param(
+        2, [SQRTISWAP], [0, 1], id="SQRTISWAP", marks=pytest.mark.skip
+    ),
 ]
+
+# TODO This test needs to be added like single_gate_tests but requires controls
+# pytest.param(2, CNOT, targets=[0], controls=[1], id="CNOT"),
 
 
 def _ket_expaned_dims(qubit_state, expanded_dims):
@@ -86,12 +84,14 @@ device_lists_numeric = device_lists_analytic + [
 ]
 
 
-@pytest.mark.parametrize(("num_qubits", "gates"), single_gate_tests)
+@pytest.mark.parametrize(("num_qubits", "gates", "targets"), single_gate_tests)
 @pytest.mark.parametrize(("device_class", "kwargs"), device_lists_analytic)
-def test_device_against_gate_sequence(num_qubits, gates, device_class, kwargs):
+def test_device_against_gate_sequence(
+    num_qubits, gates, targets, device_class, kwargs
+):
     circuit = QubitCircuit(num_qubits)
     for gate in gates:
-        circuit.add_gate(gate)
+        circuit.add_gate(gate, targets=targets)
     U_ideal = circuit.compute_unitary()
 
     device = device_class(num_qubits)
@@ -99,12 +99,14 @@ def test_device_against_gate_sequence(num_qubits, gates, device_class, kwargs):
     assert (U_ideal - U_physical).norm() < _tol
 
 
-@pytest.mark.parametrize(("num_qubits", "gates"), single_gate_tests)
+@pytest.mark.parametrize(("num_qubits", "gates", "targets"), single_gate_tests)
 @pytest.mark.parametrize(("device_class", "kwargs"), device_lists_analytic)
-def test_analytical_evolution(num_qubits, gates, device_class, kwargs):
+def test_analytical_evolution(
+    num_qubits, gates, targets, device_class, kwargs
+):
     circuit = QubitCircuit(num_qubits)
     for gate in gates:
-        circuit.add_gate(gate)
+        circuit.add_gate(gate, targets=targets)
     state = qutip.rand_ket(2**num_qubits)
     state.dims = [[2] * num_qubits, [1] * num_qubits]
     ideal = circuit.run(state)
@@ -115,29 +117,37 @@ def test_analytical_evolution(num_qubits, gates, device_class, kwargs):
 
 
 @pytest.mark.filterwarnings("ignore:Not in the dispersive regime")
-@pytest.mark.parametrize(("num_qubits", "gates"), single_gate_tests)
+@pytest.mark.parametrize(("num_qubits", "gates", "targets"), single_gate_tests)
 @pytest.mark.parametrize(("device_class", "kwargs"), device_lists_numeric)
-def test_numerical_evolution(num_qubits, gates, device_class, kwargs):
-    _test_numerical_evolution_helper(num_qubits, gates, device_class, kwargs)
+def test_numerical_evolution(num_qubits, gates, targets, device_class, kwargs):
+    _test_numerical_evolution_helper(
+        num_qubits, gates, targets, device_class, kwargs
+    )
 
 
 # Test for RZX gate, only available on SCQubits.
-_rzx = RZX([0, 1], arg_value=np.pi / 2)
+_rzx = RZX(targets=[0, 1], arg_value=np.pi / 2)
 
 
 @pytest.mark.parametrize(
-    ("num_qubits", "gates", "device_class", "kwargs"),
-    [pytest.param(2, [_rzx], SCQubits, {}, id="RZX-SCQubits")],
+    ("num_qubits", "gates", "targets", "device_class", "kwargs"),
+    [pytest.param(2, [_rzx], [0, 1], SCQubits, {}, id="RZX-SCQubits")],
 )
-def test_numerical_evolution_zx(num_qubits, gates, device_class, kwargs):
-    _test_numerical_evolution_helper(num_qubits, gates, device_class, kwargs)
+def test_numerical_evolution_zx(
+    num_qubits, gates, targets, device_class, kwargs
+):
+    _test_numerical_evolution_helper(
+        num_qubits, gates, targets, device_class, kwargs
+    )
 
 
-def _test_numerical_evolution_helper(num_qubits, gates, device_class, kwargs):
+def _test_numerical_evolution_helper(
+    num_qubits, gates, targets, device_class, kwargs
+):
     num_qubits = 2
     circuit = QubitCircuit(num_qubits)
     for gate in gates:
-        circuit.add_gate(gate)
+        circuit.add_gate(gate, targets=targets)
     device = device_class(num_qubits, **kwargs)
     device.load_circuit(circuit)
 
@@ -235,8 +245,8 @@ def test_numerical_circuit(circuit, device_class, kwargs, schedule_mode):
 def test_pulse_plotting(processor_class):
     plt = pytest.importorskip("matplotlib.pyplot")
     qc = QubitCircuit(3)
-    qc.add_gate("CNOT", 1, 0)
-    qc.add_gate("X", 1)
+    qc.add_gate("CNOT", targets=1, controls=0)
+    qc.add_gate("X", targets=1)
 
     processor = processor_class(3)
     processor.load_circuit(qc)

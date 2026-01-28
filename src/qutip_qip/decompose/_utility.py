@@ -1,12 +1,6 @@
 from qutip import Qobj
 
 
-class MethodError(Exception):
-    """When invalid method is chosen, this error is raised."""
-
-    pass
-
-
 def check_gate(gate, num_qubits):
     """Verifies input is a valid quantum gate.
 
