@@ -172,9 +172,9 @@ circuit2.add_gate("SQRTISWAP", targets=[0, 2])  # supported only by SpinChain
 ])
 @pytest.mark.parametrize(("schedule_mode"), ["ASAP", "ALAP", None])
 def test_numerical_circuit(circuit, device_class, kwargs, schedule_mode):
-    num_qubits = circuit.N
+    num_qubits = circuit.num_qubits
     with warnings.catch_warnings(record=True):
-        device = device_class(circuit.N, **kwargs)
+        device = device_class(circuit.num_qubits, **kwargs)
     device.load_circuit(circuit, schedule_mode=schedule_mode)
 
     state = qutip.rand_ket(2**num_qubits)

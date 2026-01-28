@@ -46,7 +46,7 @@ def test_qasm_addcircuit():
     filename = "test_add.qasm"
     filepath = Path(__file__).parent / 'qasm_files' / filename
     qc = read_qasm(filepath)
-    assert qc.N == 2
+    assert qc.num_qubits == 2
     assert qc.num_cbits == 2
     check_gate_defn(qc.gates[0], "X", [1])
     check_gate_defn(qc.gates[1], "SNOT", [0])

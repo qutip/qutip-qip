@@ -35,7 +35,7 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
         "BERKELEY",
         "SWAPalpha",
     ]
-    N = qc.N
+    N = qc.num_qubits
 
     for gate in qc.gates:
         if gate.name == "CNOT" or gate.name == "CSIGN":
