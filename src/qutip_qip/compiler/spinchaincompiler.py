@@ -193,7 +193,7 @@ class SpinChainCompiler(GateCompiler):
         coeff, tlist = self.generate_pulse_shape(
             args["shape"], args["num_samples"], maximum, area
         )
-        if self.N != 2 and q1 == 0 and q2 == self.N - 1:
+        if self.num_qubits != 2 and q1 == 0 and q2 == self.num_qubits - 1:
             pulse_name = "g" + str(q2)
         else:
             pulse_name = "g" + str(q1)

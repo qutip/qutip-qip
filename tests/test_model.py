@@ -94,4 +94,4 @@ def test_define_model_in_processor():
 
 def test_change_parameters_in_processor():
     processor = LinearSpinChain(0, sx=0.1)
-    assert(all(processor.params["sx"] == [0.1]))
+    assert all(processor.params["sx"] == [0.1])

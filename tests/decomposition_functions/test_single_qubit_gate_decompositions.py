@@ -3,7 +3,12 @@ import cmath
 import pytest
 
 from qutip import (
-    Qobj, average_gate_fidelity, rand_unitary, sigmax, sigmay, sigmaz
+    Qobj,
+    average_gate_fidelity,
+    rand_unitary,
+    sigmax,
+    sigmay,
+    sigmaz,
 )
 from qutip_qip.decompose.decompose_single_qubit_gate import (
     _ZYZ_rotation,
@@ -67,11 +72,11 @@ def test_check_single_qubit_to_decompose_to_rotations(gate, method):
     "gate", [H, sigmax, sigmay, sigmaz, SQRTNOT, S, T, rand_unitary(2)]
 )
 @pytest.mark.parametrize(
-                    "method", [_ZYZ_rotation, _ZXZ_rotation, _ZYZ_pauli_X]
-                        )
+    "method", [_ZYZ_rotation, _ZXZ_rotation, _ZYZ_pauli_X]
+)
 def test_output_is_tuple(gate, method):
     """Initial matrix and product of final decompositions are same within some
-     phase."""
+    phase."""
     gate_list = method(gate)
     assert isinstance(gate_list, tuple)
 

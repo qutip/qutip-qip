@@ -39,7 +39,9 @@ def test_check_gate_non_unitary(non_unitary):
 def test_check_gate_non_1qubit(non_1qubit_unitary):
     """Checks if non-unitary input is correctly identified."""
     num_qubits = 1
-    with pytest.raises(ValueError, match=f"Input is not a unitary on {num_qubits} qubits."):
+    with pytest.raises(
+        ValueError, match=f"Input is not a unitary on {num_qubits} qubits."
+    ):
         check_gate(non_1qubit_unitary, num_qubits)
 
 

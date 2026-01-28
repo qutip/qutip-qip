@@ -68,7 +68,7 @@ class TestQPE(unittest.TestCase):
             U, num_counting_qubits=num_counting, target_qubits=num_counting
         )
 
-        assert_equal(circuit.N, num_counting + 1)
+        assert_equal(circuit.num_qubits, num_counting + 1)
 
         for i in range(num_counting):
             assert_equal(circuit.gates[i].targets, [i])
@@ -89,15 +89,15 @@ class TestQPE(unittest.TestCase):
         circuit1 = qpe(
             U, num_counting_qubits=num_counting, target_qubits=num_counting
         )
-        assert_equal(circuit1.N, num_counting + 1)
+        assert_equal(circuit1.num_qubits, num_counting + 1)
 
         circuit2 = qpe(
             U, num_counting_qubits=num_counting, target_qubits=[num_counting]
         )
-        assert_equal(circuit2.N, num_counting + 1)
+        assert_equal(circuit2.num_qubits, num_counting + 1)
 
         circuit3 = qpe(U, num_counting_qubits=num_counting, target_qubits=None)
-        assert_equal(circuit3.N, num_counting + 1)
+        assert_equal(circuit3.num_qubits, num_counting + 1)
 
         U2 = tensor(sigmaz(), sigmaz())
         circuit4 = qpe(
@@ -105,7 +105,7 @@ class TestQPE(unittest.TestCase):
             num_counting_qubits=num_counting,
             target_qubits=[num_counting, num_counting + 1],
         )
-        assert_equal(circuit4.N, num_counting + 2)
+        assert_equal(circuit4.num_qubits, num_counting + 2)
 
     def test_qpe_controlled_gate_powers(self):
         """
