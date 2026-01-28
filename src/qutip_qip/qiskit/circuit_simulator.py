@@ -104,7 +104,9 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
             qutip_circuit = convert_qiskit_circuit_to_qutip(transpiled_circuit)
             qutip_circuits.append(qutip_circuit)
 
-            zero_state = basis([2] * qutip_circuit.num_qubits, [0] * qutip_circuit.num_qubits)
+            zero_state = basis(
+                [2] * qutip_circuit.num_qubits, [0] * qutip_circuit.num_qubits
+            )
             statistics.append(qutip_circuit.run_statistics(state=zero_state))
 
         return self._parse_results(

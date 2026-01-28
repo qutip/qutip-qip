@@ -132,9 +132,9 @@ class TeXRenderer:
 
                     elif not gate.controls and not gate.targets:
                         # global gate
-                        if (self.reverse_states and n == self.num_qubits - 1) or (
-                            not self.reverse_states and n == 0
-                        ):
+                        if (
+                            self.reverse_states and n == self.num_qubits - 1
+                        ) or (not self.reverse_states and n == 0):
                             col.append(
                                 rf" \multigate{{{self.num_qubits - 1}}}"
                                 rf"{{{self._gate_label(gate)}}} "

@@ -57,7 +57,7 @@ class GateCompiler(object):
                 "The 'N' parameter is deprecated. Please use "
                 "'num_qubits' instead.",
                 DeprecationWarning,
-                stacklevel=2
+                stacklevel=2,
             )
             self._num_qubits = num_qubits  # backward compatibility
         self.params = params if params is not None else {}
@@ -100,10 +100,9 @@ class GateCompiler(object):
             "The 'N' parameter is deprecated. Please use "
             "'num_qubits' instead.",
             DeprecationWarning,
-            stacklevel=2
+            stacklevel=2,
         )
         return self._num_qubits
-
 
     def globalphase_compiler(self, gate, args):
         """

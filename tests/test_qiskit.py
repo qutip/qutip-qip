@@ -24,7 +24,7 @@ from qiskit_aer import AerSimulator
 from qutip_qip.qiskit import (
     QiskitCircuitSimulator,
     QiskitPulseSimulator,
-)    
+)
 from qutip_qip.qiskit.utils.converter import (
     get_qutip_index,
     convert_qiskit_circuit_to_qutip,
@@ -153,6 +153,7 @@ class TestConverter:
 
         assert self._compare_circuit(result_circuit, required_circuit)
 
+
 class TestCircuitSimulato:
     """
     Class for testing whether a Circuit simulator gives correct results.
@@ -171,7 +172,7 @@ class TestCircuitSimulato:
         qiskit_sv = qiskit_result.data()["statevector"]
 
         assert_allclose(qutip_sv, qiskit_sv)
-    
+
     def test_circuit_simulator(self):
         """
         Test whether the circuit_simulator matches the
@@ -208,6 +209,7 @@ class TestCircuitSimulato:
         qutip_result = qutip_job.result()
 
         assert qutip_result.get_counts(circ) == predefined_counts
+
 
 class TestPulseSimulator:
     """

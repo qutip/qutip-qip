@@ -10,13 +10,15 @@ def _add_repeats_if_marked(metafunc):
     If the metafunc is marked with the 'repeat' mark, then add the requisite
     number of repeats via parametrisation.
     """
-    marker = metafunc.definition.get_closest_marker('repeat')
+    marker = metafunc.definition.get_closest_marker("repeat")
     if marker:
         count = marker.args[0]
-        metafunc.fixturenames.append('_repeat_count')
-        metafunc.parametrize('_repeat_count',
-                             range(count),
-                             ids=["rep({})".format(x+1) for x in range(count)])
+        metafunc.fixturenames.append("_repeat_count")
+        metafunc.parametrize(
+            "_repeat_count",
+            range(count),
+            ids=["rep({})".format(x + 1) for x in range(count)],
+        )
 
 
 def _skip_cython_tests_if_unavailable(item):
@@ -27,7 +29,7 @@ def _skip_cython_tests_if_unavailable(item):
     if item.get_closest_marker("requires_cython"):
         # importorskip rather than mark.skipif because this way we get pytest's
         # version-handling semantics.
-        pytest.importorskip('Cython', minversion='0.14')
+        pytest.importorskip("Cython", minversion="0.14")
 
 
 @pytest.hookimpl(trylast=True)
@@ -39,9 +41,14 @@ def pytest_runtest_setup(item):
     _skip_cython_tests_if_unavailable(item)
 
 
-def _patched_build_err_msg(arrays, err_msg, header='Items are not equal:',
-                           verbose=True, names=('ACTUAL', 'DESIRED'),
-                           precision=8):
+def _patched_build_err_msg(
+    arrays,
+    err_msg,
+    header="Items are not equal:",
+    verbose=True,
+    names=("ACTUAL", "DESIRED"),
+    precision=8,
+):
     """
     Taken almost verbatim from `np.testing._private.utils`, except this version
     doesn't truncate output if it's longer than three lines.
@@ -77,18 +84,19 @@ def _patched_build_err_msg(arrays, err_msg, header='Items are not equal:',
     ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
     POSSIBILITY OF SUCH DAMAGE.
     """
-    msg = ['\n' + header]
+    msg = ["\n" + header]
     if err_msg:
-        if err_msg.find('\n') == -1 and len(err_msg) < 79-len(header):
-            msg = [msg[0] + ' ' + err_msg]
+        if err_msg.find("\n") == -1 and len(err_msg) < 79 - len(header):
+            msg = [msg[0] + " " + err_msg]
         else:
             msg.append(err_msg)
     if verbose:
         for i, a in enumerate(arrays):
             if isinstance(a, np.ndarray):
                 # precision argument is only needed if the objects are ndarrays
-                r_func = functools.partial(np.core.array_repr,
-                                           precision=precision)
+                r_func = functools.partial(
+                    np.core.array_repr, precision=precision
+                )
             else:
                 r_func = repr
 
@@ -97,19 +105,19 @@ def _patched_build_err_msg(arrays, err_msg, header='Items are not equal:',
                 with np.printoptions(threshold=np.inf):
                     r = r_func(a)
             except Exception as exc:
-                r = '[repr failed for <{}>: {}]'.format(type(a).__name__, exc)
+                r = "[repr failed for <{}>: {}]".format(type(a).__name__, exc)
             # [diff] The original truncates the output to 3 lines here.
-            msg.append(' %s: %s' % (names[i], r))
-    return '\n'.join(msg)
+            msg.append(" %s: %s" % (names[i], r))
+    return "\n".join(msg)
 
 
 # Find the private module used by numpy to store its testing utility functions
 # so that we can monkeypatch the error messages to be more verbose.  QuTiP
 # supports numpy from 1.12 upwards, so we have to search.
 _numpy_private_utils_paths = [
-    ['_private', 'utils'],    # 1.15.0 <= x
-    ['nose_tools', 'utils'],  # 1.14.0 <= x < 1.15.0
-    ['utils'],                # 1.14.0 > x
+    ["_private", "utils"],  # 1.15.0 <= x
+    ["nose_tools", "utils"],  # 1.14.0 <= x < 1.15.0
+    ["utils"],  # 1.14.0 > x
 ]
 for possible_path in _numpy_private_utils_paths:
     try:
@@ -125,6 +133,7 @@ else:
     _numpy_private_utils = None
 
 if _numpy_private_utils is not None:
+
     @pytest.fixture(autouse=True)
     def do_not_truncate_numpy_output(monkeypatch):
         """
@@ -132,8 +141,11 @@ if _numpy_private_utils is not None:
         that we get full output that isn't cut off after three lines.
         """
         with monkeypatch.context() as patch:
-            patch.setattr(np.testing._private.utils, "build_err_msg",
-                          _patched_build_err_msg)
+            patch.setattr(
+                np.testing._private.utils,
+                "build_err_msg",
+                _patched_build_err_msg,
+            )
             # Yield inside context manager just to minimize the amount of time
             # we've monkeypatched such a core library (and a private function!)
             yield

@@ -81,10 +81,10 @@ class QubitCircuit:
                 "The 'N' parameter is deprecated. Please use "
                 "'num_qubits' instead.",
                 DeprecationWarning,
-                stacklevel=2
+                stacklevel=2,
             )
             self._num_qubits = N
-        
+
         self.reverse_states = reverse_states
         self.gates = []
         self.dims = dims if dims is not None else [2] * num_qubits
@@ -110,7 +110,7 @@ class QubitCircuit:
                     "`user_gate` takes a python dictionary of the form"
                     "{{str: gate_function}}, not {}".format(user_gates)
                 )
-    
+
     @property
     def num_qubits(self) -> int:
         """
@@ -127,7 +127,7 @@ class QubitCircuit:
             "The 'N' parameter is deprecated. Please use "
             "'num_qubits' instead.",
             DeprecationWarning,
-            stacklevel=2
+            stacklevel=2,
         )
         return self._num_qubits
 
