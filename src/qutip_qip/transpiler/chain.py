@@ -1,4 +1,3 @@
-from copy import deepcopy
 from qutip_qip.circuit import QubitCircuit
 
 

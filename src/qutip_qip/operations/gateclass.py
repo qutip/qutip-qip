@@ -451,7 +451,7 @@ class ControlledParamGate(ParametrizedGate, ControlledGate):
             )
 
 
-def customGate(name: str, U: Qobj) -> Gate:
+def custom_gate_factory(name: str, U: Qobj) -> Gate:
     """
     Gate Factory for Custom Gate that wraps an arbitrary unitary matrix U.
     """
@@ -487,7 +487,7 @@ def customGate(name: str, U: Qobj) -> Gate:
     return CustomGate
 
 
-def controlledGateFactory(target_gate: Gate) -> ControlledGate:
+def controlled_gate_factory(target_gate: Gate) -> ControlledGate:
     """
     Gate Factory for Custom Gate that wraps an arbitrary unitary matrix U.
     """

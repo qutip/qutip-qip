@@ -2,7 +2,7 @@ import numpy as np
 from numpy.testing import assert_, assert_equal
 import unittest
 from qutip import Qobj, sigmaz, tensor
-from qutip_qip.operations import ControlledGate, customGate
+from qutip_qip.operations import ControlledGate, custom_gate_factory
 
 from qutip_qip.algorithms.qpe import qpe
 
@@ -14,11 +14,11 @@ class TestQPE(unittest.TestCase):
 
     def test_custom_gate(self):
         """
-        Test if customGate correctly stores and returns the quantum object
+        Test if custom_gate_factory correctly stores and returns the quantum object
         """
         U = Qobj([[0, 1], [1, 0]])
 
-        custom = customGate(name="custom", U=U)
+        custom = custom_gate_factory(name="custom", U=U)
         qobj = custom.get_compact_qobj()
         assert_((qobj - U).norm() < 1e-12)
 
@@ -32,7 +32,7 @@ class TestQPE(unittest.TestCase):
             controls=[0],
             targets=[1],
             control_value=1,
-            target_gate=customGate(name="CU", U=U),
+            target_gate=custom_gate_factory(name="CU", U=U),
         )
 
         assert_equal(controlled_u.controls, [0])
@@ -122,7 +122,6 @@ class TestQPE(unittest.TestCase):
             gate = circuit.gates[num_counting + i]
             power = 2 ** (num_counting - i - 1)
 
-            print(gate.target_gate)
             u_power = gate.target_gate.get_compact_qobj()
             expected_u_power = U if power == 1 else U**power
 

@@ -10,7 +10,7 @@ import numpy as np
 from math import pi  # Don't remove
 
 from .circuit import QubitCircuit
-from .operations import customGate
+from .operations import custom_gate_factory
 
 
 __all__ = ["read_qasm", "save_qasm", "print_qasm", "circuit_to_qasm_str"]
@@ -800,7 +800,7 @@ class QasmProcessor:
 
                 if custom_gate_unitary is not None:
                     # Instantiate the wrapper gate
-                    gate_obj = customGate(
+                    gate_obj = custom_gate_factory(
                         name=gate_name,
                         U=custom_gate_unitary,
                     )

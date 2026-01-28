@@ -64,7 +64,7 @@ class QubitCircuit:
         self.N = N
         self.reverse_states = reverse_states
         self.gates = []
-        self.instructions = []
+        self._instructions = []
         self.dims = dims if dims is not None else [2] * N
         self.num_cbits = num_cbits
 
@@ -83,6 +83,14 @@ class QubitCircuit:
                 "`user_gates` has been removed from qutip-qip from version 0.5.0"
                 "To define custom gates refer to this example in documentation <link>"
             )
+
+    @property
+    def instructions(self):
+        return self._instructions
+
+    @instructions.setter
+    def instructions(self, x):
+        self._instructions = x
 
     def __repr__(self) -> str:
         return ""
@@ -124,7 +132,13 @@ class QubitCircuit:
             for i in targets:
                 self.output_states[i] = state
 
-    def add_measurement(self, measurement, targets=None, classical_store=None):
+    def add_measurement(
+        self,
+        measurement,
+        targets=None,
+        classical_store=None,
+        index=None,
+    ):
         """
         Adds a measurement with specified parameters to the circuit.
 
@@ -140,6 +154,8 @@ class QubitCircuit:
         classical_store : int
             Classical register where result of measurement is stored.
         """
+        if index is not None:
+            raise ValueError("argument index is no longer supported")
 
         if isinstance(measurement, Measurement):
             name = measurement.name
@@ -153,7 +169,7 @@ class QubitCircuit:
             name, targets=targets, classical_store=classical_store
         )
         self.gates.append(meas)
-        self.instructions.append((meas, targets))
+        self._instructions.append((meas, targets))
 
     def add_gate(
         self,
@@ -276,7 +292,7 @@ class QubitCircuit:
         if targets is not None:
             qubits.extend(targets)
 
-        self.instructions.append(
+        self._instructions.append(
             (
                 gate,
                 qubits,
@@ -366,7 +382,7 @@ class QubitCircuit:
 
             if end is not None and end <= len(self.instructions):
                 for i in range(end - index):
-                    self.instructions.pop(index + i)
+                    self._instructions.pop(index + i)
 
             elif end is not None and end > self.N:
                 raise ValueError(
@@ -375,27 +391,27 @@ class QubitCircuit:
                 )
 
             else:
-                self.instructions.pop(index)
+                self._instructions.pop(index)
 
         elif name is not None and remove == "first":
             for circuit_op in self.instructions:
                 if name == circuit_op[0].name:
-                    self.instructions.remove(circuit_op)
+                    self._instructions.remove(circuit_op)
                     break
 
         elif name is not None and remove == "last":
             for i in reversed(range(len(self.instructions))):
-                if name == self.instructions[i][0].name:
-                    self.instructions.pop(i)
+                if name == self._instructions[i][0].name:
+                    self._instructions.pop(i)
                     break
 
         elif name is not None and remove == "all":
             for i in reversed(range(len(self.instructions))):
-                if name == self.instructions[i][0].name:
-                    self.instructions.pop(i)
+                if name == self._instructions[i][0].name:
+                    self._instructions.pop(i)
 
         else:
-            self.instructions.pop()
+            self._instructions.pop()
 
     def reverse_circuit(self):
         """
@@ -416,9 +432,7 @@ class QubitCircuit:
             output_states=self.output_states,
         )
 
-        for circuit_op in reversed(self.instructions):
-            temp.instructions.append(circuit_op)
-
+        temp.instructions = self.instructions[::-1]
         return temp
 
     def run(

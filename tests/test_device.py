@@ -52,7 +52,7 @@ single_gate_tests = [
     ),
 ]
 
-# This test needs to be added like single_gate_tests but requires controls
+# TODO This test needs to be added like single_gate_tests but requires controls
 # pytest.param(2, CNOT, targets=[0], controls=[1], id="CNOT"),
 
 
