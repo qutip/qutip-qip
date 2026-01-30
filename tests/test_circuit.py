@@ -334,20 +334,6 @@ class TestQubitCircuit:
         qc = QubitCircuit(2)
         pytest.raises(ValueError, qc.add_gate, gate, targets=[1], controls=[0])
 
-    def test_globalphase_gate_propagators(self):
-        qc = QubitCircuit(2)
-        qc.add_gate("GLOBALPHASE", arg_value=np.pi / 2)
-
-        [gate] = qc.gates
-        assert gate.name == "GLOBALPHASE"
-        assert gate.arg_value == np.pi / 2
-
-        [U_expanded] = qc.propagators()
-        assert U_expanded == 1j * qp.qeye([2, 2])
-
-        [U_unexpanded] = qc.propagators(expand=False)
-        assert U_unexpanded == 1j * qp.qeye([2, 2])
-
     def test_single_qubit_gates(self):
         """
         Text single qubit gates are added correctly
@@ -500,7 +486,6 @@ class TestQubitCircuit:
         )
 
         teleportation_sim = CircuitSimulator(teleportation)
-
         teleportation_sim_results = teleportation_sim.run(state)
         state_final = teleportation_sim_results.get_final_states(0)
 

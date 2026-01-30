@@ -25,7 +25,7 @@ from qutip import (
     fock_dm,
 )
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import Gate, GLOBALPHASE
+from qutip_qip.operations import Gate
 from qutip_qip.device import ModelProcessor, Model
 from qutip_qip.compiler import GateCompiler, Instruction
 from qutip_qip.noise import Noise

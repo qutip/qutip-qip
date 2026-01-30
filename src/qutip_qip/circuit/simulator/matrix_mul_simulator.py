@@ -13,6 +13,26 @@ from qutip_qip.operations import (
 import warnings
 
 
+def _decimal_to_binary(decimal, length):
+    binary = [int(s) for s in "{0:#b}".format(decimal)[2:]]
+    return [0] * (length - len(binary)) + binary
+
+def _check_classical_control_value(
+    classical_controls, classical_control_value, cbits
+):
+    """Check if the gate should be executed, depending on the current value of classical bits."""
+    matched = np.empty(len(classical_controls), dtype=bool)
+    cbits_conditions = _decimal_to_binary(
+        classical_control_value,
+        len(classical_controls),
+    )
+    for i in range(len(classical_controls)):
+        cbit_index = classical_controls[i]
+        control_value = cbits_conditions[i]
+        matched[i] = cbits[cbit_index] == control_value
+    return all(matched)
+
+
 class CircuitSimulator:
     """
     Operator based circuit simulator.
@@ -92,6 +112,7 @@ class CircuitSimulator:
             if self.mode == "density_matrix_simulator" and state.isket:
                 self._state = ket2dm(state)
             else:
+                state = np.exp(1j * self.qc.global_phase) * state
                 self._state = state
         else:
             # Just computing the full unitary, no state
@@ -156,12 +177,18 @@ class CircuitSimulator:
             output state and probability.
         """
         self.initialize(state, cbits, measure_results)
+
         for _ in range(len(self._qc.instructions)):
             self.step()
             if self._state is None:
                 # TODO This only happens if there is predefined post-selection on the measurement results and the measurement results is exactly 0. This needs to be improved.
                 break
-        return CircuitResult(self.state, self._probability, self.cbits)
+        
+        return CircuitResult(
+            self.state,
+            self._probability,
+            self.cbits
+        )
 
     def run_statistics(self, state, cbits=None):
         """
@@ -216,28 +243,9 @@ class CircuitSimulator:
             state after one evolution step.
         """
 
-        def _decimal_to_binary(decimal, length):
-            binary = [int(s) for s in "{0:#b}".format(decimal)[2:]]
-            return [0] * (length - len(binary)) + binary
-
-        def _check_classical_control_value(
-            classical_controls, classical_control_value, cbits
-        ):
-            """Check if the gate should be executed, depending on the current value of classical bits."""
-            matched = np.empty(len(classical_controls), dtype=bool)
-            cbits_conditions = _decimal_to_binary(
-                classical_control_value,
-                len(classical_controls),
-            )
-            for i in range(len(classical_controls)):
-                cbit_index = classical_controls[i]
-                control_value = cbits_conditions[i]
-                matched[i] = cbits[cbit_index] == control_value
-            return all(matched)
-
         op = self._qc.instructions[self._op_index][0]
-
         current_state = self._state
+
         if isinstance(op, Measurement):
             state = self._apply_measurement(op, current_state)
 
@@ -273,19 +281,12 @@ class CircuitSimulator:
         U: Qobj
             unitary to be applied.
         """
-        if operation.name == "GLOBALPHASE":
-            # This is just a complex number.
-            U = np.exp(1.0j * operation.arg_value)
-        else:
-            # We need to use the circuit because the custom gates
-            # are still saved in circuit instance.
-            # This should be changed once that is deprecated.
-            U = operation.get_compact_qobj()
-            U = expand_operator(
-                U,
-                dims=self.dims,
-                targets=targets_indices,
-            )
+        U = operation.get_compact_qobj()
+        U = expand_operator(
+            U,
+            dims=self.dims,
+            targets=targets_indices,
+        )
         if self.mode == "state_vector_simulator":
             state = U * state
         elif self.mode == "density_matrix_simulator":
@@ -296,8 +297,7 @@ class CircuitSimulator:
 
     def _evolve_state_einsum(self, gate, targets_indices, state):
         if gate.name == "GLOBALPHASE":
-            # This is just a complex number.
-            return np.exp(1.0j * gate.arg_value) * state
+            return state
 
         # Prepare the state tensor.
         if isinstance(state, Qobj):

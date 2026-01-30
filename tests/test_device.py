@@ -19,7 +19,6 @@ from qutip_qip.operations import (
     RZ,
     ISWAP,
     SQRTISWAP,
-    CNOT,
     RZX,
     gate_sequence_product,
 )

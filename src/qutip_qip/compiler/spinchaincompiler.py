@@ -243,3 +243,4 @@ class SpinChainCompiler(GateCompiler):
         Compiler for the GLOBALPHASE gate
         """
         self.global_phase += gate.arg_value
+        self.global_phase %= 2 * np.pi

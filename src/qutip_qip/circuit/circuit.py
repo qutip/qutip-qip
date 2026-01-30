@@ -64,9 +64,10 @@ class QubitCircuit:
         self.N = N
         self.reverse_states = reverse_states
         self.gates = []
-        self._instructions = []
-        self.dims = dims if dims is not None else [2] * N
         self.num_cbits = num_cbits
+        self._instructions = []
+        self._global_phase: float = 0.0
+        self.dims = dims if dims is not None else [2] * N
 
         if input_states:
             self.input_states = input_states
@@ -83,6 +84,14 @@ class QubitCircuit:
                 "`user_gates` has been removed from qutip-qip from version 0.5.0"
                 "To define custom gates refer to this example in documentation <link>"
             )
+
+    @property
+    def global_phase(self):
+        return self._global_phase
+
+    def add_global_phase(self, phase: float):
+        self._global_phase += phase
+        self._global_phase %= 2 * np.pi
 
     @property
     def instructions(self):
@@ -292,6 +301,9 @@ class QubitCircuit:
         if targets is not None:
             qubits.extend(targets)
 
+        if gate.name == "GLOBALPHASE":
+            self.add_global_phase(gate.arg_value)
+
         self._instructions.append(
             (
                 gate,
@@ -302,7 +314,7 @@ class QubitCircuit:
             )
         )
 
-    def add_circuit(self, qc, start=0):
+    def add_circuit(self, qc, start=0): # TODO Instead of start have a qubit mapping?
         """
         Adds a block of a qubit circuit to the main circuit.
 
@@ -334,7 +346,7 @@ class QubitCircuit:
 
                 arg = None
                 if isinstance(gate, ParametrizedGate):
-                    gate.arg_value
+                    arg = gate.arg_value
 
                 self.add_gate(
                     gate.name,
@@ -574,6 +586,7 @@ class QubitCircuit:
         for op in self.instructions:
             gate = op[0]
             if gate.name in ("X", "Y", "Z"):
+                # temp_resolved.add_global_phase(phase=np.pi / 2)
                 temp_resolved.add_gate("GLOBALPHASE", arg_value=np.pi / 2)
 
                 if gate.name == "X":
@@ -609,10 +622,12 @@ class QubitCircuit:
                 _resolve_2q_basis(basis_unit, qc_temp, temp_resolved)
                 break
         if not match:
+            qc_temp._global_phase = temp_resolved.global_phase
             qc_temp.instructions = temp_resolved.instructions
 
         if len(basis_1q) == 2:
             temp_resolved.instructions = qc_temp.instructions
+            temp_resolved._global_phase = qc_temp.global_phase
             qc_temp.instructions = []
             half_pi = np.pi / 2
 
@@ -724,16 +739,13 @@ class QubitCircuit:
                 "Cannot compute the propagator of a measurement operator."
                 "Please set ignore_measurement=True."
             )
+
         for gate, targets in gates:
-            if gate.name == "GLOBALPHASE":
-                qobj = gate.get_qobj(self.N)
-            else:
-                qobj = gate.get_compact_qobj()
-                if expand:
-                    qobj = expand_operator(
-                        qobj, dims=self.dims, targets=targets
-                    )
+            qobj = gate.get_compact_qobj()
+            if expand:
+                qobj = expand_operator(qobj, dims=self.dims, targets=targets)
             U_list.append(qobj)
+
         return U_list
 
     def compute_unitary(self):
