@@ -616,6 +616,7 @@ class QubitCircuit:
                         raise NotImplementedError(exception)
 
         qc_temp.add_global_phase(temp_resolved.global_phase)
+
         for basis_unit in ["CSIGN", "ISWAP", "SQRTSWAP", "SQRTISWAP"]:
             if basis_unit in basis_2q:
                 match = True

@@ -26,7 +26,7 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
     # splitted into smaller peaces.
     N = qc.N
     qc_t = QubitCircuit(N)
-    qc_t.add_global_phase = qc.global_phase
+    qc_t.add_global_phase(qc.global_phase)
     swap_gates = [
         "SWAP",
         "ISWAP",

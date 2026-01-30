@@ -77,15 +77,16 @@ class GateCompiler:
                 DeprecationWarning,
             )
 
-    def globalphase_compiler(self, gate, args):
+    def globalphase_compiler(self, phase):
         """
         Compiler for the GLOBALPHASE gate
         """
-        pass
+        self.global_phase += phase
+        self.global_phase %= 2 * np.pi
 
     def idle_compiler(self, gate, args):
         """
-        Compiler for the GLOBALPHASE gate
+        Compiler for the IDLE gate
         """
         idle_time = None
         if isinstance(gate, ParametrizedGate):
@@ -130,8 +131,7 @@ class GateCompiler:
 
         if isinstance(circuit, QubitCircuit):
             instructions = circuit.instructions
-            self.global_phase += circuit.global_phase
-            self.global_phase %= 2 * np.pi
+            self.globalphase_compiler(circuit.global_phase)
         else:
             instructions = circuit
         if args is not None:

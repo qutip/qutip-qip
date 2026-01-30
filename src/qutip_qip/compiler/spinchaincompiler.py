@@ -238,9 +238,3 @@ class SpinChainCompiler(GateCompiler):
         """
         return self._swap_compiler(gate, area=-1 / 16, args=args)
 
-    def globalphase_compiler(self, gate, args):
-        """
-        Compiler for the GLOBALPHASE gate
-        """
-        self.global_phase += gate.arg_value
-        self.global_phase %= 2 * np.pi

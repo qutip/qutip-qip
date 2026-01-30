@@ -194,9 +194,7 @@ class CavityQEDCompiler(GateCompiler):
         gate2 = RZ(targets=q2, arg_value=correction_angle)
         compiled_gate2 = self.gate_compiler["RZ"](gate2, args)
         instruction_list += compiled_gate2
-
-        self.global_phase += correction_angle
-        self.global_phase %= 2 * np.pi
+        self.gate_compiler["GLOBALPHASE"](correction_angle)
         return instruction_list
 
     def sqrtiswap_compiler(self, gate, args):
@@ -249,9 +247,3 @@ class CavityQEDCompiler(GateCompiler):
             gate, area=1 / 2, correction_angle=-np.pi / 2, args=args
         )
 
-    def globalphase_compiler(self, gate, args):
-        """
-        Compiler for the GLOBALPHASE gate
-        """
-        self.global_phase += gate.arg_value
-        self.global_phase %= 2 * np.pi
