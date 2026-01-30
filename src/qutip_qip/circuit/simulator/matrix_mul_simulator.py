@@ -296,9 +296,6 @@ class CircuitSimulator:
         return state
 
     def _evolve_state_einsum(self, gate, targets_indices, state):
-        if gate.name == "GLOBALPHASE":
-            return state
-
         # Prepare the state tensor.
         if isinstance(state, Qobj):
             # If it is a Qobj, transform it to the array representation.

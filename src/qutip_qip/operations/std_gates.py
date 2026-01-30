@@ -3,10 +3,10 @@ import scipy.sparse as sp
 
 from qutip import Qobj, sigmax, sigmay, sigmaz, qeye
 from qutip_qip.operations import (
+    Gate,
     SingleQubitGate,
     TwoQubitGate,
     ControlledGate,
-    ParametrizedGate,
     ControlledParamGate,
     ParametrizedSingleQubitGate,
     ParametrizedTwoQubitGate,
@@ -973,7 +973,7 @@ class CQASMU(_ControlledParamTwoQubitGate):
 ########################### Special Gates #########################
 
 
-class GLOBALPHASE(ParametrizedGate):
+class GLOBALPHASE(Gate):
     """
     GLOBALPHASE gate.
 
@@ -981,25 +981,14 @@ class GLOBALPHASE(ParametrizedGate):
     --------
     >>> from qutip_qip.operations import GLOBALPHASE
     """
-
+    name = "GLOBALPHASE"
     latex_str = r"{\rm GLOBALPHASE}"
 
-    def __init__(
-        self,
-        arg_value: float,
-        arg_label: str = None,
-        classical_controls=None,
-        classical_control_value=None,
-        style=None,
-    ):
-        super().__init__(
-            targets=None,
-            arg_value=arg_value,
-            arg_label=arg_label,
-            classical_controls=classical_controls,
-            classical_control_value=classical_control_value,
-            style=style,
-        )
+    def __init__(self, arg_value: float = 0.0):
+        self.arg_value = arg_value
+
+    def __repr__(self):
+        return f"Gate({self.name}, phase {self.arg_value})"
 
     @property
     def qubit_count(self) -> int:

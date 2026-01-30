@@ -255,13 +255,7 @@ class QubitCircuit:
                 )
 
             elif gate_class == GLOBALPHASE:
-                gate = gate_class(
-                    arg_value=arg_value,
-                    arg_label=arg_label,
-                    classical_controls=classical_controls,
-                    classical_control_value=classical_control_value,
-                    style=style,
-                )
+                gate = gate_class(arg_value=arg_value)
 
             elif issubclass(gate_class, ParametrizedGate):
                 gate = gate_class(
@@ -291,6 +285,10 @@ class QubitCircuit:
                     style=style,
                 )
 
+        if isinstance(gate, GLOBALPHASE):
+            self.add_global_phase(gate.arg_value)
+            return
+
         if targets is not None:
             gate.targets = targets
         self.gates.append(gate)
@@ -300,9 +298,6 @@ class QubitCircuit:
             qubits.extend(controls)
         if targets is not None:
             qubits.extend(targets)
-
-        if gate.name == "GLOBALPHASE":
-            self.add_global_phase(gate.arg_value)
 
         self._instructions.append(
             (

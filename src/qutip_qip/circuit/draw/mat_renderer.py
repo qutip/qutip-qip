@@ -587,13 +587,7 @@ class MatRenderer(BaseRenderer):
         else:
             adj_targets = [
                 i + self._cwires
-                for i in sorted(
-                    gate.targets
-                    if gate.targets is not None
-                    else list(
-                        range(self._qwires)
-                    )  # adaptation for globalphase
-                )
+                for i in sorted(gate.targets)
             ]
             text_width = self._get_text_width(
                 self.text,

@@ -65,10 +65,7 @@ def _ZYZ_rotation(input_gate):
     check_gate(input_gate, num_qubits=1)
     alpha, theta, beta, global_phase_angle = _angles_for_ZYZ(input_gate)
 
-    Phase_gate = GLOBALPHASE(
-        arg_value=global_phase_angle,
-        arg_label=r"{:0.2f} \times \pi".format(global_phase_angle / np.pi),
-    )
+    Phase_gate = GLOBALPHASE(arg_value=global_phase_angle)
     Rz_beta = RZ(
         arg_value=beta,
         arg_label=rf"{(beta / np.pi):0.2f} \times \pi",
@@ -100,10 +97,7 @@ def _ZXZ_rotation(input_gate):
     beta = beta + np.pi / 2
     # theta and global phase are same as ZYZ values
 
-    Phase_gate = GLOBALPHASE(
-        arg_value=global_phase_angle,
-        arg_label=r"{:0.2f} \times \pi".format(global_phase_angle / np.pi),
-    )
+    Phase_gate = GLOBALPHASE(arg_value=global_phase_angle)
     Rz_alpha = RZ(
         arg_value=alpha,
         arg_label=rf"{(alpha / np.pi):0.2f} \times \pi".format,
@@ -129,10 +123,7 @@ def _ZYZ_pauli_X(input_gate):
     check_gate(input_gate, num_qubits=1)
     alpha, theta, beta, global_phase_angle = _angles_for_ZYZ(input_gate)
 
-    Phase_gate = GLOBALPHASE(
-        arg_value=global_phase_angle,
-        arg_label=rf"{(global_phase_angle / np.pi):0.2f} \times \pi",
-    )
+    Phase_gate = GLOBALPHASE(arg_value=global_phase_angle)
     Rz_A = RZ(
         arg_value=alpha,
         arg_label=rf"{(alpha / np.pi):0.2f} \times \pi",

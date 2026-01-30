@@ -21,7 +21,7 @@ def _gate_IGNORED(gate, temp_resolved):
 
 
 _gate_RX = _gate_RY = _gate_RZ = _gate_CNOT = _gate_IGNORED
-_gate_basis_2q = _gate_GLOBALPHASE = _gate_IDLE = _gate_IGNORED
+_gate_basis_2q = _gate_IDLE = _gate_IGNORED
 
 
 def _gate_NOTIMPLEMENTED(gate, temp_resolved):

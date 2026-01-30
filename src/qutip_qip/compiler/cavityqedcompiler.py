@@ -1,6 +1,6 @@
 import numpy as np
 
-from qutip_qip.operations import GLOBALPHASE, RZ
+from qutip_qip.operations import RZ
 from qutip_qip.compiler import GateCompiler, Instruction
 
 
@@ -9,8 +9,7 @@ class CavityQEDCompiler(GateCompiler):
     Compiler for :obj:`.DispersiveCavityQED`.
     Compiled pulse strength is in the unit of GHz.
 
-    Supported native gates: "RX", "RY", "RZ", "ISWAP", "SQRTISWAP",
-    "GLOBALPHASE".
+    Supported native gates: "RX", "RY", "RZ", "ISWAP", "SQRTISWAP".
 
     Default configuration (see :obj:`.GateCompiler.args` and
     :obj:`.GateCompiler.compile`):
@@ -79,7 +78,6 @@ class CavityQEDCompiler(GateCompiler):
                 "SQRTISWAP": self.sqrtiswap_compiler,
                 "RZ": self.rz_compiler,
                 "RX": self.rx_compiler,
-                "GLOBALPHASE": self.globalphase_compiler,
             }
         )
         self.wq = np.sqrt(self.params["eps"] ** 2 + self.params["delta"] ** 2)
