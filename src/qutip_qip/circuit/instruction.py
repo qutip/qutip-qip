@@ -1,0 +1,102 @@
+from abc import ABC, abstractmethod, dataclass
+from qutip_qip.operations import Gate, Measurement
+
+def _validate_non_negative_int_tuple(T, txt="qubit"):
+    for q in T:
+        if not isinstance(q, int):
+            raise ValueError(
+                f"All {txt} indices must be an int, found {q}"
+            )
+
+        if q < 0:
+            raise ValueError(
+                f"{txt} indices must be non-negative, found {q}"
+            )
+
+
+@dataclass(frozen=True)
+class CircuitInstruction(ABC):
+    operation: Gate | Measurement
+    qubits: tuple[int] = tuple()
+    cbits: tuple[int] = tuple()
+    style: dict | None = None
+
+    def __post_init__(self):
+        """Basic validation for all instructions."""
+        if not len(self.qubits) and not len(self.cbits):
+            raise ValueError("Instruction must operate on at least one qubit or cbit.")
+
+        _validate_non_negative_int_tuple(self.qubits, "qubit")
+        _validate_non_negative_int_tuple(self.cbits, "cbit")
+
+        if len(self.qubits) != len(set(self.qubits)):
+            raise ValueError("Found repeated qubits")
+
+        if len(self.cbits) != len(set(self.cbits)):
+            raise ValueError("Found repeated cbits")
+
+    @property
+    def is_gate_instruction(self) -> bool:
+        if isinstance(self.operation, Gate) or issubclass(self.operation, Gate):
+            return True
+        return False
+
+    @property
+    def is_measurement_instruction(self) -> bool:
+        if isinstance(self.operation, Measurement) or issubclass(self.operation, Measurement):
+            return True
+        return False
+    
+    @abstractmethod
+    def __repr__(self):
+        raise NotImplementedError
+
+
+@dataclass(frozen=True)
+class GateInstruction(CircuitInstruction):
+    operation: Gate
+    control_value: int | None = None  # Temporary should be defined in ControlledGate class itself
+
+    def __post_init__(self):
+        super().__post_init__()
+        if not self.is_gate_instruction:
+            raise ValueError(
+                f"Operation must be a Gate, got {self.operation}"
+            )
+
+        if len(self.qubits) != self.operation.num_qubits:
+            raise ValueError(
+                f"Gate '{self.operation.name}' requires {self.operation.num_qubits} qubits"
+                f"But got {len(self.qubits)}."
+            )
+
+        # Add condition for verifying control_value and cbits
+
+    def controls(self) -> tuple[int]:
+        return self.qubits[: self.operation.num_ctrl_qubits]
+
+    def targets(self) -> tuple[int]:
+        return self.qubits[self.operation.num_ctrl_qubits: ]
+
+    def __repr__(self):
+        return (f"Gate({self.operation}), qubits({self.qubits}),\
+                cbits({self.cbits}), style({self.style})"
+        )
+
+
+@dataclass(frozen=True)
+class MeasurementInstruction(CircuitInstruction):
+    operation: Measurement
+
+    def __post_init__(self):
+        super().__post_init__()
+        if not self.is_measurement_instruction:
+            raise ValueError(
+                f"Operation must be a measurement, got {self.operation}"
+            )
+
+        if len(self.qubits) != len(self.cbits):
+            raise ValueError("Measurement requires equal number of qubits and cbits.")
+
+    def __repr__(self):
+        return f"Measure(q{self.qubits} -> c{self.cbits})"
