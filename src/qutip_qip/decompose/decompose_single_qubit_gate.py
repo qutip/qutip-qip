@@ -131,28 +131,28 @@ def _ZYZ_pauli_X(input_gate):
 
     Phase_gate = GLOBALPHASE(
         arg_value=global_phase_angle,
-        arg_label=r"{:0.2f} \times \pi".format(global_phase_angle / np.pi),
+        arg_label=rf"{(global_phase_angle / np.pi):0.2f} \times \pi",
     )
     Rz_A = RZ(
         arg_value=alpha,
-        arg_label=r"{:0.2f} \times \pi".format(alpha / np.pi),
+        arg_label=rf"{(alpha / np.pi):0.2f} \times \pi",
     )
     Ry_A = RY(
         arg_value=theta / 2,
-        arg_label=r"{:0.2f} \times \pi".format(theta / np.pi),
+        arg_label=rf"{(theta / np.pi):0.2f} \times \pi",
     )
     Pauli_X = X
     Ry_B = RY(
         arg_value=-theta / 2,
-        arg_label=r"{:0.2f} \times \pi".format(-theta / np.pi),
+        arg_label=rf"{(-theta / np.pi):0.2f} \times \pi",
     )
     Rz_B = RZ(
         arg_value=-(alpha + beta) / 2,
-        arg_label=r"{:0.2f} \times \pi".format(-(alpha + beta) / (2 * np.pi)),
+        arg_label=rf"{(-(alpha + beta) / (2 * np.pi)):0.2f} \times \pi",
     )
     Rz_C = RZ(
         arg_value=(-alpha + beta) / 2,
-        arg_label=r"{:0.2f} \times \pi".format((-alpha + beta) / (2 * np.pi)),
+        arg_label=rf"{((-alpha + beta) / (2 * np.pi)):0.2f} \times \pi",
     )
 
     return (Rz_A, Ry_A, Pauli_X, Ry_B, Rz_B, Pauli_X, Rz_C, Phase_gate)

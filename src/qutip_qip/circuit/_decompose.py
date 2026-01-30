@@ -36,9 +36,7 @@ _gate_SQRTISWAP = _gate_NOTIMPLEMENTED
 
 
 def _gate_SQRTNOT(gate, temp_resolved):
-    temp_resolved.add_gate(
-        GLOBALPHASE, arg_value=np.pi / 4, arg_label=r"\pi/4"
-    )
+    temp_resolved.add_global_phase(phase=np.pi / 4)
     temp_resolved.add_gate(
         RX, targets=gate.targets, arg_value=np.pi / 2, arg_label=r"\pi/2"
     )
@@ -59,9 +57,7 @@ _gate_H = _gate_SNOT
 
 
 def _gate_PHASEGATE(gate, temp_resolved):
-    temp_resolved.add_gate(
-        GLOBALPHASE, arg_value=gate.arg_value / 2, arg_label=gate.arg_label
-    )
+    temp_resolved.add_global_phase(phase=gate.arg_value / 2)
     temp_resolved.add_gate(
         RZ,
         targets=gate.targets,
@@ -72,6 +68,7 @@ def _gate_PHASEGATE(gate, temp_resolved):
 
 def _gate_CSIGN(gate, temp_resolved):
     half_pi = np.pi / 2
+    temp_resolved.add_global_phase(phase=np.pi)
     temp_resolved.add_gate(
         RY, targets=gate.targets, arg_value=half_pi, arg_label=r"\pi/2"
     )
@@ -85,7 +82,6 @@ def _gate_CSIGN(gate, temp_resolved):
     temp_resolved.add_gate(
         RX, targets=gate.targets, arg_value=np.pi, arg_label=r"\pi"
     )
-    temp_resolved.add_gate(GLOBALPHASE, arg_value=np.pi, arg_label=r"\pi")
 
 
 def _gate_SWAP(gate, temp_resolved):
@@ -102,6 +98,7 @@ def _gate_SWAP(gate, temp_resolved):
 
 def _gate_ISWAP(gate, temp_resolved):
     half_pi = np.pi / 2
+    temp_resolved.add_global_phase(phase=3 * half_pi)
     temp_resolved.add_gate(
         CNOT, targets=gate.targets[0], controls=gate.targets[1]
     )
@@ -131,9 +128,6 @@ def _gate_ISWAP(gate, temp_resolved):
     )
     temp_resolved.add_gate(
         RX, targets=gate.targets[0], arg_value=np.pi, arg_label=r"\pi"
-    )
-    temp_resolved.add_gate(
-        GLOBALPHASE, arg_value=3 * half_pi, arg_label=r"\pi/2"
     )
 
 
@@ -214,7 +208,7 @@ def _gate_FREDKIN(gate, temp_resolved):
     temp_resolved.add_gate(
         CNOT, controls=gate.targets[1], targets=gate.targets[0]
     )
-    temp_resolved.add_gate(GLOBALPHASE, arg_value=pi / 8, arg_label=r"\pi/8")
+    temp_resolved.add_global_phase(phase=pi/8)
 
 
 def _gate_TOFFOLI(gate, temp_resolved):
@@ -274,13 +268,13 @@ def _gate_TOFFOLI(gate, temp_resolved):
     temp_resolved.add_gate(
         CNOT, targets=gate.targets, controls=gate.controls[1]
     )
-    temp_resolved.add_gate(GLOBALPHASE, arg_value=np.pi, arg_label=r"\pi")
     temp_resolved.add_gate(
         RY, targets=gate.targets, arg_value=half_pi, arg_label=r"\pi/2"
     )
     temp_resolved.add_gate(
         RX, targets=gate.targets, arg_value=np.pi, arg_label=r"\pi"
     )
+    temp_resolved.add_global_phase(phase=np.pi)
 
 
 def _basis_CSIGN(qc_temp, temp_resolved):
@@ -312,6 +306,7 @@ def _basis_ISWAP(qc_temp, temp_resolved):
     for gate in temp_resolved.gates:
 
         if gate.name == "CNOT":
+            # temp_resolved.add_global_phase(phase=quarter_pi)
             qc_temp.add_gate(
                 "GLOBALPHASE",
                 arg_value=quarter_pi,
