@@ -7,7 +7,7 @@ from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations import ParametrizedGate
 
 
-class GateCompiler(object):
+class GateCompiler:
     """
     Base class of compilers, including the :meth:`GateCompiler.compile` method.
     It compiles a :class:`.QubitCircuit` into
