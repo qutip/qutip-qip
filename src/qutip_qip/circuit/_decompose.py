@@ -6,7 +6,6 @@ individual gate classes.
 
 import numpy as np
 from qutip_qip.operations import (
-    GLOBALPHASE,
     RX,
     RY,
     RZ,
@@ -44,7 +43,7 @@ def _gate_SQRTNOT(gate, temp_resolved):
 
 def _gate_SNOT(gate, temp_resolved):
     half_pi = np.pi / 2
-    temp_resolved.add_gate(GLOBALPHASE, arg_value=half_pi, arg_label=r"\pi/2")
+    temp_resolved.add_global_phase(phase=half_pi)
     temp_resolved.add_gate(
         RY, targets=gate.targets, arg_value=half_pi, arg_label=r"\pi/2"
     )
@@ -211,12 +210,11 @@ def _gate_FREDKIN(gate, temp_resolved):
     temp_resolved.add_global_phase(phase=pi/8)
 
 
+# TODO add a test for this
 def _gate_TOFFOLI(gate, temp_resolved):
     half_pi = np.pi / 2
     quarter_pi = np.pi / 4
-    temp_resolved.add_gate(
-        GLOBALPHASE, arg_value=np.pi / 8, arg_label=r"\pi/8"
-    )
+    temp_resolved.add_global_phase(phase=np.pi / 8)
     temp_resolved.add_gate(
         RZ, targets=gate.controls[1], arg_value=half_pi, arg_label=r"\pi/2"
     )
@@ -306,12 +304,7 @@ def _basis_ISWAP(qc_temp, temp_resolved):
     for gate in temp_resolved.gates:
 
         if gate.name == "CNOT":
-            # temp_resolved.add_global_phase(phase=quarter_pi)
-            qc_temp.add_gate(
-                "GLOBALPHASE",
-                arg_value=quarter_pi,
-                arg_label=r"\pi/4",
-            )
+            qc_temp.add_global_phase(phase=quarter_pi)
             qc_temp.add_gate(
                 "ISWAP", targets=[gate.controls[0], gate.targets[0]]
             )
@@ -350,11 +343,7 @@ def _basis_ISWAP(qc_temp, temp_resolved):
             )
 
         elif gate.name == "SWAP":
-            qc_temp.add_gate(
-                "GLOBALPHASE",
-                arg_value=quarter_pi,
-                arg_label=r"\pi/4",
-            )
+            qc_temp.add_global_phase(phase=quarter_pi)
             qc_temp.add_gate("ISWAP", targets=gate.targets)
             qc_temp.add_gate(
                 "RX",
@@ -473,11 +462,7 @@ def _basis_SQRTISWAP(qc_temp, temp_resolved):
                 arg_value=np.pi,
                 arg_label=r"\pi",
             )
-            qc_temp.add_gate(
-                "GLOBALPHASE",
-                arg_value=7 / 4 * np.pi,
-                arg_label=r"7\pi/4",
-            )
+            qc_temp.add_global_phase(phase=7 / 4 * np.pi)
         else:
             qc_temp.add_gate(gate, targets=gate.targets)  # TODO CHECK
 

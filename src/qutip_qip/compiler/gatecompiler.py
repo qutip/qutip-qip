@@ -126,13 +126,16 @@ class GateCompiler:
             one Hamiltonian.
             if ``return_array`` is false
         """
+        instruction_list = []
+
         if isinstance(circuit, QubitCircuit):
             instructions = circuit.instructions
+            self.global_phase += circuit.global_phase
+            self.global_phase %= 2 * np.pi
         else:
             instructions = circuit
         if args is not None:
             self.args.update(args)
-        instruction_list = []
 
         # compile gates
         for op in instructions:

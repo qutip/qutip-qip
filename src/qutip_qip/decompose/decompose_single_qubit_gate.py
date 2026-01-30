@@ -71,15 +71,15 @@ def _ZYZ_rotation(input_gate):
     )
     Rz_beta = RZ(
         arg_value=beta,
-        arg_label=r"{:0.2f} \times \pi".format(beta / np.pi),
+        arg_label=rf"{(beta / np.pi):0.2f} \times \pi",
     )
     Ry_theta = RY(
         arg_value=theta,
-        arg_label=r"{:0.2f} \times \pi".format(theta / np.pi),
+        arg_label=rf"{(theta / np.pi):0.2f} \times \pi",
     )
     Rz_alpha = RZ(
         arg_value=alpha,
-        arg_label=r"{:0.2f} \times \pi".format(alpha / np.pi),
+        arg_label=rf"{(alpha / np.pi):0.2f} \times \pi",
     )
 
     return (Rz_alpha, Ry_theta, Rz_beta, Phase_gate)
@@ -106,15 +106,15 @@ def _ZXZ_rotation(input_gate):
     )
     Rz_alpha = RZ(
         arg_value=alpha,
-        arg_label=r"{:0.2f} \times \pi".format(alpha / np.pi),
+        arg_label=rf"{(alpha / np.pi):0.2f} \times \pi".format,
     )
     Rx_theta = RX(
         arg_value=theta,
-        arg_label=r"{:0.2f} \times \pi".format(theta / np.pi),
+        arg_label=rf"{(theta / np.pi):0.2f} \times \pi",
     )
     Rz_beta = RZ(
         arg_value=beta,
-        arg_label=r"{:0.2f} \times \pi".format(beta / np.pi),
+        arg_label=rf"{(beta / np.pi):0.2f} \times \pi",
     )
 
     return (Rz_alpha, Rx_theta, Rz_beta, Phase_gate)
