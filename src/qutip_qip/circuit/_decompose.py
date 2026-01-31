@@ -284,61 +284,68 @@ def _gate_TOFFOLI(gate, temp_resolved):
 
 def _basis_CSIGN(qc_temp, temp_resolved):
     half_pi = np.pi / 2
-    for gate in temp_resolved.gates:
+    for op in temp_resolved.instructions:
+        gate = op.operation
+        targets = op.targets()
+        controls = op.controls()
+
         if gate.name == "CNOT":
             qc_temp.add_gate(
                 "RY",
-                targets=gate.targets,
+                targets=targets,
                 arg_value=-half_pi,
                 arg_label=r"-\pi/2",
             )
             qc_temp.add_gate(
-                "CSIGN", targets=gate.targets, controls=gate.controls
+                "CSIGN", targets=targets, controls=controls
             )
             qc_temp.add_gate(
                 "RY",
-                targets=gate.targets,
+                targets=targets,
                 arg_value=half_pi,
                 arg_label=r"\pi/2",
             )
         else:
-            qc_temp.add_gate(gate, targets=gate.targets)  # TODO CHECK
+            qc_temp.add_gate(gate, targets=targets)  # TODO CHECK
 
 
 def _basis_ISWAP(qc_temp, temp_resolved):
     half_pi = np.pi / 2
     quarter_pi = np.pi / 4
-    for gate in temp_resolved.gates:
+    for op in temp_resolved.instructions:
+        gate = op.operation
+        targets = op.targets()
+        controls = op.controls()
 
         if gate.name == "CNOT":
             qc_temp.add_global_phase(phase=quarter_pi)
             qc_temp.add_gate(
-                "ISWAP", targets=[gate.controls[0], gate.targets[0]]
+                "ISWAP", targets=[controls[0], targets[0]]
             )
             qc_temp.add_gate(
                 "RZ",
-                targets=gate.targets,
+                targets=targets,
                 arg_value=-half_pi,
                 arg_label=r"-\pi/2",
             )
             qc_temp.add_gate(
                 "RY",
-                targets=gate.controls,
+                targets=controls,
                 arg_value=-half_pi,
                 arg_label=r"-\pi/2",
             )
             qc_temp.add_gate(
                 "RZ",
-                targets=gate.controls,
+                targets=controls,
                 arg_value=half_pi,
                 arg_label=r"\pi/2",
             )
             qc_temp.add_gate(
-                "ISWAP", targets=[gate.controls[0], gate.targets[0]]
+                "ISWAP", targets=[controls[0], targets[0]]
             )
             qc_temp.add_gate(
                 "RY",
-                targets=gate.targets,
+                targets=targets,
                 arg_value=-half_pi,
                 arg_label=r"-\pi/2",
             )
@@ -351,127 +358,133 @@ def _basis_ISWAP(qc_temp, temp_resolved):
 
         elif gate.name == "SWAP":
             qc_temp.add_global_phase(phase=quarter_pi)
-            qc_temp.add_gate("ISWAP", targets=gate.targets)
+            qc_temp.add_gate("ISWAP", targets=targets)
             qc_temp.add_gate(
                 "RX",
-                targets=gate.targets[0],
+                targets=targets[0],
                 arg_value=-half_pi,
                 arg_label=r"-\pi/2",
             )
-            qc_temp.add_gate("ISWAP", targets=gate.targets)
+            qc_temp.add_gate("ISWAP", targets=targets)
             qc_temp.add_gate(
                 "RX",
-                targets=gate.targets[1],
+                targets=targets[1],
                 arg_value=-half_pi,
                 arg_label=r"-\pi/2",
             )
-            qc_temp.add_gate("ISWAP", targets=gate.targets)
+            qc_temp.add_gate("ISWAP", targets=targets)
             qc_temp.add_gate(
                 "RX",
-                targets=gate.targets[0],
+                targets=targets[0],
                 arg_value=-half_pi,
                 arg_label=r"-\pi/2",
             )
 
         else:
-            qc_temp.add_gate(gate, targets=gate.targets)  # TODO CHECK
+            qc_temp.add_gate(gate, targets=targets)  # TODO CHECK
 
 
 def _basis_SQRTSWAP(qc_temp, temp_resolved):
     half_pi = np.pi / 2
-    for gate in temp_resolved.gates:
+    for op in temp_resolved.instructions:
+        gate = op.operation
+        targets = op.targets()
+        controls = op.controls()
 
         if gate.name == "CNOT":
             qc_temp.add_gate(
                 "RY",
-                targets=gate.targets,
+                targets=targets,
                 arg_value=half_pi,
                 arg_label=r"\pi/2",
             )
             qc_temp.add_gate(
-                "SQRTSWAP", targets=[gate.controls[0], gate.targets[0]]
+                "SQRTSWAP", targets=[controls[0], targets[0]]
             )
             qc_temp.add_gate(
                 "RZ",
-                targets=gate.controls,
+                targets=controls,
                 arg_value=np.pi,
                 arg_label=r"\pi",
             )
             qc_temp.add_gate(
-                "SQRTSWAP", targets=[gate.controls[0], gate.targets[0]]
+                "SQRTSWAP", targets=[controls[0], targets[0]]
             )
             qc_temp.add_gate(
                 "RZ",
-                targets=gate.targets,
+                targets=targets,
                 arg_value=-half_pi,
                 arg_label=r"-\pi/2",
             )
             qc_temp.add_gate(
                 "RY",
-                targets=gate.targets,
+                targets=targets,
                 arg_value=-half_pi,
                 arg_label=r"-\pi/2",
             )
             qc_temp.add_gate(
                 "RZ",
-                targets=gate.controls,
+                targets=controls,
                 arg_value=-half_pi,
                 arg_label=r"-\pi/2",
             )
         else:
-            qc_temp.add_gate(gate, targets=gate.targets)  # TODO CHECK
+            qc_temp.add_gate(gate, targets=targets)  # TODO CHECK
 
 
 def _basis_SQRTISWAP(qc_temp, temp_resolved):
     half_pi = np.pi / 2
-    for gate in temp_resolved.gates:
+    for op in temp_resolved.instructions:
+        gate = op.operation
+        targets = op.targets()
+        controls = op.controls()
 
         if gate.name == "CNOT":
             qc_temp.add_gate(
                 "RY",
-                targets=gate.controls,
+                targets=controls,
                 arg_value=-half_pi,
                 arg_label=r"-\pi/2",
             )
             qc_temp.add_gate(
                 "RX",
-                targets=gate.controls,
+                targets=controls,
                 arg_value=half_pi,
                 arg_label=r"\pi/2",
             )
             qc_temp.add_gate(
                 "RX",
-                targets=gate.targets,
+                targets=targets,
                 arg_value=-half_pi,
                 arg_label=r"-\pi/2",
             )
             qc_temp.add_gate(
-                "SQRTISWAP", targets=[gate.controls[0], gate.targets[0]]
+                "SQRTISWAP", targets=[controls[0], targets[0]]
             )
             qc_temp.add_gate(
                 "RX",
-                targets=gate.controls,
+                targets=controls,
                 arg_value=np.pi,
                 arg_label=r"\pi",
             )
             qc_temp.add_gate(
-                "SQRTISWAP", targets=[gate.controls[0], gate.targets[0]]
+                "SQRTISWAP", targets=[controls[0], targets[0]]
             )
             qc_temp.add_gate(
                 "RY",
-                targets=gate.controls,
+                targets=controls,
                 arg_value=half_pi,
                 arg_label=r"\pi/2",
             )
             qc_temp.add_gate(
                 "RZ",
-                targets=gate.controls,
+                targets=controls,
                 arg_value=np.pi,
                 arg_label=r"\pi",
             )
             qc_temp.add_global_phase(phase=7 / 4 * np.pi)
         else:
-            qc_temp.add_gate(gate, targets=gate.targets)  # TODO CHECK
+            qc_temp.add_gate(gate, targets=targets)  # TODO CHECK
 
 
 def _resolve_2q_basis(basis, qc_temp, temp_resolved):

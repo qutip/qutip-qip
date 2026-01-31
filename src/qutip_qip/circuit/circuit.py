@@ -201,7 +201,7 @@ class QubitCircuit:
     def add_gate(
         self,
         gate,
-        targets=None,
+        targets=[],
         controls=None,
         arg_value=None,
         arg_label=None,
