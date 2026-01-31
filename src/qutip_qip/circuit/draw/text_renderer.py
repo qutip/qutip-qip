@@ -198,7 +198,7 @@ class TextRenderer(BaseRenderer):
         ), len(top_frame)
 
     def _draw_measurement_gate(
-        self, measurement: Measurement
+        self, measurement: Measurement,
     ) -> tuple[tuple[str, str, str], int]:
         """
         Draw a measurement gate
@@ -426,19 +426,16 @@ class TextRenderer(BaseRenderer):
         """
         self._add_wire_labels()
 
-        for gate in self._qc.gates:
-            if isinstance(gate, Gate):
+        for op in self._qc.instructions:
+            if op.is_gate_instruction:
+                gate = op.operation
                 gate_text = gate.name
 
-                if isinstance(gate, ParametrizedGate):
-                    gate_text = (
-                        gate.arg_label
-                        if gate.arg_label is not None
-                        else gate.name
-                    )
+                if isinstance(gate, ParametrizedGate) and gate.arg_label is not None:
+                    gate_text = gate.arg_label
 
             # generate the parts, width and wire_list for the gates
-            if isinstance(gate, Measurement):
+            if op.is_measurement_instruction():
                 wire_list = list(range(gate.targets[0] + 1)) + list(
                     range(
                         gate.classical_store + self._qwires,

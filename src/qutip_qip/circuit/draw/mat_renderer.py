@@ -16,7 +16,6 @@ from qutip_qip.circuit import QubitCircuit
 from qutip_qip.circuit.draw import BaseRenderer, StyleConfig
 from qutip_qip.operations import (
     Gate,
-    Measurement,
     ControlledGate,
     ParametrizedGate,
 )
@@ -769,14 +768,19 @@ class MatRenderer(BaseRenderer):
 
         self._add_wire_labels()
 
-        for gate in self._qc.gates:
-            if isinstance(gate, Measurement):
-                self.merged_wires = gate.targets.copy()
+        for instruction in self._qc.instructions:
+            gate = instruction.operation
+            qubits = instruction.qubits
+            cbits = instruction.cbits
+            style = instruction.style
+
+            if instruction.is_measurement_instruction():
+                self.merged_wires = list(qubits)
                 self.merged_wires.sort()
 
                 self._draw_measure(
-                    gate.classical_store,
-                    gate.targets[0],
+                    cbits[0],
+                    qubits[0],
                     max(
                         len(self._layer_list[i])
                         for i in range(0, self.merged_wires[-1] + 1)
@@ -784,7 +788,9 @@ class MatRenderer(BaseRenderer):
                 )
 
             if isinstance(gate, Gate):
-                style = gate.style if gate.style is not None else {}
+                targets = instruction.targets
+                controls = instruction.controls
+                style = style if style is not None else {}
                 self.text = gate.name
 
                 if isinstance(gate, ParametrizedGate):
@@ -807,15 +813,12 @@ class MatRenderer(BaseRenderer):
                 self.fontfamily = style.get("fontfamily", "monospace")
                 self.showarg = style.get("showarg", False)
 
-                self.merged_wires = (
-                    gate.targets.copy()
-                    if gate.targets is not None
-                    else list(range(self._qwires))
-                )
+                self.merged_wires = list(targets)
                 if isinstance(gate, ControlledGate):
-                    self.merged_wires += gate.controls.copy()
+                    self.merged_wires.extend(controls)
                 self.merged_wires.sort()
-                if gate.classical_controls is not None:
+
+                if cbits != tuple():
                     self.merged_wires = list(
                         range(0, self.merged_wires[-1] + 1)
                     )
@@ -861,7 +864,7 @@ class MatRenderer(BaseRenderer):
 
         # Adjusting to square dimensions in jupyter to prevent small fig size with equal-aspect cmd
         try:
-            get_ipython()
+            get_ipython()  # FIXME undefined
             max_dim = max(xlim[1] - xlim[0], ylim[1] - ylim[0])
             self.fig.set_size_inches(max_dim, max_dim, forward=True)
         except NameError:

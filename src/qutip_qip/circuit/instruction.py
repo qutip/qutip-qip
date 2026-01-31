@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from qutip_qip.operations import Gate, Measurement
 
 def _validate_non_negative_int_tuple(T, txt="qubit"):
@@ -23,7 +23,7 @@ class CircuitInstruction(ABC):
     operation: Gate | Measurement
     qubits: tuple[int] = tuple()
     cbits: tuple[int] = tuple()
-    style: dict | None = None
+    style: dict = field(default_factory=dict)
 
     def __post_init__(self):
         """Basic validation for all instructions."""

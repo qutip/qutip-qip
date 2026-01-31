@@ -25,7 +25,7 @@ class TeXRenderer:
         self.qc = qc
         self.N = qc.N
         self.num_cbits = qc.num_cbits
-        self.gates = qc.gates
+        self.instructions = qc.instructions
         self.input_states = qc.input_states
         self.reverse_states = qc.reverse_states
 
@@ -59,23 +59,24 @@ class TeXRenderer:
 
         rows = []
         col = []
-        ops = self.gates
 
-        for op in ops:
-            if isinstance(op, Gate):
-                gate = op
+        for op in self.instructions:
+            if op.is_gate_instruction():
+                gate = op.operation
+                targets = op.targets
+                controls = op.controls
                 col = []
                 _swap_processing = False
 
                 for n in range(self.N + self.num_cbits):
-                    if gate.targets and n in gate.targets:
-                        if len(gate.targets) > 1:
+                    if targets and n in targets:
+                        if len(targets) > 1:
                             if gate.name == "SWAP":
                                 if _swap_processing:
                                     col.append(r" \qswap \qw")
                                     continue
                                 distance = abs(
-                                    gate.targets[1] - gate.targets[0]
+                                    targets[1] - targets[0]
                                 )
 
                                 if self.reverse_states:
@@ -84,15 +85,15 @@ class TeXRenderer:
                                 _swap_processing = True
 
                             elif (
-                                self.reverse_states and n == max(gate.targets)
+                                self.reverse_states and n == max(targets)
                             ) or (
                                 not self.reverse_states
-                                and n == min(gate.targets)
+                                and n == min(targets)
                             ):
                                 # Python automatically concatenates adjacent string literals
                                 # No new line is added in the process
                                 col.append(
-                                    rf" \multigate{{{len(gate.targets) - 1}}}"
+                                    rf" \multigate{{{len(targets) - 1}}}"
                                     rf"{{{self._gate_label(gate)}}} "
                                 )
                             else:
@@ -116,10 +117,10 @@ class TeXRenderer:
                             col.append(rf" \gate{{{self._gate_label(gate)}}} ")
 
                     elif (
-                        isinstance(gate, ControlledGate) and n in gate.controls
+                        isinstance(gate, ControlledGate) and n in controls
                     ):
                         control_tag = (-1 if self.reverse_states else 1) * (
-                            gate.targets[0] - n
+                            targets[0] - n
                         )
                         col.append(rf" \ctrl{{{control_tag}}} ")
 
@@ -128,13 +129,13 @@ class TeXRenderer:
                         and (n - self.N) in gate.classical_controls
                     ):
                         control_tag = (-1 if self.reverse_states else 1) * (
-                            gate.targets[0] - n
+                            targets[0] - n
                         )
                         col.append(rf" \ctrl{{{control_tag}}} ")
 
                     elif (
                         not isinstance(gate, ControlledGate)
-                        and not gate.targets
+                        and not targets
                     ):
                         # global gate
                         if (self.reverse_states and n == self.N - 1) or (
@@ -150,14 +151,17 @@ class TeXRenderer:
                         col.append(r" \qw ")
 
             else:
-                measurement = op
+                measurement = op.operation
+                qubits = op.qubits
+                cbits = op.cbits[0]
                 col = []
+
                 for n in range(self.N + self.num_cbits):
-                    if n in measurement.targets:
+                    if n in qubits:
                         col.append(r" \meter")
-                    elif (n - self.N) == measurement.classical_store:
+                    elif (n - self.N) == cbits:
                         sgn = 1 if self.reverse_states else -1
-                        store_tag = sgn * (n - measurement.targets[0])
+                        store_tag = sgn * (n - qubits[0])
                         col.append(rf" \qw \cwx[{store_tag}] ")
                     else:
                         col.append(r" \qw ")
@@ -183,7 +187,7 @@ class TeXRenderer:
         )
         for n in n_iter:
             code += rf" & {input_states[n]}"
-            for m in range(len(ops)):
+            for m in range(len(self.instructions)):
                 code += rf" & {rows[m][n]}"
             code += r" & \qw \\ " + "\n"
 
