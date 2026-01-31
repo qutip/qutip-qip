@@ -331,6 +331,7 @@ class QubitCircuit:
             )
         )
 
+    # FIXME by design add_circuit won't work for custom gates becauae of gate.name
     def add_circuit(self, qc, start=0): # TODO Instead of start have a qubit mapping?
         """
         Adds a block of a qubit circuit to the main circuit.
@@ -357,17 +358,16 @@ class QubitCircuit:
 
                 self.add_gate(
                     gate.name,
-                    targets=targets,
-                    controls=controls,
+                    targets=[start + t for t in targets],
+                    controls=[start + c for c in controls],
                     arg_value=arg,
                 )
 
             elif circuit_op.is_measurement_instruction:
-                meas = circuit_op.operation
                 self.add_measurement(
-                    meas.name,
-                    targets=[target + start for target in meas.targets],
-                    classical_store=meas.classical_store,
+                    circuit_op.operation.name,
+                    targets=[target + start for target in circuit_op.qubits],
+                    classical_store=list(circuit_op.cbits),
                 )
 
             else:

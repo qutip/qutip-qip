@@ -482,12 +482,15 @@ def custom_gate_factory(name: str, U: Qobj) -> Gate:
 
         @property
         def qubit_count(self) -> int:
-            return int(np.log2(len(U.dims)))
+            return int(np.log2(U.shape[0]))
 
     return CustomGate
 
 
-def controlled_gate_factory(target_gate: Gate) -> ControlledGate:
+def controlled_gate_factory(
+    target_gate: Gate,
+    num_ctrl_qubits: int = 1,
+) -> ControlledGate:
     """
     Gate Factory for Custom Gate that wraps an arbitrary unitary matrix U.
     """
@@ -495,6 +498,14 @@ def controlled_gate_factory(target_gate: Gate) -> ControlledGate:
     class _CustomGate(ControlledGate):
         latex_str = r"{\rm CU}"
         _target_gate_class = target_gate
+
+        @property
+        def num_ctrl_qubits(self) -> int:
+            return num_ctrl_qubits
+
+        @property
+        def qubit_count(self) -> int:
+            return target_gate.qubit_count + self.num_ctrl_qubits
 
     return _CustomGate
 
