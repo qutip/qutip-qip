@@ -149,8 +149,8 @@ class QubitCircuit:
     def add_measurement(
         self,
         measurement,
-        targets=None,
-        classical_store=None,
+        targets,
+        classical_store,
         index=None,
     ):
         """
@@ -163,10 +163,10 @@ class QubitCircuit:
             parameters are unpacked and added.
         targets: list
             Gate targets
-        index : list
-            Positions to add the gate.
         classical_store : int
             Classical register where result of measurement is stored.
+        index : list
+            Positions to add the gate.
         """
         if index is not None:
             raise ValueError("argument index is no longer supported")
