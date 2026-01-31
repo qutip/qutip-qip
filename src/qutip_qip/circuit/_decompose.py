@@ -286,8 +286,8 @@ def _basis_CSIGN(qc_temp, temp_resolved):
     half_pi = np.pi / 2
     for op in temp_resolved.instructions:
         gate = op.operation
-        targets = op.targets()
-        controls = op.controls()
+        targets = op.targets
+        controls = op.controls
 
         if gate.name == "CNOT":
             qc_temp.add_gate(
@@ -314,8 +314,8 @@ def _basis_ISWAP(qc_temp, temp_resolved):
     quarter_pi = np.pi / 4
     for op in temp_resolved.instructions:
         gate = op.operation
-        targets = op.targets()
-        controls = op.controls()
+        targets = op.targets
+        controls = op.controls
 
         if gate.name == "CNOT":
             qc_temp.add_global_phase(phase=quarter_pi)
@@ -388,8 +388,8 @@ def _basis_SQRTSWAP(qc_temp, temp_resolved):
     half_pi = np.pi / 2
     for op in temp_resolved.instructions:
         gate = op.operation
-        targets = op.targets()
-        controls = op.controls()
+        targets = op.targets
+        controls = op.controls
 
         if gate.name == "CNOT":
             qc_temp.add_gate(
@@ -436,8 +436,8 @@ def _basis_SQRTISWAP(qc_temp, temp_resolved):
     half_pi = np.pi / 2
     for op in temp_resolved.instructions:
         gate = op.operation
-        targets = op.targets()
-        controls = op.controls()
+        targets = op.targets
+        controls = op.controls
 
         if gate.name == "CNOT":
             qc_temp.add_gate(

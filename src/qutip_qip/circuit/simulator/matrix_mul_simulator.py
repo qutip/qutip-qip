@@ -216,7 +216,7 @@ class CircuitSimulator:
         num_measurements = len(
             list(
                 filter(
-                    lambda x: x.is_measurement_instruction,
+                    lambda x: x.is_measurement_instruction(),
                     self.qc.instructions,
                 )
             )
@@ -246,10 +246,10 @@ class CircuitSimulator:
         op = self.qc.instructions[self._op_index].operation
         current_state = self._state
 
-        if self.qc.instructions[self._op_index].is_measurement_instruction:
+        if self.qc.instructions[self._op_index].is_measurement_instruction():
             state = self._apply_measurement(op, current_state)
 
-        elif self.qc.instructions[self._op_index].is_gate_instruction:
+        elif self.qc.instructions[self._op_index].is_gate_instruction():
             qubits = self.qc.instructions[self._op_index].qubits
             classical_controls = self.qc.instructions[self._op_index].cbits
             classical_control_value = (

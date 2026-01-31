@@ -347,10 +347,10 @@ class QubitCircuit:
             raise NotImplementedError("Targets exceed number of qubits.")
 
         for circuit_op in qc.instructions:
-            if circuit_op.is_gate_instruction:
+            if circuit_op.is_gate_instruction():
                 gate = circuit_op.operation
-                targets = circuit_op.targets()
-                controls = circuit_op.controls()
+                targets = circuit_op.targets
+                controls = circuit_op.controls
 
                 arg = None
                 if isinstance(gate, ParametrizedGate):
@@ -363,7 +363,7 @@ class QubitCircuit:
                     arg_value=arg,
                 )
 
-            elif circuit_op.is_measurement_instruction:
+            elif circuit_op.is_measurement_instruction():
                 self.add_measurement(
                     circuit_op.operation.name,
                     targets=[target + start for target in circuit_op.qubits],
@@ -546,7 +546,7 @@ class QubitCircuit:
         num_measurements = len(
             list(
                 filter(
-                    lambda x: x.is_measurement_instruction, self.instructions
+                    lambda x: x.is_measurement_instruction(), self.instructions
                 )
             )
         )
@@ -742,7 +742,7 @@ class QubitCircuit:
         gates = [
             (op.operation, op.qubits)
             for op in self.instructions
-            if op.is_gate_instruction
+            if op.is_gate_instruction()
         ]
         if len(gates) < len(self.instructions) and not ignore_measurement:
             raise TypeError(
@@ -875,7 +875,7 @@ class QubitCircuit:
 
         for op in self.instructions:
 
-            if (op.is_gate_instruction and 
+            if (op.is_gate_instruction() and 
                 not qasm_out.is_defined(op.operation.name)
             ):
                 qasm_out._qasm_defns(op.operation)

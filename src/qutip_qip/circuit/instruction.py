@@ -39,13 +39,11 @@ class CircuitInstruction(ABC):
         if len(self.cbits) != len(set(self.cbits)):
             raise ValueError("Found repeated cbits")
 
-    @property
     def is_gate_instruction(self) -> bool:
         if isinstance(self.operation, Gate):
             return True
         return False
 
-    @property
     def is_measurement_instruction(self) -> bool:
         if isinstance(self.operation, Measurement):
             return True
@@ -63,7 +61,7 @@ class GateInstruction(CircuitInstruction):
 
     def __post_init__(self):
         super().__post_init__()
-        if not self.is_gate_instruction:
+        if not self.is_gate_instruction():
             raise ValueError(
                 f"Operation must be a Gate, got {self.operation}"
             )
@@ -76,9 +74,11 @@ class GateInstruction(CircuitInstruction):
 
         # Add condition for verifying control_value and cbits
 
+    @property
     def controls(self) -> tuple[int]:
         return self.qubits[: self.operation.num_ctrl_qubits]
 
+    @property
     def targets(self) -> tuple[int]:
         return self.qubits[self.operation.num_ctrl_qubits: ]
 
@@ -94,7 +94,7 @@ class MeasurementInstruction(CircuitInstruction):
 
     def __post_init__(self):
         super().__post_init__()
-        if not self.is_measurement_instruction:
+        if not self.is_measurement_instruction():
             raise ValueError(
                 f"Operation must be a measurement, got {self.operation}"
             )
