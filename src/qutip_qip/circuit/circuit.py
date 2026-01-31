@@ -700,8 +700,10 @@ class QubitCircuit:
                     arg_value=half_pi,
                     arg_label=r"\pi/2",
                 )
+            elif isinstance(gate, ControlledGate):
+                qc_temp.add_gate(gate, targets=gate.targets, controls=gate.controls)
             else:
-                qc_temp.add_gate(gate, targets=gate.targets)  # TODO CHECK
+                qc_temp.add_gate(gate, targets=gate.targets)
 
         return qc_temp
 

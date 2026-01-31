@@ -68,7 +68,7 @@ class Instruction:
 
         :type: list
         """
-        return self.gate.targets
+        return list(self.gate.targets)
 
     @property
     def controls(self):
@@ -78,5 +78,5 @@ class Instruction:
         :type: list
         """
         if isinstance(self.gate, ControlledGate):
-            return self.gate.controls
+            return list(self.gate.controls)
         return None

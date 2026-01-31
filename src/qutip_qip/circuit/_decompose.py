@@ -10,6 +10,7 @@ from qutip_qip.operations import (
     RY,
     RZ,
     CNOT,
+    ControlledGate
 )
 
 
@@ -17,7 +18,10 @@ __all__ = ["_resolve_to_universal", "_resolve_2q_basis"]
 
 
 def _gate_IGNORED(gate, temp_resolved):
-    temp_resolved.add_gate(gate, targets=gate.targets)
+    if isinstance(gate, ControlledGate):
+        temp_resolved.add_gate(gate, targets=gate.targets, controls=gate.controls)
+    else:
+        temp_resolved.add_gate(gate, targets=gate.targets)
 
 def _controlled_gate_IGNORED(gate, temp_resolved):
     temp_resolved.add_gate(gate, targets=gate.targets, controls=gate.controls)

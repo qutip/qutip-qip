@@ -169,11 +169,17 @@ def qc4():
                 **kwargs,
             )
 
+        @property
+        def qubit_count(self):
+            return 2
+
         def get_compact_qobj(self):
             pass
 
     class ii(i):
-        pass
+        @property
+        def qubit_count(self):
+            return 3
 
     class iii(i):
         pass

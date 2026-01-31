@@ -1,6 +1,7 @@
 from collections.abc import Iterable
 from abc import ABC, abstractmethod
 
+import numpy as np
 from qutip import Qobj
 from qutip_qip.operations import controlled_gate, expand_operator
 
@@ -479,10 +480,9 @@ def custom_gate_factory(name: str, U: Qobj) -> Gate:
         def get_compact_qobj():
             return U
 
-        @staticmethod
         @property
-        def qubit_count() -> int:
-            return U.dims
+        def qubit_count(self) -> int:
+            return int(np.log2(len(U.dims)))
 
     return CustomGate
 

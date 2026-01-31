@@ -69,7 +69,6 @@ class GateInstruction(CircuitInstruction):
             )
 
         if len(self.qubits) != self.operation.qubit_count:
-            print(self.operation.qubit_count)
             raise ValueError(
                 f"Gate '{self.operation.name}' requires {self.operation.qubit_count} qubits"
                 f"But got {len(self.qubits)}."

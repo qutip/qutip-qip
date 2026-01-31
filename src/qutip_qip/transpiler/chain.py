@@ -287,9 +287,9 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
                 gate,
                 targets=targets,
                 controls=controls,
-                classical_controls=op[2],
-                classical_control_value=op[3],
-                style=op[4],
+                classical_controls=op.cbits,
+                classical_control_value=op.control_value,
+                style=op.style,
             )
 
     return qc_t
