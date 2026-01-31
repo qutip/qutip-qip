@@ -19,9 +19,12 @@ __all__ = ["_resolve_to_universal", "_resolve_2q_basis"]
 def _gate_IGNORED(gate, temp_resolved):
     temp_resolved.add_gate(gate, targets=gate.targets)
 
+def _controlled_gate_IGNORED(gate, temp_resolved):
+    temp_resolved.add_gate(gate, targets=gate.targets, controls=gate.controls)
 
-_gate_RX = _gate_RY = _gate_RZ = _gate_CNOT = _gate_IGNORED
+_gate_RX = _gate_RY = _gate_RZ = _gate_IGNORED
 _gate_basis_2q = _gate_IDLE = _gate_IGNORED
+_gate_CNOT = _controlled_gate_IGNORED
 
 
 def _gate_NOTIMPLEMENTED(gate, temp_resolved):

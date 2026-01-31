@@ -653,13 +653,16 @@ class RZX(ParametrizedTwoQubitGate):
         )
 
 
-class _ControlledTwoQubitGate(ControlledGate, TwoQubitGate):
+class _ControlledTwoQubitGate(ControlledGate):
     """
     This class allows correctly generating the gate instance
     when a redundant control_value is given, e.g.
     ``CNOT(0, 1, control_value=1)``,
     and raise an error if it is 0.
     """
+    @property
+    def qubit_count(self) -> int:
+        return 2
 
 
 class CNOT(_ControlledTwoQubitGate):
@@ -858,8 +861,9 @@ class _ControlledParamTwoQubitGate(ControlledParamGate):
     ``CNOT(0, 1, control_value=1)``,
     and raise an error if it is 0.
     """
-
-    ...
+    @property
+    def qubit_count(self) -> int:
+        return 2
 
 
 class CPHASE(_ControlledParamTwoQubitGate):
@@ -1032,6 +1036,10 @@ class TOFFOLI(ControlledGate):
     latex_str = r"{\rm TOFFOLI}"
     _target_gate_class = X
 
+    @property
+    def qubit_count(self) -> int:
+        return 3
+
     @staticmethod
     def get_compact_qobj():
         return Qobj(
@@ -1071,6 +1079,10 @@ class FREDKIN(ControlledGate):
 
     latex_str = r"{\rm FREDKIN}"
     _target_gate_class = SWAP
+
+    @property
+    def qubit_count(self) -> int:
+        return 3
 
     @staticmethod
     def get_compact_qobj():

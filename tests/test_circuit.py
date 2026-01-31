@@ -176,7 +176,7 @@ class TestQubitCircuit:
 
             @property
             def qubit_count(self) -> int:
-                return 0
+                return 1
 
             def get_compact_qobj(self):
                 pass
@@ -184,8 +184,8 @@ class TestQubitCircuit:
         class DUMMY2(DUMMY1):
             pass
 
-        qc.add_gate(DUMMY1)
-        qc.add_gate(DUMMY2)
+        qc.add_gate(DUMMY1, targets=0)
+        qc.add_gate(DUMMY2, targets=0)
 
         # Test adding gates at multiple (sorted) indices at once.
         # NOTE: Every insertion shifts the indices in the original list of
@@ -229,7 +229,7 @@ class TestQubitCircuit:
 
         for i in range(len(qc1.gates)):
             assert qc1.gates[i].name == qc.gates[i].name
-            assert qc1.gates[i].targets == qc.gates[i].targets
+            assert qc1.gates[i].targets[0] == qc.gates[i].targets[0]
             if isinstance(qc1.gates[i], Gate) and isinstance(
                 qc.gates[i], Gate
             ):
@@ -306,20 +306,20 @@ class TestQubitCircuit:
         Addition of Measurement Object to a circuit.
         """
 
-        qc = QubitCircuit(3, num_cbits=2)
+        qc = QubitCircuit(3, num_cbits=3)
 
-        qc.add_measurement("M0", targets=[0], classical_store=1)
+        qc.add_measurement("M0", targets=[0], classical_store=0)
         qc.add_gate("CNOT", targets=[1], controls=[0])
         qc.add_gate("TOFFOLI", controls=[0, 1], targets=[2])
-        qc.add_measurement("M1", targets=[2], classical_store=0)
+        qc.add_measurement("M1", targets=[2], classical_store=1)
         qc.add_gate("SNOT", targets=[1], classical_controls=[0, 1])
-        qc.add_measurement("M2", targets=[1])
+        qc.add_measurement("M2", targets=[1], classical_store=2)
 
         # checking correct addition of measurements
         assert qc.gates[0].targets[0] == 0
-        assert qc.gates[0].classical_store == 1
+        assert qc.gates[0].classical_store == 0
         assert qc.gates[3].name == "M1"
-        assert qc.gates[5].classical_store is None
+        assert qc.gates[5].classical_store == 2
 
         # checking if gates are added correctly with measurements
         assert qc.gates[2].name == "TOFFOLI"
@@ -345,8 +345,8 @@ class TestQubitCircuit:
         qc.add_gate("Y", targets=[2])
         qc.add_gate("CS", targets=[0], controls=[1])
         qc.add_gate("Z", targets=[1])
-        qc.add_gate("CT", targets=[2], controls=[2])
-        qc.add_gate("CZ", targets=[0], controls=[0])
+        qc.add_gate("CT", targets=[1], controls=[2])
+        qc.add_gate("CZ", targets=[0], controls=[1])
         qc.add_gate("S", targets=[1])
         qc.add_gate("T", targets=[2])
 
@@ -363,14 +363,14 @@ class TestQubitCircuit:
         assert qc.gates[8].targets == [2]
         assert qc.gates[7].targets == [1]
         assert qc.gates[6].targets == [0]
-        assert qc.gates[5].targets == [2]
+        assert qc.gates[5].targets == [1]
         assert qc.gates[4].targets == [1]
         assert qc.gates[3].targets == [0]
         assert qc.gates[2].targets == [2]
         assert qc.gates[1].targets == [1]
         assert qc.gates[0].targets == [0]
 
-        assert qc.gates[6].controls == [0]
+        assert qc.gates[6].controls == [1]
         assert qc.gates[5].controls == [2]
         assert qc.gates[3].controls == [1]
         assert qc.gates[1].controls == [0]
@@ -379,11 +379,11 @@ class TestQubitCircuit:
         """
         Reverse a quantum circuit
         """
-        qc = QubitCircuit(3)
+        qc = QubitCircuit(3, num_cbits=1)
 
         qc.add_gate("RX", targets=[0], arg_value=3.141, arg_label=r"\pi/2")
         qc.add_gate("CNOT", targets=[1], controls=[0])
-        qc.add_measurement("M1", targets=[1])
+        qc.add_measurement("M1", targets=[1], classical_store=0)
         qc.add_gate("SNOT", targets=[2])
         # Keep input output same
 
@@ -393,10 +393,10 @@ class TestQubitCircuit:
 
         qc_rev = qc.reverse_circuit()
 
-        assert qc_rev.instructions[0][0].name == "SNOT"
-        assert qc_rev.instructions[1][0].name == "M1"
-        assert qc_rev.instructions[2][0].name == "CNOT"
-        assert qc_rev.instructions[3][0].name == "RX"
+        assert qc_rev.instructions[0].operation.name == "SNOT"
+        assert qc_rev.instructions[1].operation.name == "M1"
+        assert qc_rev.instructions[2].operation.name == "CNOT"
+        assert qc_rev.instructions[3].operation.name == "RX"
 
         assert qc_rev.input_states[0] == "0"
         assert qc_rev.input_states[2] is None

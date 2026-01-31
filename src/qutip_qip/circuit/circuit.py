@@ -15,7 +15,12 @@ from qutip_qip.operations import (
     expand_operator,
     GATE_CLASS_MAP,
 )
-from qutip_qip.circuit import CircuitSimulator
+from qutip_qip.circuit import (
+    CircuitSimulator,
+    CircuitInstruction,
+    GateInstruction,
+    MeasurementInstruction,
+)
 from qutip import qeye
 
 
@@ -65,7 +70,7 @@ class QubitCircuit:
         self.reverse_states = reverse_states
         self.gates = []
         self.num_cbits = num_cbits
-        self._instructions = []
+        self._instructions: list[CircuitInstruction] = []
         self._global_phase: float = 0.0
         self.dims = dims if dims is not None else [2] * N
 
@@ -178,7 +183,20 @@ class QubitCircuit:
             name, targets=targets, classical_store=classical_store
         )
         self.gates.append(meas)
-        self._instructions.append((meas, targets))
+
+        if type(targets) is int:
+            targets = [targets]
+
+        if type(classical_store) is int:
+            classical_store = [classical_store]
+        
+        self._instructions.append(
+            MeasurementInstruction(
+                operation=meas,
+                qubits=tuple(targets),
+                cbits = tuple(classical_store)
+            )
+        )
 
     def add_gate(
         self,
@@ -299,13 +317,17 @@ class QubitCircuit:
         if targets is not None:
             qubits.extend(targets)
 
+        cbits = tuple()
+        if gate.classical_controls is not None:
+            cbits = tuple(gate.classical_controls)
+
         self._instructions.append(
-            (
-                gate,
-                qubits,
-                gate.classical_controls,
-                gate.classical_control_value,
-                style,
+            GateInstruction(
+                operation = gate,
+                qubits = tuple(qubits),
+                cbits = cbits,
+                control_value = gate.classical_control_value,
+                style = style
             )
         )
 
@@ -324,20 +346,10 @@ class QubitCircuit:
             raise NotImplementedError("Targets exceed number of qubits.")
 
         for circuit_op in qc.instructions:
-            if isinstance(circuit_op[0], Gate):
-                gate = circuit_op[0]
-                num_ctrl_qubits = gate.num_ctrl_qubits
-
-                if circuit_op[1] is not None:
-                    targets = [t + start for t in circuit_op[1]]
-                else:
-                    targets = None
-
-                if num_ctrl_qubits > 0:
-                    controls = targets[:num_ctrl_qubits]
-                    targets = targets[num_ctrl_qubits:]
-                else:
-                    controls = None
+            if circuit_op.is_gate_instruction:
+                gate = circuit_op.operation
+                targets = circuit_op.targets()
+                controls = circuit_op.controls()
 
                 arg = None
                 if isinstance(gate, ParametrizedGate):
@@ -350,8 +362,8 @@ class QubitCircuit:
                     arg_value=arg,
                 )
 
-            elif isinstance(circuit_op[0], Measurement):
-                meas = circuit_op[0]
+            elif circuit_op.is_measurement_instruction:
+                meas = circuit_op.operation
                 self.add_measurement(
                     meas.name,
                     targets=[target + start for target in meas.targets],
@@ -402,19 +414,19 @@ class QubitCircuit:
 
         elif name is not None and remove == "first":
             for circuit_op in self.instructions:
-                if name == circuit_op[0].name:
+                if name == circuit_op.operation.name:
                     self._instructions.remove(circuit_op)
                     break
 
         elif name is not None and remove == "last":
             for i in reversed(range(len(self.instructions))):
-                if name == self._instructions[i][0].name:
+                if name == self.instructions[i].operation.name:
                     self._instructions.pop(i)
                     break
 
         elif name is not None and remove == "all":
             for i in reversed(range(len(self.instructions))):
-                if name == self._instructions[i][0].name:
+                if name == self.instructions[i].operation.name:
                     self._instructions.pop(i)
 
         else:
@@ -534,7 +546,7 @@ class QubitCircuit:
         num_measurements = len(
             list(
                 filter(
-                    lambda x: isinstance(x[0], Measurement), self.instructions
+                    lambda x: x.is_measurement_instruction, self.instructions
                 )
             )
         )
@@ -579,7 +591,7 @@ class QubitCircuit:
         temp_resolved = QubitCircuit(self.N)
 
         for op in self.instructions:
-            gate = op[0]
+            gate = op.operation
             if gate.name in ("X", "Y", "Z"):
                 temp_resolved.add_global_phase(phase=np.pi / 2)
 
@@ -628,7 +640,7 @@ class QubitCircuit:
         half_pi = np.pi / 2
 
         for op in instructions:
-            gate = op[0]
+            gate = op.operation
             if gate.name == "RX" and "RX" not in basis_1q:
                 qc_temp.add_gate(
                     "RY",
@@ -726,9 +738,9 @@ class QubitCircuit:
         U_list = []
 
         gates = [
-            (op[0], op[1])
+            (op.operation, op.qubits)
             for op in self.instructions
-            if not isinstance(op[0], Measurement)
+            if op.is_gate_instruction
         ]
         if len(gates) < len(self.instructions) and not ignore_measurement:
             raise TypeError(
@@ -861,10 +873,10 @@ class QubitCircuit:
 
         for op in self.instructions:
 
-            if (
-                not isinstance(op[0], Measurement)
-            ) and not qasm_out.is_defined(op[0].name):
-                qasm_out._qasm_defns(op[0])
+            if (op.is_gate_instruction and 
+                not qasm_out.is_defined(op.operation.name)
+            ):
+                qasm_out._qasm_defns(op.operation)
 
         for op in self.instructions:
-            op[0]._to_qasm(qasm_out)
+            op.operation._to_qasm(qasm_out)

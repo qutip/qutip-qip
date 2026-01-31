@@ -1,7 +1,11 @@
-from abc import ABC, abstractmethod, dataclass
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from qutip_qip.operations import Gate, Measurement
 
 def _validate_non_negative_int_tuple(T, txt="qubit"):
+    if type(T) is not tuple:
+        raise ValueError(f"Must pass a tuple for {txt}, got {type(T)}")
+    
     for q in T:
         if not isinstance(q, int):
             raise ValueError(
@@ -37,13 +41,13 @@ class CircuitInstruction(ABC):
 
     @property
     def is_gate_instruction(self) -> bool:
-        if isinstance(self.operation, Gate) or issubclass(self.operation, Gate):
+        if isinstance(self.operation, Gate):
             return True
         return False
 
     @property
     def is_measurement_instruction(self) -> bool:
-        if isinstance(self.operation, Measurement) or issubclass(self.operation, Measurement):
+        if isinstance(self.operation, Measurement):
             return True
         return False
     
@@ -55,7 +59,7 @@ class CircuitInstruction(ABC):
 @dataclass(frozen=True)
 class GateInstruction(CircuitInstruction):
     operation: Gate
-    control_value: int | None = None  # Temporary should be defined in ControlledGate class itself
+    control_value: int | None = None  # For classical control
 
     def __post_init__(self):
         super().__post_init__()
@@ -64,9 +68,10 @@ class GateInstruction(CircuitInstruction):
                 f"Operation must be a Gate, got {self.operation}"
             )
 
-        if len(self.qubits) != self.operation.num_qubits:
+        if len(self.qubits) != self.operation.qubit_count:
+            print(self.operation.qubit_count)
             raise ValueError(
-                f"Gate '{self.operation.name}' requires {self.operation.num_qubits} qubits"
+                f"Gate '{self.operation.name}' requires {self.operation.qubit_count} qubits"
                 f"But got {len(self.qubits)}."
             )
 

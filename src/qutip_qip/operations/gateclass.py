@@ -502,16 +502,14 @@ def controlled_gate_factory(target_gate: Gate) -> ControlledGate:
 class SingleQubitGate(Gate):
     """Abstract one-qubit gate."""
 
-    @staticmethod
     @property
-    def qubit_count() -> int:
+    def qubit_count(self) -> int:
         return 1
 
 
 class ParametrizedSingleQubitGate(ParametrizedGate):
-    @staticmethod
     @property
-    def qubit_count() -> int:
+    def qubit_count(self) -> int:
         return 1
 
     def _verify_parameters(self):
@@ -524,14 +522,12 @@ class ParametrizedSingleQubitGate(ParametrizedGate):
 class TwoQubitGate(Gate):
     """Abstract two-qubit gate."""
 
-    @staticmethod
     @property
-    def qubit_count() -> int:
+    def qubit_count(self) -> int:
         return 2
 
 
 class ParametrizedTwoQubitGate(ParametrizedGate):
-    @staticmethod
     @property
-    def qubit_count() -> int:
+    def qubit_count(self) -> int:
         return 2

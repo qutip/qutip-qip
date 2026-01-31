@@ -37,13 +37,9 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
     ]
 
     for op in qc.instructions:
-        gate = op[0]
-        if gate.num_ctrl_qubits > 0:
-            controls = op[1][: gate.num_ctrl_qubits]
-            targets = op[1][gate.num_ctrl_qubits :]
-        else:
-            controls = None
-            targets = op[1]
+        gate = op.operation
+        controls = op.controls()
+        targets = op.targets()
 
         if gate.name == "CNOT" or gate.name == "CSIGN":
             start = min([targets[0], controls[0]])
@@ -258,8 +254,8 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
 
                 j = 0
                 for op in temp.instructions:
-                    gate = op[0]
-                    targets = op[1]
+                    gate = op.operation
+                    targets = op.qubits
 
                     if j < N - end - 2:
                         qc_t.add_gate(

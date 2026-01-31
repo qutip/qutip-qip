@@ -216,8 +216,8 @@ class CircuitSimulator:
         num_measurements = len(
             list(
                 filter(
-                    lambda x: isinstance(x[0], Measurement),
-                    self._qc.instructions,
+                    lambda x: x.is_measurement_instruction,
+                    self.qc.instructions,
                 )
             )
         )
@@ -243,18 +243,20 @@ class CircuitSimulator:
             state after one evolution step.
         """
 
-        op = self._qc.instructions[self._op_index][0]
+        op = self.qc.instructions[self._op_index].operation
         current_state = self._state
 
-        if isinstance(op, Measurement):
+        if self.qc.instructions[self._op_index].is_measurement_instruction:
             state = self._apply_measurement(op, current_state)
 
-        elif isinstance(op, Gate):
-            qubits = self._qc.instructions[self._op_index][1]
-            classical_controls = self._qc.instructions[self._op_index][2]
-            classical_control_value = self._qc.instructions[self._op_index][3]
+        elif self.qc.instructions[self._op_index].is_gate_instruction:
+            qubits = self.qc.instructions[self._op_index].qubits
+            classical_controls = self.qc.instructions[self._op_index].cbits
+            classical_control_value = (
+                self.qc.instructions[self._op_index].control_value
+            )
 
-            if classical_controls is not None:
+            if classical_controls is not None and classical_controls != tuple():
                 apply_gate = _check_classical_control_value(
                     classical_controls, classical_control_value, self.cbits
                 )

@@ -139,7 +139,7 @@ class GateCompiler:
 
         # compile gates
         for op in instructions:
-            gate = op[0]
+            gate = op.operation
             if gate.name not in self.gate_compiler:
                 raise ValueError("Unsupported gate %s" % gate.name)
 
