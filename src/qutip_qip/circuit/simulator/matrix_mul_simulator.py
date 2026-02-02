@@ -5,11 +5,7 @@ import numpy as np
 
 from qutip import ket2dm, Qobj
 from qutip_qip.circuit.simulator import CircuitResult
-from qutip_qip.operations import (
-    Gate,
-    Measurement,
-    expand_operator,
-)
+from qutip_qip.operations import expand_operator
 import warnings
 
 
@@ -256,7 +252,7 @@ class CircuitSimulator:
                 self.qc.instructions[self._op_index].control_value
             )
 
-            if classical_controls is not None and classical_controls != tuple():
+            if len(classical_controls):
                 apply_gate = _check_classical_control_value(
                     classical_controls, classical_control_value, self.cbits
                 )

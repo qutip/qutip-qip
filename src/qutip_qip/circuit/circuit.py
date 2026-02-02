@@ -592,31 +592,34 @@ class QubitCircuit:
 
         for op in self.instructions:
             gate = op.operation
+            targets = op.targets
+            controls = op.controls
+
             if gate.name in ("X", "Y", "Z"):
                 temp_resolved.add_global_phase(phase=np.pi / 2)
 
                 if gate.name == "X":
                     temp_resolved.add_gate(
-                        "RX", targets=gate.targets, arg_value=np.pi
+                        "RX", targets=targets, arg_value=np.pi
                     )
                 elif gate.name == "Y":
                     temp_resolved.add_gate(
-                        "RY", targets=gate.targets, arg_value=np.pi
+                        "RY", targets=targets, arg_value=np.pi
                     )
                 else:
                     temp_resolved.add_gate(
-                        "RZ", targets=gate.targets, arg_value=np.pi
+                        "RZ", targets=targets, arg_value=np.pi
                     )
 
             else:
                 try:
                     _resolve_to_universal(
-                        gate, temp_resolved, basis_1q, basis_2q
+                        gate, targets, controls, temp_resolved, basis_1q, basis_2q
                     )
                 except KeyError:
                     if gate.name in basis:
                         temp_resolved.add_gate(
-                            gate, targets=gate.targets
+                            gate, targets=targets
                         )  # TODO CHECK
                     else:
                         exception = f"Gate {gate.name} cannot be resolved."
