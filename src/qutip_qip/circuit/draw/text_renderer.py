@@ -374,7 +374,7 @@ class TextRenderer(BaseRenderer):
 
         for wire in wire_list_control:
             if wire not in targets:
-                if isinstance(gate, ControlledGate) and wire in controls:
+                if wire in controls:
                     # check if the control wire is the first or last control wire.
                     # used in cases of multiple control wires
                     if (
@@ -457,10 +457,7 @@ class TextRenderer(BaseRenderer):
                     width = 4 * ceil(self.style.gate_pad) + 1
                 else:
                     sorted_targets = sorted(targets)
-                    if isinstance(gate, ControlledGate):
-                        merged_wire = sorted_targets + controls
-                    else:
-                        merged_wire = sorted_targets + []
+                    merged_wire = sorted_targets + controls
 
                     if len(cbits) != 0:
                         c_control = sorted(cbits)

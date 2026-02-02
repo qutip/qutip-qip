@@ -117,9 +117,7 @@ class TeXRenderer:
                         else:
                             col.append(rf" \gate{{{self._gate_label(gate)}}} ")
 
-                    elif (
-                        isinstance(gate, ControlledGate) and n in controls
-                    ):
+                    elif n in controls:
                         control_tag = (-1 if self.reverse_states else 1) * (
                             targets[0] - n
                         )
@@ -131,25 +129,11 @@ class TeXRenderer:
                         )
                         col.append(rf" \ctrl{{{control_tag}}} ")
 
-                    elif (
-                        not isinstance(gate, ControlledGate)
-                        and not targets
-                    ):
-                        # global gate
-                        if (self.reverse_states and n == self.N - 1) or (
-                            not self.reverse_states and n == 0
-                        ):
-                            col.append(
-                                rf" \multigate{{{self.N - 1}}}"
-                                rf"{{{self._gate_label(gate)}}} "
-                            )
-                        else:
-                            col.append(rf" \ghost{self._gate_label(gate)} ")
                     else:
                         col.append(r" \qw ")
 
             else:
-                qubits = op.qubits
+                qubits = list(op.qubits)
                 cbits = list(op.cbits)
                 col = []
 

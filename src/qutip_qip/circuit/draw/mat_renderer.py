@@ -789,7 +789,7 @@ class MatRenderer(BaseRenderer):
                     ),
                 )
 
-            if isinstance(gate, Gate):
+            if instruction.is_gate_instruction():
                 targets = instruction.targets
                 controls = instruction.controls
                 style = style if style is not None else {}
@@ -816,8 +816,7 @@ class MatRenderer(BaseRenderer):
                 self.showarg = style.get("showarg", False)
 
                 self.merged_wires = list(targets)
-                if isinstance(gate, ControlledGate):
-                    self.merged_wires.extend(controls)
+                self.merged_wires.extend(controls)
                 self.merged_wires.sort()
 
                 if len(cbits):
