@@ -65,6 +65,7 @@ class TeXRenderer:
                 gate = op.operation
                 targets = op.targets
                 controls = op.controls
+                cbits = op.cbits
                 col = []
                 _swap_processing = False
 
@@ -124,10 +125,7 @@ class TeXRenderer:
                         )
                         col.append(rf" \ctrl{{{control_tag}}} ")
 
-                    elif (
-                        gate.classical_controls
-                        and (n - self.N) in gate.classical_controls
-                    ):
+                    elif len(cbits) and (n - self.N) in cbits:
                         control_tag = (-1 if self.reverse_states else 1) * (
                             targets[0] - n
                         )
@@ -151,15 +149,14 @@ class TeXRenderer:
                         col.append(r" \qw ")
 
             else:
-                measurement = op.operation
                 qubits = op.qubits
-                cbits = op.cbits[0]
+                cbits = list(op.cbits)
                 col = []
 
                 for n in range(self.N + self.num_cbits):
                     if n in qubits:
                         col.append(r" \meter")
-                    elif (n - self.N) == cbits:
+                    elif (n - self.N) == cbits[0]:
                         sgn = 1 if self.reverse_states else -1
                         store_tag = sgn * (n - qubits[0])
                         col.append(rf" \qw \cwx[{store_tag}] ")
