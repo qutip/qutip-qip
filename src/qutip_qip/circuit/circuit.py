@@ -213,8 +213,8 @@ class QubitCircuit:
         controls=None,
         arg_value=None,
         arg_label=None,
-        classical_controls=None,
         control_value=None,
+        classical_controls=None,
         classical_control_value=None,
         style=None,
         index=None,
@@ -264,6 +264,9 @@ class QubitCircuit:
         if type(classical_controls) is int:
             classical_controls = [classical_controls]
 
+        if controls is not None and control_value is None:
+            control_value = 2**(len(controls)) - 1
+
         if classical_controls is not None and classical_control_value is None:
             classical_control_value = 2**(len(classical_controls)) - 1
 
@@ -285,18 +288,13 @@ class QubitCircuit:
                     control_value=control_value,
                     arg_value=arg_value,
                     arg_label=arg_label,
-                    classical_controls=classical_controls,
                 )
-
-            elif gate_class == GLOBALPHASE:
-                gate = gate_class(arg_value=arg_value)
 
             elif issubclass(gate_class, ParametrizedGate):
                 gate = gate_class(
                     targets=targets,
                     arg_value=arg_value,
                     arg_label=arg_label,
-                    classical_controls=classical_controls,
                 )
 
             elif issubclass(gate_class, ControlledGate):
@@ -304,13 +302,11 @@ class QubitCircuit:
                     targets=targets,
                     controls=controls,
                     control_value=control_value,
-                    classical_controls=classical_controls,
                 )
 
             else:
                 gate = gate_class(
                     targets=targets,
-                    classical_controls=classical_controls,
                 )
 
         qubits = []

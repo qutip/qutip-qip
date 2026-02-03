@@ -28,8 +28,6 @@ class Gate(ABC):
     arg_value : object
         Argument value of the gate. It will be saved as an attributes and
         can be accessed when generating the `:obj:qutip.Qobj`.
-    classical_controls : int or list of int, optional
-        Indices of classical bits to control the unitary operator.
     control_value : int, optional
         The decimal value of controlling bits for executing
         the unitary operator on the target qubits.
@@ -62,7 +60,6 @@ class Gate(ABC):
         self,
         name: str = None,
         targets: int | list[int] = None,
-        classical_controls: int | list[int] | None = None,
     ):
         """
         Create a gate with specified parameters.
@@ -73,14 +70,6 @@ class Gate(ABC):
             self.targets = [targets]
         else:
             self.targets = targets
-
-        if (
-            not isinstance(classical_controls, Iterable)
-            and classical_controls is not None
-        ):
-            self.classical_controls = [classical_controls]
-        else:
-            self.classical_controls = classical_controls
 
     @property
     @abstractmethod
@@ -141,8 +130,7 @@ class Gate(ABC):
 
     def __str__(self):
         return f"""
-            Gate({self.name}, targets={self.targets},
-            classical controls={self.classical_controls},
+            Gate({self.name},
         """
 
     def __repr__(self):
@@ -158,7 +146,6 @@ class ControlledGate(Gate):
         targets,
         target_gate=None,
         control_value=1,
-        classical_controls=None,
     ):
         if target_gate is None:
             if self._target_gate_class is not None:
@@ -170,7 +157,6 @@ class ControlledGate(Gate):
 
         super().__init__(
             targets=targets,
-            classical_controls=classical_controls,
         )
         self.target_gate = target_gate
         self.controls = (
@@ -200,7 +186,6 @@ class ControlledGate(Gate):
         return f"""
             Gate({self.name}, targets={self.targets},
             controls={self.controls}, control_value={self.control_value},
-            classical controls={self.classical_controls},
         """
 
     def get_compact_qobj(self):
@@ -222,11 +207,9 @@ class ParametrizedGate(Gate):
         arg_value: float,
         arg_label: str = None,
         targets=None,
-        classical_controls=None,
     ):
         super().__init__(
             targets=targets,
-            classical_controls=classical_controls,
         )
         self.arg_label = arg_label
         self.arg_value = arg_value
@@ -234,7 +217,7 @@ class ParametrizedGate(Gate):
     def __str__(self):
         return f"""
             Gate({self.name}, targets={self.targets}, arg_value={self.arg_value},
-            classical controls={self.classical_controls}, arg_label={self.arg_label},
+            arg_label={self.arg_label},
         """
 
 
@@ -247,7 +230,6 @@ class ControlledParamGate(ParametrizedGate, ControlledGate):
         targets=None,
         target_gate=None,
         control_value=1,
-        classical_controls=None,
     ):
         if target_gate is None:
             if self._target_gate_class is not None:
@@ -265,7 +247,6 @@ class ControlledParamGate(ParametrizedGate, ControlledGate):
                 targets=targets, arg_value=arg_value, arg_label=arg_label
             ),
             control_value=control_value,
-            classical_controls=classical_controls,
         )
         self.arg_label = arg_label
         self.arg_value = arg_value
@@ -275,7 +256,6 @@ class ControlledParamGate(ParametrizedGate, ControlledGate):
             Gate({self.name}, targets={self.targets},
             arg_value={self.arg_value}, arg_label={self.arg_label},
             controls={self.controls}, control_value={self.control_value},
-            classical controls={self.classical_controls},
         """
 
 def custom_gate_factory(name: str, U: Qobj) -> Gate:
@@ -289,12 +269,10 @@ def custom_gate_factory(name: str, U: Qobj) -> Gate:
         def __init__(
             self,
             targets,
-            classical_controls=None,
         ):
             super().__init__(
                 name=name,
                 targets=targets,
-                classical_controls=classical_controls,
             )
             self._U = U
 
