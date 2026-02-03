@@ -67,21 +67,21 @@ class TestConverter:
 
         return np.allclose(req_arg, res_arg)
 
-    def _compare_gate(self, req_gate, res_gate, result_circuit: QubitCircuit):
+    def _compare_gate_instructions(self, req_gate, res_gate, result_circuit: QubitCircuit):
         """Check whether two gates are equivalent"""
-        check_condition = (req_gate.name == res_gate.name) and (
-            req_gate.targets
-            == get_qutip_index(res_gate.targets, result_circuit.N)
+        check_condition = (req_gate.operation.name == res_gate.operation.name) and (
+            list(req_gate.qubits)
+            == get_qutip_index(list(res_gate.qubits), result_circuit.N)
         )
         if not check_condition:
             return False
 
-        if req_gate.name == "measure":
+        if  req_gate.is_measurement_instruction():
             check_condition = req_gate.classical_store == get_qutip_index(
                 res_gate.classical_store, result_circuit.num_cbits
             )
         else:
-            # todo: correct for float error in arg_value
+            # TODO correct for float error in arg_value
             res_controls = (
                 get_qutip_index(res_gate.controls, result_circuit.N)
                 if isinstance(res_gate, ControlledGate)
@@ -104,14 +104,14 @@ class TestConverter:
         Check whether two circuits are equivalent.
         """
         if result_circuit.N != required_circuit.N or len(
-            result_circuit.gates
-        ) != len(required_circuit.gates):
+            result_circuit.instructions
+        ) != len(required_circuit.instructions):
             return False
 
-        for i, res_gate in enumerate(result_circuit.gates):
-            req_gate = required_circuit.gates[i]
+        for i, res_gate in enumerate(result_circuit.instructions):
+            req_ins = required_circuit.instructions[i]
 
-            if not self._compare_gate(req_gate, res_gate, result_circuit):
+            if not self._compare_gate_instructions(req_ins, res_gate, result_circuit):
                 return False
 
         return True

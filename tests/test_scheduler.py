@@ -16,8 +16,8 @@ def _verify_scheduled_circuit(circuit, gate_cycle_indices):
     result0 = circuit.compute_unitary()
     scheduled_gate = [[] for i in range(max(gate_cycle_indices) + 1)]
     for i, cycles in enumerate(gate_cycle_indices):
-        scheduled_gate[cycles].append(circuit.gates[i])
-    circuit.gates = sum(scheduled_gate, [])
+        scheduled_gate[cycles].append(circuit.instructions[i])
+    circuit.instructions = sum(scheduled_gate, [])
     result1 = circuit.compute_unitary()
     return tracedist(result0 * result1.dag(), qeye(result0.dims[0])) < 1.0e-7
 

@@ -35,10 +35,7 @@ class TestQPE(unittest.TestCase):
             target_gate=custom_gate_factory(name="CU", U=U),
         )
 
-        assert_equal(controlled_u.controls, [0])
-        assert_equal(controlled_u.targets, [1])
         assert_equal(controlled_u.control_value, 1)
-
         assert_(
             (controlled_u.target_gate.get_compact_qobj() - U).norm() < 1e-12
         )
@@ -70,13 +67,13 @@ class TestQPE(unittest.TestCase):
         assert_equal(circuit.N, num_counting + 1)
 
         for i in range(num_counting):
-            assert_equal(circuit.gates[i].targets, [i])
+            assert_equal(circuit.instructions[i].targets, [i])
 
         for i in range(num_counting):
-            gate = circuit.gates[num_counting + i]
-            assert_(isinstance(gate, ControlledGate))
-            assert_equal(gate.controls, [i])
-            assert_equal(gate.targets, [num_counting])
+            circ_instruction = circuit.instructions[num_counting + i]
+            assert_(isinstance(circ_instruction.operation, ControlledGate))
+            assert_equal(circ_instruction.controls, [i])
+            assert_equal(circ_instruction.targets, [num_counting])
 
     def test_qpe_different_target_specifications(self):
         """
@@ -119,7 +116,7 @@ class TestQPE(unittest.TestCase):
         )
 
         for i in range(num_counting):
-            gate = circuit.gates[num_counting + i]
+            gate = circuit.instructions[num_counting + i].operation
             power = 2 ** (num_counting - i - 1)
 
             u_power = gate.target_gate.get_compact_qobj()
@@ -142,4 +139,4 @@ class TestQPE(unittest.TestCase):
             gate.operation.name == "CNOT" for gate in circuit2.instructions
         )
         assert_(has_cnot)
-        assert_(len(circuit2.gates) > len(circuit1.gates))
+        assert_(len(circuit2.instructions) > len(circuit1.instructions))

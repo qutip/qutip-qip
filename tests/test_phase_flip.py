@@ -22,24 +22,24 @@ def syndrome_qubits():
 def test_encode_circuit_structure(code, data_qubits):
     qc = QubitCircuit(max(data_qubits))
     code.encode_circuit(qc, data_qubits)
-    gate_names = [g.name for g in qc.gates]
+    gate_names = [ins.operation.name for ins in qc.instructions]
     assert gate_names.count("SNOT") == 3
     assert gate_names.count("CNOT") == 2
-    assert qc.gates[3].controls == [0]
-    assert qc.gates[3].targets == [1]
-    assert qc.gates[4].controls == [0]
-    assert qc.gates[4].targets == [2]
+    assert qc.instructions[3].controls == (0,)
+    assert qc.instructions[3].targets == (1,)
+    assert qc.instructions[4].controls == (0,)
+    assert qc.instructions[4].targets == (2,)
 
 
 def test_decode_circuit_structure(code, data_qubits):
     qc = code.decode_circuit(data_qubits)
-    gate_names = [g.name for g in qc.gates]
+    gate_names = [op.operation.name for op in qc.instructions]
     assert gate_names.count("CNOT") == 2
     assert gate_names.count("SNOT") == 3
-    assert qc.gates[0].controls == [0]
-    assert qc.gates[0].targets == [2]
-    assert qc.gates[1].controls == [0]
-    assert qc.gates[1].targets == [1]
+    assert qc.instructions[0].controls == (0,)
+    assert qc.instructions[0].targets == (2,)
+    assert qc.instructions[1].controls == (0,)
+    assert qc.instructions[1].targets == (1,)
 
 
 @pytest.mark.xfail(reason="Known error in phase flip code. See Issue #283")

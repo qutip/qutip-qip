@@ -27,12 +27,12 @@ class TestQFT:
             assert_equal(circuit.N, N)
 
             totsize = N * (N + 1) / 2
-            assert_equal(len(circuit.gates), totsize)
+            assert_equal(len(circuit.instructions), totsize)
 
-            snots = sum(g.name == "SNOT" for g in circuit.gates)
+            snots = sum(g.operation.name == "SNOT" for g in circuit.instructions)
             assert_equal(snots, N)
 
-            phases = sum(g.name == "CPHASE" for g in circuit.gates)
+            phases = sum(g.operation.name == "CPHASE" for g in circuit.instructions)
             assert_equal(phases, N * (N - 1) / 2)
 
     def testQFTGateSequenceWithSwapping(self):
@@ -45,10 +45,10 @@ class TestQFT:
 
             phases = int(N * (N + 1) / 2)
             swaps = int(N // 2)
-            assert_equal(len(circuit.gates), phases + swaps)
+            assert_equal(len(circuit.instructions), phases + swaps)
 
             for i in range(phases, phases + swaps):
-                assert_string_equal(circuit.gates[i].name, "SWAP")
+                assert_string_equal(circuit.instructions[i].operation.name, "SWAP")
 
     def testQFTGateSequenceWithCNOT(self):
         """
@@ -58,4 +58,4 @@ class TestQFT:
         for N in range(1, 6):
             circuit = qft_gate_sequence(N, swapping=False, to_cnot=True)
 
-        assert not any([gate.name == "CPHASE" for gate in circuit.gates])
+        assert not any([ins.operation.name == "CPHASE" for ins in circuit.instructions])

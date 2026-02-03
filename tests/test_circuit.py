@@ -145,30 +145,30 @@ class TestQubitCircuit:
         qc.add_gate("RX", targets=[3], arg_value=-1.570796)
 
         # Test explicit gate addition
-        assert qc.gates[0].name == "CNOT"
-        assert qc.gates[0].targets == [1]
-        assert qc.gates[0].controls == [0]
+        assert qc.instructions[0].operation.name == "CNOT"
+        assert qc.instructions[0].targets == (1,)
+        assert qc.instructions[0].controls == (0,)
 
         # Test direct gate addition
-        assert qc.gates[1].name == "SWAP"
-        assert qc.gates[1].targets == [1, 4]
+        assert qc.instructions[1].operation.name == "SWAP"
+        assert qc.instructions[1].targets == (1, 4)
 
         # Test specified position gate addition
-        assert qc.gates[3].name == "SNOT"
-        assert qc.gates[3].targets == [3]
+        assert qc.instructions[3].operation.name == "SNOT"
+        assert qc.instructions[3].targets == (3,)
 
         # Test adding 1 qubit gate on [start, end] qubits
-        assert qc.gates[5].name == "RY"
-        assert qc.gates[5].targets == [4]
-        assert qc.gates[5].arg_value == 1.570796
-        assert qc.gates[6].name == "RY"
-        assert qc.gates[6].targets == [5]
-        assert qc.gates[6].arg_value == 1.570796
+        assert qc.instructions[5].operation.name == "RY"
+        assert qc.instructions[5].targets == (4,)
+        assert qc.instructions[5].operation.arg_value == 1.570796
+        assert qc.instructions[6].operation.name == "RY"
+        assert qc.instructions[6].targets == (5,)
+        assert qc.instructions[6].operation.arg_value == 1.570796
 
         # Test adding 1 qubit gate on qubits [3]
-        assert qc.gates[7].name == "RX"
-        assert qc.gates[7].targets == [3]
-        assert qc.gates[7].arg_value == -1.570796
+        assert qc.instructions[7].operation.name == "RX"
+        assert qc.instructions[7].targets == (3,)
+        assert qc.instructions[7].operation.arg_value == -1.570796
 
         class DUMMY1(Gate):
             def __init__(self, **kwargs):
@@ -202,7 +202,7 @@ class TestQubitCircuit:
             "DUMMY1",
             "DUMMY2",
         ]
-        actual_gate_names = [gate.name for gate in qc.gates]
+        actual_gate_names = [ins.operation.name for ins in qc.instructions]
         assert actual_gate_names == expected_gate_names
 
     def test_add_circuit(self):
@@ -225,25 +225,27 @@ class TestQubitCircuit:
         qc1.add_circuit(qc)
 
         # Test if all gates and measurements are added
-        assert len(qc1.gates) == len(qc.gates)
+        assert len(qc1.instructions) == len(qc.instructions)
 
-        for i in range(len(qc1.gates)):
-            assert qc1.gates[i].name == qc.gates[i].name
-            assert qc1.gates[i].targets[0] == qc.gates[i].targets[0]
-            if isinstance(qc1.gates[i], Gate) and isinstance(
-                qc.gates[i], Gate
+        for i in range(len(qc1.instructions)):
+            assert (qc1.instructions[i].operation.name == 
+                    qc.instructions[i].operation.name
+            )
+            assert qc1.instructions[i].qubits[0] == qc.instructions[i].qubits[0]
+            if isinstance(qc1.instructions[i].operation, Gate) and isinstance(
+                qc.instructions[i].operation, Gate
             ):
-                if isinstance(qc.gates[i], ControlledGate):
-                    assert qc1.gates[i].controls == qc.gates[i].controls
+                if isinstance(qc.instructions[i].operation, ControlledGate):
+                    assert qc1.instructions[i].controls == qc.instructions[i].controls
                 assert (
-                    qc1.gates[i].classical_controls
-                    == qc.gates[i].classical_controls
+                    qc1.instructions[i].control_value
+                    == qc.instructions[i].control_value
                 )
-            elif isinstance(qc1.gates[i], Measurement) and isinstance(
-                qc.gates[i], Measurement
+            elif isinstance(qc1.instructions[i].operation, Measurement) and isinstance(
+                qc.instructions[i].operation, Measurement
             ):
                 assert (
-                    qc1.gates[i].classical_store == qc.gates[i].classical_store
+                    qc1.instructions[i].cbits == qc.instructions[i].cbits
                 )
 
         # Test exception when qubit out of range
@@ -253,17 +255,17 @@ class TestQubitCircuit:
         qc2.add_circuit(qc, start=2)
 
         # Test if all gates are added
-        assert len(qc2.gates) == len(qc.gates)
+        assert len(qc2.instructions) == len(qc.instructions)
 
         # Test if the positions are correct
-        for i in range(len(qc2.gates)):
-            if qc.gates[i].targets is not None:
-                assert qc2.gates[i].targets[0] == qc.gates[i].targets[0] + 2
+        for i in range(len(qc2.instructions)):
+            if qc.instructions[i].is_gate_instruction():
+                assert qc2.instructions[i].targets[0] == qc.instructions[i].targets[0] + 2
             if (
-                isinstance(qc.gates[i], ControlledGate)
-                and qc.gates[i].controls is not None
+                isinstance(qc.instructions[i].operation, ControlledGate)
+                and len(qc.instructions[i].controls)
             ):
-                assert qc2.gates[i].controls[0] == qc.gates[i].controls[0] + 2
+                assert qc2.instructions[i].controls[0] == qc.instructions[i].controls[0] + 2
 
     def test_add_state(self):
         """
@@ -316,14 +318,14 @@ class TestQubitCircuit:
         qc.add_measurement("M2", targets=[1], classical_store=2)
 
         # checking correct addition of measurements
-        assert qc.gates[0].targets[0] == 0
-        assert qc.gates[0].classical_store == 0
-        assert qc.gates[3].name == "M1"
-        assert qc.gates[5].classical_store == 2
+        assert qc.instructions[0].qubits[0] == 0
+        assert qc.instructions[0].cbits[0] == 0
+        assert qc.instructions[3].operation.name == "M1"
+        assert qc.instructions[5].cbits[0] == 2
 
         # checking if gates are added correctly with measurements
-        assert qc.gates[2].name == "TOFFOLI"
-        assert qc.gates[4].classical_controls == [0, 1]
+        assert qc.instructions[2].operation.name == "TOFFOLI"
+        assert qc.instructions[4].cbits == (0, 1)
 
     @pytest.mark.skip(reason="Changing the interface completely")
     @pytest.mark.parametrize("gate", ["X", "Y", "Z", "S", "T"])
@@ -350,30 +352,30 @@ class TestQubitCircuit:
         qc.add_gate("S", targets=[1])
         qc.add_gate("T", targets=[2])
 
-        assert qc.gates[8].name == "T"
-        assert qc.gates[7].name == "S"
-        assert qc.gates[6].name == "CZ"
-        assert qc.gates[5].name == "CT"
-        assert qc.gates[4].name == "Z"
-        assert qc.gates[3].name == "CS"
-        assert qc.gates[2].name == "Y"
-        assert qc.gates[1].name == "CY"
-        assert qc.gates[0].name == "X"
+        assert qc.instructions[8].operation.name == "T"
+        assert qc.instructions[7].operation.name == "S"
+        assert qc.instructions[6].operation.name == "CZ"
+        assert qc.instructions[5].operation.name == "CT"
+        assert qc.instructions[4].operation.name == "Z"
+        assert qc.instructions[3].operation.name == "CS"
+        assert qc.instructions[2].operation.name == "Y"
+        assert qc.instructions[1].operation.name == "CY"
+        assert qc.instructions[0].operation.name == "X"
 
-        assert qc.gates[8].targets == [2]
-        assert qc.gates[7].targets == [1]
-        assert qc.gates[6].targets == [0]
-        assert qc.gates[5].targets == [1]
-        assert qc.gates[4].targets == [1]
-        assert qc.gates[3].targets == [0]
-        assert qc.gates[2].targets == [2]
-        assert qc.gates[1].targets == [1]
-        assert qc.gates[0].targets == [0]
+        assert qc.instructions[8].targets == (2,)
+        assert qc.instructions[7].targets == (1,)
+        assert qc.instructions[6].targets == (0,)
+        assert qc.instructions[5].targets == (1,)
+        assert qc.instructions[4].targets == (1,)
+        assert qc.instructions[3].targets == (0,)
+        assert qc.instructions[2].targets == (2,)
+        assert qc.instructions[1].targets == (1,)
+        assert qc.instructions[0].targets == (0,)
 
-        assert qc.gates[6].controls == [1]
-        assert qc.gates[5].controls == [2]
-        assert qc.gates[3].controls == [1]
-        assert qc.gates[1].controls == [0]
+        assert qc.instructions[6].controls == (1,)
+        assert qc.instructions[5].controls == (2,)
+        assert qc.instructions[3].controls == (1,)
+        assert qc.instructions[1].controls == (0,)
 
     def test_reverse(self):
         """
@@ -601,11 +603,11 @@ class TestQubitCircuit:
 
         inds_list = []
 
-        for gate in qc.gates:
-            if isinstance(gate, Measurement):
+        for op in qc.instructions:
+            if isinstance(op.operation, Measurement):
                 continue
             else:
-                inds_list.append(gate.get_all_qubits())
+                inds_list.append(op.qubits)
 
         U_1, _ = gate_sequence_product(
             U_list, inds_list=inds_list, expand=True

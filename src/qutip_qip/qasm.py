@@ -1010,86 +1010,6 @@ class QasmOutput:
         else:
             return "{} {};".format(q_name, q_regs)
 
-    def _qasm_defn_from_resolved(self, curr_gate, gates_lst):
-        """
-        Resolve QASM definition of QuTiP gate in terms of component gates.
-
-        Parameters
-        ----------
-        curr_gate: :class:`~.operations.Gate`
-            QuTiP gate which needs to be resolved into component gates.
-        gates_lst: list of :class:`~.operations.Gate`
-            list of gate that constitute QASM definition of self.
-        """
-
-        forbidden_gates = ["GLOBALPHASE", "PHASEGATE"]
-        reg_map = ["a", "b", "c"]
-
-        q_controls = None
-        if curr_gate.controls:
-            q_controls = [reg_map[i] for i in curr_gate.controls]
-        q_targets = [reg_map[i] for i in curr_gate.targets]
-        arg_name = None
-        if curr_gate.arg_value:
-            arg_name = "theta"
-
-        self.output(
-            "gate {} {{".format(
-                self._qasm_str(
-                    q_name=curr_gate.name.lower(),
-                    q_targets=q_targets,
-                    q_controls=q_controls,
-                    q_args=arg_name,
-                )[:-1]
-            )
-        )
-
-        for gate in gates_lst:
-            if gate.name in self.gate_name_map:
-                gate.targets = [reg_map[i] for i in gate.targets]
-                if gate.controls:
-                    gate.controls = [reg_map[i] for i in gate.controls]
-                self.output(
-                    self._qasm_str(
-                        q_name=self.gate_name_map[gate.name],
-                        q_targets=gate.targets,
-                        q_controls=gate.controls,
-                        q_args=gate.arg_value,
-                    )
-                )
-            elif gate.name in forbidden_gates:
-                continue
-            else:
-                raise ValueError(
-                    (
-                        "The given resolved gate {} cannot be defined"
-                        " in QASM format"
-                    ).format(curr_gate.name)
-                )
-        self.output("}")
-
-    def _qasm_defn_resolve(self, gate):
-        """
-        Resolve QASM definition of QuTiP gate if possible.
-
-        Parameters
-        ----------
-        gate: :class:`~.operations.Gate`
-            QuTiP gate which needs to be resolved into component gates.
-
-        """
-
-        qc = QubitCircuit(3)
-        gates_lst = []
-        if gate.name == "CSIGN":
-            qc._gate_CSIGN(gate, gates_lst)
-        else:
-            err_msg = "No definition specified for {} gate".format(gate.name)
-            raise NotImplementedError(err_msg)
-
-        self._qasm_defn_from_resolved(gate, gates_lst)
-        self.gate_name_map[gate.name] = gate.name.lower()
-
     def _qasm_defns(self, gate):
         """
         Define QASM gates for QuTiP gates that do not have QASM counterparts.
@@ -1113,8 +1033,8 @@ class QasmOutput:
         elif gate.name == "SWAP":
             gate_def = "gate swap a,b { cx a,b; cx b,a; cx a,b; }"
         else:
-            self._qasm_defn_resolve(gate)
-            return
+            err_msg = f"No definition specified for {gate.name} gate"
+            raise NotImplementedError(err_msg)
 
         self.output("// QuTiP definition for gate {}".format(gate.name))
         self.output(gate_def)

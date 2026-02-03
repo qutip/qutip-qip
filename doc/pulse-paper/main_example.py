@@ -43,9 +43,9 @@ from qutip_qip.compiler import Scheduler, Instruction
 Scheduler("ASAP").schedule(qc)
 
 inst_list = []
-for gate in qc.gates:
-    if gate.name in ("SNOT", "X"):
-        inst_list.append(Instruction(gate, duration=1))
+for circ_ins in qc.instructions:
+    if circ_ins.operation.name in ("SNOT", "X"):
+        inst_list.append(Instruction(circ_ins, duration=1))
     else:
-        inst_list.append(Instruction(gate, duration=2))
+        inst_list.append(Instruction(circ_ins, duration=2))
 Scheduler("ALAP").schedule(inst_list)
