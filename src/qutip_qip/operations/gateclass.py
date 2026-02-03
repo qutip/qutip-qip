@@ -117,37 +117,6 @@ class Gate(ABC):
     def num_ctrl_qubits(self) -> int:
         return 0
 
-    def get_all_qubits(self):
-        """
-        Return a list of all qubits that the gate operator
-        acts on.
-        The list concatenates the two lists representing
-        the controls and the targets qubits while retains the order.
-
-        Returns
-        -------
-        targets_list : list of int
-            A list of all qubits, including controls and targets.
-        """
-        if self.targets is not None:
-            return self.targets
-        else:
-            # Special case: the global phase gate
-            return []
-
-    def __str__(self):
-        return f"""
-            Gate({self.name}, targets={self.targets},
-            classical controls={self.classical_controls},
-            classical_control_value={self.classical_control_value})
-        """
-
-    def __repr__(self):
-        return str(self)
-
-    def _repr_latex_(self):
-        return str(self)
-
     @abstractmethod
     def get_compact_qobj(self) -> Qobj:
         """
@@ -196,6 +165,18 @@ class Gate(ABC):
             targets=all_targets,
         )
 
+    def __str__(self):
+        return f"""
+            Gate({self.name}, targets={self.targets},
+            classical controls={self.classical_controls},
+            classical_control_value={self.classical_control_value})
+        """
+
+    def __repr__(self):
+        return str(self)
+
+    def _repr_latex_(self):
+        return str(self)
 
 class ControlledGate(Gate):
     def __init__(

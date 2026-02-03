@@ -257,6 +257,9 @@ class QubitCircuit:
         if type(controls) is int:
             controls = [controls]
 
+        if type(classical_controls) is int:
+            classical_controls = [classical_controls]
+
         if not isinstance(gate, Gate):
             if isinstance(gate, type) and issubclass(gate, Gate):
                 gate_class = gate
@@ -315,9 +318,6 @@ class QubitCircuit:
             self.add_global_phase(gate.arg_value)
             return
 
-        if targets is not None:
-            gate.targets = targets
-
         qubits = []
         if controls is not None:
             qubits.extend(controls)
@@ -325,8 +325,8 @@ class QubitCircuit:
             qubits.extend(targets)
 
         cbits = tuple()
-        if gate.classical_controls is not None:
-            cbits = tuple(gate.classical_controls)
+        if classical_controls is not None:
+            cbits = tuple(classical_controls)
 
         self._instructions.append(
             GateInstruction(
@@ -621,13 +621,23 @@ class QubitCircuit:
             else:
                 try:
                     _resolve_to_universal(
-                        gate, targets, controls, temp_resolved, basis_1q, basis_2q
+                        op, temp_resolved, basis_1q, basis_2q
                     )
                 except KeyError:
                     if gate.name in basis:
+                        arg_value = None
+                        if isinstance(gate, ParametrizedGate):
+                            arg_value = gate.arg_value
+                            
                         temp_resolved.add_gate(
-                            gate, targets=targets
-                        )  # TODO CHECK
+                            gate.name,
+                            arg_value=arg_value,
+                            targets=targets,
+                            controls=controls,
+                            classical_controls=op.cbits,
+                            classical_control_value=op.control_value,
+                            style = op.style
+                        )
                     else:
                         exception = f"Gate {gate.name} cannot be resolved."
                         raise NotImplementedError(exception)
@@ -713,10 +723,20 @@ class QubitCircuit:
                     arg_value=half_pi,
                     arg_label=r"\pi/2",
                 )
-            elif isinstance(gate, ControlledGate):
-                qc_temp.add_gate(gate, targets=targets, controls=controls)
             else:
-                qc_temp.add_gate(gate, targets=targets)
+                arg_value = None
+                if isinstance(gate, ParametrizedGate):
+                    arg_value = gate.arg_value
+
+                qc_temp.add_gate(
+                    gate.name,
+                    arg_value=arg_value,
+                    targets=targets,
+                    controls=controls,
+                    classical_controls=op.cbits,
+                    classical_control_value=op.control_value,
+                    style = op.style
+                )
 
         return qc_temp
 
