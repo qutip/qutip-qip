@@ -110,11 +110,11 @@ def _instructions1():
     circuit3.add_gate("CNOT", targets=1, controls=3)
 
     instruction_list = []
-    for gate in circuit3.gates:
-        if gate.name == "SNOT":
-            instruction_list.append(Instruction(gate, duration=1))
+    for circuit_ins in circuit3.instructions:
+        if circuit_ins.operation.name == "SNOT":
+            instruction_list.append(Instruction(circuit_ins, duration=1))
         else:
-            instruction_list.append(Instruction(gate, duration=2))
+            instruction_list.append(Instruction(circuit_ins, duration=2))
 
     return instruction_list
 

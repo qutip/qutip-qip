@@ -2,7 +2,7 @@ from copy import deepcopy
 from functools import cmp_to_key
 from random import shuffle
 
-from qutip_qip.circuit import QubitCircuit
+from qutip_qip.circuit import GateInstruction, QubitCircuit
 from qutip_qip.operations import Gate
 from qutip_qip.compiler import Instruction
 
@@ -40,10 +40,11 @@ class InstructionsGraph:
         instructions = deepcopy(instructions)
         self.nodes = []
         for instruction in instructions:
-            if isinstance(instruction, Gate):
+            if isinstance(instruction, GateInstruction):
                 self.nodes.append(Instruction(instruction))
             else:
                 self.nodes.append(instruction)
+
         for node in self.nodes:
             if node.duration is None:
                 node.duration = 1
@@ -465,14 +466,15 @@ class Scheduler:
             return result
 
         if isinstance(circuit, QubitCircuit):
-            gates = circuit.gates
+            circuit_instruction = circuit.instructions
+            gates_schedule = True
         else:
-            gates = circuit
-        if not gates:
+            circuit_instruction = circuit
+        if not circuit_instruction:
             return []
 
         # Generate the quantum operations dependency graph.
-        instructions_graph = InstructionsGraph(gates)
+        instructions_graph = InstructionsGraph(circuit_instruction)
         if self.allow_permutation:
             commutation_rules = self.commutation_rules
         else:
@@ -499,15 +501,12 @@ class Scheduler:
             random=random_shuffle,
         )
 
-        # If we only need gates schedule, we can output the result here.
-        if isinstance(gates[0], Gate):
-            gates_schedule = True
         if gates_schedule or return_cycles_list:
             if self.method == "ALAP":
                 cycles_list.reverse()
             if return_cycles_list:
                 return cycles_list
-            gate_cycles_indices = [0] * len(gates)
+            gate_cycles_indices = [0] * len(circuit_instruction)
             for cycle_ind, cycle in enumerate(cycles_list):
                 for instruction_ind in cycle:
                     gate_cycles_indices[instruction_ind] = cycle_ind

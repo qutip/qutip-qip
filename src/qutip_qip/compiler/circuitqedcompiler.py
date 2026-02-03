@@ -290,7 +290,7 @@ class SCQubitsCompiler(GateCompiler):
         )
 
         result += self.gate_compiler["RY"](
-            GateInstruction(operation=RX(arg_value=-PI / 2), qubits=(q1,)),
+            GateInstruction(operation=RY(arg_value=-PI / 2), qubits=(q1,)),
             args,
         )
 

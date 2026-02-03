@@ -157,7 +157,7 @@ class TestConverter:
         assert self._compare_circuit(result_circuit, required_circuit)
 
 
-class TestCircuitSimulato:
+class TestCircuitSimulator:
     """
     Class for testing whether a Circuit simulator gives correct results.
     """
