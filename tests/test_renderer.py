@@ -155,15 +155,17 @@ def qc4():
         def __init__(
             self,
             targets,
-            controls,
             control_value = 1,
         ):
             super().__init__(
                 targets=targets,
-                controls=controls,
                 target_gate=IDLE,
                 control_value=control_value,
             )
+
+        @property
+        def num_ctrl_qubits(self):
+            return 1
 
         @property
         def qubit_count(self):
@@ -176,6 +178,10 @@ def qc4():
         @property
         def qubit_count(self):
             return 3
+        
+        @property
+        def num_ctrl_qubits(self):
+            return 2
 
     class iii(i):
         pass

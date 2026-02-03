@@ -663,6 +663,10 @@ class _ControlledTwoQubitGate(ControlledGate):
     @property
     def qubit_count(self) -> int:
         return 2
+    
+    @property
+    def num_ctrl_qubits(self) -> int:
+        return 1
 
 
 class CNOT(_ControlledTwoQubitGate):
@@ -865,6 +869,9 @@ class _ControlledParamTwoQubitGate(ControlledParamGate):
     def qubit_count(self) -> int:
         return 2
 
+    @property
+    def num_ctrl_qubits(self) -> int:
+        return 1
 
 class CPHASE(_ControlledParamTwoQubitGate):
     r"""
@@ -1040,6 +1047,10 @@ class TOFFOLI(ControlledGate):
     def qubit_count(self) -> int:
         return 3
 
+    @property
+    def num_ctrl_qubits(self) -> int:
+        return 2
+
     @staticmethod
     def get_compact_qobj():
         return Qobj(
@@ -1083,6 +1094,10 @@ class FREDKIN(ControlledGate):
     @property
     def qubit_count(self) -> int:
         return 3
+
+    @property
+    def num_ctrl_qubits(self) -> int:
+        return 1
 
     @staticmethod
     def get_compact_qobj():

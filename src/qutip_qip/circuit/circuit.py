@@ -284,7 +284,6 @@ class QubitCircuit:
             if issubclass(gate_class, ControlledParamGate):
                 gate = gate_class(
                     targets=targets,
-                    controls=controls,
                     control_value=control_value,
                     arg_value=arg_value,
                     arg_label=arg_label,
@@ -300,7 +299,6 @@ class QubitCircuit:
             elif issubclass(gate_class, ControlledGate):
                 gate = gate_class(
                     targets=targets,
-                    controls=controls,
                     control_value=control_value,
                 )
 

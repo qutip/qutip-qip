@@ -929,7 +929,7 @@ def controlled_gate(
         Quantum object representing the controlled-U gate.
     """
     # Compatibility
-    if not isinstance(targets, Iterable):
+    if not isinstance(controls, Iterable):
         controls = [controls]
     if not isinstance(targets, Iterable):
         targets = [targets]

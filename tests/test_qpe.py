@@ -2,7 +2,11 @@ import numpy as np
 from numpy.testing import assert_, assert_equal
 import unittest
 from qutip import Qobj, sigmaz, tensor
-from qutip_qip.operations import ControlledGate, custom_gate_factory
+from qutip_qip.operations import (
+    ControlledGate,
+    controlled_gate_factory,
+    custom_gate_factory,
+)
 
 from qutip_qip.algorithms.qpe import qpe
 
@@ -28,12 +32,9 @@ class TestQPE(unittest.TestCase):
         """
         U = Qobj([[0, 1], [1, 0]])
 
-        controlled_u = ControlledGate(
-            controls=[0],
-            targets=[1],
-            control_value=1,
+        controlled_u = controlled_gate_factory(
             target_gate=custom_gate_factory(name="CU", U=U),
-        )
+        )(control_value = 1)
 
         assert_equal(controlled_u.control_value, 1)
         assert_(

@@ -23,8 +23,6 @@ class Gate(ABC):
     ----------
     targets : list or int
         The target qubits fo the gate.
-    controls : list or int
-        The controlling qubits of the gate.
     arg_value : object
         Argument value of the gate. It will be saved as an attributes and
         can be accessed when generating the `:obj:qutip.Qobj`.
@@ -142,8 +140,7 @@ class Gate(ABC):
 class ControlledGate(Gate):
     def __init__(
         self,
-        controls,
-        targets,
+        targets=None,
         target_gate=None,
         control_value=1,
     ):
@@ -159,42 +156,39 @@ class ControlledGate(Gate):
             targets=targets,
         )
         self.target_gate = target_gate
-        self.controls = (
-            [controls] if not isinstance(controls, list) else controls
-        )
-        self._num_ctrl_qubits = len(self.controls)
         if control_value is None:
-            self.control_value = 2 ** len(self.controls) - 1
+            self._control_value = 2 ** len(self.num_ctrl_qubits) - 1
         else:
-            self.control_value = control_value
+            self._control_value = control_value
         # In the circuit plot, only the target gate is shown.
         # The control has its own symbol.
         self.latex_str = target_gate.latex_str
+
+    @property
+    def control_value(self) -> int:
+        return self._control_value
 
     @property
     def qubit_count(self) -> int:
         return self.target_gate.qubit_count + self.num_ctrl_qubits
 
     @property
+    @abstractmethod
     def num_ctrl_qubits(self) -> int:
-        return self._num_ctrl_qubits
-
-    def get_all_qubits(self):
-        return self.controls + self.targets
+        raise NotImplementedError
 
     def __str__(self):
         return f"""
             Gate({self.name}, targets={self.targets},
-            controls={self.controls}, control_value={self.control_value},
+            control_value={self.control_value},
         """
 
     def get_compact_qobj(self):
         return controlled_gate(
             U=self.target_gate.get_compact_qobj(),
-            controls=list(range(len(self.controls))),
             targets=list(
                 range(
-                    len(self.controls), len(self.targets) + len(self.controls)
+                    self.num_ctrl_qubits, len(self.targets) + self.num_ctrl_qubits
                 )
             ),
             control_value=self.control_value,
@@ -224,7 +218,6 @@ class ParametrizedGate(Gate):
 class ControlledParamGate(ParametrizedGate, ControlledGate):
     def __init__(
         self,
-        controls,
         arg_value,
         arg_label=None,
         targets=None,
@@ -241,7 +234,6 @@ class ControlledParamGate(ParametrizedGate, ControlledGate):
 
         ControlledGate.__init__(
             self,
-            controls=controls,
             targets=targets,
             target_gate=target_gate(
                 targets=targets, arg_value=arg_value, arg_label=arg_label
@@ -255,7 +247,7 @@ class ControlledParamGate(ParametrizedGate, ControlledGate):
         return f"""
             Gate({self.name}, targets={self.targets},
             arg_value={self.arg_value}, arg_label={self.arg_label},
-            controls={self.controls}, control_value={self.control_value},
+            control_value={self.control_value},
         """
 
 def custom_gate_factory(name: str, U: Qobj) -> Gate:
@@ -290,6 +282,7 @@ def custom_gate_factory(name: str, U: Qobj) -> Gate:
 def controlled_gate_factory(
     target_gate: Gate,
     num_ctrl_qubits: int = 1,
+    control_value: int = -1,
 ) -> ControlledGate:
     """
     Gate Factory for Custom Gate that wraps an arbitrary unitary matrix U.
@@ -298,6 +291,12 @@ def controlled_gate_factory(
     class _CustomGate(ControlledGate):
         latex_str = r"{\rm CU}"
         _target_gate_class = target_gate
+
+        @property 
+        def control_value(self) -> int:
+            if control_value == -1:
+                return 2**num_ctrl_qubits - 1
+            return control_value
 
         @property
         def num_ctrl_qubits(self) -> int:
