@@ -3,6 +3,7 @@ Quantum circuit representation and simulation.
 """
 
 import numpy as np
+import warnings
 
 from ._decompose import _resolve_to_universal, _resolve_2q_basis
 from qutip_qip.operations import (
@@ -68,7 +69,6 @@ class QubitCircuit:
         # number of qubits in the register
         self.N = N
         self.reverse_states = reverse_states
-        self.gates = []
         self.num_cbits = num_cbits
         self._instructions: list[CircuitInstruction] = []
         self._global_phase: float = 0.0
@@ -97,6 +97,15 @@ class QubitCircuit:
     def add_global_phase(self, phase: float):
         self._global_phase += phase
         self._global_phase %= 2 * np.pi
+
+    @property
+    def gates(self):
+        warnings.warn(
+            "QubitCircuit.gates has been replaced with QubitCircuit.instructions",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        return self._instructions
 
     @property
     def instructions(self):
@@ -182,7 +191,6 @@ class QubitCircuit:
         meas = Measurement(
             name, targets=targets, classical_store=classical_store
         )
-        self.gates.append(meas)
 
         if type(targets) is int:
             targets = [targets]
@@ -309,7 +317,6 @@ class QubitCircuit:
 
         if targets is not None:
             gate.targets = targets
-        self.gates.append(gate)
 
         qubits = []
         if controls is not None:
