@@ -252,7 +252,7 @@ class CircuitSimulator:
                 self.qc.instructions[self._op_index].control_value
             )
 
-            if len(classical_controls):
+            if len(classical_controls) > 0:
                 apply_gate = _check_classical_control_value(
                     classical_controls, classical_control_value, self.cbits
                 )

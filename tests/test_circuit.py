@@ -702,7 +702,7 @@ class TestQubitCircuit:
     H_zyz_gates = _ZYZ_rotation(H)
     H_zyz_quantum_circuit = QubitCircuit(1)
     for g in H_zyz_gates:
-        H_zyz_quantum_circuit.add_gate(g, targets=[0])
+        H_zyz_quantum_circuit.add_gate(g, targets=[0])  #TODO CHECK
     sigmax_zyz_gates = _ZYZ_rotation(sigmax())
     sigmax_zyz_quantum_circuit = QubitCircuit(1)
     for g in sigmax_zyz_gates:

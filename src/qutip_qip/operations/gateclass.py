@@ -37,15 +37,6 @@ class Gate(ABC):
         ``controll_value=1``;
         If the gate should be executed when the two bits are 1 and 0,
         ``controll_value=2``.
-    classical_control_value : int, optional
-        The decimal value of controlling classical bits for executing
-        the unitary operator on the target qubits.
-        E.g. if the gate should be executed when the zero-th bit is 1,
-        ``controll_value=1``;
-        If the gate should be executed when the two bits are 1 and 0,
-        ``controll_value=2``.
-        The default is ``2**len(classical_controls)-1``
-        (i.e. all classical controls are 1).
     arg_label : string
         Label for the argument, it will be shown in the circuit plot,
         representing the argument value provided to the gate, e.g,
@@ -72,7 +63,6 @@ class Gate(ABC):
         name: str = None,
         targets: int | list[int] = None,
         classical_controls: int | list[int] | None = None,
-        classical_control_value: int | None = None,
     ):
         """
         Create a gate with specified parameters.
@@ -91,16 +81,6 @@ class Gate(ABC):
             self.classical_controls = [classical_controls]
         else:
             self.classical_controls = classical_controls
-
-        if (
-            self.classical_controls is not None
-            and classical_control_value is None
-        ):
-            self.classical_control_value = (
-                2 ** len(self.classical_controls) - 1
-            )
-        else:
-            self.classical_control_value = classical_control_value
 
     @property
     @abstractmethod
@@ -163,7 +143,6 @@ class Gate(ABC):
         return f"""
             Gate({self.name}, targets={self.targets},
             classical controls={self.classical_controls},
-            classical_control_value={self.classical_control_value})
         """
 
     def __repr__(self):
@@ -180,7 +159,6 @@ class ControlledGate(Gate):
         target_gate=None,
         control_value=1,
         classical_controls=None,
-        classical_control_value=None,
     ):
         if target_gate is None:
             if self._target_gate_class is not None:
@@ -193,7 +171,6 @@ class ControlledGate(Gate):
         super().__init__(
             targets=targets,
             classical_controls=classical_controls,
-            classical_control_value=classical_control_value,
         )
         self.target_gate = target_gate
         self.controls = (
@@ -224,7 +201,6 @@ class ControlledGate(Gate):
             Gate({self.name}, targets={self.targets},
             controls={self.controls}, control_value={self.control_value},
             classical controls={self.classical_controls},
-            classical_control_value={self.classical_control_value})
         """
 
     def get_compact_qobj(self):
@@ -247,12 +223,10 @@ class ParametrizedGate(Gate):
         arg_label: str = None,
         targets=None,
         classical_controls=None,
-        classical_control_value=None,
     ):
         super().__init__(
             targets=targets,
             classical_controls=classical_controls,
-            classical_control_value=classical_control_value,
         )
         self.arg_label = arg_label
         self.arg_value = arg_value
@@ -261,7 +235,6 @@ class ParametrizedGate(Gate):
         return f"""
             Gate({self.name}, targets={self.targets}, arg_value={self.arg_value},
             classical controls={self.classical_controls}, arg_label={self.arg_label},
-            classical_control_value={self.classical_control_value})
         """
 
 
@@ -275,7 +248,6 @@ class ControlledParamGate(ParametrizedGate, ControlledGate):
         target_gate=None,
         control_value=1,
         classical_controls=None,
-        classical_control_value=None,
     ):
         if target_gate is None:
             if self._target_gate_class is not None:
@@ -294,7 +266,6 @@ class ControlledParamGate(ParametrizedGate, ControlledGate):
             ),
             control_value=control_value,
             classical_controls=classical_controls,
-            classical_control_value=classical_control_value,
         )
         self.arg_label = arg_label
         self.arg_value = arg_value
@@ -305,7 +276,6 @@ class ControlledParamGate(ParametrizedGate, ControlledGate):
             arg_value={self.arg_value}, arg_label={self.arg_label},
             controls={self.controls}, control_value={self.control_value},
             classical controls={self.classical_controls},
-            classical_control_value={self.classical_control_value})
         """
 
 def custom_gate_factory(name: str, U: Qobj) -> Gate:
@@ -320,13 +290,11 @@ def custom_gate_factory(name: str, U: Qobj) -> Gate:
             self,
             targets,
             classical_controls=None,
-            classical_control_value=None,
         ):
             super().__init__(
                 name=name,
                 targets=targets,
                 classical_controls=classical_controls,
-                classical_control_value=classical_control_value,
             )
             self._U = U
 

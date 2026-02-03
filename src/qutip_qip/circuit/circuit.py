@@ -251,6 +251,10 @@ class QubitCircuit:
         if index is not None:
             raise ValueError("argument index is no longer supported")
 
+        if isinstance(gate, GLOBALPHASE):
+            self.add_global_phase(gate.arg_value)
+            return
+
         if type(targets) is int:
             targets = [targets]
 
@@ -259,6 +263,9 @@ class QubitCircuit:
 
         if type(classical_controls) is int:
             classical_controls = [classical_controls]
+
+        if classical_controls is not None and classical_control_value is None:
+            classical_control_value = 2**(len(classical_controls)) - 1
 
         if not isinstance(gate, Gate):
             if isinstance(gate, type) and issubclass(gate, Gate):
@@ -279,7 +286,6 @@ class QubitCircuit:
                     arg_value=arg_value,
                     arg_label=arg_label,
                     classical_controls=classical_controls,
-                    classical_control_value=classical_control_value,
                 )
 
             elif gate_class == GLOBALPHASE:
@@ -291,7 +297,6 @@ class QubitCircuit:
                     arg_value=arg_value,
                     arg_label=arg_label,
                     classical_controls=classical_controls,
-                    classical_control_value=classical_control_value,
                 )
 
             elif issubclass(gate_class, ControlledGate):
@@ -300,19 +305,13 @@ class QubitCircuit:
                     controls=controls,
                     control_value=control_value,
                     classical_controls=classical_controls,
-                    classical_control_value=classical_control_value,
                 )
 
             else:
                 gate = gate_class(
                     targets=targets,
                     classical_controls=classical_controls,
-                    classical_control_value=classical_control_value,
                 )
-
-        if isinstance(gate, GLOBALPHASE):
-            self.add_global_phase(gate.arg_value)
-            return
 
         qubits = []
         if controls is not None:
@@ -329,7 +328,7 @@ class QubitCircuit:
                 operation = gate,
                 qubits = tuple(qubits),
                 cbits = cbits,
-                control_value = gate.classical_control_value,
+                control_value = classical_control_value,
                 style = style
             )
         )

@@ -157,16 +157,13 @@ def qc4():
             targets,
             controls,
             classical_controls,
-            classical_control_value,
-            **kwargs,
+            control_value = 1,
         ):
             super().__init__(
                 targets=targets,
                 controls=controls,
                 classical_controls=classical_controls,
-                classical_control_value=classical_control_value,
                 target_gate=IDLE,
-                **kwargs,
             )
 
         @property
