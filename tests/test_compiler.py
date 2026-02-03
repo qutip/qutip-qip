@@ -55,19 +55,19 @@ def test_compiling_gates_different_sampling_number():
             self.gate_compiler["U2"] = self.two_qubit_gate_compiler
             self.args.update({"params": params})
 
-        def single_qubit_gate_compiler(self, gate, args):
+        def single_qubit_gate_compiler(self, circuit_instruction, args):
             pulse_info = [("x", np.array([1.0] * 3))]
             return [
                 Instruction(
-                    gate, tlist=np.linspace(0, 2, 3), pulse_info=pulse_info
+                    circuit_instruction, tlist=np.linspace(0, 2, 3), pulse_info=pulse_info
                 )
             ]
 
-        def two_qubit_gate_compiler(self, gate, args):
+        def two_qubit_gate_compiler(self, circuit_instruction, args):
             pulse_info = [("xx", np.array([2.0] * 5))]
             return [
                 Instruction(
-                    gate, tlist=np.linspace(0, 4, 5), pulse_info=pulse_info
+                    circuit_instruction, tlist=np.linspace(0, 4, 5), pulse_info=pulse_info
                 )
             ]
 
@@ -116,17 +116,17 @@ class MyCompiler(GateCompiler):  # compiler class
         self.gate_compiler["RX"] = self.rx_compiler
         self.args.update({"params": params})
 
-    def rx_compiler(self, gate, args):
-        targets = gate.targets
+    def rx_compiler(self, circuit_instruction, args):
+        targets = circuit_instruction.targets
         coeff, tlist = self.generate_pulse_shape(
             "hann",
             1000,
             maximum=args["params"]["sx"][targets[0]],
             # The operator is Pauli Z/X/Y, without 1/2.
-            area=gate.arg_value / 2.0 / np.pi * 0.5,
+            area=circuit_instruction.operation.arg_value / 2.0 / np.pi * 0.5,
         )
         pulse_info = [("sx" + str(targets[0]), coeff)]
-        return [Instruction(gate, tlist, pulse_info)]
+        return [Instruction(circuit_instruction, tlist, pulse_info)]
 
 
 spline_kind = [
@@ -159,17 +159,18 @@ def test_compiler_with_continous_pulse(spline_kind, schedule_mode):
     assert abs(fidelity(result.states[-1], basis([2, 2], [0, 1])) - 1) < 1.0e-5
 
 
-def rx_compiler_without_pulse_dict(gate, args):
+def rx_compiler_without_pulse_dict(circuit_instruction, args):
     """
     Define a gate compiler that does not use pulse_dict but directly
     give the index of control pulses in the Processor.
     """
-    targets = gate.targets
+    targets = circuit_instruction.targets
+    arg_value = circuit_instruction.operation.arg_value
     g = args["params"]["sx"][targets[0]]
-    coeff = np.sign(gate.arg_value) * g
-    tlist = abs(gate.arg_value) / (2 * g) / np.pi / 2
+    coeff = np.sign(arg_value) * g
+    tlist = abs(arg_value) / (2 * g) / np.pi / 2
     pulse_info = [(targets[0], coeff)]
-    return [Instruction(gate, tlist, pulse_info)]
+    return [Instruction(circuit_instruction, tlist, pulse_info)]
 
 
 def test_compiler_without_pulse_dict():

@@ -84,14 +84,15 @@ class GateCompiler:
         self.global_phase += phase
         self.global_phase %= 2 * np.pi
 
-    def idle_compiler(self, gate, args):
+    def idle_compiler(self, circuit_instruction, args):
         """
         Compiler for the IDLE gate
         """
         idle_time = None
+        gate = circuit_instruction.operation
         if isinstance(gate, ParametrizedGate):
             idle_time = gate.arg_value
-        return [Instruction(gate, idle_time, [])]
+        return [Instruction(circuit_instruction, idle_time, [])]
 
     def compile(self, circuit, schedule_mode=None, args=None):
         """
@@ -138,12 +139,12 @@ class GateCompiler:
             self.args.update(args)
 
         # compile gates
-        for op in instructions:
-            gate = op.operation
+        for circuit_instruction in instructions:
+            gate = circuit_instruction.operation
             if gate.name not in self.gate_compiler:
                 raise ValueError("Unsupported gate %s" % gate.name)
 
-            instruction = self.gate_compiler[gate.name](gate, self.args)
+            instruction = self.gate_compiler[gate.name](circuit_instruction, self.args)
             if instruction is None:
                 continue  # neglecting global phase gate
             instruction_list += instruction

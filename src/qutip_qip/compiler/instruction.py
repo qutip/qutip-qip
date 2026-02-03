@@ -33,15 +33,26 @@ class Instruction:
         Union of the control and target qubits.
     """
 
-    def __init__(self, gate, tlist=None, pulse_info=(), duration=1):
-        self.gate = deepcopy(gate)
+    def __init__(
+        self,
+        circuit_instruction,
+        tlist=None,
+        pulse_info=(),
+        duration=1
+    ):
+        self.gate = deepcopy(circuit_instruction.operation)
+        self._targets = circuit_instruction.targets
+        self._controls = circuit_instruction.controls
+        
         self.used_qubits = set()
         if self.targets is not None:
             self.targets.sort()  # Used when comparing the instructions
             self.used_qubits |= set(self.targets)
+
         if self.controls is not None:
             self.controls.sort()
             self.used_qubits |= set(self.controls)
+
         self.tlist = tlist
         if self.tlist is not None:
             if np.isscalar(self.tlist):
@@ -50,8 +61,10 @@ class Instruction:
                 raise ValueError("Pulse time sequence must start from 0")
             else:
                 self.duration = self.tlist[-1]
+
         else:
             self.duration = duration
+
         self.pulse_info = pulse_info
 
     @property
@@ -68,7 +81,7 @@ class Instruction:
 
         :type: list
         """
-        return list(self.gate.targets)
+        return list(self._targets)
 
     @property
     def controls(self):
@@ -78,5 +91,5 @@ class Instruction:
         :type: list
         """
         if isinstance(self.gate, ControlledGate):
-            return list(self.gate.controls)
+            return list(self._controls)
         return None

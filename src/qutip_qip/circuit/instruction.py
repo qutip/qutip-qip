@@ -28,7 +28,7 @@ class CircuitInstruction(ABC):
     def __post_init__(self):
         """Basic validation for all instructions."""
         if not len(self.qubits) and not len(self.cbits):
-            raise ValueError("Instruction must operate on at least one qubit or cbit.")
+            raise ValueError("Circuit Instruction must operate on at least one qubit or cbit.")
 
         _validate_non_negative_int_tuple(self.qubits, "qubit")
         _validate_non_negative_int_tuple(self.cbits, "cbit")
