@@ -644,22 +644,25 @@ class QubitCircuit:
 
         for op in instructions:
             gate = op.operation
+            targets = op.targets
+            controls = op.controls
+
             if gate.name == "RX" and "RX" not in basis_1q:
                 qc_temp.add_gate(
                     "RY",
-                    targets=gate.targets,
+                    targets=targets,
                     arg_value=-half_pi,
                     arg_label=r"-\pi/2",
                 )
                 qc_temp.add_gate(
                     "RZ",
-                    targets=gate.targets,
+                    targets=targets,
                     arg_value=gate.arg_value,
                     arg_label=gate.arg_label,
                 )
                 qc_temp.add_gate(
                     "RY",
-                    targets=gate.targets,
+                    targets=targets,
                     arg_value=-half_pi,
                     arg_label=r"\pi/2",
                 )
@@ -667,19 +670,19 @@ class QubitCircuit:
             elif gate.name == "RY" and "RY" not in basis_1q:
                 qc_temp.add_gate(
                     "RZ",
-                    targets=gate.targets,
+                    targets=targets,
                     arg_value=-half_pi,
                     arg_label=r"-\pi/2",
                 )
                 qc_temp.add_gate(
                     "RX",
-                    targets=gate.targets,
+                    targets=targets,
                     arg_value=gate.arg_value,
                     arg_label=gate.arg_label,
                 )
                 qc_temp.add_gate(
                     "RZ",
-                    targets=gate.targets,
+                    targets=targets,
                     arg_value=half_pi,
                     arg_label=r"\pi/2",
                 )
@@ -687,26 +690,26 @@ class QubitCircuit:
             elif gate.name == "RZ" and "RZ" not in basis_1q:
                 qc_temp.add_gate(
                     "RX",
-                    targets=gate.targets,
+                    targets=targets,
                     arg_value=-half_pi,
                     arg_label=r"-\pi/2",
                 )
                 qc_temp.add_gate(
                     "RY",
-                    targets=gate.targets,
+                    targets=targets,
                     arg_value=gate.arg_value,
                     arg_label=gate.arg_label,
                 )
                 qc_temp.add_gate(
                     "RX",
-                    targets=gate.targets,
+                    targets=targets,
                     arg_value=half_pi,
                     arg_label=r"\pi/2",
                 )
             elif isinstance(gate, ControlledGate):
-                qc_temp.add_gate(gate, targets=gate.targets, controls=gate.controls)
+                qc_temp.add_gate(gate, targets=targets, controls=controls)
             else:
-                qc_temp.add_gate(gate, targets=gate.targets)
+                qc_temp.add_gate(gate, targets=targets)
 
         return qc_temp
 
