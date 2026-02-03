@@ -280,7 +280,6 @@ class QubitCircuit:
                     arg_label=arg_label,
                     classical_controls=classical_controls,
                     classical_control_value=classical_control_value,
-                    style=style,
                 )
 
             elif gate_class == GLOBALPHASE:
@@ -293,7 +292,6 @@ class QubitCircuit:
                     arg_label=arg_label,
                     classical_controls=classical_controls,
                     classical_control_value=classical_control_value,
-                    style=style,
                 )
 
             elif issubclass(gate_class, ControlledGate):
@@ -303,7 +301,6 @@ class QubitCircuit:
                     control_value=control_value,
                     classical_controls=classical_controls,
                     classical_control_value=classical_control_value,
-                    style=style,
                 )
 
             else:
@@ -311,7 +308,6 @@ class QubitCircuit:
                     targets=targets,
                     classical_controls=classical_controls,
                     classical_control_value=classical_control_value,
-                    style=style,
                 )
 
         if isinstance(gate, GLOBALPHASE):

@@ -59,10 +59,6 @@ class Gate(ABC):
         It is recommended to use ``isinstance``
         or ``issubclass`` to identify a gate rather than
         comparing the name string.
-    style : dict, optional
-        A dictionary of style options for the gate.
-        The options are passed to the `matplotlib` plotter.
-        The default is None.
     """
 
     latex_str = r"U"
@@ -77,13 +73,11 @@ class Gate(ABC):
         targets: int | list[int] = None,
         classical_controls: int | list[int] | None = None,
         classical_control_value: int | None = None,
-        style: dict | None = None,
     ):
         """
         Create a gate with specified parameters.
         """
         self.name = name if name is not None else self.__class__.__name__
-        self.style = style
 
         if not isinstance(targets, Iterable) and targets is not None:
             self.targets = [targets]
@@ -187,7 +181,6 @@ class ControlledGate(Gate):
         control_value=1,
         classical_controls=None,
         classical_control_value=None,
-        style=None,
     ):
         if target_gate is None:
             if self._target_gate_class is not None:
@@ -201,7 +194,6 @@ class ControlledGate(Gate):
             targets=targets,
             classical_controls=classical_controls,
             classical_control_value=classical_control_value,
-            style=style,
         )
         self.target_gate = target_gate
         self.controls = (
@@ -256,13 +248,11 @@ class ParametrizedGate(Gate):
         targets=None,
         classical_controls=None,
         classical_control_value=None,
-        style=None,
     ):
         super().__init__(
             targets=targets,
             classical_controls=classical_controls,
             classical_control_value=classical_control_value,
-            style=style,
         )
         self.arg_label = arg_label
         self.arg_value = arg_value
@@ -286,7 +276,6 @@ class ControlledParamGate(ParametrizedGate, ControlledGate):
         control_value=1,
         classical_controls=None,
         classical_control_value=None,
-        style=None,
     ):
         if target_gate is None:
             if self._target_gate_class is not None:
@@ -306,7 +295,6 @@ class ControlledParamGate(ParametrizedGate, ControlledGate):
             control_value=control_value,
             classical_controls=classical_controls,
             classical_control_value=classical_control_value,
-            style=style,
         )
         self.arg_label = arg_label
         self.arg_value = arg_value
@@ -333,14 +321,12 @@ def custom_gate_factory(name: str, U: Qobj) -> Gate:
             targets,
             classical_controls=None,
             classical_control_value=None,
-            style=None,
         ):
             super().__init__(
                 name=name,
                 targets=targets,
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
-                style=style,
             )
             self._U = U
 
