@@ -864,6 +864,37 @@ class QubitCircuit:
                 f"Unknown renderer '{renderer}' not supported. Please choose from 'latex', 'matplotlib', 'text'."
             )
 
+    def _gate_to_qasm(self, qasm_out, instruction):
+        gate = instruction.operation
+        args = None
+        if isinstance(gate, ParametrizedGate):
+            args = gate.arg_value
+
+        qasm_gate = qasm_out.qasm_name(gate.name)
+        if not qasm_gate:
+            error_str = f"{self.name} gate's qasm defn is not specified"
+            raise NotImplementedError(error_str)
+
+        if instruction.cbits:
+            err_msg = "Exporting controlled gates is not implemented yet."
+            raise NotImplementedError(err_msg)
+        else:
+            qasm_out.output(
+                qasm_out._qasm_str(
+                    q_name=qasm_gate,
+                    q_targets=list(instruction.targets),
+                    q_controls=list(instruction.controls),
+                    q_args=args,
+                )
+            )
+
+    def _measurement_to_qasm(self, qasm_out, instruction):
+        qasm_out.output(
+            "measure q[{}] -> c[{}]".format(
+                instruction.qubits[0], instruction.cbits[0]
+            )
+        )
+
     def _to_qasm(self, qasm_out):
         """
         Pipe output of circuit object to QasmOutput object.
@@ -880,11 +911,14 @@ class QubitCircuit:
         qasm_out.output(n=1)
 
         for op in self.instructions:
-
             if (op.is_gate_instruction() and 
                 not qasm_out.is_defined(op.operation.name)
             ):
                 qasm_out._qasm_defns(op.operation)
 
         for op in self.instructions:
-            op.operation._to_qasm(qasm_out)
+            if op.is_gate_instruction():
+                self._gate_to_qasm(qasm_out, op)
+
+            elif op.is_measurement_instruction():
+                self._measurement_to_qasm(qasm_out, op)

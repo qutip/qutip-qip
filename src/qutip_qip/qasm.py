@@ -273,6 +273,7 @@ class QasmProcessor:
                     continue
                 else:
                     raise SyntaxError("QASM: incorrect bracket formatting")
+
             elif open_bracket_mode:
                 # Define the decomposition of custom QASM gate
                 if command[0] == "{":
@@ -291,17 +292,20 @@ class QasmProcessor:
                     self.gate_names.add(curr_gate.name)
                     self.qasm_gates[curr_gate.name] = curr_gate
                     continue
+
                 elif command[0] in self.gate_names:
                     name = command[0]
                     gate_args, gate_regs = _gate_processor(command)
                     gate_added = self.qasm_gates[name]
                     curr_gate.gates_inside.append([name, gate_args, gate_regs])
+
             elif command[0] == "gate":
                 # Custom definition of gates.
                 gate_name = command[1]
                 gate_args, gate_regs = _gate_processor(command[1:])
                 curr_gate = QasmGate(gate_name, gate_args, gate_regs)
                 gate_defn_mode = True
+
             elif command[0] == "qreg":
                 groups = re.match(r"(.*)\[(.*)\]", "".join(command[1:]))
                 if groups:
@@ -325,10 +329,12 @@ class QasmProcessor:
                     self.num_cbits += num_regs
                 else:
                     raise SyntaxError("QASM: incorrect bracket formatting")
+
             elif command[0] == "reset":
                 raise NotImplementedError(
                     ("QASM: reset functionality " "is not supported.")
                 )
+
             elif command[0] in ["barrier", "include"]:
                 continue
             else:
@@ -365,6 +371,7 @@ class QasmProcessor:
             args_map[arg] = eval(str(args[i]))
         for i, reg in enumerate(gate.gate_regs):
             regs_map[reg] = regs[i]
+
         # process all the constituent gates with supplied arguments, registers
         for call in gate.gates_inside:
             # create function call for the constituent gate

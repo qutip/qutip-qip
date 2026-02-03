@@ -110,19 +110,3 @@ class Measurement:
 
     def _repr_latex_(self):
         return str(self)
-
-    def _to_qasm(self, qasm_out):
-        """
-        Pipe output of measurement to QasmOutput object.
-
-        Parameters
-        ----------
-        qasm_out: QasmOutput
-            object to store QASM output.
-        """
-
-        qasm_out.output(
-            "measure q[{}] -> c[{}]".format(
-                self.targets[0], self.classical_store
-            )
-        )

@@ -148,33 +148,6 @@ class Gate(ABC):
     def _repr_latex_(self):
         return str(self)
 
-    def _to_qasm(self, qasm_out):
-        """
-        Pipe output of gate signature and application to QasmOutput object.
-
-        Parameters
-        ----------
-        qasm_out: QasmOutput
-            object to store QASM output.
-        """
-
-        qasm_gate = qasm_out.qasm_name(self.name)
-
-        if not qasm_gate:
-            error_str = f"{self.name} gate's qasm defn is not specified"
-            raise NotImplementedError(error_str)
-
-        if self.classical_controls:
-            err_msg = "Exporting controlled gates is not implemented yet."
-            raise NotImplementedError(err_msg)
-        else:
-            qasm_out.output(
-                qasm_out._qasm_str(
-                    q_name=qasm_gate,
-                    q_targets=self.targets,
-                )
-            )
-
     @abstractmethod
     def get_compact_qobj(self) -> Qobj:
         """
@@ -293,34 +266,6 @@ class ControlledGate(Gate):
             control_value=self.control_value,
         )
 
-    def _to_qasm(self, qasm_out):
-        """
-        Pipe output of gate signature and application to QasmOutput object.
-
-        Parameters
-        ----------
-        qasm_out: QasmOutput
-            object to store QASM output.
-        """
-
-        qasm_gate = qasm_out.qasm_name(self.name)
-
-        if not qasm_gate:
-            error_str = f"{self.name} gate's qasm defn is not specified"
-            raise NotImplementedError(error_str)
-
-        if self.classical_controls:
-            err_msg = "Exporting controlled gates is not implemented yet."
-            raise NotImplementedError(err_msg)
-        else:
-            qasm_out.output(
-                qasm_out._qasm_str(
-                    q_name=qasm_gate,
-                    q_targets=self.targets,
-                    q_controls=self.controls,
-                )
-            )
-
 
 class ParametrizedGate(Gate):
     def __init__(
@@ -347,34 +292,6 @@ class ParametrizedGate(Gate):
             classical controls={self.classical_controls}, arg_label={self.arg_label},
             classical_control_value={self.classical_control_value})
         """
-
-    def _to_qasm(self, qasm_out):
-        """
-        Pipe output of gate signature and application to QasmOutput object.
-
-        Parameters
-        ----------
-        qasm_out: QasmOutput
-            object to store QASM output.
-        """
-
-        qasm_gate = qasm_out.qasm_name(self.name)
-
-        if not qasm_gate:
-            error_str = f"{self.name} gate's qasm defn is not specified"
-            raise NotImplementedError(error_str)
-
-        if self.classical_controls:
-            err_msg = "Exporting controlled gates is not implemented yet."
-            raise NotImplementedError(err_msg)
-        else:
-            qasm_out.output(
-                qasm_out._qasm_str(
-                    q_name=qasm_gate,
-                    q_targets=self.targets,
-                    q_args=self.arg_value,
-                )
-            )
 
 
 class ControlledParamGate(ParametrizedGate, ControlledGate):
@@ -421,36 +338,6 @@ class ControlledParamGate(ParametrizedGate, ControlledGate):
             classical controls={self.classical_controls},
             classical_control_value={self.classical_control_value})
         """
-
-    def _to_qasm(self, qasm_out):
-        """
-        Pipe output of gate signature and application to QasmOutput object.
-
-        Parameters
-        ----------
-        qasm_out: QasmOutput
-            object to store QASM output.
-        """
-
-        qasm_gate = qasm_out.qasm_name(self.name)
-
-        if not qasm_gate:
-            error_str = f"{self.name} gate's qasm defn is not specified"
-            raise NotImplementedError(error_str)
-
-        if self.classical_controls:
-            err_msg = "Exporting controlled gates is not implemented yet."
-            raise NotImplementedError(err_msg)
-        else:
-            qasm_out.output(
-                qasm_out._qasm_str(
-                    q_name=qasm_gate,
-                    q_targets=self.targets,
-                    q_controls=self.controls,
-                    q_args=self.arg_value,
-                )
-            )
-
 
 def custom_gate_factory(name: str, U: Qobj) -> Gate:
     """
