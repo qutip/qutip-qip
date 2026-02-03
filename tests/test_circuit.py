@@ -416,8 +416,8 @@ class TestQubitCircuit:
             return Qobj(mat, dims=[[2, 2], [2, 2]])
 
         class T1(Gate):
-            def __init__(self, targets, **kwargs):
-                super().__init__(targets=targets)
+            def __init__(self):
+                pass
 
             @property
             def qubit_count(self) -> int:
@@ -444,8 +444,8 @@ class TestQubitCircuit:
         mat3 = qp.rand_unitary(3)
 
         class CTRLMAT3(ParametrizedGate):
-            def __init__(self, targets, arg_value, **kwargs):
-                super().__init__(targets=targets, arg_value=arg_value)
+            def __init__(self, arg_value, arg_label=None):
+                super().__init__(arg_value=arg_value, arg_label=arg_label)
 
             @property
             def qubit_count(self) -> int:

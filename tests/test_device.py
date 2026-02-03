@@ -125,7 +125,7 @@ def test_numerical_evolution(num_qubits, gates, targets, device_class, kwargs):
 
 
 # Test for RZX gate, only available on SCQubits.
-_rzx = RZX(targets=[0, 1], arg_value=np.pi / 2)
+_rzx = RZX(arg_value=np.pi / 2)
 
 
 @pytest.mark.parametrize(

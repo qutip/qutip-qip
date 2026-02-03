@@ -21,8 +21,6 @@ class Gate(ABC):
 
     Parameters
     ----------
-    targets : list or int
-        The target qubits fo the gate.
     arg_value : object
         Argument value of the gate. It will be saved as an attributes and
         can be accessed when generating the `:obj:qutip.Qobj`.
@@ -57,17 +55,11 @@ class Gate(ABC):
     def __init__(
         self,
         name: str = None,
-        targets: int | list[int] = None,
     ):
         """
         Create a gate with specified parameters.
         """
         self.name = name if name is not None else self.__class__.__name__
-
-        if not isinstance(targets, Iterable) and targets is not None:
-            self.targets = [targets]
-        else:
-            self.targets = targets
 
     @property
     @abstractmethod
@@ -94,7 +86,7 @@ class Gate(ABC):
         """
         pass
 
-    def get_qobj(self, num_qubits=None, dims=None):
+    def get_qobj(self, qubits, dims=None):
         """
         Get the :class:`qutip.Qobj` representation of the gate operator.
         The operator is expanded to the full Hilbert space according to
@@ -115,15 +107,11 @@ class Gate(ABC):
         qobj : :obj:`qutip.Qobj`
             The compact gate operator as a unitary matrix.
         """
-
-        all_targets = self.get_all_qubits()
-        if num_qubits is None:
-            num_qubits = max(all_targets) + 1
-
+        # This method isn't being used in the codebase
         return expand_operator(
             self.get_compact_qobj(),
             dims=dims,
-            targets=all_targets,
+            targets=qubits,
         )
 
     def __str__(self):
@@ -140,7 +128,6 @@ class Gate(ABC):
 class ControlledGate(Gate):
     def __init__(
         self,
-        targets=None,
         target_gate=None,
         control_value=1,
     ):
@@ -152,9 +139,7 @@ class ControlledGate(Gate):
                     "target_gate must be provided either as argument or class attribute."
                 )
 
-        super().__init__(
-            targets=targets,
-        )
+        super().__init__()
         self.target_gate = target_gate
         if control_value is None:
             self._control_value = 2 ** len(self.num_ctrl_qubits) - 1
@@ -179,18 +164,13 @@ class ControlledGate(Gate):
 
     def __str__(self):
         return f"""
-            Gate({self.name}, targets={self.targets},
+            Gate({self.name},
             control_value={self.control_value},
         """
 
     def get_compact_qobj(self):
         return controlled_gate(
             U=self.target_gate.get_compact_qobj(),
-            targets=list(
-                range(
-                    self.num_ctrl_qubits, len(self.targets) + self.num_ctrl_qubits
-                )
-            ),
             control_value=self.control_value,
         )
 
@@ -200,17 +180,14 @@ class ParametrizedGate(Gate):
         self,
         arg_value: float,
         arg_label: str = None,
-        targets=None,
     ):
-        super().__init__(
-            targets=targets,
-        )
+        super().__init__()
         self.arg_label = arg_label
         self.arg_value = arg_value
 
     def __str__(self):
         return f"""
-            Gate({self.name}, targets={self.targets}, arg_value={self.arg_value},
+            Gate({self.name}, arg_value={self.arg_value},
             arg_label={self.arg_label},
         """
 
@@ -220,7 +197,6 @@ class ControlledParamGate(ParametrizedGate, ControlledGate):
         self,
         arg_value,
         arg_label=None,
-        targets=None,
         target_gate=None,
         control_value=1,
     ):
@@ -234,9 +210,8 @@ class ControlledParamGate(ParametrizedGate, ControlledGate):
 
         ControlledGate.__init__(
             self,
-            targets=targets,
             target_gate=target_gate(
-                targets=targets, arg_value=arg_value, arg_label=arg_label
+                arg_value=arg_value, arg_label=arg_label
             ),
             control_value=control_value,
         )
@@ -245,7 +220,7 @@ class ControlledParamGate(ParametrizedGate, ControlledGate):
 
     def __str__(self):
         return f"""
-            Gate({self.name}, targets={self.targets},
+            Gate({self.name},
             arg_value={self.arg_value}, arg_label={self.arg_label},
             control_value={self.control_value},
         """
@@ -260,11 +235,9 @@ def custom_gate_factory(name: str, U: Qobj) -> Gate:
 
         def __init__(
             self,
-            targets,
         ):
             super().__init__(
                 name=name,
-                targets=targets,
             )
             self._U = U
 
@@ -321,12 +294,6 @@ class ParametrizedSingleQubitGate(ParametrizedGate):
     @property
     def qubit_count(self) -> int:
         return 1
-
-    def _verify_parameters(self):
-        if self.targets is None or len(self.targets) != 1:
-            raise ValueError(
-                f"Gate {self.__class__.__name__} requires one target"
-            )
 
 
 class TwoQubitGate(Gate):

@@ -154,11 +154,9 @@ def qc4():
     class i(ControlledGate):
         def __init__(
             self,
-            targets,
             control_value = 1,
         ):
             super().__init__(
-                targets=targets,
                 target_gate=IDLE,
                 control_value=control_value,
             )
