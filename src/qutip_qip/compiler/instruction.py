@@ -34,16 +34,12 @@ class Instruction:
     """
 
     def __init__(
-        self,
-        circuit_instruction,
-        tlist=None,
-        pulse_info=(),
-        duration=1
+        self, circuit_instruction, tlist=None, pulse_info=(), duration=1
     ):
         self.gate = deepcopy(circuit_instruction.operation)
         self._targets = circuit_instruction.targets
         self._controls = circuit_instruction.controls
-        
+
         self.used_qubits = set()
         if self.targets is not None:
             self.targets.sort()  # Used when comparing the instructions

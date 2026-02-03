@@ -88,7 +88,7 @@ class SpinChain(ModelProcessor):
                 self.num_qubits,
                 self.params,
                 setup=setup,
-                global_phase=qc.global_phase
+                global_phase=qc.global_phase,
             )
         tlist, coeffs = super().load_circuit(
             qc, schedule_mode=schedule_mode, compiler=compiler

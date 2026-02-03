@@ -74,7 +74,9 @@ def test_qasm_addcircuit():
     check_gate_instruction_defn(qc.instructions[3], "CNOT", (1,), (0,))
     check_gate_instruction_defn(qc.instructions[4], "SNOT", (0,))
     check_gate_instruction_defn(qc.instructions[5], "SNOT", (1,))
-    check_gate_instruction_defn(qc.instructions[6], "SNOT", (0,), (), (0, 1), 0)
+    check_gate_instruction_defn(
+        qc.instructions[6], "SNOT", (0,), (), (0, 1), 0
+    )
     check_measurement_defn(qc.instructions[7], "M", (0,), (0,))
     check_measurement_defn(qc.instructions[8], "M", (1,), (1,))
 

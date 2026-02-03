@@ -228,25 +228,29 @@ class TestQubitCircuit:
         assert len(qc1.instructions) == len(qc.instructions)
 
         for i in range(len(qc1.instructions)):
-            assert (qc1.instructions[i].operation.name == 
-                    qc.instructions[i].operation.name
+            assert (
+                qc1.instructions[i].operation.name
+                == qc.instructions[i].operation.name
             )
-            assert qc1.instructions[i].qubits[0] == qc.instructions[i].qubits[0]
+            assert (
+                qc1.instructions[i].qubits[0] == qc.instructions[i].qubits[0]
+            )
             if isinstance(qc1.instructions[i].operation, Gate) and isinstance(
                 qc.instructions[i].operation, Gate
             ):
                 if isinstance(qc.instructions[i].operation, ControlledGate):
-                    assert qc1.instructions[i].controls == qc.instructions[i].controls
+                    assert (
+                        qc1.instructions[i].controls
+                        == qc.instructions[i].controls
+                    )
                 assert (
                     qc1.instructions[i].control_value
                     == qc.instructions[i].control_value
                 )
-            elif isinstance(qc1.instructions[i].operation, Measurement) and isinstance(
-                qc.instructions[i].operation, Measurement
-            ):
-                assert (
-                    qc1.instructions[i].cbits == qc.instructions[i].cbits
-                )
+            elif isinstance(
+                qc1.instructions[i].operation, Measurement
+            ) and isinstance(qc.instructions[i].operation, Measurement):
+                assert qc1.instructions[i].cbits == qc.instructions[i].cbits
 
         # Test exception when qubit out of range
         pytest.raises(NotImplementedError, qc1.add_circuit, qc, start=4)
@@ -260,12 +264,17 @@ class TestQubitCircuit:
         # Test if the positions are correct
         for i in range(len(qc2.instructions)):
             if qc.instructions[i].is_gate_instruction():
-                assert qc2.instructions[i].targets[0] == qc.instructions[i].targets[0] + 2
-            if (
-                isinstance(qc.instructions[i].operation, ControlledGate)
-                and len(qc.instructions[i].controls)
-            ):
-                assert qc2.instructions[i].controls[0] == qc.instructions[i].controls[0] + 2
+                assert (
+                    qc2.instructions[i].targets[0]
+                    == qc.instructions[i].targets[0] + 2
+                )
+            if isinstance(
+                qc.instructions[i].operation, ControlledGate
+            ) and len(qc.instructions[i].controls):
+                assert (
+                    qc2.instructions[i].controls[0]
+                    == qc.instructions[i].controls[0] + 2
+                )
 
     def test_add_state(self):
         """
@@ -702,7 +711,7 @@ class TestQubitCircuit:
     H_zyz_gates = _ZYZ_rotation(H)
     H_zyz_quantum_circuit = QubitCircuit(1)
     for g in H_zyz_gates:
-        H_zyz_quantum_circuit.add_gate(g, targets=[0])  #TODO CHECK
+        H_zyz_quantum_circuit.add_gate(g, targets=[0])  # TODO CHECK
     sigmax_zyz_gates = _ZYZ_rotation(sigmax())
     sigmax_zyz_quantum_circuit = QubitCircuit(1)
     for g in sigmax_zyz_gates:

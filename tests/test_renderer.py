@@ -154,7 +154,7 @@ def qc4():
     class i(ControlledGate):
         def __init__(
             self,
-            control_value = 1,
+            control_value=1,
         ):
             super().__init__(
                 target_gate=IDLE,
@@ -176,7 +176,7 @@ def qc4():
         @property
         def qubit_count(self):
             return 3
-        
+
         @property
         def num_ctrl_qubits(self):
             return 2

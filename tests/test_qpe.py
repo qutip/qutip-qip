@@ -34,7 +34,7 @@ class TestQPE(unittest.TestCase):
 
         controlled_u = controlled_gate_factory(
             target_gate=custom_gate_factory(name="CU", U=U),
-        )(control_value = 1)
+        )(control_value=1)
 
         assert_equal(controlled_u.control_value, 1)
         assert_(

@@ -660,10 +660,11 @@ class _ControlledTwoQubitGate(ControlledGate):
     ``CNOT(0, 1, control_value=1)``,
     and raise an error if it is 0.
     """
+
     @property
     def qubit_count(self) -> int:
         return 2
-    
+
     @property
     def num_ctrl_qubits(self) -> int:
         return 1
@@ -865,6 +866,7 @@ class _ControlledParamTwoQubitGate(ControlledParamGate):
     ``CNOT(0, 1, control_value=1)``,
     and raise an error if it is 0.
     """
+
     @property
     def qubit_count(self) -> int:
         return 2
@@ -872,6 +874,7 @@ class _ControlledParamTwoQubitGate(ControlledParamGate):
     @property
     def num_ctrl_qubits(self) -> int:
         return 1
+
 
 class CPHASE(_ControlledParamTwoQubitGate):
     r"""
@@ -992,6 +995,7 @@ class GLOBALPHASE(Gate):
     --------
     >>> from qutip_qip.operations import GLOBALPHASE
     """
+
     name = "GLOBALPHASE"
     latex_str = r"{\rm GLOBALPHASE}"
 

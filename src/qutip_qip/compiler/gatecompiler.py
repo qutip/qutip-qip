@@ -144,7 +144,9 @@ class GateCompiler:
             if gate.name not in self.gate_compiler:
                 raise ValueError("Unsupported gate %s" % gate.name)
 
-            instruction = self.gate_compiler[gate.name](circuit_instruction, self.args)
+            instruction = self.gate_compiler[gate.name](
+                circuit_instruction, self.args
+            )
             if instruction is None:
                 continue  # neglecting global phase gate
             instruction_list += instruction

@@ -85,7 +85,9 @@ class CavityQEDCompiler(GateCompiler):
         self.Delta = self.wq - self.params["w0"]
         self.global_phase = global_phase
 
-    def _rotation_compiler(self, circuit_instruction, op_label, param_label, args):
+    def _rotation_compiler(
+        self, circuit_instruction, op_label, param_label, args
+    ):
         """
         Single qubit rotation compiler.
 
@@ -159,7 +161,9 @@ class CavityQEDCompiler(GateCompiler):
         """
         return self._rotation_compiler(circuit_instruction, "sx", "sx", args)
 
-    def _swap_compiler(self, circuit_instruction, area, correction_angle, args):
+    def _swap_compiler(
+        self, circuit_instruction, area, correction_angle, args
+    ):
         q1, q2 = circuit_instruction.targets
         pulse_info = []
         pulse_name = "sz" + str(q1)
@@ -184,14 +188,16 @@ class CavityQEDCompiler(GateCompiler):
         coeff, tlist = self.generate_pulse_shape(
             args["shape"], args["num_samples"], maximum=J, area=area
         )
-        instruction_list = [Instruction(circuit_instruction, tlist, pulse_info)]
+        instruction_list = [
+            Instruction(circuit_instruction, tlist, pulse_info)
+        ]
 
         # corrections
         compiled_gate1 = self.gate_compiler["RZ"](
             GateInstruction(
                 operation=RZ(arg_value=correction_angle), qubits=(q1,)
             ),
-            args
+            args,
         )
         instruction_list += compiled_gate1
 
@@ -199,7 +205,7 @@ class CavityQEDCompiler(GateCompiler):
             GateInstruction(
                 operation=RZ(arg_value=correction_angle), qubits=(q2,)
             ),
-            args
+            args,
         )
         instruction_list += compiled_gate2
         self.gate_compiler["GLOBALPHASE"](correction_angle)
@@ -230,7 +236,10 @@ class CavityQEDCompiler(GateCompiler):
         """
         # FIXME This decomposition has poor behaviour.
         return self._swap_compiler(
-            circuit_instruction, area=1 / 4, correction_angle=-np.pi / 4, args=args
+            circuit_instruction,
+            area=1 / 4,
+            correction_angle=-np.pi / 4,
+            args=args,
         )
 
     def iswap_compiler(self, circuit_instruction, args):
@@ -252,6 +261,8 @@ class CavityQEDCompiler(GateCompiler):
         information for this gate.
         """
         return self._swap_compiler(
-            circuit_instruction, area=1 / 2, correction_angle=-np.pi / 2, args=args
+            circuit_instruction,
+            area=1 / 2,
+            correction_angle=-np.pi / 2,
+            args=args,
         )
-

@@ -99,7 +99,9 @@ class SCQubitsCompiler(GateCompiler):
             "DRAG": True,
         }
 
-    def _rotation_compiler(self, circuit_instruction, op_label, param_label, args):
+    def _rotation_compiler(
+        self, circuit_instruction, op_label, param_label, args
+    ):
         """
         Single qubit rotation compiler.
 
@@ -187,7 +189,9 @@ class SCQubitsCompiler(GateCompiler):
         A list of :obj:`.Instruction`, including the compiled pulse
         information for this gate.
         """
-        return self._rotation_compiler(circuit_instruction, "sy", "omega_single", args)
+        return self._rotation_compiler(
+            circuit_instruction, "sy", "omega_single", args
+        )
 
     def rx_compiler(self, circuit_instruction, args):
         """
@@ -207,7 +211,9 @@ class SCQubitsCompiler(GateCompiler):
         A list of :obj:`.Instruction`, including the compiled pulse
         information for this gate.
         """
-        return self._rotation_compiler(circuit_instruction, "sx", "omega_single", args)
+        return self._rotation_compiler(
+            circuit_instruction, "sx", "omega_single", args
+        )
 
     def rzx_compiler(self, circuit_instruction, args):
         """
@@ -298,5 +304,5 @@ class SCQubitsCompiler(GateCompiler):
             GateInstruction(operation=RX(arg_value=PI / 2), qubits=(q1,)),
             args,
         )
-        
+
         return result

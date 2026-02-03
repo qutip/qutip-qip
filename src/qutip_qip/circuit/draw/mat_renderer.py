@@ -528,7 +528,7 @@ class MatRenderer(BaseRenderer):
         targets: list[int],
         controls: list[int],
         cbits: list[int],
-        layer: int
+        layer: int,
     ) -> None:
         """
         Draw the multi-qubit gate.
@@ -550,9 +550,7 @@ class MatRenderer(BaseRenderer):
         if gate.name == "CNOT" or gate.name == "CX":
             self._draw_control_node(controls[0], com_xskip, self.color)
             self._draw_target_node(targets[0], com_xskip, self.color)
-            self._draw_qbridge(
-                targets[0], controls[0], com_xskip, self.color
-            )
+            self._draw_qbridge(targets[0], controls[0], com_xskip, self.color)
             self._manage_layers(
                 2 * self.style.gate_pad + self._target_node_r / 3,
                 wire_list,
@@ -563,9 +561,7 @@ class MatRenderer(BaseRenderer):
         elif gate.name == "SWAP":
             self._draw_swap_mark(targets[0], com_xskip, self.color)
             self._draw_swap_mark(targets[1], com_xskip, self.color)
-            self._draw_qbridge(
-                targets[0], targets[1], com_xskip, self.color
-            )
+            self._draw_qbridge(targets[0], targets[1], com_xskip, self.color)
             self._manage_layers(
                 2 * (self.style.gate_pad + self._min_gate_width / 3),
                 wire_list,
@@ -587,10 +583,7 @@ class MatRenderer(BaseRenderer):
             )
 
         else:
-            adj_targets = [
-                i + self._cwires
-                for i in sorted(targets)
-            ]
+            adj_targets = [i + self._cwires for i in sorted(targets)]
             text_width = self._get_text_width(
                 self.text,
                 self.fontsize,

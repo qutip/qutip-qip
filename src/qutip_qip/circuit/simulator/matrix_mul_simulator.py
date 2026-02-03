@@ -13,6 +13,7 @@ def _decimal_to_binary(decimal, length):
     binary = [int(s) for s in "{0:#b}".format(decimal)[2:]]
     return [0] * (length - len(binary)) + binary
 
+
 def _check_classical_control_value(
     classical_controls, classical_control_value, cbits
 ):
@@ -179,12 +180,8 @@ class CircuitSimulator:
             if self._state is None:
                 # TODO This only happens if there is predefined post-selection on the measurement results and the measurement results is exactly 0. This needs to be improved.
                 break
-        
-        return CircuitResult(
-            self.state,
-            self._probability,
-            self.cbits
-        )
+
+        return CircuitResult(self.state, self._probability, self.cbits)
 
     def run_statistics(self, state, cbits=None):
         """
@@ -248,9 +245,9 @@ class CircuitSimulator:
         elif self.qc.instructions[self._op_index].is_gate_instruction():
             qubits = self.qc.instructions[self._op_index].qubits
             classical_controls = self.qc.instructions[self._op_index].cbits
-            classical_control_value = (
-                self.qc.instructions[self._op_index].control_value
-            )
+            classical_control_value = self.qc.instructions[
+                self._op_index
+            ].control_value
 
             if len(classical_controls) > 0:
                 apply_gate = _check_classical_control_value(

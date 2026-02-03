@@ -125,6 +125,7 @@ class Gate(ABC):
     def _repr_latex_(self):
         return str(self)
 
+
 class ControlledGate(Gate):
     def __init__(
         self,
@@ -210,9 +211,7 @@ class ControlledParamGate(ParametrizedGate, ControlledGate):
 
         ControlledGate.__init__(
             self,
-            target_gate=target_gate(
-                arg_value=arg_value, arg_label=arg_label
-            ),
+            target_gate=target_gate(arg_value=arg_value, arg_label=arg_label),
             control_value=control_value,
         )
         self.arg_label = arg_label
@@ -224,6 +223,7 @@ class ControlledParamGate(ParametrizedGate, ControlledGate):
             arg_value={self.arg_value}, arg_label={self.arg_label},
             control_value={self.control_value},
         """
+
 
 def custom_gate_factory(name: str, U: Qobj) -> Gate:
     """
@@ -265,7 +265,7 @@ def controlled_gate_factory(
         latex_str = r"{\rm CU}"
         _target_gate_class = target_gate
 
-        @property 
+        @property
         def control_value(self) -> int:
             if control_value == -1:
                 return 2**num_ctrl_qubits - 1

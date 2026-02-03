@@ -103,7 +103,7 @@ class QubitCircuit:
         warnings.warn(
             "QubitCircuit.gates has been replaced with QubitCircuit.instructions",
             DeprecationWarning,
-            stacklevel=2
+            stacklevel=2,
         )
         return self._instructions
 
@@ -197,12 +197,12 @@ class QubitCircuit:
 
         if type(classical_store) is int:
             classical_store = [classical_store]
-        
+
         self._instructions.append(
             MeasurementInstruction(
                 operation=meas,
                 qubits=tuple(targets),
-                cbits = tuple(classical_store)
+                cbits=tuple(classical_store),
             )
         )
 
@@ -265,10 +265,10 @@ class QubitCircuit:
             classical_controls = [classical_controls]
 
         if controls is not None and control_value is None:
-            control_value = 2**(len(controls)) - 1
+            control_value = 2 ** (len(controls)) - 1
 
         if classical_controls is not None and classical_control_value is None:
-            classical_control_value = 2**(len(classical_controls)) - 1
+            classical_control_value = 2 ** (len(classical_controls)) - 1
 
         if not isinstance(gate, Gate):
             if isinstance(gate, type) and issubclass(gate, Gate):
@@ -314,16 +314,18 @@ class QubitCircuit:
 
         self._instructions.append(
             GateInstruction(
-                operation = gate,
-                qubits = tuple(qubits),
-                cbits = cbits,
-                control_value = classical_control_value,
-                style = style
+                operation=gate,
+                qubits=tuple(qubits),
+                cbits=cbits,
+                control_value=classical_control_value,
+                style=style,
             )
         )
 
     # FIXME by design add_circuit won't work for custom gates becauae of gate.name
-    def add_circuit(self, qc, start=0): # TODO Instead of start have a qubit mapping?
+    def add_circuit(
+        self, qc, start=0
+    ):  # TODO Instead of start have a qubit mapping?
         """
         Adds a block of a qubit circuit to the main circuit.
 
@@ -612,7 +614,7 @@ class QubitCircuit:
                         arg_value = None
                         if isinstance(gate, ParametrizedGate):
                             arg_value = gate.arg_value
-                            
+
                         temp_resolved.add_gate(
                             gate.name,
                             arg_value=arg_value,
@@ -620,7 +622,7 @@ class QubitCircuit:
                             controls=controls,
                             classical_controls=op.cbits,
                             classical_control_value=op.control_value,
-                            style = op.style
+                            style=op.style,
                         )
                     else:
                         exception = f"Gate {gate.name} cannot be resolved."
@@ -719,7 +721,7 @@ class QubitCircuit:
                     controls=controls,
                     classical_controls=op.cbits,
                     classical_control_value=op.control_value,
-                    style = op.style
+                    style=op.style,
                 )
 
         return qc_temp
@@ -922,8 +924,8 @@ class QubitCircuit:
         qasm_out.output(n=1)
 
         for op in self.instructions:
-            if (op.is_gate_instruction() and 
-                not qasm_out.is_defined(op.operation.name)
+            if op.is_gate_instruction() and not qasm_out.is_defined(
+                op.operation.name
             ):
                 qasm_out._qasm_defns(op.operation)
 

@@ -2,20 +2,17 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from qutip_qip.operations import Gate, Measurement
 
+
 def _validate_non_negative_int_tuple(T, txt="qubit"):
     if type(T) is not tuple:
         raise ValueError(f"Must pass a tuple for {txt}, got {type(T)}")
-    
+
     for q in T:
         if not isinstance(q, int):
-            raise ValueError(
-                f"All {txt} indices must be an int, found {q}"
-            )
+            raise ValueError(f"All {txt} indices must be an int, found {q}")
 
         if q < 0:
-            raise ValueError(
-                f"{txt} indices must be non-negative, found {q}"
-            )
+            raise ValueError(f"{txt} indices must be non-negative, found {q}")
 
 
 @dataclass(frozen=True)
@@ -28,7 +25,9 @@ class CircuitInstruction(ABC):
     def __post_init__(self):
         """Basic validation for all instructions."""
         if not len(self.qubits) and not len(self.cbits):
-            raise ValueError("Circuit Instruction must operate on at least one qubit or cbit.")
+            raise ValueError(
+                "Circuit Instruction must operate on at least one qubit or cbit."
+            )
 
         _validate_non_negative_int_tuple(self.qubits, "qubit")
         _validate_non_negative_int_tuple(self.cbits, "cbit")
@@ -48,7 +47,7 @@ class CircuitInstruction(ABC):
         if isinstance(self.operation, Measurement):
             return True
         return False
-    
+
     @abstractmethod
     def __repr__(self):
         raise NotImplementedError
@@ -62,9 +61,7 @@ class GateInstruction(CircuitInstruction):
     def __post_init__(self):
         super().__post_init__()
         if not self.is_gate_instruction():
-            raise ValueError(
-                f"Operation must be a Gate, got {self.operation}"
-            )
+            raise ValueError(f"Operation must be a Gate, got {self.operation}")
 
         if len(self.qubits) != self.operation.qubit_count:
             raise ValueError(
@@ -80,12 +77,11 @@ class GateInstruction(CircuitInstruction):
 
     @property
     def targets(self) -> tuple[int]:
-        return self.qubits[self.operation.num_ctrl_qubits: ]
+        return self.qubits[self.operation.num_ctrl_qubits :]
 
     def __repr__(self):
-        return (f"Gate({self.operation}), qubits({self.qubits}),\
+        return f"Gate({self.operation}), qubits({self.qubits}),\
                 cbits({self.cbits}), style({self.style})"
-        )
 
 
 @dataclass(frozen=True)
@@ -100,7 +96,9 @@ class MeasurementInstruction(CircuitInstruction):
             )
 
         if len(self.qubits) != len(self.cbits):
-            raise ValueError("Measurement requires equal number of qubits and cbits.")
+            raise ValueError(
+                "Measurement requires equal number of qubits and cbits."
+            )
 
     def __repr__(self):
         return f"Measure(q{self.qubits} -> c{self.cbits})"

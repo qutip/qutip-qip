@@ -59,7 +59,9 @@ def test_compiling_gates_different_sampling_number():
             pulse_info = [("x", np.array([1.0] * 3))]
             return [
                 Instruction(
-                    circuit_instruction, tlist=np.linspace(0, 2, 3), pulse_info=pulse_info
+                    circuit_instruction,
+                    tlist=np.linspace(0, 2, 3),
+                    pulse_info=pulse_info,
                 )
             ]
 
@@ -67,7 +69,9 @@ def test_compiling_gates_different_sampling_number():
             pulse_info = [("xx", np.array([2.0] * 5))]
             return [
                 Instruction(
-                    circuit_instruction, tlist=np.linspace(0, 4, 5), pulse_info=pulse_info
+                    circuit_instruction,
+                    tlist=np.linspace(0, 4, 5),
+                    pulse_info=pulse_info,
                 )
             ]
 

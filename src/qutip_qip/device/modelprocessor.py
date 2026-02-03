@@ -224,9 +224,7 @@ class ModelProcessor(Processor):
         if compiler is None and self._default_compiler is not None:
             compiler = self._default_compiler(self.num_qubits, self.params)
         if compiler is not None:
-            tlist, coeffs = compiler.compile(
-                qc, schedule_mode=schedule_mode
-            )
+            tlist, coeffs = compiler.compile(qc, schedule_mode=schedule_mode)
         else:
             raise ValueError("No compiler defined.")
         # Save compiler pulses

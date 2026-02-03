@@ -76,9 +76,7 @@ class TeXRenderer:
                                 if _swap_processing:
                                     col.append(r" \qswap \qw")
                                     continue
-                                distance = abs(
-                                    targets[1] - targets[0]
-                                )
+                                distance = abs(targets[1] - targets[0])
 
                                 if self.reverse_states:
                                     distance = -distance
@@ -88,8 +86,7 @@ class TeXRenderer:
                             elif (
                                 self.reverse_states and n == max(targets)
                             ) or (
-                                not self.reverse_states
-                                and n == min(targets)
+                                not self.reverse_states and n == min(targets)
                             ):
                                 # Python automatically concatenates adjacent string literals
                                 # No new line is added in the process

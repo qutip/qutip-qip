@@ -67,16 +67,20 @@ class TestConverter:
 
         return np.allclose(req_arg, res_arg)
 
-    def _compare_gate_instructions(self, req_gate, res_gate, result_circuit: QubitCircuit):
+    def _compare_gate_instructions(
+        self, req_gate, res_gate, result_circuit: QubitCircuit
+    ):
         """Check whether two gates are equivalent"""
-        check_condition = (req_gate.operation.name == res_gate.operation.name) and (
+        check_condition = (
+            req_gate.operation.name == res_gate.operation.name
+        ) and (
             list(req_gate.qubits)
             == get_qutip_index(list(res_gate.qubits), result_circuit.N)
         )
         if not check_condition:
             return False
 
-        if  req_gate.is_measurement_instruction():
+        if req_gate.is_measurement_instruction():
             check_condition = req_gate.classical_store == get_qutip_index(
                 res_gate.classical_store, result_circuit.num_cbits
             )
@@ -111,7 +115,9 @@ class TestConverter:
         for i, res_gate in enumerate(result_circuit.instructions):
             req_ins = required_circuit.instructions[i]
 
-            if not self._compare_gate_instructions(req_ins, res_gate, result_circuit):
+            if not self._compare_gate_instructions(
+                req_ins, res_gate, result_circuit
+            ):
                 return False
 
         return True

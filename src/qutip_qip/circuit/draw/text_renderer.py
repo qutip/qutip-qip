@@ -258,10 +258,7 @@ class TextRenderer(BaseRenderer):
             + "═" * (width // 2 - 1)
         )
 
-        classical_wire = list(map(
-            lambda x: x + self._qwires, 
-            cbits
-        ))
+        classical_wire = list(map(lambda x: x + self._qwires, cbits))
         classical_wire.sort()
 
         for wire in wire_list:
@@ -447,13 +444,14 @@ class TextRenderer(BaseRenderer):
                 targets = list(op.targets)
                 controls = list(op.controls)
 
-                if isinstance(gate, ParametrizedGate) and gate.arg_label is not None:
+                if (
+                    isinstance(gate, ParametrizedGate)
+                    and gate.arg_label is not None
+                ):
                     gate_text = gate.arg_label
 
                 if gate.name == "SWAP":
-                    wire_list = list(
-                        range(min(targets), max(targets) + 1)
-                    )
+                    wire_list = list(range(min(targets), max(targets) + 1))
                     width = 4 * ceil(self.style.gate_pad) + 1
                 else:
                     sorted_targets = sorted(targets)
