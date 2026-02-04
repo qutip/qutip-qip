@@ -107,6 +107,15 @@ class QubitCircuit:
         )
         return self._instructions
 
+    gates.setter
+
+    def gates(self):
+        warnings.warn(
+            "QubitCircuit.gates has been replaced with QubitCircuit.instructions",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
     @property
     def instructions(self):
         return self._instructions
@@ -448,7 +457,7 @@ class QubitCircuit:
                     controls=circ_instruction.controls,
                     classical_controls=circ_instruction.cbits,
                     classical_control_value=circ_instruction.cbits_ctrl_value,
-                    style=circ_instruction.style
+                    style=circ_instruction.style,
                 )
 
             elif circ_instruction.is_measurement_instruction():
@@ -596,10 +605,10 @@ class QubitCircuit:
         )
         temp_resolved = QubitCircuit(self.N)
 
-        for op in self.instructions:
-            gate = op.operation
-            targets = op.targets
-            controls = op.controls
+        for circ_instruction in self.instructions:
+            gate = circ_instruction.operation
+            targets = circ_instruction.targets
+            controls = circ_instruction.controls
 
             if gate.name in ("X", "Y", "Z"):
                 temp_resolved.add_global_phase(phase=np.pi / 2)
@@ -620,7 +629,7 @@ class QubitCircuit:
             else:
                 try:
                     _resolve_to_universal(
-                        op, temp_resolved, basis_1q, basis_2q
+                        circ_instruction, temp_resolved, basis_1q, basis_2q
                     )
                 except KeyError:
                     if gate.name in basis:
@@ -633,9 +642,9 @@ class QubitCircuit:
                             arg_value=arg_value,
                             targets=targets,
                             controls=controls,
-                            classical_controls=op.cbits,
-                            classical_control_value=op.cbits_ctrl_value,
-                            style=op.style,
+                            classical_controls=circ_instruction.cbits,
+                            classical_control_value=circ_instruction.cbits_ctrl_value,
+                            style=circ_instruction.style,
                         )
                     else:
                         exception = f"Gate {gate.name} cannot be resolved."
@@ -658,10 +667,10 @@ class QubitCircuit:
         qc_temp._instructions = []
         half_pi = np.pi / 2
 
-        for op in instructions:
-            gate = op.operation
-            targets = op.targets
-            controls = op.controls
+        for circ_instruction in instructions:
+            gate = circ_instruction.operation
+            targets = circ_instruction.targets
+            controls = circ_instruction.controls
 
             if gate.name == "RX" and "RX" not in basis_1q:
                 qc_temp.add_gate(
@@ -732,9 +741,9 @@ class QubitCircuit:
                     arg_value=arg_value,
                     targets=targets,
                     controls=controls,
-                    classical_controls=op.cbits,
-                    classical_control_value=op.cbits_ctrl_value,
-                    style=op.style,
+                    classical_controls=circ_instruction.cbits,
+                    classical_control_value=circ_instruction.cbits_ctrl_value,
+                    style=circ_instruction.style,
                 )
 
         return qc_temp
@@ -772,9 +781,9 @@ class QubitCircuit:
         U_list = []
 
         gates = [
-            (op.operation, op.qubits)
-            for op in self.instructions
-            if op.is_gate_instruction()
+            (circ_instruction.operation, circ_instruction.qubits)
+            for circ_instruction in self.instructions
+            if circ_instruction.is_gate_instruction()
         ]
         if len(gates) < len(self.instructions) and not ignore_measurement:
             raise TypeError(
@@ -905,11 +914,12 @@ class QubitCircuit:
             qasm_out.output("creg c[{}];".format(self.num_cbits))
         qasm_out.output(n=1)
 
-        for op in self.instructions:
-            if op.is_gate_instruction() and not qasm_out.is_defined(
-                op.operation.name
+        for circ_instruction in self.instructions:
+            if (
+                circ_instruction.is_gate_instruction()
+                and not qasm_out.is_defined(circ_instruction.operation.name)
             ):
-                qasm_out._qasm_defns(op.operation)
+                qasm_out._qasm_defns(circ_instruction.operation)
 
         for circ_instruction in self.instructions:
             circ_instruction.to_qasm(qasm_out)

@@ -275,10 +275,10 @@ def _gate_TOFFOLI(circ_instruction, temp_resolved):
 
 def _basis_CSIGN(qc_temp, temp_resolved):
     half_pi = np.pi / 2
-    for op in temp_resolved.instructions:
-        gate = op.operation
-        targets = op.targets
-        controls = op.controls
+    for circ_instruction in temp_resolved.instructions:
+        gate = circ_instruction.operation
+        targets = circ_instruction.targets
+        controls = circ_instruction.controls
 
         if gate.name == "CNOT":
             qc_temp.add_gate(
@@ -304,19 +304,19 @@ def _basis_CSIGN(qc_temp, temp_resolved):
                 arg_value=arg_value,
                 targets=targets,
                 controls=controls,
-                classical_controls=op.cbits,
-                classical_control_value=op.cbits_ctrl_value,
-                style=op.style,
+                classical_controls=circ_instruction.cbits,
+                classical_control_value=circ_instruction.cbits_ctrl_value,
+                style=circ_instruction.style,
             )
 
 
 def _basis_ISWAP(qc_temp, temp_resolved):
     half_pi = np.pi / 2
     quarter_pi = np.pi / 4
-    for op in temp_resolved.instructions:
-        gate = op.operation
-        targets = op.targets
-        controls = op.controls
+    for circ_instruction in temp_resolved.instructions:
+        gate = circ_instruction.operation
+        targets = circ_instruction.targets
+        controls = circ_instruction.controls
 
         if gate.name == "CNOT":
             qc_temp.add_global_phase(phase=quarter_pi)
@@ -387,18 +387,18 @@ def _basis_ISWAP(qc_temp, temp_resolved):
                 arg_value=arg_value,
                 targets=targets,
                 controls=controls,
-                classical_controls=op.cbits,
-                classical_control_value=op.cbits_ctrl_value,
-                style=op.style,
+                classical_controls=circ_instruction.cbits,
+                classical_control_value=circ_instruction.cbits_ctrl_value,
+                style=circ_instruction.style,
             )
 
 
 def _basis_SQRTSWAP(qc_temp, temp_resolved):
     half_pi = np.pi / 2
-    for op in temp_resolved.instructions:
-        gate = op.operation
-        targets = op.targets
-        controls = op.controls
+    for circ_instruction in temp_resolved.instructions:
+        gate = circ_instruction.operation
+        targets = circ_instruction.targets
+        controls = circ_instruction.controls
 
         if gate.name == "CNOT":
             qc_temp.add_gate(
@@ -443,18 +443,18 @@ def _basis_SQRTSWAP(qc_temp, temp_resolved):
                 arg_value=arg_value,
                 targets=targets,
                 controls=controls,
-                classical_controls=op.cbits,
-                classical_control_value=op.cbits_ctrl_value,
-                style=op.style,
+                classical_controls=circ_instruction.cbits,
+                classical_control_value=circ_instruction.cbits_ctrl_value,
+                style=circ_instruction.style,
             )
 
 
 def _basis_SQRTISWAP(qc_temp, temp_resolved):
     half_pi = np.pi / 2
-    for op in temp_resolved.instructions:
-        gate = op.operation
-        targets = op.targets
-        controls = op.controls
+    for circ_instruction in temp_resolved.instructions:
+        gate = circ_instruction.operation
+        targets = circ_instruction.targets
+        controls = circ_instruction.controls
 
         if gate.name == "CNOT":
             qc_temp.add_gate(
@@ -506,9 +506,9 @@ def _basis_SQRTISWAP(qc_temp, temp_resolved):
                 arg_value=arg_value,
                 targets=targets,
                 controls=controls,
-                classical_controls=op.cbits,
-                classical_control_value=op.cbits_ctrl_value,
-                style=op.style,
+                classical_controls=circ_instruction.cbits,
+                classical_control_value=circ_instruction.cbits_ctrl_value,
+                style=circ_instruction.style,
             )
 
 

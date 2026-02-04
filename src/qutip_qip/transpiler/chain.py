@@ -36,10 +36,10 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
         "SWAPalpha",
     ]
 
-    for op in qc.instructions:
-        gate = op.operation
-        controls = op.controls
-        targets = op.targets
+    for circ_instruction in qc.instructions:
+        gate = circ_instruction.operation
+        controls = circ_instruction.controls
+        targets = circ_instruction.targets
 
         if gate.name == "CNOT" or gate.name == "CSIGN":
             start = min([targets[0], controls[0]])
@@ -144,10 +144,10 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
 
                 j = 0
 
-                for op in temp.instructions:
-                    gate = op.operation
-                    targets = op.targets
-                    controls = op.controls
+                for circ_instruction in temp.instructions:
+                    gate = circ_instruction.operation
+                    targets = circ_instruction.targets
+                    controls = circ_instruction.controls
 
                     if j < N - end - 2:
                         if gate.name in ["CNOT", "CSIGN"]:
@@ -259,9 +259,9 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
 
                 j = 0
 
-                for op in temp.instructions:
-                    gate = op.operation
-                    targets = op.qubits
+                for circ_instruction in temp.instructions:
+                    gate = circ_instruction.operation
+                    targets = circ_instruction.qubits
 
                     if j < N - end - 2:
                         qc_t.add_gate(
@@ -293,9 +293,9 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
                 gate,
                 targets=targets,
                 controls=controls,
-                classical_controls=op.cbits,
-                classical_control_value=op.cbits_ctrl_value,
-                style=op.style,
+                classical_controls=circ_instruction.cbits,
+                classical_control_value=circ_instruction.cbits_ctrl_value,
+                style=circ_instruction.style,
             )
 
     return qc_t

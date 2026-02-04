@@ -612,11 +612,11 @@ class TestQubitCircuit:
 
         inds_list = []
 
-        for op in qc.instructions:
-            if isinstance(op.operation, Measurement):
+        for circ_instruction in qc.instructions:
+            if isinstance(circ_instruction.operation, Measurement):
                 continue
             else:
-                inds_list.append(op.qubits)
+                inds_list.append(circ_instruction.qubits)
 
         U_1, _ = gate_sequence_product(
             U_list, inds_list=inds_list, expand=True

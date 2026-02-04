@@ -60,12 +60,12 @@ class TeXRenderer:
         rows = []
         col = []
 
-        for op in self.instructions:
-            if op.is_gate_instruction():
-                gate = op.operation
-                targets = op.targets
-                controls = op.controls
-                cbits = op.cbits
+        for circ_instruction in self.instructions:
+            if circ_instruction.is_gate_instruction():
+                gate = circ_instruction.operation
+                targets = circ_instruction.targets
+                controls = circ_instruction.controls
+                cbits = circ_instruction.cbits
                 col = []
                 _swap_processing = False
 
@@ -130,8 +130,8 @@ class TeXRenderer:
                         col.append(r" \qw ")
 
             else:
-                qubits = list(op.qubits)
-                cbits = list(op.cbits)
+                qubits = list(circ_instruction.qubits)
+                cbits = list(circ_instruction.cbits)
                 col = []
 
                 for n in range(self.N + self.num_cbits):
