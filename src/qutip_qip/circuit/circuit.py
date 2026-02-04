@@ -111,10 +111,6 @@ class QubitCircuit:
     def instructions(self):
         return self._instructions
 
-    @instructions.setter
-    def instructions(self, x):
-        self._instructions = x
-
     def __repr__(self) -> str:
         return ""
 
@@ -444,7 +440,24 @@ class QubitCircuit:
             output_states=self.output_states,
         )
 
-        temp.instructions = self.instructions[::-1]
+        for circ_instruction in reversed(self.instructions):
+            if circ_instruction.is_gate_instruction():
+                temp.add_gate(
+                    gate=circ_instruction.operation,
+                    targets=circ_instruction.targets,
+                    controls=circ_instruction.controls,
+                    classical_controls=circ_instruction.cbits,
+                    classical_control_value=circ_instruction.cbits_ctrl_value,
+                    style=circ_instruction.style
+                )
+
+            elif circ_instruction.is_measurement_instruction():
+                temp.add_measurement(
+                    measurement=circ_instruction.operation,
+                    targets=circ_instruction.qubits,
+                    classical_store=circ_instruction.cbits[0],
+                )
+
         return temp
 
     def run(
@@ -636,13 +649,13 @@ class QubitCircuit:
                 _resolve_2q_basis(basis_unit, qc_temp, temp_resolved)
                 break
         if not match:
-            qc_temp.instructions = temp_resolved.instructions
+            qc_temp._instructions = temp_resolved.instructions
 
         if len(basis_1q) != 2:
             return qc_temp
 
         instructions = qc_temp.instructions
-        qc_temp.instructions = []
+        qc_temp._instructions = []
         half_pi = np.pi / 2
 
         for op in instructions:
