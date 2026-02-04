@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from qutip_qip.operations import Gate, Measurement
+from qutip_qip.operations import Gate, Measurement, ParametrizedGate
 
 
 def _validate_non_negative_int_tuple(T, txt="qubit"):
@@ -39,14 +39,14 @@ class CircuitInstruction(ABC):
             raise ValueError("Found repeated cbits")
 
     def is_gate_instruction(self) -> bool:
-        if isinstance(self.operation, Gate):
-            return True
         return False
 
     def is_measurement_instruction(self) -> bool:
-        if isinstance(self.operation, Measurement):
-            return True
         return False
+
+    @abstractmethod
+    def to_qasm(self, qasm_out):
+        raise NotImplementedError
 
     @abstractmethod
     def __repr__(self):
@@ -79,6 +79,33 @@ class GateInstruction(CircuitInstruction):
     def targets(self) -> tuple[int]:
         return self.qubits[self.operation.num_ctrl_qubits :]
 
+    def is_gate_instruction(self) -> bool:
+        return True
+
+    def to_qasm(self, qasm_out):
+        gate = self.operation
+        args = None
+        if isinstance(gate, ParametrizedGate):
+            args = gate.arg_value
+
+        qasm_gate = qasm_out.qasm_name(gate.name)
+        if not qasm_gate:
+            error_str = f"{self.name} gate's qasm defn is not specified"
+            raise NotImplementedError(error_str)
+
+        if self.cbits:
+            err_msg = "Exporting controlled gates is not implemented yet."
+            raise NotImplementedError(err_msg)
+        else:
+            qasm_out.output(
+                qasm_out._qasm_str(
+                    q_name=qasm_gate,
+                    q_targets=list(self.targets),
+                    q_controls=list(self.controls),
+                    q_args=args,
+                )
+            )
+
     def __repr__(self):
         return f"Gate({self.operation}), qubits({self.qubits}),\
                 cbits({self.cbits}), style({self.style})"
@@ -99,6 +126,14 @@ class MeasurementInstruction(CircuitInstruction):
             raise ValueError(
                 "Measurement requires equal number of qubits and cbits."
             )
+
+    def is_measurement_instruction(self) -> bool:
+        return True
+
+    def to_qasm(self, qasm_out):
+        qasm_out.output(
+            "measure q[{}] -> c[{}]".format(self.qubits[0], self.cbits[0])
+        )
 
     def __repr__(self):
         return f"Measure(q{self.qubits} -> c{self.cbits})"
