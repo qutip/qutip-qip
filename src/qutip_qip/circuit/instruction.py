@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from qutip_qip.operations import Gate, Measurement, ParametrizedGate
 
 
-def _validate_non_negative_int_tuple(T, txt="qubit"):
+def _validate_non_negative_int_tuple(T: any, txt: str = "qubit"):
     if type(T) is not tuple:
         raise ValueError(f"Must pass a tuple for {txt}, got {type(T)}")
 
@@ -45,14 +45,14 @@ class CircuitInstruction(ABC):
         return False
 
     @abstractmethod
-    def to_qasm(self, qasm_out):
+    def to_qasm(self, qasm_out) -> None:
         raise NotImplementedError
 
     @abstractmethod
-    def __str__(self):
+    def __str__(self) -> str:
         raise NotImplementedError
     
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)
 
 
@@ -61,7 +61,7 @@ class GateInstruction(CircuitInstruction):
     operation: Gate
     cbits_ctrl_value: int | None = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         super().__post_init__()
         if not self.is_gate_instruction():
             raise ValueError(f"Operation must be a Gate, got {self.operation}")
@@ -95,7 +95,7 @@ class GateInstruction(CircuitInstruction):
     def is_gate_instruction(self) -> bool:
         return True
 
-    def to_qasm(self, qasm_out):
+    def to_qasm(self, qasm_out) -> None:
         gate = self.operation
         args = None
         if isinstance(gate, ParametrizedGate):
@@ -119,7 +119,7 @@ class GateInstruction(CircuitInstruction):
                 )
             )
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Gate({self.operation}), qubits({self.qubits}),\
                 cbits({self.cbits}), style({self.style})"
 
@@ -128,7 +128,7 @@ class GateInstruction(CircuitInstruction):
 class MeasurementInstruction(CircuitInstruction):
     operation: Measurement
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         super().__post_init__()
         if not self.is_measurement_instruction():
             raise ValueError(
@@ -143,10 +143,10 @@ class MeasurementInstruction(CircuitInstruction):
     def is_measurement_instruction(self) -> bool:
         return True
 
-    def to_qasm(self, qasm_out):
+    def to_qasm(self, qasm_out) -> None:
         qasm_out.output(
-            "measure q[{}] -> c[{}]".format(self.qubits[0], self.cbits[0])
+            f"measure q[{self.qubits[0]}] -> c[{self.cbits[0]}]"
         )
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Measure(q{self.qubits} -> c{self.cbits})"
