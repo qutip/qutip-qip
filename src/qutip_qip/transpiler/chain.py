@@ -294,7 +294,7 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
                 targets=targets,
                 controls=controls,
                 classical_controls=op.cbits,
-                classical_control_value=op.control_value,
+                classical_control_value=op.cbits_ctrl_value,
                 style=op.style,
             )
 

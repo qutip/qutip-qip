@@ -56,7 +56,7 @@ class CircuitInstruction(ABC):
 @dataclass(frozen=True)
 class GateInstruction(CircuitInstruction):
     operation: Gate
-    control_value: int | None = None  # For classical control
+    cbits_ctrl_value: int | None = None
 
     def __post_init__(self):
         super().__post_init__()
@@ -65,11 +65,21 @@ class GateInstruction(CircuitInstruction):
 
         if len(self.qubits) != self.operation.num_qubits:
             raise ValueError(
-                f"Gate '{self.operation.name}' requires {self.operation.num_qubits} qubits"
-                f"But got {len(self.qubits)}."
+                f"Gate '{self.operation.name}' requires {self.operation.num_qubits} qubits."
+                f" But got {len(self.qubits)}."
             )
 
-        # Add condition for verifying control_value and cbits
+        if self.cbits_ctrl_value is not None:
+            if self.cbits_ctrl_value < 0:
+                raise ValueError(
+                    f"Classical Control value can't be negative, got {self.cbits_ctrl_value}"
+                )
+
+            if self.cbits_ctrl_value > 2 ** len(self.cbits) - 1:
+                raise ValueError(
+                    "Classical Control value can't be greater than 2^num_cbits -1"
+                    f", got {self.cbits_ctrl_value}."
+                )
 
     @property
     def controls(self) -> tuple[int]:

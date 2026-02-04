@@ -48,7 +48,7 @@ def check_gate_instruction_defn(
     assert gate_instruction.operation.name == gate_name
     assert gate_instruction.targets == targets
     assert gate_instruction.cbits == classical_controls
-    assert gate_instruction.control_value == classical_control_value
+    assert gate_instruction.cbits_ctrl_value == classical_control_value
     assert gate_instruction.controls == controls
 
 

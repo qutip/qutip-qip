@@ -317,7 +317,7 @@ class QubitCircuit:
                 operation=gate,
                 qubits=tuple(qubits),
                 cbits=cbits,
-                control_value=classical_control_value,
+                cbits_ctrl_value=classical_control_value,
                 style=style,
             )
         )
@@ -621,7 +621,7 @@ class QubitCircuit:
                             targets=targets,
                             controls=controls,
                             classical_controls=op.cbits,
-                            classical_control_value=op.control_value,
+                            classical_control_value=op.cbits_ctrl_value,
                             style=op.style,
                         )
                     else:
@@ -720,7 +720,7 @@ class QubitCircuit:
                     targets=targets,
                     controls=controls,
                     classical_controls=op.cbits,
-                    classical_control_value=op.control_value,
+                    classical_control_value=op.cbits_ctrl_value,
                     style=op.style,
                 )
 

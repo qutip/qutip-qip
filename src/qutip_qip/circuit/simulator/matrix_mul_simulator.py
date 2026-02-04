@@ -236,18 +236,19 @@ class CircuitSimulator:
             state after one evolution step.
         """
 
-        op = self.qc.instructions[self._op_index].operation
+        circ_instruction = self.qc.instructions[self._op_index]
         current_state = self._state
 
         if self.qc.instructions[self._op_index].is_measurement_instruction():
-            state = self._apply_measurement(op, current_state)
+            state = self._apply_measurement(
+                circ_instruction.operation, current_state
+            )
 
         elif self.qc.instructions[self._op_index].is_gate_instruction():
-            qubits = self.qc.instructions[self._op_index].qubits
-            classical_controls = self.qc.instructions[self._op_index].cbits
-            classical_control_value = self.qc.instructions[
-                self._op_index
-            ].control_value
+            gate = circ_instruction.operation
+            qubits = circ_instruction.qubits
+            classical_controls = circ_instruction.cbits
+            classical_control_value = circ_instruction.cbits_ctrl_value
 
             if len(classical_controls) > 0:
                 apply_gate = _check_classical_control_value(
@@ -260,9 +261,9 @@ class CircuitSimulator:
                 self._op_index += 1
                 return
             if self.mode == "state_vector_simulator":
-                state = self._evolve_state_einsum(op, qubits, current_state)
+                state = self._evolve_state_einsum(gate, qubits, current_state)
             else:
-                state = self._evolve_state(op, qubits, current_state)
+                state = self._evolve_state(gate, qubits, current_state)
 
         self._state = state
         self._op_index += 1

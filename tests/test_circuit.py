@@ -244,8 +244,8 @@ class TestQubitCircuit:
                         == qc.instructions[i].controls
                     )
                 assert (
-                    qc1.instructions[i].control_value
-                    == qc.instructions[i].control_value
+                    qc1.instructions[i].cbits_ctrl_value
+                    == qc.instructions[i].cbits_ctrl_value
                 )
             elif isinstance(
                 qc1.instructions[i].operation, Measurement
