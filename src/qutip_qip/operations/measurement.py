@@ -25,7 +25,7 @@ class Measurement:
         classical register of the circuit.
     """
 
-    def __init__(self, name, targets=None, index=None, classical_store=None):
+    def __init__(self, name, targets, classical_store=None):
         """
         Create a measurement with specified parameters.
         """
@@ -33,7 +33,6 @@ class Measurement:
         self.name = name
         self.targets = None
         self.classical_store = classical_store
-        self.index = index
 
         if not isinstance(targets, Iterable) and targets is not None:
             self.targets = [targets]
@@ -98,12 +97,7 @@ class Measurement:
         return states, probabilities
 
     def __str__(self):
-        str_name = ("Measurement(%s, target=%s, classical_store=%s)") % (
-            self.name,
-            self.targets,
-            self.classical_store,
-        )
-        return str_name
+        return f" Measurement({self.name})"
 
     def __repr__(self):
         return str(self)

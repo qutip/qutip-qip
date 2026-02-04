@@ -49,8 +49,11 @@ class CircuitInstruction(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def __repr__(self):
+    def __str__(self):
         raise NotImplementedError
+    
+    def __repr__(self):
+        return str(self)
 
 
 @dataclass(frozen=True)
@@ -116,7 +119,7 @@ class GateInstruction(CircuitInstruction):
                 )
             )
 
-    def __repr__(self):
+    def __str__(self):
         return f"Gate({self.operation}), qubits({self.qubits}),\
                 cbits({self.cbits}), style({self.style})"
 
@@ -145,5 +148,5 @@ class MeasurementInstruction(CircuitInstruction):
             "measure q[{}] -> c[{}]".format(self.qubits[0], self.cbits[0])
         )
 
-    def __repr__(self):
+    def __str__(self):
         return f"Measure(q{self.qubits} -> c{self.cbits})"
