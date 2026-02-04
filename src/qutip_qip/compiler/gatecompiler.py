@@ -142,7 +142,7 @@ class GateCompiler:
         for circuit_instruction in instructions:
             gate = circuit_instruction.operation
             if gate.name not in self.gate_compiler:
-                raise ValueError("Unsupported gate %s" % gate.name)
+                raise ValueError(f"Unsupported gate {gate.name}")
 
             instruction = self.gate_compiler[gate.name](
                 circuit_instruction, self.args

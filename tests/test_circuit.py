@@ -89,8 +89,8 @@ class TestQubitCircuit:
     @pytest.mark.parametrize(
         ["gate_from", "gate_to", "targets", "controls"],
         [
-            pytest.param("SWAP", "CNOT", [0, 1], None, id="SWAPtoCNOT"),
-            pytest.param("ISWAP", "CNOT", [0, 1], None, id="ISWAPtoCNOT"),
+            pytest.param("SWAP", "CNOT", [0, 1], [], id="SWAPtoCNOT"),
+            pytest.param("ISWAP", "CNOT", [0, 1], [], id="ISWAPtoCNOT"),
             pytest.param("CSIGN", "CNOT", [1], [0], id="CSIGNtoCNOT"),
             pytest.param("CNOT", "CSIGN", [0], [1], id="CNOTtoCSIGN"),
             pytest.param("CNOT", "SQRTSWAP", [0], [1], id="CNOTtoSQRTSWAP"),

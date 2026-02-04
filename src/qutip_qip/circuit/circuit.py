@@ -4,6 +4,7 @@ Quantum circuit representation and simulation.
 
 import numpy as np
 import warnings
+from typing import Iterable
 
 from ._decompose import _resolve_to_universal, _resolve_2q_basis
 from qutip_qip.operations import (
@@ -211,18 +212,28 @@ class QubitCircuit:
             )
         )
 
+    def _check_iterable_op_input(self, op_input, limit: int):
+        try:
+            iter(op_input)
+            for e in op_input:
+                if e > limit:
+                    raise ValueError(f"{op_input} must be less than {limit}")
+
+        except TypeError:
+            raise ValueError(f"{op_input} must be an iterable input.")
+
     def add_gate(
         self,
-        gate,
-        targets=[],
-        controls=None,
-        arg_value=None,
-        arg_label=None,
-        control_value=None,
-        classical_controls=None,
-        classical_control_value=None,
-        style=None,
-        index=None,
+        gate: Gate | str,
+        targets: Iterable[int] = [],
+        controls: Iterable[int] = [],
+        arg_value: any = None,
+        arg_label: str | None = None,
+        control_value: int = None,
+        classical_controls: Iterable[int] = [],
+        classical_control_value: int | None = None,
+        style: dict = None,
+        index: None = None,
     ):
         """
         Adds a gate with specified parameters to the circuit.
@@ -269,12 +280,19 @@ class QubitCircuit:
         if type(classical_controls) is int:
             classical_controls = [classical_controls]
 
-        if controls is not None and control_value is None:
+        self._check_iterable_op_input(targets, self.N)
+        self._check_iterable_op_input(controls, self.N)
+        self._check_iterable_op_input(classical_controls, self.num_cbits)
+
+        # Default value for qubit control
+        if len(controls) > 0 and control_value is None:
             control_value = 2 ** (len(controls)) - 1
 
-        if classical_controls is not None and classical_control_value is None:
+        # Default value for classical control
+        if len(classical_controls) > 0 and classical_control_value is None:
             classical_control_value = 2 ** (len(classical_controls)) - 1
 
+        # This can be remove if the gate input is only restricted to Gate or its object instead of strings
         if not isinstance(gate, Gate):
             if isinstance(gate, type) and issubclass(gate, Gate):
                 gate_class = gate
@@ -294,10 +312,7 @@ class QubitCircuit:
                 )
 
             elif issubclass(gate_class, ParametrizedGate):
-                gate = gate_class(
-                    arg_value=arg_value,
-                    arg_label=arg_label,
-                )
+                gate = gate_class(arg_value=arg_value, arg_label=arg_label)
 
             elif issubclass(gate_class, ControlledGate):
                 gate = gate_class(
@@ -327,7 +342,6 @@ class QubitCircuit:
             )
         )
 
-    # FIXME by design add_circuit won't work for custom gates becauae of gate.name
     def add_circuit(
         self, qc, start=0
     ):  # TODO Instead of start have a qubit mapping?
@@ -346,19 +360,13 @@ class QubitCircuit:
 
         for circuit_op in qc.instructions:
             if circuit_op.is_gate_instruction():
-                gate = circuit_op.operation
-                targets = circuit_op.targets
-                controls = circuit_op.controls
-
-                arg = None
-                if isinstance(gate, ParametrizedGate):
-                    arg = gate.arg_value
-
                 self.add_gate(
-                    gate.name,
-                    targets=[start + t for t in targets],
-                    controls=[start + c for c in controls],
-                    arg_value=arg,
+                    circuit_op.operation,
+                    targets=[start + t for t in circuit_op.targets],
+                    controls=[start + c for c in circuit_op.controls],
+                    classical_controls=circuit_op.cbits,
+                    classical_control_value=circuit_op.cbits_ctrl_value,
+                    style=circuit_op.style,
                 )
 
             elif circuit_op.is_measurement_instruction():
@@ -633,13 +641,8 @@ class QubitCircuit:
                     )
                 except KeyError:
                     if gate.name in basis:
-                        arg_value = None
-                        if isinstance(gate, ParametrizedGate):
-                            arg_value = gate.arg_value
-
                         temp_resolved.add_gate(
-                            gate.name,
-                            arg_value=arg_value,
+                            gate,
                             targets=targets,
                             controls=controls,
                             classical_controls=circ_instruction.cbits,
@@ -732,13 +735,8 @@ class QubitCircuit:
                     arg_label=r"\pi/2",
                 )
             else:
-                arg_value = None
-                if isinstance(gate, ParametrizedGate):
-                    arg_value = gate.arg_value
-
                 qc_temp.add_gate(
-                    gate.name,
-                    arg_value=arg_value,
+                    gate,
                     targets=targets,
                     controls=controls,
                     classical_controls=circ_instruction.cbits,

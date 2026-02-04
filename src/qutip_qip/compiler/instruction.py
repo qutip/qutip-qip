@@ -37,8 +37,8 @@ class Instruction:
         self, circuit_instruction, tlist=None, pulse_info=(), duration=1
     ):
         self.gate = deepcopy(circuit_instruction.operation)
-        self._targets = circuit_instruction.targets
-        self._controls = circuit_instruction.controls
+        self._targets = list(circuit_instruction.targets)
+        self._controls = list(circuit_instruction.controls)
 
         self.used_qubits = set()
         if self.targets is not None:
@@ -77,7 +77,7 @@ class Instruction:
 
         :type: list
         """
-        return list(self._targets)
+        return self._targets
 
     @property
     def controls(self):
@@ -87,5 +87,5 @@ class Instruction:
         :type: list
         """
         if isinstance(self.gate, ControlledGate):
-            return list(self._controls)
+            return self._controls
         return None

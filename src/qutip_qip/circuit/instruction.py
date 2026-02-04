@@ -51,7 +51,7 @@ class CircuitInstruction(ABC):
     @abstractmethod
     def __str__(self) -> str:
         raise NotImplementedError
-    
+
     def __repr__(self) -> str:
         return str(self)
 
@@ -144,9 +144,7 @@ class MeasurementInstruction(CircuitInstruction):
         return True
 
     def to_qasm(self, qasm_out) -> None:
-        qasm_out.output(
-            f"measure q[{self.qubits[0]}] -> c[{self.cbits[0]}]"
-        )
+        qasm_out.output(f"measure q[{self.qubits[0]}] -> c[{self.cbits[0]}]")
 
     def __str__(self) -> str:
         return f"Measure(q{self.qubits} -> c{self.cbits})"

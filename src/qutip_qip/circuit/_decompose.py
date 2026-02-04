@@ -16,13 +16,8 @@ def _gate_IGNORED(circ_instruction, temp_resolved):
     targets = circ_instruction.targets
     controls = circ_instruction.controls
 
-    arg_value = None
-    if isinstance(gate, ParametrizedGate):
-        arg_value = gate.arg_value
-
     temp_resolved.add_gate(
-        gate.name,
-        arg_value=arg_value,
+        gate,
         targets=targets,
         controls=controls,
         classical_controls=circ_instruction.cbits,
@@ -32,10 +27,11 @@ def _gate_IGNORED(circ_instruction, temp_resolved):
 
 
 def _controlled_gate_IGNORED(circ_instruction, temp_resolved):
-    gate = circ_instruction.operation
-    targets = circ_instruction.targets
-    controls = circ_instruction.controls
-    temp_resolved.add_gate(gate.name, targets=targets, controls=controls)
+    temp_resolved.add_gate(
+        gate=circ_instruction.operation,
+        targets=circ_instruction.targets,
+        controls=circ_instruction.controls,
+    )
 
 
 _gate_RX = _gate_RY = _gate_RZ = _gate_IGNORED
@@ -295,13 +291,8 @@ def _basis_CSIGN(qc_temp, temp_resolved):
                 arg_label=r"\pi/2",
             )
         else:
-            arg_value = None
-            if isinstance(gate, ParametrizedGate):
-                arg_value = gate.arg_value
-
             qc_temp.add_gate(
-                gate.name,
-                arg_value=arg_value,
+                gate,
                 targets=targets,
                 controls=controls,
                 classical_controls=circ_instruction.cbits,
@@ -378,13 +369,8 @@ def _basis_ISWAP(qc_temp, temp_resolved):
             )
 
         else:
-            arg_value = None
-            if isinstance(gate, ParametrizedGate):
-                arg_value = gate.arg_value
-
             qc_temp.add_gate(
-                gate.name,
-                arg_value=arg_value,
+                gate,
                 targets=targets,
                 controls=controls,
                 classical_controls=circ_instruction.cbits,
@@ -434,13 +420,8 @@ def _basis_SQRTSWAP(qc_temp, temp_resolved):
                 arg_label=r"-\pi/2",
             )
         else:
-            arg_value = None
-            if isinstance(gate, ParametrizedGate):
-                arg_value = gate.arg_value
-
             qc_temp.add_gate(
-                gate.name,
-                arg_value=arg_value,
+                gate,
                 targets=targets,
                 controls=controls,
                 classical_controls=circ_instruction.cbits,
@@ -496,14 +477,10 @@ def _basis_SQRTISWAP(qc_temp, temp_resolved):
                 arg_label=r"\pi",
             )
             qc_temp.add_global_phase(phase=7 / 4 * np.pi)
-        else:
-            arg_value = None
-            if isinstance(gate, ParametrizedGate):
-                arg_value = gate.arg_value
 
+        else:
             qc_temp.add_gate(
-                gate.name,
-                arg_value=arg_value,
+                gate,
                 targets=targets,
                 controls=controls,
                 classical_controls=circ_instruction.cbits,
