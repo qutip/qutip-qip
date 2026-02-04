@@ -175,7 +175,7 @@ class TestQubitCircuit:
                 super().__init__(**kwargs)
 
             @property
-            def qubit_count(self) -> int:
+            def num_qubits(self) -> int:
                 return 1
 
             def get_compact_qobj(self):
@@ -429,7 +429,7 @@ class TestQubitCircuit:
                 pass
 
             @property
-            def qubit_count(self) -> int:
+            def num_qubits(self) -> int:
                 return 1
 
             @staticmethod
@@ -457,7 +457,7 @@ class TestQubitCircuit:
                 super().__init__(arg_value=arg_value, arg_label=arg_label)
 
             @property
-            def qubit_count(self) -> int:
+            def num_qubits(self) -> int:
                 return 2
 
             def get_compact_qobj(self):

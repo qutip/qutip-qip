@@ -166,7 +166,7 @@ def qc4():
             return 1
 
         @property
-        def qubit_count(self):
+        def num_qubits(self):
             return 2
 
         def get_compact_qobj(self):
@@ -174,7 +174,7 @@ def qc4():
 
     class ii(i):
         @property
-        def qubit_count(self):
+        def num_qubits(self):
             return 3
 
         @property

@@ -662,7 +662,7 @@ class _ControlledTwoQubitGate(ControlledGate):
     """
 
     @property
-    def qubit_count(self) -> int:
+    def num_qubits(self) -> int:
         return 2
 
     @property
@@ -868,7 +868,7 @@ class _ControlledParamTwoQubitGate(ControlledParamGate):
     """
 
     @property
-    def qubit_count(self) -> int:
+    def num_qubits(self) -> int:
         return 2
 
     @property
@@ -1006,7 +1006,7 @@ class GLOBALPHASE(Gate):
         return f"Gate({self.name}, phase {self.arg_value})"
 
     @property
-    def qubit_count(self) -> int:
+    def num_qubits(self) -> int:
         return 0
 
     def get_compact_qobj(self):
@@ -1048,7 +1048,7 @@ class TOFFOLI(ControlledGate):
     _target_gate_class = X
 
     @property
-    def qubit_count(self) -> int:
+    def num_qubits(self) -> int:
         return 3
 
     @property
@@ -1096,7 +1096,7 @@ class FREDKIN(ControlledGate):
     _target_gate_class = SWAP
 
     @property
-    def qubit_count(self) -> int:
+    def num_qubits(self) -> int:
         return 3
 
     @property

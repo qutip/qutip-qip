@@ -63,9 +63,9 @@ class GateInstruction(CircuitInstruction):
         if not self.is_gate_instruction():
             raise ValueError(f"Operation must be a Gate, got {self.operation}")
 
-        if len(self.qubits) != self.operation.qubit_count:
+        if len(self.qubits) != self.operation.num_qubits:
             raise ValueError(
-                f"Gate '{self.operation.name}' requires {self.operation.qubit_count} qubits"
+                f"Gate '{self.operation.name}' requires {self.operation.num_qubits} qubits"
                 f"But got {len(self.qubits)}."
             )
 

@@ -63,7 +63,7 @@ class Gate(ABC):
 
     @property
     @abstractmethod
-    def qubit_count(self) -> int:
+    def num_qubits(self) -> int:
         pass
 
     @property
@@ -155,8 +155,8 @@ class ControlledGate(Gate):
         return self._control_value
 
     @property
-    def qubit_count(self) -> int:
-        return self.target_gate.qubit_count + self.num_ctrl_qubits
+    def num_qubits(self) -> int:
+        return self.target_gate.num_qubits + self.num_ctrl_qubits
 
     @property
     @abstractmethod
@@ -246,7 +246,7 @@ def custom_gate_factory(name: str, U: Qobj) -> Gate:
             return U
 
         @property
-        def qubit_count(self) -> int:
+        def num_qubits(self) -> int:
             return int(np.log2(U.shape[0]))
 
     return CustomGate
@@ -276,8 +276,8 @@ def controlled_gate_factory(
             return num_ctrl_qubits
 
         @property
-        def qubit_count(self) -> int:
-            return target_gate.qubit_count + self.num_ctrl_qubits
+        def num_qubits(self) -> int:
+            return target_gate.num_qubits + self.num_ctrl_qubits
 
     return _CustomGate
 
@@ -286,13 +286,13 @@ class SingleQubitGate(Gate):
     """Abstract one-qubit gate."""
 
     @property
-    def qubit_count(self) -> int:
+    def num_qubits(self) -> int:
         return 1
 
 
 class ParametrizedSingleQubitGate(ParametrizedGate):
     @property
-    def qubit_count(self) -> int:
+    def num_qubits(self) -> int:
         return 1
 
 
@@ -300,11 +300,11 @@ class TwoQubitGate(Gate):
     """Abstract two-qubit gate."""
 
     @property
-    def qubit_count(self) -> int:
+    def num_qubits(self) -> int:
         return 2
 
 
 class ParametrizedTwoQubitGate(ParametrizedGate):
     @property
-    def qubit_count(self) -> int:
+    def num_qubits(self) -> int:
         return 2
