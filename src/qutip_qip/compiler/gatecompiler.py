@@ -74,7 +74,7 @@ class GateCompiler:
                 The parameter pulse_dict has no effect now,
                 you can simply remove it.
                 """,
-                DeprecationWarning,
+                UserWarning,
             )
 
     def globalphase_compiler(self, phase):

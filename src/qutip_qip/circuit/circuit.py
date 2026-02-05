@@ -104,7 +104,7 @@ class QubitCircuit:
     def gates(self):
         warnings.warn(
             "QubitCircuit.gates has been replaced with QubitCircuit.instructions",
-            DeprecationWarning,
+            UserWarning,
             stacklevel=2,
         )
         return self._instructions
@@ -114,7 +114,7 @@ class QubitCircuit:
     def gates(self):
         warnings.warn(
             "QubitCircuit.gates has been replaced with QubitCircuit.instructions",
-            DeprecationWarning,
+            UserWarning,
             stacklevel=2,
         )
 
