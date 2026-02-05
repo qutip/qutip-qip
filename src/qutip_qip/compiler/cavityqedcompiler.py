@@ -2,7 +2,7 @@ import numpy as np
 
 from qutip_qip.circuit import GateInstruction
 from qutip_qip.operations import RZ
-from qutip_qip.compiler import GateCompiler, Instruction
+from qutip_qip.compiler import GateCompiler, PulseInstruction
 
 
 class CavityQEDCompiler(GateCompiler):
@@ -107,7 +107,7 @@ class CavityQEDCompiler(GateCompiler):
 
         Returns
         -------
-        A list of :obj:`.Instruction`, including the compiled pulse
+        A list of :obj:`.PulseInstruction`, including the compiled pulse
         information for this gate.
         """
         targets = circuit_instruction.targets
@@ -119,7 +119,7 @@ class CavityQEDCompiler(GateCompiler):
             area=circuit_instruction.operation.arg_value / 2.0 / np.pi * 0.5,
         )
         pulse_info = [(op_label + str(targets[0]), coeff)]
-        return [Instruction(circuit_instruction, tlist, pulse_info)]
+        return [PulseInstruction(circuit_instruction, tlist, pulse_info)]
 
     def rz_compiler(self, circuit_instruction, args):
         """
@@ -136,7 +136,7 @@ class CavityQEDCompiler(GateCompiler):
 
         Returns
         -------
-        A list of :obj:`.Instruction`, including the compiled pulse
+        A list of :obj:`.PulseInstruction`, including the compiled pulse
         information for this gate.
         """
         return self._rotation_compiler(circuit_instruction, "sz", "sz", args)
@@ -156,7 +156,7 @@ class CavityQEDCompiler(GateCompiler):
 
         Returns
         -------
-        A list of :obj:`.Instruction`, including the compiled pulse
+        A list of :obj:`.PulseInstruction`, including the compiled pulse
         information for this gate.
         """
         return self._rotation_compiler(circuit_instruction, "sx", "sx", args)
@@ -189,7 +189,7 @@ class CavityQEDCompiler(GateCompiler):
             args["shape"], args["num_samples"], maximum=J, area=area
         )
         instruction_list = [
-            Instruction(circuit_instruction, tlist, pulse_info)
+            PulseInstruction(circuit_instruction, tlist, pulse_info)
         ]
 
         # corrections
@@ -226,7 +226,7 @@ class CavityQEDCompiler(GateCompiler):
 
         Returns
         -------
-        A list of :obj:`.Instruction`, including the compiled pulse
+        A list of :obj:`.PulseInstruction`, including the compiled pulse
         information for this gate.
 
         Notes
@@ -257,7 +257,7 @@ class CavityQEDCompiler(GateCompiler):
 
         Returns
         -------
-        A list of :obj:`.Instruction`, including the compiled pulse
+        A list of :obj:`.PulseInstruction`, including the compiled pulse
         information for this gate.
         """
         return self._swap_compiler(

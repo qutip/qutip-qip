@@ -27,7 +27,7 @@ from qutip import (
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations import Gate
 from qutip_qip.device import ModelProcessor, Model
-from qutip_qip.compiler import GateCompiler, Instruction
+from qutip_qip.compiler import GateCompiler, PulseInstruction
 from qutip_qip.noise import Noise
 
 
@@ -83,8 +83,8 @@ class MyCompiler(GateCompiler):
             phase (float): The value of the phase for the gate.
 
         Returns:
-            Instruction (qutip_qip.compiler.instruction.Instruction): An instruction
-            to implement a gate containing the control pulses.
+            PulseInstruction (qutip_qip.compiler.instruction.PulseInstruction):
+            A PulseInstruction to implement a gate containing the control pulses.
         """
 
         pulse_info = [
@@ -92,7 +92,7 @@ class MyCompiler(GateCompiler):
             ("sx" + str(gate.targets[0]), np.cos(phase) * coeff),
             ("sy" + str(gate.targets[0]), np.sin(phase) * coeff),
         ]
-        return [Instruction(gate, tlist=tlist, pulse_info=pulse_info)]
+        return [PulseInstruction(gate, tlist=tlist, pulse_info=pulse_info)]
 
     def single_qubit_gate_compiler(self, gate, args):
         """Compiles single qubit gates to pulses.
@@ -101,8 +101,8 @@ class MyCompiler(GateCompiler):
             gate (qutip_qip.circuit.Gate): A qutip Gate object.
 
         Returns:
-            Instruction (qutip_qip.compiler.instruction.Instruction): An instruction
-            to implement a gate containing the control pulses.
+            PulseInstruction (qutip_qip.compiler.instruction.PulseInstruction):
+            A pulse instruction to implement a gate containing the control pulses.
         """
         # gate.arg_value is the rotation angle
         tlist = np.abs(gate.arg_value) / self.params["pulse_amplitude"]
@@ -120,8 +120,8 @@ class MyCompiler(GateCompiler):
             gate (qutip_qip.circuit.Gate): A qutip Gate object.
 
         Returns:
-            Instruction (qutip_qip.compiler.instruction.Instruction): An instruction
-            to implement a gate containing the control pulses.
+            PulseInstruction (qutip_qip.compiler.instruction.PulseInstruction):
+            A pulse instruction to implement a gate containing the control pulses.
         """
         # gate.arg_value is the pulse phase
         tlist = self.params["duration"]

@@ -17,4 +17,4 @@ qutip\_qip.compiler
       CavityQEDCompiler
       SCQubitsCompiler
       Scheduler
-      Instruction
+      PulseInstruction

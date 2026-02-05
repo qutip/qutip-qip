@@ -1,6 +1,6 @@
 import numpy as np
 
-from qutip_qip.compiler import GateCompiler, Instruction
+from qutip_qip.compiler import GateCompiler, PulseInstruction
 
 
 class SpinChainCompiler(GateCompiler):
@@ -131,7 +131,7 @@ class SpinChainCompiler(GateCompiler):
 
         Returns
         -------
-        A list of :obj:`.Instruction`, including the compiled pulse
+        A list of :obj:`.PulseInstruction`, including the compiled pulse
         information for this gate.
         """
         targets = circuit_instruction.targets
@@ -143,7 +143,7 @@ class SpinChainCompiler(GateCompiler):
             area=circuit_instruction.operation.arg_value / 2.0 / np.pi * 0.5,
         )
         pulse_info = [(op_label + str(targets[0]), coeff)]
-        return [Instruction(circuit_instruction, tlist, pulse_info)]
+        return [PulseInstruction(circuit_instruction, tlist, pulse_info)]
 
     def rz_compiler(self, circuit_instruction, args):
         """
@@ -160,7 +160,7 @@ class SpinChainCompiler(GateCompiler):
 
         Returns
         -------
-        A list of :obj:`.Instruction`, including the compiled pulse
+        A list of :obj:`.PulseInstruction`, including the compiled pulse
         information for this gate.
         """
         return self._rotation_compiler(circuit_instruction, "sz", "sz", args)
@@ -180,7 +180,7 @@ class SpinChainCompiler(GateCompiler):
 
         Returns
         -------
-        A list of :obj:`.Instruction`, including the compiled pulse
+        A list of :obj:`.PulseInstruction`, including the compiled pulse
         information for this gate.
         """
         return self._rotation_compiler(circuit_instruction, "sx", "sx", args)
@@ -198,7 +198,7 @@ class SpinChainCompiler(GateCompiler):
         else:
             pulse_name = "g" + str(q1)
         pulse_info = [(pulse_name, coeff)]
-        return [Instruction(circuit_instruction, tlist, pulse_info)]
+        return [PulseInstruction(circuit_instruction, tlist, pulse_info)]
 
     def iswap_compiler(self, circuit_instruction, args):
         """
@@ -215,7 +215,7 @@ class SpinChainCompiler(GateCompiler):
 
         Returns
         -------
-        A list of :obj:`.Instruction`, including the compiled pulse
+        A list of :obj:`.PulseInstruction`, including the compiled pulse
         information for this gate.
         """
         return self._swap_compiler(circuit_instruction, area=-1 / 8, args=args)
@@ -235,7 +235,7 @@ class SpinChainCompiler(GateCompiler):
 
         Returns
         -------
-        A list of :obj:`.Instruction`, including the compiled pulse
+        A list of :obj:`.PulseInstruction`, including the compiled pulse
         information for this gate.
         """
         return self._swap_compiler(

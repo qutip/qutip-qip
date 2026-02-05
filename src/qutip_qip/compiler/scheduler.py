@@ -3,8 +3,7 @@ from functools import cmp_to_key
 from random import shuffle
 
 from qutip_qip.circuit import GateInstruction, QubitCircuit
-from qutip_qip.operations import Gate
-from qutip_qip.compiler import Instruction
+from qutip_qip.compiler import PulseInstruction
 
 
 class InstructionsGraph:
@@ -17,7 +16,7 @@ class InstructionsGraph:
     and the computation of the distance in the weighted graph
     (circuit latency).
 
-    It uses the `Instruction` object as a representation of node
+    It uses the `PulseInstruction` object as a representation of node
     and adds the following attributes to it:
 
     predecessors, successors: dependency arrow of the DAG
@@ -41,7 +40,7 @@ class InstructionsGraph:
         self.nodes = []
         for instruction in instructions:
             if isinstance(instruction, GateInstruction):
-                self.nodes.append(Instruction(instruction))
+                self.nodes.append(PulseInstruction(instruction))
             else:
                 self.nodes.append(instruction)
 
@@ -55,7 +54,7 @@ class InstructionsGraph:
         """
         Generate the instruction dependency graph.
         It modifies the class attribute `nodes`, where each element (node)
-        is an `Instruction`.
+        is an `PulseInstruction`.
         The graph is represented by attributes `predecessors` and
         `successors`, each a set of indices
         pointing to the position of the target node in the nodes list.
@@ -359,8 +358,8 @@ class Scheduler:
     ):
         """
         Schedule a :obj:`.QubitCircuit`,
-        a list of :obj:`.Gates` or a list of :obj:`.Instruction`.
-        For pulse schedule, the execution time for each :obj:`.Instruction`
+        a list of :obj:`.CircuitInstruction` or a list of :obj:`.Instruction`.
+        For pulse schedule, the execution time for each :obj:`.PulseInstruction`
         is given in its ``duration`` attributes.
 
         The scheduler first generates a quantum gates dependency graph,
@@ -394,7 +393,7 @@ class Scheduler:
         circuit: QubitCircuit or list
             For gate schedule,
             it should be a QubitCircuit or a list of Gate objects.
-            For pulse schedule, it should be a list of Instruction objects,
+            For pulse schedule, it should be a list of PulseInstruction objects,
             each with an attribute `duration`
             that indicates the execution time of this instruction.
         gates_schedule: bool, optional

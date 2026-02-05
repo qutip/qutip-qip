@@ -3,7 +3,7 @@ import numpy as np
 from qutip_qip.operations import ControlledGate
 
 
-class Instruction:
+class PulseInstruction:
     """
     Representation of pulses that implement a quantum gate.
     It contains the control pulse required to implement the gate

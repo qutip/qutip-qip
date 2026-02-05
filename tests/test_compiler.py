@@ -9,7 +9,11 @@ from qutip_qip.device import (
     CircularSpinChain,
     LinearSpinChain,
 )
-from qutip_qip.compiler import SpinChainCompiler, Instruction, GateCompiler
+from qutip_qip.compiler import (
+    SpinChainCompiler,
+    PulseInstruction,
+    GateCompiler,
+)
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations import ParametrizedGate
 from qutip import basis, fidelity
@@ -58,7 +62,7 @@ def test_compiling_gates_different_sampling_number():
         def single_qubit_gate_compiler(self, circuit_instruction, args):
             pulse_info = [("x", np.array([1.0] * 3))]
             return [
-                Instruction(
+                PulseInstruction(
                     circuit_instruction,
                     tlist=np.linspace(0, 2, 3),
                     pulse_info=pulse_info,
@@ -68,7 +72,7 @@ def test_compiling_gates_different_sampling_number():
         def two_qubit_gate_compiler(self, circuit_instruction, args):
             pulse_info = [("xx", np.array([2.0] * 5))]
             return [
-                Instruction(
+                PulseInstruction(
                     circuit_instruction,
                     tlist=np.linspace(0, 4, 5),
                     pulse_info=pulse_info,
@@ -130,7 +134,7 @@ class MyCompiler(GateCompiler):  # compiler class
             area=circuit_instruction.operation.arg_value / 2.0 / np.pi * 0.5,
         )
         pulse_info = [("sx" + str(targets[0]), coeff)]
-        return [Instruction(circuit_instruction, tlist, pulse_info)]
+        return [PulseInstruction(circuit_instruction, tlist, pulse_info)]
 
 
 spline_kind = [
@@ -174,7 +178,7 @@ def rx_compiler_without_pulse_dict(circuit_instruction, args):
     coeff = np.sign(arg_value) * g
     tlist = abs(arg_value) / (2 * g) / np.pi / 2
     pulse_info = [(targets[0], coeff)]
-    return [Instruction(circuit_instruction, tlist, pulse_info)]
+    return [PulseInstruction(circuit_instruction, tlist, pulse_info)]
 
 
 def test_compiler_without_pulse_dict():

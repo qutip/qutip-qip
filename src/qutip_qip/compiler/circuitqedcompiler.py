@@ -2,7 +2,7 @@ import numpy as np
 
 from qutip_qip.circuit import GateInstruction
 from qutip_qip.operations import RX, RY, RZX
-from qutip_qip.compiler import GateCompiler, Instruction
+from qutip_qip.compiler import GateCompiler, PulseInstruction
 
 
 class SCQubitsCompiler(GateCompiler):
@@ -121,7 +121,7 @@ class SCQubitsCompiler(GateCompiler):
 
         Returns
         -------
-        A list of :obj:`.Instruction`, including the compiled pulse
+        A list of :obj:`.PulseInstruction`, including the compiled pulse
         information for this gate.
         """
         target = circuit_instruction.targets[0]
@@ -147,7 +147,7 @@ class SCQubitsCompiler(GateCompiler):
             ]
         else:
             raise RuntimeError("Unknown label.")
-        return [Instruction(circuit_instruction, tlist, pulse_info)]
+        return [PulseInstruction(circuit_instruction, tlist, pulse_info)]
 
     def _drag_pulse(self, op_label, coeff, tlist, target):
         dt_coeff = np.gradient(coeff, tlist[1] - tlist[0]) / 2 / np.pi
@@ -186,7 +186,7 @@ class SCQubitsCompiler(GateCompiler):
 
         Returns
         -------
-        A list of :obj:`.Instruction`, including the compiled pulse
+        A list of :obj:`.PulseInstruction`, including the compiled pulse
         information for this gate.
         """
         return self._rotation_compiler(
@@ -208,7 +208,7 @@ class SCQubitsCompiler(GateCompiler):
 
         Returns
         -------
-        A list of :obj:`.Instruction`, including the compiled pulse
+        A list of :obj:`.PulseInstruction`, including the compiled pulse
         information for this gate.
         """
         return self._rotation_compiler(
@@ -230,7 +230,7 @@ class SCQubitsCompiler(GateCompiler):
 
         Returns
         -------
-        A list of :obj:`.Instruction`, including the compiled pulse
+        A list of :obj:`.PulseInstruction`, including the compiled pulse
         information for this gate.
         """
         result = []
@@ -250,7 +250,7 @@ class SCQubitsCompiler(GateCompiler):
         tlist *= area_rescale_factor
         coeff *= area_rescale_factor
         pulse_info = [("zx" + str(q1) + str(q2), coeff)]
-        result += [Instruction(circuit_instruction, tlist, pulse_info)]
+        result += [PulseInstruction(circuit_instruction, tlist, pulse_info)]
         return result
 
     def cnot_compiler(self, circuit_instruction, args):
@@ -271,7 +271,7 @@ class SCQubitsCompiler(GateCompiler):
 
         Returns
         -------
-        A list of :obj:`.Instruction`, including the compiled pulse
+        A list of :obj:`.PulseInstruction`, including the compiled pulse
         information for this gate.
         """
         PI = np.pi

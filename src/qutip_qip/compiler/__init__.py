@@ -1,6 +1,6 @@
 """Compilers for the hardware models in :obj:`device`"""
 
-from .instruction import Instruction
+from .instruction import PulseInstruction
 from .scheduler import Scheduler
 from .gatecompiler import GateCompiler
 from .spinchaincompiler import SpinChainCompiler
@@ -9,7 +9,7 @@ from .circuitqedcompiler import SCQubitsCompiler
 
 
 __all__ = [
-    "Instruction",
+    "PulseInstruction",
     "Scheduler",
     "GateCompiler",
     "SpinChainCompiler",

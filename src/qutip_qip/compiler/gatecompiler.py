@@ -2,7 +2,7 @@ import warnings
 import numpy as np
 from scipy import signal
 
-from qutip_qip.compiler import Instruction, Scheduler
+from qutip_qip.compiler import PulseInstruction, Scheduler
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations import ParametrizedGate
 
@@ -92,7 +92,7 @@ class GateCompiler:
         gate = circuit_instruction.operation
         if isinstance(gate, ParametrizedGate):
             idle_time = gate.arg_value
-        return [Instruction(circuit_instruction, idle_time, [])]
+        return [PulseInstruction(circuit_instruction, idle_time, [])]
 
     def compile(self, circuit, schedule_mode=None, args=None):
         """

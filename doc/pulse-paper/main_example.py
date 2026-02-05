@@ -38,14 +38,14 @@ model.get_control(label="sx0")
 model.get_control_labels()
 
 # Section 4.3 Scheduler
-from qutip_qip.compiler import Scheduler, Instruction
+from qutip_qip.compiler import Scheduler, PulseInstruction
 
 Scheduler("ASAP").schedule(qc)
 
 inst_list = []
 for circ_ins in qc.instructions:
     if circ_ins.operation.name in ("SNOT", "X"):
-        inst_list.append(Instruction(circ_ins, duration=1))
+        inst_list.append(PulseInstruction(circ_ins, duration=1))
     else:
-        inst_list.append(Instruction(circ_ins, duration=2))
+        inst_list.append(PulseInstruction(circ_ins, duration=2))
 Scheduler("ALAP").schedule(inst_list)

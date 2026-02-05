@@ -2,7 +2,7 @@ import pytest
 from copy import deepcopy
 
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.compiler import Instruction, Scheduler
+from qutip_qip.compiler import PulseInstruction, Scheduler
 from qutip_qip.operations import GATE_CLASS_MAP, ControlledGate
 from qutip import qeye, tracedist
 
@@ -114,9 +114,9 @@ def _instructions1():
     instruction_list = []
     for circuit_ins in circuit3.instructions:
         if circuit_ins.operation.name == "SNOT":
-            instruction_list.append(Instruction(circuit_ins, duration=1))
+            instruction_list.append(PulseInstruction(circuit_ins, duration=1))
         else:
-            instruction_list.append(Instruction(circuit_ins, duration=2))
+            instruction_list.append(PulseInstruction(circuit_ins, duration=2))
 
     return instruction_list
 
