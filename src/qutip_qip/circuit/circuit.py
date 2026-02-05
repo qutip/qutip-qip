@@ -26,7 +26,6 @@ from qutip_qip.circuit import (
 from qutip_qip.circuit.utils import _check_iterable, _check_limit_
 from qutip import qeye, Qobj
 
-
 try:
     from IPython.display import Image as DisplayImage, SVG as DisplaySVG
 except ImportError:
@@ -110,6 +109,7 @@ class QubitCircuit:
         return self._instructions
 
     gates.setter
+
     def gates(self):
         warnings.warn(
             "QubitCircuit.gates has been replaced with QubitCircuit.instructions",
@@ -371,10 +371,8 @@ class QubitCircuit:
                 )
 
             else:
-                raise TypeError(
-                    f"The circuit to be added contains unknown \
-                    operator {circuit_op[0]}"
-                )
+                raise TypeError(f"The circuit to be added contains unknown \
+                    operator {circuit_op[0]}")
 
     def remove_gate_or_measurement(
         self, index=None, end=None, name=None, remove="first"
@@ -394,20 +392,16 @@ class QubitCircuit:
         """
         if index is not None:
             if index > len(self.instructions):
-                raise ValueError(
-                    "Index exceeds number \
-                    of gates + measurements."
-                )
+                raise ValueError("Index exceeds number \
+                    of gates + measurements.")
 
             if end is not None and end <= len(self.instructions):
                 for i in range(end - index):
                     self._instructions.pop(index + i)
 
             elif end is not None and end > self.N:
-                raise ValueError(
-                    "End target exceeds number \
-                    of gates + measurements."
-                )
+                raise ValueError("End target exceeds number \
+                    of gates + measurements.")
 
             else:
                 self._instructions.pop(index)
@@ -568,10 +562,8 @@ class QubitCircuit:
             )
         )
         if num_measurements > 0:
-            raise NotImplementedError(
-                "adjacent_gates must be called before \
-                measurements are added to the circuit"
-            )
+            raise NotImplementedError("adjacent_gates must be called before \
+                measurements are added to the circuit")
 
         basis_1q_valid = ["RX", "RY", "RZ", "IDLE"]
         basis_2q_valid = ["CNOT", "CSIGN", "ISWAP", "SQRTSWAP", "SQRTISWAP"]
@@ -765,7 +757,7 @@ class QubitCircuit:
         U_list : list
             Return list of unitary matrices for the qubit circuit.
             The global phase of circuit is the last element of ``U_list``.
-            
+
         Notes
         -----
         If ``expand=False``, the global phase gate only returns a number.

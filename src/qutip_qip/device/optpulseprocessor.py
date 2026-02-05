@@ -145,7 +145,7 @@ class OptPulseProcessor(Processor):
             setting_args = {}
 
         if isinstance(qc, QubitCircuit):
-            props = qc.propagators()
+            props = qc.propagators()[:-1]  # Last element is the global phase
             gates = [ins.operation.name for ins in qc.instructions]
 
         elif isinstance(qc, Iterable):

@@ -7,7 +7,6 @@ individual gate classes.
 import numpy as np
 from qutip_qip.operations import RX, RY, RZ, CNOT, ParametrizedGate
 
-
 __all__ = ["_resolve_to_universal", "_resolve_2q_basis"]
 
 

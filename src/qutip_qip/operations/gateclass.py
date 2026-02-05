@@ -5,7 +5,6 @@ import numpy as np
 from qutip import Qobj
 from qutip_qip.operations import controlled_gate, expand_operator
 
-
 """
 .. testsetup::
 
