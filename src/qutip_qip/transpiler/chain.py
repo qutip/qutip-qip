@@ -95,7 +95,7 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
                 original circuit.
                 """
 
-                temp = QubitCircuit(N - end + start)
+                temp = QubitCircuit(N - end + start + 1)
                 i = 0
                 while i < (N - end + start):
                     if (
@@ -152,8 +152,8 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
                             qc_t.add_gate(
                                 gate,
                                 targets=[
-                                    end + targets[0],
-                                    end + targets[1],
+                                    (end + targets[0]) % N,
+                                    (end + targets[1]) % N,
                                 ],
                             )
                     elif j == N - end - 2:
@@ -220,7 +220,8 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
                     i += 1
 
             else:
-                temp = QubitCircuit(N - end + start)
+                temp = QubitCircuit(N - end + start + 1)
+                print(N, end, start)
                 i = 0
                 while i < (N - end + start):
                     if (
@@ -253,7 +254,7 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
 
                 for circ_instruction in temp.instructions:
                     gate = circ_instruction.operation
-                    targets = circ_instruction.qubits
+                    targets = circ_instruction.targets
 
                     if j < N - end - 2:
                         qc_t.add_gate(
@@ -264,7 +265,7 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
                         qc_t.add_gate(
                             gate,
                             targets=[
-                                end + targets[0],
+                                (end + targets[0]) % N,
                                 (end + targets[1]) % N,
                             ],
                         )

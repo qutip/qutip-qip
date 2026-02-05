@@ -212,12 +212,17 @@ class QubitCircuit:
             )
         )
 
-    def _check_iterable_op_input(self, op_input, limit: int):
+    def _check_iterable_op_input(
+        self, op_input: any, limit: int, input_type: str
+    ):
         try:
             iter(op_input)
             for e in op_input:
                 if e > limit:
-                    raise ValueError(f"{op_input} must be less than {limit}")
+                    raise ValueError(
+                        f"""Each entry of {input_type} must be less than\
+                          {limit}, got {op_input}."""
+                    )
 
         except TypeError:
             raise ValueError(f"{op_input} must be an iterable input.")
@@ -280,9 +285,11 @@ class QubitCircuit:
         if type(classical_controls) is int:
             classical_controls = [classical_controls]
 
-        self._check_iterable_op_input(targets, self.N)
-        self._check_iterable_op_input(controls, self.N)
-        self._check_iterable_op_input(classical_controls, self.num_cbits)
+        self._check_iterable_op_input(targets, self.N - 1, "targets")
+        self._check_iterable_op_input(controls, self.N - 1, "controls")
+        self._check_iterable_op_input(
+            classical_controls, self.num_cbits - 1, "classical_controls"
+        )
 
         # Default value for qubit control
         if len(controls) > 0 and control_value is None:

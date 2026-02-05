@@ -20,7 +20,7 @@ def syndrome_qubits():
 
 
 def test_encode_circuit_structure(code, data_qubits):
-    qc = QubitCircuit(max(data_qubits))
+    qc = QubitCircuit(max(data_qubits) + 1)
     code.encode_circuit(qc, data_qubits)
     assert len(qc.instructions) == 2
 
@@ -39,7 +39,7 @@ def test_bitflip_correction(code, data_qubits, syndrome_qubits):
     state = qutip.tensor([psi] + [qutip.basis(2, 0)] * 4)
 
     # Step 1: Encode |ψ⟩ over qubits 0,1,2
-    qc_encode = QubitCircuit(max(data_qubits))
+    qc_encode = QubitCircuit(max(data_qubits) + 1)
     code.encode_circuit(qc_encode, data_qubits)
     state = qc_encode.run(state)
 
