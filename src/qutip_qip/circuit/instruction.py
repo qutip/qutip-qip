@@ -63,7 +63,7 @@ class GateInstruction(CircuitInstruction):
 
     def __post_init__(self) -> None:
         super().__post_init__()
-        if not self.is_gate_instruction():
+        if not isinstance(self.operation, Gate):
             raise ValueError(f"Operation must be a Gate, got {self.operation}")
 
         if len(self.qubits) != self.operation.num_qubits:
@@ -130,7 +130,7 @@ class MeasurementInstruction(CircuitInstruction):
 
     def __post_init__(self) -> None:
         super().__post_init__()
-        if not self.is_measurement_instruction():
+        if not isinstance(self.operation, Measurement):
             raise ValueError(
                 f"Operation must be a measurement, got {self.operation}"
             )
