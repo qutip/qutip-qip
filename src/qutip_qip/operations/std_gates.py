@@ -1056,7 +1056,7 @@ class TOFFOLI(ControlledGate):
         return 2
 
     @staticmethod
-    def get_compact_qobj():
+    def get_compact_qobj() -> Qobj:
         return Qobj(
             [
                 [1, 0, 0, 0, 0, 0, 0, 0],
@@ -1104,7 +1104,7 @@ class FREDKIN(ControlledGate):
         return 1
 
     @staticmethod
-    def get_compact_qobj():
+    def get_compact_qobj() -> Qobj:
         return Qobj(
             [
                 [1, 0, 0, 0, 0, 0, 0, 0],

@@ -3,9 +3,9 @@ from dataclasses import dataclass, field
 from qutip_qip.operations import Gate, Measurement, ParametrizedGate
 
 
-def _validate_non_negative_int_tuple(T: any, txt: str = "qubit"):
+def _validate_non_negative_int_tuple(T: any, txt: str = ""):
     if type(T) is not tuple:
-        raise ValueError(f"Must pass a tuple for {txt}, got {type(T)}")
+        raise TypeError(f"Must pass a tuple for {txt}, got {type(T)}")
 
     for q in T:
         if not isinstance(q, int):
@@ -64,12 +64,17 @@ class GateInstruction(CircuitInstruction):
     def __post_init__(self) -> None:
         super().__post_init__()
         if not isinstance(self.operation, Gate):
-            raise ValueError(f"Operation must be a Gate, got {self.operation}")
+            raise TypeError(f"Operation must be a Gate, got {self.operation}")
 
         if len(self.qubits) != self.operation.num_qubits:
             raise ValueError(
                 f"Gate '{self.operation.name}' requires {self.operation.num_qubits} qubits."
                 f" But got {len(self.qubits)}."
+            )
+
+        if len(self.cbits) > 0 and self.cbits_ctrl_value is None:
+            raise ValueError(
+                "cbits_ctrl_value can't be None if classical controls are provided."
             )
 
         if self.cbits_ctrl_value is not None:
@@ -80,8 +85,7 @@ class GateInstruction(CircuitInstruction):
 
             if self.cbits_ctrl_value > 2 ** len(self.cbits) - 1:
                 raise ValueError(
-                    "Classical Control value can't be greater than 2^num_cbits -1"
-                    f", got {self.cbits_ctrl_value}."
+                    f"Classical Control value can't be greater than 2^num_cbits -1, got {self.cbits_ctrl_value}."
                 )
 
     @property
@@ -131,7 +135,7 @@ class MeasurementInstruction(CircuitInstruction):
     def __post_init__(self) -> None:
         super().__post_init__()
         if not isinstance(self.operation, Measurement):
-            raise ValueError(
+            raise TypeError(
                 f"Operation must be a measurement, got {self.operation}"
             )
 

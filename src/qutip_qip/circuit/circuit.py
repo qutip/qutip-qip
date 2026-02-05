@@ -23,6 +23,7 @@ from qutip_qip.circuit import (
     GateInstruction,
     MeasurementInstruction,
 )
+from qutip_qip.circuit.utils import _check_iterable, _check_limit_
 from qutip import qeye
 
 
@@ -212,21 +213,6 @@ class QubitCircuit:
             )
         )
 
-    def _check_iterable_op_input(
-        self, op_input: any, limit: int, input_type: str
-    ):
-        try:
-            iter(op_input)
-            for e in op_input:
-                if e > limit:
-                    raise ValueError(
-                        f"""Each entry of {input_type} must be less than\
-                          {limit}, got {op_input}."""
-                    )
-
-        except TypeError:
-            raise ValueError(f"{op_input} must be an iterable input.")
-
     def add_gate(
         self,
         gate: Gate | str,
@@ -234,7 +220,7 @@ class QubitCircuit:
         controls: Iterable[int] = [],
         arg_value: any = None,
         arg_label: str | None = None,
-        control_value: int = None,
+        control_value: int | None = None,
         classical_controls: Iterable[int] = [],
         classical_control_value: int | None = None,
         style: dict = None,
@@ -276,24 +262,26 @@ class QubitCircuit:
             self.add_global_phase(gate.arg_value)
             return
 
-        if type(targets) is int:
-            targets = [targets]
-
-        if type(controls) is int:
-            controls = [controls]
-
-        if type(classical_controls) is int:
-            classical_controls = [classical_controls]
-
-        self._check_iterable_op_input(targets, self.N - 1, "targets")
-        self._check_iterable_op_input(controls, self.N - 1, "controls")
-        self._check_iterable_op_input(
-            classical_controls, self.num_cbits - 1, "classical_controls"
+        # Handling case for int input
+        targets = [targets] if type(targets) is int else targets
+        controls = [controls] if type(controls) is int else controls
+        classical_controls = (
+            [classical_controls]
+            if type(classical_controls) is int
+            else classical_controls
         )
 
-        # Default value for qubit control
-        if len(controls) > 0 and control_value is None:
-            control_value = 2 ** (len(controls)) - 1
+        # This will raise an error if not an iterable type (e.g. list, tuple, etc.)
+        _check_iterable("targets", targets)
+        _check_iterable("controls", controls)
+        _check_iterable("classical_controls", classical_controls)
+
+        # Checks each element is of given type (e.g. int) and within the limit
+        _check_limit_("targets", targets, self.N - 1, int)
+        _check_limit_("controls", controls, self.N - 1, int)
+        _check_limit_(
+            "classical_controls", classical_controls, self.num_cbits - 1, int
+        )
 
         # Default value for classical control
         if len(classical_controls) > 0 and classical_control_value is None:
@@ -301,10 +289,10 @@ class QubitCircuit:
 
         # This can be remove if the gate input is only restricted to Gate or its object instead of strings
         if not isinstance(gate, Gate):
-            if isinstance(gate, type) and issubclass(gate, Gate):
-                gate_class = gate
-            elif gate in GATE_CLASS_MAP:
+            if type(gate) is str and gate in GATE_CLASS_MAP:
                 gate_class = GATE_CLASS_MAP[gate]
+            elif issubclass(gate, Gate):
+                gate_class = gate
             else:
                 raise ValueError(
                     "Can only pass standard gate name as strings"

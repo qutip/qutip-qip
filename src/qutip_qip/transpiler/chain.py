@@ -221,7 +221,6 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
 
             else:
                 temp = QubitCircuit(N - end + start + 1)
-                print(N, end, start)
                 i = 0
                 while i < (N - end + start):
                     if (

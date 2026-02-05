@@ -130,7 +130,7 @@ class ControlledGate(Gate):
     def __init__(
         self,
         target_gate=None,
-        control_value=1,
+        control_value=None,
     ):
         if target_gate is None:
             if self._target_gate_class is not None:
@@ -143,8 +143,9 @@ class ControlledGate(Gate):
         super().__init__()
         self.target_gate = target_gate
         if control_value is None:
-            self._control_value = 2 ** len(self.num_ctrl_qubits) - 1
+            self._control_value = 2**self.num_ctrl_qubits - 1
         else:
+            self._validate_control_value(control_value)
             self._control_value = control_value
         # In the circuit plot, only the target gate is shown.
         # The control has its own symbol.
@@ -162,6 +163,23 @@ class ControlledGate(Gate):
     @abstractmethod
     def num_ctrl_qubits(self) -> int:
         raise NotImplementedError
+
+    def _validate_control_value(self, control_value: int):
+        if type(control_value) is not int:
+            raise TypeError(
+                f"Control value must be an int, got {control_value}"
+            )
+
+        if control_value < 0:
+            raise ValueError(
+                f"Control value can't be negative, got {control_value}"
+            )
+
+        if control_value > 2**self.num_ctrl_qubits - 1:
+            raise ValueError(
+                f"""Control value can't be greater than 2^num_ctrl_qubits - 1,
+                     got {control_value}"""
+            )
 
     def __str__(self):
         return f"""
