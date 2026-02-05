@@ -24,7 +24,7 @@ from qutip_qip.circuit import (
     MeasurementInstruction,
 )
 from qutip_qip.circuit.utils import _check_iterable, _check_limit_
-from qutip import qeye
+from qutip import qeye, Qobj
 
 
 try:
@@ -110,7 +110,6 @@ class QubitCircuit:
         return self._instructions
 
     gates.setter
-
     def gates(self):
         warnings.warn(
             "QubitCircuit.gates has been replaced with QubitCircuit.instructions",
@@ -765,7 +764,8 @@ class QubitCircuit:
         -------
         U_list : list
             Return list of unitary matrices for the qubit circuit.
-
+            The global phase of circuit is the last element of ``U_list``.
+            
         Notes
         -----
         If ``expand=False``, the global phase gate only returns a number.
@@ -784,12 +784,19 @@ class QubitCircuit:
                 "Please set ignore_measurement=True."
             )
 
-        for gate, targets in gates:
+        # For Gate Instructions
+        for gate, qubits in gates:
             qobj = gate.get_compact_qobj()
             if expand:
-                qobj = expand_operator(qobj, dims=self.dims, targets=targets)
+                qobj = expand_operator(qobj, dims=self.dims, targets=qubits)
             U_list.append(qobj)
 
+        # For Circuit's Global Phase
+        qobj = Qobj(self.global_phase)
+        if expand:
+            qobj = GLOBALPHASE(self.global_phase).get_qobj(self.N)
+
+        U_list.append(qobj)
         return U_list
 
     def compute_unitary(self):
