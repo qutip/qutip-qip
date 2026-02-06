@@ -1,9 +1,9 @@
 from collections.abc import Iterable
 from abc import ABC, abstractmethod
 
+import numpy as np
 from qutip import Qobj
 from qutip_qip.operations import controlled_gate, expand_operator
-
 
 """
 .. testsetup::
@@ -20,15 +20,9 @@ class Gate(ABC):
 
     Parameters
     ----------
-    targets : list or int
-        The target qubits fo the gate.
-    controls : list or int
-        The controlling qubits of the gate.
     arg_value : object
         Argument value of the gate. It will be saved as an attributes and
         can be accessed when generating the `:obj:qutip.Qobj`.
-    classical_controls : int or list of int, optional
-        Indices of classical bits to control the unitary operator.
     control_value : int, optional
         The decimal value of controlling bits for executing
         the unitary operator on the target qubits.
@@ -36,15 +30,6 @@ class Gate(ABC):
         ``controll_value=1``;
         If the gate should be executed when the two bits are 1 and 0,
         ``controll_value=2``.
-    classical_control_value : int, optional
-        The decimal value of controlling classical bits for executing
-        the unitary operator on the target qubits.
-        E.g. if the gate should be executed when the zero-th bit is 1,
-        ``controll_value=1``;
-        If the gate should be executed when the two bits are 1 and 0,
-        ``controll_value=2``.
-        The default is ``2**len(classical_controls)-1``
-        (i.e. all classical controls are 1).
     arg_label : string
         Label for the argument, it will be shown in the circuit plot,
         representing the argument value provided to the gate, e.g,
@@ -58,10 +43,6 @@ class Gate(ABC):
         It is recommended to use ``isinstance``
         or ``issubclass`` to identify a gate rather than
         comparing the name string.
-    style : dict, optional
-        A dictionary of style options for the gate.
-        The options are passed to the `matplotlib` plotter.
-        The default is None.
     """
 
     latex_str = r"U"
@@ -73,106 +54,20 @@ class Gate(ABC):
     def __init__(
         self,
         name: str = None,
-        targets: int | list[int] = None,
-        classical_controls: int | list[int] | None = None,
-        classical_control_value: int | None = None,
-        style: dict | None = None,
     ):
         """
         Create a gate with specified parameters.
         """
         self.name = name if name is not None else self.__class__.__name__
-        self.style = style
-
-        if not isinstance(targets, Iterable) and targets is not None:
-            self.targets = [targets]
-        else:
-            self.targets = targets
-
-        if (
-            not isinstance(classical_controls, Iterable)
-            and classical_controls is not None
-        ):
-            self.classical_controls = [classical_controls]
-        else:
-            self.classical_controls = classical_controls
-
-        if (
-            self.classical_controls is not None
-            and classical_control_value is None
-        ):
-            self.classical_control_value = (
-                2 ** len(self.classical_controls) - 1
-            )
-        else:
-            self.classical_control_value = classical_control_value
 
     @property
     @abstractmethod
-    def qubit_count(self) -> int:
+    def num_qubits(self) -> int:
         pass
 
     @property
     def num_ctrl_qubits(self) -> int:
         return 0
-
-    def get_all_qubits(self):
-        """
-        Return a list of all qubits that the gate operator
-        acts on.
-        The list concatenates the two lists representing
-        the controls and the targets qubits while retains the order.
-
-        Returns
-        -------
-        targets_list : list of int
-            A list of all qubits, including controls and targets.
-        """
-        if self.targets is not None:
-            return self.targets
-        else:
-            # Special case: the global phase gate
-            return []
-
-    def __str__(self):
-        return f"""
-            Gate({self.name}, targets={self.targets},
-            classical controls={self.classical_controls},
-            classical_control_value={self.classical_control_value})
-        """
-
-    def __repr__(self):
-        return str(self)
-
-    def _repr_latex_(self):
-        return str(self)
-
-    def _to_qasm(self, qasm_out):
-        """
-        Pipe output of gate signature and application to QasmOutput object.
-
-        Parameters
-        ----------
-        qasm_out: QasmOutput
-            object to store QASM output.
-        """
-
-        qasm_gate = qasm_out.qasm_name(self.name)
-
-        if not qasm_gate:
-            error_str = f"{self.name} gate's qasm defn is not specified"
-            raise NotImplementedError(error_str)
-
-        if self.classical_controls:
-            err_msg = "Exporting controlled gates is not implemented yet."
-            raise NotImplementedError(err_msg)
-        else:
-            qasm_out.output(
-                qasm_out._qasm_str(
-                    q_name=qasm_gate,
-                    q_targets=self.targets,
-                )
-            )
 
     @abstractmethod
     def get_compact_qobj(self) -> Qobj:
@@ -190,7 +85,7 @@ class Gate(ABC):
         """
         pass
 
-    def get_qobj(self, num_qubits=None, dims=None):
+    def get_qobj(self, qubits, dims=None):
         """
         Get the :class:`qutip.Qobj` representation of the gate operator.
         The operator is expanded to the full Hilbert space according to
@@ -211,28 +106,30 @@ class Gate(ABC):
         qobj : :obj:`qutip.Qobj`
             The compact gate operator as a unitary matrix.
         """
-
-        all_targets = self.get_all_qubits()
-        if num_qubits is None:
-            num_qubits = max(all_targets) + 1
-
+        # This method isn't being used in the codebase
         return expand_operator(
             self.get_compact_qobj(),
             dims=dims,
-            targets=all_targets,
+            targets=qubits,
         )
+
+    def __str__(self):
+        return f"""
+            Gate({self.name},
+        """
+
+    def __repr__(self):
+        return str(self)
+
+    def _repr_latex_(self):
+        return str(self)
 
 
 class ControlledGate(Gate):
     def __init__(
         self,
-        controls,
-        targets,
         target_gate=None,
-        control_value=1,
-        classical_controls=None,
-        classical_control_value=None,
-        style=None,
+        control_value=None,
     ):
         if target_gate is None:
             if self._target_gate_class is not None:
@@ -242,83 +139,58 @@ class ControlledGate(Gate):
                     "target_gate must be provided either as argument or class attribute."
                 )
 
-        super().__init__(
-            targets=targets,
-            classical_controls=classical_controls,
-            classical_control_value=classical_control_value,
-            style=style,
-        )
+        super().__init__()
         self.target_gate = target_gate
-        self.controls = (
-            [controls] if not isinstance(controls, list) else controls
-        )
-        self._num_ctrl_qubits = len(self.controls)
         if control_value is None:
-            self.control_value = 2 ** len(self.controls) - 1
+            self._control_value = 2**self.num_ctrl_qubits - 1
         else:
-            self.control_value = control_value
+            self._validate_control_value(control_value)
+            self._control_value = control_value
         # In the circuit plot, only the target gate is shown.
         # The control has its own symbol.
         self.latex_str = target_gate.latex_str
 
     @property
-    def qubit_count(self) -> int:
-        return self.target_gate.qubit_count + self.num_ctrl_qubits
+    def control_value(self) -> int:
+        return self._control_value
 
     @property
-    def num_ctrl_qubits(self) -> int:
-        return self._num_ctrl_qubits
+    def num_qubits(self) -> int:
+        return self.target_gate.num_qubits + self.num_ctrl_qubits
 
-    def get_all_qubits(self):
-        return self.controls + self.targets
+    @property
+    @abstractmethod
+    def num_ctrl_qubits(self) -> int:
+        raise NotImplementedError
+
+    def _validate_control_value(self, control_value: int):
+        if type(control_value) is not int:
+            raise TypeError(
+                f"Control value must be an int, got {control_value}"
+            )
+
+        if control_value < 0:
+            raise ValueError(
+                f"Control value can't be negative, got {control_value}"
+            )
+
+        if control_value > 2**self.num_ctrl_qubits - 1:
+            raise ValueError(
+                f"""Control value can't be greater than 2^num_ctrl_qubits - 1,
+                     got {control_value}"""
+            )
 
     def __str__(self):
         return f"""
-            Gate({self.name}, targets={self.targets},
-            controls={self.controls}, control_value={self.control_value},
-            classical controls={self.classical_controls},
-            classical_control_value={self.classical_control_value})
+            Gate({self.name},
+            control_value={self.control_value},
         """
 
     def get_compact_qobj(self):
         return controlled_gate(
             U=self.target_gate.get_compact_qobj(),
-            controls=list(range(len(self.controls))),
-            targets=list(
-                range(
-                    len(self.controls), len(self.targets) + len(self.controls)
-                )
-            ),
             control_value=self.control_value,
         )
-
-    def _to_qasm(self, qasm_out):
-        """
-        Pipe output of gate signature and application to QasmOutput object.
-
-        Parameters
-        ----------
-        qasm_out: QasmOutput
-            object to store QASM output.
-        """
-
-        qasm_gate = qasm_out.qasm_name(self.name)
-
-        if not qasm_gate:
-            error_str = f"{self.name} gate's qasm defn is not specified"
-            raise NotImplementedError(error_str)
-
-        if self.classical_controls:
-            err_msg = "Exporting controlled gates is not implemented yet."
-            raise NotImplementedError(err_msg)
-        else:
-            qasm_out.output(
-                qasm_out._qasm_str(
-                    q_name=qasm_gate,
-                    q_targets=self.targets,
-                    q_controls=self.controls,
-                )
-            )
 
 
 class ParametrizedGate(Gate):
@@ -326,68 +198,25 @@ class ParametrizedGate(Gate):
         self,
         arg_value: float,
         arg_label: str = None,
-        targets=None,
-        classical_controls=None,
-        classical_control_value=None,
-        style=None,
     ):
-        super().__init__(
-            targets=targets,
-            classical_controls=classical_controls,
-            classical_control_value=classical_control_value,
-            style=style,
-        )
+        super().__init__()
         self.arg_label = arg_label
         self.arg_value = arg_value
 
     def __str__(self):
         return f"""
-            Gate({self.name}, targets={self.targets}, arg_value={self.arg_value},
-            classical controls={self.classical_controls}, arg_label={self.arg_label},
-            classical_control_value={self.classical_control_value})
+            Gate({self.name}, arg_value={self.arg_value},
+            arg_label={self.arg_label},
         """
-
-    def _to_qasm(self, qasm_out):
-        """
-        Pipe output of gate signature and application to QasmOutput object.
-
-        Parameters
-        ----------
-        qasm_out: QasmOutput
-            object to store QASM output.
-        """
-
-        qasm_gate = qasm_out.qasm_name(self.name)
-
-        if not qasm_gate:
-            error_str = f"{self.name} gate's qasm defn is not specified"
-            raise NotImplementedError(error_str)
-
-        if self.classical_controls:
-            err_msg = "Exporting controlled gates is not implemented yet."
-            raise NotImplementedError(err_msg)
-        else:
-            qasm_out.output(
-                qasm_out._qasm_str(
-                    q_name=qasm_gate,
-                    q_targets=self.targets,
-                    q_args=self.arg_value,
-                )
-            )
 
 
 class ControlledParamGate(ParametrizedGate, ControlledGate):
     def __init__(
         self,
-        controls,
         arg_value,
         arg_label=None,
-        targets=None,
         target_gate=None,
         control_value=1,
-        classical_controls=None,
-        classical_control_value=None,
-        style=None,
     ):
         if target_gate is None:
             if self._target_gate_class is not None:
@@ -399,56 +228,18 @@ class ControlledParamGate(ParametrizedGate, ControlledGate):
 
         ControlledGate.__init__(
             self,
-            controls=controls,
-            targets=targets,
-            target_gate=target_gate(
-                targets=targets, arg_value=arg_value, arg_label=arg_label
-            ),
+            target_gate=target_gate(arg_value=arg_value, arg_label=arg_label),
             control_value=control_value,
-            classical_controls=classical_controls,
-            classical_control_value=classical_control_value,
-            style=style,
         )
         self.arg_label = arg_label
         self.arg_value = arg_value
 
     def __str__(self):
         return f"""
-            Gate({self.name}, targets={self.targets},
+            Gate({self.name},
             arg_value={self.arg_value}, arg_label={self.arg_label},
-            controls={self.controls}, control_value={self.control_value},
-            classical controls={self.classical_controls},
-            classical_control_value={self.classical_control_value})
+            control_value={self.control_value},
         """
-
-    def _to_qasm(self, qasm_out):
-        """
-        Pipe output of gate signature and application to QasmOutput object.
-
-        Parameters
-        ----------
-        qasm_out: QasmOutput
-            object to store QASM output.
-        """
-
-        qasm_gate = qasm_out.qasm_name(self.name)
-
-        if not qasm_gate:
-            error_str = f"{self.name} gate's qasm defn is not specified"
-            raise NotImplementedError(error_str)
-
-        if self.classical_controls:
-            err_msg = "Exporting controlled gates is not implemented yet."
-            raise NotImplementedError(err_msg)
-        else:
-            qasm_out.output(
-                qasm_out._qasm_str(
-                    q_name=qasm_gate,
-                    q_targets=self.targets,
-                    q_controls=self.controls,
-                    q_args=self.arg_value,
-                )
-            )
 
 
 def custom_gate_factory(name: str, U: Qobj) -> Gate:
@@ -461,17 +252,9 @@ def custom_gate_factory(name: str, U: Qobj) -> Gate:
 
         def __init__(
             self,
-            targets,
-            classical_controls=None,
-            classical_control_value=None,
-            style=None,
         ):
             super().__init__(
                 name=name,
-                targets=targets,
-                classical_controls=classical_controls,
-                classical_control_value=classical_control_value,
-                style=style,
             )
             self._U = U
 
@@ -479,15 +262,18 @@ def custom_gate_factory(name: str, U: Qobj) -> Gate:
         def get_compact_qobj():
             return U
 
-        @staticmethod
         @property
-        def qubit_count() -> int:
-            return U.dims
+        def num_qubits(self) -> int:
+            return int(np.log2(U.shape[0]))
 
     return CustomGate
 
 
-def controlled_gate_factory(target_gate: Gate) -> ControlledGate:
+def controlled_gate_factory(
+    target_gate: Gate,
+    num_ctrl_qubits: int = 1,
+    control_value: int = -1,
+) -> ControlledGate:
     """
     Gate Factory for Custom Gate that wraps an arbitrary unitary matrix U.
     """
@@ -496,42 +282,46 @@ def controlled_gate_factory(target_gate: Gate) -> ControlledGate:
         latex_str = r"{\rm CU}"
         _target_gate_class = target_gate
 
+        @property
+        def control_value(self) -> int:
+            if control_value == -1:
+                return 2**num_ctrl_qubits - 1
+            return control_value
+
+        @property
+        def num_ctrl_qubits(self) -> int:
+            return num_ctrl_qubits
+
+        @property
+        def num_qubits(self) -> int:
+            return target_gate.num_qubits + self.num_ctrl_qubits
+
     return _CustomGate
 
 
 class SingleQubitGate(Gate):
     """Abstract one-qubit gate."""
 
-    @staticmethod
     @property
-    def qubit_count() -> int:
+    def num_qubits(self) -> int:
         return 1
 
 
 class ParametrizedSingleQubitGate(ParametrizedGate):
-    @staticmethod
     @property
-    def qubit_count() -> int:
+    def num_qubits(self) -> int:
         return 1
-
-    def _verify_parameters(self):
-        if self.targets is None or len(self.targets) != 1:
-            raise ValueError(
-                f"Gate {self.__class__.__name__} requires one target"
-            )
 
 
 class TwoQubitGate(Gate):
     """Abstract two-qubit gate."""
 
-    @staticmethod
     @property
-    def qubit_count() -> int:
+    def num_qubits(self) -> int:
         return 2
 
 
 class ParametrizedTwoQubitGate(ParametrizedGate):
-    @staticmethod
     @property
-    def qubit_count() -> int:
+    def num_qubits(self) -> int:
         return 2

@@ -19,7 +19,6 @@ from qutip_qip.operations import (
     RZ,
     ISWAP,
     SQRTISWAP,
-    CNOT,
     RZX,
     gate_sequence_product,
 )
@@ -126,7 +125,7 @@ def test_numerical_evolution(num_qubits, gates, targets, device_class, kwargs):
 
 
 # Test for RZX gate, only available on SCQubits.
-_rzx = RZX(targets=[0, 1], arg_value=np.pi / 2)
+_rzx = RZX(arg_value=np.pi / 2)
 
 
 @pytest.mark.parametrize(
@@ -217,24 +216,29 @@ def test_numerical_circuit(circuit, device_class, kwargs, schedule_mode):
     state = qutip.rand_ket(2**num_qubits)
     state.dims = [[2] * num_qubits, [1] * num_qubits]
     target = circuit.run(state)
+
     if isinstance(device, DispersiveCavityQED):
         num_ancilla = len(device.dims) - num_qubits
         ancilla_indices = slice(0, num_ancilla)
         extra = qutip.basis(device.dims[ancilla_indices], [0] * num_ancilla)
         init_state = qutip.tensor(extra, state)
+
     elif isinstance(device, SCQubits):
         # expand to 3-level represetnation
         init_state = _ket_expaned_dims(state, device.dims)
     else:
         init_state = state
+
     options = {"store_final_state": True, "nsteps": 50000}
     result = device.run_state(
         init_state=init_state, analytical=False, options=options
     )
+
     if isinstance(device, DispersiveCavityQED):
         target = qutip.tensor(extra, target)
     elif isinstance(device, SCQubits):
         target = _ket_expaned_dims(target, device.dims)
+
     assert _tol > abs(1 - qutip.metrics.fidelity(result.final_state, target))
 
 

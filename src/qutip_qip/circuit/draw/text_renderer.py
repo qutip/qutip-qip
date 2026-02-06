@@ -8,7 +8,6 @@ from qutip_qip.circuit import QubitCircuit
 from qutip_qip.circuit.draw import BaseRenderer, StyleConfig
 from qutip_qip.operations import (
     Gate,
-    Measurement,
     ControlledGate,
     ParametrizedGate,
 )
@@ -120,7 +119,12 @@ class TextRenderer(BaseRenderer):
         return (top_frame, mid_frame, bot_frame), len(top_frame)
 
     def _draw_multiq_gate(
-        self, gate: Gate, gate_text: str
+        self,
+        gate: Gate,
+        gate_text: str,
+        targets: list[int],
+        controls: list[int],
+        cbits: list[int],
     ) -> tuple[tuple[str, str, str, str, str], int]:
         """
         Draw a multi qubit gate
@@ -149,10 +153,10 @@ class TextRenderer(BaseRenderer):
         mid_connect_label = f"─┤{pad}{gate_text}{pad}├─"
         mid_index = len(bot_frame) // 2
 
-        sorted_targets = sorted(gate.targets)
+        sorted_targets = sorted(targets)
         # Adjust top_frame or bottom if there is a control wire
         if isinstance(gate, ControlledGate):
-            sorted_controls = sorted(gate.controls)
+            sorted_controls = sorted(controls)
             top_frame = (
                 (top_frame[:mid_index] + "┴" + top_frame[mid_index + 1 :])
                 if sorted_controls[-1] > sorted_targets[0]
@@ -165,8 +169,8 @@ class TextRenderer(BaseRenderer):
             )
 
         # Adjust the frames for classical_controls
-        if gate.classical_controls is not None:
-            for c in gate.classical_controls:
+        if len(cbits) != 0:
+            for c in cbits:
                 if c + self._qwires > sorted_targets[0]:
                     bot_frame = (
                         bot_frame[:mid_index]
@@ -198,7 +202,7 @@ class TextRenderer(BaseRenderer):
         ), len(top_frame)
 
     def _draw_measurement_gate(
-        self, measurement: Measurement
+        self, qubits, cbits
     ) -> tuple[tuple[str, str, str], int]:
         """
         Draw a measurement gate
@@ -209,7 +213,7 @@ class TextRenderer(BaseRenderer):
 
         # adjust top_frame or bottom according the placement of the classical wire
         mid_index = len(bot_frame) // 2
-        if measurement.classical_store + self._qwires > measurement.targets[0]:
+        if cbits[0] + self._qwires > qubits[0]:
             bot_frame = (
                 bot_frame[:mid_index] + "╥" + bot_frame[mid_index + 1 :]
             )
@@ -222,7 +226,8 @@ class TextRenderer(BaseRenderer):
 
     def _update_cbridge(
         self,
-        gate: Gate,
+        qubits,
+        cbits,
         wire_list: list[int],
         width: int,
         is_arrow: bool = True,
@@ -253,20 +258,11 @@ class TextRenderer(BaseRenderer):
             + "═" * (width // 2 - 1)
         )
 
-        classical_wire = list(
-            map(
-                lambda x: x + self._qwires,
-                (
-                    gate.classical_controls
-                    if isinstance(gate, Gate)
-                    else [gate.classical_store]
-                ),
-            )
-        )
+        classical_wire = list(map(lambda x: x + self._qwires, cbits))
         classical_wire.sort()
 
         for wire in wire_list:
-            if wire == gate.targets[0]:
+            if wire == qubits[0]:
                 continue
             if wire in classical_wire:
                 self._render_strs["top_frame"][wire] += bar_conn
@@ -299,7 +295,7 @@ class TextRenderer(BaseRenderer):
             self._render_strs["bot_frame"][wire] += bot_frame
 
     def _update_target_multiq(
-        self, gate: Gate, wire_list: list[int], parts: list[str]
+        self, targets: list[int], wire_list: list[int], parts: list[str]
     ) -> None:
         """
         Update the render strings for part of the multi qubit gate drawn on the target wires.
@@ -322,15 +318,15 @@ class TextRenderer(BaseRenderer):
         top_frame, mid_frame, mid_connect, mid_connect_label, bot_frame = parts
 
         for i, wire in enumerate(wire_list):
-            if len(gate.targets) == 1:
+            if len(targets) == 1:
                 self._render_strs["top_frame"][wire] += top_frame
                 self._render_strs["mid_frame"][wire] += mid_connect_label
                 self._render_strs["bot_frame"][wire] += bot_frame
-            elif i == 0 and wire in gate.targets:
+            elif i == 0 and wire in targets:
                 self._render_strs["top_frame"][wire] += mid_frame
                 self._render_strs["mid_frame"][wire] += mid_connect_label
                 self._render_strs["bot_frame"][wire] += bot_frame
-            elif i == len(wire_list) - 1 and wire in gate.targets:
+            elif i == len(wire_list) - 1 and wire in targets:
                 self._render_strs["top_frame"][wire] += top_frame
                 self._render_strs["mid_frame"][wire] += mid_connect
                 self._render_strs["bot_frame"][wire] += mid_frame
@@ -342,6 +338,8 @@ class TextRenderer(BaseRenderer):
     def _update_qbridge(
         self,
         gate: Gate,
+        targets: list[int],
+        controls: list[int],
         wire_list_control: list[int],
         width: int,
         is_top: bool,
@@ -372,8 +370,8 @@ class TextRenderer(BaseRenderer):
         node_conn = "─" * (width // 2) + "█" + "─" * (width // 2 - 1)
 
         for wire in wire_list_control:
-            if wire not in gate.targets:
-                if isinstance(gate, ControlledGate) and wire in gate.controls:
+            if wire not in targets:
+                if wire in controls:
                     # check if the control wire is the first or last control wire.
                     # used in cases of multiple control wires
                     if (
@@ -426,122 +424,132 @@ class TextRenderer(BaseRenderer):
         """
         self._add_wire_labels()
 
-        for gate in self._qc.gates:
-            if isinstance(gate, Gate):
-                gate_text = gate.name
-
-                if isinstance(gate, ParametrizedGate):
-                    gate_text = (
-                        gate.arg_label
-                        if gate.arg_label is not None
-                        else gate.name
-                    )
+        for circ_instruction in self._qc.instructions:
+            qubits = list(circ_instruction.qubits)
+            cbits = list(circ_instruction.cbits)
 
             # generate the parts, width and wire_list for the gates
-            if isinstance(gate, Measurement):
-                wire_list = list(range(gate.targets[0] + 1)) + list(
+            if circ_instruction.is_measurement_instruction():
+                wire_list = list(range(qubits[0] + 1)) + list(
                     range(
-                        gate.classical_store + self._qwires,
+                        cbits[0] + self._qwires,
                         self._qwires + self._cwires,
                     )
                 )
-                parts, width = self._draw_measurement_gate(gate)
-            elif gate.name == "SWAP":
-                wire_list = list(
-                    range(min(gate.targets), max(gate.targets) + 1)
-                )
-                width = 4 * ceil(self.style.gate_pad) + 1
-            else:
-                sorted_targets = sorted(gate.targets)
-                if isinstance(gate, ControlledGate):
-                    merged_wire = sorted_targets + gate.controls
-                else:
-                    merged_wire = sorted_targets + []
+                parts, width = self._draw_measurement_gate(qubits, cbits)
 
-                if gate.classical_controls is not None:
-                    c_control = sorted(gate.classical_controls)
-                    merged_wire += list(range(sorted_targets[0] + 1))
-                    merged_wire.sort()
-                    wire_list = list(
-                        range(merged_wire[0], merged_wire[-1] + 1)
-                    )
-                    wire_list += list(
-                        range(
-                            c_control[0] + self._qwires,
-                            self._qwires + self._cwires,
+            elif circ_instruction.is_gate_instruction():
+                gate = circ_instruction.operation
+                gate_text = gate.name
+                targets = list(circ_instruction.targets)
+                controls = list(circ_instruction.controls)
+
+                if (
+                    isinstance(gate, ParametrizedGate)
+                    and gate.arg_label is not None
+                ):
+                    gate_text = gate.arg_label
+
+                if gate.name == "SWAP":
+                    wire_list = list(range(min(targets), max(targets) + 1))
+                    width = 4 * ceil(self.style.gate_pad) + 1
+                else:
+                    sorted_targets = sorted(targets)
+                    merged_wire = sorted_targets + controls
+
+                    if len(cbits) != 0:
+                        c_control = sorted(cbits)
+                        merged_wire += list(range(sorted_targets[0] + 1))
+                        merged_wire.sort()
+                        wire_list = list(
+                            range(merged_wire[0], merged_wire[-1] + 1)
                         )
+                        wire_list += list(
+                            range(
+                                c_control[0] + self._qwires,
+                                self._qwires + self._cwires,
+                            )
+                        )
+                    else:
+                        merged_wire.sort()
+                        wire_list = list(
+                            range(merged_wire[0], merged_wire[-1] + 1)
+                        )
+                    parts, width = self._draw_multiq_gate(
+                        gate, gate_text, targets, controls, cbits
                     )
-                else:
-                    merged_wire.sort()
-                    wire_list = list(
-                        range(merged_wire[0], merged_wire[-1] + 1)
-                    )
-                parts, width = self._draw_multiq_gate(gate, gate_text)
 
-            # update the render strings for the gate
+            # update the render strings for the operation
             layer = max(len(self._layer_list[i]) for i in wire_list)
             xskip = self._get_xskip(wire_list, layer)
             self._adjust_layer_pad(wire_list, xskip)
             self._manage_layers(width, wire_list, layer, xskip)
 
-            if isinstance(gate, Measurement):
-                self._update_singleq(gate.targets, parts)
-                self._update_cbridge(gate, wire_list, width)
-            elif gate.name == "SWAP":
-                self._update_swap_gate(wire_list)
-            else:
-                self._update_target_multiq(
-                    gate,
-                    list(range(sorted_targets[0], sorted_targets[-1] + 1)),
-                    parts,
-                )
+            if circ_instruction.is_measurement_instruction():
+                self._update_singleq(qubits, parts)
+                self._update_cbridge(qubits, cbits, wire_list, width)
 
-                if isinstance(gate, ControlledGate):
-                    sorted_controls = sorted(gate.controls)
-
-                    # check if there is control wire above the gate top
-                    is_top = sorted_controls[-1] > sorted_targets[0]
-                    is_bot = sorted_controls[0] < sorted_targets[-1]
-
-                    if is_top:
-                        self._update_qbridge(
-                            gate,
-                            list(
-                                range(
-                                    sorted_targets[-1],
-                                    sorted_controls[-1] + 1,
-                                )
-                            ),
-                            width,
-                            is_top,
-                        )
-
-                    if is_bot:
-                        self._update_qbridge(
-                            gate,
-                            list(
-                                range(
-                                    sorted_controls[0],
-                                    sorted_targets[-1] + 1,
-                                )
-                            ),
-                            width,
-                            not is_bot,
-                        )
-
-                if gate.classical_controls is not None:
-                    self._update_cbridge(
-                        gate,
-                        list(range(sorted_targets[0] + 1))
-                        + list(
-                            range(
-                                gate.classical_controls[0] + self._qwires,
-                                self._qwires + self._cwires,
-                            )
-                        ),
-                        width,
-                        is_arrow=False,
+            elif circ_instruction.is_gate_instruction():
+                if gate.name == "SWAP":
+                    self._update_swap_gate(wire_list)
+                else:
+                    self._update_target_multiq(
+                        targets,
+                        list(range(sorted_targets[0], sorted_targets[-1] + 1)),
+                        parts,
                     )
+
+                    if isinstance(gate, ControlledGate):
+                        sorted_controls = sorted(controls)
+
+                        # check if there is control wire above the gate top
+                        is_top = sorted_controls[-1] > sorted_targets[0]
+                        is_bot = sorted_controls[0] < sorted_targets[-1]
+
+                        if is_top:
+                            self._update_qbridge(
+                                gate,
+                                targets,
+                                controls,
+                                list(
+                                    range(
+                                        sorted_targets[-1],
+                                        sorted_controls[-1] + 1,
+                                    )
+                                ),
+                                width,
+                                is_top,
+                            )
+
+                        if is_bot:
+                            self._update_qbridge(
+                                gate,
+                                targets,
+                                controls,
+                                list(
+                                    range(
+                                        sorted_controls[0],
+                                        sorted_targets[-1] + 1,
+                                    )
+                                ),
+                                width,
+                                not is_bot,
+                            )
+
+                    if len(cbits) != 0:
+                        self._update_cbridge(
+                            targets,
+                            cbits,
+                            list(range(sorted_targets[0] + 1))
+                            + list(
+                                range(
+                                    cbits[0] + self._qwires,
+                                    self._qwires + self._cwires,
+                                )
+                            ),
+                            width,
+                            is_arrow=False,
+                        )
 
         max_layer_len = max(sum(layer) for layer in self._layer_list)
         self._adjust_layer_pad(

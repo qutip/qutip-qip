@@ -2,7 +2,7 @@ import pytest
 from copy import deepcopy
 
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.compiler import Instruction, Scheduler
+from qutip_qip.compiler import PulseInstruction, Scheduler
 from qutip_qip.operations import GATE_CLASS_MAP, ControlledGate
 from qutip import qeye, tracedist
 
@@ -16,8 +16,10 @@ def _verify_scheduled_circuit(circuit, gate_cycle_indices):
     result0 = circuit.compute_unitary()
     scheduled_gate = [[] for i in range(max(gate_cycle_indices) + 1)]
     for i, cycles in enumerate(gate_cycle_indices):
-        scheduled_gate[cycles].append(circuit.gates[i])
-    circuit.gates = sum(scheduled_gate, [])
+        scheduled_gate[cycles].append(circuit.instructions[i])
+    circuit._instructions = sum(
+        scheduled_gate, []
+    )  # FIXME do this without changing internal attribute
     result1 = circuit.compute_unitary()
     return tracedist(result0 * result1.dag(), qeye(result0.dims[0])) < 1.0e-7
 
@@ -110,11 +112,11 @@ def _instructions1():
     circuit3.add_gate("CNOT", targets=1, controls=3)
 
     instruction_list = []
-    for gate in circuit3.gates:
-        if gate.name == "SNOT":
-            instruction_list.append(Instruction(gate, duration=1))
+    for circuit_ins in circuit3.instructions:
+        if circuit_ins.operation.name == "SNOT":
+            instruction_list.append(PulseInstruction(circuit_ins, duration=1))
         else:
-            instruction_list.append(Instruction(gate, duration=2))
+            instruction_list.append(PulseInstruction(circuit_ins, duration=2))
 
     return instruction_list
 

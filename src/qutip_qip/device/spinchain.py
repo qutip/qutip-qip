@@ -85,7 +85,10 @@ class SpinChain(ModelProcessor):
     def load_circuit(self, qc, setup, schedule_mode="ASAP", compiler=None):
         if compiler is None:
             compiler = SpinChainCompiler(
-                self.num_qubits, self.params, setup=setup
+                self.num_qubits,
+                self.params,
+                setup=setup,
+                global_phase=qc.global_phase,
             )
         tlist, coeffs = super().load_circuit(
             qc, schedule_mode=schedule_mode, compiler=compiler

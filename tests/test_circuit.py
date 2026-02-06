@@ -89,8 +89,8 @@ class TestQubitCircuit:
     @pytest.mark.parametrize(
         ["gate_from", "gate_to", "targets", "controls"],
         [
-            pytest.param("SWAP", "CNOT", [0, 1], None, id="SWAPtoCNOT"),
-            pytest.param("ISWAP", "CNOT", [0, 1], None, id="ISWAPtoCNOT"),
+            pytest.param("SWAP", "CNOT", [0, 1], [], id="SWAPtoCNOT"),
+            pytest.param("ISWAP", "CNOT", [0, 1], [], id="ISWAPtoCNOT"),
             pytest.param("CSIGN", "CNOT", [1], [0], id="CSIGNtoCNOT"),
             pytest.param("CNOT", "CSIGN", [0], [1], id="CNOTtoCSIGN"),
             pytest.param("CNOT", "SQRTSWAP", [0], [1], id="CNOTtoSQRTSWAP"),
@@ -145,38 +145,38 @@ class TestQubitCircuit:
         qc.add_gate("RX", targets=[3], arg_value=-1.570796)
 
         # Test explicit gate addition
-        assert qc.gates[0].name == "CNOT"
-        assert qc.gates[0].targets == [1]
-        assert qc.gates[0].controls == [0]
+        assert qc.instructions[0].operation.name == "CNOT"
+        assert qc.instructions[0].targets == (1,)
+        assert qc.instructions[0].controls == (0,)
 
         # Test direct gate addition
-        assert qc.gates[1].name == "SWAP"
-        assert qc.gates[1].targets == [1, 4]
+        assert qc.instructions[1].operation.name == "SWAP"
+        assert qc.instructions[1].targets == (1, 4)
 
         # Test specified position gate addition
-        assert qc.gates[3].name == "SNOT"
-        assert qc.gates[3].targets == [3]
+        assert qc.instructions[3].operation.name == "SNOT"
+        assert qc.instructions[3].targets == (3,)
 
         # Test adding 1 qubit gate on [start, end] qubits
-        assert qc.gates[5].name == "RY"
-        assert qc.gates[5].targets == [4]
-        assert qc.gates[5].arg_value == 1.570796
-        assert qc.gates[6].name == "RY"
-        assert qc.gates[6].targets == [5]
-        assert qc.gates[6].arg_value == 1.570796
+        assert qc.instructions[5].operation.name == "RY"
+        assert qc.instructions[5].targets == (4,)
+        assert qc.instructions[5].operation.arg_value == 1.570796
+        assert qc.instructions[6].operation.name == "RY"
+        assert qc.instructions[6].targets == (5,)
+        assert qc.instructions[6].operation.arg_value == 1.570796
 
         # Test adding 1 qubit gate on qubits [3]
-        assert qc.gates[7].name == "RX"
-        assert qc.gates[7].targets == [3]
-        assert qc.gates[7].arg_value == -1.570796
+        assert qc.instructions[7].operation.name == "RX"
+        assert qc.instructions[7].targets == (3,)
+        assert qc.instructions[7].operation.arg_value == -1.570796
 
         class DUMMY1(Gate):
             def __init__(self, **kwargs):
                 super().__init__(**kwargs)
 
             @property
-            def qubit_count(self) -> int:
-                return 0
+            def num_qubits(self) -> int:
+                return 1
 
             def get_compact_qobj(self):
                 pass
@@ -184,8 +184,8 @@ class TestQubitCircuit:
         class DUMMY2(DUMMY1):
             pass
 
-        qc.add_gate(DUMMY1)
-        qc.add_gate(DUMMY2)
+        qc.add_gate(DUMMY1, targets=0)
+        qc.add_gate(DUMMY2, targets=0)
 
         # Test adding gates at multiple (sorted) indices at once.
         # NOTE: Every insertion shifts the indices in the original list of
@@ -202,7 +202,7 @@ class TestQubitCircuit:
             "DUMMY1",
             "DUMMY2",
         ]
-        actual_gate_names = [gate.name for gate in qc.gates]
+        actual_gate_names = [ins.operation.name for ins in qc.instructions]
         assert actual_gate_names == expected_gate_names
 
     def test_add_circuit(self):
@@ -225,26 +225,32 @@ class TestQubitCircuit:
         qc1.add_circuit(qc)
 
         # Test if all gates and measurements are added
-        assert len(qc1.gates) == len(qc.gates)
+        assert len(qc1.instructions) == len(qc.instructions)
 
-        for i in range(len(qc1.gates)):
-            assert qc1.gates[i].name == qc.gates[i].name
-            assert qc1.gates[i].targets == qc.gates[i].targets
-            if isinstance(qc1.gates[i], Gate) and isinstance(
-                qc.gates[i], Gate
+        for i in range(len(qc1.instructions)):
+            assert (
+                qc1.instructions[i].operation.name
+                == qc.instructions[i].operation.name
+            )
+            assert (
+                qc1.instructions[i].qubits[0] == qc.instructions[i].qubits[0]
+            )
+            if isinstance(qc1.instructions[i].operation, Gate) and isinstance(
+                qc.instructions[i].operation, Gate
             ):
-                if isinstance(qc.gates[i], ControlledGate):
-                    assert qc1.gates[i].controls == qc.gates[i].controls
+                if isinstance(qc.instructions[i].operation, ControlledGate):
+                    assert (
+                        qc1.instructions[i].controls
+                        == qc.instructions[i].controls
+                    )
                 assert (
-                    qc1.gates[i].classical_controls
-                    == qc.gates[i].classical_controls
+                    qc1.instructions[i].cbits_ctrl_value
+                    == qc.instructions[i].cbits_ctrl_value
                 )
-            elif isinstance(qc1.gates[i], Measurement) and isinstance(
-                qc.gates[i], Measurement
-            ):
-                assert (
-                    qc1.gates[i].classical_store == qc.gates[i].classical_store
-                )
+            elif isinstance(
+                qc1.instructions[i].operation, Measurement
+            ) and isinstance(qc.instructions[i].operation, Measurement):
+                assert qc1.instructions[i].cbits == qc.instructions[i].cbits
 
         # Test exception when qubit out of range
         pytest.raises(NotImplementedError, qc1.add_circuit, qc, start=4)
@@ -253,17 +259,22 @@ class TestQubitCircuit:
         qc2.add_circuit(qc, start=2)
 
         # Test if all gates are added
-        assert len(qc2.gates) == len(qc.gates)
+        assert len(qc2.instructions) == len(qc.instructions)
 
         # Test if the positions are correct
-        for i in range(len(qc2.gates)):
-            if qc.gates[i].targets is not None:
-                assert qc2.gates[i].targets[0] == qc.gates[i].targets[0] + 2
-            if (
-                isinstance(qc.gates[i], ControlledGate)
-                and qc.gates[i].controls is not None
-            ):
-                assert qc2.gates[i].controls[0] == qc.gates[i].controls[0] + 2
+        for i in range(len(qc2.instructions)):
+            if qc.instructions[i].is_gate_instruction():
+                assert (
+                    qc2.instructions[i].targets[0]
+                    == qc.instructions[i].targets[0] + 2
+                )
+            if isinstance(
+                qc.instructions[i].operation, ControlledGate
+            ) and len(qc.instructions[i].controls):
+                assert (
+                    qc2.instructions[i].controls[0]
+                    == qc.instructions[i].controls[0] + 2
+                )
 
     def test_add_state(self):
         """
@@ -306,24 +317,24 @@ class TestQubitCircuit:
         Addition of Measurement Object to a circuit.
         """
 
-        qc = QubitCircuit(3, num_cbits=2)
+        qc = QubitCircuit(3, num_cbits=3)
 
-        qc.add_measurement("M0", targets=[0], classical_store=1)
+        qc.add_measurement("M0", targets=[0], classical_store=0)
         qc.add_gate("CNOT", targets=[1], controls=[0])
         qc.add_gate("TOFFOLI", controls=[0, 1], targets=[2])
-        qc.add_measurement("M1", targets=[2], classical_store=0)
+        qc.add_measurement("M1", targets=[2], classical_store=1)
         qc.add_gate("SNOT", targets=[1], classical_controls=[0, 1])
-        qc.add_measurement("M2", targets=[1])
+        qc.add_measurement("M2", targets=[1], classical_store=2)
 
         # checking correct addition of measurements
-        assert qc.gates[0].targets[0] == 0
-        assert qc.gates[0].classical_store == 1
-        assert qc.gates[3].name == "M1"
-        assert qc.gates[5].classical_store is None
+        assert qc.instructions[0].qubits[0] == 0
+        assert qc.instructions[0].cbits[0] == 0
+        assert qc.instructions[3].operation.name == "M1"
+        assert qc.instructions[5].cbits[0] == 2
 
         # checking if gates are added correctly with measurements
-        assert qc.gates[2].name == "TOFFOLI"
-        assert qc.gates[4].classical_controls == [0, 1]
+        assert qc.instructions[2].operation.name == "TOFFOLI"
+        assert qc.instructions[4].cbits == (0, 1)
 
     @pytest.mark.skip(reason="Changing the interface completely")
     @pytest.mark.parametrize("gate", ["X", "Y", "Z", "S", "T"])
@@ -333,20 +344,6 @@ class TestQubitCircuit:
         """
         qc = QubitCircuit(2)
         pytest.raises(ValueError, qc.add_gate, gate, targets=[1], controls=[0])
-
-    def test_globalphase_gate_propagators(self):
-        qc = QubitCircuit(2)
-        qc.add_gate("GLOBALPHASE", arg_value=np.pi / 2)
-
-        [gate] = qc.gates
-        assert gate.name == "GLOBALPHASE"
-        assert gate.arg_value == np.pi / 2
-
-        [U_expanded] = qc.propagators()
-        assert U_expanded == 1j * qp.qeye([2, 2])
-
-        [U_unexpanded] = qc.propagators(expand=False)
-        assert U_unexpanded == 1j * qp.qeye([2, 2])
 
     def test_single_qubit_gates(self):
         """
@@ -359,45 +356,45 @@ class TestQubitCircuit:
         qc.add_gate("Y", targets=[2])
         qc.add_gate("CS", targets=[0], controls=[1])
         qc.add_gate("Z", targets=[1])
-        qc.add_gate("CT", targets=[2], controls=[2])
-        qc.add_gate("CZ", targets=[0], controls=[0])
+        qc.add_gate("CT", targets=[1], controls=[2])
+        qc.add_gate("CZ", targets=[0], controls=[1])
         qc.add_gate("S", targets=[1])
         qc.add_gate("T", targets=[2])
 
-        assert qc.gates[8].name == "T"
-        assert qc.gates[7].name == "S"
-        assert qc.gates[6].name == "CZ"
-        assert qc.gates[5].name == "CT"
-        assert qc.gates[4].name == "Z"
-        assert qc.gates[3].name == "CS"
-        assert qc.gates[2].name == "Y"
-        assert qc.gates[1].name == "CY"
-        assert qc.gates[0].name == "X"
+        assert qc.instructions[8].operation.name == "T"
+        assert qc.instructions[7].operation.name == "S"
+        assert qc.instructions[6].operation.name == "CZ"
+        assert qc.instructions[5].operation.name == "CT"
+        assert qc.instructions[4].operation.name == "Z"
+        assert qc.instructions[3].operation.name == "CS"
+        assert qc.instructions[2].operation.name == "Y"
+        assert qc.instructions[1].operation.name == "CY"
+        assert qc.instructions[0].operation.name == "X"
 
-        assert qc.gates[8].targets == [2]
-        assert qc.gates[7].targets == [1]
-        assert qc.gates[6].targets == [0]
-        assert qc.gates[5].targets == [2]
-        assert qc.gates[4].targets == [1]
-        assert qc.gates[3].targets == [0]
-        assert qc.gates[2].targets == [2]
-        assert qc.gates[1].targets == [1]
-        assert qc.gates[0].targets == [0]
+        assert qc.instructions[8].targets == (2,)
+        assert qc.instructions[7].targets == (1,)
+        assert qc.instructions[6].targets == (0,)
+        assert qc.instructions[5].targets == (1,)
+        assert qc.instructions[4].targets == (1,)
+        assert qc.instructions[3].targets == (0,)
+        assert qc.instructions[2].targets == (2,)
+        assert qc.instructions[1].targets == (1,)
+        assert qc.instructions[0].targets == (0,)
 
-        assert qc.gates[6].controls == [0]
-        assert qc.gates[5].controls == [2]
-        assert qc.gates[3].controls == [1]
-        assert qc.gates[1].controls == [0]
+        assert qc.instructions[6].controls == (1,)
+        assert qc.instructions[5].controls == (2,)
+        assert qc.instructions[3].controls == (1,)
+        assert qc.instructions[1].controls == (0,)
 
     def test_reverse(self):
         """
         Reverse a quantum circuit
         """
-        qc = QubitCircuit(3)
+        qc = QubitCircuit(3, num_cbits=1)
 
         qc.add_gate("RX", targets=[0], arg_value=3.141, arg_label=r"\pi/2")
         qc.add_gate("CNOT", targets=[1], controls=[0])
-        qc.add_measurement("M1", targets=[1])
+        qc.add_measurement("M1", targets=[1], classical_store=0)
         qc.add_gate("SNOT", targets=[2])
         # Keep input output same
 
@@ -407,10 +404,10 @@ class TestQubitCircuit:
 
         qc_rev = qc.reverse_circuit()
 
-        assert qc_rev.instructions[0][0].name == "SNOT"
-        assert qc_rev.instructions[1][0].name == "M1"
-        assert qc_rev.instructions[2][0].name == "CNOT"
-        assert qc_rev.instructions[3][0].name == "RX"
+        assert qc_rev.instructions[0].operation.name == "SNOT"
+        assert qc_rev.instructions[1].operation.name == "M1"
+        assert qc_rev.instructions[2].operation.name == "CNOT"
+        assert qc_rev.instructions[3].operation.name == "RX"
 
         assert qc_rev.input_states[0] == "0"
         assert qc_rev.input_states[2] is None
@@ -428,11 +425,11 @@ class TestQubitCircuit:
             return Qobj(mat, dims=[[2, 2], [2, 2]])
 
         class T1(Gate):
-            def __init__(self, targets, **kwargs):
-                super().__init__(targets=targets)
+            def __init__(self):
+                pass
 
             @property
-            def qubit_count(self) -> int:
+            def num_qubits(self) -> int:
                 return 1
 
             @staticmethod
@@ -456,11 +453,11 @@ class TestQubitCircuit:
         mat3 = qp.rand_unitary(3)
 
         class CTRLMAT3(ParametrizedGate):
-            def __init__(self, targets, arg_value, **kwargs):
-                super().__init__(targets=targets, arg_value=arg_value)
+            def __init__(self, arg_value, arg_label=None):
+                super().__init__(arg_value=arg_value, arg_label=arg_label)
 
             @property
-            def qubit_count(self) -> int:
+            def num_qubits(self) -> int:
                 return 2
 
             def get_compact_qobj(self):
@@ -500,7 +497,6 @@ class TestQubitCircuit:
         )
 
         teleportation_sim = CircuitSimulator(teleportation)
-
         teleportation_sim_results = teleportation_sim.run(state)
         state_final = teleportation_sim_results.get_final_states(0)
 
@@ -616,11 +612,11 @@ class TestQubitCircuit:
 
         inds_list = []
 
-        for gate in qc.gates:
-            if isinstance(gate, Measurement):
+        for circ_instruction in qc.instructions:
+            if isinstance(circ_instruction.operation, Measurement):
                 continue
             else:
-                inds_list.append(gate.get_all_qubits())
+                inds_list.append(circ_instruction.qubits)
 
         U_1, _ = gate_sequence_product(
             U_list, inds_list=inds_list, expand=True
@@ -715,7 +711,7 @@ class TestQubitCircuit:
     H_zyz_gates = _ZYZ_rotation(H)
     H_zyz_quantum_circuit = QubitCircuit(1)
     for g in H_zyz_gates:
-        H_zyz_quantum_circuit.add_gate(g, targets=[0])
+        H_zyz_quantum_circuit.add_gate(g, targets=[0])  # TODO CHECK
     sigmax_zyz_gates = _ZYZ_rotation(sigmax())
     sigmax_zyz_quantum_circuit = QubitCircuit(1)
     for g in sigmax_zyz_gates:

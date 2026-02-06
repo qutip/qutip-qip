@@ -143,9 +143,11 @@ class OptPulseProcessor(Processor):
         """
         if setting_args is None:
             setting_args = {}
+
         if isinstance(qc, QubitCircuit):
-            props = qc.propagators()
-            gates = [g.name for g in qc.gates]
+            props = qc.propagators()[:-1]  # Last element is the global phase
+            gates = [ins.operation.name for ins in qc.instructions]
+
         elif isinstance(qc, Iterable):
             props = qc
             gates = None  # using list of Qobj, no gates name
@@ -153,6 +155,7 @@ class OptPulseProcessor(Processor):
             raise ValueError(
                 "qc should be a " "QubitCircuit or a list of Qobj"
             )
+
         if merge_gates:  # merge all gates/Qobj into one Qobj
             props = [gate_sequence_product(props)]
             gates = None

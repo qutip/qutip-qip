@@ -34,7 +34,7 @@ def qpe(U, num_counting_qubits, target_qubits=None, to_cnot=False):
 
     # Handle target qubits specification
     if target_qubits is None:
-        dim = U.dims[0][0]
+        dim = U.shape[0]
         num_target_qubits = int(np.log2(dim))
         if 2**num_target_qubits != dim:
             raise ValueError(
@@ -67,7 +67,7 @@ def qpe(U, num_counting_qubits, target_qubits=None, to_cnot=False):
             target_gate=custom_gate_factory(
                 name="U^power gate",
                 U=U_power,
-            )
+            )(),
         )
         qc.add_gate(controlled_u, targets=target_qubits, controls=[i])
 

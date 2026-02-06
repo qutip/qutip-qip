@@ -2,9 +2,8 @@ from copy import deepcopy
 from functools import cmp_to_key
 from random import shuffle
 
-from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import Gate
-from qutip_qip.compiler import Instruction
+from qutip_qip.circuit import GateInstruction, QubitCircuit
+from qutip_qip.compiler import PulseInstruction
 
 
 class InstructionsGraph:
@@ -17,7 +16,7 @@ class InstructionsGraph:
     and the computation of the distance in the weighted graph
     (circuit latency).
 
-    It uses the `Instruction` object as a representation of node
+    It uses the `PulseInstruction` object as a representation of node
     and adds the following attributes to it:
 
     predecessors, successors: dependency arrow of the DAG
@@ -40,10 +39,11 @@ class InstructionsGraph:
         instructions = deepcopy(instructions)
         self.nodes = []
         for instruction in instructions:
-            if isinstance(instruction, Gate):
-                self.nodes.append(Instruction(instruction))
+            if isinstance(instruction, GateInstruction):
+                self.nodes.append(PulseInstruction(instruction))
             else:
                 self.nodes.append(instruction)
+
         for node in self.nodes:
             if node.duration is None:
                 node.duration = 1
@@ -54,7 +54,7 @@ class InstructionsGraph:
         """
         Generate the instruction dependency graph.
         It modifies the class attribute `nodes`, where each element (node)
-        is an `Instruction`.
+        is an `PulseInstruction`.
         The graph is represented by attributes `predecessors` and
         `successors`, each a set of indices
         pointing to the position of the target node in the nodes list.
@@ -358,8 +358,8 @@ class Scheduler:
     ):
         """
         Schedule a :obj:`.QubitCircuit`,
-        a list of :obj:`.Gates` or a list of :obj:`.Instruction`.
-        For pulse schedule, the execution time for each :obj:`.Instruction`
+        a list of :obj:`.CircuitInstruction` or a list of :obj:`.Instruction`.
+        For pulse schedule, the execution time for each :obj:`.PulseInstruction`
         is given in its ``duration`` attributes.
 
         The scheduler first generates a quantum gates dependency graph,
@@ -393,7 +393,7 @@ class Scheduler:
         circuit: QubitCircuit or list
             For gate schedule,
             it should be a QubitCircuit or a list of Gate objects.
-            For pulse schedule, it should be a list of Instruction objects,
+            For pulse schedule, it should be a list of PulseInstruction objects,
             each with an attribute `duration`
             that indicates the execution time of this instruction.
         gates_schedule: bool, optional
@@ -465,14 +465,15 @@ class Scheduler:
             return result
 
         if isinstance(circuit, QubitCircuit):
-            gates = circuit.gates
+            circuit_instruction = circuit.instructions
+            gates_schedule = True
         else:
-            gates = circuit
-        if not gates:
+            circuit_instruction = circuit
+        if not circuit_instruction:
             return []
 
         # Generate the quantum operations dependency graph.
-        instructions_graph = InstructionsGraph(gates)
+        instructions_graph = InstructionsGraph(circuit_instruction)
         if self.allow_permutation:
             commutation_rules = self.commutation_rules
         else:
@@ -499,15 +500,12 @@ class Scheduler:
             random=random_shuffle,
         )
 
-        # If we only need gates schedule, we can output the result here.
-        if isinstance(gates[0], Gate):
-            gates_schedule = True
         if gates_schedule or return_cycles_list:
             if self.method == "ALAP":
                 cycles_list.reverse()
             if return_cycles_list:
                 return cycles_list
-            gate_cycles_indices = [0] * len(gates)
+            gate_cycles_indices = [0] * len(circuit_instruction)
             for cycle_ind, cycle in enumerate(cycles_list):
                 for instruction_ind in cycle:
                     gate_cycles_indices[instruction_ind] = cycle_ind

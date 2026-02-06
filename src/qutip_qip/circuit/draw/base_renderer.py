@@ -105,11 +105,9 @@ class StyleConfig:
         elif self.theme == "modern":
             self.theme = modern
         else:
-            raise ValueError(
-                f"""Invalid theme: {self.theme},
+            raise ValueError(f"""Invalid theme: {self.theme},
                 Must be selectec from 'qutip', 'light', 'dark', or 'modern'.
-                """
-            )
+                """)
 
         self.bgcolor = self.bgcolor or self.theme["bgcolor"]
         self.color = self.color or self.theme["color"]

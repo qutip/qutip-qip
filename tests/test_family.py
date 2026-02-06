@@ -1,4 +1,4 @@
-""" Tests for qutip_qip.family. """
+"""Tests for qutip_qip.family."""
 
 import re
 

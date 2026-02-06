@@ -149,7 +149,7 @@ class DispersiveCavityQED(ModelProcessor):
     def load_circuit(self, qc, schedule_mode="ASAP", compiler=None):
         if compiler is None:
             compiler = CavityQEDCompiler(
-                self.num_qubits, self.params, global_phase=0.0
+                self.num_qubits, self.params, global_phase=qc.global_phase
             )
         tlist, coeff = super().load_circuit(
             qc, schedule_mode=schedule_mode, compiler=compiler

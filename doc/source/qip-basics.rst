@@ -44,7 +44,7 @@ A circuit with the various gates and registers available is demonstrated below:
   qc.add_gate("X", targets=0, classical_controls=[0]) # classically controlled gate
   qc.add_gate("SWAP", targets=[0, 1])
 
-  print(qc.gates)
+  print(qc.instruction)
 
 **Output**:
 

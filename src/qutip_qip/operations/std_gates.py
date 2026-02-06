@@ -3,10 +3,10 @@ import scipy.sparse as sp
 
 from qutip import Qobj, sigmax, sigmay, sigmaz, qeye
 from qutip_qip.operations import (
+    ParametrizedGate,
     SingleQubitGate,
     TwoQubitGate,
     ControlledGate,
-    ParametrizedGate,
     ControlledParamGate,
     ParametrizedSingleQubitGate,
     ParametrizedTwoQubitGate,
@@ -653,13 +653,21 @@ class RZX(ParametrizedTwoQubitGate):
         )
 
 
-class _ControlledTwoQubitGate(ControlledGate, TwoQubitGate):
+class _ControlledTwoQubitGate(ControlledGate):
     """
     This class allows correctly generating the gate instance
     when a redundant control_value is given, e.g.
     ``CNOT(0, 1, control_value=1)``,
     and raise an error if it is 0.
     """
+
+    @property
+    def num_qubits(self) -> int:
+        return 2
+
+    @property
+    def num_ctrl_qubits(self) -> int:
+        return 1
 
 
 class CNOT(_ControlledTwoQubitGate):
@@ -859,7 +867,13 @@ class _ControlledParamTwoQubitGate(ControlledParamGate):
     and raise an error if it is 0.
     """
 
-    ...
+    @property
+    def num_qubits(self) -> int:
+        return 2
+
+    @property
+    def num_ctrl_qubits(self) -> int:
+        return 1
 
 
 class CPHASE(_ControlledParamTwoQubitGate):
@@ -982,27 +996,17 @@ class GLOBALPHASE(ParametrizedGate):
     >>> from qutip_qip.operations import GLOBALPHASE
     """
 
+    name = "GLOBALPHASE"
     latex_str = r"{\rm GLOBALPHASE}"
 
-    def __init__(
-        self,
-        arg_value: float,
-        arg_label: str = None,
-        classical_controls=None,
-        classical_control_value=None,
-        style=None,
-    ):
-        super().__init__(
-            targets=None,
-            arg_value=arg_value,
-            arg_label=arg_label,
-            classical_controls=classical_controls,
-            classical_control_value=classical_control_value,
-            style=style,
-        )
+    def __init__(self, arg_value: float = 0.0):
+        super().__init__(arg_value=arg_value)
+
+    def __repr__(self):
+        return f"Gate({self.name}, phase {self.arg_value})"
 
     @property
-    def qubit_count(self) -> int:
+    def num_qubits(self) -> int:
         return 0
 
     def get_compact_qobj(self):
@@ -1043,8 +1047,16 @@ class TOFFOLI(ControlledGate):
     latex_str = r"{\rm TOFFOLI}"
     _target_gate_class = X
 
+    @property
+    def num_qubits(self) -> int:
+        return 3
+
+    @property
+    def num_ctrl_qubits(self) -> int:
+        return 2
+
     @staticmethod
-    def get_compact_qobj():
+    def get_compact_qobj() -> Qobj:
         return Qobj(
             [
                 [1, 0, 0, 0, 0, 0, 0, 0],
@@ -1083,8 +1095,16 @@ class FREDKIN(ControlledGate):
     latex_str = r"{\rm FREDKIN}"
     _target_gate_class = SWAP
 
+    @property
+    def num_qubits(self) -> int:
+        return 3
+
+    @property
+    def num_ctrl_qubits(self) -> int:
+        return 1
+
     @staticmethod
-    def get_compact_qobj():
+    def get_compact_qobj() -> Qobj:
         return Qobj(
             [
                 [1, 0, 0, 0, 0, 0, 0, 0],

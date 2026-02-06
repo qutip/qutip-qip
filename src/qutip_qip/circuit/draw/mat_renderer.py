@@ -16,7 +16,6 @@ from qutip_qip.circuit import QubitCircuit
 from qutip_qip.circuit.draw import BaseRenderer, StyleConfig
 from qutip_qip.operations import (
     Gate,
-    Measurement,
     ControlledGate,
     ParametrizedGate,
 )
@@ -523,7 +522,14 @@ class MatRenderer(BaseRenderer):
 
         return f"[{round(value, 2)}]"
 
-    def _draw_multiq_gate(self, gate: Gate, layer: int) -> None:
+    def _draw_multiq_gate(
+        self,
+        gate: Gate,
+        targets: list[int],
+        controls: list[int],
+        cbits: list[int],
+        layer: int,
+    ) -> None:
         """
         Draw the multi-qubit gate.
 
@@ -542,11 +548,9 @@ class MatRenderer(BaseRenderer):
         com_xskip = self._get_xskip(wire_list, layer)
 
         if gate.name == "CNOT" or gate.name == "CX":
-            self._draw_control_node(gate.controls[0], com_xskip, self.color)
-            self._draw_target_node(gate.targets[0], com_xskip, self.color)
-            self._draw_qbridge(
-                gate.targets[0], gate.controls[0], com_xskip, self.color
-            )
+            self._draw_control_node(controls[0], com_xskip, self.color)
+            self._draw_target_node(targets[0], com_xskip, self.color)
+            self._draw_qbridge(targets[0], controls[0], com_xskip, self.color)
             self._manage_layers(
                 2 * self.style.gate_pad + self._target_node_r / 3,
                 wire_list,
@@ -555,11 +559,9 @@ class MatRenderer(BaseRenderer):
             )
 
         elif gate.name == "SWAP":
-            self._draw_swap_mark(gate.targets[0], com_xskip, self.color)
-            self._draw_swap_mark(gate.targets[1], com_xskip, self.color)
-            self._draw_qbridge(
-                gate.targets[0], gate.targets[1], com_xskip, self.color
-            )
+            self._draw_swap_mark(targets[0], com_xskip, self.color)
+            self._draw_swap_mark(targets[1], com_xskip, self.color)
+            self._draw_qbridge(targets[0], targets[1], com_xskip, self.color)
             self._manage_layers(
                 2 * (self.style.gate_pad + self._min_gate_width / 3),
                 wire_list,
@@ -568,15 +570,11 @@ class MatRenderer(BaseRenderer):
             )
 
         elif gate.name == "TOFFOLI":
-            self._draw_control_node(gate.controls[0], com_xskip, self.color)
-            self._draw_control_node(gate.controls[1], com_xskip, self.color)
-            self._draw_target_node(gate.targets[0], com_xskip, self.color)
-            self._draw_qbridge(
-                gate.targets[0], gate.controls[0], com_xskip, self.color
-            )
-            self._draw_qbridge(
-                gate.targets[0], gate.controls[1], com_xskip, self.color
-            )
+            self._draw_control_node(controls[0], com_xskip, self.color)
+            self._draw_control_node(controls[1], com_xskip, self.color)
+            self._draw_target_node(targets[0], com_xskip, self.color)
+            self._draw_qbridge(targets[0], controls[0], com_xskip, self.color)
+            self._draw_qbridge(targets[0], controls[1], com_xskip, self.color)
             self._manage_layers(
                 2 * self.style.gate_pad + self._target_node_r / 3,
                 wire_list,
@@ -585,16 +583,7 @@ class MatRenderer(BaseRenderer):
             )
 
         else:
-            adj_targets = [
-                i + self._cwires
-                for i in sorted(
-                    gate.targets
-                    if gate.targets is not None
-                    else list(
-                        range(self._qwires)
-                    )  # adaptation for globalphase
-                )
-            ]
+            adj_targets = [i + self._cwires for i in sorted(targets)]
             text_width = self._get_text_width(
                 self.text,
                 self.fontsize,
@@ -637,8 +626,8 @@ class MatRenderer(BaseRenderer):
                 zorder=self._zorder["gate"],
             )
 
-            if gate.targets is not None and len(gate.targets) > 1:
-                for i in range(len(gate.targets)):
+            if len(targets) > 1:
+                for i in range(len(targets)):
                     connector_l = Circle(
                         (
                             xskip + self.style.gate_margin + self._connector_r,
@@ -664,27 +653,26 @@ class MatRenderer(BaseRenderer):
                     self._ax.add_artist(connector_r)
 
             # add qbridge if control qubits are present
-            if isinstance(gate, ControlledGate):
-                for control in gate.controls:
-                    self._draw_control_node(
-                        control, xskip + text_width / 2, self.color
-                    )
-                    self._draw_qbridge(
-                        control,
-                        gate.targets[0],
-                        xskip + text_width / 2,
-                        self.color,
-                    )
+            for control in controls:
+                self._draw_control_node(
+                    control, xskip + text_width / 2, self.color
+                )
+                self._draw_qbridge(
+                    control,
+                    targets[0],
+                    xskip + text_width / 2,
+                    self.color,
+                )
+
             # add cbridge if classical controls qubits are present
-            if gate.classical_controls is not None:
-                for c in gate.classical_controls:
-                    self._draw_cbridge(
-                        c,
-                        gate.targets[0],
-                        xskip + self.style.gate_margin + gate_width / 2,
-                        self.color,
-                        is_arrow=False,
-                    )
+            for c in cbits:
+                self._draw_cbridge(
+                    c,
+                    targets[0],
+                    xskip + self.style.gate_margin + gate_width / 2,
+                    self.color,
+                    is_arrow=False,
+                )
 
             self._ax.add_artist(gate_text)
             self._ax.add_patch(gate_patch)
@@ -775,22 +763,29 @@ class MatRenderer(BaseRenderer):
 
         self._add_wire_labels()
 
-        for gate in self._qc.gates:
-            if isinstance(gate, Measurement):
-                self.merged_wires = gate.targets.copy()
+        for instruction in self._qc.instructions:
+            gate = instruction.operation
+            qubits = instruction.qubits
+            cbits = instruction.cbits
+            style = instruction.style
+
+            if instruction.is_measurement_instruction():
+                self.merged_wires = list(qubits)
                 self.merged_wires.sort()
 
                 self._draw_measure(
-                    gate.classical_store,
-                    gate.targets[0],
+                    cbits[0],
+                    qubits[0],
                     max(
                         len(self._layer_list[i])
                         for i in range(0, self.merged_wires[-1] + 1)
                     ),
                 )
 
-            if isinstance(gate, Gate):
-                style = gate.style if gate.style is not None else {}
+            if instruction.is_gate_instruction():
+                targets = instruction.targets
+                controls = instruction.controls
+                style = style if style is not None else {}
                 self.text = gate.name
 
                 if isinstance(gate, ParametrizedGate):
@@ -813,15 +808,11 @@ class MatRenderer(BaseRenderer):
                 self.fontfamily = style.get("fontfamily", "monospace")
                 self.showarg = style.get("showarg", False)
 
-                self.merged_wires = (
-                    gate.targets.copy()
-                    if gate.targets is not None
-                    else list(range(self._qwires))
-                )
-                if isinstance(gate, ControlledGate):
-                    self.merged_wires += gate.controls.copy()
+                self.merged_wires = list(targets)
+                self.merged_wires.extend(controls)
                 self.merged_wires.sort()
-                if gate.classical_controls is not None:
+
+                if len(cbits):
                     self.merged_wires = list(
                         range(0, self.merged_wires[-1] + 1)
                     )
@@ -831,7 +822,9 @@ class MatRenderer(BaseRenderer):
                         self.merged_wires[0], self.merged_wires[-1] + 1
                     )
                 ]
-                self._draw_multiq_gate(gate, max(find_layer))
+                self._draw_multiq_gate(
+                    gate, targets, controls, cbits, max(find_layer)
+                )
 
         self._add_wire()
         self._fig_config()
@@ -867,7 +860,7 @@ class MatRenderer(BaseRenderer):
 
         # Adjusting to square dimensions in jupyter to prevent small fig size with equal-aspect cmd
         try:
-            get_ipython()
+            get_ipython()  # FIXME undefined
             max_dim = max(xlim[1] - xlim[0], ylim[1] - ylim[0])
             self.fig.set_size_inches(max_dim, max_dim, forward=True)
         except NameError:

@@ -11,7 +11,7 @@ from qutip_qip.device.utils import _pulse_interpolate
 from qutip_qip.pulse import Pulse, Drift, fill_coeff
 
 
-class Processor(object):
+class Processor:
     """
     The noisy quantum device simulator using QuTiP dynamic solvers.
     It compiles quantum circuit into a Hamiltonian model and then

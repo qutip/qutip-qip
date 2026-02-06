@@ -95,7 +95,6 @@ from .std_gates import (
 )
 from .measurement import Measurement
 
-
 GATE_CLASS_MAP: dict[str, Gate] = {
     "GLOBALPHASE": GLOBALPHASE,
     "IDLE": IDLE,

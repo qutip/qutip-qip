@@ -154,26 +154,32 @@ def qc4():
     class i(ControlledGate):
         def __init__(
             self,
-            targets,
-            controls,
-            classical_controls,
-            classical_control_value,
-            **kwargs,
+            control_value=1,
         ):
             super().__init__(
-                targets=targets,
-                controls=controls,
-                classical_controls=classical_controls,
-                classical_control_value=classical_control_value,
                 target_gate=IDLE,
-                **kwargs,
+                control_value=control_value,
             )
+
+        @property
+        def num_ctrl_qubits(self):
+            return 1
+
+        @property
+        def num_qubits(self):
+            return 2
 
         def get_compact_qobj(self):
             pass
 
     class ii(i):
-        pass
+        @property
+        def num_qubits(self):
+            return 3
+
+        @property
+        def num_ctrl_qubits(self):
+            return 2
 
     class iii(i):
         pass

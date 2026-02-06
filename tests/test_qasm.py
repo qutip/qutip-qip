@@ -37,26 +37,25 @@ def test_qasm_errors(filename, error, error_message):
     assert error_message in str(exc_info.value)
 
 
-def check_gate_defn(
-    gate,
+def check_gate_instruction_defn(
+    gate_instruction,
     gate_name,
     targets,
-    controls=None,
-    classical_controls=None,
+    controls=(),
+    classical_controls=(),
     classical_control_value=None,
 ):
-    assert gate.name == gate_name
-    assert gate.targets == targets
-    assert gate.classical_controls == classical_controls
-    assert gate.classical_control_value == classical_control_value
-    if isinstance(gate, ControlledGate):
-        assert gate.controls == controls
+    assert gate_instruction.operation.name == gate_name
+    assert gate_instruction.targets == targets
+    assert gate_instruction.cbits == classical_controls
+    assert gate_instruction.cbits_ctrl_value == classical_control_value
+    assert gate_instruction.controls == controls
 
 
-def check_measurement_defn(gate, gate_name, targets, classical_store):
-    assert gate.name == gate_name
-    assert gate.targets == targets
-    assert gate.classical_store == classical_store
+def check_measurement_defn(meas_instruction, gate_name, qubits, cbits):
+    assert meas_instruction.operation.name == gate_name
+    assert meas_instruction.qubits == qubits
+    assert meas_instruction.cbits == cbits
 
 
 @pytest.mark.filterwarnings(
@@ -69,15 +68,17 @@ def test_qasm_addcircuit():
     qc = read_qasm(filepath)
     assert qc.N == 2
     assert qc.num_cbits == 2
-    check_gate_defn(qc.gates[0], "X", [1])
-    check_gate_defn(qc.gates[1], "SNOT", [0])
-    check_gate_defn(qc.gates[2], "SNOT", [1])
-    check_gate_defn(qc.gates[3], "CNOT", [1], [0])
-    check_gate_defn(qc.gates[4], "SNOT", [0])
-    check_gate_defn(qc.gates[5], "SNOT", [1])
-    check_gate_defn(qc.gates[6], "SNOT", [0], None, [0, 1], 0)
-    check_measurement_defn(qc.gates[7], "M", [0], 0)
-    check_measurement_defn(qc.gates[8], "M", [1], 1)
+    check_gate_instruction_defn(qc.instructions[0], "X", (1,))
+    check_gate_instruction_defn(qc.instructions[1], "SNOT", (0,))
+    check_gate_instruction_defn(qc.instructions[2], "SNOT", (1,))
+    check_gate_instruction_defn(qc.instructions[3], "CNOT", (1,), (0,))
+    check_gate_instruction_defn(qc.instructions[4], "SNOT", (0,))
+    check_gate_instruction_defn(qc.instructions[5], "SNOT", (1,))
+    check_gate_instruction_defn(
+        qc.instructions[6], "SNOT", (0,), (), (0, 1), 0
+    )
+    check_measurement_defn(qc.instructions[7], "M", (0,), (0,))
+    check_measurement_defn(qc.instructions[8], "M", (1,), (1,))
 
 
 def test_custom_gates():

@@ -2,12 +2,12 @@ import warnings
 import numpy as np
 from scipy import signal
 
-from qutip_qip.compiler import Instruction, Scheduler
+from qutip_qip.compiler import PulseInstruction, Scheduler
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations import ParametrizedGate
 
 
-class GateCompiler(object):
+class GateCompiler:
     """
     Base class of compilers, including the :meth:`GateCompiler.compile` method.
     It compiles a :class:`.QubitCircuit` into
@@ -74,23 +74,25 @@ class GateCompiler(object):
                 The parameter pulse_dict has no effect now,
                 you can simply remove it.
                 """,
-                DeprecationWarning,
+                UserWarning,
             )
 
-    def globalphase_compiler(self, gate, args):
+    def globalphase_compiler(self, phase):
         """
         Compiler for the GLOBALPHASE gate
         """
-        pass
+        self.global_phase += phase
+        self.global_phase %= 2 * np.pi
 
-    def idle_compiler(self, gate, args):
+    def idle_compiler(self, circuit_instruction, args):
         """
-        Compiler for the GLOBALPHASE gate
+        Compiler for the IDLE gate
         """
         idle_time = None
+        gate = circuit_instruction.operation
         if isinstance(gate, ParametrizedGate):
             idle_time = gate.arg_value
-        return [Instruction(gate, idle_time, [])]
+        return [PulseInstruction(circuit_instruction, idle_time, [])]
 
     def compile(self, circuit, schedule_mode=None, args=None):
         """
@@ -126,21 +128,25 @@ class GateCompiler(object):
             one Hamiltonian.
             if ``return_array`` is false
         """
+        instruction_list = []
+
         if isinstance(circuit, QubitCircuit):
             instructions = circuit.instructions
+            self.globalphase_compiler(circuit.global_phase)
         else:
             instructions = circuit
         if args is not None:
             self.args.update(args)
-        instruction_list = []
 
         # compile gates
-        for op in instructions:
-            gate = op[0]
+        for circuit_instruction in instructions:
+            gate = circuit_instruction.operation
             if gate.name not in self.gate_compiler:
-                raise ValueError("Unsupported gate %s" % gate.name)
+                raise ValueError(f"Unsupported gate {gate.name}")
 
-            instruction = self.gate_compiler[gate.name](gate, self.args)
+            instruction = self.gate_compiler[gate.name](
+                circuit_instruction, self.args
+            )
             if instruction is None:
                 continue  # neglecting global phase gate
             instruction_list += instruction
