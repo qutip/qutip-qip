@@ -141,5 +141,5 @@ def _cphase_to_cnot(targets, controls, arg_value, qc: QubitCircuit):
     qc.add_gate(CNOT, targets=targets, controls=controls)
     qc.add_gate(RZ, targets=controls, arg_value=arg_value / 2)
     gate = decomposed_gates[7]
-    gate.arg_value += arg_value / 4
+    gate.arg_value[0] += arg_value / 4
     qc.add_gate(gate, targets=targets)

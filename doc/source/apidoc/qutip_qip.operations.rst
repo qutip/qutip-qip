@@ -53,39 +53,6 @@ qutip\_qip.operations
 
    .. autosummary::
 
-      berkeley
-      cnot
       controlled_gate
-      cphase
-      cs_gate
-      csign
-      ct_gate
-      cy_gate
-      cz_gate
       expand_operator
-      fredkin
       gate_sequence_product
-      globalphase
-      hadamard_transform
-      iswap
-      molmer_sorensen
-      phasegate
-      qasmu_gate
-      qrot
-      qubit_clifford_group
-      rotation
-      rx
-      ry
-      rz
-      s_gate
-      snot
-      sqrtiswap
-      sqrtnot
-      sqrtswap
-      swap
-      swapalpha
-      t_gate
-      toffoli
-      x_gate
-      y_gate
-      z_gate

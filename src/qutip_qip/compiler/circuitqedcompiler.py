@@ -129,7 +129,7 @@ class SCQubitsCompiler(GateCompiler):
             args["shape"],
             args["num_samples"],
             maximum=self.params[param_label][target],
-            area=circuit_instruction.operation.arg_value / 2.0 / np.pi,
+            area=circuit_instruction.operation.arg_value[0] / 2.0 / np.pi,
         )
         f = 2 * np.pi * self.params["wq"][target]  # FIXME unused variable
         if args["DRAG"]:

@@ -160,15 +160,15 @@ class TestQubitCircuit:
         # Test adding 1 qubit gate on [start, end] qubits
         assert qc.instructions[5].operation.name == "RY"
         assert qc.instructions[5].targets == (4,)
-        assert qc.instructions[5].operation.arg_value == 1.570796
+        assert qc.instructions[5].operation.arg_value[0] == 1.570796
         assert qc.instructions[6].operation.name == "RY"
         assert qc.instructions[6].targets == (5,)
-        assert qc.instructions[6].operation.arg_value == 1.570796
+        assert qc.instructions[6].operation.arg_value[0] == 1.570796
 
         # Test adding 1 qubit gate on qubits [3]
         assert qc.instructions[7].operation.name == "RX"
         assert qc.instructions[7].targets == (3,)
-        assert qc.instructions[7].operation.arg_value == -1.570796
+        assert qc.instructions[7].operation.arg_value[0] == -1.570796
 
         class DUMMY1(Gate):
             num_qubits = 1

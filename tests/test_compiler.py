@@ -127,7 +127,7 @@ class MyCompiler(GateCompiler):  # compiler class
             1000,
             maximum=args["params"]["sx"][targets[0]],
             # The operator is Pauli Z/X/Y, without 1/2.
-            area=circuit_instruction.operation.arg_value / 2.0 / np.pi * 0.5,
+            area=circuit_instruction.operation.arg_value[0] / 2.0 / np.pi * 0.5,
         )
         pulse_info = [("sx" + str(targets[0]), coeff)]
         return [PulseInstruction(circuit_instruction, tlist, pulse_info)]
@@ -169,7 +169,7 @@ def rx_compiler_without_pulse_dict(circuit_instruction, args):
     give the index of control pulses in the Processor.
     """
     targets = circuit_instruction.targets
-    arg_value = circuit_instruction.operation.arg_value
+    arg_value = circuit_instruction.operation.arg_value[0]
     g = args["params"]["sx"][targets[0]]
     coeff = np.sign(arg_value) * g
     tlist = abs(arg_value) / (2 * g) / np.pi / 2

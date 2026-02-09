@@ -89,7 +89,7 @@ class PHASE(ParametrizedSingleQubitGate):
     latex_str = r"PHASE"
 
     def get_qobj(self):
-        phi = self.arg_value
+        phi = self.arg_value[0]
         return Qobj(
             [
                 [1, 0],
@@ -115,7 +115,7 @@ class RX(ParametrizedSingleQubitGate):
     latex_str = r"R_x"
 
     def get_qobj(self):
-        phi = self.arg_value
+        phi = self.arg_value[0]
         return Qobj(
             [
                 [np.cos(phi / 2), -1j * np.sin(phi / 2)],
@@ -142,7 +142,7 @@ class RY(ParametrizedSingleQubitGate):
     latex_str = r"R_y"
 
     def get_qobj(self):
-        phi = self.arg_value
+        phi = self.arg_value[0]
         return Qobj(
             [
                 [np.cos(phi / 2), -np.sin(phi / 2)],
@@ -168,7 +168,7 @@ class RZ(ParametrizedSingleQubitGate):
     latex_str = r"R_z"
 
     def get_qobj(self):
-        phi = self.arg_value
+        phi = self.arg_value[0]
         return Qobj([[np.exp(-1j * phi / 2), 0], [0, np.exp(1j * phi / 2)]])
 
 
@@ -539,7 +539,7 @@ class SWAPALPHA(ParametrizedTwoQubitGate):
     latex_str = r"{\rm SWAPALPHA}"
 
     def get_qobj(self):
-        alpha = self.arg_value
+        alpha = self.arg_value[0]
         return Qobj(
             [
                 [1, 0, 0, 0],
@@ -639,7 +639,7 @@ class RZX(ParametrizedTwoQubitGate):
     latex_str = r"{\rm RZX}"
 
     def get_qobj(self):
-        theta = self.arg_value
+        theta = self.arg_value[0]
         return Qobj(
             np.array(
                 [
@@ -900,7 +900,7 @@ class CPHASE(_ControlledParamTwoQubitGate):
                 [1, 0, 0, 0],
                 [0, 1, 0, 0],
                 [0, 0, 1, 0],
-                [0, 0, 0, np.exp(1j * self.arg_value)],
+                [0, 0, 0, np.exp(1j * self.arg_value[0])],
             ],
             dims=[[2, 2], [2, 2]],
         )
@@ -1005,7 +1005,7 @@ class GLOBALPHASE(ParametrizedGate):
             raise ValueError(f"Requires {self.num_param} parameters, got {len(self.arg_value)}")
 
     def get_qobj(self):
-        return np.exp(1j * self.arg_value)
+        return np.exp(1j * self.arg_value[0])
 
 
 class TOFFOLI(ControlledGate):

@@ -28,6 +28,7 @@ class GateReadOnlyMeta(ABCMeta):
                 raise AttributeError(f"{attribute} is read-only!")
             super().__setattr__(name, value)
 
+
 class Gate(ABC, metaclass=GateReadOnlyMeta):
     r"""
     Base class for a quantum gate,
@@ -216,8 +217,8 @@ class ParametrizedGate(Gate):
         arg_label: str = None,
     ):
         super().__init__()
-        # if type(arg_value) is float:
-        #     arg_value = [arg_value]
+        if type(arg_value) is float or type(arg_value) is np.float64:
+            arg_value = [arg_value]
 
         # if len(arg_value) != self.num_param:
         #     raise ValueError(f"Requires {self.num_param} parameters, got {len(arg_value)}")
@@ -256,6 +257,9 @@ class ControlledParamGate(ParametrizedGate, ControlledGate):
                 raise ValueError(
                     "target_gate must be provided either as argument or class attribute."
                 )
+
+        if type(arg_value) is float:
+            arg_value = [arg_value]
 
         ControlledGate.__init__(
             self,

@@ -34,6 +34,11 @@ def x_gate(N=None, target=0):
         a single-qubit rotation through pi radians around the x-axis.
 
     """
+    warnings.warn(
+        "x_gate has been deprecated and replace by X.get_qobj()." \
+        " x_gate be removed in future version",
+        UserWarning
+    )
     if N is not None:
         _deprecation_warnings_gate_expansion()
         return expand_operator(x_gate(), dims=[2] * N, targets=target)
@@ -1197,9 +1202,9 @@ def expand_operator(
 
     Examples
     --------
-    >>> from qutip_qip.operations import expand_operator, x_gate, cnot
+    >>> from qutip_qip.operations import expand_operator, X, CNOT
     >>> import qutip
-    >>> expand_operator(x_gate(), dims=[2,3], targets=[0]) # doctest: +NORMALIZE_WHITESPACE
+    >>> expand_operator(X.get_qobj(), dims=[2,3], targets=[0]) # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 3], [2, 3]], shape=(6, 6), type='oper', dtype=CSR, isherm=True
     Qobj data =
     [[0. 0. 0. 1. 0. 0.]
@@ -1208,7 +1213,7 @@ def expand_operator(
      [1. 0. 0. 0. 0. 0.]
      [0. 1. 0. 0. 0. 0.]
      [0. 0. 1. 0. 0. 0.]]
-    >>> expand_operator(cnot(), dims=[2,2,2], targets=[1, 2]) # doctest: +NORMALIZE_WHITESPACE
+    >>> expand_operator(CNOT.get_qobj(), dims=[2,2,2], targets=[1, 2]) # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2, 2], [2, 2, 2]], shape=(8, 8), type='oper', dtype=CSR, isherm=True
     Qobj data =
     [[1. 0. 0. 0. 0. 0. 0. 0.]
@@ -1219,7 +1224,7 @@ def expand_operator(
      [0. 0. 0. 0. 0. 1. 0. 0.]
      [0. 0. 0. 0. 0. 0. 0. 1.]
      [0. 0. 0. 0. 0. 0. 1. 0.]]
-    >>> expand_operator(cnot(), dims=[2, 2, 2], targets=[2, 0]) # doctest: +NORMALIZE_WHITESPACE
+    >>> expand_operator(CNOT.get_qobj(), dims=[2, 2, 2], targets=[2, 0]) # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2, 2], [2, 2, 2]], shape=(8, 8), type='oper', dtype=CSR, isherm=True
     Qobj data =
     [[1. 0. 0. 0. 0. 0. 0. 0.]

@@ -259,7 +259,7 @@ class QubitCircuit:
             raise ValueError("argument index is no longer supported")
 
         if isinstance(gate, GLOBALPHASE):
-            self.add_global_phase(gate.arg_value)
+            self.add_global_phase(gate.arg_value[0])
             return
 
         # Handling case for int input

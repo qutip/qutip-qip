@@ -7,12 +7,14 @@ import qutip
 from qutip_qip.operations import gates
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations import (
+    Gate,
     X,
     Y,
     Z,
     RX,
     RY,
     RZ,
+    PHASE,
     H,
     SQRTNOT,
     S,
@@ -228,26 +230,29 @@ class TestGateExpansion:
     @pytest.mark.parametrize(
         ["gate", "n_angles"],
         [
-            pytest.param(gates.rx, 1, id="Rx"),
-            pytest.param(gates.ry, 1, id="Ry"),
-            pytest.param(gates.rz, 1, id="Rz"),
-            pytest.param(gates.x_gate, 0, id="X"),
-            pytest.param(gates.y_gate, 0, id="Y"),
-            pytest.param(gates.z_gate, 0, id="Z"),
-            pytest.param(gates.s_gate, 0, id="S"),
-            pytest.param(gates.t_gate, 0, id="T"),
-            pytest.param(gates.phasegate, 1, id="phase"),
-            pytest.param(gates.qrot, 2, id="Rabi rotation"),
+            pytest.param(RX, 1, id="Rx"),
+            pytest.param(RY, 1, id="Ry"),
+            pytest.param(RZ, 1, id="Rz"),
+            pytest.param(X, 0, id="X"),
+            pytest.param(Y, 0, id="Y"),
+            pytest.param(Z, 0, id="Z"),
+            pytest.param(S, 0, id="S"),
+            pytest.param(T, 0, id="T"),
+            pytest.param(PHASE, 1, id="phase"),
+            pytest.param(R, 2, id="Rabi rotation"),
         ],
     )
-    def test_single_qubit_rotation(self, gate, n_angles):
+    def test_single_qubit_rotation(self, gate: Gate, n_angles: int):
         base = qutip.rand_ket(2)
-        angles = np.random.rand(n_angles) * 2 * np.pi
-        applied = gate(*angles) * base
+        if n_angles > 0:
+            gate = gate(2 * np.pi * np.random.rand(n_angles))
+
+        applied = gate.get_qobj() * base
         random = [qutip.rand_ket(2) for _ in [None] * (self.n_qubits - 1)]
+
         for target in range(self.n_qubits):
             start = qutip.tensor(random[:target] + [base] + random[target:])
-            test = gate(*angles, self.n_qubits, target) * start
+            test = expand_operator(gate.get_qobj(), self.n_qubits, target) * start
             expected = qutip.tensor(
                 random[:target] + [applied] + random[target:]
             )
