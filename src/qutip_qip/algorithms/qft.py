@@ -109,24 +109,22 @@ def qft_gate_sequence(N=1, swapping=True, to_cnot=False):
 
     qc = QubitCircuit(N)
     if N == 1:
-        qc.add_gate("SNOT", targets=[0])
+        qc.add_gate(H, targets=[0])
     else:
         for i in range(N):
             for j in range(i):
                 if not to_cnot:
                     qc.add_gate(
-                        "CPHASE",
+                        CPHASE(np.pi / (2 ** (i - j)), arg_label=r"{\pi/2^{%d}}" % (i - j)),
                         targets=[j],
                         controls=[i],
-                        arg_label=r"{\pi/2^{%d}}" % (i - j),
-                        arg_value=np.pi / (2 ** (i - j)),
                     )
                 else:
                     _cphase_to_cnot([j], [i], np.pi / (2 ** (i - j)), qc)
-            qc.add_gate("SNOT", targets=[i])
+            qc.add_gate(H, targets=[i])
         if swapping:
             for i in range(N // 2):
-                qc.add_gate("SWAP", targets=[N - i - 1, i])
+                qc.add_gate(SWAP, targets=[N - i - 1, i])
     return qc
 
 

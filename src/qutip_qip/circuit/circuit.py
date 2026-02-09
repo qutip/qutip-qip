@@ -13,6 +13,9 @@ from qutip_qip.operations import (
     ParametricGate,
     ControlledParamGate,
     GLOBALPHASE,
+    RX,
+    RY,
+    RZ,
     Measurement,
     expand_operator,
     GATE_CLASS_MAP,
@@ -663,62 +666,44 @@ class QubitCircuit:
 
             if gate.name == "RX" and "RX" not in basis_1q:
                 qc_temp.add_gate(
-                    "RY",
+                    RY(arg_value=-half_pi, arg_label=r"-\pi/2"),
                     targets=targets,
-                    arg_value=-half_pi,
-                    arg_label=r"-\pi/2",
                 )
                 qc_temp.add_gate(
-                    "RZ",
+                    RZ(arg_value=gate.arg_value, arg_label=gate.arg_label),
                     targets=targets,
-                    arg_value=gate.arg_value,
-                    arg_label=gate.arg_label,
                 )
                 qc_temp.add_gate(
-                    "RY",
+                    RY(arg_value=-half_pi, arg_label=r"\pi/2"),
                     targets=targets,
-                    arg_value=-half_pi,
-                    arg_label=r"\pi/2",
                 )
 
             elif gate.name == "RY" and "RY" not in basis_1q:
                 qc_temp.add_gate(
-                    "RZ",
+                    RZ(arg_value=-half_pi, arg_label=r"-\pi/2"),
                     targets=targets,
-                    arg_value=-half_pi,
-                    arg_label=r"-\pi/2",
                 )
                 qc_temp.add_gate(
-                    "RX",
+                    RX(arg_value=gate.arg_value, arg_label=gate.arg_label),
                     targets=targets,
-                    arg_value=gate.arg_value,
-                    arg_label=gate.arg_label,
                 )
                 qc_temp.add_gate(
-                    "RZ",
+                    RZ(arg_value=half_pi, arg_label=r"\pi/2"),
                     targets=targets,
-                    arg_value=half_pi,
-                    arg_label=r"\pi/2",
                 )
 
             elif gate.name == "RZ" and "RZ" not in basis_1q:
                 qc_temp.add_gate(
-                    "RX",
+                    RX(arg_value=-half_pi, arg_label=r"-\pi/2"),
                     targets=targets,
-                    arg_value=-half_pi,
-                    arg_label=r"-\pi/2",
                 )
                 qc_temp.add_gate(
-                    "RY",
+                    RY(arg_value=gate.arg_value, arg_label=gate.arg_label),
                     targets=targets,
-                    arg_value=gate.arg_value,
-                    arg_label=gate.arg_label,
                 )
                 qc_temp.add_gate(
-                    "RX",
+                    RX(arg_value=half_pi, arg_label=r"\pi/2"),
                     targets=targets,
-                    arg_value=half_pi,
-                    arg_label=r"\pi/2",
                 )
             else:
                 qc_temp.add_gate(

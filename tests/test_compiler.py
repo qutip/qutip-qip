@@ -15,7 +15,7 @@ from qutip_qip.compiler import (
     GateCompiler,
 )
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import ParametricGate
+from qutip_qip.operations import ParametricGate, X, RX
 from qutip import basis, fidelity
 
 
@@ -26,8 +26,8 @@ def test_compiling_with_scheduler():
     The numerical results are tested in test_device.py
     """
     circuit = QubitCircuit(2)
-    circuit.add_gate("X", targets=0)
-    circuit.add_gate("X", targets=1)
+    circuit.add_gate(X, targets=0)
+    circuit.add_gate(X, targets=1)
     processor = DispersiveCavityQED(2)
 
     processor.load_circuit(circuit, schedule_mode=None)
@@ -157,9 +157,9 @@ schedule_mode = [
 def test_compiler_with_continous_pulse(spline_kind, schedule_mode):
     num_qubits = 2
     circuit = QubitCircuit(num_qubits)
-    circuit.add_gate("X", targets=0)
-    circuit.add_gate("X", targets=1)
-    circuit.add_gate("X", targets=0)
+    circuit.add_gate(X, targets=0)
+    circuit.add_gate(X, targets=1)
+    circuit.add_gate(X, targets=0)
 
     processor = CircularSpinChain(num_qubits)
     processor.spline_kind = spline_kind
@@ -191,8 +191,8 @@ def test_compiler_without_pulse_dict():
     """
     num_qubits = 2
     circuit = QubitCircuit(num_qubits)
-    circuit.add_gate("X", targets=[0])
-    circuit.add_gate("X", targets=[1])
+    circuit.add_gate(X, targets=[0])
+    circuit.add_gate(X, targets=[1])
     processor = CircularSpinChain(num_qubits)
     compiler = SpinChainCompiler(
         num_qubits, params=processor.params, setup="circular"
@@ -213,7 +213,7 @@ def test_compiler_result_format():
     """
     num_qubits = 1
     circuit = QubitCircuit(num_qubits)
-    circuit.add_gate("RX", targets=[0], arg_value=np.pi / 2)
+    circuit.add_gate(RX(np.pi / 2), targets=[0])
     processor = LinearSpinChain(num_qubits)
     compiler = SpinChainCompiler(
         num_qubits, params=processor.params, setup="circular"

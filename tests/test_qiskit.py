@@ -14,7 +14,7 @@ from qutip_qip.device import (
     CircularSpinChain,
     DispersiveCavityQED,
 )
-from qutip_qip.operations import ControlledGate, ParametricGate
+from qutip_qip.operations import ControlledGate, ParametricGate, X, CNOT, RX
 
 # will skip tests in this entire file
 # if qiskit is not installed
@@ -131,7 +131,7 @@ class TestConverter:
         qiskit_circuit.x(0)
         result_circuit = convert_qiskit_circuit_to_qutip(qiskit_circuit)
         required_circuit = QubitCircuit(1)
-        required_circuit.add_gate("X", targets=[0])
+        required_circuit.add_gate(X, targets=[0])
 
         assert self._compare_circuit(result_circuit, required_circuit)
 
@@ -145,7 +145,7 @@ class TestConverter:
         result_circuit = convert_qiskit_circuit_to_qutip(qiskit_circuit)
 
         required_circuit = QubitCircuit(2)
-        required_circuit.add_gate("CNOT", targets=[0], controls=[1])
+        required_circuit.add_gate(CNOT, targets=[0], controls=[1])
 
         assert self._compare_circuit(result_circuit, required_circuit)
 
@@ -158,7 +158,7 @@ class TestConverter:
         qiskit_circuit.rx(np.pi / 3, 0)
         result_circuit = convert_qiskit_circuit_to_qutip(qiskit_circuit)
         required_circuit = QubitCircuit(1)
-        required_circuit.add_gate("RX", targets=[0], arg_value=np.pi / 3)
+        required_circuit.add_gate(RX(np.pi / 3), targets=[0])
 
         assert self._compare_circuit(result_circuit, required_circuit)
 

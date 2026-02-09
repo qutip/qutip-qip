@@ -1,7 +1,8 @@
 import pytest
 import qutip
-from qutip_qip.circuit import QubitCircuit
 from qutip_qip.algorithms import PhaseFlipCode
+from qutip_qip.circuit import QubitCircuit
+from qutip_qip.operations import Z
 
 
 @pytest.fixture
@@ -23,7 +24,7 @@ def test_encode_circuit_structure(code, data_qubits):
     qc = QubitCircuit(max(data_qubits) + 1)
     code.encode_circuit(qc, data_qubits)
     gate_names = [ins.operation.name for ins in qc.instructions]
-    assert gate_names.count("SNOT") == 3
+    assert gate_names.count("H") == 3
     assert gate_names.count("CNOT") == 2
     assert qc.instructions[3].controls == (0,)
     assert qc.instructions[3].targets == (1,)
@@ -35,7 +36,7 @@ def test_decode_circuit_structure(code, data_qubits):
     qc = code.decode_circuit(data_qubits)
     gate_names = [op.operation.name for op in qc.instructions]
     assert gate_names.count("CNOT") == 2
-    assert gate_names.count("SNOT") == 3
+    assert gate_names.count("H") == 3
     assert qc.instructions[0].controls == (0,)
     assert qc.instructions[0].targets == (2,)
     assert qc.instructions[1].controls == (0,)
@@ -60,7 +61,7 @@ def test_phaseflip_correction_simulation(code, data_qubits, syndrome_qubits):
 
     # Apply Z (phase-flip) error to qubit 1
     qc_error = QubitCircuit(N=5)
-    qc_error.add_gate("Z", targets=[1])
+    qc_error.add_gate(Z, targets=[1])
     state = qc_error.run(state)
 
     # Syndrome measurement and Z correction

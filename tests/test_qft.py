@@ -30,7 +30,7 @@ class TestQFT:
             assert_equal(len(circuit.instructions), totsize)
 
             snots = sum(
-                g.operation.name == "SNOT" for g in circuit.instructions
+                g.operation.name == "H" for g in circuit.instructions
             )
             assert_equal(snots, N)
 

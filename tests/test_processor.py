@@ -17,11 +17,11 @@ from qutip import (
     rand_dm,
     fidelity,
 )
-from qutip_qip.operations import hadamard_transform
+from qutip_qip.circuit import QubitCircuit
+from qutip_qip.operations import hadamard_transform, ISWAP, X
 from qutip_qip.noise import DecoherenceNoise, RandomNoise, ControlAmpNoise
 from qutip_qip.qubits import qubit_states
 from qutip_qip.pulse import Pulse
-from qutip_qip.circuit import QubitCircuit
 
 
 class TestCircuitProcessor:
@@ -432,9 +432,9 @@ class TestCircuitProcessor:
         # If no max_step are defined,
         # the solver will choose a step size too large
         # such that the X gate will be skipped.
-        qc.add_gate("ISWAP", targets=[0, 1])
-        qc.add_gate("ISWAP", targets=[0, 1])
-        qc.add_gate("X", targets=[0])
+        qc.add_gate(ISWAP, targets=[0, 1])
+        qc.add_gate(ISWAP, targets=[0, 1])
+        qc.add_gate(X, targets=[0])
         processor = LinearSpinChain(num_qubits)
         processor.load_circuit(qc)
 

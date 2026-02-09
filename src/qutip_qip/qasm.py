@@ -538,7 +538,7 @@ class QasmProcessor:
             "x": "X",
             "y": "Y",
             "z": "Z",
-            "h": "SNOT",
+            "h": "H",
             "t": "T",
             "s": "S",
             "sdg": "sdg",
@@ -931,6 +931,7 @@ _GATE_NAME_TO_QASM_NAME = {
     "RY": "ry",
     "RZ": "rz",
     "SNOT": "h",
+    "H": "h",
     "X": "x",
     "Y": "y",
     "Z": "z",
@@ -1019,6 +1020,8 @@ class QasmOutput:
             gate_def = "gate crx(theta) a,b { cu3(theta,-pi/2,pi/2) a,b; }"
         elif gate.name == "SQRTNOT":
             gate_def = "gate sqrtnot a {h a; u1(-pi/2) a; h a; }"
+        elif gate.name == "CZ":
+            gate_def = "gate cz a,b { cu1(pi) a,b; }"
         elif gate.name == "CS":
             gate_def = "gate cs a,b { cu1(pi/2) a,b; }"
         elif gate.name == "CT":
