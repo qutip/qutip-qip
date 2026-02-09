@@ -931,9 +931,9 @@ class CRX(_ControlledParamTwoQubitGate):
     >>> from qutip_qip.operations import CRX
     """
 
-    latex_str = r"{\rm CRX}"
     target_gate = RX
     num_params: int = 1
+    latex_str = r"{\rm CRX}"
 
 
 class CRY(_ControlledParamTwoQubitGate):
@@ -975,9 +975,9 @@ class CRZ(_ControlledParamTwoQubitGate):
      [0.+0.j 0.+0.j 0.+0.j 0.+1.j]]
     """
 
-    latex_str = r"{\rm CRZ}"
-    target_gate = RZ
     num_params: int = 1
+    target_gate = RZ
+    latex_str = r"{\rm CRZ}"
 
 
 class CQASMU(_ControlledParamTwoQubitGate):
@@ -989,9 +989,9 @@ class CQASMU(_ControlledParamTwoQubitGate):
     >>> from qutip_qip.operations import CQASMU
     """
 
-    latex_str = r"{\rm CQASMU}"
+    num_params: int = 3
     target_gate = QASMU
-    num_params: int = 1
+    latex_str = r"{\rm CQASMU}"
 
 
 ########################### Special Gates #########################
@@ -1006,10 +1006,9 @@ class GLOBALPHASE(ParametricGate):
     >>> from qutip_qip.operations import GLOBALPHASE
     """
 
-    latex_str = r"{\rm GLOBALPHASE}"
     num_qubits: int = 0
-    num_ctrl_qubits: int = -1
     num_params: int = 1
+    latex_str = r"{\rm GLOBALPHASE}"
 
     def __init__(self, arg_value: float = 0.0):
         super().__init__(arg_value=arg_value)

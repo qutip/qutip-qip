@@ -22,7 +22,7 @@ from qutip_qip.operations import controlled_gate
 # will work.
 # But X.num_qubits = 2 will throw an error.
 class _ReadOnlyGateMetaClass(ABCMeta):
-    _read_only = ["num_qubits", "num_ctrl_qubits", "num_params"]
+    _read_only = ["num_qubits", "num_ctrl_qubits", "num_params", "target_gate"]
 
     def __setattr__(cls, name, value):
         for attribute in cls._read_only:
@@ -67,17 +67,20 @@ class Gate(ABC, metaclass=_ReadOnlyGateMetaClass):
         if inspect.isabstract(cls): # Skip the below check for an abstract class
             return
 
-        # If name attribute is not set in subclass, set it to the name of the subclass
-        # e.g. class H(Gate):
-        #         pass
-        #
-        #      print(H.name) -> 'H'
-        #
-        # e.g. class H(Gate):
-        #         name = "Hadamard"
-        #         pass
-        #
-        #      print(H.name) -> 'Hadamard'
+        """
+        If name attribute is not defined in subclass, set it to the name of the subclass
+        e.g. class H(Gate):
+                pass
+        
+             print(H.name) -> 'H'
+        
+        e.g. class H(Gate):
+                name = "Hadamard"
+                pass
+        
+             print(H.name) -> 'Hadamard'
+        """
+
         if "name" not in cls.__dict__:
             cls.name = cls.__name__
 
@@ -85,6 +88,7 @@ class Gate(ABC, metaclass=_ReadOnlyGateMetaClass):
         if "latex_str" not in cls.__dict__:
             cls.latex_str = cls.__name__
 
+        # Assert num_qubits is a non-negative integer
         num_qubits = getattr(cls, "num_qubits", None)
         if (type(num_qubits) is not int) or (num_qubits < 0):
             raise TypeError(
@@ -95,6 +99,20 @@ class Gate(ABC, metaclass=_ReadOnlyGateMetaClass):
     @property
     @abstractmethod
     def num_qubits(self) -> Qobj:
+        pass
+
+    @abstractmethod
+    def get_qobj(self, qubits, dims=None):
+        """
+        Get the :class:`qutip.Qobj` representation of the gate operator.
+        The operator is expanded to the full Hilbert space according to
+        the controls and targets qubits defined for the gate.
+
+        Returns
+        -------
+        qobj : :obj:`qutip.Qobj`
+            The compact gate operator as a unitary matrix.
+        """
         pass
 
     def get_compact_qobj(self) -> Qobj:
@@ -114,43 +132,29 @@ class Gate(ABC, metaclass=_ReadOnlyGateMetaClass):
         )
         self.get_qobj()
 
-    @abstractmethod
-    def get_qobj(self, qubits, dims=None):
-        """
-        Get the :class:`qutip.Qobj` representation of the gate operator.
-        The operator is expanded to the full Hilbert space according to
-        the controls and targets qubits defined for the gate.
-
-        Returns
-        -------
-        qobj : :obj:`qutip.Qobj`
-            The compact gate operator as a unitary matrix.
-        """
-        raise NotImplementedError
-
     def __str__(self):
-        return f"Gate({self.name}"
+        return f"Gate({self.name})"
 
     def __repr__(self):
-        return str(self)
+        return f"Gate({self.name}, num_qubits={self.num_qubits}, qobj={self.get_qobj()})"
 
 
 # Make this an abstract class
 class ControlledGate(Gate):
-    num_qubits = 1
-
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         if inspect.isabstract(cls):
             return
 
+        # Assert num_ctrl_qubits is a positive integer
         num_ctrl_qubits = getattr(cls, "num_ctrl_qubits", None)
-        if (type(num_ctrl_qubits) is not int) or (num_ctrl_qubits < 0):
+        if (type(num_ctrl_qubits) is not int) or (num_ctrl_qubits < 1):
             raise TypeError(
                 f"Class '{cls.__name__}' attribute 'num_ctrl_qubits' must be a postive integer, "
                 f"got {type(num_ctrl_qubits)} with value {num_ctrl_qubits}."
             )
 
+        # Assert num_qubits > num_ctrl_qubits
         if cls.num_ctrl_qubits >= cls.num_qubits:
             raise ValueError(f"{cls.__name__}:'num_ctrl_qubits' be strictly less than the 'num_qubits'")
 
@@ -219,8 +223,9 @@ class ParametricGate(Gate):
         if inspect.isabstract(cls):
             return
 
+        # Assert num_params is a positive integer
         num_params = getattr(cls, "num_params", None)
-        if (type(num_params) is not int) or (num_params < 0):
+        if (type(num_params) is not int) or (num_params < 1):
             raise TypeError(
                 f"Class '{cls.__name__}' attribute 'num_params' must be a postive integer, "
                 f"got {type(num_params)} with value {num_params}."
@@ -260,23 +265,19 @@ class ControlledParamGate(ParametricGate, ControlledGate, ABC):
         self,
         arg_value,
         arg_label=None,
-        target_gate=None,
         control_value=1,
     ):
-        if hasattr(self, "target_gate"):
-            target_gate = self.target_gate
-
         if type(arg_value) is float:
             arg_value = [arg_value]
 
-        ControlledGate.__init__(
-            self,
-            target_gate=target_gate(arg_value=arg_value, arg_label=arg_label),
-            control_value=control_value,
+        ControlledGate.__init__(self, control_value=control_value)
+        ParametricGate.__init__(self, arg_value=arg_value, arg_label=arg_label)
+
+    def get_qobj(self):
+        return controlled_gate(
+            U=self.target_gate(self.arg_value).get_qobj(),
+            control_value=self.control_value,
         )
-        # These can be commented out I believe
-        self.arg_label = arg_label
-        self.arg_value = arg_value
 
     def __str__(self):
         return f"""
