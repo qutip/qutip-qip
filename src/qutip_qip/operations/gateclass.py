@@ -3,7 +3,7 @@ import warnings
 
 import numpy as np
 from qutip import Qobj
-from qutip_qip.operations import controlled_gate, expand_operator
+from qutip_qip.operations import controlled_gate
 
 """
 .. testsetup::
@@ -67,6 +67,10 @@ class Gate(ABC):
 
     @property
     def num_ctrl_qubits(self) -> int:
+        return 0
+
+    @property
+    def num_param(self) -> int:
         return 0
 
     def get_compact_qobj(self) -> Qobj:
@@ -199,8 +203,18 @@ class ParametrizedGate(Gate):
         arg_label: str = None,
     ):
         super().__init__()
+        if self.num_param < 1:
+            raise ValueError(f"For a Parametric Gate no. of parameters but be atleast 1, got {self.num_param}")
+
+        if len(arg_value) != self.num_param:
+            raise ValueError(f"Requires {self.num_param} parameters, got {len(arg_value)}")
+
         self.arg_label = arg_label
         self.arg_value = arg_value
+
+    @abstractmethod
+    def validate_params(self):
+        raise NotImplementedError
 
     def __str__(self):
         return f"""
