@@ -865,6 +865,9 @@ class _ControlledParamTwoQubitGate(ControlledParamGate):
     num_qubits: int = 2
     num_ctrl_qubits: int = 1
 
+    def validate_params(self):
+        pass
+
 
 class CPHASE(_ControlledParamTwoQubitGate):
     r"""

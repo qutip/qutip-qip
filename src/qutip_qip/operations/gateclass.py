@@ -1,5 +1,6 @@
 from abc import ABC, ABCMeta, abstractmethod
 import warnings
+import inspect
 
 import numpy as np
 from qutip import Qobj
@@ -68,8 +69,11 @@ class Gate(ABC, metaclass=GateReadOnlyMeta):
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
+        if inspect.isabstract(cls): # Skip the num_qubits check for an abstract class
+            return
+
         num_qubits = getattr(cls, "num_qubits", None)
-        if num_qubits is None or type(num_qubits) is not int:
+        if type(num_qubits) is not int:
             raise TypeError(
                 f"Class '{cls.__name__}' must define 'num_qubits' as an integer class attribute."
             )
@@ -146,14 +150,26 @@ class Gate(ABC, metaclass=GateReadOnlyMeta):
 
 
 # Make this an abstract class
-class ControlledGate(Gate):
-    num_qubits = 2
+class ControlledGate(ABC, Gate):
+    num_qubits = 1
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        if inspect.isabstract(cls): # Skip the num_ctrl_qubits check for an abstract class
+            return
 
-    def __init__(
-        self,
-        target_gate=None,
-        control_value=None,
-    ):
+        num_ctrl_qubits = getattr(cls, "num_ctrl_qubits", None)
+        if type(num_ctrl_qubits) is not int:
+            raise TypeError(
+                f"Class '{cls.__name__}' must define 'num_ctrl_qubits' as an integer class attribute.\
+                 got {num_ctrl_qubits}."
+            )
+
+        if num_ctrl_qubits < 1:
+            raise TypeError(
+                f"Class '{cls.__name__}' class attribute 'num_ctrl_qubits' must be atleast 1."
+            )
+
+    def __init__(self, target_gate=None, control_value=None):
         if target_gate is None:
             if self._target_gate_class is not None:
                 target_gate = self._target_gate_class
@@ -208,9 +224,7 @@ class ControlledGate(Gate):
         )
 
 
-class ParametrizedGate(Gate):
-    num_qubits = 1
-
+class ParametrizedGate(ABC, Gate):
     def __init__(
         self,
         arg_value: float,
@@ -231,7 +245,7 @@ class ParametrizedGate(Gate):
     #     if (cls.num_param < 1):
     #         raise ValueError(f"For a Parametric Gate no. of parameters but be atleast 1, got {cls.num_param}")
 
-    # @abstractmethod
+    @abstractmethod
     def validate_params(self):
         pass
 
@@ -242,7 +256,7 @@ class ParametrizedGate(Gate):
         """
 
 
-class ControlledParamGate(ParametrizedGate, ControlledGate):
+class ControlledParamGate(ParametrizedGate, ControlledGate, ABC):
     def __init__(
         self,
         arg_value,

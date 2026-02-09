@@ -454,6 +454,9 @@ class TestQubitCircuit:
             def __init__(self, arg_value, arg_label=None):
                 super().__init__(arg_value=arg_value, arg_label=arg_label)
 
+            def validate_params(self):
+                pass
+
             def get_qobj(self):
                 """
                 A qubit control an operator acting on a 3 level system
