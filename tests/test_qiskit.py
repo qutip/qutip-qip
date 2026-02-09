@@ -3,6 +3,7 @@ import pytest
 # will skip tests in this entire file
 # if qiskit is not installed
 pytest.importorskip("qiskit")
+pytest.importorskip("qiskit_aer")
 
 
 import numpy as np
@@ -14,11 +15,7 @@ from qutip_qip.device import (
     CircularSpinChain,
     DispersiveCavityQED,
 )
-from qutip_qip.operations import ControlledGate, ParametricGate, X, CNOT, RX
-
-# will skip tests in this entire file
-# if qiskit is not installed
-pytest.importorskip("qiskit")
+from qutip_qip.operations import X, CX, RX
 
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
@@ -40,27 +37,13 @@ class TestConverter:
 
     def _compare_args(self, req_gate, res_gate):
         """Compare parameters of two gates"""
-        res_arg = (
-            (
-                res_gate.arg_value
-                if type(res_gate.arg_value) is list
-                or type(res_gate.arg_value) is tuple
-                else [res_gate.arg_value]
-            )
-            if isinstance(res_gate, ParametricGate) and res_gate.arg_value
-            else []
-        )
+        res_arg = []
+        if res_gate.operation.is_parametric_gate():
+            res_arg = res_gate.operation.arg_value
 
-        req_arg = (
-            (
-                req_gate.arg_value
-                if type(req_gate.arg_value) is list
-                or type(req_gate.arg_value) is tuple
-                else [req_gate.arg_value]
-            )
-            if isinstance(req_gate, ParametricGate)
-            else []
-        )
+        req_arg = []
+        if req_gate.operation.is_parametric_gate():
+            req_arg = req_gate.operation.arg_value
 
         if len(req_arg) != len(res_arg):
             return False
@@ -81,19 +64,18 @@ class TestConverter:
             return False
 
         if req_gate.is_measurement_instruction():
-            check_condition = req_gate.classical_store == get_qutip_index(
-                res_gate.classical_store, result_circuit.num_cbits
+            check_condition = list(req_gate.operation.classical_store) == get_qutip_index(
+                res_gate.operation.classical_store, result_circuit.num_cbits
             )
         else:
             # TODO correct for float error in arg_value
-            res_controls = (
-                get_qutip_index(res_gate.controls, result_circuit.N)
-                if isinstance(res_gate, ControlledGate)
-                else None
-            )
+            res_controls = None
+            if res_gate.operation.is_controlled_gate():
+                res_controls = get_qutip_index(list(res_gate.controls), result_circuit.N)
+
             req_controls = None
-            if isinstance(req_gate, ControlledGate):
-                req_controls = req_gate.controls
+            if req_gate.operation.is_controlled_gate():
+                req_controls = list(req_gate.controls)
 
             check_condition = (
                 res_controls == req_controls
@@ -112,11 +94,13 @@ class TestConverter:
         ) != len(required_circuit.instructions):
             return False
 
-        for i, res_gate in enumerate(result_circuit.instructions):
+        for i, res_ins in enumerate(result_circuit.instructions):
             req_ins = required_circuit.instructions[i]
+            print(req_ins)
+            print(res_ins)
 
             if not self._compare_gate_instructions(
-                req_ins, res_gate, result_circuit
+                req_ins, res_ins, result_circuit
             ):
                 return False
 
@@ -145,7 +129,7 @@ class TestConverter:
         result_circuit = convert_qiskit_circuit_to_qutip(qiskit_circuit)
 
         required_circuit = QubitCircuit(2)
-        required_circuit.add_gate(CNOT, targets=[0], controls=[1])
+        required_circuit.add_gate(CX, targets=[0], controls=[1])
 
         assert self._compare_circuit(result_circuit, required_circuit)
 
@@ -205,7 +189,7 @@ class TestCircuitSimulator:
         obtain predetermined results.
         """
         random.seed(1)
-        predefined_counts = {"0": 233, "11": 267, "10": 254, "1": 270}
+        predefined_counts = {"0": 233, "11": 267, "10": 270, "1": 254}
 
         circ = QuantumCircuit(2, 2)
         circ.h(0)
