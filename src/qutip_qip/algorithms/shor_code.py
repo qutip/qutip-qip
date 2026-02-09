@@ -1,8 +1,6 @@
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.algorithms import BitFlipCode, PhaseFlipCode
 
-__all__ = ["ShorCode"]
-
 
 class ShorCode:
     """

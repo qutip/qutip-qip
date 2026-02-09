@@ -1,8 +1,6 @@
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations import CNOT, H
 
-__all__ = ["PhaseFlipCode"]
-
 
 class PhaseFlipCode:
     """

@@ -1,8 +1,6 @@
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations import CNOT, TOFFOLI
 
-__all__ = ["BitFlipCode"]
-
 
 class BitFlipCode:
     """

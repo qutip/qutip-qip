@@ -3,8 +3,6 @@ from qutip_qip.circuit import QubitCircuit
 from qutip_qip.algorithms import qft_gate_sequence
 from qutip_qip.operations import custom_gate_factory, controlled_gate_factory, H
 
-__all__ = ["qpe"]
-
 
 def qpe(U, num_counting_qubits, target_qubits=None, to_cnot=False):
     """
