@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import ABC, ABCMeta, abstractmethod
 import warnings
 
 import numpy as np
@@ -13,7 +13,22 @@ from qutip_qip.operations import controlled_gate
 """
 
 
-class Gate(ABC):
+# The prupose of the meta class is to prevent certain class attribute from being overwitten without inheritance.
+# class X(Gate):
+#   num_qubits = 1
+#
+# will work.
+# But X.num_qubits = 2 will throw an error.
+class GateReadOnlyMeta(ABCMeta):
+    _read_only = ["num_qubits", "num_ctrl_qubits", "num_param"]
+
+    def __setattr__(cls, name, value):
+        for attribute in cls._read_only:
+            if name == attribute and hasattr(cls, attribute):
+                raise AttributeError(f"{attribute} is read-only!")
+            super().__setattr__(name, value)
+
+class Gate(ABC, metaclass=GateReadOnlyMeta):
     r"""
     Base class for a quantum gate,
     concrete gate classes need to be defined as subclasses.
