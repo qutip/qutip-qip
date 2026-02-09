@@ -160,7 +160,7 @@ Let's use the :class:`.CircularSpinChain` processor this time with some noise.
         :options: +SKIP
         
         >>> from qutip_qip.device import CircularSpinChain
-        >>> processor = CircularSpinChain(num_qubits=2, t1=0.3)
+        >>> processor = CircularSpinChain(2, t1=0.3)
 
     If we ran this on a processor without noise we would expect all states to be approximately equiprobable, like we saw :ref:`above<pulse plot>`.
 
