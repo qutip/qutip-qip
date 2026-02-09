@@ -61,9 +61,6 @@ class Gate(ABC, metaclass=_ReadOnlyGateMetaClass):
         or ``issubclass`` to identify a gate rather than
         comparing the name string.
     """
-    num_qubits: int = None
-    num_params: int = 0
-
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         if inspect.isabstract(cls): # Skip the below check for an abstract class
@@ -87,18 +84,17 @@ class Gate(ABC, metaclass=_ReadOnlyGateMetaClass):
         if "latex_str" not in cls.__dict__:
             cls.latex_str = cls.__name__
 
-        attrs_to_check = ["num_qubits", "num_params"]
-        for attr_name in attrs_to_check:
-            attr_value = getattr(cls, attr_name, None)
+        num_qubits = getattr(cls, "num_qubits", None)
+        if (type(num_qubits) is not int) or (num_qubits < 0):
+            raise TypeError(
+                f"Class '{cls.__name__}' attribute 'num_qubits' must be a postive integer, "
+                f"got {type(num_qubits)} with value {num_qubits}."
+            )
 
-            if (type(attr_value) is not int):
-                raise TypeError(
-                    f"Class '{cls.__name__}' attribute '{attr_name}' must be a postive integer, "
-                    f"got {type(attr_value)} with value {attr_value}."
-                )
-
-        if cls.num_qubits < 0:
-            raise ValueError(f"{cls.__name__}: 'num_qubits' must be non-negative, got {cls.num_qubits}")
+    @property
+    @abstractmethod
+    def num_qubits(self) -> Qobj:
+        pass
 
     def get_compact_qobj(self) -> Qobj:
         """
@@ -147,8 +143,12 @@ class ControlledGate(Gate):
         if inspect.isabstract(cls):
             return
 
-        if cls.num_ctrl_qubits < 1:
-            raise ValueError(f"{cls.__name__}: num_ctrl_qubits must be positive, got {cls.num_ctrl_qubits}")
+        num_ctrl_qubits = getattr(cls, "num_ctrl_qubits", None)
+        if (type(num_ctrl_qubits) is not int) or (num_ctrl_qubits < 0):
+            raise TypeError(
+                f"Class '{cls.__name__}' attribute 'num_ctrl_qubits' must be a postive integer, "
+                f"got {type(num_ctrl_qubits)} with value {num_ctrl_qubits}."
+            )
 
         if cls.num_ctrl_qubits >= cls.num_qubits:
             raise ValueError(f"{cls.__name__}:'num_ctrl_qubits' be strictly less than the 'num_qubits'")
@@ -219,8 +219,12 @@ class ParametrizedGate(Gate):
         if inspect.isabstract(cls):
             return
 
-        if cls.num_params < 1:
-            raise ValueError(f"{cls.__name__}: num_params must be positive, got {cls.num_params}")
+        num_params = getattr(cls, "num_params", None)
+        if (type(num_params) is not int) or (num_params < 0):
+            raise TypeError(
+                f"Class '{cls.__name__}' attribute 'num_params' must be a postive integer, "
+                f"got {type(num_params)} with value {num_params}."
+            )
 
     def __init__(self, arg_value: float, arg_label: str = None):
         if type(arg_value) is float or type(arg_value) is np.float64:
@@ -232,6 +236,12 @@ class ParametrizedGate(Gate):
         self.arg_label = arg_label
         self.arg_value = arg_value
         # self.validate_params()
+
+    @property
+    @abstractmethod
+    def num_params(self) -> Qobj:
+        pass
+
 
     @abstractmethod
     def validate_params(self):
