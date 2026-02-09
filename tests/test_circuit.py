@@ -171,12 +171,10 @@ class TestQubitCircuit:
         assert qc.instructions[7].operation.arg_value == -1.570796
 
         class DUMMY1(Gate):
+            num_qubits = 1
+
             def __init__(self, **kwargs):
                 super().__init__(**kwargs)
-
-            @property
-            def num_qubits(self) -> int:
-                return 1
 
             def get_qobj(self):
                 pass
@@ -425,12 +423,10 @@ class TestQubitCircuit:
             return Qobj(mat, dims=[[2, 2], [2, 2]])
 
         class T1(Gate):
+            num_qubits = 1
+
             def __init__(self):
                 pass
-
-            @property
-            def num_qubits(self) -> int:
-                return 1
 
             @staticmethod
             def get_qobj():
@@ -453,12 +449,10 @@ class TestQubitCircuit:
         mat3 = qp.rand_unitary(3)
 
         class CTRLMAT3(ParametrizedGate):
+            num_qubits = 2
+
             def __init__(self, arg_value, arg_label=None):
                 super().__init__(arg_value=arg_value, arg_label=arg_label)
-
-            @property
-            def num_qubits(self) -> int:
-                return 2
 
             def get_qobj(self):
                 """

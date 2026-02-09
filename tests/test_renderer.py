@@ -152,6 +152,9 @@ def qc3():
 @pytest.fixture
 def qc4():
     class i(ControlledGate):
+        num_qubits = 2
+        num_ctrl_qubits = 1
+
         def __init__(
             self,
             control_value=1,
@@ -161,25 +164,12 @@ def qc4():
                 control_value=control_value,
             )
 
-        @property
-        def num_ctrl_qubits(self):
-            return 1
-
-        @property
-        def num_qubits(self):
-            return 2
-
         def get_qobj(self):
             pass
 
     class ii(i):
-        @property
-        def num_qubits(self):
-            return 3
-
-        @property
-        def num_ctrl_qubits(self):
-            return 2
+        num_qubits = 3
+        num_ctrl_qubits = 2
 
     class iii(i):
         pass

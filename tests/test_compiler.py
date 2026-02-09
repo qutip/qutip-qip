@@ -80,17 +80,13 @@ def test_compiling_gates_different_sampling_number():
             ]
 
     class U1(ParametrizedGate):
-        @property
-        def num_qubits(self) -> int:
-            return 1
+        num_qubits = 1
 
         def get_qobj(self):
             pass
 
     class U2(ParametrizedGate):
-        @property
-        def num_qubits(self) -> int:
-            return 2
+        num_qubits = 2
 
         def get_qobj(self):
             pass

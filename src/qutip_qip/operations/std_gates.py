@@ -1,7 +1,6 @@
 import numpy as np
-import scipy.sparse as sp
-
 from qutip import Qobj, sigmax, sigmay, sigmaz, qeye
+
 from qutip_qip.operations import (
     ParametrizedGate,
     SingleQubitGate,
@@ -121,7 +120,8 @@ class RX(ParametrizedSingleQubitGate):
             [
                 [np.cos(phi / 2), -1j * np.sin(phi / 2)],
                 [-1j * np.sin(phi / 2), np.cos(phi / 2)],
-            ]
+            ],
+            dims = [[2], [2]]
         )
 
 
@@ -661,13 +661,8 @@ class _ControlledTwoQubitGate(ControlledGate):
     and raise an error if it is 0.
     """
 
-    @property
-    def num_qubits(self) -> int:
-        return 2
-
-    @property
-    def num_ctrl_qubits(self) -> int:
-        return 1
+    num_qubits: int = 2
+    num_ctrl_qubits: int = 1
 
 
 class CNOT(_ControlledTwoQubitGate):
@@ -867,13 +862,8 @@ class _ControlledParamTwoQubitGate(ControlledParamGate):
     and raise an error if it is 0.
     """
 
-    @property
-    def num_qubits(self) -> int:
-        return 2
-
-    @property
-    def num_ctrl_qubits(self) -> int:
-        return 1
+    num_qubits: int = 2
+    num_ctrl_qubits: int = 1
 
 
 class CPHASE(_ControlledParamTwoQubitGate):
@@ -1005,11 +995,16 @@ class GLOBALPHASE(ParametrizedGate):
     def __repr__(self):
         return f"Gate({self.name}, phase {self.arg_value})"
 
+    num_qubits: int = 0
     @property
-    def num_qubits(self) -> int:
-        return 0
+    def num_param(self) -> int:
+        return 1
 
-    def get_qobj(self, num_qubits):
+    def validate_params(self):
+        if len(self.arg_value) != self.num_param:
+            raise ValueError(f"Requires {self.num_param} parameters, got {len(self.arg_value)}")
+
+    def get_qobj(self):
         return np.exp(1j * self.arg_value)
 
 
@@ -1036,13 +1031,8 @@ class TOFFOLI(ControlledGate):
     latex_str = r"{\rm TOFFOLI}"
     _target_gate_class = X
 
-    @property
-    def num_qubits(self) -> int:
-        return 3
-
-    @property
-    def num_ctrl_qubits(self) -> int:
-        return 2
+    num_qubits: int = 3
+    num_ctrl_qubits: int = 2
 
     @staticmethod
     def get_qobj() -> Qobj:
@@ -1084,13 +1074,8 @@ class FREDKIN(ControlledGate):
     latex_str = r"{\rm FREDKIN}"
     _target_gate_class = SWAP
 
-    @property
-    def num_qubits(self) -> int:
-        return 3
-
-    @property
-    def num_ctrl_qubits(self) -> int:
-        return 1
+    num_qubits: int = 3
+    num_ctrl_qubits: int = 1
 
     @staticmethod
     def get_qobj() -> Qobj:

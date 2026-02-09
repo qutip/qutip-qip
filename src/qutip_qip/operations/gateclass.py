@@ -45,10 +45,24 @@ class Gate(ABC):
         comparing the name string.
     """
 
-    latex_str = r"U"
+    latex_str: str = r"U"
+    num_qubits: int = None
+    num_ctrl_qubits: int = 0
+    num_param: int = 0
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
+        num_qubits = getattr(cls, "num_qubits", None)
+        if num_qubits is None or type(num_qubits) is not int:
+            raise TypeError(
+                f"Class '{cls.__name__}' must define 'num_qubits' as an integer class attribute."
+            )
+
+        if num_qubits < 0:
+            raise TypeError(
+                f"Class '{cls.__name__}' class attribute 'num_qubits' can't be negative."
+            )
+
         cls.latex_str = cls.__name__
 
     def __init__(
@@ -59,19 +73,6 @@ class Gate(ABC):
         Create a gate with specified parameters.
         """
         self.name = name if name is not None else self.__class__.__name__
-
-    @property
-    @abstractmethod
-    def num_qubits(self) -> int:
-        pass
-
-    @property
-    def num_ctrl_qubits(self) -> int:
-        return 0
-
-    @property
-    def num_param(self) -> int:
-        return 0
 
     def get_compact_qobj(self) -> Qobj:
         """
@@ -128,7 +129,10 @@ class Gate(ABC):
         return str(self)
 
 
+# Make this an abstract class
 class ControlledGate(Gate):
+    num_qubits = 2
+
     def __init__(
         self,
         target_gate=None,
@@ -152,19 +156,11 @@ class ControlledGate(Gate):
         # In the circuit plot, only the target gate is shown.
         # The control has its own symbol.
         self.latex_str = target_gate.latex_str
+        self.num_qubits = self.target_gate.num_qubits + self.num_ctrl_qubits
 
     @property
     def control_value(self) -> int:
         return self._control_value
-
-    @property
-    def num_qubits(self) -> int:
-        return self.target_gate.num_qubits + self.num_ctrl_qubits
-
-    @property
-    @abstractmethod
-    def num_ctrl_qubits(self) -> int:
-        raise NotImplementedError
 
     def _validate_control_value(self, control_value: int):
         if type(control_value) is not int:
@@ -197,24 +193,31 @@ class ControlledGate(Gate):
 
 
 class ParametrizedGate(Gate):
+    num_qubits = 1
+
     def __init__(
         self,
         arg_value: float,
         arg_label: str = None,
     ):
         super().__init__()
-        if self.num_param < 1:
-            raise ValueError(f"For a Parametric Gate no. of parameters but be atleast 1, got {self.num_param}")
+        # if type(arg_value) is float:
+        #     arg_value = [arg_value]
 
-        if len(arg_value) != self.num_param:
-            raise ValueError(f"Requires {self.num_param} parameters, got {len(arg_value)}")
+        # if len(arg_value) != self.num_param:
+        #     raise ValueError(f"Requires {self.num_param} parameters, got {len(arg_value)}")
 
         self.arg_label = arg_label
         self.arg_value = arg_value
+        # self.validate_params()
 
-    @abstractmethod
+    # def __init_subclass__(cls, **kwargs):
+    #     if (cls.num_param < 1):
+    #         raise ValueError(f"For a Parametric Gate no. of parameters but be atleast 1, got {cls.num_param}")
+
+    # @abstractmethod
     def validate_params(self):
-        raise NotImplementedError
+        pass
 
     def __str__(self):
         return f"""
@@ -244,6 +247,7 @@ class ControlledParamGate(ParametrizedGate, ControlledGate):
             target_gate=target_gate(arg_value=arg_value, arg_label=arg_label),
             control_value=control_value,
         )
+        # These can be commented out I believe
         self.arg_label = arg_label
         self.arg_value = arg_value
 
@@ -262,6 +266,7 @@ def custom_gate_factory(name: str, U: Qobj) -> Gate:
 
     class CustomGate(Gate):
         latex_str = r"U"
+        num_qubits = int(np.log2(U.shape[0]))
 
         def __init__(
             self,
@@ -275,18 +280,14 @@ def custom_gate_factory(name: str, U: Qobj) -> Gate:
         def get_qobj():
             return U
 
-        @property
-        def num_qubits(self) -> int:
-            return int(np.log2(U.shape[0]))
-
     return CustomGate
 
 
 def controlled_gate_factory(
     target_gate: Gate,
-    num_ctrl_qubits: int = 1,
+    n_ctrl_qubits: int = 1,
     control_value: int = -1,
-) -> ControlledGate:
+) -> type[ControlledGate]:
     """
     Gate Factory for Custom Gate that wraps an arbitrary unitary matrix U.
     """
@@ -294,20 +295,14 @@ def controlled_gate_factory(
     class _CustomGate(ControlledGate):
         latex_str = r"{\rm CU}"
         _target_gate_class = target_gate
+        num_qubits = n_ctrl_qubits + target_gate.num_qubits
+        num_ctrl_qubits = n_ctrl_qubits
 
         @property
         def control_value(self) -> int:
             if control_value == -1:
-                return 2**num_ctrl_qubits - 1
+                return 2**n_ctrl_qubits - 1
             return control_value
-
-        @property
-        def num_ctrl_qubits(self) -> int:
-            return num_ctrl_qubits
-
-        @property
-        def num_qubits(self) -> int:
-            return target_gate.num_qubits + self.num_ctrl_qubits
 
     return _CustomGate
 
@@ -315,26 +310,24 @@ def controlled_gate_factory(
 class SingleQubitGate(Gate):
     """Abstract one-qubit gate."""
 
-    @property
-    def num_qubits(self) -> int:
-        return 1
+    num_qubits: int = 1
 
 
 class ParametrizedSingleQubitGate(ParametrizedGate):
-    @property
-    def num_qubits(self) -> int:
-        return 1
+    num_qubits: int = 1
+
+    def validate_params(self):
+        if len(self.arg_value) != self.num_param:
+            raise ValueError(f"Requires {self.num_param} parameters, got {len(self.arg_value)}")
 
 
 class TwoQubitGate(Gate):
     """Abstract two-qubit gate."""
-
-    @property
-    def num_qubits(self) -> int:
-        return 2
-
+    num_qubits: int = 2
 
 class ParametrizedTwoQubitGate(ParametrizedGate):
-    @property
-    def num_qubits(self) -> int:
-        return 2
+    num_qubits: int = 2
+
+    def validate_params(self):
+        if len(self.arg_value) != self.num_param:
+            raise ValueError(f"Requires {self.num_param} parameters, got {len(self.arg_value)}")
