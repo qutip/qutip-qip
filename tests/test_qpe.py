@@ -23,7 +23,7 @@ class TestQPE(unittest.TestCase):
         U = Qobj([[0, 1], [1, 0]])
 
         custom = custom_gate_factory(name="custom", U=U)
-        qobj = custom.get_compact_qobj()
+        qobj = custom.get_qobj()
         assert_((qobj - U).norm() < 1e-12)
 
     def test_controlled_unitary(self):
@@ -38,7 +38,7 @@ class TestQPE(unittest.TestCase):
 
         assert_equal(controlled_u.control_value, 1)
         assert_(
-            (controlled_u.target_gate.get_compact_qobj() - U).norm() < 1e-12
+            (controlled_u.target_gate.get_qobj() - U).norm() < 1e-12
         )
 
     def test_qpe_validation(self):
@@ -120,7 +120,7 @@ class TestQPE(unittest.TestCase):
             gate = circuit.instructions[num_counting + i].operation
             power = 2 ** (num_counting - i - 1)
 
-            u_power = gate.target_gate.get_compact_qobj()
+            u_power = gate.target_gate.get_qobj()
             expected_u_power = U if power == 1 else U**power
 
             assert_((u_power - expected_u_power).norm() < 1e-12)

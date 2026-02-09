@@ -1,5 +1,5 @@
-from collections.abc import Iterable
 from abc import ABC, abstractmethod
+import warnings
 
 import numpy as np
 from qutip import Qobj
@@ -69,7 +69,6 @@ class Gate(ABC):
     def num_ctrl_qubits(self) -> int:
         return 0
 
-    @abstractmethod
     def get_compact_qobj(self) -> Qobj:
         """
         Get the compact :class:`qutip.Qobj` representation of the gate
@@ -83,8 +82,13 @@ class Gate(ABC):
         qobj : :obj:`qutip.Qobj`
             The compact gate operator as a unitary matrix.
         """
-        pass
+        warnings.warn(
+            "get_compact_qobj method has been deprecated and will be removed in future versions.",
+            UserWarning
+        )
+        self.get_qobj()
 
+    @abstractmethod
     def get_qobj(self, qubits, dims=None):
         """
         Get the :class:`qutip.Qobj` representation of the gate operator.
@@ -106,12 +110,7 @@ class Gate(ABC):
         qobj : :obj:`qutip.Qobj`
             The compact gate operator as a unitary matrix.
         """
-        # This method isn't being used in the codebase
-        return expand_operator(
-            self.get_compact_qobj(),
-            dims=dims,
-            targets=qubits,
-        )
+        raise NotImplementedError
 
     def __str__(self):
         return f"""
@@ -186,9 +185,9 @@ class ControlledGate(Gate):
             control_value={self.control_value},
         """
 
-    def get_compact_qobj(self):
+    def get_qobj(self):
         return controlled_gate(
-            U=self.target_gate.get_compact_qobj(),
+            U=self.target_gate.get_qobj(),
             control_value=self.control_value,
         )
 
@@ -259,7 +258,7 @@ def custom_gate_factory(name: str, U: Qobj) -> Gate:
             self._U = U
 
         @staticmethod
-        def get_compact_qobj():
+        def get_qobj():
             return U
 
         @property

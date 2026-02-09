@@ -2,6 +2,7 @@
 Quantum circuit representation and simulation.
 """
 
+import scipy.sparse as sp
 import numpy as np
 import warnings
 from typing import Iterable
@@ -778,7 +779,7 @@ class QubitCircuit:
 
         # For Gate Instructions
         for gate, qubits in gates:
-            qobj = gate.get_compact_qobj()
+            qobj = gate.get_qobj()
             if expand:
                 qobj = expand_operator(qobj, dims=self.dims, targets=qubits)
             U_list.append(qobj)
@@ -786,7 +787,13 @@ class QubitCircuit:
         # For Circuit's Global Phase
         qobj = Qobj(self.global_phase)
         if expand:
-            qobj = GLOBALPHASE(self.global_phase).get_qobj(self.N)
+            theta = self.global_phase
+            N = 2**self.N
+
+            qobj = Qobj(
+                np.exp(1.0j * theta) * sp.eye(N, N, dtype=complex, format="csr"),
+                dims=[[2] * self.N, [2] * self.N],
+            )
 
         U_list.append(qobj)
         return U_list

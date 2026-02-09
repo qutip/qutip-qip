@@ -84,7 +84,7 @@ def test_compiling_gates_different_sampling_number():
         def num_qubits(self) -> int:
             return 1
 
-        def get_compact_qobj(self):
+        def get_qobj(self):
             pass
 
     class U2(ParametrizedGate):
@@ -92,7 +92,7 @@ def test_compiling_gates_different_sampling_number():
         def num_qubits(self) -> int:
             return 2
 
-        def get_compact_qobj(self):
+        def get_qobj(self):
             pass
 
     num_qubits = 2

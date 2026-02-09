@@ -178,7 +178,7 @@ class TestQubitCircuit:
             def num_qubits(self) -> int:
                 return 1
 
-            def get_compact_qobj(self):
+            def get_qobj(self):
                 pass
 
         class DUMMY2(DUMMY1):
@@ -433,7 +433,7 @@ class TestQubitCircuit:
                 return 1
 
             @staticmethod
-            def get_compact_qobj():
+            def get_qobj():
                 mat = np.array([[1.0, 0], [0.0, 1.0j]])
                 return Qobj(mat, dims=[[2], [2]])
 
@@ -443,7 +443,7 @@ class TestQubitCircuit:
         props = qc.propagators()
         result1 = tensor(identity(2), customer_gate1(np.pi / 2))
         np.testing.assert_allclose(props[0].full(), result1.full())
-        result2 = tensor(identity(2), T1.get_compact_qobj(), identity(2))
+        result2 = tensor(identity(2), T1.get_qobj(), identity(2))
         np.testing.assert_allclose(props[1].full(), result2.full())
 
     def test_N_level_system(self):
@@ -460,7 +460,7 @@ class TestQubitCircuit:
             def num_qubits(self) -> int:
                 return 2
 
-            def get_compact_qobj(self):
+            def get_qobj(self):
                 """
                 A qubit control an operator acting on a 3 level system
                 """

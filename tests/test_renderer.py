@@ -169,7 +169,7 @@ def qc4():
         def num_qubits(self):
             return 2
 
-        def get_compact_qobj(self):
+        def get_qobj(self):
             pass
 
     class ii(i):
