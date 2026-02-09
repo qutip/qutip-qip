@@ -22,7 +22,7 @@ from qutip_qip.qasm import read_qasm
 from qutip_qip.operations import (
     Gate,
     ControlledGate,
-    ParametrizedGate,
+    ParametricGate,
     X,
     CRX,
     RX,
@@ -447,12 +447,8 @@ class TestQubitCircuit:
         """
         mat3 = qp.rand_unitary(3)
 
-        class CTRLMAT3(ParametrizedGate):
+        class CTRLMAT3(Gate):
             num_qubits = 2
-            num_params = 1
-
-            def __init__(self, arg_value, arg_label=None):
-                super().__init__(arg_value=arg_value, arg_label=arg_label)
 
             def validate_params(self):
                 pass
@@ -461,14 +457,13 @@ class TestQubitCircuit:
                 """
                 A qubit control an operator acting on a 3 level system
                 """
-                control_value = self.arg_value
                 dim = mat3.dims[0][0]
-                return tensor(fock_dm(2, control_value), mat3) + tensor(
-                    fock_dm(2, 1 - control_value), identity(dim)
+                return tensor(fock_dm(2, 1), mat3) + tensor(
+                    fock_dm(2, 0), identity(dim)
                 )
 
         qc = QubitCircuit(2, dims=[3, 2])
-        qc.add_gate(CTRLMAT3, targets=[1, 0], arg_value=1)
+        qc.add_gate(CTRLMAT3, targets=[1, 0])
         props = qc.propagators()
         final_fid = qp.average_gate_fidelity(mat3, ptrace(props[0], 0) - 1)
         assert pytest.approx(final_fid, 1.0e-6) == 1

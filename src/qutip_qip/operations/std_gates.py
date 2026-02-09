@@ -1,9 +1,11 @@
+from typing import Final
+
 import numpy as np
 import scipy.sparse as sp
 from qutip import Qobj, sigmax, sigmay, sigmaz, qeye
 
 from qutip_qip.operations import (
-    ParametrizedGate,
+    ParametricGate,
     SingleQubitGate,
     TwoQubitGate,
     ControlledGate,
@@ -87,6 +89,7 @@ class PHASE(ParametrizedSingleQubitGate):
     >>> from qutip_qip.operations import PHASE
     """
 
+    num_params: int = 1
     latex_str = r"PHASE"
 
     def get_qobj(self):
@@ -113,6 +116,7 @@ class RX(ParametrizedSingleQubitGate):
      [0.     -0.70711j 0.70711+0.j     ]]
     """
 
+    num_params: int = 1
     latex_str = r"R_x"
 
     def get_qobj(self):
@@ -140,6 +144,7 @@ class RY(ParametrizedSingleQubitGate):
      [ 0.70711  0.70711]]
     """
 
+    num_params: int = 1
     latex_str = r"R_y"
 
     def get_qobj(self):
@@ -166,6 +171,7 @@ class RZ(ParametrizedSingleQubitGate):
      [0.     +0.j      0.70711+0.70711j]]
     """
 
+    num_params: int = 1
     latex_str = r"R_z"
 
     def get_qobj(self):
@@ -298,6 +304,7 @@ class R(ParametrizedSingleQubitGate):
      [ 0.70711  0.70711]]
     """
 
+    num_params: int = 2
     latex_str = r"{\rm R}"
 
     def get_qobj(self):
@@ -333,7 +340,8 @@ class QASMU(ParametrizedSingleQubitGate):
      [ 0.5+0.5j -0.5+0.5j]]
     """
 
-    latex_str = r"{\rm QASM-U}"
+    num_params: int = 3
+    latex_str = r"{\rm QASMU}"
 
     def get_qobj(self):
         theta, phi, gamma = self.arg_value
@@ -537,6 +545,7 @@ class SWAPALPHA(ParametrizedTwoQubitGate):
      [0. +0.j  0. +0.j  0. +0.j  1. +0.j ]]
     """
 
+    num_params: int = 1
     latex_str = r"{\rm SWAPALPHA}"
 
     def get_qobj(self):
@@ -587,6 +596,7 @@ class MS(ParametrizedTwoQubitGate):
      [0.     -0.70711j 0.     +0.j      0.     +0.j      0.70711+0.j     ]]
     """
 
+    num_params: int = 2
     latex_str = r"{\rm MS}"
 
     def get_qobj(self):
@@ -638,6 +648,7 @@ class RZX(ParametrizedTwoQubitGate):
     """
 
     latex_str = r"{\rm RZX}"
+    num_params: int = 1
 
     def get_qobj(self):
         theta = self.arg_value[0]
@@ -662,8 +673,8 @@ class _ControlledTwoQubitGate(ControlledGate):
     and raise an error if it is 0.
     """
 
-    num_qubits: int = 2
-    num_ctrl_qubits: int = 1
+    num_qubits: Final[int] = 2
+    num_ctrl_qubits: Final[int] = 1
 
 
 class CNOT(_ControlledTwoQubitGate):
@@ -863,8 +874,8 @@ class _ControlledParamTwoQubitGate(ControlledParamGate):
     and raise an error if it is 0.
     """
 
-    num_qubits: int = 2
-    num_ctrl_qubits: int = 1
+    num_qubits: Final[int] = 2
+    num_ctrl_qubits: Final[int] = 1
 
     def validate_params(self):
         pass
@@ -896,6 +907,7 @@ class CPHASE(_ControlledParamTwoQubitGate):
     """
 
     latex_str = r"{\rm CPHASE}"
+    num_params: int = 1
     _target_gate_class = PHASE
 
     def get_qobj(self):
@@ -921,6 +933,7 @@ class CRX(_ControlledParamTwoQubitGate):
 
     latex_str = r"{\rm CRX}"
     _target_gate_class = RX
+    num_params: int = 1
 
 
 class CRY(_ControlledParamTwoQubitGate):
@@ -934,6 +947,7 @@ class CRY(_ControlledParamTwoQubitGate):
 
     latex_str = r"{\rm CRY}"
     _target_gate_class = RY
+    num_params: int = 1
 
 
 class CRZ(_ControlledParamTwoQubitGate):
@@ -963,6 +977,7 @@ class CRZ(_ControlledParamTwoQubitGate):
 
     latex_str = r"{\rm CRZ}"
     _target_gate_class = RZ
+    num_params: int = 1
 
 
 class CQASMU(_ControlledParamTwoQubitGate):
@@ -976,12 +991,13 @@ class CQASMU(_ControlledParamTwoQubitGate):
 
     latex_str = r"{\rm CQASMU}"
     _target_gate_class = QASMU
+    num_params: int = 1
 
 
 ########################### Special Gates #########################
 
 
-class GLOBALPHASE(ParametrizedGate):
+class GLOBALPHASE(ParametricGate):
     """
     GLOBALPHASE gate.
 

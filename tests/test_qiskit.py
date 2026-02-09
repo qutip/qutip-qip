@@ -14,7 +14,7 @@ from qutip_qip.device import (
     CircularSpinChain,
     DispersiveCavityQED,
 )
-from qutip_qip.operations import ControlledGate, ParametrizedGate
+from qutip_qip.operations import ControlledGate, ParametricGate
 
 # will skip tests in this entire file
 # if qiskit is not installed
@@ -47,7 +47,7 @@ class TestConverter:
                 or type(res_gate.arg_value) is tuple
                 else [res_gate.arg_value]
             )
-            if isinstance(res_gate, ParametrizedGate) and res_gate.arg_value
+            if isinstance(res_gate, ParametricGate) and res_gate.arg_value
             else []
         )
 
@@ -58,7 +58,7 @@ class TestConverter:
                 or type(req_gate.arg_value) is tuple
                 else [req_gate.arg_value]
             )
-            if isinstance(req_gate, ParametrizedGate)
+            if isinstance(req_gate, ParametricGate)
             else []
         )
 

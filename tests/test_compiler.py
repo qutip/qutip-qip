@@ -15,7 +15,7 @@ from qutip_qip.compiler import (
     GateCompiler,
 )
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import ParametrizedGate
+from qutip_qip.operations import ParametricGate
 from qutip import basis, fidelity
 
 
@@ -79,7 +79,7 @@ def test_compiling_gates_different_sampling_number():
                 )
             ]
 
-    class U1(ParametrizedGate):
+    class U1(ParametricGate):
         num_qubits = 1
         num_params = 1
 
@@ -89,7 +89,7 @@ def test_compiling_gates_different_sampling_number():
         def validate_params(self):
             pass
 
-    class U2(ParametrizedGate):
+    class U2(ParametricGate):
         num_qubits = 2
         num_params = 1
 

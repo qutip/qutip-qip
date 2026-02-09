@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from qutip_qip.operations import Gate, Measurement, ParametrizedGate
+from qutip_qip.operations import Gate, Measurement, ParametricGate
 
 
 def _validate_non_negative_int_tuple(T: any, txt: str = ""):
@@ -106,7 +106,7 @@ class GateInstruction(CircuitInstruction):
     def to_qasm(self, qasm_out) -> None:
         gate = self.operation
         args = None
-        if isinstance(gate, ParametrizedGate):
+        if isinstance(gate, ParametricGate):
             args = gate.arg_value
 
         qasm_gate = qasm_out.qasm_name(gate.name)

@@ -10,7 +10,7 @@ from ._decompose import _resolve_to_universal, _resolve_2q_basis
 from qutip_qip.operations import (
     Gate,
     ControlledGate,
-    ParametrizedGate,
+    ParametricGate,
     ControlledParamGate,
     GLOBALPHASE,
     Measurement,
@@ -305,7 +305,7 @@ class QubitCircuit:
                     arg_label=arg_label,
                 )
 
-            elif issubclass(gate_class, ParametrizedGate):
+            elif issubclass(gate_class, ParametricGate):
                 gate = gate_class(arg_value=arg_value, arg_label=arg_label)
 
             elif issubclass(gate_class, ControlledGate):

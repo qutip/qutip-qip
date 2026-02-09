@@ -17,7 +17,7 @@ from qutip_qip.circuit.draw import BaseRenderer, StyleConfig
 from qutip_qip.operations import (
     Gate,
     ControlledGate,
-    ParametrizedGate,
+    ParametricGate,
 )
 
 
@@ -788,7 +788,7 @@ class MatRenderer(BaseRenderer):
                 style = style if style is not None else {}
                 self.text = gate.name
 
-                if isinstance(gate, ParametrizedGate):
+                if isinstance(gate, ParametricGate):
                     self.text = (
                         gate.arg_label
                         if gate.arg_label is not None

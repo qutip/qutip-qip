@@ -1,6 +1,7 @@
 from abc import ABC, ABCMeta, abstractmethod
 import warnings
 import inspect
+from typing import Final
 
 import numpy as np
 from qutip import Qobj
@@ -213,7 +214,7 @@ class ControlledGate(Gate):
         )
 
 
-class ParametrizedGate(Gate):
+class ParametricGate(Gate):
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         if inspect.isabstract(cls):
@@ -230,8 +231,8 @@ class ParametrizedGate(Gate):
         if type(arg_value) is float or type(arg_value) is np.float64:
             arg_value = [arg_value]
 
-        # if len(arg_value) != self.num_params:
-        #     raise ValueError(f"Requires {self.num_params} parameters, got {len(arg_value)}")
+        if len(arg_value) != self.num_params:
+            raise ValueError(f"Requires {self.num_params} parameters, got {len(arg_value)} parameters")
 
         self.arg_label = arg_label
         self.arg_value = arg_value
@@ -243,7 +244,7 @@ class ParametrizedGate(Gate):
         pass
 
 
-    @abstractmethod
+    # @abstractmethod
     def validate_params(self):
         pass
 
@@ -254,7 +255,7 @@ class ParametrizedGate(Gate):
         """
 
 
-class ControlledParamGate(ParametrizedGate, ControlledGate, ABC):
+class ControlledParamGate(ParametricGate, ControlledGate, ABC):
     num_params = 1
     def __init__(
         self,
@@ -343,7 +344,7 @@ class SingleQubitGate(Gate):
     num_qubits: int = 1
 
 
-class ParametrizedSingleQubitGate(ParametrizedGate):
+class ParametrizedSingleQubitGate(ParametricGate):
     num_qubits: int = 1
     num_params: int = 1
 
@@ -354,12 +355,7 @@ class ParametrizedSingleQubitGate(ParametrizedGate):
 
 class TwoQubitGate(Gate):
     """Abstract two-qubit gate."""
-    num_qubits: int = 2
+    num_qubits: Final[int] = 2
 
-class ParametrizedTwoQubitGate(ParametrizedGate):
-    num_qubits: int = 2
-    num_params: int = 1
-
-    def validate_params(self):
-        if len(self.arg_value) != self.num_params:
-            raise ValueError(f"Requires {self.num_params} parameters, got {len(self.arg_value)}")
+class ParametrizedTwoQubitGate(ParametricGate):
+    num_qubits: Final[int] = 2

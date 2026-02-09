@@ -9,7 +9,7 @@ from qutip_qip.circuit.draw import BaseRenderer, StyleConfig
 from qutip_qip.operations import (
     Gate,
     ControlledGate,
-    ParametrizedGate,
+    ParametricGate,
 )
 
 
@@ -445,7 +445,7 @@ class TextRenderer(BaseRenderer):
                 controls = list(circ_instruction.controls)
 
                 if (
-                    isinstance(gate, ParametrizedGate)
+                    isinstance(gate, ParametricGate)
                     and gate.arg_label is not None
                 ):
                     gate_text = gate.arg_label
