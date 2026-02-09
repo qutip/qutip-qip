@@ -90,11 +90,15 @@ class GateInstruction(CircuitInstruction):
 
     @property
     def controls(self) -> tuple[int]:
-        return self.qubits[: self.operation.num_ctrl_qubits]
+        if hasattr(self.operation, 'num_ctrl_qubits'):
+            return self.qubits[: self.operation.num_ctrl_qubits]
+        return ()
 
     @property
     def targets(self) -> tuple[int]:
-        return self.qubits[self.operation.num_ctrl_qubits :]
+        if hasattr(self.operation, 'num_ctrl_qubits'):
+            return self.qubits[self.operation.num_ctrl_qubits :]
+        return self.qubits
 
     def is_gate_instruction(self) -> bool:
         return True

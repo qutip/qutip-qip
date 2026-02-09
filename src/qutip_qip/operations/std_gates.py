@@ -993,7 +993,7 @@ class GLOBALPHASE(ParametrizedGate):
     latex_str = r"{\rm GLOBALPHASE}"
     num_qubits: int = 0
     num_ctrl_qubits: int = -1
-    num_param: int = 1
+    num_params: int = 1
 
     def __init__(self, arg_value: float = 0.0):
         super().__init__(arg_value=arg_value)
@@ -1002,8 +1002,8 @@ class GLOBALPHASE(ParametrizedGate):
         return f"Gate({self.name}, phase {self.arg_value})"
 
     def validate_params(self):
-        if len(self.arg_value) != self.num_param:
-            raise ValueError(f"Requires {self.num_param} parameters, got {len(self.arg_value)}")
+        if len(self.arg_value) != self.num_params:
+            raise ValueError(f"Requires {self.num_params} parameters, got {len(self.arg_value)}")
 
     def get_qobj(self, num_qubits=None):
         if num_qubits is None:

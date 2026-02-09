@@ -449,6 +449,7 @@ class TestQubitCircuit:
 
         class CTRLMAT3(ParametrizedGate):
             num_qubits = 2
+            num_params = 1
 
             def __init__(self, arg_value, arg_label=None):
                 super().__init__(arg_value=arg_value, arg_label=arg_label)

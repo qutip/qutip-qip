@@ -20,8 +20,8 @@ from qutip_qip.operations import controlled_gate
 #
 # will work.
 # But X.num_qubits = 2 will throw an error.
-class GateReadOnlyMeta(ABCMeta):
-    _read_only = ["num_qubits", "num_ctrl_qubits", "num_param"]
+class _ReadOnlyGateMetaClass(ABCMeta):
+    _read_only = ["num_qubits", "num_ctrl_qubits", "num_params"]
 
     def __setattr__(cls, name, value):
         for attribute in cls._read_only:
@@ -30,7 +30,7 @@ class GateReadOnlyMeta(ABCMeta):
             super().__setattr__(name, value)
 
 
-class Gate(ABC, metaclass=GateReadOnlyMeta):
+class Gate(ABC, metaclass=_ReadOnlyGateMetaClass):
     r"""
     Base class for a quantum gate,
     concrete gate classes need to be defined as subclasses.
@@ -62,47 +62,48 @@ class Gate(ABC, metaclass=GateReadOnlyMeta):
         comparing the name string.
     """
     num_qubits: int = None
-    num_ctrl_qubits: int = 0
-    num_param: int = 0
+    num_params: int = 0
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         if inspect.isabstract(cls): # Skip the below check for an abstract class
             return
 
-        # If name attribute is not set in subclass it to the Name of the subclass
-        # e.g. class Hadamard(Gate):
+        # If name attribute is not set in subclass, set it to the name of the subclass
+        # e.g. class H(Gate):
         #         pass
         #
-        #      print(Hadamard.name) -> 'Hadamard'
+        #      print(H.name) -> 'H'
+        #
+        # e.g. class H(Gate):
+        #         name = "Hadamard"
+        #         pass
+        #
+        #      print(H.name) -> 'Hadamard'
         if "name" not in cls.__dict__:
             cls.name = cls.__name__
 
+        # Same as above for attribute latex_str (used in circuit draw)
         if "latex_str" not in cls.__dict__:
             cls.latex_str = cls.__name__
 
-        num_qubits = getattr(cls, "num_qubits", None)
-        num_ctrl_qubits = getattr(cls, "num_ctrl_qubits", None)
+        attrs_to_check = ["num_qubits", "num_params"]
+        for attr_name in attrs_to_check:
+            attr_value = getattr(cls, attr_name, None)
 
-        if type(num_qubits) is not int:
-            raise TypeError(f"Class '{cls.__name__}' must define class attribute 'num_qubits' as an integer.")
+            if (type(attr_value) is not int):
+                raise TypeError(
+                    f"Class '{cls.__name__}' attribute '{attr_name}' must be a postive integer, "
+                    f"got {type(attr_value)} with value {attr_value}."
+                )
 
-        if type(num_ctrl_qubits) is not int:
-            raise TypeError(f"Class '{cls.__name__}' must define class attribute 'num_ctrl_qubits' as an integer got {num_ctrl_qubits}.")
-
-        if num_qubits < 0:
-            raise ValueError(f"Class '{cls.__name__}' class attribute 'num_qubits' can't be negative.")
-
-        if  num_ctrl_qubits >= num_qubits:
-            raise ValueError("For a Gate num_ctrl_qubits be strictly less than the num_qubits")
+        if cls.num_qubits < 0:
+            raise ValueError(f"{cls.__name__}: 'num_qubits' must be non-negative, got {cls.num_qubits}")
 
     def get_compact_qobj(self) -> Qobj:
         """
         Get the compact :class:`qutip.Qobj` representation of the gate
         operator, ignoring the controls and targets.
-        In the unitary representation,
-        it always assumes that the first few qubits are controls,
-        then targets.
 
         Returns
         -------
@@ -123,16 +124,6 @@ class Gate(ABC, metaclass=GateReadOnlyMeta):
         The operator is expanded to the full Hilbert space according to
         the controls and targets qubits defined for the gate.
 
-        Parameters
-        ----------
-        num_qubits : int, optional
-            The number of qubits.
-            If not given, use the minimal number of qubits required
-            by the target and control qubits.
-        dims : list, optional
-            A list representing the dimensions of each quantum system.
-            If not given, it is assumed to be an all-qubit system.
-
         Returns
         -------
         qobj : :obj:`qutip.Qobj`
@@ -141,36 +132,27 @@ class Gate(ABC, metaclass=GateReadOnlyMeta):
         raise NotImplementedError
 
     def __str__(self):
-        return f"""
-            Gate({self.name},
-        """
+        return f"Gate({self.name}"
 
     def __repr__(self):
-        return str(self)
-
-    def _repr_latex_(self):
         return str(self)
 
 
 # Make this an abstract class
 class ControlledGate(Gate):
     num_qubits = 1
+
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
-        if inspect.isabstract(cls): # Skip the num_ctrl_qubits check for an abstract class
+        if inspect.isabstract(cls):
             return
 
-        num_ctrl_qubits = getattr(cls, "num_ctrl_qubits", None)
-        if type(num_ctrl_qubits) is not int:
-            raise TypeError(
-                f"Class '{cls.__name__}' must define 'num_ctrl_qubits' as an integer class attribute.\
-                 got {num_ctrl_qubits}."
-            )
+        if cls.num_ctrl_qubits < 1:
+            raise ValueError(f"{cls.__name__}: num_ctrl_qubits must be positive, got {cls.num_ctrl_qubits}")
 
-        if num_ctrl_qubits < 1:
-            raise ValueError(
-                f"Class '{cls.__name__}' class attribute 'num_ctrl_qubits' must be atleast 1."
-            )
+        if cls.num_ctrl_qubits >= cls.num_qubits:
+            raise ValueError(f"{cls.__name__}:'num_ctrl_qubits' be strictly less than the 'num_qubits'")
+
 
     def __init__(self, target_gate=None, control_value=None):
         if target_gate is None:
@@ -191,6 +173,11 @@ class ControlledGate(Gate):
         # The control has its own symbol.
         self.latex_str = target_gate.latex_str
         self.num_qubits = self.target_gate.num_qubits + self.num_ctrl_qubits
+
+    @property
+    @abstractmethod
+    def num_ctrl_qubits(self) -> int:
+        pass
 
     @property
     def control_value(self) -> int:
@@ -215,7 +202,7 @@ class ControlledGate(Gate):
 
     def __str__(self):
         return f"""
-            Gate({self.name},
+            Gate({self.name}, num_qubits={self.num_qubits}
             control_value={self.control_value},
         """
 
@@ -227,24 +214,24 @@ class ControlledGate(Gate):
 
 
 class ParametrizedGate(Gate):
-    def __init__(
-        self,
-        arg_value: float,
-        arg_label: str = None,
-    ):
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        if inspect.isabstract(cls):
+            return
+
+        if cls.num_params < 1:
+            raise ValueError(f"{cls.__name__}: num_params must be positive, got {cls.num_params}")
+
+    def __init__(self, arg_value: float, arg_label: str = None):
         if type(arg_value) is float or type(arg_value) is np.float64:
             arg_value = [arg_value]
 
-        # if len(arg_value) != self.num_param:
-        #     raise ValueError(f"Requires {self.num_param} parameters, got {len(arg_value)}")
+        # if len(arg_value) != self.num_params:
+        #     raise ValueError(f"Requires {self.num_params} parameters, got {len(arg_value)}")
 
         self.arg_label = arg_label
         self.arg_value = arg_value
         # self.validate_params()
-
-    # def __init_subclass__(cls, **kwargs):
-    #     if (cls.num_param < 1):
-    #         raise ValueError(f"For a Parametric Gate no. of parameters but be atleast 1, got {cls.num_param}")
 
     @abstractmethod
     def validate_params(self):
@@ -258,6 +245,7 @@ class ParametrizedGate(Gate):
 
 
 class ControlledParamGate(ParametrizedGate, ControlledGate, ABC):
+    num_params = 1
     def __init__(
         self,
         arg_value,
@@ -347,10 +335,11 @@ class SingleQubitGate(Gate):
 
 class ParametrizedSingleQubitGate(ParametrizedGate):
     num_qubits: int = 1
+    num_params: int = 1
 
     def validate_params(self):
-        if len(self.arg_value) != self.num_param:
-            raise ValueError(f"Requires {self.num_param} parameters, got {len(self.arg_value)}")
+        if len(self.arg_value) != self.num_params:
+            raise ValueError(f"Requires {self.num_params} parameters, got {len(self.arg_value)}")
 
 
 class TwoQubitGate(Gate):
@@ -359,7 +348,8 @@ class TwoQubitGate(Gate):
 
 class ParametrizedTwoQubitGate(ParametrizedGate):
     num_qubits: int = 2
+    num_params: int = 1
 
     def validate_params(self):
-        if len(self.arg_value) != self.num_param:
-            raise ValueError(f"Requires {self.num_param} parameters, got {len(self.arg_value)}")
+        if len(self.arg_value) != self.num_params:
+            raise ValueError(f"Requires {self.num_params} parameters, got {len(self.arg_value)}")
