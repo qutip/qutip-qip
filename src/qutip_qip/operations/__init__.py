@@ -48,8 +48,6 @@ from .gateclass import (
     ControlledGate,
     ParametricGate,
     ControlledParamGate,
-    ParametrizedSingleQubitGate,
-    ParametrizedTwoQubitGate,
     custom_gate_factory,
     controlled_gate_factory,
 )
@@ -146,8 +144,6 @@ __all__ = [
     "ControlledGate",
     "ParametricGate",
     "ControlledParamGate",
-    "ParametrizedSingleQubitGate",
-    "ParametrizedTwoQubitGate",
     "custom_gate_factory",
     "controlled_gate_factory",
     "Measurement",

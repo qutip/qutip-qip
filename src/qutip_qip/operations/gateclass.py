@@ -15,13 +15,16 @@ from qutip_qip.operations import controlled_gate
 """
 
 
-# The prupose of the meta class is to prevent certain class attribute from being overwitten without inheritance.
-# class X(Gate):
-#   num_qubits = 1
-#
-# will work.
-# But X.num_qubits = 2 will throw an error.
 class _ReadOnlyGateMetaClass(ABCMeta):
+    """
+    The purpose of the meta class is to prevent certain class attribute from being overwitten
+    without inheritance. Thie is required since num_qubits etc. are class attributes (they affect all instances).
+    e.g. class X(Gate):
+            num_qubits = 1
+    works.
+
+    But X.num_qubits = 2 will throw an overwrite error.
+    """
     _read_only = ["num_qubits", "num_ctrl_qubits", "num_params", "target_gate"]
 
     def __setattr__(cls, name, value):
@@ -228,9 +231,9 @@ class ParametricGate(Gate):
         if len(arg_value) != self.num_params:
             raise ValueError(f"Requires {self.num_params} parameters, got {len(arg_value)} parameters")
 
-        self.arg_label = arg_label
+        self.validate_params(arg_value)
         self.arg_value = arg_value
-        # self.validate_params()
+        self.arg_label = arg_label
 
     @property
     @abstractmethod
@@ -238,7 +241,7 @@ class ParametricGate(Gate):
         pass
 
     # @abstractmethod
-    def validate_params(self):
+    def validate_params(self, arg_value):
         pass
 
     def __str__(self):
@@ -308,7 +311,7 @@ def controlled_gate_factory(
     """
 
     class _CustomGate(ControlledGate):
-        latex_str = r"{\rm CU}"
+        latex_str = rf"C{gate.name}"
         target_gate = gate
         num_qubits = n_ctrl_qubits + target_gate.num_qubits
         num_ctrl_qubits = n_ctrl_qubits
@@ -324,22 +327,9 @@ def controlled_gate_factory(
 
 class SingleQubitGate(Gate):
     """Abstract one-qubit gate."""
-
     num_qubits: int = 1
-
-
-class ParametrizedSingleQubitGate(ParametricGate):
-    num_qubits: int = 1
-    num_params: int = 1
-
-    def validate_params(self):
-        if len(self.arg_value) != self.num_params:
-            raise ValueError(f"Requires {self.num_params} parameters, got {len(self.arg_value)}")
 
 
 class TwoQubitGate(Gate):
     """Abstract two-qubit gate."""
-    num_qubits: Final[int] = 2
-
-class ParametrizedTwoQubitGate(ParametricGate):
     num_qubits: Final[int] = 2

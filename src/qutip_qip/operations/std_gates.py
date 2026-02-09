@@ -10,8 +10,6 @@ from qutip_qip.operations import (
     TwoQubitGate,
     ControlledGate,
     ControlledParamGate,
-    ParametrizedSingleQubitGate,
-    ParametrizedTwoQubitGate,
 )
 
 ######################### Single Qubit Gates ############################
@@ -80,29 +78,16 @@ class Z(SingleQubitGate):
         return sigmaz(dtype="dense")
 
 
-class PHASE(ParametrizedSingleQubitGate):
-    """
-    PHASE Gate.
-
-    Examples
-    --------
-    >>> from qutip_qip.operations import PHASE
-    """
-
-    num_params: int = 1
-    latex_str = r"PHASE"
-
-    def get_qobj(self):
-        phi = self.arg_value[0]
-        return Qobj(
-            [
-                [1, 0],
-                [0, np.exp(1j * phi)],
-            ]
-        )
+class _AngleParametricGate(ParametricGate):
+    def validate_params(self, arg_value):
+        for arg in arg_value:
+            try:
+                float(arg)
+            except TypeError:
+                raise ValueError(f"Invalid arg {arg} in arg_value")
 
 
-class RX(ParametrizedSingleQubitGate):
+class RX(_AngleParametricGate):
     """
     Single-qubit rotation RX.
 
@@ -115,8 +100,8 @@ class RX(ParametrizedSingleQubitGate):
     [[0.70711+0.j      0.     -0.70711j]
      [0.     -0.70711j 0.70711+0.j     ]]
     """
-
-    num_params: int = 1
+    num_qubits = 1
+    num_params = 1
     latex_str = r"R_x"
 
     def get_qobj(self):
@@ -130,7 +115,7 @@ class RX(ParametrizedSingleQubitGate):
         )
 
 
-class RY(ParametrizedSingleQubitGate):
+class RY(_AngleParametricGate):
     """
     Single-qubit rotation RY.
 
@@ -144,6 +129,7 @@ class RY(ParametrizedSingleQubitGate):
      [ 0.70711  0.70711]]
     """
 
+    num_qubits = 1
     num_params: int = 1
     latex_str = r"R_y"
 
@@ -157,7 +143,7 @@ class RY(ParametrizedSingleQubitGate):
         )
 
 
-class RZ(ParametrizedSingleQubitGate):
+class RZ(_AngleParametricGate):
     """
     Single-qubit rotation RZ.
 
@@ -171,12 +157,36 @@ class RZ(ParametrizedSingleQubitGate):
      [0.     +0.j      0.70711+0.70711j]]
     """
 
+    num_qubits = 1
     num_params: int = 1
     latex_str = r"R_z"
 
     def get_qobj(self):
         phi = self.arg_value[0]
         return Qobj([[np.exp(-1j * phi / 2), 0], [0, np.exp(1j * phi / 2)]])
+
+
+class PHASE(_AngleParametricGate):
+    """
+    PHASE Gate.
+
+    Examples
+    --------
+    >>> from qutip_qip.operations import PHASE
+    """
+
+    num_qubits = 1
+    num_params: int = 1
+    latex_str = r"PHASE"
+
+    def get_qobj(self):
+        phi = self.arg_value[0]
+        return Qobj(
+            [
+                [1, 0],
+                [0, np.exp(1j * phi)],
+            ]
+        )
 
 
 class IDLE(SingleQubitGate):
@@ -283,7 +293,7 @@ class T(SingleQubitGate):
         return Qobj([[1, 0], [0, np.exp(1j * np.pi / 4)]])
 
 
-class R(ParametrizedSingleQubitGate):
+class R(_AngleParametricGate):
     r"""
     Arbitrary single-qubit rotation
 
@@ -304,6 +314,7 @@ class R(ParametrizedSingleQubitGate):
      [ 0.70711  0.70711]]
     """
 
+    num_qubits = 1
     num_params: int = 2
     latex_str = r"{\rm R}"
 
@@ -323,7 +334,7 @@ class R(ParametrizedSingleQubitGate):
         )
 
 
-class QASMU(ParametrizedSingleQubitGate):
+class QASMU(_AngleParametricGate):
     r"""
     QASMU gate.
 
@@ -340,6 +351,7 @@ class QASMU(ParametrizedSingleQubitGate):
      [ 0.5+0.5j -0.5+0.5j]]
     """
 
+    num_qubits = 1
     num_params: int = 3
     latex_str = r"{\rm QASMU}"
 
@@ -520,7 +532,7 @@ class BERKELEY(TwoQubitGate):
         )
 
 
-class SWAPALPHA(ParametrizedTwoQubitGate):
+class SWAPALPHA(_AngleParametricGate):
     r"""
     SWAPALPHA gate.
 
@@ -545,6 +557,7 @@ class SWAPALPHA(ParametrizedTwoQubitGate):
      [0. +0.j  0. +0.j  0. +0.j  1. +0.j ]]
     """
 
+    num_qubits = 2
     num_params: int = 1
     latex_str = r"{\rm SWAPALPHA}"
 
@@ -571,7 +584,7 @@ class SWAPALPHA(ParametrizedTwoQubitGate):
         )
 
 
-class MS(ParametrizedTwoQubitGate):
+class MS(_AngleParametricGate):
     r"""
     Mølmer–Sørensen gate.
 
@@ -596,6 +609,7 @@ class MS(ParametrizedTwoQubitGate):
      [0.     -0.70711j 0.     +0.j      0.     +0.j      0.70711+0.j     ]]
     """
 
+    num_qubits = 2
     num_params: int = 2
     latex_str = r"{\rm MS}"
 
@@ -622,7 +636,7 @@ class MS(ParametrizedTwoQubitGate):
         )
 
 
-class RZX(ParametrizedTwoQubitGate):
+class RZX(_AngleParametricGate):
     r"""
     RZX gate.
 
@@ -647,8 +661,9 @@ class RZX(ParametrizedTwoQubitGate):
     [0.+0.j 0.+0.j 0.+1.j 0.+0.j]]
     """
 
+    num_qubits = 2
+    num_params = 1
     latex_str = r"{\rm RZX}"
-    num_params: int = 1
 
     def get_qobj(self):
         theta = self.arg_value[0]
@@ -693,8 +708,8 @@ class CNOT(_ControlledTwoQubitGate):
      [0. 0. 1. 0.]]
     """
 
-    latex_str = r"{\rm CNOT}"
     target_gate = X
+    latex_str = r"{\rm CNOT}"
 
     @staticmethod
     def get_qobj():
@@ -866,7 +881,7 @@ class CS(_ControlledTwoQubitGate):
         )
 
 
-class _ControlledParamTwoQubitGate(ControlledParamGate):
+class _ControlledParamTwoQubitGate(ControlledParamGate, _AngleParametricGate):
     """
     This class allows correctly generating the gate instance
     when a redundant control_value is given, e.g.
@@ -876,9 +891,6 @@ class _ControlledParamTwoQubitGate(ControlledParamGate):
 
     num_qubits: Final[int] = 2
     num_ctrl_qubits: Final[int] = 1
-
-    def validate_params(self):
-        pass
 
 
 class CPHASE(_ControlledParamTwoQubitGate):
@@ -906,9 +918,9 @@ class CPHASE(_ControlledParamTwoQubitGate):
      [0.+0.j 0.+0.j 0.+0.j 0.+1.j]]
     """
 
-    latex_str = r"{\rm CPHASE}"
     num_params: int = 1
     target_gate = PHASE
+    latex_str = r"{\rm CPHASE}"
 
     def get_qobj(self):
         return Qobj(
@@ -931,8 +943,8 @@ class CRX(_ControlledParamTwoQubitGate):
     >>> from qutip_qip.operations import CRX
     """
 
-    target_gate = RX
     num_params: int = 1
+    target_gate = RX
     latex_str = r"{\rm CRX}"
 
 
@@ -997,7 +1009,7 @@ class CQASMU(_ControlledParamTwoQubitGate):
 ########################### Special Gates #########################
 
 
-class GLOBALPHASE(ParametricGate):
+class GLOBALPHASE(_AngleParametricGate):
     """
     GLOBALPHASE gate.
 
@@ -1015,10 +1027,6 @@ class GLOBALPHASE(ParametricGate):
 
     def __repr__(self):
         return f"Gate({self.name}, phase {self.arg_value})"
-
-    def validate_params(self):
-        if len(self.arg_value) != self.num_params:
-            raise ValueError(f"Requires {self.num_params} parameters, got {len(self.arg_value)}")
 
     def get_qobj(self, num_qubits=None):
         if num_qubits is None:
