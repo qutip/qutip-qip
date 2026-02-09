@@ -5,6 +5,7 @@ Quantum circuit representation and simulation.
 import numpy as np
 import warnings
 from typing import Iterable
+from qutip_qip.typing import IntList
 
 from ._decompose import _resolve_to_universal, _resolve_2q_basis
 from qutip_qip.operations import (
@@ -73,9 +74,9 @@ class QubitCircuit:
         # number of qubits in the register
         self.N = N
         self.reverse_states = reverse_states
-        self.num_cbits = num_cbits
-        self._instructions: list[CircuitInstruction] = []
+        self.num_cbits: int = num_cbits
         self._global_phase: float = 0.0
+        self._instructions: list[CircuitInstruction] = []
         self.dims = dims if dims is not None else [2] * N
 
         if input_states:
@@ -103,7 +104,7 @@ class QubitCircuit:
         self._global_phase %= 2 * np.pi
 
     @property
-    def gates(self):
+    def gates(self) -> list[CircuitInstruction]:
         warnings.warn(
             "QubitCircuit.gates has been replaced with QubitCircuit.instructions",
             DeprecationWarning,
@@ -112,8 +113,7 @@ class QubitCircuit:
         return self._instructions
 
     gates.setter
-
-    def gates(self):
+    def gates(self) -> None:
         warnings.warn(
             "QubitCircuit.gates has been replaced with QubitCircuit.instructions",
             DeprecationWarning,
@@ -121,13 +121,13 @@ class QubitCircuit:
         )
 
     @property
-    def instructions(self):
+    def instructions(self) -> list[CircuitInstruction]:
         return self._instructions
 
     def __repr__(self) -> str:
         return ""
 
-    def _repr_png_(self):
+    def _repr_png_(self) -> None:
         """
         Provide PNG representation for Jupyter Notebook.
         """
@@ -136,7 +136,12 @@ class QubitCircuit:
         except ImportError:
             self.draw("text")
 
-    def add_state(self, state, targets=None, state_type="input"):
+    def add_state(
+        self,
+        state: str,
+        targets: IntList,
+        state_type: str = "input", # FIXME Add an enum type hinting?
+    ):
         """
         Add an input or ouput state to the circuit. By default all the input
         and output states will be initialized to `None`. A particular state can
@@ -160,16 +165,17 @@ class QubitCircuit:
         if state_type == "input":
             for i in targets:
                 self.input_states[i] = state
+
         if state_type == "output":
             for i in targets:
                 self.output_states[i] = state
 
     def add_measurement(
         self,
-        measurement,
-        targets,
-        classical_store,
-        index=None,
+        measurement: str | Measurement,
+        targets: int | IntList,
+        classical_store: int,
+        index: None = None,
     ):
         """
         Adds a measurement with specified parameters to the circuit.
@@ -301,20 +307,18 @@ class QubitCircuit:
                     "or Gate class or its object instantiation"
                 )
 
-            if issubclass(gate_class, ControlledParamGate):
+            if gate_class.is_controlled_gate() and gate_class.is_parametric_gate():
                 gate = gate_class(
                     control_value=control_value,
                     arg_value=arg_value,
                     arg_label=arg_label,
                 )
 
-            elif issubclass(gate_class, ParametricGate):
+            elif gate_class.is_parametric_gate():
                 gate = gate_class(arg_value=arg_value, arg_label=arg_label)
 
-            elif issubclass(gate_class, ControlledGate):
-                gate = gate_class(
-                    control_value=control_value,
-                )
+            elif gate_class.is_controlled_gate():
+                gate = gate_class(control_value=control_value)
 
             else:
                 gate = gate_class()
@@ -322,8 +326,7 @@ class QubitCircuit:
         qubits = []
         if controls is not None:
             qubits.extend(controls)
-        if targets is not None:
-            qubits.extend(targets)
+        qubits.extend(targets)
 
         cbits = tuple()
         if classical_controls is not None:

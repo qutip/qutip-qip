@@ -155,7 +155,7 @@ class TextRenderer(BaseRenderer):
 
         sorted_targets = sorted(targets)
         # Adjust top_frame or bottom if there is a control wire
-        if isinstance(gate, ControlledGate):
+        if gate.is_controlled_gate():
             sorted_controls = sorted(controls)
             top_frame = (
                 (top_frame[:mid_index] + "┴" + top_frame[mid_index + 1 :])
@@ -444,10 +444,7 @@ class TextRenderer(BaseRenderer):
                 targets = list(circ_instruction.targets)
                 controls = list(circ_instruction.controls)
 
-                if (
-                    isinstance(gate, ParametricGate)
-                    and gate.arg_label is not None
-                ):
+                if gate.is_parametric_gate() and gate.arg_label is not None:
                     gate_text = gate.arg_label
 
                 if gate.name == "SWAP":
@@ -499,7 +496,7 @@ class TextRenderer(BaseRenderer):
                         parts,
                     )
 
-                    if isinstance(gate, ControlledGate):
+                    if gate.is_controlled_gate():
                         sorted_controls = sorted(controls)
 
                         # check if there is control wire above the gate top

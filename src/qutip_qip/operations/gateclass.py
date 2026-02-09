@@ -136,6 +136,14 @@ class Gate(ABC, metaclass=_ReadOnlyGateMetaClass):
         )
         self.get_qobj()
 
+    @staticmethod
+    def is_controlled_gate():
+        return False
+
+    @staticmethod
+    def is_parametric_gate():
+        return False
+
     def __str__(self):
         return f"Gate({self.name})"
 
@@ -206,6 +214,10 @@ class ControlledGate(Gate):
             control_value=self.control_value,
         )
 
+    @staticmethod
+    def is_controlled_gate():
+        return True
+
     def __str__(self):
         return f"Gate({self.name}, target_gate={self.target_gate}, num_ctrl_qubits={self.num_ctrl_qubits}, control_value={self.control_value})"
 
@@ -240,9 +252,13 @@ class ParametricGate(Gate):
     def num_params(self) -> Qobj:
         pass
 
-    # @abstractmethod
+    @abstractmethod
     def validate_params(self, arg_value):
         pass
+
+    @staticmethod
+    def is_parametric_gate():
+        return True
 
     def __str__(self):
         return f"""
@@ -289,9 +305,7 @@ def custom_gate_factory(gate_name: str, U: Qobj) -> Gate:
         name = gate_name
         num_qubits = int(np.log2(U.shape[0]))
 
-        def __init__(
-            self,
-        ):
+        def __init__(self):
             self._U = U
 
         @staticmethod

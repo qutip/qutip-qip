@@ -247,10 +247,10 @@ class TestQubitCircuit:
             assert (
                 qc1.instructions[i].qubits[0] == qc.instructions[i].qubits[0]
             )
-            if isinstance(qc1.instructions[i].operation, Gate) and isinstance(
-                qc.instructions[i].operation, Gate
+            if qc1.instructions[i].is_gate_instruction() and (
+                qc.instructions[i].is_gate_instruction()
             ):
-                if isinstance(qc.instructions[i].operation, ControlledGate):
+                if qc.instructions[i].operation.is_controlled_gate():
                     assert (
                         qc1.instructions[i].controls
                         == qc.instructions[i].controls
@@ -259,9 +259,7 @@ class TestQubitCircuit:
                     qc1.instructions[i].cbits_ctrl_value
                     == qc.instructions[i].cbits_ctrl_value
                 )
-            elif isinstance(
-                qc1.instructions[i].operation, Measurement
-            ) and isinstance(qc.instructions[i].operation, Measurement):
+            elif qc1.instructions[i].is_measurement_instruction() and qc.instructions[i].is_measurement_instruction():
                 assert qc1.instructions[i].cbits == qc.instructions[i].cbits
 
         # Test exception when qubit out of range
@@ -280,13 +278,11 @@ class TestQubitCircuit:
                     qc2.instructions[i].targets[0]
                     == qc.instructions[i].targets[0] + 2
                 )
-            if isinstance(
-                qc.instructions[i].operation, ControlledGate
-            ) and len(qc.instructions[i].controls):
-                assert (
-                    qc2.instructions[i].controls[0]
-                    == qc.instructions[i].controls[0] + 2
-                )
+                if qc.instructions[i].operation.is_controlled_gate():
+                    assert (
+                        qc2.instructions[i].controls[0]
+                        == qc.instructions[i].controls[0] + 2
+                    )
 
     def test_add_state(self):
         """
@@ -620,7 +616,7 @@ class TestQubitCircuit:
         inds_list = []
 
         for circ_instruction in qc.instructions:
-            if isinstance(circ_instruction.operation, Measurement):
+            if circ_instruction.is_measurement_instruction():
                 continue
             else:
                 inds_list.append(circ_instruction.qubits)

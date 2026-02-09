@@ -91,7 +91,7 @@ class GateCompiler:
         """
         idle_time = None
         gate = circuit_instruction.operation
-        if isinstance(gate, ParametricGate):
+        if gate.is_parametric_gate():
             idle_time = gate.arg_value
         return [PulseInstruction(circuit_instruction, idle_time, [])]
 
