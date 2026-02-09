@@ -154,15 +154,10 @@ def qc4():
     class i(ControlledGate):
         num_qubits = 2
         num_ctrl_qubits = 1
+        target_gate = IDLE
 
-        def __init__(
-            self,
-            control_value=1,
-        ):
-            super().__init__(
-                target_gate=IDLE,
-                control_value=control_value,
-            )
+        def __init__(self, control_value=1):
+            super().__init__(control_value=control_value)
 
         def get_qobj(self):
             pass

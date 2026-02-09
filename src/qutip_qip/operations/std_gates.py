@@ -694,7 +694,7 @@ class CNOT(_ControlledTwoQubitGate):
     """
 
     latex_str = r"{\rm CNOT}"
-    _target_gate_class = X
+    target_gate = X
 
     @staticmethod
     def get_qobj():
@@ -725,7 +725,7 @@ class CY(_ControlledTwoQubitGate):
     """
 
     latex_str = r"{\rm CY}"
-    _target_gate_class = Y
+    target_gate = Y
 
     @staticmethod
     def get_qobj():
@@ -752,7 +752,7 @@ class CZ(_ControlledTwoQubitGate):
     """
 
     latex_str = r"{\rm CZ}"
-    _target_gate_class = Z
+    target_gate = Z
 
     @staticmethod
     def get_qobj():
@@ -785,7 +785,7 @@ class CH(_ControlledTwoQubitGate):
     """
 
     latex_str = r"{\rm CH}"
-    _target_gate_class = H
+    target_gate = H
 
     @staticmethod
     def get_qobj():
@@ -820,7 +820,7 @@ class CT(_ControlledTwoQubitGate):
     """
 
     latex_str = r"{\rm CT}"
-    _target_gate_class = T
+    target_gate = T
 
     @staticmethod
     def get_qobj():
@@ -854,7 +854,7 @@ class CS(_ControlledTwoQubitGate):
     """
 
     latex_str = r"{\rm CS}"
-    _target_gate_class = S
+    target_gate = S
 
     @staticmethod
     def get_qobj():
@@ -908,7 +908,7 @@ class CPHASE(_ControlledParamTwoQubitGate):
 
     latex_str = r"{\rm CPHASE}"
     num_params: int = 1
-    _target_gate_class = PHASE
+    target_gate = PHASE
 
     def get_qobj(self):
         return Qobj(
@@ -932,7 +932,7 @@ class CRX(_ControlledParamTwoQubitGate):
     """
 
     latex_str = r"{\rm CRX}"
-    _target_gate_class = RX
+    target_gate = RX
     num_params: int = 1
 
 
@@ -946,7 +946,7 @@ class CRY(_ControlledParamTwoQubitGate):
     """
 
     latex_str = r"{\rm CRY}"
-    _target_gate_class = RY
+    target_gate = RY
     num_params: int = 1
 
 
@@ -976,7 +976,7 @@ class CRZ(_ControlledParamTwoQubitGate):
     """
 
     latex_str = r"{\rm CRZ}"
-    _target_gate_class = RZ
+    target_gate = RZ
     num_params: int = 1
 
 
@@ -990,7 +990,7 @@ class CQASMU(_ControlledParamTwoQubitGate):
     """
 
     latex_str = r"{\rm CQASMU}"
-    _target_gate_class = QASMU
+    target_gate = QASMU
     num_params: int = 1
 
 
@@ -1052,7 +1052,7 @@ class TOFFOLI(ControlledGate):
     """
 
     latex_str = r"{\rm TOFFOLI}"
-    _target_gate_class = X
+    target_gate = X
 
     num_qubits: int = 3
     num_ctrl_qubits: int = 2
@@ -1095,7 +1095,7 @@ class FREDKIN(ControlledGate):
     """
 
     latex_str = r"{\rm FREDKIN}"
-    _target_gate_class = SWAP
+    target_gate = SWAP
 
     num_qubits: int = 3
     num_ctrl_qubits: int = 1

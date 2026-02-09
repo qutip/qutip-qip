@@ -156,15 +156,9 @@ class ControlledGate(Gate):
 
 
     def __init__(self, target_gate=None, control_value=None):
-        if target_gate is None:
-            if self._target_gate_class is not None:
-                target_gate = self._target_gate_class
-            else:
-                raise ValueError(
-                    "target_gate must be provided either as argument or class attribute."
-                )
+        if target_gate is not None:
+            self.target_gate = target_gate
 
-        self.target_gate = target_gate
         if control_value is None:
             self._control_value = 2**self.num_ctrl_qubits - 1
         else:
@@ -172,12 +166,17 @@ class ControlledGate(Gate):
             self._control_value = control_value
         # In the circuit plot, only the target gate is shown.
         # The control has its own symbol.
-        self.latex_str = target_gate.latex_str
+        # self.latex_str = target_gate.latex_str
         self.num_qubits = self.target_gate.num_qubits + self.num_ctrl_qubits
 
     @property
     @abstractmethod
     def num_ctrl_qubits(self) -> int:
+        pass
+
+    @property
+    # @abstractmethod
+    def target_gate(self) -> int:
         pass
 
     @property
@@ -264,13 +263,8 @@ class ControlledParamGate(ParametricGate, ControlledGate, ABC):
         target_gate=None,
         control_value=1,
     ):
-        if target_gate is None:
-            if self._target_gate_class is not None:
-                target_gate = self._target_gate_class
-            else:
-                raise ValueError(
-                    "target_gate must be provided either as argument or class attribute."
-                )
+        if hasattr(self, "target_gate"):
+            target_gate = self.target_gate
 
         if type(arg_value) is float:
             arg_value = [arg_value]
@@ -315,7 +309,7 @@ def custom_gate_factory(gate_name: str, U: Qobj) -> Gate:
 
 
 def controlled_gate_factory(
-    target_gate: Gate,
+    gate: Gate,
     n_ctrl_qubits: int = 1,
     control_value: int = -1,
 ) -> type[ControlledGate]:
@@ -325,7 +319,7 @@ def controlled_gate_factory(
 
     class _CustomGate(ControlledGate):
         latex_str = r"{\rm CU}"
-        _target_gate_class = target_gate
+        target_gate = gate
         num_qubits = n_ctrl_qubits + target_gate.num_qubits
         num_ctrl_qubits = n_ctrl_qubits
 

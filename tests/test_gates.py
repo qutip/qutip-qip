@@ -294,7 +294,7 @@ class TestGateExpansion:
     # class RandomThreeQubitGate(ControlledGate):
     #     num_qubits = 3
     #     num_ctrl_qubits = 2
-    #     _target_gate_class = None
+    #     target_gate = None
 
     #     def get_qobj(self):
     #         if self._U is None:
