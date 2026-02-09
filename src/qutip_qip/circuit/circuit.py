@@ -2,7 +2,6 @@
 Quantum circuit representation and simulation.
 """
 
-import scipy.sparse as sp
 import numpy as np
 import warnings
 from typing import Iterable

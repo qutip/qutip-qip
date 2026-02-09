@@ -992,6 +992,7 @@ class GLOBALPHASE(ParametrizedGate):
 
     latex_str = r"{\rm GLOBALPHASE}"
     num_qubits: int = 0
+    num_ctrl_qubits: int = -1
     num_param: int = 1
 
     def __init__(self, arg_value: float = 0.0):

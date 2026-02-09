@@ -22,7 +22,7 @@ class TestQPE(unittest.TestCase):
         """
         U = Qobj([[0, 1], [1, 0]])
 
-        custom = custom_gate_factory(name="custom", U=U)
+        custom = custom_gate_factory(gate_name="custom", U=U)
         qobj = custom.get_qobj()
         assert_((qobj - U).norm() < 1e-12)
 
@@ -33,7 +33,7 @@ class TestQPE(unittest.TestCase):
         U = Qobj([[0, 1], [1, 0]])
 
         controlled_u = controlled_gate_factory(
-            target_gate=custom_gate_factory(name="CU", U=U),
+            target_gate=custom_gate_factory(gate_name="CU", U=U),
         )(control_value=1)
 
         assert_equal(controlled_u.control_value, 1)

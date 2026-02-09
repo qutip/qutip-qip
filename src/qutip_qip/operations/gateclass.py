@@ -61,38 +61,40 @@ class Gate(ABC, metaclass=GateReadOnlyMeta):
         or ``issubclass`` to identify a gate rather than
         comparing the name string.
     """
-
-    latex_str: str = r"U"
     num_qubits: int = None
     num_ctrl_qubits: int = 0
     num_param: int = 0
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
-        if inspect.isabstract(cls): # Skip the num_qubits check for an abstract class
+        if inspect.isabstract(cls): # Skip the below check for an abstract class
             return
 
+        # If name attribute is not set in subclass it to the Name of the subclass
+        # e.g. class Hadamard(Gate):
+        #         pass
+        #
+        #      print(Hadamard.name) -> 'Hadamard'
+        if "name" not in cls.__dict__:
+            cls.name = cls.__name__
+
+        if "latex_str" not in cls.__dict__:
+            cls.latex_str = cls.__name__
+
         num_qubits = getattr(cls, "num_qubits", None)
+        num_ctrl_qubits = getattr(cls, "num_ctrl_qubits", None)
+
         if type(num_qubits) is not int:
-            raise TypeError(
-                f"Class '{cls.__name__}' must define 'num_qubits' as an integer class attribute."
-            )
+            raise TypeError(f"Class '{cls.__name__}' must define class attribute 'num_qubits' as an integer.")
+
+        if type(num_ctrl_qubits) is not int:
+            raise TypeError(f"Class '{cls.__name__}' must define class attribute 'num_ctrl_qubits' as an integer got {num_ctrl_qubits}.")
 
         if num_qubits < 0:
-            raise TypeError(
-                f"Class '{cls.__name__}' class attribute 'num_qubits' can't be negative."
-            )
+            raise ValueError(f"Class '{cls.__name__}' class attribute 'num_qubits' can't be negative.")
 
-        cls.latex_str = cls.__name__
-
-    def __init__(
-        self,
-        name: str = None,
-    ):
-        """
-        Create a gate with specified parameters.
-        """
-        self.name = name if name is not None else self.__class__.__name__
+        if  num_ctrl_qubits >= num_qubits:
+            raise ValueError("For a Gate num_ctrl_qubits be strictly less than the num_qubits")
 
     def get_compact_qobj(self) -> Qobj:
         """
@@ -166,7 +168,7 @@ class ControlledGate(Gate):
             )
 
         if num_ctrl_qubits < 1:
-            raise TypeError(
+            raise ValueError(
                 f"Class '{cls.__name__}' class attribute 'num_ctrl_qubits' must be atleast 1."
             )
 
@@ -179,7 +181,6 @@ class ControlledGate(Gate):
                     "target_gate must be provided either as argument or class attribute."
                 )
 
-        super().__init__()
         self.target_gate = target_gate
         if control_value is None:
             self._control_value = 2**self.num_ctrl_qubits - 1
@@ -231,7 +232,6 @@ class ParametrizedGate(Gate):
         arg_value: float,
         arg_label: str = None,
     ):
-        super().__init__()
         if type(arg_value) is float or type(arg_value) is np.float64:
             arg_value = [arg_value]
 
@@ -293,21 +293,19 @@ class ControlledParamGate(ParametrizedGate, ControlledGate, ABC):
         """
 
 
-def custom_gate_factory(name: str, U: Qobj) -> Gate:
+def custom_gate_factory(gate_name: str, U: Qobj) -> Gate:
     """
     Gate Factory for Custom Gate that wraps an arbitrary unitary matrix U.
     """
 
     class CustomGate(Gate):
         latex_str = r"U"
+        name = gate_name
         num_qubits = int(np.log2(U.shape[0]))
 
         def __init__(
             self,
         ):
-            super().__init__(
-                name=name,
-            )
             self._U = U
 
         @staticmethod
