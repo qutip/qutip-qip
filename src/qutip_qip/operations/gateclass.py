@@ -1,7 +1,7 @@
 from abc import ABC, ABCMeta, abstractmethod
+from typing import Final
 import warnings
 import inspect
-from typing import Final
 
 import numpy as np
 from qutip import Qobj
@@ -62,13 +62,14 @@ class Gate(ABC, metaclass=_ReadOnlyGateMetaClass):
         or ``issubclass`` to identify a gate rather than
         comparing the name string.
     """
+
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         if inspect.isabstract(cls): # Skip the below check for an abstract class
             return
 
         """
-        If name attribute is not defined in subclass, set it to the name of the subclass
+        If name attribute in subclass is not defined, set it to the name of the subclass
         e.g. class H(Gate):
                 pass
         
@@ -102,7 +103,7 @@ class Gate(ABC, metaclass=_ReadOnlyGateMetaClass):
         pass
 
     @abstractmethod
-    def get_qobj(self, qubits, dims=None):
+    def get_qobj(self) -> Qobj:
         """
         Get the :class:`qutip.Qobj` representation of the gate operator.
         The operator is expanded to the full Hilbert space according to
@@ -139,7 +140,6 @@ class Gate(ABC, metaclass=_ReadOnlyGateMetaClass):
         return f"Gate({self.name}, num_qubits={self.num_qubits}, qobj={self.get_qobj()})"
 
 
-# Make this an abstract class
 class ControlledGate(Gate):
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
@@ -154,24 +154,24 @@ class ControlledGate(Gate):
                 f"got {type(num_ctrl_qubits)} with value {num_ctrl_qubits}."
             )
 
-        # Assert num_qubits > num_ctrl_qubits
         if cls.num_ctrl_qubits >= cls.num_qubits:
-            raise ValueError(f"{cls.__name__}:'num_ctrl_qubits' be strictly less than the 'num_qubits'")
+            raise ValueError(f"{cls.__name__}: 'num_ctrl_qubits' must be less than the 'num_qubits'")
 
+        # Assert num_ctrl_qubits + target_gate.num_qubits = num_qubits
+        if cls.num_ctrl_qubits + cls.target_gate.num_qubits != cls.num_qubits:
+            raise AttributeError(f"'num_ctrls_qubits' {cls.num_ctrl_qubits} + 'target_gate qubits' {cls.target_gate.num_qubits} must be equal to 'num_qubits' {cls.num_qubits}")
 
-    def __init__(self, target_gate=None, control_value=None):
-        if target_gate is not None:
-            self.target_gate = target_gate
+        # Default value for control_value
+        cls._control_value = 2**cls.num_ctrl_qubits - 1
 
-        if control_value is None:
-            self._control_value = 2**self.num_ctrl_qubits - 1
-        else:
+    def __init__(self, control_value=None):
+        if control_value is not None:
             self._validate_control_value(control_value)
             self._control_value = control_value
+
         # In the circuit plot, only the target gate is shown.
         # The control has its own symbol.
-        # self.latex_str = target_gate.latex_str
-        self.num_qubits = self.target_gate.num_qubits + self.num_ctrl_qubits
+        self.latex_str = self.target_gate.latex_str
 
     @property
     @abstractmethod
@@ -179,7 +179,7 @@ class ControlledGate(Gate):
         pass
 
     @property
-    # @abstractmethod
+    @abstractmethod
     def target_gate(self) -> int:
         pass
 
@@ -189,32 +189,22 @@ class ControlledGate(Gate):
 
     def _validate_control_value(self, control_value: int):
         if type(control_value) is not int:
-            raise TypeError(
-                f"Control value must be an int, got {control_value}"
-            )
+            raise TypeError(f"Control value must be an int, got {control_value}")
 
         if control_value < 0:
-            raise ValueError(
-                f"Control value can't be negative, got {control_value}"
-            )
+            raise ValueError(f"Control value can't be negative, got {control_value}")
 
         if control_value > 2**self.num_ctrl_qubits - 1:
-            raise ValueError(
-                f"""Control value can't be greater than 2^num_ctrl_qubits - 1,
-                     got {control_value}"""
-            )
-
-    def __str__(self):
-        return f"""
-            Gate({self.name}, num_qubits={self.num_qubits}
-            control_value={self.control_value},
-        """
+            raise ValueError(f"Control value can't be greater than 2^num_ctrl_qubits - 1, got {control_value}")
 
     def get_qobj(self):
         return controlled_gate(
             U=self.target_gate.get_qobj(),
             control_value=self.control_value,
         )
+
+    def __str__(self):
+        return f"Gate({self.name}, target_gate={self.target_gate}, num_ctrl_qubits={self.num_ctrl_qubits}, control_value={self.control_value})"
 
 
 class ParametricGate(Gate):
@@ -246,7 +236,6 @@ class ParametricGate(Gate):
     @abstractmethod
     def num_params(self) -> Qobj:
         pass
-
 
     # @abstractmethod
     def validate_params(self):
@@ -313,7 +302,7 @@ def controlled_gate_factory(
     gate: Gate,
     n_ctrl_qubits: int = 1,
     control_value: int = -1,
-) -> type[ControlledGate]:
+) -> ControlledGate:
     """
     Gate Factory for Custom Gate that wraps an arbitrary unitary matrix U.
     """
