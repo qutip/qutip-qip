@@ -3,7 +3,7 @@ This module provides the circuit implementation for Quantum Fourier Transform.
 """
 
 import numpy as np
-from qutip_qip.operations import CNOT, RZ, snot, cphase, swap, expand_operator
+from qutip_qip.operations import CNOT, RZ, H, CPHASE, SWAP, expand_operator
 from qutip_qip.circuit import QubitCircuit
 from qutip import Qobj
 from qutip_qip.decompose import decompose_one_qubit_gate
@@ -62,25 +62,25 @@ def qft_steps(N=1, swapping=True):
 
     U_step_list = []
     if N == 1:
-        U_step_list.append(snot())
+        U_step_list.append(H.get_qobj())
     else:
         for i in range(N):
             for j in range(i):
                 U_step_list.append(
                     expand_operator(
-                        cphase(np.pi / (2 ** (i - j))),
+                        CPHASE(np.pi / (2 ** (i - j))).get_qobj(),
                         dims=[2] * N,
                         targets=[i, j],
                     )
                 )
             U_step_list.append(
-                expand_operator(snot(), dims=[2] * N, targets=i)
+                expand_operator(H.get_qobj(), dims=[2] * N, targets=i)
             )
         if swapping:
             for i in range(N // 2):
                 U_step_list.append(
                     expand_operator(
-                        swap(), dims=[2] * N, targets=[N - i - 1, i]
+                        SWAP.get_qobj(), dims=[2] * N, targets=[N - i - 1, i]
                     )
                 )
     return U_step_list

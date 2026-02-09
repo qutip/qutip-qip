@@ -1,4 +1,5 @@
 import numpy as np
+import scipy.sparse as sp
 from qutip import Qobj, sigmax, sigmay, sigmaz, qeye
 
 from qutip_qip.operations import (
@@ -989,8 +990,9 @@ class GLOBALPHASE(ParametrizedGate):
     >>> from qutip_qip.operations import GLOBALPHASE
     """
 
-    name = "GLOBALPHASE"
     latex_str = r"{\rm GLOBALPHASE}"
+    num_qubits: int = 0
+    num_param: int = 1
 
     def __init__(self, arg_value: float = 0.0):
         super().__init__(arg_value=arg_value)
@@ -998,18 +1000,19 @@ class GLOBALPHASE(ParametrizedGate):
     def __repr__(self):
         return f"Gate({self.name}, phase {self.arg_value})"
 
-    num_qubits: int = 0
-    @property
-    def num_param(self) -> int:
-        return 1
-
     def validate_params(self):
         if len(self.arg_value) != self.num_param:
             raise ValueError(f"Requires {self.num_param} parameters, got {len(self.arg_value)}")
 
-    def get_qobj(self):
-        return np.exp(1j * self.arg_value[0])
+    def get_qobj(self, num_qubits=None):
+        if num_qubits is None:
+            return Qobj(self.arg_value)
 
+        N = 2**num_qubits
+        return Qobj(
+            np.exp(1.0j * self.arg_value[0]) * sp.eye(N, N, dtype=complex, format="csr"),
+            dims=[[2] * num_qubits, [2] * num_qubits],
+        )
 
 class TOFFOLI(ControlledGate):
     """

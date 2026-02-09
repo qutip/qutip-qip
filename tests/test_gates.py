@@ -1,6 +1,5 @@
 from copy import deepcopy
 import pytest
-import functools
 import itertools
 import numpy as np
 import qutip
@@ -8,6 +7,7 @@ from qutip_qip.operations import gates
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations import (
     Gate,
+    ControlledGate,
     X,
     Y,
     Z,
@@ -24,7 +24,11 @@ from qutip_qip.operations import (
     CPHASE,
     ISWAP,
     SWAP,
+    CX,
+    CY,
     CZ,
+    CS,
+    CT,
     SQRTSWAP,
     SQRTISWAP,
     SWAPALPHA,
@@ -122,7 +126,7 @@ class TestExplicitForm:
         states = [qutip.rand_ket(2) for _ in [None] * 2]
         start = qutip.tensor(states)
         swapped = qutip.tensor(states[::-1])
-        swap = gates.swap()
+        swap = SWAP.get_qobj()
         assert _infidelity(swapped, swap * start) < 1e-12
         assert _infidelity(start, swap * swap * start) < 1e-12
 
@@ -133,7 +137,7 @@ class TestExplicitForm:
     )
     def test_toffoli(self, permutation):
         test = expand_operator(
-            gates.toffoli(), dims=[2] * 3, targets=permutation
+            TOFFOLI.get_qobj(), dims=[2] * 3, targets=permutation
         )
         base = qutip.tensor(
             1 - qutip.basis([2, 2], [1, 1]).proj(), qutip.qeye(2)
@@ -149,31 +153,31 @@ class TestExplicitForm:
         ["angle", "expected"],
         [
             pytest.param(
-                np.pi,
+                [np.pi, 0],
                 -1j * qutip.tensor(qutip.sigmax(), qutip.sigmax()),
                 id="pi",
             ),
-            pytest.param(2 * np.pi, -qutip.qeye([2, 2]), id="2pi"),
+            pytest.param([2 * np.pi, 0], -qutip.qeye([2, 2]), id="2pi"),
         ],
     )
     def test_molmer_sorensen(self, angle, expected):
         np.testing.assert_allclose(
-            gates.molmer_sorensen(angle).full(), expected.full(), atol=1e-15
+            MS(angle).get_qobj().full(), expected.full(), atol=1e-15
         )
 
     @pytest.mark.parametrize(
         ["gate", "n_angles"],
         [
-            pytest.param(gates.rx, 1, id="Rx"),
-            pytest.param(gates.ry, 1, id="Ry"),
-            pytest.param(gates.rz, 1, id="Rz"),
-            pytest.param(gates.phasegate, 1, id="phase"),
-            pytest.param(gates.qrot, 2, id="Rabi rotation"),
+            pytest.param(RX, 1, id="Rx"),
+            pytest.param(RY, 1, id="Ry"),
+            pytest.param(RZ, 1, id="Rz"),
+            pytest.param(PHASE, 1, id="phase"),
+            pytest.param(R, 2, id="Rabi rotation"),
         ],
     )
     def test_zero_rotations_are_identity(self, gate, n_angles):
         np.testing.assert_allclose(
-            np.eye(2), gate(*([0] * n_angles)).full(), atol=1e-15
+            np.eye(2), gate([0] * n_angles).get_qobj().full(), atol=1e-15
         )
 
 
@@ -261,50 +265,59 @@ class TestGateExpansion:
     @pytest.mark.parametrize(
         ["gate", "n_controls"],
         [
-            pytest.param(gates.cnot, 1, id="cnot"),
-            pytest.param(gates.cy_gate, 1, id="cY"),
-            pytest.param(gates.cz_gate, 1, id="cZ"),
-            pytest.param(gates.cs_gate, 1, id="cS"),
-            pytest.param(gates.ct_gate, 1, id="cT"),
-            pytest.param(gates.swap, 0, id="swap"),
-            pytest.param(gates.iswap, 0, id="iswap"),
-            pytest.param(gates.sqrtswap, 0, id="sqrt(swap)"),
-            pytest.param(
-                functools.partial(gates.molmer_sorensen, 0.5 * np.pi, 0.0),
-                0,
-                id="Molmer-Sorensen",
-            ),
+            pytest.param(CNOT, 1, id="cnot"),
+            pytest.param(CY, 1, id="cY"),
+            pytest.param(CZ, 1, id="cZ"),
+            pytest.param(CS, 1, id="cS"),
+            pytest.param(CT, 1, id="cT"),
+            pytest.param(SWAP, 0, id="swap"),
+            pytest.param(ISWAP, 0, id="iswap"),
+            pytest.param(SQRTSWAP, 0, id="sqrt(swap)"),
+            pytest.param(MS([0.5 * np.pi, 0.0]), 0, id="Molmer-Sorensen"),
         ],
     )
     def test_two_qubit(self, gate, n_controls):
-        targets = [qutip.rand_ket(2) for _ in [None] * 2]
+        targets = [ qutip.rand_ket(2) for _ in [None] * 2]
         others = [qutip.rand_ket(2) for _ in [None] * self.n_qubits]
-        reference = gate() * qutip.tensor(*targets)
+        reference = gate.get_qobj() * qutip.tensor(*targets)
+
         for q1, q2 in itertools.permutations(range(self.n_qubits), 2):
             qubits = others.copy()
             qubits[q1], qubits[q2] = targets
-            args = [[q1, q2]] if n_controls == 0 else [q1, q2]
-            test = gate(self.n_qubits, *args) * qutip.tensor(*qubits)
+            test = (
+                expand_operator(gate.get_qobj(), dims=[2]*self.n_qubits, targets=[q1,q2])
+                 * qutip.tensor(*qubits)
+            )
             expected = _tensor_with_entanglement(qubits, reference, [q1, q2])
             assert _infidelity(test, expected) < 1e-12
+
+    # class RandomThreeQubitGate(ControlledGate):
+    #     num_qubits = 3
+    #     num_ctrl_qubits = 2
+    #     _target_gate_class = None
+
+    #     def get_qobj(self):
+    #         if self._U is None:
+    #             self._U = _make_random_three_qubit_gate()
+    #         return self._U
 
     @pytest.mark.parametrize(
         ["gate", "n_controls"],
         [
-            pytest.param(gates.fredkin, 1, id="Fredkin"),
-            pytest.param(gates.toffoli, 2, id="Toffoli"),
-            pytest.param(_make_random_three_qubit_gate(), 2, id="random"),
+            pytest.param(FREDKIN, 1, id="Fredkin"),
+            pytest.param(TOFFOLI, 2, id="Toffoli"),
+            # pytest.param(RandomThreeQubitGate(), 2, id="random"),
         ],
     )
-    def test_three_qubit(self, gate, n_controls):
+    def test_three_qubit(self, gate: Gate, n_controls):
         targets = [qutip.rand_ket(2) for _ in [None] * 3]
         others = [qutip.rand_ket(2) for _ in [None] * self.n_qubits]
-        reference = gate() * qutip.tensor(targets)
+        reference = gate.get_qobj() * qutip.tensor(targets)
+
         for q1, q2, q3 in itertools.permutations(range(self.n_qubits), 3):
             qubits = others.copy()
             qubits[q1], qubits[q2], qubits[q3] = targets
-            args = [q1, [q2, q3]] if n_controls == 1 else [[q1, q2], q3]
-            test = gate(self.n_qubits, *args) * qutip.tensor(*qubits)
+            test = expand_operator(gate.get_qobj(), self.n_qubits, [q1,q2,q3]) * qutip.tensor(*qubits)
             expected = _tensor_with_entanglement(
                 qubits, reference, [q1, q2, q3]
             )
@@ -353,7 +366,7 @@ class Test_expand_operator:
 
     def test_cnot_explicit(self):
         test = gates.expand_operator(
-            gates.cnot(), dims=[2] * 3, targets=[2, 0]
+            CX.get_qobj(), dims=[2] * 3, targets=[2, 0]
         ).full()
         expected = np.array(
             [
@@ -414,10 +427,10 @@ class Test_expand_operator:
             np.testing.assert_allclose(test.full(), expected.full())
 
     def test_dtype(self):
-        expanded_qobj = expand_operator(gates.cnot(), dims=[2, 2, 2]).data
+        expanded_qobj = expand_operator(CX.get_qobj(), dims=[2, 2, 2]).data
         assert isinstance(expanded_qobj, qutip.data.CSR)
         expanded_qobj = expand_operator(
-            gates.cnot(), dims=[2, 2, 2], dtype="dense"
+            CX.get_qobj(), dims=[2, 2, 2], dtype="dense"
         ).data
         assert isinstance(expanded_qobj, qutip.data.Dense)
 

@@ -17,16 +17,15 @@ from qutip import (
     bell_state,
     ket2dm,
     identity,
-    sigmax,
 )
 from qutip_qip.qasm import read_qasm
 from qutip_qip.operations import (
     Gate,
     ControlledGate,
     ParametrizedGate,
+    X,
     CRX,
-    SWAP,
-    gates,
+    RX,
     Measurement,
     gate_sequence_product,
 )
@@ -419,7 +418,7 @@ class TestQubitCircuit:
         def customer_gate1(arg_values):
             mat = np.zeros((4, 4), dtype=np.complex128)
             mat[0, 0] = mat[1, 1] = 1.0
-            mat[2:4, 2:4] = gates.rx(arg_values).full()
+            mat[2:4, 2:4] = RX(arg_values).get_qobj().full()
             return Qobj(mat, dims=[[2, 2], [2, 2]])
 
         class T1(Gate):
@@ -709,14 +708,14 @@ class TestQubitCircuit:
     H_zyz_quantum_circuit = QubitCircuit(1)
     for g in H_zyz_gates:
         H_zyz_quantum_circuit.add_gate(g, targets=[0])  # TODO CHECK
-    sigmax_zyz_gates = _ZYZ_rotation(sigmax())
+    sigmax_zyz_gates = _ZYZ_rotation(X.get_qobj())
     sigmax_zyz_quantum_circuit = QubitCircuit(1)
     for g in sigmax_zyz_gates:
         sigmax_zyz_quantum_circuit.add_gate(g, targets=[0])
 
     @pytest.mark.parametrize(
         "valid_input, correct_result",
-        [(H_zyz_quantum_circuit, H), (sigmax_zyz_quantum_circuit, sigmax())],
+        [(H_zyz_quantum_circuit, H), (sigmax_zyz_quantum_circuit, X.get_qobj())],
     )
     def test_compute_unitary(self, valid_input, correct_result):
         final_output = valid_input.compute_unitary()

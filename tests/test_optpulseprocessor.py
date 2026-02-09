@@ -15,9 +15,7 @@ from qutip import (
     sigmay,
     identity,
 )
-from qutip_qip.operations import (
-    cnot,
-)
+from qutip_qip.operations import CX
 
 
 class TestOptPulseProcessor:
@@ -66,7 +64,7 @@ class TestOptPulseProcessor:
         test.add_control(sigmay(), cyclic_permutation=True)
 
         # test pulse genration for cnot gate, with kwargs
-        qc = [tensor([identity(2), cnot()])]
+        qc = [tensor([identity(2), CX.get_qobj()])]
         test.load_circuit(
             qc, num_tslots=num_tslots, evo_time=evo_time, min_fid_err=1.0e-6
         )

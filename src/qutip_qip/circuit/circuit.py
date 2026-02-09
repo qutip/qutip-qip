@@ -104,7 +104,7 @@ class QubitCircuit:
     def gates(self):
         warnings.warn(
             "QubitCircuit.gates has been replaced with QubitCircuit.instructions",
-            UserWarning,
+            DeprecationWarning,
             stacklevel=2,
         )
         return self._instructions
@@ -114,7 +114,7 @@ class QubitCircuit:
     def gates(self):
         warnings.warn(
             "QubitCircuit.gates has been replaced with QubitCircuit.instructions",
-            UserWarning,
+            DeprecationWarning,
             stacklevel=2,
         )
 
@@ -785,15 +785,9 @@ class QubitCircuit:
             U_list.append(qobj)
 
         # For Circuit's Global Phase
-        qobj = Qobj(self.global_phase)
+        qobj = Qobj([self.global_phase])
         if expand:
-            theta = self.global_phase
-            N = 2**self.N
-
-            qobj = Qobj(
-                np.exp(1.0j * theta) * sp.eye(N, N, dtype=complex, format="csr"),
-                dims=[[2] * self.N, [2] * self.N],
-            )
+            qobj = GLOBALPHASE(self.global_phase).get_qobj(num_qubits=self.N)
 
         U_list.append(qobj)
         return U_list

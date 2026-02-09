@@ -75,6 +75,7 @@ class GateCompiler:
                 you can simply remove it.
                 """,
                 UserWarning,
+                stacklevel=2
             )
 
     def globalphase_compiler(self, phase):

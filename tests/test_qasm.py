@@ -7,7 +7,7 @@ import qutip
 from qutip_qip.qasm import read_qasm, circuit_to_qasm_str
 from qutip_qip.circuit import QubitCircuit
 from qutip import tensor, rand_ket, basis, identity
-from qutip_qip.operations import cnot, ry, Measurement, swap, ControlledGate
+from qutip_qip.operations import CX, RY, Measurement, SWAP
 
 
 @pytest.mark.parametrize(
@@ -87,7 +87,7 @@ def test_custom_gates():
     qc = read_qasm(filepath)
     unitaries = qc.propagators()
     assert (unitaries[0] - unitaries[1]).norm() < 1e-12
-    ry_cx = cnot() * tensor(identity(2), ry(np.pi / 2))
+    ry_cx = CX.get_qobj() * tensor(identity(2), RY(np.pi / 2).get_qobj())
     assert (unitaries[2] - ry_cx).norm() < 1e-12
 
 
@@ -228,7 +228,7 @@ def test_parsing_mode(tmp_path):
     )
     propagator = circuit.compute_unitary()
 
-    fidelity = qutip.average_gate_fidelity(propagator, swap())
+    fidelity = qutip.average_gate_fidelity(propagator, SWAP.get_qobj())
     pytest.approx(fidelity, 1.0)
 
     circuit = read_qasm(
@@ -237,5 +237,5 @@ def test_parsing_mode(tmp_path):
     )
     propagator = circuit.compute_unitary()
 
-    fidelity = qutip.average_gate_fidelity(propagator, swap())
+    fidelity = qutip.average_gate_fidelity(propagator, SWAP.get_qobj())
     pytest.approx(fidelity, 1.0)

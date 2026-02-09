@@ -109,7 +109,8 @@ class Gate(ABC, metaclass=GateReadOnlyMeta):
         """
         warnings.warn(
             "get_compact_qobj method has been deprecated and will be removed in future versions.",
-            UserWarning
+            DeprecationWarning,
+            stacklevel=2
         )
         self.get_qobj()
 
@@ -150,7 +151,7 @@ class Gate(ABC, metaclass=GateReadOnlyMeta):
 
 
 # Make this an abstract class
-class ControlledGate(ABC, Gate):
+class ControlledGate(Gate):
     num_qubits = 1
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
@@ -224,7 +225,7 @@ class ControlledGate(ABC, Gate):
         )
 
 
-class ParametrizedGate(ABC, Gate):
+class ParametrizedGate(Gate):
     def __init__(
         self,
         arg_value: float,
