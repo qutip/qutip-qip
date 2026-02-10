@@ -43,15 +43,14 @@ from .gates import (
 
 from .gateclass import (
     Gate,
-    SingleQubitGate,
-    TwoQubitGate,
     ControlledGate,
     ParametricGate,
     ControlledParamGate,
     custom_gate_factory,
     controlled_gate_factory,
+    AngleParametricGate,
 )
-from .std_gates import (
+from .std import (
     X,
     Y,
     Z,
@@ -139,13 +138,12 @@ GATE_CLASS_MAP: dict[str, Gate] = {
 
 __all__ = [
     "Gate",
-    "SingleQubitGate",
-    "TwoQubitGate",
     "ControlledGate",
     "ParametricGate",
     "ControlledParamGate",
     "custom_gate_factory",
     "controlled_gate_factory",
+    "AngleParametricGate",
     "Measurement",
     "GATE_CLASS_MAP",
     "GLOBALPHASE",

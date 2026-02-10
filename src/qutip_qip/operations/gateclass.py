@@ -339,11 +339,10 @@ def controlled_gate_factory(
     return _CustomGate
 
 
-class SingleQubitGate(Gate):
-    """Abstract one-qubit gate."""
-    num_qubits: int = 1
-
-
-class TwoQubitGate(Gate):
-    """Abstract two-qubit gate."""
-    num_qubits: Final[int] = 2
+class AngleParametricGate(ParametricGate):
+    def validate_params(self, arg_value):
+        for arg in arg_value:
+            try:
+                float(arg)
+            except TypeError:
+                raise ValueError(f"Invalid arg {arg} in arg_value")

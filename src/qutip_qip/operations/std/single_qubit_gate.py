@@ -1,10 +1,14 @@
 import numpy as np
+
 from qutip import Qobj, sigmax, sigmay, sigmaz, qeye
+from qutip_qip.operations import Gate, AngleParametricGate
 
-from qutip_qip.operations import ParametricGate,SingleQubitGate
 
+class _SingleQubitGate(Gate):
+    """Abstract one-qubit gate."""
+    num_qubits: int = 1
 
-class X(SingleQubitGate):
+class X(_SingleQubitGate):
     """
     Single-qubit X gate.
 
@@ -25,7 +29,7 @@ class X(SingleQubitGate):
         return sigmax(dtype="dense")
 
 
-class Y(SingleQubitGate):
+class Y(_SingleQubitGate):
     """
     Single-qubit Y gate.
 
@@ -46,7 +50,7 @@ class Y(SingleQubitGate):
         return sigmay(dtype="dense")
 
 
-class Z(SingleQubitGate):
+class Z(_SingleQubitGate):
     """
     Single-qubit Z gate.
 
@@ -67,16 +71,7 @@ class Z(SingleQubitGate):
         return sigmaz(dtype="dense")
 
 
-class _AngleParametricGate(ParametricGate):
-    def validate_params(self, arg_value):
-        for arg in arg_value:
-            try:
-                float(arg)
-            except TypeError:
-                raise ValueError(f"Invalid arg {arg} in arg_value")
-
-
-class RX(_AngleParametricGate):
+class RX(AngleParametricGate):
     """
     Single-qubit rotation RX.
 
@@ -104,7 +99,7 @@ class RX(_AngleParametricGate):
         )
 
 
-class RY(_AngleParametricGate):
+class RY(AngleParametricGate):
     """
     Single-qubit rotation RY.
 
@@ -132,7 +127,7 @@ class RY(_AngleParametricGate):
         )
 
 
-class RZ(_AngleParametricGate):
+class RZ(AngleParametricGate):
     """
     Single-qubit rotation RZ.
 
@@ -155,7 +150,7 @@ class RZ(_AngleParametricGate):
         return Qobj([[np.exp(-1j * phi / 2), 0], [0, np.exp(1j * phi / 2)]])
 
 
-class PHASE(_AngleParametricGate):
+class PHASE(AngleParametricGate):
     """
     PHASE Gate.
 
@@ -178,7 +173,7 @@ class PHASE(_AngleParametricGate):
         )
 
 
-class IDLE(SingleQubitGate):
+class IDLE(_SingleQubitGate):
     """
     IDLE gate.
 
@@ -194,7 +189,7 @@ class IDLE(SingleQubitGate):
         return qeye(2)
 
 
-class H(SingleQubitGate):
+class H(_SingleQubitGate):
     """
     Hadamard gate.
 
@@ -219,7 +214,7 @@ class SNOT(H):
     pass
 
 
-class SQRTNOT(SingleQubitGate):
+class SQRTNOT(_SingleQubitGate):
     r"""
     :math:`\sqrt{X}` gate.
 
@@ -240,7 +235,7 @@ class SQRTNOT(SingleQubitGate):
         return Qobj([[0.5 + 0.5j, 0.5 - 0.5j], [0.5 - 0.5j, 0.5 + 0.5j]])
 
 
-class S(SingleQubitGate):
+class S(_SingleQubitGate):
     r"""
     S gate or :math:`\sqrt{Z}` gate.
 
@@ -261,7 +256,7 @@ class S(SingleQubitGate):
         return Qobj([[1, 0], [0, 1j]])
 
 
-class T(SingleQubitGate):
+class T(_SingleQubitGate):
     r"""
     T gate or :math:`\sqrt[4]{Z}` gate.
 
@@ -282,7 +277,7 @@ class T(SingleQubitGate):
         return Qobj([[1, 0], [0, np.exp(1j * np.pi / 4)]])
 
 
-class R(_AngleParametricGate):
+class R(AngleParametricGate):
     r"""
     Arbitrary single-qubit rotation
 
@@ -323,7 +318,7 @@ class R(_AngleParametricGate):
         )
 
 
-class QASMU(_AngleParametricGate):
+class QASMU(AngleParametricGate):
     r"""
     QASMU gate.
 

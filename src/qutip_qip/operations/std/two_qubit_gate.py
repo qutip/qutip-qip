@@ -1,16 +1,36 @@
 from typing import Final
 
 import numpy as np
-import scipy.sparse as sp
 from qutip import Qobj
 
 from qutip_qip.operations import (
-    TwoQubitGate,
+    Gate,
     ControlledGate,
     ControlledParamGate,
+    AngleParametricGate,
+)
+from qutip_qip.operations.std import (
+    X, Y, Z, H, S, T, RX, RY, RZ, QASMU, PHASE
 )
 
-class SWAP(TwoQubitGate):
+class _TwoQubitGate(Gate):
+    """Abstract two-qubit gate."""
+    num_qubits: Final[int] = 2
+
+
+class _ControlledTwoQubitGate(ControlledGate):
+    """
+    This class allows correctly generating the gate instance
+    when a redundant control_value is given, e.g.
+    ``CNOT(0, 1, control_value=1)``,
+    and raise an error if it is 0.
+    """
+
+    num_qubits: Final[int] = 2
+    num_ctrl_qubits: Final[int] = 1
+
+
+class SWAP(_TwoQubitGate):
     """
     SWAP gate.
 
@@ -36,7 +56,7 @@ class SWAP(TwoQubitGate):
         )
 
 
-class ISWAP(TwoQubitGate):
+class ISWAP(_TwoQubitGate):
     """
     iSWAP gate.
 
@@ -62,7 +82,7 @@ class ISWAP(TwoQubitGate):
         )
 
 
-class SQRTSWAP(TwoQubitGate):
+class SQRTSWAP(_TwoQubitGate):
     r"""
     :math:`\sqrt{\mathrm{SWAP}}` gate.
 
@@ -95,7 +115,7 @@ class SQRTSWAP(TwoQubitGate):
         )
 
 
-class SQRTISWAP(TwoQubitGate):
+class SQRTISWAP(_TwoQubitGate):
     r"""
     :math:`\sqrt{\mathrm{iSWAP}}` gate.
 
@@ -128,7 +148,7 @@ class SQRTISWAP(TwoQubitGate):
         )
 
 
-class BERKELEY(TwoQubitGate):
+class BERKELEY(_TwoQubitGate):
     r"""
     BERKELEY gate.
 
@@ -168,7 +188,7 @@ class BERKELEY(TwoQubitGate):
         )
 
 
-class SWAPALPHA(_AngleParametricGate):
+class SWAPALPHA(AngleParametricGate):
     r"""
     SWAPALPHA gate.
 
@@ -220,7 +240,7 @@ class SWAPALPHA(_AngleParametricGate):
         )
 
 
-class MS(_AngleParametricGate):
+class MS(AngleParametricGate):
     r"""
     Mølmer–Sørensen gate.
 
@@ -272,7 +292,7 @@ class MS(_AngleParametricGate):
         )
 
 
-class RZX(_AngleParametricGate):
+class RZX(AngleParametricGate):
     r"""
     RZX gate.
 
@@ -314,18 +334,6 @@ class RZX(_AngleParametricGate):
             ),
             dims=[[2, 2], [2, 2]],
         )
-
-
-class _ControlledTwoQubitGate(ControlledGate):
-    """
-    This class allows correctly generating the gate instance
-    when a redundant control_value is given, e.g.
-    ``CNOT(0, 1, control_value=1)``,
-    and raise an error if it is 0.
-    """
-
-    num_qubits: Final[int] = 2
-    num_ctrl_qubits: Final[int] = 1
 
 
 class CNOT(_ControlledTwoQubitGate):
@@ -517,7 +525,7 @@ class CS(_ControlledTwoQubitGate):
         )
 
 
-class _ControlledParamTwoQubitGate(ControlledParamGate, _AngleParametricGate):
+class _ControlledParamTwoQubitGate(ControlledParamGate, AngleParametricGate):
     """
     This class allows correctly generating the gate instance
     when a redundant control_value is given, e.g.
@@ -640,121 +648,3 @@ class CQASMU(_ControlledParamTwoQubitGate):
     num_params: int = 3
     target_gate = QASMU
     latex_str = r"{\rm CQASMU}"
-
-
-########################### Special Gates #########################
-
-
-class GLOBALPHASE(_AngleParametricGate):
-    """
-    GLOBALPHASE gate.
-
-    Examples
-    --------
-    >>> from qutip_qip.operations import GLOBALPHASE
-    """
-
-    num_qubits: int = 0
-    num_params: int = 1
-    latex_str = r"{\rm GLOBALPHASE}"
-
-    def __init__(self, arg_value: float = 0.0):
-        super().__init__(arg_value=arg_value)
-
-    def __repr__(self):
-        return f"Gate({self.name}, phase {self.arg_value})"
-
-    def get_qobj(self, num_qubits=None):
-        if num_qubits is None:
-            return Qobj(self.arg_value)
-
-        N = 2**num_qubits
-        return Qobj(
-            np.exp(1.0j * self.arg_value[0]) * sp.eye(N, N, dtype=complex, format="csr"),
-            dims=[[2] * num_qubits, [2] * num_qubits],
-        )
-
-class TOFFOLI(ControlledGate):
-    """
-    TOFFOLI gate.
-
-    Examples
-    --------
-    >>> from qutip_qip.operations import TOFFOLI
-    >>> TOFFOLI([0, 1, 2]).get_qobj() # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims=[[2, 2, 2], [2, 2, 2]], shape=(8, 8), type='oper', dtype=Dense, isherm=True
-    Qobj data =
-    [[1. 0. 0. 0. 0. 0. 0. 0.]
-     [0. 1. 0. 0. 0. 0. 0. 0.]
-     [0. 0. 1. 0. 0. 0. 0. 0.]
-     [0. 0. 0. 1. 0. 0. 0. 0.]
-     [0. 0. 0. 0. 1. 0. 0. 0.]
-     [0. 0. 0. 0. 0. 1. 0. 0.]
-     [0. 0. 0. 0. 0. 0. 0. 1.]
-     [0. 0. 0. 0. 0. 0. 1. 0.]]
-    """
-
-    latex_str = r"{\rm TOFFOLI}"
-    target_gate = X
-
-    num_qubits: int = 3
-    num_ctrl_qubits: int = 2
-
-    @staticmethod
-    def get_qobj() -> Qobj:
-        return Qobj(
-            [
-                [1, 0, 0, 0, 0, 0, 0, 0],
-                [0, 1, 0, 0, 0, 0, 0, 0],
-                [0, 0, 1, 0, 0, 0, 0, 0],
-                [0, 0, 0, 1, 0, 0, 0, 0],
-                [0, 0, 0, 0, 1, 0, 0, 0],
-                [0, 0, 0, 0, 0, 1, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 1],
-                [0, 0, 0, 0, 0, 0, 1, 0],
-            ],
-            dims=[[2, 2, 2], [2, 2, 2]],
-        )
-
-
-class FREDKIN(ControlledGate):
-    """
-    FREDKIN gate.
-
-    Examples
-    --------
-    >>> from qutip_qip.operations import FREDKIN
-    >>> FREDKIN([0, 1, 2]).get_qobj() # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims=[[2, 2, 2], [2, 2, 2]], shape=(8, 8), type='oper', dtype=Dense, isherm=True
-    Qobj data =
-    [[1. 0. 0. 0. 0. 0. 0. 0.]
-     [0. 1. 0. 0. 0. 0. 0. 0.]
-     [0. 0. 1. 0. 0. 0. 0. 0.]
-     [0. 0. 0. 1. 0. 0. 0. 0.]
-     [0. 0. 0. 0. 1. 0. 0. 0.]
-     [0. 0. 0. 0. 0. 0. 1. 0.]
-     [0. 0. 0. 0. 0. 1. 0. 0.]
-     [0. 0. 0. 0. 0. 0. 0. 1.]]
-    """
-
-    latex_str = r"{\rm FREDKIN}"
-    target_gate = SWAP
-
-    num_qubits: int = 3
-    num_ctrl_qubits: int = 1
-
-    @staticmethod
-    def get_qobj() -> Qobj:
-        return Qobj(
-            [
-                [1, 0, 0, 0, 0, 0, 0, 0],
-                [0, 1, 0, 0, 0, 0, 0, 0],
-                [0, 0, 1, 0, 0, 0, 0, 0],
-                [0, 0, 0, 1, 0, 0, 0, 0],
-                [0, 0, 0, 0, 1, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 1, 0],
-                [0, 0, 0, 0, 0, 1, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 1],
-            ],
-            dims=[[2, 2, 2], [2, 2, 2]],
-        )
