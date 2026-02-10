@@ -8,7 +8,7 @@ from qutip_qip.qasm import read_qasm, circuit_to_qasm_str
 from qutip_qip.circuit import QubitCircuit
 from qutip import tensor, rand_ket, basis, identity
 from qutip_qip.operations import Measurement
-from qutip_qip.operations.std import *
+import qutip_qip.operations.std as std
 
 
 @pytest.mark.parametrize(
@@ -88,7 +88,7 @@ def test_custom_gates():
     qc = read_qasm(filepath)
     unitaries = qc.propagators()
     assert (unitaries[0] - unitaries[1]).norm() < 1e-12
-    ry_cx = CX.get_qobj() * tensor(identity(2), RY(np.pi / 2).get_qobj())
+    ry_cx = std.CX.get_qobj() * tensor(identity(2), std.RY(np.pi / 2).get_qobj())
     assert (unitaries[2] - ry_cx).norm() < 1e-12
 
 
@@ -130,32 +130,32 @@ def test_qasm_str():
         "x q[0];\nmeasure q[1] -> c[0]\n"
     )
     simple_qc = QubitCircuit(2, num_cbits=1)
-    simple_qc.add_gate(X, targets=[0])
+    simple_qc.add_gate(std.X, targets=[0])
     simple_qc.add_measurement("M", targets=[1], classical_store=0)
     assert circuit_to_qasm_str(simple_qc) == expected_qasm_str
 
 
 def test_export_import():
     qc = QubitCircuit(3)
-    qc.add_gate(CRY(np.pi), targets=1, controls=0)
-    qc.add_gate(CRX, targets=1, controls=0, arg_value=np.pi)
-    qc.add_gate(CRZ, targets=1, controls=0, arg_value=np.pi)
-    qc.add_gate(CNOT, targets=1, controls=0)
-    qc.add_gate(TOFFOLI, targets=2, controls=[0, 1])
+    qc.add_gate(std.CRY(np.pi), targets=1, controls=0)
+    qc.add_gate(std.CRX(np.pi), targets=1, controls=0)
+    qc.add_gate(std.CRZ(np.pi), targets=1, controls=0)
+    qc.add_gate(std.CNOT, targets=1, controls=0)
+    qc.add_gate(std.TOFFOLI, targets=2, controls=[0, 1])
     # qc.add_gate(SQRTNOT, targets=0)
-    qc.add_gate(CS, targets=1, controls=0)
-    qc.add_gate(CT, targets=1, controls=0)
-    qc.add_gate(SWAP, targets=[0, 1])
-    qc.add_gate(QASMU, targets=[0], arg_value=[np.pi, np.pi, np.pi])
-    qc.add_gate(RX(np.pi), targets=[0])
-    qc.add_gate(RY, targets=[0], arg_value=np.pi)
-    qc.add_gate(RZ, targets=[0], arg_value=np.pi)
-    qc.add_gate(H, targets=[0])
-    qc.add_gate(X, targets=[0])
-    qc.add_gate(Y, targets=[0])
-    qc.add_gate(Z, targets=[0])
-    qc.add_gate(S, targets=[0])
-    qc.add_gate(T, targets=[0])
+    qc.add_gate(std.CS, targets=1, controls=0)
+    qc.add_gate(std.CT, targets=1, controls=0)
+    qc.add_gate(std.SWAP, targets=[0, 1])
+    qc.add_gate(std.QASMU(arg_value=[np.pi, np.pi, np.pi]), targets=[0])
+    qc.add_gate(std.RX(np.pi), targets=[0])
+    qc.add_gate(std.RY(np.pi), targets=[0])
+    qc.add_gate(std.RZ(np.pi), targets=[0])
+    qc.add_gate(std.H, targets=[0])
+    qc.add_gate(std.X, targets=[0])
+    qc.add_gate(std.Y, targets=[0])
+    qc.add_gate(std.Z, targets=[0])
+    qc.add_gate(std.S, targets=[0])
+    qc.add_gate(std.T, targets=[0])
     # qc.add_gate(CZ, targets=[0], controls=[1])
 
     # The generated code by default has a inclusion statement of
@@ -229,7 +229,7 @@ def test_parsing_mode(tmp_path):
     )
     propagator = circuit.compute_unitary()
 
-    fidelity = qutip.average_gate_fidelity(propagator, SWAP.get_qobj())
+    fidelity = qutip.average_gate_fidelity(propagator, std.SWAP.get_qobj())
     pytest.approx(fidelity, 1.0)
 
     circuit = read_qasm(
@@ -238,5 +238,5 @@ def test_parsing_mode(tmp_path):
     )
     propagator = circuit.compute_unitary()
 
-    fidelity = qutip.average_gate_fidelity(propagator, SWAP.get_qobj())
+    fidelity = qutip.average_gate_fidelity(propagator, std.SWAP.get_qobj())
     pytest.approx(fidelity, 1.0)

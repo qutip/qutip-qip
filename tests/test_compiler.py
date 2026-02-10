@@ -103,9 +103,9 @@ def test_compiling_gates_different_sampling_number():
 
     num_qubits = 2
     circuit = QubitCircuit(num_qubits)
-    circuit.add_gate(U1, targets=0, arg_value=1.0)
-    circuit.add_gate(U2, targets=[0, 1], arg_value=1.0)
-    circuit.add_gate(U1, targets=0, arg_value=1.0)
+    circuit.add_gate(U1(arg_value=1.0), targets=0)
+    circuit.add_gate(U2(1.0), targets=[0, 1])
+    circuit.add_gate(U1(1.0), targets=0)
 
     compiler = MockCompiler(num_qubits=2)
     compiled_tlists, compiled_coeffs = compiler.compile(circuit)

@@ -11,7 +11,7 @@ from math import pi  # Don't remove
 
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations import custom_gate_factory
-from qutip_qip.operations.std import *
+import qutip_qip.operations.std as std
 
 __all__ = ["read_qasm", "save_qasm", "print_qasm", "circuit_to_qasm_str"]
 
@@ -536,17 +536,14 @@ class QasmProcessor:
         """
 
         gate_name_map_1q = {
-            "x": X,
-            "y": Y,
-            "z": Z,
-            "h": H,
-            "t": T,
-            "s": S,
+            "x": std.X,
+            "y": std.Y,
+            "z": std.Z,
+            "h": std.H,
+            "t": std.T,
+            "s": std.S,
             # "sdg": sdg,
             # "tdg": tdg,
-            "rx": RX,
-            "ry": RY,
-            "rz": RZ,
         }
         if len(args) == 0:
             args = None
@@ -555,55 +552,50 @@ class QasmProcessor:
 
         if name == "u3":
             qc.add_gate(
-                QASMU,
+                std.QASMU(args),
                 targets=regs[0],
-                arg_value=args,
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
             )
         elif name == "u2":
             u2_args = [np.pi / 2, args[0], args[1]]
             qc.add_gate(
-                QASMU,
+                std.QASMU(u2_args),
                 targets=regs[0],
-                arg_value=u2_args,
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
             )
         elif name == "id":
             qc.add_gate(
-                IDLE,
+                std.IDLE,
                 targets=regs[0],
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
             )
         elif name == "sdg":
             qc.add_gate(
-                RZ,
+                std.RZ(-np.pi / 2),
                 targets=regs[0],
-                arg_value=-np.pi / 2,
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
             )
         elif name == "tdg":
             qc.add_gate(
-                RZ,
+                std.RZ(-np.pi / 4),
                 targets=regs[0],
-                arg_value=-np.pi / 4,
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
             )
         elif name == "u1":
             qc.add_gate(
-                RZ,
+                std.RZ(args),
                 targets=regs[0],
-                arg_value=args,
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
             )
         elif name == "cz":
             qc.add_gate(
-                CZ,
+                std.CZ,
                 targets=regs[1],
                 controls=regs[0],
                 classical_controls=classical_controls,
@@ -611,7 +603,7 @@ class QasmProcessor:
             )
         elif name == "cy":
             qc.add_gate(
-                CY,
+                std.CY,
                 targets=regs[1],
                 controls=regs[0],
                 classical_controls=classical_controls,
@@ -619,7 +611,7 @@ class QasmProcessor:
             )
         elif name == "ch":
             qc.add_gate(
-                CH,
+                std.CH,
                 targets=regs[1],
                 controls=regs[0],
                 classical_controls=classical_controls,
@@ -627,7 +619,7 @@ class QasmProcessor:
             )
         elif name == "ccx":
             qc.add_gate(
-                TOFFOLI,
+                std.TOFFOLI,
                 targets=regs[2],
                 controls=regs[:2],
                 classical_controls=classical_controls,
@@ -635,46 +627,61 @@ class QasmProcessor:
             )
         elif name == "crz":
             qc.add_gate(
-                CRZ,
+                std.CRZ(args),
                 targets=regs[1],
                 controls=regs[0],
-                arg_value=args,
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
             )
         elif name == "cu1":
             qc.add_gate(
-                CPHASE,
+                std.CPHASE(args),
                 targets=regs[1],
                 controls=regs[0],
-                arg_value=args,
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
             )
         elif name == "cu3":
             qc.add_gate(
-                CQASMU,
+                std.CQASMU(args),
                 controls=regs[0],
                 targets=[regs[1]],
-                arg_value=args,
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
             )
         elif name == "cx":
             qc.add_gate(
-                CNOT,
+                std.CNOT,
                 targets=int(regs[1]),
                 controls=int(regs[0]),
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
             )
+        elif name == "rx":
+            qc.add_gate(
+                std.RX(args),
+                targets=int(regs[0]),
+                classical_controls=classical_controls,
+                classical_control_value=classical_control_value,
+            )
+        elif name == "ry":
+            qc.add_gate(
+                std.RY(args),
+                targets=int(regs[0]),
+                classical_controls=classical_controls,
+                classical_control_value=classical_control_value,
+            )
+        elif name == "rz":
+            qc.add_gate(
+                std.RZ(args),
+                targets=int(regs[0]),
+                classical_controls=classical_controls,
+                classical_control_value=classical_control_value,
+            )
         elif name in gate_name_map_1q:
-            if args == []:
-                args = None
             qc.add_gate(
                 gate_name_map_1q[name],
                 targets=int(regs[0]),
-                arg_value=args,
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
             )
@@ -714,7 +721,7 @@ class QasmProcessor:
 
         if name == "CX":
             qc.add_gate(
-                CNOT,
+                std.CNOT,
                 targets=int(com_regs[1]),
                 controls=int(com_regs[0]),
                 classical_controls=classical_controls,
@@ -722,9 +729,8 @@ class QasmProcessor:
             )
         elif name == "U":
             qc.add_gate(
-                QASMU,
+                std.QASMU(arg_value=[float(arg) for arg in com_args]),
                 targets=int(com_regs[0]),
-                arg_value=[float(arg) for arg in com_args],
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
             )

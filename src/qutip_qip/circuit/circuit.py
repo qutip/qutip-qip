@@ -283,7 +283,7 @@ class QubitCircuit:
             self.add_global_phase(gate.arg_value[0])
             return
 
-        # Handling case for int input
+        # Handling case for int input (TODO use try except)
         targets = [targets] if type(targets) is int else targets
         controls = [controls] if type(controls) is int else controls
         classical_controls = (
@@ -632,17 +632,11 @@ class QubitCircuit:
                 temp_resolved.add_global_phase(phase=np.pi / 2)
 
                 if gate.name == "X":
-                    temp_resolved.add_gate(
-                        "RX", targets=targets, arg_value=np.pi
-                    )
+                    temp_resolved.add_gate(RX(np.pi), targets=targets)
                 elif gate.name == "Y":
-                    temp_resolved.add_gate(
-                        "RY", targets=targets, arg_value=np.pi
-                    )
+                    temp_resolved.add_gate(RY(np.pi), targets=targets)
                 else:
-                    temp_resolved.add_gate(
-                        "RZ", targets=targets, arg_value=np.pi
-                    )
+                    temp_resolved.add_gate(RZ(np.pi), targets=targets)
 
             else:
                 try:

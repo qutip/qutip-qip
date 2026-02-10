@@ -423,7 +423,7 @@ class TestQubitCircuit:
                 return Qobj(mat, dims=[[2], [2]])
 
         qc = QubitCircuit(3)
-        qc.add_gate(CRX, targets=[2], controls=[1], arg_value=np.pi / 2)
+        qc.add_gate(CRX(np.pi / 2), targets=[2], controls=[1])
         qc.add_gate(T1, targets=[1])
         props = qc.propagators()
         result1 = tensor(identity(2), customer_gate1(np.pi / 2))

@@ -178,13 +178,13 @@ def _test_numerical_evolution_helper(
 
 
 circuit = QubitCircuit(3)
-circuit.add_gate(RX, targets=[0], arg_value=np.pi / 2)
-circuit.add_gate(RZ, targets=[2], arg_value=np.pi)
+circuit.add_gate(RX(np.pi / 2), targets=[0])
+circuit.add_gate(RZ(np.pi), targets=[2])
 circuit.add_gate(CNOT, targets=[0], controls=[1])
 circuit.add_gate(ISWAP, targets=[2, 1])
 circuit.add_gate(Y, targets=[2])
 circuit.add_gate(Z, targets=[0])
-circuit.add_gate(IDLE, targets=[1], arg_value=1.0)
+circuit.add_gate(IDLE, targets=[1])
 circuit.add_gate(CNOT, targets=[0], controls=[2])
 circuit.add_gate(Z, targets=[1])
 circuit.add_gate(X, targets=[1])

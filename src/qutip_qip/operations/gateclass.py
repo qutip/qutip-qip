@@ -255,6 +255,10 @@ class ParametricGate(Gate):
     def validate_params(self, arg_value):
         pass
 
+    @abstractmethod
+    def get_qobj(self) -> Qobj:
+        pass
+
     @staticmethod
     def is_parametric_gate():
         return True
@@ -267,13 +271,8 @@ class ParametricGate(Gate):
 
 
 class ControlledParamGate(ParametricGate, ControlledGate, ABC):
-    num_params = 1
-    def __init__(
-        self,
-        arg_value,
-        arg_label=None,
-        control_value=1,
-    ):
+    def __init__(self, arg_value, arg_label=None, control_value=1):
+        # TODO change this
         if type(arg_value) is float:
             arg_value = [arg_value]
 
@@ -288,9 +287,9 @@ class ControlledParamGate(ParametricGate, ControlledGate, ABC):
 
     def __str__(self):
         return f"""
-            Gate({self.name},
+            Gate({self.name}, target_gate{self.target_gate}
             arg_value={self.arg_value}, arg_label={self.arg_label},
-            control_value={self.control_value},
+            control_value={self.control_value}),
         """
 
 
