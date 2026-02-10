@@ -3,7 +3,7 @@ import numpy as np
 
 from qutip import Qobj
 from qutip_qip.operations import ControlledGate, AngleParametricGate
-from qutip_qip.operations.std import SWAP, X
+from qutip_qip.operations.std import X, SWAP
 
 
 class GLOBALPHASE(AngleParametricGate):
