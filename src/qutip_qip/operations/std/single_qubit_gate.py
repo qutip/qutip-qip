@@ -6,7 +6,13 @@ from qutip_qip.operations import Gate, AngleParametricGate
 
 class _SingleQubitGate(Gate):
     """Abstract one-qubit gate."""
-    num_qubits: int = 1
+    num_qubits = 1
+
+
+class _SingleQubitParametricGate(AngleParametricGate):
+    """Abstract one-qubit parametric gate."""
+    num_qubits = 1
+
 
 class X(_SingleQubitGate):
     """
@@ -22,6 +28,7 @@ class X(_SingleQubitGate):
      [1. 0.]]
     """
 
+    self_inverse = True
     latex_str = r"X"
 
     @staticmethod
@@ -43,6 +50,7 @@ class Y(_SingleQubitGate):
      [0.+1.j 0.+0.j]]
     """
 
+    self_inverse = True
     latex_str = r"Y"
 
     @staticmethod
@@ -64,113 +72,12 @@ class Z(_SingleQubitGate):
      [ 0. -1.]]
     """
 
+    self_inverse = True
     latex_str = r"Z"
 
     @staticmethod
     def get_qobj():
         return sigmaz(dtype="dense")
-
-
-class RX(AngleParametricGate):
-    """
-    Single-qubit rotation RX.
-
-    Examples
-    --------
-    >>> from qutip_qip.operations import RX
-    >>> RX(3.14159/2).get_qobj() # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
-    Qobj data =
-    [[0.70711+0.j      0.     -0.70711j]
-     [0.     -0.70711j 0.70711+0.j     ]]
-    """
-    num_qubits = 1
-    num_params = 1
-    latex_str = r"R_x"
-
-    def get_qobj(self):
-        phi = self.arg_value[0]
-        return Qobj(
-            [
-                [np.cos(phi / 2), -1j * np.sin(phi / 2)],
-                [-1j * np.sin(phi / 2), np.cos(phi / 2)],
-            ],
-            dims = [[2], [2]]
-        )
-
-
-class RY(AngleParametricGate):
-    """
-    Single-qubit rotation RY.
-
-    Examples
-    --------
-    >>> from qutip_qip.operations import RY
-    >>> RY(0, 3.14159/2).get_qobj() # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
-    Qobj data =
-    [[ 0.70711 -0.70711]
-     [ 0.70711  0.70711]]
-    """
-
-    num_qubits = 1
-    num_params: int = 1
-    latex_str = r"R_y"
-
-    def get_qobj(self):
-        phi = self.arg_value[0]
-        return Qobj(
-            [
-                [np.cos(phi / 2), -np.sin(phi / 2)],
-                [np.sin(phi / 2), np.cos(phi / 2)],
-            ]
-        )
-
-
-class RZ(AngleParametricGate):
-    """
-    Single-qubit rotation RZ.
-
-    Examples
-    --------
-    >>> from qutip_qip.operations import RZ
-    >>> RZ(0, 3.14159/2).get_qobj() # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
-    Qobj data =
-    [[0.70711-0.70711j 0.     +0.j     ]
-     [0.     +0.j      0.70711+0.70711j]]
-    """
-
-    num_qubits = 1
-    num_params: int = 1
-    latex_str = r"R_z"
-
-    def get_qobj(self):
-        phi = self.arg_value[0]
-        return Qobj([[np.exp(-1j * phi / 2), 0], [0, np.exp(1j * phi / 2)]])
-
-
-class PHASE(AngleParametricGate):
-    """
-    PHASE Gate.
-
-    Examples
-    --------
-    >>> from qutip_qip.operations import PHASE
-    """
-
-    num_qubits = 1
-    num_params: int = 1
-    latex_str = r"PHASE"
-
-    def get_qobj(self):
-        phi = self.arg_value[0]
-        return Qobj(
-            [
-                [1, 0],
-                [0, np.exp(1j * phi)],
-            ]
-        )
 
 
 class IDLE(_SingleQubitGate):
@@ -182,6 +89,7 @@ class IDLE(_SingleQubitGate):
     >>> from qutip_qip.operations import IDLE
     """
 
+    self_inverse = True
     latex_str = r"{\rm IDLE}"
 
     @staticmethod
@@ -203,6 +111,7 @@ class H(_SingleQubitGate):
      [ 0.70711 -0.70711]]
     """
 
+    self_inverse = True
     latex_str = r"H"
 
     @staticmethod
@@ -228,6 +137,7 @@ class SQRTNOT(_SingleQubitGate):
      [0.5-0.5j 0.5+0.5j]]
     """
 
+    self_inverse = False
     latex_str = r"\sqrt{\rm NOT}"
 
     @staticmethod
@@ -249,6 +159,7 @@ class S(_SingleQubitGate):
      [0.+0.j 0.+1.j]]
     """
 
+    self_inverse = False
     latex_str = r"{\rm S}"
 
     @staticmethod
@@ -270,6 +181,7 @@ class T(_SingleQubitGate):
      [0.     +0.j      0.70711+0.70711j]]
     """
 
+    self_inverse = False
     latex_str = r"{\rm T}"
 
     @staticmethod
@@ -277,7 +189,102 @@ class T(_SingleQubitGate):
         return Qobj([[1, 0], [0, np.exp(1j * np.pi / 4)]])
 
 
-class R(AngleParametricGate):
+class RX(_SingleQubitParametricGate):
+    """
+    Single-qubit rotation RX.
+
+    Examples
+    --------
+    >>> from qutip_qip.operations import RX
+    >>> RX(3.14159/2).get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
+    Qobj data =
+    [[0.70711+0.j      0.     -0.70711j]
+     [0.     -0.70711j 0.70711+0.j     ]]
+    """
+    num_params = 1
+    latex_str = r"R_x"
+
+    def get_qobj(self):
+        phi = self.arg_value[0]
+        return Qobj(
+            [
+                [np.cos(phi / 2), -1j * np.sin(phi / 2)],
+                [-1j * np.sin(phi / 2), np.cos(phi / 2)],
+            ],
+            dims = [[2], [2]]
+        )
+
+
+class RY(_SingleQubitParametricGate):
+    """
+    Single-qubit rotation RY.
+
+    Examples
+    --------
+    >>> from qutip_qip.operations import RY
+    >>> RY(0, 3.14159/2).get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
+    Qobj data =
+    [[ 0.70711 -0.70711]
+     [ 0.70711  0.70711]]
+    """
+    num_params = 1
+    latex_str = r"R_y"
+
+    def get_qobj(self):
+        phi = self.arg_value[0]
+        return Qobj(
+            [
+                [np.cos(phi / 2), -np.sin(phi / 2)],
+                [np.sin(phi / 2), np.cos(phi / 2)],
+            ]
+        )
+
+
+class RZ(_SingleQubitParametricGate):
+    """
+    Single-qubit rotation RZ.
+
+    Examples
+    --------
+    >>> from qutip_qip.operations import RZ
+    >>> RZ(0, 3.14159/2).get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
+    Qobj data =
+    [[0.70711-0.70711j 0.     +0.j     ]
+     [0.     +0.j      0.70711+0.70711j]]
+    """
+    num_params = 1
+    latex_str = r"R_z"
+
+    def get_qobj(self):
+        phi = self.arg_value[0]
+        return Qobj([[np.exp(-1j * phi / 2), 0], [0, np.exp(1j * phi / 2)]])
+
+
+class PHASE(_SingleQubitParametricGate):
+    """
+    PHASE Gate.
+
+    Examples
+    --------
+    >>> from qutip_qip.operations import PHASE
+    """
+    num_params = 1
+    latex_str = r"PHASE"
+
+    def get_qobj(self):
+        phi = self.arg_value[0]
+        return Qobj(
+            [
+                [1, 0],
+                [0, np.exp(1j * phi)],
+            ]
+        )
+
+
+class R(_SingleQubitParametricGate):
     r"""
     Arbitrary single-qubit rotation
 
@@ -298,8 +305,7 @@ class R(AngleParametricGate):
      [ 0.70711  0.70711]]
     """
 
-    num_qubits = 1
-    num_params: int = 2
+    num_params = 2
     latex_str = r"{\rm R}"
 
     def get_qobj(self):
@@ -318,7 +324,7 @@ class R(AngleParametricGate):
         )
 
 
-class QASMU(AngleParametricGate):
+class QASMU(_SingleQubitParametricGate):
     r"""
     QASMU gate.
 
@@ -335,8 +341,7 @@ class QASMU(AngleParametricGate):
      [ 0.5+0.5j -0.5+0.5j]]
     """
 
-    num_qubits = 1
-    num_params: int = 3
+    num_params = 3
     latex_str = r"{\rm QASMU}"
 
     def get_qobj(self):

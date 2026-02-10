@@ -1,5 +1,4 @@
 from abc import ABC, ABCMeta, abstractmethod
-from typing import Final
 import warnings
 import inspect
 
@@ -25,7 +24,7 @@ class _ReadOnlyGateMetaClass(ABCMeta):
 
     But X.num_qubits = 2 will throw an overwrite error.
     """
-    _read_only = ["num_qubits", "num_ctrl_qubits", "num_params", "target_gate"]
+    _read_only = ["num_qubits", "num_ctrl_qubits", "num_params", "target_gate", "self_inverse"]
 
     def __setattr__(cls, name, value):
         for attribute in cls._read_only:
@@ -144,6 +143,17 @@ class Gate(ABC, metaclass=_ReadOnlyGateMetaClass):
     def is_parametric_gate():
         return False
 
+    @property
+    @abstractmethod
+    def self_inverse(self) -> bool:
+        pass
+
+    def inverse(self):
+        """Returns the inverse gate class"""
+        if self.self_inverse:
+            return self
+        # Implement this via gate factory?
+
     def __str__(self):
         return f"Gate({self.name})"
 
@@ -193,6 +203,10 @@ class ControlledGate(Gate):
     @abstractmethod
     def target_gate(self) -> int:
         pass
+
+    @property
+    def self_inverse(self) -> int:
+        return self.target_gate.self_inverse
 
     @property
     def control_value(self) -> int:
@@ -300,10 +314,13 @@ def custom_gate_factory(gate_name: str, U: Qobj) -> Gate:
     Gate Factory for Custom Gate that wraps an arbitrary unitary matrix U.
     """
 
+    inverse = (U == U.dag())
+
     class CustomGate(Gate):
         latex_str = r"U"
         name = gate_name
         num_qubits = int(np.log2(U.shape[0]))
+        self_inverse = inverse
 
         def __init__(self):
             self._U = U
@@ -346,3 +363,7 @@ class AngleParametricGate(ParametricGate):
                 float(arg)
             except TypeError:
                 raise ValueError(f"Invalid arg {arg} in arg_value")
+
+    @property
+    def self_inverse(self) -> int:
+        return False

@@ -45,7 +45,7 @@ class SWAP(_TwoQubitGate):
      [0. 1. 0. 0.]
      [0. 0. 0. 1.]]
     """
-
+    self_inverse = True
     latex_str = r"{\rm SWAP}"
 
     @staticmethod
@@ -71,7 +71,7 @@ class ISWAP(_TwoQubitGate):
      [0.+0.j 0.+1.j 0.+0.j 0.+0.j]
      [0.+0.j 0.+0.j 0.+0.j 1.+0.j]]
     """
-
+    self_inverse = False
     latex_str = r"{i}{\rm SWAP}"
 
     @staticmethod
@@ -97,7 +97,7 @@ class SQRTSWAP(_TwoQubitGate):
      [0. +0.j  0.5-0.5j 0.5+0.5j 0. +0.j ]
      [0. +0.j  0. +0.j  0. +0.j  1. +0.j ]]
     """
-
+    self_inverse = False
     latex_str = r"\sqrt{\rm SWAP}"
 
     @staticmethod
@@ -130,7 +130,7 @@ class SQRTISWAP(_TwoQubitGate):
      [0.     +0.j      0.     +0.70711j 0.70711+0.j      0.     +0.j     ]
      [0.     +0.j      0.     +0.j      0.     +0.j      1.     +0.j     ]]
     """
-
+    self_inverse = False
     latex_str = r"\sqrt{{i}\rm SWAP}"
 
     @staticmethod
@@ -172,7 +172,7 @@ class BERKELEY(_TwoQubitGate):
      [0.     +0.j      0.     +0.92388j 0.38268+0.j      0.     +0.j     ]
      [0.     +0.38268j 0.     +0.j      0.     +0.j      0.92388+0.j     ]]
     """
-
+    self_inverse = False
     latex_str = r"{\rm BERKELEY}"
 
     @staticmethod

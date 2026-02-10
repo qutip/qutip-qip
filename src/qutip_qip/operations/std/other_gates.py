@@ -17,6 +17,7 @@ class GLOBALPHASE(AngleParametricGate):
 
     num_qubits: int = 0
     num_params: int = 1
+    self_inverse = False
     latex_str = r"{\rm GLOBALPHASE}"
 
     def __init__(self, arg_value: float = 0.0):

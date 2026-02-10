@@ -163,6 +163,7 @@ class TestQubitCircuit:
 
         class DUMMY1(Gate):
             num_qubits = 1
+            self_inverse = False
 
             def __init__(self, **kwargs):
                 super().__init__(**kwargs)
@@ -411,6 +412,7 @@ class TestQubitCircuit:
 
         class T1(Gate):
             num_qubits = 1
+            self_inverse = True
 
             def __init__(self):
                 pass
@@ -437,6 +439,7 @@ class TestQubitCircuit:
 
         class CTRLMAT3(Gate):
             num_qubits = 2
+            self_inverse = False
 
             def validate_params(self):
                 pass
