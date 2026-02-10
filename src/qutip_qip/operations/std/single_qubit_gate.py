@@ -27,8 +27,8 @@ class X(_SingleQubitGate):
     [[0. 1.]
      [1. 0.]]
     """
-
     self_inverse = True
+    is_clifford = True
     latex_str = r"X"
 
     @staticmethod
@@ -49,8 +49,8 @@ class Y(_SingleQubitGate):
     [[0.+0.j 0.-1.j]
      [0.+1.j 0.+0.j]]
     """
-
     self_inverse = True
+    is_clifford = True
     latex_str = r"Y"
 
     @staticmethod
@@ -71,8 +71,8 @@ class Z(_SingleQubitGate):
     [[ 1.  0.]
      [ 0. -1.]]
     """
-
     self_inverse = True
+    is_clifford = True
     latex_str = r"Z"
 
     @staticmethod
@@ -88,8 +88,8 @@ class IDLE(_SingleQubitGate):
     --------
     >>> from qutip_qip.operations import IDLE
     """
-
     self_inverse = True
+    is_clifford = True
     latex_str = r"{\rm IDLE}"
 
     @staticmethod
@@ -110,8 +110,8 @@ class H(_SingleQubitGate):
     [[ 0.70711  0.70711]
      [ 0.70711 -0.70711]]
     """
-
     self_inverse = True
+    is_clifford = True
     latex_str = r"H"
 
     @staticmethod
@@ -136,8 +136,8 @@ class SQRTNOT(_SingleQubitGate):
     [[0.5+0.5j 0.5-0.5j]
      [0.5-0.5j 0.5+0.5j]]
     """
-
     self_inverse = False
+    is_clifford = True
     latex_str = r"\sqrt{\rm NOT}"
 
     @staticmethod
@@ -158,8 +158,8 @@ class S(_SingleQubitGate):
     [[1.+0.j 0.+0.j]
      [0.+0.j 0.+1.j]]
     """
-
     self_inverse = False
+    is_clifford = True
     latex_str = r"{\rm S}"
 
     @staticmethod
@@ -180,7 +180,6 @@ class T(_SingleQubitGate):
     [[1.     +0.j      0.     +0.j     ]
      [0.     +0.j      0.70711+0.70711j]]
     """
-
     self_inverse = False
     latex_str = r"{\rm T}"
 

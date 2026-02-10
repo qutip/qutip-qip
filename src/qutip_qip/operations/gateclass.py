@@ -1,5 +1,4 @@
 from abc import ABC, ABCMeta, abstractmethod
-import warnings
 import inspect
 
 import numpy as np
@@ -108,8 +107,6 @@ class Gate(ABC, metaclass=_ReadOnlyGateMetaClass):
     def get_qobj(self) -> Qobj:
         """
         Get the :class:`qutip.Qobj` representation of the gate operator.
-        The operator is expanded to the full Hilbert space according to
-        the controls and targets qubits defined for the gate.
 
         Returns
         -------
@@ -117,31 +114,6 @@ class Gate(ABC, metaclass=_ReadOnlyGateMetaClass):
             The compact gate operator as a unitary matrix.
         """
         pass
-
-    def get_compact_qobj(self) -> Qobj:
-        """
-        Get the compact :class:`qutip.Qobj` representation of the gate
-        operator, ignoring the controls and targets.
-
-        Returns
-        -------
-        qobj : :obj:`qutip.Qobj`
-            The compact gate operator as a unitary matrix.
-        """
-        warnings.warn(
-            "get_compact_qobj method has been deprecated and will be removed in future versions.",
-            DeprecationWarning,
-            stacklevel=2
-        )
-        self.get_qobj()
-
-    @staticmethod
-    def is_controlled_gate():
-        return False
-
-    @staticmethod
-    def is_parametric_gate():
-        return False
 
     @property
     @abstractmethod
@@ -153,6 +125,18 @@ class Gate(ABC, metaclass=_ReadOnlyGateMetaClass):
         if self.self_inverse:
             return self
         # Implement this via gate factory?
+
+    @property
+    def is_clifford(self) -> bool:
+        return False
+
+    @staticmethod
+    def is_controlled_gate():
+        return False
+
+    @staticmethod
+    def is_parametric_gate():
+        return False
 
     def __str__(self):
         return f"Gate({self.name})"

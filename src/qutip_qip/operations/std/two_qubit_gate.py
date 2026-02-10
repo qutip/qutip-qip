@@ -46,6 +46,7 @@ class SWAP(_TwoQubitGate):
      [0. 0. 0. 1.]]
     """
     self_inverse = True
+    is_clifford = True
     latex_str = r"{\rm SWAP}"
 
     @staticmethod
@@ -72,6 +73,7 @@ class ISWAP(_TwoQubitGate):
      [0.+0.j 0.+0.j 0.+0.j 1.+0.j]]
     """
     self_inverse = False
+    is_clifford = True
     latex_str = r"{i}{\rm SWAP}"
 
     @staticmethod
@@ -131,6 +133,7 @@ class SQRTISWAP(_TwoQubitGate):
      [0.     +0.j      0.     +0.j      0.     +0.j      1.     +0.j     ]]
     """
     self_inverse = False
+    is_clifford = True
     latex_str = r"\sqrt{{i}\rm SWAP}"
 
     @staticmethod
@@ -353,6 +356,7 @@ class CNOT(_ControlledTwoQubitGate):
     """
 
     target_gate = X
+    is_clifford = True
     latex_str = r"{\rm CNOT}"
 
     @staticmethod
@@ -383,8 +387,9 @@ class CY(_ControlledTwoQubitGate):
      [ 0+0j.  0.+0j  0.+1j. 0.+0j]]
     """
 
-    latex_str = r"{\rm CY}"
     target_gate = Y
+    is_clifford = True
+    latex_str = r"{\rm CY}"
 
     @staticmethod
     def get_qobj():
@@ -410,8 +415,9 @@ class CZ(_ControlledTwoQubitGate):
      [ 0.  0.  0. -1.]]
     """
 
-    latex_str = r"{\rm CZ}"
     target_gate = Z
+    is_clifford = True
+    latex_str = r"{\rm CZ}"
 
     @staticmethod
     def get_qobj():
@@ -443,8 +449,8 @@ class CH(_ControlledTwoQubitGate):
     >>> from qutip_qip.operations import CH
     """
 
-    latex_str = r"{\rm CH}"
     target_gate = H
+    latex_str = r"{\rm CH}"
 
     @staticmethod
     def get_qobj():
@@ -478,8 +484,8 @@ class CT(_ControlledTwoQubitGate):
     >>> from qutip_qip.operations import CPHASE
     """
 
-    latex_str = r"{\rm CT}"
     target_gate = T
+    latex_str = r"{\rm CT}"
 
     @staticmethod
     def get_qobj():
@@ -512,8 +518,8 @@ class CS(_ControlledTwoQubitGate):
     >>> from qutip_qip.operations import CPHASE
     """
 
-    latex_str = r"{\rm CS}"
     target_gate = S
+    latex_str = r"{\rm CS}"
 
     @staticmethod
     def get_qobj():
