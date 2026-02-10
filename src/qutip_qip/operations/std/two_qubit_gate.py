@@ -6,7 +6,7 @@ from qutip import Qobj
 from qutip_qip.operations import (
     Gate,
     ControlledGate,
-    ControlledParamGate,
+    ControlledParametricGate,
     AngleParametricGate,
 )
 from qutip_qip.operations.std import (
@@ -531,7 +531,7 @@ class CS(_ControlledTwoQubitGate):
         )
 
 
-class _ControlledParamTwoQubitGate(ControlledParamGate, AngleParametricGate):
+class _ControlledParamTwoQubitGate(ControlledParametricGate, AngleParametricGate):
     """
     This class allows correctly generating the gate instance
     when a redundant control_value is given, e.g.
