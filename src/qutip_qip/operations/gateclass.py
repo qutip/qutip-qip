@@ -103,8 +103,9 @@ class Gate(ABC, metaclass=_ReadOnlyGateMetaClass):
     def num_qubits(self) -> Qobj:
         pass
 
+    @staticmethod
     @abstractmethod
-    def get_qobj(self) -> Qobj:
+    def get_qobj() -> Qobj:
         """
         Get the :class:`qutip.Qobj` representation of the gate operator.
 

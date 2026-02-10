@@ -444,7 +444,8 @@ class TestQubitCircuit:
             def validate_params(self):
                 pass
 
-            def get_qobj(self):
+            @staticmethod
+            def get_qobj():
                 """
                 A qubit control an operator acting on a 3 level system
                 """
@@ -493,7 +494,7 @@ class TestQubitCircuit:
     def test_classical_control(self):
         qc = QubitCircuit(1, num_cbits=2)
         qc.add_gate(
-            "X",
+            X,
             targets=[0],
             classical_controls=[0, 1],
             classical_control_value=1,
@@ -504,7 +505,7 @@ class TestQubitCircuit:
 
         qc = QubitCircuit(1, num_cbits=2)
         qc.add_gate(
-            "X",
+            X,
             targets=[0],
             classical_controls=[0, 1],
             classical_control_value=2,

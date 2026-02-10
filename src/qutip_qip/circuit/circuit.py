@@ -263,6 +263,22 @@ class QubitCircuit:
         if index is not None:
             raise ValueError("argument index is no longer supported")
 
+        if arg_value is not None or arg_label is not None:
+            warnings.warn(
+                "Define 'arg_value', 'arg_label' in your Gate object e.g. RX(arg_value=np.pi)" \
+                ", 'arg_value', 'arg_label' arguments will be removed from 'add_gate' method in the future version.",
+                DeprecationWarning,
+                stacklevel=2
+            )
+
+        if control_value is not None:
+            warnings.warn(
+                "Define 'control_value', in your Gate object e.g. CX(control_value=0)" \
+                ", 'control_value' argument will be removed from 'add_gate' method in the future version.",
+                DeprecationWarning,
+                stacklevel=2
+            )
+
         if isinstance(gate, GLOBALPHASE):
             self.add_global_phase(gate.arg_value[0])
             return
@@ -288,6 +304,8 @@ class QubitCircuit:
             "classical_controls", classical_controls, self.num_cbits - 1, int
         )
 
+        # Check len(controls) == gate.num_ctrl_qubits
+
         # Default value for classical control
         if len(classical_controls) > 0 and classical_control_value is None:
             classical_control_value = 2 ** (len(classical_controls)) - 1
@@ -295,7 +313,13 @@ class QubitCircuit:
         # This can be remove if the gate input is only restricted to Gate or its object instead of strings
         if not isinstance(gate, Gate):
             if type(gate) is str and gate in GATE_CLASS_MAP:
+                warnings.warn(
+                    "Passing Gate as a string input has been deprecated and will be removed in future versions.",
+                    DeprecationWarning,
+                    stacklevel=2
+                )
                 gate_class = GATE_CLASS_MAP[gate]
+
             elif issubclass(gate, Gate):
                 gate_class = gate
             else:
@@ -316,9 +340,6 @@ class QubitCircuit:
 
             elif gate_class.is_controlled_gate():
                 gate = gate_class(control_value=control_value)
-
-            else:
-                gate = gate_class()
 
         qubits = []
         if controls is not None:

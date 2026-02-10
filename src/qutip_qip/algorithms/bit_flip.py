@@ -1,5 +1,5 @@
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import CNOT, TOFFOLI
+from qutip_qip.operations import CNOT, TOFFOLI, X
 
 
 class BitFlipCode:
@@ -102,19 +102,19 @@ class BitFlipCode:
         # Classical-controlled corrections based on measurement outcomes
         # 2 (10): X on qubit 0, 3 (11): X on qubit 1, 1 (01): X on qubit 2
         qc.add_gate(
-            "X",
+            X,
             targets=dq[0],
             classical_controls=[0, 1],
             classical_control_value=2,
         )
         qc.add_gate(
-            "X",
+            X,
             targets=dq[1],
             classical_controls=[0, 1],
             classical_control_value=3,
         )
         qc.add_gate(
-            "X",
+            X,
             targets=dq[2],
             classical_controls=[0, 1],
             classical_control_value=1,
