@@ -7,30 +7,8 @@ import qutip
 from qutip_qip.qasm import read_qasm, circuit_to_qasm_str
 from qutip_qip.circuit import QubitCircuit
 from qutip import tensor, rand_ket, basis, identity
-from qutip_qip.operations import (
-    X,
-    Y,
-    Z,
-    H,
-    T,
-    S,
-    SQRTNOT,
-    QASMU,
-    CT,
-    CS,
-    CX,
-    CNOT,
-    CZ,
-    CRX,
-    CRY,
-    CRZ,
-    RX,
-    RY,
-    RZ,
-    SWAP,
-    TOFFOLI,
-    Measurement,
-)
+from qutip_qip.operations import Measurement
+from qutip_qip.operations.std import *
 
 
 @pytest.mark.parametrize(

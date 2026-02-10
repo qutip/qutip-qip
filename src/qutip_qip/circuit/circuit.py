@@ -10,9 +10,6 @@ from qutip_qip.typing import IntList
 from ._decompose import _resolve_to_universal, _resolve_2q_basis
 from qutip_qip.operations import (
     Gate,
-    ControlledGate,
-    ParametricGate,
-    ControlledParamGate,
     GLOBALPHASE,
     RX,
     RY,

@@ -19,31 +19,8 @@ from qutip import (
     identity,
 )
 from qutip_qip.qasm import read_qasm
-from qutip_qip.operations import (
-    Gate,
-    ControlledGate,
-    X,
-    Y,
-    Z,
-    H,
-    S,
-    T,
-    RX,
-    RY,
-    CNOT,
-    CY,
-    CZ,
-    CSIGN,
-    CS,
-    CT,
-    CRX,
-    SWAP,
-    ISWAP,
-    TOFFOLI,
-    FREDKIN,
-    Measurement,
-    gate_sequence_product,
-)
+from qutip_qip.operations import Gate, Measurement, gate_sequence_product
+from qutip_qip.operations.std import *
 from qutip_qip.transpiler import to_chain_structure
 from qutip_qip.decompose.decompose_single_qubit_gate import _ZYZ_rotation
 

@@ -6,11 +6,7 @@ from math import ceil
 
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.circuit.draw import BaseRenderer, StyleConfig
-from qutip_qip.operations import (
-    Gate,
-    ControlledGate,
-    ParametricGate,
-)
+from qutip_qip.operations import Gate
 
 
 class TextRenderer(BaseRenderer):

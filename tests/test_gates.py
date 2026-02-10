@@ -5,40 +5,8 @@ import numpy as np
 import qutip
 from qutip_qip.operations import gates
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import (
-    Gate,
-    X,
-    Y,
-    Z,
-    RX,
-    RY,
-    RZ,
-    PHASE,
-    H,
-    SQRTNOT,
-    S,
-    T,
-    QASMU,
-    CNOT,
-    CPHASE,
-    ISWAP,
-    SWAP,
-    CX,
-    CY,
-    CZ,
-    CS,
-    CT,
-    SQRTSWAP,
-    SQRTISWAP,
-    SWAPALPHA,
-    MS,
-    TOFFOLI,
-    FREDKIN,
-    BERKELEY,
-    R,
-    RZX,
-    expand_operator,
-)
+from qutip_qip.operations import Gate, expand_operator
+from qutip_qip.operations.std import *
 
 
 def _permutation_id(permutation):

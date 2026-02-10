@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from qutip_qip.operations import Gate, Measurement, ParametricGate
+from qutip_qip.operations import Gate, Measurement
 
 
 def _validate_non_negative_int_tuple(T: any, txt: str = ""):

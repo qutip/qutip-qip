@@ -4,13 +4,7 @@ import cmath
 
 from qutip_qip.decompose._utility import check_gate
 
-from qutip_qip.operations import (
-    GLOBALPHASE,
-    X,
-    RX,
-    RY,
-    RZ,
-)
+from qutip_qip.operations import GLOBALPHASE, X, RX, RY, RZ
 
 
 class MethodError(Exception):
