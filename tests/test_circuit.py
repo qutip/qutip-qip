@@ -82,8 +82,8 @@ class TestQubitCircuit:
         [
             pytest.param(std.SWAP, "CNOT", [0, 1], [], id="SWAPtoCNOT"),
             pytest.param(std.ISWAP, "CNOT", [0, 1], [], id="ISWAPtoCNOT"),
-            pytest.param(std.CSIGN, "CNOT", [1], [0], id="CSIGNtoCNOT"),
-            pytest.param(std.CNOT, "CSIGN", [0], [1], id="CNOTtoCSIGN"),
+            pytest.param(std.CZ, "CNOT", [1], [0], id="CZtoCNOT"),
+            pytest.param(std.CNOT, "CZ", [0], [1], id="CNOTtoCZ"),
             pytest.param(std.CNOT, "SQRTSWAP", [0], [1], id="CNOTtoSQRTSWAP"),
             pytest.param(std.CNOT, "SQRTISWAP", [0], [1], id="CNOTtoSQRTISWAP"),
             pytest.param(std.CNOT, "ISWAP", [0], [1], id="CNOTtoISWAP"),
@@ -97,9 +97,9 @@ class TestQubitCircuit:
         U2 = qc2.compute_unitary()
         assert _op_dist(U1, U2) < 1e-12
 
-    def testSNOTdecompose(self):
+    def testHdecompose(self):
         """
-        SNOT to rotation: compare unitary matrix for SNOT and product of
+        H to rotation: compare unitary matrix for H and product of
         resolved matrices in terms of rotation gates.
         """
         qc1 = QubitCircuit(1)

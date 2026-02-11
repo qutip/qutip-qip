@@ -57,7 +57,7 @@ def _gate_SQRTNOT(circ_instruction, temp_resolved):
     )
 
 
-def _gate_SNOT(circ_instruction, temp_resolved):
+def _gate_H(circ_instruction, temp_resolved):
     half_pi = np.pi / 2
     targets = circ_instruction.targets
 
@@ -70,7 +70,7 @@ def _gate_SNOT(circ_instruction, temp_resolved):
     )
 
 
-_gate_H = _gate_SNOT
+_gate_SNOT = _gate_H
 
 
 def _gate_PHASEGATE(circ_instruction, temp_resolved):
@@ -84,7 +84,7 @@ def _gate_PHASEGATE(circ_instruction, temp_resolved):
     )
 
 
-def _gate_CSIGN(circ_instruction, temp_resolved):
+def _gate_CZ(circ_instruction, temp_resolved):
     half_pi = np.pi / 2
     targets = circ_instruction.targets
     controls = circ_instruction.controls
@@ -103,6 +103,8 @@ def _gate_CSIGN(circ_instruction, temp_resolved):
     temp_resolved.add_gate(
         RX(arg_value=np.pi, arg_label=r"\pi"), targets=targets,
     )
+
+_gate_CSIGN = _gate_CZ
 
 
 def _gate_SWAP(circ_instruction, temp_resolved):
@@ -262,7 +264,7 @@ def _gate_TOFFOLI(circ_instruction, temp_resolved):
     temp_resolved.add_global_phase(phase=np.pi)
 
 
-def _basis_CSIGN(qc_temp, temp_resolved):
+def _basis_CZ(qc_temp, temp_resolved):
     half_pi = np.pi / 2
     for circ_instruction in temp_resolved.instructions:
         gate = circ_instruction.operation
@@ -289,6 +291,7 @@ def _basis_CSIGN(qc_temp, temp_resolved):
                 style=circ_instruction.style,
             )
 
+_basis_CSIGN = _basis_CZ
 
 def _basis_ISWAP(qc_temp, temp_resolved):
     half_pi = np.pi / 2

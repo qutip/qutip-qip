@@ -28,20 +28,21 @@ We will work through this example and explain briefly the workflow and all the m
     from qutip import basis
     from qutip_qip.circuit import QubitCircuit
     from qutip_qip.device import LinearSpinChain
+    from qutip_qip.operations import H, X, CNOT
 
     # Define a circuit
     qc = QubitCircuit(3)
-    qc.add_gate("X", targets=2)
-    qc.add_gate("SNOT", targets=0)
-    qc.add_gate("SNOT", targets=1)
-    qc.add_gate("SNOT", targets=2)
+    qc.add_gate(X, targets=2)
+    qc.add_gate(H, targets=0)
+    qc.add_gate(H, targets=1)
+    qc.add_gate(H, targets=2)
 
     # Oracle function f(x)
-    qc.add_gate("CNOT", controls=0, targets=2)
-    qc.add_gate("CNOT", controls=1, targets=2)
+    qc.add_gate(CNOT, controls=0, targets=2)
+    qc.add_gate(CNOT, controls=1, targets=2)
 
-    qc.add_gate("SNOT", targets=0)
-    qc.add_gate("SNOT", targets=1)
+    qc.add_gate(H, targets=0)
+    qc.add_gate(H, targets=1)
 
     # Run gate-level simulation
     init_state = basis([2,2,2], [0,0,0])
@@ -154,18 +155,20 @@ In the following example we plot the compiled Deutsche Jozsa algorithm:
 
     # Deutsch-Jozsa algorithm
     from qutip_qip.circuit import QubitCircuit
+    from qutip_qip.operations import X, H, CNOT
+
     qc = QubitCircuit(3)
-    qc.add_gate("X", targets=2)
-    qc.add_gate("SNOT", targets=0)
-    qc.add_gate("SNOT", targets=1)
-    qc.add_gate("SNOT", targets=2)
+    qc.add_gate(X, targets=2)
+    qc.add_gate(H, targets=0)
+    qc.add_gate(H, targets=1)
+    qc.add_gate(H, targets=2)
 
     # Oracle function f(x)
-    qc.add_gate("CNOT", controls=0, targets=2)
-    qc.add_gate("CNOT", controls=1, targets=2)
+    qc.add_gate(CNOT, controls=0, targets=2)
+    qc.add_gate(CNOT, controls=1, targets=2)
 
-    qc.add_gate("SNOT", targets=0)
-    qc.add_gate("SNOT", targets=1)
+    qc.add_gate(H, targets=0)
+    qc.add_gate(H, targets=1)
 
     from qutip_qip.device import LinearSpinChain
     spinchain_processor = LinearSpinChain(num_qubits=3, t2=30)  # T2 = 30
@@ -221,9 +224,9 @@ To let it find the optimal pulses, we need to give the parameters for :func:`~qu
     :context: close-figs
 
     from qutip_qip.device import OptPulseProcessor, SpinChainModel
-    setting_args = {"SNOT": {"num_tslots": 6, "evo_time": 2},
-                    "X": {"num_tslots": 1, "evo_time": 0.5},
-                    "CNOT": {"num_tslots": 12, "evo_time": 5}}
+    setting_args = {H: {"num_tslots": 6, "evo_time": 2},
+                    X: {"num_tslots": 1, "evo_time": 0.5},
+                    CNOT: {"num_tslots": 12, "evo_time": 5}}
     opt_processor = OptPulseProcessor(
         num_qubits=3, model=SpinChainModel(3, setup="linear"))
     opt_processor.load_circuit(  # Provide parameters for the algorithm

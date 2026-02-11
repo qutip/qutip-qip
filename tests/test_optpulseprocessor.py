@@ -86,7 +86,6 @@ class TestOptPulseProcessor:
         # qubits circuit with 3 gates
         setting_args = {
             "H": {"num_tslots": 10, "evo_time": 1},
-            "SNOT": {"num_tslots": 10, "evo_time": 1},
             "SWAP": {"num_tslots": 30, "evo_time": 3},
             "CNOT": {"num_tslots": 30, "evo_time": 3},
         }

@@ -426,14 +426,15 @@ class Scheduler:
         --------
         >>> from qutip_qip.circuit import QubitCircuit
         >>> from qutip_qip.compiler import Scheduler
+        >>> from qutip_qip.operations import H, CZ, SWAP
         >>> circuit = QubitCircuit(7)
-        >>> circuit.add_gate("SNOT", targets=3)  # gate0
-        >>> circuit.add_gate("CZ", targets=5, controls=3)  # gate1
-        >>> circuit.add_gate("CZ", targets=4, controls=3)  # gate2
-        >>> circuit.add_gate("CZ", targets=2, controls=3)  # gate3
-        >>> circuit.add_gate("CZ", targets=6, controls=5)  # gate4
-        >>> circuit.add_gate("CZ", targets=2, controls=6)  # gate5
-        >>> circuit.add_gate("SWAP", targets=[0, 2])  # gate6
+        >>> circuit.add_gate(H, targets=3)  # gate0
+        >>> circuit.add_gate(CZ, targets=5, controls=3)  # gate1
+        >>> circuit.add_gate(CZ, targets=4, controls=3)  # gate2
+        >>> circuit.add_gate(CZ, targets=2, controls=3)  # gate3
+        >>> circuit.add_gate(CZ, targets=6, controls=5)  # gate4
+        >>> circuit.add_gate(CZ, targets=2, controls=6)  # gate5
+        >>> circuit.add_gate(SWAP, targets=[0, 2])  # gate6
         >>>
         >>> scheduler = Scheduler("ASAP")
         >>> scheduler.schedule(circuit, gates_schedule=True)

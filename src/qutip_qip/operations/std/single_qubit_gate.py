@@ -1,8 +1,8 @@
+import warnings
 import numpy as np
 
 from qutip import Qobj, sigmax, sigmay, sigmaz, qeye
 from qutip_qip.operations import Gate, AngleParametricGate
-
 
 class _SingleQubitGate(Gate):
     """Abstract one-qubit gate."""
@@ -120,7 +120,14 @@ class H(_SingleQubitGate):
 
 
 class SNOT(H):
-    pass
+    def __init__(self):
+        warnings.warn(
+            "SNOT is deprecated and will be removed in future versions. "
+            "Use H instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        super().__init__()
 
 
 class SQRTNOT(_SingleQubitGate):

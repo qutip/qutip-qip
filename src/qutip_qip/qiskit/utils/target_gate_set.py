@@ -27,7 +27,7 @@ QUTIP_TO_QISKIT_GATE_MAP: dict[str, Gate] = {
     "X": XGate(),
     "Y": YGate(),
     "Z": ZGate(),
-    "SNOT": HGate(),
+    "H": HGate(),
     "S": SGate(),
     "T": TGate(),
     "RX": RXGate(theta=0.0),

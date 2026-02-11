@@ -1,4 +1,5 @@
 from typing import Final
+import warnings
 
 import numpy as np
 from qutip import Qobj
@@ -378,7 +379,7 @@ class CY(_ControlledTwoQubitGate):
     Examples
     --------
     >>> from qutip_qip.operations import CY
-    >>> CSIGN(0, 1).get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> CY(0, 1).get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=True
     Qobj data =
     [[ 1.+0j  0.+0j  0.+0j  0.+0j]
@@ -401,12 +402,12 @@ class CY(_ControlledTwoQubitGate):
 
 class CZ(_ControlledTwoQubitGate):
     """
-    Controlled Z gate. Identical to the CSIGN gate.
+    Controlled Z gate.
 
     Examples
     --------
     >>> from qutip_qip.operations import CZ
-    >>> CSIGN(0, 1).get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> CZ(0, 1).get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=True
     Qobj data =
     [[ 1.  0.  0.  0.]
@@ -428,7 +429,14 @@ class CZ(_ControlledTwoQubitGate):
 
 
 class CSIGN(CZ):
-    pass
+    def __init__(self):
+        warnings.warn(
+            "CSIGN is deprecated and will be removed in future versions. "
+            "Use CZ instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        super().__init__()
 
 
 class CH(_ControlledTwoQubitGate):

@@ -149,7 +149,7 @@ Gate name                           Description
 "S"                   Single-qubit rotation or Z90
 "T"                   Square root of S gate
 "SQRTNOT"             Square root of NOT gate
-"SNOT"                Hadamard gate
+"H"                Hadamard gate
 "PHASEGATE"           Add a phase one the state 1
 "CRX"                 Controlled rotation around x axis
 "CRY"                 Controlled rotation around y axis
@@ -278,13 +278,13 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
   :include-source:
 
   from qutip_qip.circuit import QubitCircuit
-  from qutip_qip.operations import Gate
+  from qutip_qip.operations import H, CNOT, ISWAP
 
   # create the quantum circuit
   qc = QubitCircuit(2, num_cbits=1)
-  qc.add_gate("CNOT", controls=0, targets=1)
-  qc.add_gate("SNOT", targets=1)
-  qc.add_gate("ISWAP", targets=[0,1])
+  qc.add_gate(CNOT, controls=0, targets=1)
+  qc.add_gate(H, targets=1)
+  qc.add_gate(ISWAP, targets=[0,1])
   qc.add_measurement("M0", targets=1, classical_store=0)
 
   qc.draw("matplotlib", dpi=300)
@@ -295,13 +295,13 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
   :include-source:
 
   from qutip_qip.circuit import QubitCircuit
-  from qutip_qip.operations import Gate
+  from qutip_qip.operations import H, CNOT, ISWAP
 
   # create the quantum circuit
   qc = QubitCircuit(2, num_cbits=1)
-  qc.add_gate("CNOT", controls=0, targets=1)
-  qc.add_gate("SNOT", targets=1)
-  qc.add_gate("ISWAP", targets=[0,1])
+  qc.add_gate(CNOT, controls=0, targets=1)
+  qc.add_gate(H, targets=1)
+  qc.add_gate(ISWAP, targets=[0,1])
   qc.add_measurement("M0", targets=1, classical_store=0)
 
   qc.draw("matplotlib", bulge=False, theme='dark', title="Plotting Quantum Circuit", dpi=300)
@@ -360,13 +360,13 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
 .. testcode::
 
   from qutip_qip.circuit import QubitCircuit
-  from qutip_qip.operations import Gate
+  from qutip_qip.operations import H, CNOT, ISWAP
 
   # create the quantum circuit
   qc = QubitCircuit(2, num_cbits=1)
-  qc.add_gate("CNOT", controls=0, targets=1)
-  qc.add_gate("SNOT", targets=1)
-  qc.add_gate("ISWAP", targets=[0,1])
+  qc.add_gate(CNOT, controls=0, targets=1)
+  qc.add_gate(H, targets=1)
+  qc.add_gate(ISWAP, targets=[0,1])
   qc.add_measurement("M0", targets=1, classical_store=0)
 
   qc.draw("text")
@@ -375,7 +375,7 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
   :options: +NORMALIZE_WHITESPACE
   
            ┌──────┐  ┌──────┐  ┌───────┐  ┌───┐   
-    q1 :───┤ CNOT ├──┤ SNOT ├──┤       ├──┤ M ├───
+    q1 :───┤ CNOT ├──┤  H   ├──┤       ├──┤ M ├───
            └───┬──┘  └──────┘  │       │  └─╥─┘   
                │               │       │    ║     
     q0 :───────█───────────────┤ ISWAP ├────║─────
@@ -415,13 +415,13 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
     .. code-block::
 
       from qutip_qip.circuit import QubitCircuit
-      from qutip_qip.operations import Gate
+      from qutip_qip.operations import H, CNOT, ISWAP
 
       # create the quantum circuit
       qc = QubitCircuit(2, num_cbits=1)
-      qc.add_gate("CNOT", controls=0, targets=1)
-      qc.add_gate("SNOT", targets=1)
-      qc.add_gate("ISWAP", targets=[0,1])
+      qc.add_gate(CNOT, controls=0, targets=1)
+      qc.add_gate(H, targets=1)
+      qc.add_gate(ISWAP, targets=[0,1])
       qc.add_measurement("M0", targets=1, classical_store=0)
 
       qc.draw("latex")

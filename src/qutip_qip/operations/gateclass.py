@@ -413,9 +413,6 @@ class ControlledGate(Gate):
     def is_controlled_gate() -> bool:
         return True
 
-    def is_parametric_gate(self) -> bool:
-        return self.target_gate.is_parametric_gate()
-
     def __str__(self) -> str:
         return f"Gate({self.name}, target_gate={self.target_gate}, num_ctrl_qubits={self.num_ctrl_qubits}, control_value={self.control_value})"
 

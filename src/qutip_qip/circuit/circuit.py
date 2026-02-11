@@ -341,6 +341,9 @@ class QubitCircuit:
             elif gate_class.is_controlled_gate():
                 gate = gate_class(control_value=control_value)
 
+            else:
+                gate = gate()
+
         qubits = []
         if controls is not None:
             qubits.extend(controls)
@@ -590,7 +593,7 @@ class QubitCircuit:
                 measurements are added to the circuit")
 
         basis_1q_valid = ["RX", "RY", "RZ", "IDLE"]
-        basis_2q_valid = ["CNOT", "CSIGN", "ISWAP", "SQRTSWAP", "SQRTISWAP"]
+        basis_2q_valid = ["CNOT", "CSIGN", "CZ", "ISWAP", "SQRTSWAP", "SQRTISWAP"]
         basis_1q = []
         basis_2q = []
 
@@ -659,7 +662,7 @@ class QubitCircuit:
 
         qc_temp.add_global_phase(temp_resolved.global_phase)
 
-        for basis_unit in ["CSIGN", "ISWAP", "SQRTSWAP", "SQRTISWAP"]:
+        for basis_unit in ["CSIGN", "CZ", "ISWAP", "SQRTSWAP", "SQRTISWAP"]:
             if basis_unit in basis_2q:
                 match = True
                 _resolve_2q_basis(basis_unit, qc_temp, temp_resolved)

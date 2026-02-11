@@ -22,7 +22,6 @@ qutip\_qip.operations
       RY
       RZ
       H
-      SNOT
       SQRTNOT
       S
       T
@@ -38,7 +37,6 @@ qutip\_qip.operations
       TOFFOLI
       FREDKIN
       CNOT
-      CSIGN
       CRX
       CRY
       CRZ

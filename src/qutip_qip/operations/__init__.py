@@ -121,7 +121,7 @@ GATE_CLASS_MAP: dict[str, Gate] = {
     "MS": MS,
     "TOFFOLI": TOFFOLI,
     "FREDKIN": FREDKIN,
-    "CSIGN": CSIGN,
+    "CSIGN": CZ,
     "CRX": CRX,
     "CRY": CRY,
     "CRZ": CRZ,
