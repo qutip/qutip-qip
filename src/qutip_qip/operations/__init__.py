@@ -45,7 +45,6 @@ from .gateclass import (
     Gate,
     ControlledGate,
     ParametricGate,
-    ControlledParametricGate,
     custom_gate_factory,
     controlled_gate_factory,
     AngleParametricGate,
@@ -138,9 +137,8 @@ GATE_CLASS_MAP: dict[str, Gate] = {
 
 __all__ = [
     "Gate",
-    "ControlledGate",
     "ParametricGate",
-    "ControlledParametricGate",
+    "ControlledGate",
     "custom_gate_factory",
     "controlled_gate_factory",
     "AngleParametricGate",

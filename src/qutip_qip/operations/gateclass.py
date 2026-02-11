@@ -248,7 +248,7 @@ class ParametricGate(Gate):
 
     @abstractmethod
     def validate_params(self, arg_value):
-        """
+        r"""
         Validate the provided parameters.
 
         This method should be implemented by subclasses to check if the 
@@ -346,10 +346,18 @@ class ControlledGate(Gate):
         # Default value for control_value
         cls._control_value = 2**cls.num_ctrl_qubits - 1
 
-    def __init__(self, control_value: int | None = None) -> None:
+    def __init__(
+        self,
+        arg_value: any = None,
+        control_value: int | None = None,
+        arg_label: str | None = None,
+    ) -> None:
         if control_value is not None:
             self._validate_control_value(control_value)
             self._control_value = control_value
+
+        if self.is_parametric_gate():
+            ParametricGate.__init__(self, arg_value=arg_value, arg_label=arg_label)
 
         # In the circuit plot, only the target gate is shown.
         # The control has its own symbol.
@@ -404,6 +412,12 @@ class ControlledGate(Gate):
         qobj : qutip.Qobj
             The unitary matrix representing the controlled operation.
         """
+        if self.is_parametric_gate():
+            return controlled_gate(
+                U=self.target_gate(self.arg_value).get_qobj(),
+                control_value=self.control_value,
+            )
+
         return controlled_gate(
             U=self.target_gate.get_qobj(),
             control_value=self.control_value,
@@ -413,59 +427,12 @@ class ControlledGate(Gate):
     def is_controlled_gate() -> bool:
         return True
 
+    @classmethod
+    def is_parametric_gate(cls) -> bool:
+        return cls.target_gate.is_parametric_gate()
+
     def __str__(self) -> str:
         return f"Gate({self.name}, target_gate={self.target_gate}, num_ctrl_qubits={self.num_ctrl_qubits}, control_value={self.control_value})"
-
-
-class ControlledParametricGate(ParametricGate, ControlledGate, ABC):
-    r"""
-    Abstract base class for controlled parametric quantum gates.
-
-    This class combines the functionality of :class:`ParametricGate` and 
-    :class:`ControlledGate`. It represents gates that have both variable 
-    parameters (like rotation angles) and control qubits.
-
-    Common examples include the Controlled-Phase shift ($CPhase(\phi)$) or 
-    Controlled-Rotation gates ($CR_x(\theta)$, $CR_y(\theta)$). 
-
-    Parameters
-    ----------
-    arg_value : float or list of float
-        The parameter value(s) for the target gate (e.g., the rotation angle $\theta$).
-
-    arg_label : str, optional
-        The LaTeX string label for the parameter, used in circuit draw.
-
-    control_value : int, optional
-        The decimal value of the control state required to execute the gate. 
-        Defaults to all-ones (e.g., $2^N - 1$) if not provided.
-    """
-
-    def __init__(
-        self,
-        arg_value: any,
-        arg_label: str | None = None,
-        control_value: int | None = None
-    ) -> None:
-
-        if type(arg_value) is float:
-            arg_value = [arg_value]
-
-        ControlledGate.__init__(self, control_value=control_value)
-        ParametricGate.__init__(self, arg_value=arg_value, arg_label=arg_label)
-
-    def get_qobj(self) -> Qobj:
-        return controlled_gate(
-            U=self.target_gate(self.arg_value).get_qobj(),
-            control_value=self.control_value,
-        )
-
-    def __str__(self) -> str:
-        return f"""
-            Gate({self.name}, target_gate{self.target_gate}
-            arg_value={self.arg_value}, arg_label={self.arg_label},
-            control_value={self.control_value}),
-        """
 
 
 def custom_gate_factory(gate_name: str, U: Qobj) -> Gate:
