@@ -69,7 +69,6 @@ __all__ = [
     "SWAPALPHA",
     "MS",
     "BERKELEY",
-    "CNOT",
     "CSIGN",
     "CRX",
     "CRY",

@@ -112,7 +112,7 @@ GATE_CLASS_MAP: dict[str, Gate] = {
     "SWAP": SWAP,
     "ISWAP": ISWAP,
     "iSWAP": ISWAP,
-    "CNOT": CNOT,
+    "CNOT": CX,
     "SQRTSWAP": SQRTSWAP,
     "SQRTISWAP": SQRTISWAP,
     "SWAPALPHA": SWAPALPHA,

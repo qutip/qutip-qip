@@ -6,7 +6,7 @@ from qutip_qip.compiler import PulseInstruction, Scheduler
 from qutip_qip.operations import (
     GATE_CLASS_MAP,
     ControlledGate,
-    CNOT,
+    CX,
     X,
     Z,
     H,
@@ -35,7 +35,7 @@ def _verify_scheduled_circuit(circuit, gate_cycle_indices):
 def test_allow_permutation():
     circuit = QubitCircuit(2)
     circuit.add_gate(X, targets=0)
-    circuit.add_gate(CNOT, targets=0, controls=1)
+    circuit.add_gate(CX, targets=0, controls=1)
     circuit.add_gate(X, targets=1)
 
     scheduler = Scheduler("ASAP", allow_permutation=True)
@@ -50,7 +50,7 @@ def test_allow_permutation():
 def _circuit_cnot_x():
     circuit = QubitCircuit(2)
     circuit.add_gate(X, targets=0)
-    circuit.add_gate(CNOT, targets=0, controls=1)
+    circuit.add_gate(CX, targets=0, controls=1)
     circuit.add_gate(X, targets=1)
     return circuit
 
@@ -58,7 +58,7 @@ def _circuit_cnot_x():
 def _circuit_cnot_z():
     circuit = QubitCircuit(2)
     circuit.add_gate(Z, targets=0)
-    circuit.add_gate(CNOT, targets=0, controls=1)
+    circuit.add_gate(CX, targets=0, controls=1)
     circuit.add_gate(Z, targets=1)
     return circuit
 
@@ -80,11 +80,11 @@ def test_commutation_rules(circuit, expected_length):
 def _circuit1():
     circuit1 = QubitCircuit(6)
     circuit1.add_gate(H, targets=2)
-    circuit1.add_gate(CNOT, targets=4, controls=2)
-    circuit1.add_gate(CNOT, targets=3, controls=2)
-    circuit1.add_gate(CNOT, targets=1, controls=2)
-    circuit1.add_gate(CNOT, targets=5, controls=4)
-    circuit1.add_gate(CNOT, targets=1, controls=5)
+    circuit1.add_gate(CX, targets=4, controls=2)
+    circuit1.add_gate(CX, targets=3, controls=2)
+    circuit1.add_gate(CX, targets=1, controls=2)
+    circuit1.add_gate(CX, targets=5, controls=4)
+    circuit1.add_gate(CX, targets=1, controls=5)
     circuit1.add_gate(SWAP, targets=[0, 1])
     return circuit1
 
@@ -94,17 +94,17 @@ def _circuit2():
     circuit2.add_gate(H, targets=1)
     circuit2.add_gate(H, targets=2)
     circuit2.add_gate(H, targets=3)
-    circuit2.add_gate(CNOT, targets=4, controls=5)
-    circuit2.add_gate(CNOT, targets=4, controls=6)
-    circuit2.add_gate(CNOT, targets=3, controls=4)
-    circuit2.add_gate(CNOT, targets=3, controls=5)
-    circuit2.add_gate(CNOT, targets=3, controls=7)
-    circuit2.add_gate(CNOT, targets=2, controls=4)
-    circuit2.add_gate(CNOT, targets=2, controls=6)
-    circuit2.add_gate(CNOT, targets=2, controls=7)
-    circuit2.add_gate(CNOT, targets=1, controls=5)
-    circuit2.add_gate(CNOT, targets=1, controls=6)
-    circuit2.add_gate(CNOT, targets=1, controls=7)
+    circuit2.add_gate(CX, targets=4, controls=5)
+    circuit2.add_gate(CX, targets=4, controls=6)
+    circuit2.add_gate(CX, targets=3, controls=4)
+    circuit2.add_gate(CX, targets=3, controls=5)
+    circuit2.add_gate(CX, targets=3, controls=7)
+    circuit2.add_gate(CX, targets=2, controls=4)
+    circuit2.add_gate(CX, targets=2, controls=6)
+    circuit2.add_gate(CX, targets=2, controls=7)
+    circuit2.add_gate(CX, targets=1, controls=5)
+    circuit2.add_gate(CX, targets=1, controls=6)
+    circuit2.add_gate(CX, targets=1, controls=7)
     return circuit2
 
 
@@ -112,12 +112,12 @@ def _instructions1():
     circuit3 = QubitCircuit(6)
     circuit3.add_gate(H, targets=0)
     circuit3.add_gate(H, targets=1)
-    circuit3.add_gate(CNOT, targets=2, controls=3)
-    circuit3.add_gate(CNOT, targets=1, controls=2)
-    circuit3.add_gate(CNOT, targets=1, controls=0)
+    circuit3.add_gate(CX, targets=2, controls=3)
+    circuit3.add_gate(CX, targets=1, controls=2)
+    circuit3.add_gate(CX, targets=1, controls=0)
     circuit3.add_gate(H, targets=3)
-    circuit3.add_gate(CNOT, targets=1, controls=3)
-    circuit3.add_gate(CNOT, targets=1, controls=3)
+    circuit3.add_gate(CX, targets=1, controls=3)
+    circuit3.add_gate(CX, targets=1, controls=3)
 
     instruction_list = []
     for circuit_ins in circuit3.instructions:

@@ -10,7 +10,7 @@ class SCQubitsCompiler(GateCompiler):
     Compiler for :class:`.SCQubits`.
     Compiled pulse strength is in the unit of GHz.
 
-    Supported native gates: "RX", "RY", "CNOT".
+    Supported native gates: "RX", "RY", "CX".
 
     Default configuration (see :obj:`.GateCompiler.args` and
     :obj:`.GateCompiler.compile`):
@@ -69,9 +69,10 @@ class SCQubitsCompiler(GateCompiler):
     >>> from qutip_qip.circuit import QubitCircuit
     >>> from qutip_qip.device import ModelProcessor, SCQubitsModel
     >>> from qutip_qip.compiler import SCQubitsCompiler
+    >>> from qutip_qip.operations import CX
     >>>
     >>> qc = QubitCircuit(2)
-    >>> qc.add_gate("CNOT", targets=0, controls=1)
+    >>> qc.add_gate(CX, targets=0, controls=1)
     >>>
     >>> model = SCQubitsModel(2)
     >>> processor = ModelProcessor(model=model)
@@ -88,6 +89,7 @@ class SCQubitsCompiler(GateCompiler):
             {
                 "RY": self.ry_compiler,
                 "RX": self.rx_compiler,
+                "CX": self.cnot_compiler,
                 "CNOT": self.cnot_compiler,
                 "RZX": self.rzx_compiler,
             }

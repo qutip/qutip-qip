@@ -5,7 +5,7 @@ individual gate classes.
 """
 
 import numpy as np
-from qutip_qip.operations import RX, RY, RZ, CNOT, ISWAP, SQRTSWAP, SQRTISWAP, CZ
+from qutip_qip.operations import RX, RY, RZ, CX, ISWAP, SQRTSWAP, SQRTISWAP, CZ
 
 __all__ = ["_resolve_to_universal", "_resolve_2q_basis"]
 
@@ -35,7 +35,7 @@ def _controlled_gate_IGNORED(circ_instruction, temp_resolved):
 
 _gate_RX = _gate_RY = _gate_RZ = _gate_IGNORED
 _gate_basis_2q = _gate_IDLE = _gate_IGNORED
-_gate_CNOT = _controlled_gate_IGNORED
+_gate_CNOT = _gate_CX = _controlled_gate_IGNORED
 
 
 def _gate_NOTIMPLEMENTED(instruction, temp_resolved):
@@ -96,7 +96,7 @@ def _gate_CZ(circ_instruction, temp_resolved):
     temp_resolved.add_gate(
         RX(arg_value=np.pi, arg_label=r"\pi"), targets=targets, 
     )
-    temp_resolved.add_gate(CNOT, targets=targets, controls=controls)
+    temp_resolved.add_gate(CX, targets=targets, controls=controls)
     temp_resolved.add_gate(
         RY(arg_value=half_pi, arg_label=r"\pi/2"), targets=targets,
     )
@@ -110,9 +110,9 @@ _gate_CSIGN = _gate_CZ
 def _gate_SWAP(circ_instruction, temp_resolved):
     targets = circ_instruction.targets
 
-    temp_resolved.add_gate(CNOT, targets=targets[0], controls=targets[1])
-    temp_resolved.add_gate(CNOT, targets=targets[1], controls=targets[0])
-    temp_resolved.add_gate(CNOT, targets=targets[0], controls=targets[1])
+    temp_resolved.add_gate(CX, targets=targets[0], controls=targets[1])
+    temp_resolved.add_gate(CX, targets=targets[1], controls=targets[0])
+    temp_resolved.add_gate(CX, targets=targets[0], controls=targets[1])
 
 
 def _gate_ISWAP(circ_instruction, temp_resolved):
@@ -120,9 +120,9 @@ def _gate_ISWAP(circ_instruction, temp_resolved):
     targets = circ_instruction.targets
 
     temp_resolved.add_global_phase(phase=3 * half_pi)
-    temp_resolved.add_gate(CNOT, targets=targets[0], controls=targets[1])
-    temp_resolved.add_gate(CNOT, targets=targets[1], controls=targets[0])
-    temp_resolved.add_gate(CNOT, targets=targets[0], controls=targets[1])
+    temp_resolved.add_gate(CX, targets=targets[0], controls=targets[1])
+    temp_resolved.add_gate(CX, targets=targets[1], controls=targets[0])
+    temp_resolved.add_gate(CX, targets=targets[0], controls=targets[1])
     temp_resolved.add_gate(
         RZ(arg_value=half_pi, arg_label=r"\pi/2"), targets=targets[0],
     )
@@ -135,7 +135,7 @@ def _gate_ISWAP(circ_instruction, temp_resolved):
     temp_resolved.add_gate(
         RX(arg_value=np.pi, arg_label=r"\pi"), targets=targets[0],
     )
-    temp_resolved.add_gate(CNOT, targets=targets[0], controls=targets[1])
+    temp_resolved.add_gate(CX, targets=targets[0], controls=targets[1])
     temp_resolved.add_gate(
         RY(arg_value=half_pi, arg_label=r"\pi/2"), targets=targets[0],
     )
@@ -149,7 +149,7 @@ def _gate_FREDKIN(circ_instruction, temp_resolved):
     targets = circ_instruction.targets
     controls = circ_instruction.controls
 
-    temp_resolved.add_gate(CNOT, controls=targets[1], targets=targets[0])
+    temp_resolved.add_gate(CX, controls=targets[1], targets=targets[0])
     temp_resolved.add_gate(
         RZ(arg_value=pi, arg_label=r"\pi"), targets=targets[1],
     )
@@ -165,30 +165,30 @@ def _gate_FREDKIN(circ_instruction, temp_resolved):
     temp_resolved.add_gate(
         RZ(arg_value=pi, arg_label=r"\pi"), targets=targets[1],
     )
-    temp_resolved.add_gate(CNOT, controls=targets[0], targets=targets[1])
+    temp_resolved.add_gate(CX, controls=targets[0], targets=targets[1])
     temp_resolved.add_gate(
         RZ(arg_value=-pi / 4, arg_label=r"-\pi/4"), targets=targets[1],
     )
-    temp_resolved.add_gate(CNOT, controls=controls, targets=targets[1])
+    temp_resolved.add_gate(CX, controls=controls, targets=targets[1])
     temp_resolved.add_gate(
         RZ(arg_value=pi / 4, arg_label=r"\pi/4"), targets=targets[1],
     )
-    temp_resolved.add_gate(CNOT, controls=targets[0], targets=targets[1])
+    temp_resolved.add_gate(CX, controls=targets[0], targets=targets[1])
     temp_resolved.add_gate(
         RZ(arg_value=pi / 4, arg_label=r"\pi/4"), targets=targets[0],
     )
     temp_resolved.add_gate(
         RZ(arg_value=-pi / 4, arg_label=r"-\pi/4"), targets=targets[1],
     )
-    temp_resolved.add_gate(CNOT, controls=controls, targets=targets[1])
-    temp_resolved.add_gate(CNOT, controls=controls, targets=targets[0])
+    temp_resolved.add_gate(CX, controls=controls, targets=targets[1])
+    temp_resolved.add_gate(CX, controls=controls, targets=targets[0])
     temp_resolved.add_gate(
         RZ(arg_value=pi / 4, arg_label=r"\pi/4"), targets=controls,
     )
     temp_resolved.add_gate(
         RZ(arg_value=-pi / 4, arg_label=r"-\pi/4"), targets=targets[0],
     )
-    temp_resolved.add_gate(CNOT, controls=controls, targets=targets[0])
+    temp_resolved.add_gate(CX, controls=controls, targets=targets[0])
     temp_resolved.add_gate(
         gate=RZ(arg_value=-3 * pi / 4, arg_label=r"-3\pi/4"),
         targets=targets[1],
@@ -205,7 +205,7 @@ def _gate_FREDKIN(circ_instruction, temp_resolved):
     temp_resolved.add_gate(
         RZ(arg_value=pi, arg_label=r"\pi"), targets=targets[1],
     )
-    temp_resolved.add_gate(CNOT, controls=targets[1], targets=targets[0])
+    temp_resolved.add_gate(CX, controls=targets[1], targets=targets[0])
     temp_resolved.add_global_phase(phase=pi / 8)
 
 
@@ -224,12 +224,12 @@ def _gate_TOFFOLI(circ_instruction, temp_resolved):
     temp_resolved.add_gate(
         RZ(arg_value=quarter_pi, arg_label=r"\pi/4"), targets=controls[0],
     )
-    temp_resolved.add_gate(CNOT, targets=controls[1], controls=controls[0])
+    temp_resolved.add_gate(CX, targets=controls[1], controls=controls[0])
     temp_resolved.add_gate(
         RZ(arg_value=-quarter_pi, arg_label=r"-\pi/4"),
         targets=controls[1],
     )
-    temp_resolved.add_gate(CNOT, targets=controls[1], controls=controls[0])
+    temp_resolved.add_gate(CX, targets=controls[1], controls=controls[0])
     temp_resolved.add_gate(
         RY(arg_value=half_pi, arg_label=r"\pi/2"), targets=targets,
     )
@@ -242,19 +242,19 @@ def _gate_TOFFOLI(circ_instruction, temp_resolved):
     temp_resolved.add_gate(
         RZ(arg_value=quarter_pi, arg_label=r"\pi/4"), targets=targets,
     )
-    temp_resolved.add_gate(CNOT, targets=targets, controls=controls[0])
+    temp_resolved.add_gate(CX, targets=targets, controls=controls[0])
     temp_resolved.add_gate(
         RZ(arg_value=-quarter_pi, arg_label=r"-\pi/4"), targets=targets,
     )
-    temp_resolved.add_gate(CNOT, targets=targets, controls=controls[1])
+    temp_resolved.add_gate(CX, targets=targets, controls=controls[1])
     temp_resolved.add_gate(
         RZ(arg_value=quarter_pi, arg_label=r"\pi/4"), targets=targets,
     )
-    temp_resolved.add_gate(CNOT, targets=targets, controls=controls[0])
+    temp_resolved.add_gate(CX, targets=targets, controls=controls[0])
     temp_resolved.add_gate(
         RZ(arg_value=-quarter_pi, arg_label=r"-\pi/4"), targets=targets,
     )
-    temp_resolved.add_gate(CNOT, targets=targets, controls=controls[1])
+    temp_resolved.add_gate(CX, targets=targets, controls=controls[1])
     temp_resolved.add_gate(
         RY(arg_value=half_pi, arg_label=r"\pi/2"), targets=targets,
     )
@@ -271,7 +271,7 @@ def _basis_CZ(qc_temp, temp_resolved):
         targets = circ_instruction.targets
         controls = circ_instruction.controls
 
-        if gate.name == "CNOT":
+        if gate.name == "CNOT" or gate.name == "CX":
             qc_temp.add_gate(
                 gate=RY(arg_value=-half_pi, arg_label=r"-\pi/2"),
                 targets=targets,
@@ -301,7 +301,7 @@ def _basis_ISWAP(qc_temp, temp_resolved):
         targets = circ_instruction.targets
         controls = circ_instruction.controls
 
-        if gate.name == "CNOT":
+        if gate.name == "CNOT" or gate.name == "CX":
             qc_temp.add_global_phase(phase=quarter_pi)
             qc_temp.add_gate(ISWAP, targets=[controls[0], targets[0]])
             qc_temp.add_gate(
@@ -362,7 +362,7 @@ def _basis_SQRTSWAP(qc_temp, temp_resolved):
         targets = circ_instruction.targets
         controls = circ_instruction.controls
 
-        if gate.name == "CNOT":
+        if gate.name == "CNOT" or gate.name == "CX":
             qc_temp.add_gate(
                 gate=RY(arg_value=half_pi, arg_label=r"\pi/2"),
                 targets=targets,
@@ -403,7 +403,7 @@ def _basis_SQRTISWAP(qc_temp, temp_resolved):
         targets = circ_instruction.targets
         controls = circ_instruction.controls
 
-        if gate.name == "CNOT":
+        if gate.name == "CNOT" or gate.name == "CX":
             qc_temp.add_gate(
                 gate=RY(arg_value=-half_pi, arg_label=r"-\pi/2"),
                 targets=controls,

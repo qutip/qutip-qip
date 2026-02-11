@@ -15,7 +15,7 @@ from qutip import (
     sigmay,
     identity,
 )
-from qutip_qip.operations import X, CX, CNOT, H, SWAP
+from qutip_qip.operations import X, CX, H, SWAP
 
 
 class TestOptPulseProcessor:
@@ -87,12 +87,12 @@ class TestOptPulseProcessor:
         setting_args = {
             "H": {"num_tslots": 10, "evo_time": 1},
             "SWAP": {"num_tslots": 30, "evo_time": 3},
-            "CNOT": {"num_tslots": 30, "evo_time": 3},
+            "CX": {"num_tslots": 30, "evo_time": 3},
         }
         qc = QubitCircuit(N)
         qc.add_gate(H, targets=0)
         qc.add_gate(SWAP, targets=[0, 1])
-        qc.add_gate(CNOT, controls=1, targets=[0])
+        qc.add_gate(CX, controls=1, targets=[0])
         test.load_circuit(qc, setting_args=setting_args, merge_gates=False)
 
         rho0 = rand_ket(4)  # use random generated ket state
@@ -106,7 +106,7 @@ class TestOptPulseProcessor:
         model = SpinChainModel(3, setup="linear")
         processor = OptPulseProcessor(3, model=model)
         qc = QubitCircuit(3)
-        qc.add_gate(CNOT, targets=1, controls=0)
+        qc.add_gate(CX, targets=1, controls=0)
         qc.add_gate(X, targets=2)
         processor.load_circuit(
             qc, merge_gates=True, num_tslots=10, evo_time=2.0

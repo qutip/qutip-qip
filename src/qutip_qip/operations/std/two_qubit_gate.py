@@ -340,7 +340,7 @@ class RZX(AngleParametricGate):
         )
 
 
-class CNOT(_ControlledTwoQubitGate):
+class CX(_ControlledTwoQubitGate):
     """
     CNOT gate.
 
@@ -368,8 +368,15 @@ class CNOT(_ControlledTwoQubitGate):
         )
 
 
-class CX(CNOT):
-    pass
+class CNOT(CX):
+    def __init__(self, control_value=None):
+        warnings.warn(
+            "CNOT is deprecated and will be removed in future versions. "
+            "Use CX  instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        super().__init__(control_value)
 
 
 class CY(_ControlledTwoQubitGate):

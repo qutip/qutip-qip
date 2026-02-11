@@ -137,7 +137,7 @@ class TestQPE(unittest.TestCase):
         circuit2 = qpe(U, num_counting_qubits=num_counting, to_cnot=True)
 
         has_cnot = any(
-            gate.operation.name == "CNOT" for gate in circuit2.instructions
+            gate.operation.name == "CX" for gate in circuit2.instructions
         )
         assert_(has_cnot)
         assert_(len(circuit2.instructions) > len(circuit1.instructions))

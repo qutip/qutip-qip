@@ -33,16 +33,16 @@ A circuit with the various gates and registers available is demonstrated below:
 .. testcode::
 
   from qutip_qip.circuit import QubitCircuit
-  from qutip_qip.operations import Gate, SWAP
+  from qutip_qip.operations import X, CX, SWAP
   from qutip import tensor, basis
 
   qc = QubitCircuit(N=2, num_cbits=1)
 
-  qc.add_gate("SWAP", targets=[0, 1])
+  qc.add_gate(SWAP, targets=[0, 1])
   qc.add_measurement("M0", targets=[1], classical_store=0) # measurement gate
-  qc.add_gate("CNOT", controls=0, targets=1)
-  qc.add_gate("X", targets=0, classical_controls=[0]) # classically controlled gate
-  qc.add_gate("SWAP", targets=[0, 1])
+  qc.add_gate(CX, controls=0, targets=1)
+  qc.add_gate(X, targets=0, classical_controls=[0]) # classically controlled gate
+  qc.add_gate(SWAP, targets=[0, 1])
 
   print(qc.instruction)
 
@@ -53,7 +53,7 @@ A circuit with the various gates and registers available is demonstrated below:
 
     [Gate(SWAP, targets=[0, 1], controls=None, classical controls=None, control_value=None, classical_control_value=None),
     Measurement(M0, target=[1], classical_store=0),
-    Gate(CNOT, targets=[1], controls=[0], classical controls=None, control_value=1, classical_control_value=None),
+    Gate(CX, targets=[1], controls=[0], classical controls=None, control_value=1, classical_control_value=None),
     Gate(X, targets=[0], controls=None, classical controls=[0], control_value=None, classical_control_value=1),
     Gate(SWAP, targets=[0, 1], controls=None, classical controls=None, control_value=None, classical_control_value=None)]
 
@@ -149,19 +149,17 @@ Gate name                           Description
 "S"                   Single-qubit rotation or Z90
 "T"                   Square root of S gate
 "SQRTNOT"             Square root of NOT gate
-"H"                Hadamard gate
+"H"                   Hadamard gate
 "PHASEGATE"           Add a phase one the state 1
 "CRX"                 Controlled rotation around x axis
 "CRY"                 Controlled rotation around y axis
 "CRZ"                 Controlled rotation around z axis
-"CX"                  Controlled X gate
+"CX"                  Controlled X gate (also called CNOT)
 "CY"                  Controlled Y gate
 "CZ"                  Controlled Z gate
 "CS"                  Controlled S gate
 "CT"                  Controlled T gate
 "CPHASE"              Controlled phase gate
-"CNOT"                Controlled NOT gate
-"CSIGN"               Same as CPHASE
 "QASMU"               U rotation gate used as a primitive in the QASM standard
 "BERKELEY"            Berkeley gate
 "SWAPalpha"           SWAPalpha gate
@@ -175,7 +173,7 @@ Gate name                           Description
 "GLOBALPHASE"         Global phase
 ====================  ========================================
 
-For some of the gates listed above, :class:`.QubitCircuit` also has a primitive :func:`.QubitCircuit.resolve_gates()` method that decomposes them into elementary gate sets such as CNOT or SWAP with single-qubit gates (RX, RY and RZ). However, this method is not fully optimized. It is very likely that the depth of the circuit can be further reduced by merging quantum gates. It is required that the gate resolution be carried out before the measurements to the circuit are added.
+For some of the gates listed above, :class:`.QubitCircuit` also has a primitive :func:`.QubitCircuit.resolve_gates()` method that decomposes them into elementary gate sets such as CX or SWAP with single-qubit gates (RX, RY and RZ). However, this method is not fully optimized. It is very likely that the depth of the circuit can be further reduced by merging quantum gates. It is required that the gate resolution be carried out before the measurements to the circuit are added.
 
 **Custom Gates**
 
@@ -278,11 +276,11 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
   :include-source:
 
   from qutip_qip.circuit import QubitCircuit
-  from qutip_qip.operations import H, CNOT, ISWAP
+  from qutip_qip.operations import H, CX, ISWAP
 
   # create the quantum circuit
   qc = QubitCircuit(2, num_cbits=1)
-  qc.add_gate(CNOT, controls=0, targets=1)
+  qc.add_gate(CX, controls=0, targets=1)
   qc.add_gate(H, targets=1)
   qc.add_gate(ISWAP, targets=[0,1])
   qc.add_measurement("M0", targets=1, classical_store=0)
@@ -295,11 +293,11 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
   :include-source:
 
   from qutip_qip.circuit import QubitCircuit
-  from qutip_qip.operations import H, CNOT, ISWAP
+  from qutip_qip.operations import H, CX, ISWAP
 
   # create the quantum circuit
   qc = QubitCircuit(2, num_cbits=1)
-  qc.add_gate(CNOT, controls=0, targets=1)
+  qc.add_gate(CX, controls=0, targets=1)
   qc.add_gate(H, targets=1)
   qc.add_gate(ISWAP, targets=[0,1])
   qc.add_measurement("M0", targets=1, classical_store=0)
@@ -360,11 +358,11 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
 .. testcode::
 
   from qutip_qip.circuit import QubitCircuit
-  from qutip_qip.operations import H, CNOT, ISWAP
+  from qutip_qip.operations import H, CX, ISWAP
 
   # create the quantum circuit
   qc = QubitCircuit(2, num_cbits=1)
-  qc.add_gate(CNOT, controls=0, targets=1)
+  qc.add_gate(CX, controls=0, targets=1)
   qc.add_gate(H, targets=1)
   qc.add_gate(ISWAP, targets=[0,1])
   qc.add_measurement("M0", targets=1, classical_store=0)
@@ -375,7 +373,7 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
   :options: +NORMALIZE_WHITESPACE
   
            ┌──────┐  ┌──────┐  ┌───────┐  ┌───┐   
-    q1 :───┤ CNOT ├──┤  H   ├──┤       ├──┤ M ├───
+    q1 :───┤  CX  ├──┤  H   ├──┤       ├──┤ M ├───
            └───┬──┘  └──────┘  │       │  └─╥─┘   
                │               │       │    ║     
     q0 :───────█───────────────┤ ISWAP ├────║─────
@@ -415,11 +413,11 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
     .. code-block::
 
       from qutip_qip.circuit import QubitCircuit
-      from qutip_qip.operations import H, CNOT, ISWAP
+      from qutip_qip.operations import H, CX, ISWAP
 
       # create the quantum circuit
       qc = QubitCircuit(2, num_cbits=1)
-      qc.add_gate(CNOT, controls=0, targets=1)
+      qc.add_gate(CX, controls=0, targets=1)
       qc.add_gate(H, targets=1)
       qc.add_gate(ISWAP, targets=[0,1])
       qc.add_measurement("M0", targets=1, classical_store=0)

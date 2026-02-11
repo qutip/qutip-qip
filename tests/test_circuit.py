@@ -37,8 +37,8 @@ def _teleportation_circuit():
     )
 
     teleportation.add_gate(std.H, targets=[1])
-    teleportation.add_gate(std.CNOT, targets=[2], controls=[1])
-    teleportation.add_gate(std.CNOT, targets=[1], controls=[0])
+    teleportation.add_gate(std.CX, targets=[2], controls=[1])
+    teleportation.add_gate(std.CX, targets=[1], controls=[0])
     teleportation.add_gate(std.H, targets=[0])
     teleportation.add_measurement("M0", targets=[0], classical_store=1)
     teleportation.add_measurement("M1", targets=[1], classical_store=0)
@@ -54,10 +54,10 @@ def _teleportation_circuit2():
     )
 
     teleportation.add_gate(std.H, targets=[1])
-    teleportation.add_gate(std.CNOT, targets=[2], controls=[1])
-    teleportation.add_gate(std.CNOT, targets=[1], controls=[0])
+    teleportation.add_gate(std.CX, targets=[2], controls=[1])
+    teleportation.add_gate(std.CX, targets=[1], controls=[0])
     teleportation.add_gate(std.H, targets=[0])
-    teleportation.add_gate(std.CNOT, targets=[2], controls=[1])
+    teleportation.add_gate(std.CX, targets=[2], controls=[1])
     teleportation.add_gate(std.CZ, targets=[2], controls=[0])
 
     return teleportation
@@ -80,13 +80,13 @@ class TestQubitCircuit:
     @pytest.mark.parametrize(
         ["gate_from", "gate_to", "targets", "controls"],
         [
-            pytest.param(std.SWAP, "CNOT", [0, 1], [], id="SWAPtoCNOT"),
-            pytest.param(std.ISWAP, "CNOT", [0, 1], [], id="ISWAPtoCNOT"),
-            pytest.param(std.CZ, "CNOT", [1], [0], id="CZtoCNOT"),
-            pytest.param(std.CNOT, "CZ", [0], [1], id="CNOTtoCZ"),
-            pytest.param(std.CNOT, "SQRTSWAP", [0], [1], id="CNOTtoSQRTSWAP"),
-            pytest.param(std.CNOT, "SQRTISWAP", [0], [1], id="CNOTtoSQRTISWAP"),
-            pytest.param(std.CNOT, "ISWAP", [0], [1], id="CNOTtoISWAP"),
+            pytest.param(std.SWAP, "CX", [0, 1], [], id="SWAPtoCX"),
+            pytest.param(std.ISWAP, "CX", [0, 1], [], id="ISWAPtoCX"),
+            pytest.param(std.CZ, "CX", [1], [0], id="CZtoCX"),
+            pytest.param(std.CX, "CZ", [0], [1], id="CXtoCZ"),
+            pytest.param(std.CX, "SQRTSWAP", [0], [1], id="CXtoSQRTSWAP"),
+            pytest.param(std.CX, "SQRTISWAP", [0], [1], id="CXtoSQRTISWAP"),
+            pytest.param(std.CX, "ISWAP", [0], [1], id="CXtoISWAP"),
         ],
     )
     def testresolve(self, gate_from, gate_to, targets, controls):
@@ -126,7 +126,7 @@ class TestQubitCircuit:
         Addition of a gate object directly to a `QubitCircuit`
         """
         qc = QubitCircuit(6)
-        qc.add_gate(std.CNOT, targets=[1], controls=[0])
+        qc.add_gate(std.CX, targets=[1], controls=[0])
         qc.add_gate(std.SWAP, targets=[1, 4])
         qc.add_gate(std.TOFFOLI, controls=[0, 1], targets=[2])
         qc.add_gate(std.H, targets=[3])
@@ -136,7 +136,7 @@ class TestQubitCircuit:
         qc.add_gate(std.RX(arg_value=-1.570796), targets=[3])
 
         # Test explicit gate addition
-        assert qc.instructions[0].operation.name == "CNOT"
+        assert qc.instructions[0].operation.name == "CX"
         assert qc.instructions[0].targets == (1,)
         assert qc.instructions[0].controls == (0,)
 
@@ -181,7 +181,7 @@ class TestQubitCircuit:
         # NOTE: Every insertion shifts the indices in the original list of
         #       gates by an additional position to the right.
         expected_gate_names = [
-            "CNOT",
+            "CX",
             "SWAP",
             "TOFFOLI",
             "H",
@@ -201,7 +201,7 @@ class TestQubitCircuit:
         """
 
         qc = QubitCircuit(6)
-        qc.add_gate(std.CNOT, targets=[1], controls=[0])
+        qc.add_gate(std.CX, targets=[1], controls=[0])
         qc.add_gate(std.SWAP, targets=[1, 4])
         qc.add_gate(std.TOFFOLI, controls=[0, 1], targets=[2])
         qc.add_gate(std.H, targets=[3])
@@ -306,7 +306,7 @@ class TestQubitCircuit:
         qc = QubitCircuit(3, num_cbits=3)
 
         qc.add_measurement("M0", targets=[0], classical_store=0)
-        qc.add_gate(std.CNOT, targets=[1], controls=[0])
+        qc.add_gate(std.CX, targets=[1], controls=[0])
         qc.add_gate(std.TOFFOLI, controls=[0, 1], targets=[2])
         qc.add_measurement("M1", targets=[2], classical_store=1)
         qc.add_gate(std.H, targets=[1], classical_controls=[0, 1])
@@ -379,7 +379,7 @@ class TestQubitCircuit:
         qc = QubitCircuit(3, num_cbits=1)
 
         qc.add_gate(std.RX(arg_value=3.141, arg_label=r"\pi/2"), targets=[0])
-        qc.add_gate(std.CNOT, targets=[1], controls=[0])
+        qc.add_gate(std.CX, targets=[1], controls=[0])
         qc.add_measurement("M1", targets=[1], classical_store=0)
         qc.add_gate(std.H, targets=[2])
         # Keep input output same
@@ -392,7 +392,7 @@ class TestQubitCircuit:
 
         assert qc_rev.instructions[0].operation.name == "H"
         assert qc_rev.instructions[1].operation.name == "M1"
-        assert qc_rev.instructions[2].operation.name == "CNOT"
+        assert qc_rev.instructions[2].operation.name == "CX"
         assert qc_rev.instructions[3].operation.name == "RX"
 
         assert qc_rev.input_states[0] == "0"
@@ -757,7 +757,7 @@ class TestQubitCircuit:
         Test if the transpiler correctly inherit the properties of a circuit.
         """
         qc = QubitCircuit(3, reverse_states=True)
-        qc.add_gate(std.CNOT, targets=[2], controls=[0])
+        qc.add_gate(std.CX, targets=[2], controls=[0])
         qc2 = to_chain_structure(qc)
 
         assert qc2.reverse_states is True

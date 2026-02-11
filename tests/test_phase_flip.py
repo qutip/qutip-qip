@@ -25,7 +25,7 @@ def test_encode_circuit_structure(code, data_qubits):
     code.encode_circuit(qc, data_qubits)
     gate_names = [ins.operation.name for ins in qc.instructions]
     assert gate_names.count("H") == 3
-    assert gate_names.count("CNOT") == 2
+    assert gate_names.count("CX") == 2
     assert qc.instructions[3].controls == (0,)
     assert qc.instructions[3].targets == (1,)
     assert qc.instructions[4].controls == (0,)
@@ -35,7 +35,7 @@ def test_encode_circuit_structure(code, data_qubits):
 def test_decode_circuit_structure(code, data_qubits):
     qc = code.decode_circuit(data_qubits)
     gate_names = [op.operation.name for op in qc.instructions]
-    assert gate_names.count("CNOT") == 2
+    assert gate_names.count("CX") == 2
     assert gate_names.count("H") == 3
     assert qc.instructions[0].controls == (0,)
     assert qc.instructions[0].targets == (2,)

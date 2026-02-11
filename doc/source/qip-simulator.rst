@@ -14,19 +14,15 @@ examples of circuit evolution. We take a circuit from
 .. testcode::
 
     from qutip_qip.circuit import QubitCircuit
-    from qutip_qip.operations import (
-        Gate, controlled_gate, hadamard_transform)
-    def controlled_hadamard():
-        # Controlled Hadamard
-        return controlled_gate(
-            hadamard_transform(1), controls=0, targets=1, control_value=1)
+    from qutip_qip.operations import X, CX, CH, QASMU, TOFFOLI
+    )
     qc = QubitCircuit(N=3, num_cbits=3)
-    qc.add_gate("QASMU", targets=[0], arg_value=[1.91063, 0, 0])
-    qc.add_gate("CH", controls=[0], targets=[1])
-    qc.add_gate("TOFFOLI", targets=[2], controls=[0, 1])
-    qc.add_gate("X", targets=[0])
-    qc.add_gate("X", targets=[1])
-    qc.add_gate("CNOT", targets=[1], controls=0)
+    qc.add_gate(QASMU, targets=[0], arg_value=[1.91063, 0, 0])
+    qc.add_gate(CH, controls=[0], targets=[1])
+    qc.add_gate(TOFFOLI, targets=[2], controls=[0, 1])
+    qc.add_gate(X, targets=[0])
+    qc.add_gate(X, targets=[1])
+    qc.add_gate(CX, targets=[1], controls=0)
 
 It corresponds to the following circuit:
 
@@ -210,12 +206,12 @@ just by measurement on the first qubit:
 .. testcode::
 
     qc = QubitCircuit(N=3, num_cbits=3)
-    qc.add_gate("QASMU", targets=[0], arg_value=[1.91063, 0, 0])
-    qc.add_gate("CH", controls=[0], targets=[1])
-    qc.add_gate("TOFFOLI", targets=[2], controls=[0, 1])
-    qc.add_gate("X", targets=[0])
-    qc.add_gate("X", targets=[1])
-    qc.add_gate("CNOT", targets=[1], controls=0)
+    qc.add_gate(QASMU, targets=[0], arg_value=[1.91063, 0, 0])
+    qc.add_gate(CH, controls=[0], targets=[1])
+    qc.add_gate(TOFFOLI, targets=[2], controls=[0, 1])
+    qc.add_gate(X, targets=[0])
+    qc.add_gate(X, targets=[1])
+    qc.add_gate(CX, targets=[1], controls=0)
     qc.add_measurement("M0", targets=[0], classical_store=0)
     qc.add_measurement("M0", targets=[1], classical_store=0)
     qc.add_measurement("M0", targets=[2], classical_store=0)

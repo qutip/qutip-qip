@@ -28,7 +28,7 @@ We will work through this example and explain briefly the workflow and all the m
     from qutip import basis
     from qutip_qip.circuit import QubitCircuit
     from qutip_qip.device import LinearSpinChain
-    from qutip_qip.operations import H, X, CNOT
+    from qutip_qip.operations import H, X, CX
 
     # Define a circuit
     qc = QubitCircuit(3)
@@ -38,8 +38,8 @@ We will work through this example and explain briefly the workflow and all the m
     qc.add_gate(H, targets=2)
 
     # Oracle function f(x)
-    qc.add_gate(CNOT, controls=0, targets=2)
-    qc.add_gate(CNOT, controls=1, targets=2)
+    qc.add_gate(CX, controls=0, targets=2)
+    qc.add_gate(CX, controls=1, targets=2)
 
     qc.add_gate(H, targets=0)
     qc.add_gate(H, targets=1)
@@ -155,7 +155,7 @@ In the following example we plot the compiled Deutsche Jozsa algorithm:
 
     # Deutsch-Jozsa algorithm
     from qutip_qip.circuit import QubitCircuit
-    from qutip_qip.operations import X, H, CNOT
+    from qutip_qip.operations import X, H, CX
 
     qc = QubitCircuit(3)
     qc.add_gate(X, targets=2)
@@ -164,8 +164,8 @@ In the following example we plot the compiled Deutsche Jozsa algorithm:
     qc.add_gate(H, targets=2)
 
     # Oracle function f(x)
-    qc.add_gate(CNOT, controls=0, targets=2)
-    qc.add_gate(CNOT, controls=1, targets=2)
+    qc.add_gate(CX, controls=0, targets=2)
+    qc.add_gate(CX, controls=1, targets=2)
 
     qc.add_gate(H, targets=0)
     qc.add_gate(H, targets=1)
@@ -226,7 +226,7 @@ To let it find the optimal pulses, we need to give the parameters for :func:`~qu
     from qutip_qip.device import OptPulseProcessor, SpinChainModel
     setting_args = {H: {"num_tslots": 6, "evo_time": 2},
                     X: {"num_tslots": 1, "evo_time": 0.5},
-                    CNOT: {"num_tslots": 12, "evo_time": 5}}
+                    CX: {"num_tslots": 12, "evo_time": 5}}
     opt_processor = OptPulseProcessor(
         num_qubits=3, model=SpinChainModel(3, setup="linear"))
     opt_processor.load_circuit(  # Provide parameters for the algorithm
@@ -245,7 +245,7 @@ A compiler converts the quantum circuit to the corresponding pulse-level control
 In the framework, it is defined as an instance of the :obj:`.GateCompiler` class.
 The compilation procedure is achieved through the following steps.
 
-First, each quantum gate is decomposed into the native gates (e.g., rotation over :math:`x`, :math:`y` axes and the CNOT gate), using the existing decomposition scheme in QuTiP.
+First, each quantum gate is decomposed into the native gates (e.g., rotation over :math:`x`, :math:`y` axes and the CX gate), using the existing decomposition scheme in QuTiP.
 If a gate acts on two qubits that are not physically connected, like in the chain model and superconducting qubit model, SWAP gates are added to match the topology before the decomposition. Currently, only 1-dimensional chain structures are supported.
 
 Next, the compiler maps each quantum gate to a pulse-level control description.

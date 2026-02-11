@@ -651,7 +651,7 @@ class QasmProcessor:
             )
         elif name == "cx":
             qc.add_gate(
-                std.CNOT,
+                std.CX,
                 targets=int(regs[1]),
                 controls=int(regs[0]),
                 classical_controls=classical_controls,
@@ -721,7 +721,7 @@ class QasmProcessor:
 
         if name == "CX":
             qc.add_gate(
-                std.CNOT,
+                std.CX,
                 targets=int(com_regs[1]),
                 controls=int(com_regs[0]),
                 classical_controls=classical_controls,
@@ -945,6 +945,7 @@ _GATE_NAME_TO_QASM_NAME = {
     "S": "s",
     "T": "t",
     "CRZ": "crz",
+    "CX": "cx",
     "CNOT": "cx",
     "TOFFOLI": "ccx",
 }

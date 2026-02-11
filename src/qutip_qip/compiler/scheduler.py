@@ -548,7 +548,7 @@ class Scheduler:
                 [instruction1, instruction2],
                 key=lambda instruction: instruction.name,
             )
-            if instruction1.name == "CNOT" and instruction2.name in (
+            if instruction1.name in ["CNOT", "CX"] and instruction2.name in (
                 "X",
                 "RX",
             ):
@@ -556,7 +556,7 @@ class Scheduler:
                     commute = True
                 else:
                     commute = False
-            elif instruction1.name == "CNOT" and instruction2.name in (
+            elif instruction1.name in ["CNOT", "CX"] and instruction2.name in (
                 "Z",
                 "RZ",
             ):

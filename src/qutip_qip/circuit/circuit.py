@@ -559,7 +559,7 @@ class QubitCircuit:
         sim = CircuitSimulator(self, mode, precompute_unitary)
         return sim.run_statistics(state, cbits)
 
-    def resolve_gates(self, basis=["CNOT", "RX", "RY", "RZ"]):
+    def resolve_gates(self, basis=["CNOT", "CX", "RX", "RY", "RZ"]):
         """
         Unitary matrix calculator for N qubits returning the individual
         steps as unitary matrices operating from left to right in the specified
@@ -593,7 +593,7 @@ class QubitCircuit:
                 measurements are added to the circuit")
 
         basis_1q_valid = ["RX", "RY", "RZ", "IDLE"]
-        basis_2q_valid = ["CNOT", "CSIGN", "CZ", "ISWAP", "SQRTSWAP", "SQRTISWAP"]
+        basis_2q_valid = ["CNOT", "CX", "CSIGN", "CZ", "ISWAP", "SQRTSWAP", "SQRTISWAP"]
         basis_1q = []
         basis_2q = []
 

@@ -96,7 +96,7 @@ class OptPulseProcessor(Processor):
         >>> processor.add_control(tensor([sigmay(), sigmay()]))
         >>> setting_args = {"H": {"num_tslots": 10, "evo_time": 1},\
                         "SWAP": {"num_tslots": 30, "evo_time": 3},\
-                        "CNOT": {"num_tslots": 30, "evo_time": 3}}
+                        "CX": {"num_tslots": 30, "evo_time": 3}}
         >>> tlist, coeffs = processor.load_circuit(\
                 qc, setting_args=setting_args, merge_gates=False)
 

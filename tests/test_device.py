@@ -13,7 +13,7 @@ from qutip_qip.operations import (
     X,
     Y,
     Z,
-    CNOT,
+    CX,
     H,
     IDLE,
     RX,
@@ -180,12 +180,12 @@ def _test_numerical_evolution_helper(
 circuit = QubitCircuit(3)
 circuit.add_gate(RX(np.pi / 2), targets=[0])
 circuit.add_gate(RZ(np.pi), targets=[2])
-circuit.add_gate(CNOT, targets=[0], controls=[1])
+circuit.add_gate(CX, targets=[0], controls=[1])
 circuit.add_gate(ISWAP, targets=[2, 1])
 circuit.add_gate(Y, targets=[2])
 circuit.add_gate(Z, targets=[0])
 circuit.add_gate(IDLE, targets=[1])
-circuit.add_gate(CNOT, targets=[0], controls=[2])
+circuit.add_gate(CX, targets=[0], controls=[2])
 circuit.add_gate(Z, targets=[1])
 circuit.add_gate(X, targets=[1])
 
@@ -251,7 +251,7 @@ def test_numerical_circuit(circuit, device_class, kwargs, schedule_mode):
 def test_pulse_plotting(processor_class):
     plt = pytest.importorskip("matplotlib.pyplot")
     qc = QubitCircuit(3)
-    qc.add_gate(CNOT, targets=1, controls=0)
+    qc.add_gate(CX, targets=1, controls=0)
     qc.add_gate(X, targets=1)
 
     processor = processor_class(3)

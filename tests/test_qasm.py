@@ -72,7 +72,7 @@ def test_qasm_addcircuit():
     check_gate_instruction_defn(qc.instructions[0], "X", (1,))
     check_gate_instruction_defn(qc.instructions[1], "H", (0,))
     check_gate_instruction_defn(qc.instructions[2], "H", (1,))
-    check_gate_instruction_defn(qc.instructions[3], "CNOT", (1,), (0,))
+    check_gate_instruction_defn(qc.instructions[3], "CX", (1,), (0,))
     check_gate_instruction_defn(qc.instructions[4], "H", (0,))
     check_gate_instruction_defn(qc.instructions[5], "H", (1,))
     check_gate_instruction_defn(
@@ -140,7 +140,7 @@ def test_export_import():
     qc.add_gate(std.CRY(np.pi), targets=1, controls=0)
     qc.add_gate(std.CRX(np.pi), targets=1, controls=0)
     qc.add_gate(std.CRZ(np.pi), targets=1, controls=0)
-    qc.add_gate(std.CNOT, targets=1, controls=0)
+    qc.add_gate(std.CX, targets=1, controls=0)
     qc.add_gate(std.TOFFOLI, targets=2, controls=[0, 1])
     # qc.add_gate(SQRTNOT, targets=0)
     qc.add_gate(std.CS, targets=1, controls=0)

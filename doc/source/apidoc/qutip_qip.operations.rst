@@ -28,7 +28,7 @@ qutip\_qip.operations
       QASMU
       SWAP
       ISWAP
-      CNOT
+      CX
       SQRTSWAP
       SQRTISWAP
       BERKELEY
@@ -36,7 +36,6 @@ qutip\_qip.operations
       MS
       TOFFOLI
       FREDKIN
-      CNOT
       CRX
       CRY
       CRZ

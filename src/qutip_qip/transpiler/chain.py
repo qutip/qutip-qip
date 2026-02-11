@@ -42,7 +42,7 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
         controls = circ_instruction.controls
         targets = circ_instruction.targets
 
-        if gate.name == "CNOT" or gate.name == "CSIGN" or gate.name == "CZ":
+        if gate.name in ["CNOT", "CX", "CSIGN", "CZ"]:
             start = min([targets[0], controls[0]])
             end = max([targets[0], controls[0]])
 
@@ -143,7 +143,7 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
                     controls = circ_instruction.controls
 
                     if j < N - end - 2:
-                        if gate.name in ["CNOT", "CSIGN", "CZ"]:
+                        if gate.name in ["CNOT", "CX" "CSIGN", "CZ"]:
                             qc_t.add_gate(
                                 gate,
                                 targets=end + targets[0],
@@ -158,7 +158,7 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
                                 ],
                             )
                     elif j == N - end - 2:
-                        if gate.name in ["CNOT", "CSIGN", "CZ"]:
+                        if gate.name in ["CNOT", "CX", "CSIGN", "CZ"]:
                             qc_t.add_gate(
                                 gate,
                                 targets=end + targets[0],
@@ -173,7 +173,7 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
                                 ],
                             )
                     else:
-                        if gate.name in ["CNOT", "CSIGN", "CZ"]:
+                        if gate.name in ["CNOT", "CX", "CSIGN", "CZ"]:
                             qc_t.add_gate(
                                 gate,
                                 targets=(end + targets[0]) % N,

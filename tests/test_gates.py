@@ -232,14 +232,14 @@ class TestGateExpansion:
     @pytest.mark.parametrize(
         ["gate", "n_controls"],
         [
-            pytest.param(std.CNOT, 1, id="cnot"),
-            pytest.param(std.CY, 1, id="cY"),
-            pytest.param(std.CZ, 1, id="cZ"),
-            pytest.param(std.CS, 1, id="cS"),
-            pytest.param(std.CT, 1, id="cT"),
-            pytest.param(std.SWAP, 0, id="swap"),
-            pytest.param(std.ISWAP, 0, id="iswap"),
-            pytest.param(std.SQRTSWAP, 0, id="sqrt(swap)"),
+            pytest.param(std.CX, 1, id="CX"),
+            pytest.param(std.CY, 1, id="CY"),
+            pytest.param(std.CZ, 1, id="CZ"),
+            pytest.param(std.CS, 1, id="CS"),
+            pytest.param(std.CT, 1, id="CT"),
+            pytest.param(std.SWAP, 0, id="SWAP"),
+            pytest.param(std.ISWAP, 0, id="ISWAP"),
+            pytest.param(std.SQRTSWAP, 0, id="SQRTSWAP"),
             pytest.param(std.MS([0.5 * np.pi, 0.0]), 0, id="Molmer-Sorensen"),
         ],
     )
@@ -420,7 +420,7 @@ def test_gates_class():
     circuit1.add_gate(
         std.QASMU(arg_value=(np.pi / 4, np.pi / 4, np.pi / 4)), targets=0
     )
-    circuit1.add_gate(std.CNOT, controls=0, targets=1)
+    circuit1.add_gate(std.CX, controls=0, targets=1)
     circuit1.add_gate(std.CPHASE(np.pi / 4), controls=0, targets=1)
     circuit1.add_gate(std.SWAP, targets=[0, 1])
     circuit1.add_gate(std.ISWAP, targets=[2, 1])
@@ -450,7 +450,7 @@ def test_gates_class():
     circuit2.add_gate(
         std.QASMU(arg_value=(np.pi / 4, np.pi / 4, np.pi / 4)), targets=0,
     )
-    circuit2.add_gate(std.CNOT, controls=0, targets=1)
+    circuit2.add_gate(std.CX, controls=0, targets=1)
     circuit2.add_gate(std.CPHASE(np.pi / 4), controls=0, targets=1)
     circuit2.add_gate(std.SWAP, targets=[0, 1])
     circuit2.add_gate(std.ISWAP, targets=[2, 1])

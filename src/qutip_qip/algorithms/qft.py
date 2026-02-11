@@ -3,7 +3,7 @@ This module provides the circuit implementation for Quantum Fourier Transform.
 """
 
 import numpy as np
-from qutip_qip.operations import CNOT, RZ, H, CPHASE, SWAP, expand_operator
+from qutip_qip.operations import H, RZ, CX, CPHASE, SWAP, expand_operator
 from qutip_qip.circuit import QubitCircuit
 from qutip import Qobj
 from qutip_qip.decompose import decompose_one_qubit_gate
@@ -132,9 +132,9 @@ def _cphase_to_cnot(targets, controls, arg_value, qc: QubitCircuit):
         decompose_one_qubit_gate(rotation, method="ZYZ_PauliX")
     )
     qc.add_gate(decomposed_gates[0], targets=targets)
-    qc.add_gate(CNOT, targets=targets, controls=controls)
+    qc.add_gate(CX, targets=targets, controls=controls)
     qc.add_gate(decomposed_gates[4], targets=targets)
-    qc.add_gate(CNOT, targets=targets, controls=controls)
+    qc.add_gate(CX, targets=targets, controls=controls)
     qc.add_gate(RZ(arg_value / 2), targets=controls)
     gate = decomposed_gates[7]
     gate.arg_value[0] += arg_value / 4
