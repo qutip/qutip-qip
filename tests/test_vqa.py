@@ -118,7 +118,7 @@ class TestVQACircuit:
         vqa.add_block(block)
         # try to reach the |1> state from the |0> state
         vqa.cost_func = lambda s: 1 - np.abs(s.overlap(qutip.basis(2, 1)))
-        res = vqa.optimize_parameters(initial=[np.pi / 3.])
+        res = vqa.optimize_parameters(initial=[np.pi / 3.0])
         assert res.get_top_bitstring() == "|1>"
 
     def test_layer_by_layer(self):
@@ -130,7 +130,7 @@ class TestVQACircuit:
         vqa.add_block(block)
         vqa.cost_func = lambda s: 1 - np.abs(s.overlap(qutip.basis(2, 1)))
         res = vqa.optimize_parameters(
-            initial=[np.pi / 3., 0, 0, 0], layer_by_layer=True
+            initial=[np.pi / 3.0, 0, 0, 0], layer_by_layer=True
         )
         assert res.get_top_bitstring() == "|1>"
 
@@ -189,12 +189,13 @@ class TestVQACircuit:
         # Only test on environments that have the matplotlib dependency
         vqa = VQA(num_qubits=4, num_layers=1, cost_method="STATE")
         for i in range(4):
-            vqa.add_block(VQABlock(
-                expand_operator(
-                    qutip.sigmax(), dims=[2]*4, targets=[i])
-                ))
+            vqa.add_block(
+                VQABlock(
+                    expand_operator(qutip.sigmax(), dims=[2] * 4, targets=[i])
+                )
+            )
         vqa.cost_func = lambda s: 0
-        res = vqa.optimize_parameters([0., 0., 0., 0.])
+        res = vqa.optimize_parameters([0.0, 0.0, 0.0, 0.0])
         res.plot(top_ten=todo, display=False)
 
     def test_optimization_errors(self):
@@ -226,6 +227,7 @@ class TestOptimizationResult:
         e.g. [1, 2, 3] with the bitstring |010> should become
         '{1, 3} {2}'.
         """
+
         # Fake scipy res object
         class fakeRes:
             pass

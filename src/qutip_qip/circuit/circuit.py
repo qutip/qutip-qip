@@ -3,6 +3,7 @@ Quantum circuit representation and simulation.
 """
 
 import inspect
+import warnings
 from collections.abc import Iterable
 
 import numpy as np
@@ -38,7 +39,7 @@ class QubitCircuit:
 
     Parameters
     ----------
-    N : int
+    num_qubits : int
         Number of qubits in the system.
     user_gates : dict
         Define a dictionary of the custom gates. See examples for detail.
@@ -64,30 +65,40 @@ class QubitCircuit:
 
     def __init__(
         self,
-        N,
+        num_qubits=None,
         input_states=None,
         output_states=None,
         reverse_states=True,
         user_gates=None,
         dims=None,
         num_cbits=0,
+        N=None,
     ):
         # number of qubits in the register
-        self.N = N
+        self._num_qubits = num_qubits
+        if N is not None:
+            warnings.warn(
+                "The 'N' parameter is deprecated. Please use "
+                "'num_qubits' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            self._num_qubits = N
+
         self.reverse_states = reverse_states
         self.gates = []
-        self.dims = dims if dims is not None else [2] * N
+        self.dims = dims if dims is not None else [2] * num_qubits
         self.num_cbits = num_cbits
 
         if input_states:
             self.input_states = input_states
         else:
-            self.input_states = [None for i in range(N + num_cbits)]
+            self.input_states = [None for i in range(num_qubits + num_cbits)]
 
         if output_states:
             self.output_states = output_states
         else:
-            self.output_states = [None for i in range(N + num_cbits)]
+            self.output_states = [None for i in range(num_qubits + num_cbits)]
 
         if user_gates is None:
             self.user_gates = {}
@@ -99,6 +110,26 @@ class QubitCircuit:
                     "`user_gate` takes a python dictionary of the form"
                     "{{str: gate_function}}, not {}".format(user_gates)
                 )
+
+    @property
+    def num_qubits(self) -> int:
+        """
+        Number of qubits in the circuit.
+        """
+        return self._num_qubits
+
+    @property
+    def N(self) -> int:
+        """
+        Number of qubits in the circuit.
+        """
+        warnings.warn(
+            "The 'N' parameter is deprecated. Please use "
+            "'num_qubits' instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self._num_qubits
 
     def __repr__(self) -> str:
         return ""
@@ -114,7 +145,7 @@ class QubitCircuit:
 
     def add_state(self, state, targets=None, state_type="input"):
         """
-        Add an input or ouput state to the circuit. By default all the input
+        Add an input or output state to the circuit. By default all the input
         and output states will be initialized to `None`. A particular state can
         be added by specifying the state and the qubit where it has to be added
         along with the type as input or output.
@@ -149,7 +180,7 @@ class QubitCircuit:
         Parameters
         ----------
         measurement: string
-            Measurement name. If name is an instance of `Measuremnent`,
+            Measurement name. If name is an instance of `Measurement`,
             parameters are unpacked and added.
         targets: list
             Gate targets
@@ -317,7 +348,7 @@ class QubitCircuit:
         start : int
             The qubit on which the first gate is applied.
         """
-        if self.N - start < qc.N:
+        if self.num_qubits - start < qc.num_qubits:
             raise NotImplementedError("Targets exceed number of qubits.")
 
         # Inherit the user gates
@@ -382,7 +413,7 @@ class QubitCircuit:
             if end is not None and end <= len(self.gates):
                 for i in range(end - index):
                     self.gates.pop(index + i)
-            elif end is not None and end > self.N:
+            elif end is not None and end > self.num_qubits:
                 raise ValueError(
                     "End target exceeds number \
                                     of gates + measurements."
@@ -422,7 +453,7 @@ class QubitCircuit:
 
         """
         temp = QubitCircuit(
-            self.N,
+            self.num_qubits,
             reverse_states=self.reverse_states,
             num_cbits=self.num_cbits,
             input_states=self.input_states,
@@ -533,7 +564,7 @@ class QubitCircuit:
             for the qubit circuit in the desired basis.
         """
         qc_temp = QubitCircuit(
-            self.N,
+            self.num_qubits,
             reverse_states=self.reverse_states,
             num_cbits=self.num_cbits,
         )
@@ -708,7 +739,7 @@ class QubitCircuit:
 
         """
         temp = QubitCircuit(
-            self.N,
+            self.num_qubits,
             reverse_states=self.reverse_states,
             num_cbits=self.num_cbits,
         )
@@ -829,7 +860,7 @@ class QubitCircuit:
         ----------
         expand : bool, optional
             Whether to expand the unitary matrices for the individual
-            steps to the full Hilbert space for N qubits.
+            steps to the full Hilbert space for num_qubits.
             Defaults to ``True``.
             If ``False``, the unitary matrices will not be expanded and the
             list of unitaries will need to be combined with the list of
@@ -860,7 +891,7 @@ class QubitCircuit:
             )
         for gate in gates:
             if gate.name == "GLOBALPHASE":
-                qobj = gate.get_qobj(self.N)
+                qobj = gate.get_qobj(self.num_qubits)
             else:
                 qobj = self._get_gate_unitary(gate)
                 if expand:
@@ -1010,7 +1041,7 @@ class QubitCircuit:
             object to store QASM output.
         """
 
-        qasm_out.output("qreg q[{}];".format(self.N))
+        qasm_out.output("qreg q[{}];".format(self.num_qubits))
         if self.num_cbits:
             qasm_out.output("creg c[{}];".format(self.num_cbits))
         qasm_out.output(n=1)

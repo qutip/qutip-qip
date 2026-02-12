@@ -2,12 +2,7 @@ import numpy as np
 import pytest
 from math import sqrt
 from qutip_qip.operations import Measurement
-from qutip import (
-    basis,
-    ket2dm,
-    tensor,
-    rand_ket
-)
+from qutip import basis, ket2dm, tensor, rand_ket
 import qutip
 
 
@@ -30,14 +25,13 @@ def test_measurement_comp_basis():
         final_dms, probabilities_dm = m_i.measurement_comp_basis(density_mat)
 
         amps = qubit_kets[i].full()
-        probabilities_i = [np.abs(amps[0][0])**2, np.abs(amps[1][0])**2]
+        probabilities_i = [np.abs(amps[0][0]) ** 2, np.abs(amps[1][0]) ** 2]
 
         np.testing.assert_allclose(probabilities_state, probabilities_dm)
         np.testing.assert_allclose(probabilities_state, probabilities_i)
         for j, final_state in enumerate(final_states):
             np.testing.assert_allclose(
-                final_dms[j].full(),
-                ket2dm(final_state).full()
+                final_dms[j].full(), ket2dm(final_state).full()
             )
 
 
@@ -51,7 +45,7 @@ def test_measurement_collapse(index):
     state_00 = tensor(basis(2, 0), basis(2, 0))
     state_11 = tensor(basis(2, 1), basis(2, 1))
 
-    bell_state = (state_00 + state_11)/sqrt(2)
+    bell_state = (state_00 + state_11) / sqrt(2)
     M = Measurement("BM", targets=[index])
 
     states, probabilities = M.measurement_comp_basis(bell_state)
@@ -59,20 +53,20 @@ def test_measurement_collapse(index):
 
     for i, state in enumerate(states):
         if i == 0:
-            Mprime = Measurement("00", targets=[1-index])
+            Mprime = Measurement("00", targets=[1 - index])
             states_00, probability_00 = Mprime.measurement_comp_basis(state)
             assert probability_00[0] == 1
             assert states_00[1] is None
         else:
-            Mprime = Measurement("11", targets=[1-index])
+            Mprime = Measurement("11", targets=[1 - index])
             states_11, probability_11 = Mprime.measurement_comp_basis(state)
             assert probability_11[1] == 1
             assert states_11[0] is None
 
 
 def test_against_numerical_error():
-    state = qutip.Qobj([[1], [1.e-12]])
+    state = qutip.Qobj([[1], [1.0e-12]])
     measurement = Measurement("M", 0)
     states, probabilites = measurement.measurement_comp_basis(state)
     assert states[1] is None
-    assert probabilites[1] == 0.
+    assert probabilites[1] == 0.0
