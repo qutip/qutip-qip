@@ -148,7 +148,7 @@ Gate name                           Description
 "Z"                   Pauli-Z gate
 "S"                   Single-qubit rotation or Z90
 "T"                   Square root of S gate
-"SQRTNOT"             Square root of NOT gate
+"SQRTX"               Square root of X gate
 "H"                   Hadamard gate
 "PHASEGATE"           Add a phase one the state 1
 "CRX"                 Controlled rotation around x axis

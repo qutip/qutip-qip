@@ -130,7 +130,7 @@ class SNOT(H):
         super().__init__()
 
 
-class SQRTNOT(_SingleQubitGate):
+class SQRTX(_SingleQubitGate):
     r"""
     :math:`\sqrt{X}` gate.
 
@@ -150,6 +150,17 @@ class SQRTNOT(_SingleQubitGate):
     @staticmethod
     def get_qobj():
         return Qobj([[0.5 + 0.5j, 0.5 - 0.5j], [0.5 - 0.5j, 0.5 + 0.5j]])
+
+
+class SQRTNOT(SQRTX):
+    def __init__(self):
+        warnings.warn(
+            "SQRTNOT is deprecated and will be removed in future versions. "
+            "Use SQRTX instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        super().__init__()
 
 
 class S(_SingleQubitGate):

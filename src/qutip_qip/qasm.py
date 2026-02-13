@@ -1026,7 +1026,7 @@ class QasmOutput:
             gate_def = "gate cry(theta) a,b { cu3(theta,0,0) a,b; }"
         elif gate.name == "CRX":
             gate_def = "gate crx(theta) a,b { cu3(theta,-pi/2,pi/2) a,b; }"
-        elif gate.name == "SQRTNOT":
+        elif gate.name == "SQRTX":
             gate_def = "gate sqrtnot a {h a; u1(-pi/2) a; h a; }"
         elif gate.name == "CZ":
             gate_def = "gate cz a,b { cu1(pi) a,b; }"

@@ -142,7 +142,7 @@ def test_export_import():
     qc.add_gate(std.CRZ(np.pi), targets=1, controls=0)
     qc.add_gate(std.CX, targets=1, controls=0)
     qc.add_gate(std.TOFFOLI, targets=2, controls=[0, 1])
-    # qc.add_gate(SQRTNOT, targets=0)
+    # qc.add_gate(SQRTX, targets=0)
     qc.add_gate(std.CS, targets=1, controls=0)
     qc.add_gate(std.CT, targets=1, controls=0)
     qc.add_gate(std.SWAP, targets=[0, 1])

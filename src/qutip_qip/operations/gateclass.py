@@ -6,7 +6,7 @@ from qutip import Qobj
 from qutip_qip.operations import controlled_gate
 
 
-class _ReadOnlyGateMetaClass(ABCMeta):
+class _GateMetaClass(ABCMeta):
     """
     The purpose of this meta class is to enforce read-only constraints on specific class attributes.
     
@@ -33,7 +33,7 @@ class _ReadOnlyGateMetaClass(ABCMeta):
             super().__setattr__(name, value)
 
 
-class Gate(ABC, metaclass=_ReadOnlyGateMetaClass):
+class Gate(ABC, metaclass=_GateMetaClass):
     r"""
     Abstract base class for a quantum gate.
 
@@ -365,12 +365,12 @@ class ControlledGate(Gate):
 
     @property
     @abstractmethod
-    def num_ctrl_qubits(self) -> int:
+    def num_ctrl_qubits() -> int:
         pass
 
     @property
     @abstractmethod
-    def target_gate(self) -> int:
+    def target_gate() -> int:
         pass
 
     @property

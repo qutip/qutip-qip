@@ -9,11 +9,11 @@ from qutip_qip.decompose.decompose_single_qubit_gate import (
 )
 from qutip_qip.decompose import decompose_one_qubit_gate
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import H, X, Y, Z, S, T, SQRTNOT
+from qutip_qip.operations import H, X, Y, Z, S, T, SQRTX
 
 # Fidelity closer to 1 means the two states are similar to each other
 target = 0
-gate_list = [H, X, Y, Z, SQRTNOT, S, T]
+gate_list = [H, X, Y, Z, SQRTX, S, T]
 
 # TODO Add a custom gate - rand_unitary(2)
 
