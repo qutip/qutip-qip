@@ -20,7 +20,7 @@ class ShorCode:
         Returns:
             QubitCircuit: Circuit that encodes one logical qubit into the Shor code.
         """
-        qc = QubitCircuit(N=self.n_qubits)
+        qc = QubitCircuit(num_qubits=self.n_qubits)
 
         # Step 1: Bit-flip encode qubit 0 → [0, 1, 2]
         bit_code = BitFlipCode()

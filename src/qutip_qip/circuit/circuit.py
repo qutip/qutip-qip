@@ -46,7 +46,7 @@ class QubitCircuit:
 
     Parameters
     ----------
-    N : int
+    num_qubits : int
         Number of qubits in the system.
     input_states : list
         A list of string such as `0`,'+', "A", "Y". Only used for latex.
@@ -60,31 +60,41 @@ class QubitCircuit:
 
     def __init__(
         self,
-        N,
+        num_qubits=None,
         input_states=None,
         output_states=None,
         reverse_states=True,
         dims=None,
         num_cbits=0,
         user_gates=None,
+        N = None
     ):
         # number of qubits in the register
-        self.N = N
+        self._num_qubits = num_qubits
+        if N is not None:
+            warnings.warn(
+                "The 'N' parameter is deprecated. Please use "
+                "'num_qubits' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            self._num_qubits = N
+
         self.reverse_states = reverse_states
         self.num_cbits: int = num_cbits
         self._global_phase: float = 0.0
         self._instructions: list[CircuitInstruction] = []
-        self.dims = dims if dims is not None else [2] * N
+        self.dims = dims if dims is not None else [2] * self.num_qubits
 
         if input_states:
             self.input_states = input_states
         else:
-            self.input_states = [None for i in range(N + num_cbits)]
+            self.input_states = [None for i in range(self.num_qubits + num_cbits)]
 
         if output_states:
             self.output_states = output_states
         else:
-            self.output_states = [None for i in range(N + num_cbits)]
+            self.output_states = [None for i in range(self.num_qubits + num_cbits)]
 
         if user_gates is not None:
             raise ValueError(
@@ -121,6 +131,26 @@ class QubitCircuit:
     def instructions(self) -> list[CircuitInstruction]:
         return self._instructions
 
+    @property
+    def num_qubits(self) -> int:
+        """
+        Number of qubits in the circuit.
+        """
+        return self._num_qubits
+
+    @property
+    def N(self) -> int:
+        """
+        Number of qubits in the circuit.
+        """
+        warnings.warn(
+            "The 'N' parameter is deprecated. Please use "
+            "'num_qubits' instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self._num_qubits
+
     def __repr__(self) -> str:
         return ""
 
@@ -140,7 +170,7 @@ class QubitCircuit:
         state_type: str = "input", # FIXME Add an enum type hinting?
     ):
         """
-        Add an input or ouput state to the circuit. By default all the input
+        Add an input or output state to the circuit. By default all the input
         and output states will be initialized to `None`. A particular state can
         be added by specifying the state and the qubit where it has to be added
         along with the type as input or output.
@@ -180,7 +210,7 @@ class QubitCircuit:
         Parameters
         ----------
         measurement: string
-            Measurement name. If name is an instance of `Measuremnent`,
+            Measurement name. If name is an instance of `Measurement`,
             parameters are unpacked and added.
         targets: list
             Gate targets
@@ -298,8 +328,8 @@ class QubitCircuit:
         _check_iterable("classical_controls", classical_controls)
 
         # Checks each element is of given type (e.g. int) and within the limit
-        _check_limit_("targets", targets, self.N - 1, int)
-        _check_limit_("controls", controls, self.N - 1, int)
+        _check_limit_("targets", targets, self.num_qubits - 1, int)
+        _check_limit_("controls", controls, self.num_qubits - 1, int)
         _check_limit_(
             "classical_controls", classical_controls, self.num_cbits - 1, int
         )
@@ -376,7 +406,7 @@ class QubitCircuit:
         start : int
             The qubit on which the first gate is applied.
         """
-        if self.N - start < qc.N:
+        if self.num_qubits - start < qc.num_qubits:
             raise NotImplementedError("Targets exceed number of qubits.")
 
         for circuit_op in qc.instructions:
@@ -426,7 +456,7 @@ class QubitCircuit:
                 for i in range(end - index):
                     self._instructions.pop(index + i)
 
-            elif end is not None and end > self.N:
+            elif end is not None and end > self.num_qubits:
                 raise ValueError("End target exceeds number \
                     of gates + measurements.")
 
@@ -465,7 +495,7 @@ class QubitCircuit:
 
         """
         temp = QubitCircuit(
-            self.N,
+            self.num_qubits,
             reverse_states=self.reverse_states,
             num_cbits=self.num_cbits,
             input_states=self.input_states,
@@ -620,11 +650,11 @@ class QubitCircuit:
 
         match = False
         qc_temp = QubitCircuit(
-            self.N,
+            self.num_qubits,
             reverse_states=self.reverse_states,
             num_cbits=self.num_cbits,
         )
-        temp_resolved = QubitCircuit(self.N)
+        temp_resolved = QubitCircuit(self.num_qubits)
 
         for circ_instruction in self.instructions:
             gate = circ_instruction.operation
@@ -744,7 +774,7 @@ class QubitCircuit:
         ----------
         expand : bool, optional
             Whether to expand the unitary matrices for the individual
-            steps to the full Hilbert space for N qubits.
+            steps to the full Hilbert space for num_qubits.
             Defaults to ``True``.
             If ``False``, the unitary matrices will not be expanded and the
             list of unitaries will need to be combined with the list of
@@ -789,7 +819,7 @@ class QubitCircuit:
         # For Circuit's Global Phase
         qobj = Qobj([self.global_phase])
         if expand:
-            qobj = GLOBALPHASE(self.global_phase).get_qobj(num_qubits=self.N)
+            qobj = GLOBALPHASE(self.global_phase).get_qobj(num_qubits=self.num_qubits)
 
         U_list.append(qobj)
         return U_list
@@ -904,7 +934,7 @@ class QubitCircuit:
             object to store QASM output.
         """
 
-        qasm_out.output("qreg q[{}];".format(self.N))
+        qasm_out.output("qreg q[{}];".format(self.num_qubits))
         if self.num_cbits:
             qasm_out.output("creg c[{}];".format(self.num_cbits))
         qasm_out.output(n=1)

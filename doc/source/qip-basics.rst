@@ -36,7 +36,7 @@ A circuit with the various gates and registers available is demonstrated below:
   from qutip_qip.operations import X, CX, SWAP
   from qutip import tensor, basis
 
-  qc = QubitCircuit(N=2, num_cbits=1)
+  qc = QubitCircuit(2, num_cbits=1)
 
   qc.add_gate(SWAP, targets=[0, 1])
   qc.add_measurement("M0", targets=[1], classical_store=0) # measurement gate

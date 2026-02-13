@@ -86,7 +86,7 @@ class PhaseFlipCode:
             raise ValueError("Expected 3 data qubits and 2 syndrome qubits.")
 
         total_qubits = max(data_qubits + syndrome_qubits) + 1
-        qc = QubitCircuit(N=total_qubits, num_cbits=2)
+        qc = QubitCircuit(num_qubits=total_qubits, num_cbits=2)
 
         dq = data_qubits
         sq = syndrome_qubits

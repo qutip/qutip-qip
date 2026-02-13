@@ -84,7 +84,7 @@ class BitFlipCode:
 
         total_qubits = max(data_qubits + syndrome_qubits) + 1
         classical_bits = len(syndrome_qubits)
-        qc = QubitCircuit(N=total_qubits, num_cbits=classical_bits)
+        qc = QubitCircuit(num_qubits=total_qubits, num_cbits=classical_bits)
 
         dq = data_qubits
         sq = syndrome_qubits

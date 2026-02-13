@@ -60,7 +60,7 @@ def test_phaseflip_correction_simulation(code, data_qubits, syndrome_qubits):
     state = qc_encode.run(state)
 
     # Apply Z (phase-flip) error to qubit 1
-    qc_error = QubitCircuit(N=5)
+    qc_error = QubitCircuit(num_qubits = 5)
     qc_error.add_gate(Z, targets=[1])
     state = qc_error.run(state)
 

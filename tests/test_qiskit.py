@@ -58,7 +58,7 @@ class TestConverter:
             req_gate.operation.name == res_gate.operation.name
         ) and (
             list(req_gate.qubits)
-            == get_qutip_index(list(res_gate.qubits), result_circuit.N)
+            == get_qutip_index(list(res_gate.qubits), result_circuit.num_qubits)
         )
         if not check_condition:
             return False
@@ -71,7 +71,7 @@ class TestConverter:
             # TODO correct for float error in arg_value
             res_controls = None
             if res_gate.operation.is_controlled_gate():
-                res_controls = get_qutip_index(list(res_gate.controls), result_circuit.N)
+                res_controls = get_qutip_index(list(res_gate.controls), result_circuit.num_qubits)
 
             req_controls = None
             if req_gate.operation.is_controlled_gate():
@@ -89,7 +89,7 @@ class TestConverter:
         """
         Check whether two circuits are equivalent.
         """
-        if result_circuit.N != required_circuit.N or len(
+        if result_circuit.num_qubits != required_circuit.num_qubits or len(
             result_circuit.instructions
         ) != len(required_circuit.instructions):
             return False

@@ -10,7 +10,7 @@ def code():
 
 def test_shor_circuit_structure(code):
     qc = code.encode_circuit()
-    assert qc.N == 9
+    assert qc.num_qubits == 9
     assert len(qc.instructions) > 0
 
 

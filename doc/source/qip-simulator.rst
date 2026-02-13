@@ -16,7 +16,7 @@ examples of circuit evolution. We take a circuit from
     from qutip_qip.circuit import QubitCircuit
     from qutip_qip.operations import X, CX, CH, QASMU, TOFFOLI
     )
-    qc = QubitCircuit(N=3, num_cbits=3)
+    qc = QubitCircuit(3, num_cbits=3)
     qc.add_gate(QASMU, targets=[0], arg_value=[1.91063, 0, 0])
     qc.add_gate(CH, controls=[0], targets=[1])
     qc.add_gate(TOFFOLI, targets=[2], controls=[0, 1])

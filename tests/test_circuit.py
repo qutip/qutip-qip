@@ -569,7 +569,7 @@ class TestQubitCircuit:
                 assert simulator.cbits[0] != simulator.cbits[1]
 
     def test_circuit_with_selected_measurement_result(self):
-        qc = QubitCircuit(N=1, num_cbits=1)
+        qc = QubitCircuit(num_qubits=1, num_cbits=1)
         qc.add_gate(std.H, targets=0)
         qc.add_measurement("M0", targets=0, classical_store=0)
 
