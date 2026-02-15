@@ -2,6 +2,11 @@
 Operations on quantum circuits.
 """
 
+from .utils import (
+    expand_operator,
+    gate_sequence_product,
+    controlled_gate,
+)
 from .gates import (
     rx,
     ry,
@@ -33,12 +38,9 @@ from .gates import (
     molmer_sorensen,
     toffoli,
     rotation,
-    controlled_gate,
     globalphase,
     hadamard_transform,
     qubit_clifford_group,
-    expand_operator,
-    gate_sequence_product,
 )
 
 from .gateclass import (
