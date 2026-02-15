@@ -3,7 +3,7 @@ import pytest
 import itertools
 import numpy as np
 import qutip
-from qutip_qip.operations import gates
+from qutip.core.gates import hadamard_transform, qubit_clifford_group
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations import Gate, expand_operator
 import qutip_qip.operations.std as std
@@ -154,7 +154,7 @@ class TestCliffordGroup:
     group for a single qubit.
     """
 
-    clifford = list(gates.qubit_clifford_group())
+    clifford = list(qubit_clifford_group())
     pauli = [qutip.qeye(2), qutip.sigmax(), qutip.sigmay(), qutip.sigmaz()]
 
     def test_single_qubit_group_dimension_is_24(self):
@@ -168,7 +168,7 @@ class TestCliffordGroup:
                 fid = qutip.average_gate_fidelity(gate, other)
                 assert not np.allclose(fid, 1.0, atol=1e-3)
 
-    @pytest.mark.parametrize("gate", gates.qubit_clifford_group())
+    @pytest.mark.parametrize("gate", qubit_clifford_group())
     def test_gate_normalises_pauli_group(self, gate):
         """
         Test the fundamental definition of the Clifford group, i.e. that it
@@ -308,7 +308,7 @@ class Test_expand_operator:
     )
     def test_permutation_without_expansion(self, permutation):
         base = qutip.tensor([qutip.rand_unitary(2) for _ in permutation])
-        test = gates.expand_operator(
+        test = expand_operator(
             base, dims=[2] * len(permutation), targets=permutation
         )
         expected = base.permute(_apply_permutation(permutation))
@@ -324,7 +324,7 @@ class Test_expand_operator:
             expected = _tensor_with_entanglement(
                 [qutip.qeye(2)] * n_qubits, operation, targets
             )
-            test = gates.expand_operator(
+            test = expand_operator(
                 operation, dims=[2] * n_qubits, targets=targets
             )
             np.testing.assert_allclose(
@@ -332,7 +332,7 @@ class Test_expand_operator:
             )
 
     def test_cnot_explicit(self):
-        test = gates.expand_operator(
+        test = expand_operator(
             std.CX.get_qobj(), dims=[2] * 3, targets=[2, 0]
         ).full()
         expected = np.array(
@@ -350,7 +350,7 @@ class Test_expand_operator:
         np.testing.assert_allclose(test, expected, atol=1e-15)
 
     def test_hadamard_explicit(self):
-        test = gates.hadamard_transform(3).full()
+        test = hadamard_transform(3).full()
         expected = np.array(
             [
                 [1, 1, 1, 1, 1, 1, 1, 1],
@@ -387,7 +387,7 @@ class Test_expand_operator:
             ]
             expected = qutip.tensor(*operators)
             base_test = qutip.tensor(*[operators[x] for x in targets])
-            test = gates.expand_operator(
+            test = expand_operator(
                 base_test, dims=dimensions, targets=targets
             )
             assert test.dims == expected.dims
