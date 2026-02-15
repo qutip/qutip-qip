@@ -48,9 +48,15 @@ class ZZCrossTalk(Noise):
             The dummy pulse representing pulse-independent noise.
         """
 
+        # FIXME check these unused parameters
         J = self.params["J"]
+        wr_dr = self.params["wr_dressed"]
+        wr = self.params["wr"]
         wq_dr_cav = self.params["wq_dressed_cavity"]
+        wq_dr = self.params["wq_dressed"]
+        wq = self.params["wq"]
         alpha = self.params["alpha"]
+        omega = self.params["omega_cr"]
 
         for i in range(len(dims) - 1):
             d1 = dims[i]
@@ -60,7 +66,7 @@ class ZZCrossTalk(Noise):
 
             projector1 = (
                 basis(d1, 0) * basis(d1, 0).dag()
-                + basis(d1, 1) * basis(d1, 1).dag()
+                + basis(d1, 1) * basis(d2, 1).dag()
             )
 
             projector2 = (
@@ -76,7 +82,7 @@ class ZZCrossTalk(Noise):
 
             z2 = (
                 projector2
-                * (destroy_op2.dag() * destroy_op2 * 2 - qeye(d2))
+                * (destroy_op2.dag() * destroy_op2 * 2 - qeye(d1))
                 * projector2
             )
 
