@@ -1,3 +1,4 @@
+from __future__ import annotations  # This won't be needed after minimum version becomes 3.14 (PEP 749)
 from abc import ABC, ABCMeta, abstractmethod
 import inspect
 
@@ -54,6 +55,8 @@ class _GateMetaClass(ABCMeta):
             cls._instances[cls] = super().__call__(*args, **kwargs)
         
         return cls._instances[cls]
+
+
 
 
 class Gate(ABC, metaclass=_GateMetaClass):
@@ -128,7 +131,7 @@ class Gate(ABC, metaclass=_GateMetaClass):
 
     @property
     @abstractmethod
-    def num_qubits(self) -> Qobj:
+    def num_qubits(self) -> int:
         pass
 
     @staticmethod
@@ -153,7 +156,7 @@ class Gate(ABC, metaclass=_GateMetaClass):
     def self_inverse(self) -> bool:
         pass
 
-    def inverse(self):
+    def inverse(self) -> Gate:
         """
         Return the inverse of the gate.
 
@@ -269,8 +272,9 @@ class ParametricGate(Gate):
     def num_params(self) -> Qobj:
         pass
 
+    @staticmethod
     @abstractmethod
-    def validate_params(self, arg_value):
+    def validate_params(arg_value):
         r"""
         Validate the provided parameters.
 
@@ -324,7 +328,7 @@ class ControlledGate(Gate):
         * If the gate should execute when the 0-th qubit is $|1\rangle$, 
             set ``control_value=1``.
         * If the gate should execute when two control qubits are $|10\rangle$ 
-            (binary 10), set ``control_value=2``.
+            (binary 10), set ``control_value=0b10``.
         
         Defaults to all-ones (e.g., $2^N - 1$) if not provided.
 
@@ -404,7 +408,8 @@ class ControlledGate(Gate):
     def control_value(self) -> int:
         return self._control_value
 
-    def _validate_control_value(self, control_value: int) -> None:
+    @classmethod
+    def _validate_control_value(cls, control_value: int) -> None:
         """
         Internal validation for the control value.
 
@@ -423,7 +428,7 @@ class ControlledGate(Gate):
         if control_value < 0:
             raise ValueError(f"Control value can't be negative, got {control_value}")
 
-        if control_value > 2**self.num_ctrl_qubits - 1:
+        if control_value > 2**cls.num_ctrl_qubits - 1:
             raise ValueError(f"Control value can't be greater than 2^num_ctrl_qubits - 1, got {control_value}")
 
     def get_qobj(self) -> Qobj:
@@ -506,13 +511,12 @@ def controlled_gate_factory(
 
 
 class AngleParametricGate(ParametricGate):
-    def validate_params(self, arg_value):
+    self_inverse = False
+    
+    @staticmethod
+    def validate_params(arg_value):
         for arg in arg_value:
             try:
                 float(arg)
             except TypeError:
                 raise ValueError(f"Invalid arg {arg} in arg_value")
-
-    @property
-    def self_inverse(self) -> int:
-        return False
