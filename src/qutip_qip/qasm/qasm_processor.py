@@ -2,23 +2,22 @@
 
 import re
 import os
-from itertools import chain
 from copy import deepcopy
 import warnings
 
 import numpy as np
 from math import pi  # Don't remove
 
-from .circuit import QubitCircuit
-from .operations import (
+from qutip import Qobj
+from qutip_qip.circuit import QubitCircuit
+from qutip_qip.operations import (
+    Gate,
     controlled_gate,
     qasmu_gate,
     rz,
     snot,
 )
-
-
-__all__ = ["read_qasm", "save_qasm", "print_qasm", "circuit_to_qasm_str"]
+from qutip_qip.qasm.tokenize_qasm import tokenize_qasm
 
 
 class QasmGate:
@@ -60,92 +59,6 @@ def _get_qiskit_gates():
         return controlled_gate(snot())
 
     return {"ch": ch, "tdg": tdg, "id": id, "u2": u2, "sdg": sdg, "cu3": cu3}
-
-
-def _tokenize_line(command):
-    """
-    Tokenize (break into several parts a string of) a single line of QASM code.
-
-    Parameters
-    ----------
-    command : str
-        One line of QASM code to be broken into "tokens".
-
-    Returns
-    -------
-    tokens : list of str
-        The tokens (parts) corresponding to the qasm line taken as input.
-    """
-
-    # for gates without arguments
-    if "(" not in command:
-        tokens = list(chain(*[a.split() for a in command.split(",")]))
-        tokens = [token.strip() for token in tokens]
-    # for classically controlled gates
-    elif re.match(r"\s*if\s*\(", command):
-        groups = re.match(r"\s*if\s*\((.*)\)\s*(.*)\s+\((.*)\)(.*)", command)
-        # for classically controlled gates with arguments
-        if groups:
-            tokens = ["if", "(", groups.group(1), ")"]
-            tokens_gate = _tokenize_line(
-                "{} ({}) {}".format(
-                    groups.group(2), groups.group(3), groups.group(4)
-                )
-            )
-            tokens += tokens_gate
-        # for classically controlled gates without arguments
-        else:
-            groups = re.match(r"\s*if\s*\((.*)\)(.*)", command)
-            tokens = ["if", "(", groups.group(1), ")"]
-            tokens_gate = _tokenize_line(groups.group(2))
-            tokens += tokens_gate
-        tokens = [token.strip() for token in tokens]
-    # for gates with arguments
-    else:
-        groups = re.match(r"(^.*?)\((.*)\)(.*)", command)
-        if not groups:
-            raise SyntaxError("QASM: Incorrect bracket formatting")
-        tokens = groups.group(1).split()
-        tokens.append("(")
-        tokens += groups.group(2).split(",")
-        tokens.append(")")
-        tokens += groups.group(3).split(",")
-        tokens = [token.strip() for token in tokens]
-
-    return tokens
-
-
-def _tokenize(token_cmds):
-    """
-    Tokenize QASM code for processing, i.e. break it into several parts.
-
-    Parameters
-    ----------
-    token_cmds : list of str
-        Lines of QASM code.
-
-    Returns
-    -------
-    tokens : list of (list of str)
-        List of tokens corresponding to each QASM line taken as input.
-    """
-
-    processed_commands = []
-
-    for line in token_cmds:
-        # carry out some pre-processing for convenience
-        for c in "[]()":
-            line = line.replace(c, " " + c + " ")
-        for c in "{}":
-            line = line.replace(c, " ; " + c + " ; ")
-        line_commands = line.split(";")
-        line_commands = list(filter(lambda x: x != "", line_commands))
-
-        for command in line_commands:
-            tokens = _tokenize_line(command)
-            processed_commands.append(tokens)
-
-    return list(filter(lambda x: x != [], processed_commands))
 
 
 def _gate_processor(command):
@@ -270,7 +183,7 @@ class QasmProcessor:
                     expanded_commands = (
                         expanded_commands
                         + command[prev_index:curr_index]
-                        + _tokenize(qasm_lines)
+                        + tokenize_qasm(qasm_lines)
                     )
                     prev_index = curr_index + 1
             else:
@@ -303,10 +216,10 @@ class QasmProcessor:
                 if command[0] == "{":
                     gate_defn_mode = False
                     open_bracket_mode = True
-                    gate_elems = []
                     continue
                 else:
                     raise SyntaxError("QASM: incorrect bracket formatting")
+            
             elif open_bracket_mode:
                 # Define the decomposition of custom QASM gate
                 if command[0] == "{":
@@ -330,12 +243,14 @@ class QasmProcessor:
                     gate_args, gate_regs = _gate_processor(command)
                     gate_added = self.qasm_gates[name]
                     curr_gate.gates_inside.append([name, gate_args, gate_regs])
+            
             elif command[0] == "gate":
                 # Custom definition of gates.
                 gate_name = command[1]
                 gate_args, gate_regs = _gate_processor(command[1:])
                 curr_gate = QasmGate(gate_name, gate_args, gate_regs)
                 gate_defn_mode = True
+            
             elif command[0] == "qreg":
                 groups = re.match(r"(.*)\[(.*)\]", "".join(command[1:]))
                 if groups:
@@ -359,12 +274,15 @@ class QasmProcessor:
                     self.num_cbits += num_regs
                 else:
                     raise SyntaxError("QASM: incorrect bracket formatting")
+            
             elif command[0] == "reset":
                 raise NotImplementedError(
                     ("QASM: reset functionality " "is not supported.")
                 )
+            
             elif command[0] in ["barrier", "include"]:
                 continue
+            
             else:
                 unprocessed.append(num)
                 continue
@@ -374,7 +292,7 @@ class QasmProcessor:
 
         self.commands = [self.commands[i] for i in unprocessed]
 
-    def _custom_gate(self, qc_temp, gate_call):
+    def _custom_gate(self, qc_temp: QubitCircuit, gate_call: list[str]):
         """
         Recursively process a custom-defined gate with specified arguments
         to produce a dummy circuit with all the gates in the custom-defined
@@ -423,7 +341,7 @@ class QasmProcessor:
             else:
                 self._custom_gate(qc_temp, [name, com_args, com_regs])
 
-    def _regs_processor(self, regs, reg_type):
+    def _regs_processor(self, regs: list[str], reg_type: str):
         """
         Process register tokens: map them to the :class:`.QubitCircuit` indices
         of the respective registers.
@@ -473,6 +391,7 @@ class QasmProcessor:
         if reg_type == "measure":
             # processes register tokens of the form q[i] -> c[i]
             groups = re.match(r"(.*)\[(.*)\]->(.*)\[(.*)\]", "".join(regs))
+            
             if groups:
                 qubit_name = groups.group(1)
                 qubit_ind = int(groups.group(2))
@@ -489,6 +408,7 @@ class QasmProcessor:
                 else:
                     raise ValueError("QASM: cbit index out of bounds")
                 return [(qubit, cbit)]
+            
             # processes register tokens of the form q -> c
             else:
                 qubit_name = regs[0]
@@ -520,6 +440,7 @@ class QasmProcessor:
                     qubit = self.qubit_regs[qubit_name]
                     expand = len(qubit)
                 new_regs.append(qubit)
+            
             if expand:
                 return zip(
                     *list(
@@ -536,12 +457,12 @@ class QasmProcessor:
 
     def _add_qiskit_gates(
         self,
-        qc,
-        name,
-        regs,
-        args=None,
-        classical_controls=None,
-        classical_control_value=None,
+        qc: QubitCircuit,
+        name: str,
+        regs: list[int],
+        args: (float | None) = None,
+        classical_controls: (int | None) = None,
+        classical_control_value: (int | None) = None,
     ):
         """
         Add any gates that are pre-defined in qiskit-style exported
@@ -551,14 +472,19 @@ class QasmProcessor:
         ----------
         qc : :class:`.QubitCircuit`
             the circuit to which the gate is added.
+        
         name : str
             name of gate to be added.
+        
         regs : list of int
             list of qubit register indices to add gates to.
+        
         args : float, optional
             value of args supplied to the gate.
+        
         classical_controls : list of int, optional
             indices of classical bits to control gate on.
+        
         classical_control_value : int, optional
             value of classical bits to control on, the classical controls are
             interpreted as an integer with lowest bit being the first one.
@@ -687,12 +613,12 @@ class QasmProcessor:
 
     def _add_predefined_gates(
         self,
-        qc,
-        name,
+        qc: QubitCircuit,
+        name: str,
         com_regs,
         com_args,
-        classical_controls=None,
-        classical_control_value=None,
+        classical_controls: (int | None) = None,
+        classical_control_value: (int | None) = None,
     ):
         """
         Add any gates that are pre-defined and/or inbuilt
@@ -746,11 +672,11 @@ class QasmProcessor:
 
     def _gate_add(
         self,
-        qc,
-        command,
-        custom_gates,
-        classical_controls=None,
-        classical_control_value=None,
+        qc: QubitCircuit,
+        command: list[str],
+        custom_gates: dict[str: (Gate | Qobj)],
+        classical_controls: (int | list[int] | None) = None,
+        classical_control_value: (int | None) = None,
     ):
         """
         Add gates to :class:`.QubitCircuit` from processed tokens,
@@ -820,7 +746,7 @@ class QasmProcessor:
                     classical_control_value=classical_control_value,
                 )
 
-    def _final_pass(self, qc):
+    def _final_pass(self, qc: QubitCircuit):
         """
         Take a blank circuit, add all the gates and measurements specified
         by QASM.
@@ -864,373 +790,3 @@ class QasmProcessor:
                     command[0]
                 )
                 raise SyntaxError(err)
-
-
-def read_qasm(qasm_input, mode="default", version="2.0", strmode=False):
-    """
-    Read OpenQASM intermediate representation
-    (https://github.com/Qiskit/openqasm) and return
-    a :class:`.QubitCircuit` and state inputs as specified in the
-    QASM file.
-
-    Parameters
-    ----------
-    qasm_input : str
-        File location or String Input for QASM file to be imported. In case of
-        string input, the parameter strmode must be True.
-    mode : str
-        Parsing mode for the qasm file.
-        - "default": For predefined gates in qutip-qip, use the predefined
-        version, otherwise use the custom gate defined in qelib1.inc.
-        The predefined gate can usually be further processed (e.g. decomposed)
-        within qutip-qip.
-        - "predefined_only": Use only the predefined gates in qutip-qip.
-        - "external_only": Use only the gate defined in qelib1.inc, except for CX and QASMU gate.
-    version : str
-        QASM version of the QASM file. Only version 2.0 is currently supported.
-    strmode : bool
-        if specified as True, indicates that qasm_input is in string format
-        rather than from file.
-
-    Returns
-    -------
-    qc : :class:`.QubitCircuit`
-        Returns a :class:`.QubitCircuit` object specified in the QASM file.
-    """
-
-    if strmode:
-        qasm_lines = qasm_input.splitlines()
-    else:
-        f = open(qasm_input, "r")
-        qasm_lines = f.read().splitlines()
-        f.close()
-
-    # split input into lines and ignore comments
-    qasm_lines = [line.strip() for line in qasm_lines]
-    qasm_lines = list(filter(lambda x: x[:2] != "//" and x != "", qasm_lines))
-    # QASMBench Benchmark Suite has lines that have comments after instructions.
-    # Not sure if QASM standard allows this.
-    for i in range(len(qasm_lines)):
-        qasm_line = qasm_lines[i]
-        loc_comment = qasm_line.find("//")
-        if loc_comment >= 0:
-            qasm_line = qasm_line[0:loc_comment]
-        qasm_lines[i] = qasm_line
-
-    if version != "2.0":
-        raise NotImplementedError(
-            "QASM: Only OpenQASM 2.0 \
-                                  is currently supported."
-        )
-
-    if qasm_lines.pop(0) != "OPENQASM 2.0;":
-        raise SyntaxError("QASM: File does not contain QASM 2.0 header")
-
-    qasm_obj = QasmProcessor(qasm_lines, mode=mode, version=version)
-    qasm_obj.commands = _tokenize(qasm_obj.commands)
-
-    qasm_obj._process_includes()
-
-    qasm_obj._initialize_pass()
-    qc = QubitCircuit(qasm_obj.num_qubits, num_cbits=qasm_obj.num_cbits)
-
-    qasm_obj._final_pass(qc)
-
-    return qc
-
-
-_GATE_NAME_TO_QASM_NAME = {
-    "QASMU": "U",
-    "RX": "rx",
-    "RY": "ry",
-    "RZ": "rz",
-    "SNOT": "h",
-    "X": "x",
-    "Y": "y",
-    "Z": "z",
-    "S": "s",
-    "T": "t",
-    "CRZ": "crz",
-    "CNOT": "cx",
-    "TOFFOLI": "ccx",
-}
-
-
-class QasmOutput:
-    """
-    Class for QASM export.
-
-    Parameters
-    ----------
-    version: str, optional
-        OpenQASM version, currently must be "2.0" necessarily.
-    """
-
-    def __init__(self, version="2.0"):
-        self.version = version
-        self.lines = []
-        self.gate_name_map = deepcopy(_GATE_NAME_TO_QASM_NAME)
-
-    def output(self, line="", n=0):
-        """
-        Pipe QASM output string to QasmOutput's lines variable.
-
-        Parameters
-        ----------
-        line: str, optional
-            string to be appended to QASM output.
-        n: int, optional
-            number of blank lines to be appended to QASM output.
-        """
-
-        if line:
-            self.lines.append(line)
-        self.lines = self.lines + [""] * n
-
-    def _flush(self):
-        """
-        Resets QasmOutput variables.
-        """
-
-        self.lines = []
-        self.gate_name_map = deepcopy(_GATE_NAME_TO_QASM_NAME)
-
-    def _qasm_str(self, q_name, q_controls, q_targets, q_args):
-        """
-        Returns QASM string for gate definition or gate application given
-        name, registers, arguments.
-        """
-
-        if not q_controls:
-            q_controls = []
-        q_regs = q_controls + q_targets
-
-        if isinstance(q_targets[0], int):
-            q_regs = ",".join(["q[{}]".format(reg) for reg in q_regs])
-        else:
-            q_regs = ",".join(q_regs)
-
-        if q_args:
-            if isinstance(q_args, list):
-                q_args = ",".join([str(arg) for arg in q_args])
-            return "{}({}) {};".format(q_name, q_args, q_regs)
-        else:
-            return "{} {};".format(q_name, q_regs)
-
-    def _qasm_defn_from_resolved(self, curr_gate, gates_lst):
-        """
-        Resolve QASM definition of QuTiP gate in terms of component gates.
-
-        Parameters
-        ----------
-        curr_gate: :class:`~.operations.Gate`
-            QuTiP gate which needs to be resolved into component gates.
-        gates_lst: list of :class:`~.operations.Gate`
-            list of gate that constitute QASM definition of self.
-        """
-
-        forbidden_gates = ["GLOBALPHASE", "PHASEGATE"]
-        reg_map = ["a", "b", "c"]
-
-        q_controls = None
-        if curr_gate.controls:
-            q_controls = [reg_map[i] for i in curr_gate.controls]
-        q_targets = [reg_map[i] for i in curr_gate.targets]
-        arg_name = None
-        if curr_gate.arg_value:
-            arg_name = "theta"
-
-        self.output(
-            "gate {} {{".format(
-                self._qasm_str(
-                    curr_gate.name.lower(), q_controls, q_targets, arg_name
-                )[:-1]
-            )
-        )
-
-        for gate in gates_lst:
-            if gate.name in self.gate_name_map:
-                gate.targets = [reg_map[i] for i in gate.targets]
-                if gate.controls:
-                    gate.controls = [reg_map[i] for i in gate.controls]
-                self.output(
-                    self._qasm_str(
-                        self.gate_name_map[gate.name],
-                        gate.controls,
-                        gate.targets,
-                        gate.arg_value,
-                    )
-                )
-            elif gate.name in forbidden_gates:
-                continue
-            else:
-                raise ValueError(
-                    (
-                        "The given resolved gate {} cannot be defined"
-                        " in QASM format"
-                    ).format(curr_gate.name)
-                )
-        self.output("}")
-
-    def _qasm_defn_resolve(self, gate):
-        """
-        Resolve QASM definition of QuTiP gate if possible.
-
-        Parameters
-        ----------
-        gate: :class:`~.operations.Gate`
-            QuTiP gate which needs to be resolved into component gates.
-
-        """
-
-        qc = QubitCircuit(3)
-        gates_lst = []
-        if gate.name == "CSIGN":
-            qc._gate_CSIGN(gate, gates_lst)
-        else:
-            err_msg = "No definition specified for {} gate".format(gate.name)
-            raise NotImplementedError(err_msg)
-
-        self._qasm_defn_from_resolved(gate, gates_lst)
-        self.gate_name_map[gate.name] = gate.name.lower()
-
-    def _qasm_defns(self, gate):
-        """
-        Define QASM gates for QuTiP gates that do not have QASM counterparts.
-
-        Parameters
-        ----------
-        gate: :class:`~.operations.Gate`
-            QuTiP gate which needs to be defined in QASM format.
-        """
-
-        if gate.name == "CRY":
-            gate_def = "gate cry(theta) a,b { cu3(theta,0,0) a,b; }"
-        elif gate.name == "CRX":
-            gate_def = "gate crx(theta) a,b { cu3(theta,-pi/2,pi/2) a,b; }"
-        elif gate.name == "SQRTNOT":
-            gate_def = "gate sqrtnot a {h a; u1(-pi/2) a; h a; }"
-        elif gate.name == "CS":
-            gate_def = "gate cs a,b { cu1(pi/2) a,b; }"
-        elif gate.name == "CT":
-            gate_def = "gate ct a,b { cu1(pi/4) a,b; }"
-        elif gate.name == "SWAP":
-            gate_def = "gate swap a,b { cx a,b; cx b,a; cx a,b; }"
-        else:
-            self._qasm_defn_resolve(gate)
-            return
-
-        self.output("// QuTiP definition for gate {}".format(gate.name))
-        self.output(gate_def)
-        self.gate_name_map[gate.name] = gate.name.lower()
-
-    def qasm_name(self, gate_name):
-        """
-        Return QASM gate name for corresponding QuTiP gate.
-
-        Parameters
-        ----------
-        gate_name: str
-            QuTiP gate name.
-        """
-
-        if gate_name in self.gate_name_map:
-            return self.gate_name_map[gate_name]
-        else:
-            return None
-
-    def is_defined(self, gate_name):
-        """
-        Check if QASM gate definition exists for QuTiP gate.
-
-        Parameters
-        ----------
-        gate_name: str
-            QuTiP gate name.
-        """
-
-        return gate_name in self.gate_name_map
-
-    def _qasm_output(self, qc):
-        """
-        QASM output handler.
-
-        Parameters
-        ----------
-        qc : :class:`.QubitCircuit`
-            circuit object to produce QASM output for.
-        """
-
-        self._flush()
-
-        self.output("// QASM 2.0 file generated by QuTiP", 1)
-
-        if self.version == "2.0":
-            self.output("OPENQASM 2.0;")
-        else:
-            raise NotImplementedError(
-                "QASM: Only OpenQASM 2.0 \
-                                      is currently supported."
-            )
-
-        self.output('include "qelib1.inc";', 1)
-
-        qc._to_qasm(self)
-
-        return self.lines
-
-
-def print_qasm(qc):
-    """
-    Print QASM output of circuit object.
-
-    Parameters
-    ----------
-    qc : :class:`.QubitCircuit`
-        circuit object to produce QASM output for.
-    """
-
-    qasm_out = QasmOutput("2.0")
-    lines = qasm_out._qasm_output(qc)
-    for line in lines:
-        print(line)
-
-
-def circuit_to_qasm_str(qc):
-    """
-    Return QASM output of circuit object as string
-
-    Parameters
-    ----------
-    qc : :class:`.QubitCircuit`
-        circuit object to produce QASM output for.
-
-    Returns
-    -------
-    output: str
-        string corresponding to QASM output.
-    """
-
-    qasm_out = QasmOutput("2.0")
-    lines = qasm_out._qasm_output(qc)
-    output = ""
-    for line in lines:
-        output += line + "\n"
-    return output
-
-
-def save_qasm(qc, file_loc):
-    """
-    Save QASM output of circuit object to file.
-
-    Parameters
-    ----------
-    qc : :class:`.QubitCircuit`
-        circuit object to produce QASM output for.
-    """
-
-    qasm_out = QasmOutput("2.0")
-    lines = qasm_out._qasm_output(qc)
-    with open(file_loc, "w") as f:
-        for line in lines:
-            f.write("{}\n".format(line))
