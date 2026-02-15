@@ -8,30 +8,38 @@ from qutip_qip.operations import controlled_gate
 
 
 class _GateMetaClass(ABCMeta):
+    _registry = set()
+    _instances = {}
+
     _read_only = ["num_qubits", "num_ctrl_qubits", "num_params", "target_gate", "self_inverse", "is_clifford"]
     _read_only_set = set(_read_only)
 
-    _instances = {}
-
-    def __setattr__(cls, name: str, value: any) -> None:
+    def __init__(cls, name, bases, attrs):
         """
-        One of the main purpose of this meta class is to enforce read-only constraints 
-        on specific class attributes. This prevents critical attributes from being 
-        overwritten after definition, while still allowing them to be set during inheritance.
+        This method is automatically invoked during class creation. It validates that
+        the new gate class has a unique name within its specific namespace (defaulting
+        to "std"). If a conflict is detected, it raises a strict TypeError to prevent
+        ambiguous gate definitions.
 
-        For example:
-            class X(Gate):
-                num_qubits = 1   # Allowed (during class creation)
-
-        But:
-            X.num_qubits = 2     # Raises AttributeError (prevention of overwrite)
-
-        This is required since num_qubits etc. are class attributes (shared by all object instances).
+        This is required since in the codebase at several places like decomposition we
+        check for e.g. gate.name == 'X', which is corrupted if user defines a gate with
+        the same name.
         """
-        for attribute in cls._read_only_set:
-            if name == attribute and hasattr(cls, attribute):
-                raise AttributeError(f"{attribute} is read-only!")
-            super().__setattr__(name, value)
+        super().__init__(name, bases, attrs)
+
+        # Don't register the Abstract Gate Classes or private helpers
+        if name.startswith("_") or inspect.isabstract(cls):
+            return
+
+        namespace = attrs.get("namespace", "std")
+        key = (namespace, cls.name)
+
+        if key in cls._registry:
+            raise TypeError(
+                f"Gate Conflict: '{cls.name}' is already defined in namespace '{namespace}' "
+            )
+
+        cls._registry.add(key)
 
     def __call__(cls, *args, **kwargs):
         """
@@ -54,6 +62,26 @@ class _GateMetaClass(ABCMeta):
             cls._instances[cls] = super().__call__(*args, **kwargs)
         
         return cls._instances[cls]
+
+    def __setattr__(cls, name: str, value: any) -> None:
+        """
+        One of the main purpose of this meta class is to enforce read-only constraints 
+        on specific class attributes. This prevents critical attributes from being 
+        overwritten after definition, while still allowing them to be set during inheritance.
+
+        For example:
+            class X(Gate):
+                num_qubits = 1   # Allowed (during class creation)
+
+        But:
+            X.num_qubits = 2     # Raises AttributeError (prevention of overwrite)
+
+        This is required since num_qubits etc. are class attributes (shared by all object instances).
+        """
+        for attribute in cls._read_only_set:
+            if name == attribute and hasattr(cls, attribute):
+                raise AttributeError(f"{attribute} is read-only!")
+            super().__setattr__(name, value)
 
 
 class Gate(ABC, metaclass=_GateMetaClass):
@@ -91,6 +119,7 @@ class Gate(ABC, metaclass=_GateMetaClass):
     # This helps save memory, faster lookup time & restrict adding new attributes to class.
     __slots__ = ()
 
+    _namespace: str = "std"
     num_qubits: int | None = None
     self_inverse: bool = False
     is_clifford: bool = False
@@ -123,12 +152,11 @@ class Gate(ABC, metaclass=_GateMetaClass):
         
         #      print(H.name) -> 'Hadamard'
 
-        if "name" not in cls.__dict__:
-            # This __dict__ belongs to the class, __slots__ removes __dict__ from object instances
+        if "name" not in vars(cls):
             cls.name = cls.__name__
 
         # Same as above for attribute latex_str (used in circuit draw)
-        if "latex_str" not in cls.__dict__: 
+        if "latex_str" not in vars(cls): 
             cls.latex_str = cls.__name__
 
         # Assert num_qubits is a non-negative integer
@@ -340,18 +368,13 @@ class ControlledGate(Gate):
     def __init_subclass__(cls, **kwargs):
         """
         Validates the subclass definition.
-
-        Ensures that:
-        1. `num_ctrl_qubits` is a positive integer.
-        2. `num_ctrl_qubits` is less than the total `num_qubits`.
-        3. The sum of `num_ctrl_qubits` and `target.num_qubits` equals the total `num_qubits`.
         """
 
         super().__init_subclass__(**kwargs)
         if inspect.isabstract(cls):
             return
 
-        # Assert num_ctrl_qubits is a positive integer
+        # Check num_ctrl_qubits is a positive integer
         num_ctrl_qubits = getattr(cls, "num_ctrl_qubits", None)
         if (type(num_ctrl_qubits) is not int) or (num_ctrl_qubits < 1):
             raise TypeError(
@@ -359,19 +382,23 @@ class ControlledGate(Gate):
                 f"got {type(num_ctrl_qubits)} with value {num_ctrl_qubits}."
             )
 
+        # Check num_ctrl_qubits < num_qubits
         if not cls.num_ctrl_qubits < cls.num_qubits:
             raise ValueError(f"{cls.__name__}: 'num_ctrl_qubits' must be less than the 'num_qubits'")
 
-        # Assert num_ctrl_qubits + target_gate.num_qubits = num_qubits
+        # Check num_ctrl_qubits + target_gate.num_qubits = num_qubits
         if cls.num_ctrl_qubits + cls.target_gate.num_qubits != cls.num_qubits:
             raise AttributeError(f"'num_ctrls_qubits' {cls.num_ctrl_qubits} + 'target_gate qubits' {cls.target_gate.num_qubits} must be equal to 'num_qubits' {cls.num_qubits}")
-
-        # Default value for control_value
-        cls._control_value = 2**cls.num_ctrl_qubits - 1
 
         # Automatically copy the validator from the target
         if hasattr(cls, "target_gate") and hasattr(cls.target_gate, "validate_params"):
             cls.validate_params = staticmethod(cls.target_gate.validate_params)
+
+        # Default value for control_value (can be changed by individual gate instance)
+        cls._control_value = 2**cls.num_ctrl_qubits - 1
+
+        # Default set_inverse
+        # cls.self_inverse = cls.target_gate.self_inverse
 
         # In the circuit plot, only the target gate is shown.
         # The control has its own symbol.
@@ -435,14 +462,12 @@ class ControlledGate(Gate):
         qobj : qutip.Qobj
             The unitary matrix representing the controlled operation.
         """
+        target_gate = self.target_gate
         if self.is_parametric_gate():
-            return controlled_gate(
-                U=self.target_gate(self.arg_value).get_qobj(),
-                control_value=self.control_value,
-            )
+            target_gate = target_gate(self.arg_value)
 
         return controlled_gate(
-            U=self.target_gate.get_qobj(),
+            U=target_gate.get_qobj(),
             control_value=self.control_value,
         )
 
