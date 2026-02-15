@@ -19,6 +19,7 @@ class GLOBALPHASE(AngleParametricGate):
     num_params: int = 1
     self_inverse = False
     latex_str = r"{\rm GLOBALPHASE}"
+    __slots__ = ()
 
     def __init__(self, arg_value: float = 0.0):
         super().__init__(arg_value=arg_value)
@@ -32,9 +33,11 @@ class GLOBALPHASE(AngleParametricGate):
 
         N = 2**num_qubits
         return Qobj(
-            np.exp(1.0j * self.arg_value[0]) * sp.eye(N, N, dtype=complex, format="csr"),
+            np.exp(1.0j * self.arg_value[0])
+            * sp.eye(N, N, dtype=complex, format="csr"),
             dims=[[2] * num_qubits, [2] * num_qubits],
         )
+
 
 class TOFFOLI(ControlledGate):
     """
@@ -61,6 +64,7 @@ class TOFFOLI(ControlledGate):
 
     num_qubits: int = 3
     num_ctrl_qubits: int = 2
+    __slots__ = ()
 
     @staticmethod
     def get_qobj() -> Qobj:
@@ -104,6 +108,7 @@ class FREDKIN(ControlledGate):
 
     num_qubits: int = 3
     num_ctrl_qubits: int = 1
+    __slots__ = ()
 
     @staticmethod
     def get_qobj() -> Qobj:

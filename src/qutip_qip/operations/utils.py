@@ -1,8 +1,10 @@
 import warnings
 import numbers
+from typing import Sequence
 from collections.abc import Iterable
 
 import numpy as np
+from scipy.linalg import block_diag
 import qutip
 from qutip import Qobj, identity, tensor
 
@@ -76,7 +78,12 @@ def _targets_to_list(targets, oper=None, N=None):
     return targets
 
 def expand_operator(
-    oper, N=None, targets=None, dims=None, cyclic_permutation=False, dtype=None
+    oper: Qobj,
+    N: None = None,
+    targets: int | list[int] | None = None,
+    dims: list[int] | None = None,
+    cyclic_permutation: bool = False,
+    dtype: str | None = None
 ):
     """
     Expand an operator to one that acts on a system with desired dimensions.
@@ -244,12 +251,12 @@ def gate_sequence_product(
 
 
 def controlled_gate(
-    U,
-    controls=0,
-    targets=1,
-    N=None,
-    control_value=1,
-):
+    U: Qobj,
+    controls: int | Sequence[int] = 0,
+    targets: int | Sequence[int] = 1,
+    N: int | None = None,
+    control_value: int = 1,
+) -> Qobj:
     """
     Create an N-qubit controlled gate from a single-qubit gate U with the given
     control and target qubits.
@@ -286,7 +293,6 @@ def controlled_gate(
     # The control_value is the location of this unitary.
     block_matrices = [np.array([[1, 0], [0, 1]])] * 2**num_controls
     block_matrices[control_value] = U.full()
-    from scipy.linalg import block_diag  # move this to the top of the file
 
     result = block_diag(*block_matrices)
     result = Qobj(result, dims=[[2] * (num_controls + num_targets)] * 2)
@@ -295,4 +301,4 @@ def controlled_gate(
     if controls + targets == list(range(N)):
         return result
     else:
-        return expand_operator(result, N, targets=controls + targets)
+        return expand_operator(result, targets=controls + targets)

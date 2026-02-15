@@ -1120,18 +1120,6 @@ shape = [2, 2], type='oper', dtype=Dense, isherm=False
 #
 
 
-def _hamming_distance(x, bits=32):
-    """
-    Calculate the bit-wise Hamming distance of x from 0: That is, the number
-    1s in the integer x.
-    """
-    tot = 0
-    while x:
-        tot += 1
-        x &= x - 1
-    return tot
-
-
 def hadamard_transform(N=1):
     """Quantum object representing the N-qubit Hadamard gate.
 

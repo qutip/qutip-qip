@@ -86,10 +86,17 @@ class Gate(ABC, metaclass=_GateMetaClass):
         The LaTeX string representation of the gate (used for circuit drawing).
         Defaults to the class name if not provided.
     """
+    # __slots__ in Python are meant to fixed-size array of attribute values
+    # instead of a default dynamic sized __dict__ created in object instances.
+    # This helps save memory, faster lookup time & restrict adding new attributes to class.
+    __slots__ = ()
 
     num_qubits: int | None = None
     self_inverse: bool = False
     is_clifford: bool = False
+
+    name = None
+    latex_str = None
 
     def __init_subclass__(cls, **kwargs):
         """
@@ -117,10 +124,11 @@ class Gate(ABC, metaclass=_GateMetaClass):
         #      print(H.name) -> 'Hadamard'
 
         if "name" not in cls.__dict__:
+            # This __dict__ belongs to the class, __slots__ removes __dict__ from object instances
             cls.name = cls.__name__
 
         # Same as above for attribute latex_str (used in circuit draw)
-        if "latex_str" not in cls.__dict__:
+        if "latex_str" not in cls.__dict__: 
             cls.latex_str = cls.__name__
 
         # Assert num_qubits is a non-negative integer
@@ -225,6 +233,7 @@ class ParametricGate(Gate):
     ValueError
         If the number of provided arguments does not match `num_params`.
     """
+    __slots__ = ('arg_value', 'arg_label')
 
     num_params: int | None = None
 
@@ -325,7 +334,7 @@ class ControlledGate(Gate):
     target_gate : Gate
         The gate to be applied to the target qubits.
     """
-
+    __slots__ = ('arg_value', 'arg_label')
     num_ctrl_qubits: int | None = None
 
     def __init_subclass__(cls, **kwargs):
@@ -350,7 +359,7 @@ class ControlledGate(Gate):
                 f"got {type(num_ctrl_qubits)} with value {num_ctrl_qubits}."
             )
 
-        if cls.num_ctrl_qubits >= cls.num_qubits:
+        if not cls.num_ctrl_qubits < cls.num_qubits:
             raise ValueError(f"{cls.__name__}: 'num_ctrl_qubits' must be less than the 'num_qubits'")
 
         # Assert num_ctrl_qubits + target_gate.num_qubits = num_qubits
@@ -359,6 +368,14 @@ class ControlledGate(Gate):
 
         # Default value for control_value
         cls._control_value = 2**cls.num_ctrl_qubits - 1
+
+        # Automatically copy the validator from the target
+        if hasattr(cls, "target_gate") and hasattr(cls.target_gate, "validate_params"):
+            cls.validate_params = staticmethod(cls.target_gate.validate_params)
+
+        # In the circuit plot, only the target gate is shown.
+        # The control has its own symbol.
+        cls.latex_str = cls.target_gate.latex_str
 
     def __init__(
         self,
@@ -372,10 +389,6 @@ class ControlledGate(Gate):
 
         if self.is_parametric_gate():
             ParametricGate.__init__(self, arg_value=arg_value, arg_label=arg_label)
-
-        # In the circuit plot, only the target gate is shown.
-        # The control has its own symbol.
-        self.latex_str = self.target_gate.latex_str
 
     @property
     @abstractmethod
@@ -493,8 +506,8 @@ def controlled_gate_factory(
 
 
 class AngleParametricGate(ParametricGate):
-    self_inverse = False
-    
+    __slots__ = ()
+
     @staticmethod
     def validate_params(arg_value):
         for arg in arg_value:
