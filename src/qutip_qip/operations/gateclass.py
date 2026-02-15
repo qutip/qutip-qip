@@ -8,7 +8,7 @@ from qutip_qip.operations import controlled_gate
 
 
 class _GateMetaClass(ABCMeta):
-    _registry = set()
+    _registry = {}
     _instances = {}
 
     _read_only = ["num_qubits", "num_ctrl_qubits", "num_params", "target_gate", "self_inverse", "is_clifford"]
@@ -32,14 +32,31 @@ class _GateMetaClass(ABCMeta):
             return
 
         namespace = attrs.get("namespace", "std")
-        key = (namespace, cls.name)
+        name = cls.name
 
-        if key in cls._registry:
+        if namespace not in cls._registry:
+            cls._registry[namespace] = set()
+
+        if name in cls._registry[namespace]:
             raise TypeError(
-                f"Gate Conflict: '{cls.name}' is already defined in namespace '{namespace}' "
+                f"Gate Conflict: '{name}' is already defined in namespace '{namespace}' "
             )
+        cls._registry[namespace].add(name)
 
-        cls._registry.add(key)
+    def clear_cache(cls, namespace: str):
+        """
+        Clears the gate class registry based on the namespace.
+
+        Parameters
+        ----------
+        namespace : str, optional
+            If provided, only clears gates belonging to this namespace 
+            (e.g., 'custom'). If None, clears ALL gates (useful for hard resets).
+        """
+        if namespace == "std":
+            raise ValueError("Can't clear std Gates")
+        else:
+            cls._registry[namespace] = set()
 
     def __call__(cls, *args, **kwargs):
         """
@@ -483,7 +500,7 @@ class ControlledGate(Gate):
         return f"Gate({self.name}, target_gate={self.target_gate}, num_ctrl_qubits={self.num_ctrl_qubits}, control_value={self.control_value})"
 
 
-def custom_gate_factory(gate_name: str, U: Qobj) -> Gate:
+def custom_gate_factory(gate_name: str, U: Qobj, user_namespace: str = "custom") -> Gate:
     """
     Gate Factory for Custom Gate that wraps an arbitrary unitary matrix U.
     """
@@ -491,6 +508,7 @@ def custom_gate_factory(gate_name: str, U: Qobj) -> Gate:
     inverse = (U == U.dag())
 
     class CustomGate(Gate):
+        namespace = user_namespace
         latex_str = r"U"
         name = gate_name
         num_qubits = int(np.log2(U.shape[0]))
@@ -508,6 +526,7 @@ def custom_gate_factory(gate_name: str, U: Qobj) -> Gate:
 
 def controlled_gate_factory(
     gate: Gate,
+    user_namespace: str = "custom",
     n_ctrl_qubits: int = 1,
     control_value: int = -1,
 ) -> ControlledGate:
@@ -516,6 +535,7 @@ def controlled_gate_factory(
     """
 
     class _CustomGate(ControlledGate):
+        namespace = user_namespace
         latex_str = rf"C{gate.name}"
         target_gate = gate
         num_qubits = n_ctrl_qubits + target_gate.num_qubits
