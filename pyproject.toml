@@ -94,3 +94,8 @@ dirty_template = "{tag}.dev{ccount}+git.{sha}.dirty"
 
 [tool.black]
 line-length = 79
+[tool.pytest.ini_options]
+markers = [
+    "repeat(n): repeat a test multiple times"
+]
+
