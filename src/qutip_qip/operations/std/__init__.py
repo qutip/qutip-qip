@@ -44,7 +44,6 @@ from .other_gates import (
     TOFFOLI,
     FREDKIN,
 )
-    
 
 __all__ = [
     "IDLE",

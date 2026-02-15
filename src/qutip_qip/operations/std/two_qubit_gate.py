@@ -4,17 +4,14 @@ import warnings
 import numpy as np
 from qutip import Qobj
 
-from qutip_qip.operations import (
-    Gate,
-    ControlledGate,
-    AngleParametricGate,
-)
-from qutip_qip.operations.std import (
-    X, Y, Z, H, S, T, RX, RY, RZ, QASMU, PHASE
-)
+from qutip_qip.operations import Gate, ControlledGate, AngleParametricGate
+from qutip_qip.operations.std import X, Y, Z, H, S, T, RX, RY, RZ, QASMU, PHASE
+
 
 class _TwoQubitGate(Gate):
     """Abstract two-qubit gate."""
+
+    __slots__ = ()
     num_qubits: Final[int] = 2
 
 
@@ -26,6 +23,7 @@ class _ControlledTwoQubitGate(ControlledGate):
     and raise an error if it is 0.
     """
 
+    __slots__ = ()
     num_qubits: Final[int] = 2
     num_ctrl_qubits: Final[int] = 1
 
@@ -45,6 +43,9 @@ class SWAP(_TwoQubitGate):
      [0. 1. 0. 0.]
      [0. 0. 0. 1.]]
     """
+
+    __slots__ = ()
+
     self_inverse = True
     is_clifford = True
     latex_str = r"{\rm SWAP}"
@@ -72,6 +73,9 @@ class ISWAP(_TwoQubitGate):
      [0.+0.j 0.+1.j 0.+0.j 0.+0.j]
      [0.+0.j 0.+0.j 0.+0.j 1.+0.j]]
     """
+
+    __slots__ = ()
+
     self_inverse = False
     is_clifford = True
     latex_str = r"{i}{\rm SWAP}"
@@ -99,6 +103,9 @@ class SQRTSWAP(_TwoQubitGate):
      [0. +0.j  0.5-0.5j 0.5+0.5j 0. +0.j ]
      [0. +0.j  0. +0.j  0. +0.j  1. +0.j ]]
     """
+
+    __slots__ = ()
+
     self_inverse = False
     latex_str = r"\sqrt{\rm SWAP}"
 
@@ -132,6 +139,9 @@ class SQRTISWAP(_TwoQubitGate):
      [0.     +0.j      0.     +0.70711j 0.70711+0.j      0.     +0.j     ]
      [0.     +0.j      0.     +0.j      0.     +0.j      1.     +0.j     ]]
     """
+
+    __slots__ = ()
+
     self_inverse = False
     is_clifford = True
     latex_str = r"\sqrt{{i}\rm SWAP}"
@@ -175,6 +185,9 @@ class BERKELEY(_TwoQubitGate):
      [0.     +0.j      0.     +0.92388j 0.38268+0.j      0.     +0.j     ]
      [0.     +0.38268j 0.     +0.j      0.     +0.j      0.92388+0.j     ]]
     """
+
+    __slots__ = ()
+
     self_inverse = False
     latex_str = r"{\rm BERKELEY}"
 
@@ -215,6 +228,8 @@ class SWAPALPHA(AngleParametricGate):
      [0. +0.j  0.5-0.5j 0.5+0.5j 0. +0.j ]
      [0. +0.j  0. +0.j  0. +0.j  1. +0.j ]]
     """
+
+    __slots__ = ()
 
     num_qubits = 2
     num_params: int = 1
@@ -268,6 +283,8 @@ class MS(AngleParametricGate):
      [0.     -0.70711j 0.     +0.j      0.     +0.j      0.70711+0.j     ]]
     """
 
+    __slots__ = ()
+
     num_qubits = 2
     num_params: int = 2
     latex_str = r"{\rm MS}"
@@ -320,6 +337,8 @@ class RZX(AngleParametricGate):
     [0.+0.j 0.+0.j 0.+1.j 0.+0.j]]
     """
 
+    __slots__ = ()
+
     num_qubits = 2
     num_params = 1
     latex_str = r"{\rm RZX}"
@@ -355,6 +374,8 @@ class CX(_ControlledTwoQubitGate):
      [0. 0. 1. 0.]]
     """
 
+    __slots__ = ()
+
     target_gate = X
     is_clifford = True
     latex_str = r"{\rm CNOT}"
@@ -368,6 +389,8 @@ class CX(_ControlledTwoQubitGate):
 
 
 class CNOT(CX):
+    __slots__ = ()
+
     def __init__(self, control_value=None):
         warnings.warn(
             "CNOT is deprecated and will be removed in future versions. "
@@ -393,6 +416,8 @@ class CY(_ControlledTwoQubitGate):
      [ 0.+0j  0.+0j  0.+0j  0.-1j]
      [ 0+0j.  0.+0j  0.+1j. 0.+0j]]
     """
+
+    __slots__ = ()
 
     target_gate = Y
     is_clifford = True
@@ -422,6 +447,8 @@ class CZ(_ControlledTwoQubitGate):
      [ 0.  0.  0. -1.]]
     """
 
+    __slots__ = ()
+
     target_gate = Z
     is_clifford = True
     latex_str = r"{\rm CZ}"
@@ -435,6 +462,8 @@ class CZ(_ControlledTwoQubitGate):
 
 
 class CSIGN(CZ):
+    __slots__ = ()
+
     def __init__(self):
         warnings.warn(
             "CSIGN is deprecated and will be removed in future versions. "
@@ -462,6 +491,8 @@ class CH(_ControlledTwoQubitGate):
     --------
     >>> from qutip_qip.operations import CH
     """
+
+    __slots__ = ()
 
     target_gate = H
     latex_str = r"{\rm CH}"
@@ -498,6 +529,8 @@ class CT(_ControlledTwoQubitGate):
     >>> from qutip_qip.operations import CPHASE
     """
 
+    __slots__ = ()
+
     target_gate = T
     latex_str = r"{\rm CT}"
 
@@ -532,6 +565,8 @@ class CS(_ControlledTwoQubitGate):
     >>> from qutip_qip.operations import CPHASE
     """
 
+    __slots__ = ()
+
     target_gate = S
     latex_str = r"{\rm CS}"
 
@@ -545,19 +580,7 @@ class CS(_ControlledTwoQubitGate):
         )
 
 
-class _ControlledParamTwoQubitGate(ControlledGate, AngleParametricGate):
-    """
-    This class allows correctly generating the gate instance
-    when a redundant control_value is given, e.g.
-    ``CNOT(0, 1, control_value=1)``,
-    and raise an error if it is 0.
-    """
-
-    num_qubits: Final[int] = 2
-    num_ctrl_qubits: Final[int] = 1
-
-
-class CPHASE(_ControlledParamTwoQubitGate):
+class CPHASE(_ControlledTwoQubitGate):
     r"""
     CPHASE gate.
 
@@ -582,23 +605,14 @@ class CPHASE(_ControlledParamTwoQubitGate):
      [0.+0.j 0.+0.j 0.+0.j 0.+1.j]]
     """
 
+    __slots__ = ()
+
     num_params: int = 1
     target_gate = PHASE
     latex_str = r"{\rm CPHASE}"
 
-    def get_qobj(self):
-        return Qobj(
-            [
-                [1, 0, 0, 0],
-                [0, 1, 0, 0],
-                [0, 0, 1, 0],
-                [0, 0, 0, np.exp(1j * self.arg_value[0])],
-            ],
-            dims=[[2, 2], [2, 2]],
-        )
 
-
-class CRX(_ControlledParamTwoQubitGate):
+class CRX(_ControlledTwoQubitGate):
     r"""
     Controlled X rotation.
 
@@ -607,12 +621,14 @@ class CRX(_ControlledParamTwoQubitGate):
     >>> from qutip_qip.operations import CRX
     """
 
+    __slots__ = ()
+
     num_params: int = 1
     target_gate = RX
     latex_str = r"{\rm CRX}"
 
 
-class CRY(_ControlledParamTwoQubitGate):
+class CRY(_ControlledTwoQubitGate):
     r"""
     Controlled Y rotation.
 
@@ -621,12 +637,14 @@ class CRY(_ControlledParamTwoQubitGate):
     >>> from qutip_qip.operations import CRY
     """
 
+    __slots__ = ()
+
     latex_str = r"{\rm CRY}"
     target_gate = RY
     num_params: int = 1
 
 
-class CRZ(_ControlledParamTwoQubitGate):
+class CRZ(_ControlledTwoQubitGate):
     r"""
     CRZ gate.
 
@@ -651,12 +669,14 @@ class CRZ(_ControlledParamTwoQubitGate):
      [0.+0.j 0.+0.j 0.+0.j 0.+1.j]]
     """
 
+    __slots__ = ()
+
     num_params: int = 1
     target_gate = RZ
     latex_str = r"{\rm CRZ}"
 
 
-class CQASMU(_ControlledParamTwoQubitGate):
+class CQASMU(_ControlledTwoQubitGate):
     r"""
     Controlled QASMU rotation.
 
@@ -664,6 +684,8 @@ class CQASMU(_ControlledParamTwoQubitGate):
     --------
     >>> from qutip_qip.operations import CQASMU
     """
+
+    __slots__ = ()
 
     num_params: int = 3
     target_gate = QASMU

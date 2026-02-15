@@ -4,13 +4,18 @@ import numpy as np
 from qutip import Qobj, sigmax, sigmay, sigmaz, qeye
 from qutip_qip.operations import Gate, AngleParametricGate
 
+
 class _SingleQubitGate(Gate):
     """Abstract one-qubit gate."""
+
+    __slots__ = ()
     num_qubits = 1
 
 
 class _SingleQubitParametricGate(AngleParametricGate):
     """Abstract one-qubit parametric gate."""
+
+    __slots__ = ()
     num_qubits = 1
 
 
@@ -27,6 +32,9 @@ class X(_SingleQubitGate):
     [[0. 1.]
      [1. 0.]]
     """
+
+    __slots__ = ()
+
     self_inverse = True
     is_clifford = True
     latex_str = r"X"
@@ -49,6 +57,9 @@ class Y(_SingleQubitGate):
     [[0.+0.j 0.-1.j]
      [0.+1.j 0.+0.j]]
     """
+
+    __slots__ = ()
+
     self_inverse = True
     is_clifford = True
     latex_str = r"Y"
@@ -71,6 +82,9 @@ class Z(_SingleQubitGate):
     [[ 1.  0.]
      [ 0. -1.]]
     """
+
+    __slots__ = ()
+
     self_inverse = True
     is_clifford = True
     latex_str = r"Z"
@@ -88,6 +102,9 @@ class IDLE(_SingleQubitGate):
     --------
     >>> from qutip_qip.operations import IDLE
     """
+
+    __slots__ = ()
+
     self_inverse = True
     is_clifford = True
     latex_str = r"{\rm IDLE}"
@@ -110,6 +127,9 @@ class H(_SingleQubitGate):
     [[ 0.70711  0.70711]
      [ 0.70711 -0.70711]]
     """
+
+    __slots__ = ()
+
     self_inverse = True
     is_clifford = True
     latex_str = r"H"
@@ -120,6 +140,8 @@ class H(_SingleQubitGate):
 
 
 class SNOT(H):
+    __slots__ = ()
+
     def __init__(self):
         warnings.warn(
             "SNOT is deprecated and will be removed in future versions. "
@@ -143,6 +165,9 @@ class SQRTX(_SingleQubitGate):
     [[0.5+0.5j 0.5-0.5j]
      [0.5-0.5j 0.5+0.5j]]
     """
+
+    __slots__ = ()
+
     self_inverse = False
     is_clifford = True
     latex_str = r"\sqrt{\rm NOT}"
@@ -153,6 +178,8 @@ class SQRTX(_SingleQubitGate):
 
 
 class SQRTNOT(SQRTX):
+    __slots__ = ()
+
     def __init__(self):
         warnings.warn(
             "SQRTNOT is deprecated and will be removed in future versions. "
@@ -176,6 +203,9 @@ class S(_SingleQubitGate):
     [[1.+0.j 0.+0.j]
      [0.+0.j 0.+1.j]]
     """
+
+    __slots__ = ()
+
     self_inverse = False
     is_clifford = True
     latex_str = r"{\rm S}"
@@ -198,6 +228,9 @@ class T(_SingleQubitGate):
     [[1.     +0.j      0.     +0.j     ]
      [0.     +0.j      0.70711+0.70711j]]
     """
+
+    __slots__ = ()
+
     self_inverse = False
     latex_str = r"{\rm T}"
 
@@ -219,6 +252,9 @@ class RX(_SingleQubitParametricGate):
     [[0.70711+0.j      0.     -0.70711j]
      [0.     -0.70711j 0.70711+0.j     ]]
     """
+
+    __slots__ = ()
+
     num_params = 1
     latex_str = r"R_x"
 
@@ -229,7 +265,7 @@ class RX(_SingleQubitParametricGate):
                 [np.cos(phi / 2), -1j * np.sin(phi / 2)],
                 [-1j * np.sin(phi / 2), np.cos(phi / 2)],
             ],
-            dims = [[2], [2]]
+            dims=[[2], [2]],
         )
 
 
@@ -246,6 +282,9 @@ class RY(_SingleQubitParametricGate):
     [[ 0.70711 -0.70711]
      [ 0.70711  0.70711]]
     """
+
+    __slots__ = ()
+
     num_params = 1
     latex_str = r"R_y"
 
@@ -272,6 +311,9 @@ class RZ(_SingleQubitParametricGate):
     [[0.70711-0.70711j 0.     +0.j     ]
      [0.     +0.j      0.70711+0.70711j]]
     """
+
+    __slots__ = ()
+
     num_params = 1
     latex_str = r"R_z"
 
@@ -288,6 +330,9 @@ class PHASE(_SingleQubitParametricGate):
     --------
     >>> from qutip_qip.operations import PHASE
     """
+
+    __slots__ = ()
+
     num_params = 1
     latex_str = r"PHASE"
 
@@ -321,6 +366,8 @@ class R(_SingleQubitParametricGate):
     [[ 0.70711 -0.70711]
      [ 0.70711  0.70711]]
     """
+
+    __slots__ = ()
 
     num_params = 2
     latex_str = r"{\rm R}"
@@ -357,6 +404,8 @@ class QASMU(_SingleQubitParametricGate):
     [[-0.5-0.5j -0.5+0.5j]
      [ 0.5+0.5j -0.5+0.5j]]
     """
+
+    __slots__ = ()
 
     num_params = 3
     latex_str = r"{\rm QASMU}"
