@@ -7,30 +7,53 @@ from qutip_qip.operations import controlled_gate
 
 
 class _GateMetaClass(ABCMeta):
-    """
-    The purpose of this meta class is to enforce read-only constraints on specific class attributes.
-    
-    This meta class prevents critical attributes from being overwritten 
-    after definition, while still allowing them to be set during inheritance.
-
-    For example:
-         class X(Gate):
-            num_qubits = 1   # Allowed (during class creation)
-
-    But:
-        X.num_qubits = 2     # Raises AttributeError (prevention of overwrite)
-
-    This is required since num_qubits etc. are class attributes (shared by all object instances).
-    """
 
     _read_only = ["num_qubits", "num_ctrl_qubits", "num_params", "target_gate", "self_inverse", "is_clifford"]
     _read_only_set = set(_read_only)
 
+    _instances = {}
+
     def __setattr__(cls, name: str, value: any) -> None:
+        """
+        One of the main purpose of this meta class is to enforce read-only constraints 
+        on specific class attributes. This prevents critical attributes from being 
+        overwritten after definition, while still allowing them to be set during inheritance.
+
+        For example:
+            class X(Gate):
+                num_qubits = 1   # Allowed (during class creation)
+
+        But:
+            X.num_qubits = 2     # Raises AttributeError (prevention of overwrite)
+
+        This is required since num_qubits etc. are class attributes (shared by all object instances).
+        """
         for attribute in cls._read_only_set:
             if name == attribute and hasattr(cls, attribute):
                 raise AttributeError(f"{attribute} is read-only!")
             super().__setattr__(name, value)
+
+    def __call__(cls, *args, **kwargs):
+        """
+        This is meant to add Singleton Design for Gates without any args
+        like arg_value, control_value etc.
+
+        So creating X() 10,000 times (e.g., for a large circuit) becomes instant 
+        because it's just a dictionary lookup after the first time. Also in memory
+        we only need to store one copy of X gate, no matter how many times it appears 
+        in the circuit.
+        """
+        
+        # For RX(0.5), RX(0.1) we want different instances.
+        # Same for CX(control_value=0), CX(control_value=1)
+        if cls.is_parametric_gate() or cls.is_controlled_gate():
+            return super().__call__(*args, **kwargs)
+
+        # For non-parametric gates (like X, H, Z), only one instance
+        if cls not in cls._instances:
+            cls._instances[cls] = super().__call__(*args, **kwargs)
+        
+        return cls._instances[cls]
 
 
 class Gate(ABC, metaclass=_GateMetaClass):
