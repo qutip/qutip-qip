@@ -8,7 +8,6 @@ from qutip_qip.operations import controlled_gate
 
 
 class _GateMetaClass(ABCMeta):
-
     _read_only = ["num_qubits", "num_ctrl_qubits", "num_params", "target_gate", "self_inverse", "is_clifford"]
     _read_only_set = set(_read_only)
 
@@ -47,7 +46,7 @@ class _GateMetaClass(ABCMeta):
         
         # For RX(0.5), RX(0.1) we want different instances.
         # Same for CX(control_value=0), CX(control_value=1)
-        if cls.is_parametric_gate() or cls.is_controlled_gate():
+        if args or kwargs:
             return super().__call__(*args, **kwargs)
 
         # For non-parametric gates (like X, H, Z), only one instance
@@ -55,8 +54,6 @@ class _GateMetaClass(ABCMeta):
             cls._instances[cls] = super().__call__(*args, **kwargs)
         
         return cls._instances[cls]
-
-
 
 
 class Gate(ABC, metaclass=_GateMetaClass):
@@ -79,6 +76,7 @@ class Gate(ABC, metaclass=_GateMetaClass):
 
     self_inverse: bool
         Indicates if the gate is its own inverse (e.g., $U = U^{-1}$).
+        Default value is False.
 
     is_clifford: bool
         Indicates if the gate belongs to the Clifford group, which maps 
@@ -88,6 +86,10 @@ class Gate(ABC, metaclass=_GateMetaClass):
         The LaTeX string representation of the gate (used for circuit drawing).
         Defaults to the class name if not provided.
     """
+
+    num_qubits: int | None = None
+    self_inverse: bool = False
+    is_clifford: bool = False
 
     def __init_subclass__(cls, **kwargs):
         """
@@ -129,11 +131,6 @@ class Gate(ABC, metaclass=_GateMetaClass):
                 f"got {type(num_qubits)} with value {num_qubits}."
             )
 
-    @property
-    @abstractmethod
-    def num_qubits(self) -> int:
-        pass
-
     @staticmethod
     @abstractmethod
     def get_qobj() -> Qobj:
@@ -145,15 +142,6 @@ class Gate(ABC, metaclass=_GateMetaClass):
         qobj : :obj:`qutip.Qobj`
             The compact gate operator as a unitary matrix.
         """
-        pass
-
-    @property
-    def is_clifford(self) -> bool:
-        return False
-
-    @property
-    @abstractmethod
-    def self_inverse(self) -> bool:
         pass
 
     def inverse(self) -> Gate:
@@ -238,6 +226,8 @@ class ParametricGate(Gate):
         If the number of provided arguments does not match `num_params`.
     """
 
+    num_params: int | None = None
+
     def __init_subclass__(cls, **kwargs) -> None:
         """
         Validates the subclass definition.
@@ -266,11 +256,6 @@ class ParametricGate(Gate):
         self.validate_params(arg_value)
         self.arg_value = arg_value
         self.arg_label = arg_label
-
-    @property
-    @abstractmethod
-    def num_params(self) -> Qobj:
-        pass
 
     @staticmethod
     @abstractmethod
@@ -341,6 +326,8 @@ class ControlledGate(Gate):
         The gate to be applied to the target qubits.
     """
 
+    num_ctrl_qubits: int | None = None
+
     def __init_subclass__(cls, **kwargs):
         """
         Validates the subclass definition.
@@ -392,12 +379,7 @@ class ControlledGate(Gate):
 
     @property
     @abstractmethod
-    def num_ctrl_qubits() -> int:
-        pass
-
-    @property
-    @abstractmethod
-    def target_gate() -> int:
+    def target_gate() -> Gate:
         pass
 
     @property
