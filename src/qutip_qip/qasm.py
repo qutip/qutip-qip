@@ -185,6 +185,7 @@ class QasmProcessor:
                     "crz",
                     "cu1",
                     "cu3",
+                    "swap",
                 ]
             )
             self.predefined_gates = self.predefined_gates.union(
@@ -614,6 +615,13 @@ class QasmProcessor:
                 std.CH,
                 targets=regs[1],
                 controls=regs[0],
+                classical_controls=classical_controls,
+                classical_control_value=classical_control_value,
+            )
+        elif name == "swap":
+            qc.add_gate(
+                std.SWAP,
+                controls=regs,
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
             )

@@ -2,11 +2,7 @@ import numpy as np
 from numpy.testing import assert_, assert_equal
 import unittest
 from qutip import Qobj, sigmaz, tensor
-from qutip_qip.operations import (
-    ControlledGate,
-    controlled_gate_factory,
-    custom_gate_factory,
-)
+from qutip_qip.operations import controlled_gate_factory, custom_gate_factory
 
 from qutip_qip.algorithms.qpe import qpe
 
