@@ -8,9 +8,24 @@ def zero_state(n_qubits: int):
     return tensor([basis(2, 0) for _ in range(n_qubits)])
 
 
-def benchmark(circuit_fn, n_qubits: int, runs: int = 20):
-    """Benchmark average execution time for a circuit."""
-    qc = circuit_fn(n_qubits)
+def benchmark(circuit_fn, circuit_params: dict, runs: int = 20):
+    """
+    Benchmark average execution time for a circuit.
+
+    Parameters
+    ----------
+    circuit_fn : callable
+        Function that builds the circuit.
+    circuit_params : dict
+        Dictionary containing circuit inputs (e.g. n_qubits, depth, etc.).
+    runs : int
+        Number of timing runs.
+    """
+    qc = circuit_fn(**circuit_params)
+
+    n_qubits = circuit_params.get("n_qubits")
+    if n_qubits is None:
+        raise ValueError("circuit_params must include 'n_qubits'.")
 
     # Warmup run to avoid first-call overhead distortion
     qc.run(zero_state(n_qubits))
@@ -31,11 +46,10 @@ if __name__ == "__main__":
     print("Benchmarking circuit simulation performance\n")
 
     for n in [3, 4, 5, 6, 7, 8]:
-        ghz_time = benchmark(ghz_circuit, n)
-        rand_time = benchmark(random_layered_circuit, n)
+        ghz_time = benchmark(ghz_circuit, {"n_qubits": n})
+        rand_time = benchmark(random_layered_circuit, {"n_qubits": n})
 
         print(f"{n} qubits:")
         print(f"  GHZ circuit: {ghz_time:.6f} sec")
         print(f"  Random layered circuit: {rand_time:.6f} sec")
         print()
-
