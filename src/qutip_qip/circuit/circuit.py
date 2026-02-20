@@ -370,9 +370,8 @@ class QubitCircuit:
 
             elif gate_class.is_controlled_gate():
                 gate = gate_class(control_value=control_value)
-
             else:
-                gate = gate()
+                gate = gate_class
 
         qubits = []
         if controls is not None:
