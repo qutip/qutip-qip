@@ -9,7 +9,6 @@ from qutip_qip.operations import controlled_gate
 
 class _GateMetaClass(ABCMeta):
     _registry = {}
-    _instances = {}
 
     _read_only = ["num_qubits", "num_ctrl_qubits", "num_params", "target_gate", "self_inverse", "is_clifford"]
     _read_only_set = set(_read_only)
@@ -60,25 +59,16 @@ class _GateMetaClass(ABCMeta):
 
     def __call__(cls, *args, **kwargs):
         """
-        This is meant to add Singleton Design for Gates without any args
-        like arg_value, control_value etc.
-
-        So creating X() 10,000 times (e.g., for a large circuit) becomes instant 
+        So creating CNOT(control_value=1) 10,000 times (e.g., for a large circuit) becomes instant 
         because it's just a dictionary lookup after the first time. Also in memory
-        we only need to store one copy of X gate, no matter how many times it appears 
+        we only need to store one copy of CNOT gate, no matter how many times it appears 
         in the circuit.
         """
-        
+        return super().__call__(*args, **kwargs)
+
         # For RX(0.5), RX(0.1) we want different instances.
         # Same for CX(control_value=0), CX(control_value=1)
-        if args or kwargs:
-            return super().__call__(*args, **kwargs)
-
-        # For non-parametric gates (like X, H, Z), only one instance
-        if cls not in cls._instances:
-            cls._instances[cls] = super().__call__(*args, **kwargs)
-        
-        return cls._instances[cls]
+        # TODO This needs to be implemented efficiently
 
     def __setattr__(cls, name: str, value: any) -> None:
         """
@@ -183,6 +173,16 @@ class Gate(ABC, metaclass=_GateMetaClass):
                 f"Class '{cls.__name__}' attribute 'num_qubits' must be a non-negative integer, "
                 f"got {type(num_qubits)} with value {num_qubits}."
             )
+
+    def __init__(self) -> None:
+        """
+        This method is overwritten by Parametrized and Controlled Gates.
+        """
+        raise TypeError(
+            f"Gate '{type(self).__name__}' does not accept initialization arguments. "
+            f"If your gate requires parameters, it must inherit from 'ParametricGate'."
+            f"Or if it must be controlled, it must inherit from 'ControlledGate'."
+        )
 
     @staticmethod
     @abstractmethod
@@ -508,8 +508,8 @@ def custom_gate_factory(gate_name: str, U: Qobj, user_namespace: str = "custom")
     inverse = (U == U.dag())
 
     class CustomGate(Gate):
+        __slots__ = ()
         namespace = user_namespace
-        latex_str = r"U"
         name = gate_name
         num_qubits = int(np.log2(U.shape[0]))
         self_inverse = inverse
@@ -526,20 +526,21 @@ def custom_gate_factory(gate_name: str, U: Qobj, user_namespace: str = "custom")
 
 def controlled_gate_factory(
     gate: Gate,
-    user_namespace: str = "custom",
     n_ctrl_qubits: int = 1,
     control_value: int = -1,
+    user_namespace: str = "custom",
 ) -> ControlledGate:
     """
     Gate Factory for Custom Gate that wraps an arbitrary unitary matrix U.
     """
 
     class _CustomGate(ControlledGate):
+        __slots__ = ()
         namespace = user_namespace
-        latex_str = rf"C{gate.name}"
-        target_gate = gate
-        num_qubits = n_ctrl_qubits + target_gate.num_qubits
+        num_qubits = n_ctrl_qubits + gate.num_qubits
         num_ctrl_qubits = n_ctrl_qubits
+        target_gate = gate
+        latex_str = rf"C{gate.name}"
 
         @property
         def control_value(self) -> int:
