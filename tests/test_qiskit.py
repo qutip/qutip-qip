@@ -15,7 +15,7 @@ from qutip_qip.device import (
     CircularSpinChain,
     DispersiveCavityQED,
 )
-from qutip_qip.operations import X, CX, RX
+from qutip_qip.operations import X, CX, RX, H
 
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator
@@ -134,6 +134,24 @@ class TestConverter:
         assert self._compare_circuit(result_circuit, required_circuit)
 
     def test_rotation_conversion(self):
+        """
+        Test to check conversion of a circuit
+        containing a single qubit rotation gate.
+        """
+        qiskit_circuit = QuantumCircuit(3)
+        qiskit_circuit.rx(np.pi / 3, 0)
+        qiskit_circuit.cx(0, 1)
+        qiskit_circuit.h(2)
+        result_circuit = convert_qiskit_circuit_to_qutip(qiskit_circuit)
+
+        required_circuit = QubitCircuit(3)
+        required_circuit.add_gate(RX(np.pi / 3), targets=[0])
+        required_circuit.add_gate(CX, targets=[1], controls=[0])
+        required_circuit.add_gate(H, targets=[2])
+
+        assert self._compare_circuit(result_circuit, required_circuit)
+    
+    def test_multiqubit_circuit_conversion(self):
         """
         Test to check conversion of a circuit
         containing a single qubit rotation gate.
