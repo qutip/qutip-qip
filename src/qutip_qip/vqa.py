@@ -7,7 +7,7 @@ from qutip import basis, tensor, Qobj, qeye, expect
 from qutip_qip.circuit import QubitCircuit
 from scipy.optimize import minimize
 from scipy.linalg import expm_frechet
-from qutip_qip.operations import gate_sequence_product, custom_gate_factory, Gate
+from qutip_qip.operations import gate_sequence_product, unitary_gate, Gate
 
 
 class VQA:
@@ -137,7 +137,7 @@ class VQA:
                     n = block.get_free_parameters_num()
 
                     current_params = angles[i : i + n] if n > 0 else []
-                    gate_instance = custom_gate_factory(
+                    gate_instance = unitary_gate(
                         gate_name=block.name,
                         user_namespace = "vqa",
                         U=block.get_unitary(current_params),

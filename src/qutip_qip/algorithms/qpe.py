@@ -2,7 +2,7 @@ import numpy as np
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.algorithms import qft_gate_sequence
 from qutip_qip.operations import (
-    custom_gate_factory, controlled_gate_factory, H, Gate
+    unitary_gate, controlled, H, Gate
 )
 
 
@@ -64,8 +64,8 @@ def qpe(U, num_counting_qubits, target_qubits=None, to_cnot=False):
         U_power = U if power == 1 else U**power
 
         # Add controlled-U^power gate
-        controlled_u = controlled_gate_factory(
-            gate=custom_gate_factory(
+        controlled_u = controlled(
+            gate=unitary_gate(
                 gate_name=f"U^{power}",
                 user_namespace = "qpe",
                 U=U_power,
