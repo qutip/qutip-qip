@@ -7,6 +7,10 @@ from .utils import (
     gate_sequence_product,
     controlled_gate,
 )
+from .gateclass import Gate, unitary_gate
+from .parametric import ParametricGate, AngleParametricGate
+from .controlled import ControlledGate, controlled
+from .measurement import Measurement
 from .gates import (
     rx,
     ry,
@@ -43,14 +47,6 @@ from .gates import (
     qubit_clifford_group,
 )
 
-from .gateclass import (
-    Gate,
-    ControlledGate,
-    ParametricGate,
-    unitary_gate,
-    controlled,
-    AngleParametricGate,
-)
 from .std import (
     X,
     Y,
@@ -93,7 +89,6 @@ from .std import (
     GLOBALPHASE,
     IDLE,
 )
-from .measurement import Measurement
 
 GATE_CLASS_MAP: dict[str, Gate] = {
     "GLOBALPHASE": GLOBALPHASE,

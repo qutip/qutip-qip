@@ -67,7 +67,7 @@ def qpe(U, num_counting_qubits, target_qubits=None, to_cnot=False):
         controlled_u = controlled(
             gate=unitary_gate(
                 gate_name=f"U^{power}",
-                user_namespace = "qpe",
+                namespace = "qpe",
                 U=U_power,
             ),
         )
