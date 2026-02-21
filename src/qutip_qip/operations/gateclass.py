@@ -404,7 +404,7 @@ class ControlledGate(Gate):
         The gate to be applied to the target qubits.
     """
 
-    __slots__ = ("arg_value", "arg_label")
+    __slots__ = ("arg_value", "arg_label", "_control_value")
     num_ctrl_qubits: int | None = None
 
     def __init_subclass__(cls, **kwargs):
@@ -442,9 +442,6 @@ class ControlledGate(Gate):
         ):
             cls.validate_params = staticmethod(cls.target_gate.validate_params)
 
-        # Default value for control_value (can be changed by individual gate instance)
-        cls._control_value = 2**cls.num_ctrl_qubits - 1
-
         # Default set_inverse
         # cls.self_inverse = cls.target_gate.self_inverse
 
@@ -461,6 +458,8 @@ class ControlledGate(Gate):
         if control_value is not None:
             self._validate_control_value(control_value)
             self._control_value = control_value
+        else:
+            self._control_value = (2 ** self.num_ctrl_qubits) - 1
 
         if self.is_parametric_gate():
             ParametricGate.__init__(
@@ -499,14 +498,10 @@ class ControlledGate(Gate):
                 f"Control value must be an int, got {control_value}"
             )
 
-        if control_value < 0:
+        if control_value < 0 or control_value > 2**cls.num_ctrl_qubits - 1:
             raise ValueError(
-                f"Control value can't be negative, got {control_value}"
-            )
-
-        if control_value > 2**cls.num_ctrl_qubits - 1:
-            raise ValueError(
-                f"Control value can't be greater than 2^num_ctrl_qubits - 1, got {control_value}"
+                f"Control value can't be negative and can't be greater than "
+                f"2^num_ctrl_qubits - 1, got {control_value}"
             )
 
     def get_qobj(self) -> Qobj:
@@ -547,43 +542,46 @@ class ControlledGate(Gate):
         return True
 
 
-def custom_gate_factory(
+def unitary_gate(
     gate_name: str, U: Qobj, user_namespace: str = "custom"
 ) -> Gate:
     """
     Gate Factory for Custom Gate that wraps an arbitrary unitary matrix U.
     """
 
-    inverse = U == U.dag()
+    n = np.log2(U.shape[0])
+    inverse = (U == U.dag())
 
-    class CustomGate(Gate):
+    if n != np.log2(U.shape[1]):
+        raise ValueError("The unitary U must be square.")
+
+    if n % 1 != 0:
+        raise ValueError("The unitary U must have dim NxN, where N=2^n")
+
+    class _CustomGate(Gate):
         __slots__ = ()
-        namespace = user_namespace
         name = gate_name
-        num_qubits = int(np.log2(U.shape[0]))
+        namespace = user_namespace
+        num_qubits = int(n)
         self_inverse = inverse
-
-        def __init__(self):
-            self._U = U
 
         @staticmethod
         def get_qobj():
             return U
 
-    return CustomGate
+    return _CustomGate
 
 
-def controlled_gate_factory(
+def controlled(
     gate: Gate,
     n_ctrl_qubits: int = 1,
-    control_value: int = -1,
     user_namespace: str = "custom",
 ) -> ControlledGate:
     """
     Gate Factory for Custom Gate that wraps an arbitrary unitary matrix U.
     """
 
-    class _CustomGate(ControlledGate):
+    class _CustomControlledGate(ControlledGate):
         __slots__ = ()
         namespace = user_namespace
         num_qubits = n_ctrl_qubits + gate.num_qubits
@@ -591,13 +589,7 @@ def controlled_gate_factory(
         target_gate = gate
         latex_str = rf"C{gate.name}"
 
-        @property
-        def control_value(self) -> int:
-            if control_value == -1:
-                return 2**n_ctrl_qubits - 1
-            return control_value
-
-    return _CustomGate
+    return _CustomControlledGate
 
 
 class AngleParametricGate(ParametricGate):

@@ -47,8 +47,8 @@ from .gateclass import (
     Gate,
     ControlledGate,
     ParametricGate,
-    custom_gate_factory,
-    controlled_gate_factory,
+    unitary_gate,
+    controlled,
     AngleParametricGate,
 )
 from .std import (
@@ -143,8 +143,8 @@ __all__ = [
     "Gate",
     "ParametricGate",
     "ControlledGate",
-    "custom_gate_factory",
-    "controlled_gate_factory",
+    "unitary_gate",
+    "controlled",
     "AngleParametricGate",
     "Measurement",
     "GATE_CLASS_MAP",
