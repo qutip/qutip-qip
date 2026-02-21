@@ -8,6 +8,7 @@ from scipy.linalg import block_diag
 import qutip
 from qutip import Qobj, identity, tensor
 
+
 def _check_oper_dims(oper: Qobj, dims=None, targets=None):
     """
     Check if the given operator is valid.
@@ -77,13 +78,14 @@ def _targets_to_list(targets, oper=None, N=None):
             raise ValueError("Targets must be smaller than N={}.".format(N))
     return targets
 
+
 def expand_operator(
     oper: Qobj,
     N: None = None,
     targets: int | list[int] | None = None,
     dims: list[int] | None = None,
     cyclic_permutation: bool = False,
-    dtype: str | None = None
+    dtype: str | None = None,
 ):
     """
     Expand an operator to one that acts on a system with desired dimensions.
@@ -163,7 +165,7 @@ def expand_operator(
             "Please use the new signature e.g.\n"
             "expand_operator(oper, dims=[2, 3, 2, 2], targets=2)",
             DeprecationWarning,
-            stacklevel=2
+            stacklevel=2,
         )
 
     if dims is not None and N is None:
@@ -182,7 +184,7 @@ def expand_operator(
             "cyclic_permutation is deprecated, "
             "please use loop through different targets manually.",
             DeprecationWarning,
-            stacklevel=2
+            stacklevel=2,
         )
         oper_list = []
         for i in range(N):

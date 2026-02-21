@@ -13,6 +13,7 @@ import scipy.sparse as sp
 from qutip import Qobj, identity, qeye, sigmax, sigmay, sigmaz, tensor, fock_dm
 from qutip_qip.operations import expand_operator
 
+
 # Single Qubit Gates
 def _deprecation_warnings_gate_expansion():
     warnings.warn(
@@ -37,9 +38,7 @@ def x_gate(N=None, target=0):
     """
     warnings.warn(
         "x_gate has been deprecated and will be removed in future version. \
-        Use X.get_qobj() instead.",
-        DeprecationWarning,
-        stacklevel=2
+        Use X.get_qobj() instead.", DeprecationWarning, stacklevel=2
     )
     if N is not None:
         _deprecation_warnings_gate_expansion()
@@ -59,9 +58,7 @@ def y_gate(N=None, target=0):
     """
     warnings.warn(
         "Y_gate has been deprecated and will be removed in future version. \
-        Use Y.get_qobj() instead.",
-        DeprecationWarning,
-        stacklevel=2
+        Use Y.get_qobj() instead.", DeprecationWarning, stacklevel=2
     )
     if N is not None:
         _deprecation_warnings_gate_expansion()
@@ -81,9 +78,7 @@ def z_gate(N=None, target=0):
     """
     warnings.warn(
         "z_gate has been deprecated and will be removed in future version. \
-        Use Z.get_qobj() instead.",
-        DeprecationWarning,
-        stacklevel=2
+        Use Z.get_qobj() instead.", DeprecationWarning, stacklevel=2
     )
     if N is not None:
         _deprecation_warnings_gate_expansion()
@@ -102,9 +97,7 @@ def cy_gate(N=None, control=0, target=1):
     """
     warnings.warn(
         "cy_gate has been deprecated and will be removed in future version. \
-        Use CY.get_qobj() instead.",
-        DeprecationWarning,
-        stacklevel=2
+        Use CY.get_qobj() instead.", DeprecationWarning, stacklevel=2
     )
     if (control == 1 and target == 0) and N is None:
         N = 2
@@ -131,9 +124,7 @@ def cz_gate(N=None, control=0, target=1):
     """
     warnings.warn(
         "cz_gate has been deprecated and will be removed in future version. \
-        Use CZ.get_qobj() instead.",
-        DeprecationWarning,
-        stacklevel=2
+        Use CZ.get_qobj() instead.", DeprecationWarning, stacklevel=2
     )
     if (control == 1 and target == 0) and N is None:
         N = 2
@@ -161,9 +152,7 @@ def s_gate(N=None, target=0):
     """
     warnings.warn(
         "s_gate has been deprecated and will be removed in future version. \
-        Use S.get_qobj() instead.",
-        DeprecationWarning,
-        stacklevel=2
+        Use S.get_qobj() instead.", DeprecationWarning, stacklevel=2
     )
     if N is not None:
         _deprecation_warnings_gate_expansion()
@@ -182,9 +171,7 @@ def cs_gate(N=None, control=0, target=1):
     """
     warnings.warn(
         "cs_gate has been deprecated and will be removed in future version. \
-        Use CS.get_qobj() instead.",
-        DeprecationWarning,
-        stacklevel=2
+        Use CS.get_qobj() instead.", DeprecationWarning, stacklevel=2
     )
     if (control == 1 and target == 0) and N is None:
         N = 2
@@ -211,9 +198,7 @@ def t_gate(N=None, target=0):
     """
     warnings.warn(
         "t_gate has been deprecated and will be removed in future version. \
-        Use T.get_qobj() instead.",
-        DeprecationWarning,
-        stacklevel=2
+        Use T.get_qobj() instead.", DeprecationWarning, stacklevel=2
     )
     if N is not None:
         _deprecation_warnings_gate_expansion()
@@ -232,9 +217,7 @@ def ct_gate(N=None, control=0, target=1):
     """
     warnings.warn(
         "ct_gate has been deprecated and will be removed in future version. \
-        Use CT.get_qobj() instead.",
-        DeprecationWarning,
-        stacklevel=2
+        Use CT.get_qobj() instead.", DeprecationWarning, stacklevel=2
     )
     if (control == 1 and target == 0) and N is None:
         N = 2
@@ -266,9 +249,7 @@ def rx(phi, N=None, target=0):
     """
     warnings.warn(
         "rxRTNOT has been deprecated and will be removed in future version. \
-        Use RX(angle).get_qobj() instead.",
-        DeprecationWarning,
-        stacklevel=2
+        Use RX(angle).get_qobj() instead.", DeprecationWarning, stacklevel=2
     )
     if N is not None:
         _deprecation_warnings_gate_expansion()
@@ -292,9 +273,7 @@ def ry(phi, N=None, target=0):
     """
     warnings.warn(
         "ryRTNOT has been deprecated and will be removed in future version. \
-        Use RY(angle).get_qobj() instead.",
-        DeprecationWarning,
-        stacklevel=2
+        Use RY(angle).get_qobj() instead.", DeprecationWarning, stacklevel=2
     )
     if N is not None:
         _deprecation_warnings_gate_expansion()
@@ -318,9 +297,7 @@ def rz(phi, N=None, target=0):
     """
     warnings.warn(
         "rzRTNOT has been deprecated and will be removed in future version. \
-        Use RZ(angle).get_qobj() instead.",
-        DeprecationWarning,
-        stacklevel=2
+        Use RZ(angle).get_qobj() instead.", DeprecationWarning, stacklevel=2
     )
     if N is not None:
         _deprecation_warnings_gate_expansion()
@@ -339,9 +316,7 @@ def sqrtnot(N=None, target=0):
     """
     warnings.warn(
         "sqrtnot has been deprecated and will be removed in future version. \
-        Use SQRTNOT.get_qobj() instead.",
-        DeprecationWarning,
-        stacklevel=2
+        Use SQRTNOT.get_qobj() instead.", DeprecationWarning, stacklevel=2
     )
     if N is not None:
         _deprecation_warnings_gate_expansion()
@@ -369,9 +344,7 @@ shape = [2, 2], type='oper', dtype=Dense, isherm=True
     """
     warnings.warn(
         "snot has been deprecated and will be removed in future version. \
-        Use H.get_qobj() instead.",
-        DeprecationWarning,
-        stacklevel=2
+        Use H.get_qobj() instead.", DeprecationWarning, stacklevel=2
     )
     if N is not None:
         _deprecation_warnings_gate_expansion()
@@ -405,9 +378,7 @@ shape = [2, 2], type='oper', dtype=Dense, isherm=False
     """
     warnings.warn(
         "phase has been deprecated and will be removed in future version. \
-        Use PHASE(angle).get_qobj() instead.",
-        DeprecationWarning,
-        stacklevel=2
+        Use PHASE(angle).get_qobj() instead.", DeprecationWarning, stacklevel=2
     )
     if N is not None:
         _deprecation_warnings_gate_expansion()
@@ -440,7 +411,7 @@ def qrot(theta, phi, N=None, target=0):
         "qrot has been deprecated and will be removed in future version. \
         Use R([theta, phi]).get_qobj() instead.",
         DeprecationWarning,
-        stacklevel=2
+        stacklevel=2,
     )
     if N is not None:
         _deprecation_warnings_gate_expansion()
@@ -487,7 +458,7 @@ def qasmu_gate(args, N=None, target=0):
         "qasmu_gate has been deprecated and will be removed in future version. \
         Use QASMU([theta, phi, gamma]).get_qobj() instead.",
         DeprecationWarning,
-        stacklevel=2
+        stacklevel=2,
     )
 
     theta, phi, gamma = args
@@ -531,7 +502,7 @@ def cphase(theta, N=2, control=0, target=1):
         "cphase has been deprecated and will be removed in future version. \
         Use CPHASE(angle).get_qobj() instead.",
         DeprecationWarning,
-        stacklevel=2
+        stacklevel=2,
     )
 
     if N != 2 or control != 0 or target != 1:
@@ -578,9 +549,7 @@ shape = [4, 4], type='oper', dtype=Dense, isherm=True
     """
     warnings.warn(
         "cnot has been deprecated and will be removed in future version. \
-        Use CX.get_qobj() instead.",
-        DeprecationWarning,
-        stacklevel=2
+        Use CX.get_qobj() instead.", DeprecationWarning, stacklevel=2
     )
 
     if (control == 1 and target == 0) and N is None:
@@ -618,9 +587,7 @@ shape = [4, 4], type='oper', dtype=Dense, isherm=True
     """
     warnings.warn(
         "csign has been deprecated and will be removed in future version. \
-        Use CZ.get_qobj() instead.",
-        DeprecationWarning,
-        stacklevel=2
+        Use CZ.get_qobj() instead.", DeprecationWarning, stacklevel=2
     )
 
     if (control == 1 and target == 0) and N is None:
@@ -658,9 +625,7 @@ shape = [4, 4], type='oper', dtype=Dense, isherm=True
     """
     warnings.warn(
         "berkley has been deprecated and will be removed in future version. \
-        Use BERKELEY.get_qobj() instead.",
-        DeprecationWarning,
-        stacklevel=2
+        Use BERKELEY.get_qobj() instead.", DeprecationWarning, stacklevel=2
     )
 
     if (targets[0] == 1 and targets[1] == 0) and N is None:
@@ -705,7 +670,7 @@ shape = [4, 4], type='oper', dtype=Dense, isherm=True
         "swapalpha has been deprecated and will be removed in future version. \
         Use SWAPALPHA(angle).get_qobj() instead.",
         DeprecationWarning,
-        stacklevel=2
+        stacklevel=2,
     )
 
     if (targets[0] == 1 and targets[1] == 0) and N is None:
@@ -757,9 +722,7 @@ shape = [4, 4], type='oper', dtype=Dense, isherm=True
     """
     warnings.warn(
         "SWAP has been deprecated and will be removed in future version. \
-        Use SWAP.get_qobj() instead.",
-        DeprecationWarning,
-        stacklevel=2
+        Use SWAP.get_qobj() instead.", DeprecationWarning, stacklevel=2
     )
     if targets != [0, 1] and N is None:
         N = 2
@@ -794,9 +757,7 @@ shape = [4, 4], type='oper', dtype=Dense, isherm=False
     """
     warnings.warn(
         "ISWAP has been deprecated and will be removed in future version. \
-        Use ISWAP.get_qobj() instead.",
-        DeprecationWarning,
-        stacklevel=2
+        Use ISWAP.get_qobj() instead.", DeprecationWarning, stacklevel=2
     )
     if targets != [0, 1] and N is None:
         N = 2
@@ -821,9 +782,7 @@ def sqrtswap(N=None, targets=[0, 1]):
     """
     warnings.warn(
         "SQRTSWAP has been deprecated and will be removed in future version. \
-        Use SQRTSWAP.get_qobj() instead.",
-        DeprecationWarning,
-        stacklevel=2
+        Use SQRTSWAP.get_qobj() instead.", DeprecationWarning, stacklevel=2
     )
     if targets != [0, 1] and N is None:
         N = 2
@@ -870,9 +829,7 @@ shape = [4, 4], type='oper', dtype=Dense, isherm=False
     """
     warnings.warn(
         "SQRTISWAP has been deprecated and will be removed in future version. \
-        Use SQRTISWAP.get_qobj() instead.",
-        DeprecationWarning,
-        stacklevel=2
+        Use SQRTISWAP.get_qobj() instead.", DeprecationWarning, stacklevel=2
     )
     if targets != [0, 1] and N is None:
         N = 2
@@ -917,7 +874,7 @@ def molmer_sorensen(theta, phi=0.0, N=None, targets=[0, 1]):
         "MS has been deprecated and will be removed in future version. \
         Use MS([theta, phi]).get_qobj() instead.",
         DeprecationWarning,
-        stacklevel=2
+        stacklevel=2,
     )
     if targets != [0, 1] and N is None:
         N = 2
@@ -979,9 +936,7 @@ def fredkin(N=None, control=0, targets=[1, 2]):
     """
     warnings.warn(
         "fredkin has been deprecated and will be removed in future version. \
-        Use FREDKIN.get_qobj() instead.",
-        DeprecationWarning,
-        stacklevel=2
+        Use FREDKIN.get_qobj() instead.", DeprecationWarning, stacklevel=2
     )
     if [control, targets[0], targets[1]] != [0, 1, 2] and N is None:
         N = 3
@@ -1032,9 +987,7 @@ def toffoli(N=None, controls=[0, 1], target=2):
     """
     warnings.warn(
         "toffoli has been deprecated and will be removed in future version. \
-        Use TOFFOLI.get_qobj() instead.",
-        DeprecationWarning,
-        stacklevel=2
+        Use TOFFOLI.get_qobj() instead.", DeprecationWarning, stacklevel=2
     )
     if [controls[0], controls[1], target] != [0, 1, 2] and N is None:
         N = 3
@@ -1107,7 +1060,7 @@ shape = [2, 2], type='oper', dtype=Dense, isherm=False
         "global_phase has been deprecated and will be removed in future version. \
         Use GLOBALPHASE(phase).get_qobj() instead.",
         DeprecationWarning,
-        stacklevel=2
+        stacklevel=2,
     )
     data = np.exp(1.0j * theta) * sp.eye(
         2**N, 2**N, dtype=complex, format="csr"
