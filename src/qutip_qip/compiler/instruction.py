@@ -1,6 +1,5 @@
 from copy import deepcopy
 import numpy as np
-from qutip_qip.operations import ControlledGate
 
 
 class PulseInstruction:
