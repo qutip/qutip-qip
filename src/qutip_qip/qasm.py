@@ -635,7 +635,7 @@ class QasmProcessor:
             )
         elif name == "crz":
             qc.add_gate(
-                std.CRZ(arg_value = args),
+                std.CRZ(arg_value=args),
                 targets=regs[1],
                 controls=regs[0],
                 classical_controls=classical_controls,
@@ -643,7 +643,7 @@ class QasmProcessor:
             )
         elif name == "cu1":
             qc.add_gate(
-                std.CPHASE(arg_value = args),
+                std.CPHASE(arg_value=args),
                 targets=regs[1],
                 controls=regs[0],
                 classical_controls=classical_controls,

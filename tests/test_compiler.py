@@ -137,7 +137,10 @@ class MyCompiler(GateCompiler):  # compiler class
             1000,
             maximum=args["params"]["sx"][targets[0]],
             # The operator is Pauli Z/X/Y, without 1/2.
-            area=circuit_instruction.operation.arg_value[0] / 2.0 / np.pi * 0.5,
+            area=circuit_instruction.operation.arg_value[0]
+            / 2.0
+            / np.pi
+            * 0.5,
         )
         pulse_info = [("sx" + str(targets[0]), coeff)]
         return [PulseInstruction(circuit_instruction, tlist, pulse_info)]

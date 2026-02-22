@@ -53,7 +53,8 @@ def _gate_SQRTNOT(circ_instruction, temp_resolved):
 
     temp_resolved.add_global_phase(phase=np.pi / 4)
     temp_resolved.add_gate(
-        RX(arg_value=np.pi / 2, arg_label=r"\pi/2"), targets=targets,
+        RX(arg_value=np.pi / 2, arg_label=r"\pi/2"),
+        targets=targets,
     )
 
 
@@ -63,10 +64,12 @@ def _gate_H(circ_instruction, temp_resolved):
 
     temp_resolved.add_global_phase(phase=half_pi)
     temp_resolved.add_gate(
-        RY(arg_value=half_pi, arg_label=r"\pi/2"), targets=targets, 
+        RY(arg_value=half_pi, arg_label=r"\pi/2"),
+        targets=targets,
     )
     temp_resolved.add_gate(
-        RX(arg_value=np.pi, arg_label=r"\pi"), targets=targets,
+        RX(arg_value=np.pi, arg_label=r"\pi"),
+        targets=targets,
     )
 
 
@@ -91,18 +94,23 @@ def _gate_CZ(circ_instruction, temp_resolved):
 
     temp_resolved.add_global_phase(phase=np.pi)
     temp_resolved.add_gate(
-        RY(arg_value=half_pi, arg_label=r"\pi/2"), targets=targets,
+        RY(arg_value=half_pi, arg_label=r"\pi/2"),
+        targets=targets,
     )
     temp_resolved.add_gate(
-        RX(arg_value=np.pi, arg_label=r"\pi"), targets=targets, 
+        RX(arg_value=np.pi, arg_label=r"\pi"),
+        targets=targets,
     )
     temp_resolved.add_gate(CX, targets=targets, controls=controls)
     temp_resolved.add_gate(
-        RY(arg_value=half_pi, arg_label=r"\pi/2"), targets=targets,
+        RY(arg_value=half_pi, arg_label=r"\pi/2"),
+        targets=targets,
     )
     temp_resolved.add_gate(
-        RX(arg_value=np.pi, arg_label=r"\pi"), targets=targets,
+        RX(arg_value=np.pi, arg_label=r"\pi"),
+        targets=targets,
     )
+
 
 _gate_CSIGN = _gate_CZ
 
@@ -124,23 +132,29 @@ def _gate_ISWAP(circ_instruction, temp_resolved):
     temp_resolved.add_gate(CX, targets=targets[1], controls=targets[0])
     temp_resolved.add_gate(CX, targets=targets[0], controls=targets[1])
     temp_resolved.add_gate(
-        RZ(arg_value=half_pi, arg_label=r"\pi/2"), targets=targets[0],
+        RZ(arg_value=half_pi, arg_label=r"\pi/2"),
+        targets=targets[0],
     )
     temp_resolved.add_gate(
-        RZ(arg_value=half_pi, arg_label=r"\pi/2"), targets=targets[1],
+        RZ(arg_value=half_pi, arg_label=r"\pi/2"),
+        targets=targets[1],
     )
     temp_resolved.add_gate(
-        RY(arg_value=half_pi, arg_label=r"\pi/2"), targets=targets[0],
+        RY(arg_value=half_pi, arg_label=r"\pi/2"),
+        targets=targets[0],
     )
     temp_resolved.add_gate(
-        RX(arg_value=np.pi, arg_label=r"\pi"), targets=targets[0],
+        RX(arg_value=np.pi, arg_label=r"\pi"),
+        targets=targets[0],
     )
     temp_resolved.add_gate(CX, targets=targets[0], controls=targets[1])
     temp_resolved.add_gate(
-        RY(arg_value=half_pi, arg_label=r"\pi/2"), targets=targets[0],
+        RY(arg_value=half_pi, arg_label=r"\pi/2"),
+        targets=targets[0],
     )
     temp_resolved.add_gate(
-        RX(arg_value=np.pi, arg_label=r"\pi"), targets=targets[0],
+        RX(arg_value=np.pi, arg_label=r"\pi"),
+        targets=targets[0],
     )
 
 
@@ -151,42 +165,53 @@ def _gate_FREDKIN(circ_instruction, temp_resolved):
 
     temp_resolved.add_gate(CX, controls=targets[1], targets=targets[0])
     temp_resolved.add_gate(
-        RZ(arg_value=pi, arg_label=r"\pi"), targets=targets[1],
+        RZ(arg_value=pi, arg_label=r"\pi"),
+        targets=targets[1],
     )
     temp_resolved.add_gate(
-        RX(arg_value=pi / 2, arg_label=r"\pi/2"), targets=targets[1],
+        RX(arg_value=pi / 2, arg_label=r"\pi/2"),
+        targets=targets[1],
     )
     temp_resolved.add_gate(
-        RZ(arg_value=-pi / 2, arg_label=r"-\pi/2"), targets=targets[1],
+        RZ(arg_value=-pi / 2, arg_label=r"-\pi/2"),
+        targets=targets[1],
     )
     temp_resolved.add_gate(
-        RX(arg_value=pi / 2, arg_label=r"\pi/2"), targets=targets[1],
+        RX(arg_value=pi / 2, arg_label=r"\pi/2"),
+        targets=targets[1],
     )
     temp_resolved.add_gate(
-        RZ(arg_value=pi, arg_label=r"\pi"), targets=targets[1],
+        RZ(arg_value=pi, arg_label=r"\pi"),
+        targets=targets[1],
     )
     temp_resolved.add_gate(CX, controls=targets[0], targets=targets[1])
     temp_resolved.add_gate(
-        RZ(arg_value=-pi / 4, arg_label=r"-\pi/4"), targets=targets[1],
+        RZ(arg_value=-pi / 4, arg_label=r"-\pi/4"),
+        targets=targets[1],
     )
     temp_resolved.add_gate(CX, controls=controls, targets=targets[1])
     temp_resolved.add_gate(
-        RZ(arg_value=pi / 4, arg_label=r"\pi/4"), targets=targets[1],
+        RZ(arg_value=pi / 4, arg_label=r"\pi/4"),
+        targets=targets[1],
     )
     temp_resolved.add_gate(CX, controls=targets[0], targets=targets[1])
     temp_resolved.add_gate(
-        RZ(arg_value=pi / 4, arg_label=r"\pi/4"), targets=targets[0],
+        RZ(arg_value=pi / 4, arg_label=r"\pi/4"),
+        targets=targets[0],
     )
     temp_resolved.add_gate(
-        RZ(arg_value=-pi / 4, arg_label=r"-\pi/4"), targets=targets[1],
+        RZ(arg_value=-pi / 4, arg_label=r"-\pi/4"),
+        targets=targets[1],
     )
     temp_resolved.add_gate(CX, controls=controls, targets=targets[1])
     temp_resolved.add_gate(CX, controls=controls, targets=targets[0])
     temp_resolved.add_gate(
-        RZ(arg_value=pi / 4, arg_label=r"\pi/4"), targets=controls,
+        RZ(arg_value=pi / 4, arg_label=r"\pi/4"),
+        targets=controls,
     )
     temp_resolved.add_gate(
-        RZ(arg_value=-pi / 4, arg_label=r"-\pi/4"), targets=targets[0],
+        RZ(arg_value=-pi / 4, arg_label=r"-\pi/4"),
+        targets=targets[0],
     )
     temp_resolved.add_gate(CX, controls=controls, targets=targets[0])
     temp_resolved.add_gate(
@@ -197,13 +222,16 @@ def _gate_FREDKIN(circ_instruction, temp_resolved):
         RX(arg_value=pi / 2, arg_label=r"\pi/2"), targets=targets[1]
     )
     temp_resolved.add_gate(
-        RZ(arg_value=-pi / 2, arg_label=r"-\pi/2"), targets=targets[1],
+        RZ(arg_value=-pi / 2, arg_label=r"-\pi/2"),
+        targets=targets[1],
     )
     temp_resolved.add_gate(
-        RX(arg_value=pi / 2, arg_label=r"\pi/2"), targets=targets[1],
+        RX(arg_value=pi / 2, arg_label=r"\pi/2"),
+        targets=targets[1],
     )
     temp_resolved.add_gate(
-        RZ(arg_value=pi, arg_label=r"\pi"), targets=targets[1],
+        RZ(arg_value=pi, arg_label=r"\pi"),
+        targets=targets[1],
     )
     temp_resolved.add_gate(CX, controls=targets[1], targets=targets[0])
     temp_resolved.add_global_phase(phase=pi / 8)
@@ -219,10 +247,12 @@ def _gate_TOFFOLI(circ_instruction, temp_resolved):
 
     temp_resolved.add_global_phase(phase=np.pi / 8)
     temp_resolved.add_gate(
-        RZ(arg_value=half_pi, arg_label=r"\pi/2"), targets=controls[1],
+        RZ(arg_value=half_pi, arg_label=r"\pi/2"),
+        targets=controls[1],
     )
     temp_resolved.add_gate(
-        RZ(arg_value=quarter_pi, arg_label=r"\pi/4"), targets=controls[0],
+        RZ(arg_value=quarter_pi, arg_label=r"\pi/4"),
+        targets=controls[0],
     )
     temp_resolved.add_gate(CX, targets=controls[1], controls=controls[0])
     temp_resolved.add_gate(
@@ -231,35 +261,44 @@ def _gate_TOFFOLI(circ_instruction, temp_resolved):
     )
     temp_resolved.add_gate(CX, targets=controls[1], controls=controls[0])
     temp_resolved.add_gate(
-        RY(arg_value=half_pi, arg_label=r"\pi/2"), targets=targets,
+        RY(arg_value=half_pi, arg_label=r"\pi/2"),
+        targets=targets,
     )
     temp_resolved.add_gate(
-        RX(arg_value=np.pi, arg_label=r"\pi"), targets=targets,
+        RX(arg_value=np.pi, arg_label=r"\pi"),
+        targets=targets,
     )
     temp_resolved.add_gate(
-        RZ(arg_value=quarter_pi, arg_label=r"\pi/4"), targets=controls[1],
+        RZ(arg_value=quarter_pi, arg_label=r"\pi/4"),
+        targets=controls[1],
     )
     temp_resolved.add_gate(
-        RZ(arg_value=quarter_pi, arg_label=r"\pi/4"), targets=targets,
-    )
-    temp_resolved.add_gate(CX, targets=targets, controls=controls[0])
-    temp_resolved.add_gate(
-        RZ(arg_value=-quarter_pi, arg_label=r"-\pi/4"), targets=targets,
-    )
-    temp_resolved.add_gate(CX, targets=targets, controls=controls[1])
-    temp_resolved.add_gate(
-        RZ(arg_value=quarter_pi, arg_label=r"\pi/4"), targets=targets,
+        RZ(arg_value=quarter_pi, arg_label=r"\pi/4"),
+        targets=targets,
     )
     temp_resolved.add_gate(CX, targets=targets, controls=controls[0])
     temp_resolved.add_gate(
-        RZ(arg_value=-quarter_pi, arg_label=r"-\pi/4"), targets=targets,
+        RZ(arg_value=-quarter_pi, arg_label=r"-\pi/4"),
+        targets=targets,
     )
     temp_resolved.add_gate(CX, targets=targets, controls=controls[1])
     temp_resolved.add_gate(
-        RY(arg_value=half_pi, arg_label=r"\pi/2"), targets=targets,
+        RZ(arg_value=quarter_pi, arg_label=r"\pi/4"),
+        targets=targets,
+    )
+    temp_resolved.add_gate(CX, targets=targets, controls=controls[0])
+    temp_resolved.add_gate(
+        RZ(arg_value=-quarter_pi, arg_label=r"-\pi/4"),
+        targets=targets,
+    )
+    temp_resolved.add_gate(CX, targets=targets, controls=controls[1])
+    temp_resolved.add_gate(
+        RY(arg_value=half_pi, arg_label=r"\pi/2"),
+        targets=targets,
     )
     temp_resolved.add_gate(
-        RX(arg_value=np.pi, arg_label=r"\pi"), targets=targets,
+        RX(arg_value=np.pi, arg_label=r"\pi"),
+        targets=targets,
     )
     temp_resolved.add_global_phase(phase=np.pi)
 
@@ -291,7 +330,9 @@ def _basis_CZ(qc_temp, temp_resolved):
                 style=circ_instruction.style,
             )
 
+
 _basis_CSIGN = _basis_CZ
+
 
 def _basis_ISWAP(qc_temp, temp_resolved):
     half_pi = np.pi / 2

@@ -75,9 +75,7 @@ def test_qasm_addcircuit():
     check_gate_instruction_defn(qc.instructions[3], "CX", (1,), (0,))
     check_gate_instruction_defn(qc.instructions[4], "H", (0,))
     check_gate_instruction_defn(qc.instructions[5], "H", (1,))
-    check_gate_instruction_defn(
-        qc.instructions[6], "H", (0,), (), (0, 1), 0
-    )
+    check_gate_instruction_defn(qc.instructions[6], "H", (0,), (), (0, 1), 0)
     check_measurement_defn(qc.instructions[7], "M", (0,), (0,))
     check_measurement_defn(qc.instructions[8], "M", (1,), (1,))
 
@@ -88,7 +86,9 @@ def test_custom_gates():
     qc = read_qasm(filepath)
     unitaries = qc.propagators()
     assert (unitaries[0] - unitaries[1]).norm() < 1e-12
-    ry_cx = std.CX.get_qobj() * tensor(identity(2), std.RY(np.pi / 2).get_qobj())
+    ry_cx = std.CX.get_qobj() * tensor(
+        identity(2), std.RY(np.pi / 2).get_qobj()
+    )
     assert (unitaries[2] - ry_cx).norm() < 1e-12
 
 
@@ -177,11 +177,13 @@ def test_read_qasm_1():
     filepath = Path(__file__).parent / "qasm_files" / filename
     read_qasm(filepath)
 
+
 def test_read_qasm_2():
     Gate.clear_cache(namespace="custom")
     filename2 = "w-state_with_comments.qasm"
     filepath2 = Path(__file__).parent / "qasm_files" / filename2
     read_qasm(filepath2)
+
 
 def test_parsing_mode(tmp_path):
     mode = "qiskit"

@@ -33,9 +33,7 @@ class TestQPE(unittest.TestCase):
         )(control_value=1)
 
         assert_equal(controlled_u.control_value, 1)
-        assert_(
-            (controlled_u.target_gate.get_qobj() - U).norm() < 1e-12
-        )
+        assert_((controlled_u.target_gate.get_qobj() - U).norm() < 1e-12)
 
     def test_qpe_validation(self):
         """

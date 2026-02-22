@@ -237,7 +237,10 @@ class TestQubitCircuit:
                     qc1.instructions[i].cbits_ctrl_value
                     == qc.instructions[i].cbits_ctrl_value
                 )
-            elif qc1.instructions[i].is_measurement_instruction() and qc.instructions[i].is_measurement_instruction():
+            elif (
+                qc1.instructions[i].is_measurement_instruction()
+                and qc.instructions[i].is_measurement_instruction()
+            ):
                 assert qc1.instructions[i].cbits == qc.instructions[i].cbits
 
         # Test exception when qubit out of range
@@ -703,7 +706,10 @@ class TestQubitCircuit:
 
     @pytest.mark.parametrize(
         "valid_input, correct_result",
-        [(H_zyz_quantum_circuit, H), (sigmax_zyz_quantum_circuit, std.X.get_qobj())],
+        [
+            (H_zyz_quantum_circuit, H),
+            (sigmax_zyz_quantum_circuit, std.X.get_qobj()),
+        ],
     )
     def test_compute_unitary(self, valid_input, correct_result):
         final_output = valid_input.compute_unitary()

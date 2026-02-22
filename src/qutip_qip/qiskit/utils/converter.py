@@ -3,8 +3,26 @@
 from qiskit.circuit import QuantumCircuit
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations import (
-    X, Y, Z, H, S, T, RX, RY, RZ, SWAP, QASMU, PHASE,
-    CX, CY, CZ, CPHASE, CRX, CRY, CRZ, Gate
+    X,
+    Y,
+    Z,
+    H,
+    S,
+    T,
+    RX,
+    RY,
+    RZ,
+    SWAP,
+    QASMU,
+    PHASE,
+    CX,
+    CY,
+    CZ,
+    CPHASE,
+    CRX,
+    CRY,
+    CRZ,
+    Gate,
 )
 
 # TODO Expand this dictionary for other gates like CS etc.
@@ -129,7 +147,7 @@ def convert_qiskit_circuit_to_qutip(
             )
 
         elif qiskit_instruction.name in _map_controlled_gates.keys():
-            gate =  _map_controlled_gates[qiskit_instruction.name]
+            gate = _map_controlled_gates[qiskit_instruction.name]
             if gate.is_parametric_gate():
                 gate = gate(arg_value)
 

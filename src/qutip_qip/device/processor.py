@@ -1110,7 +1110,7 @@ class Processor:
             warnings.warn(
                 "states will be deprecated and replaced by init_state",
                 DeprecationWarning,
-                stacklevel=2
+                stacklevel=2,
             )
         if init_state is None and states is None:
             raise ValueError("Qubit state not defined.")

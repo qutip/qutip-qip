@@ -50,7 +50,7 @@ class ControlledGate(Gate):
 
         # Must have a target_gate
         target_gate = getattr(cls, "target_gate", None)
-        if (target_gate is None or not issubclass(target_gate, Gate)):
+        if target_gate is None or not issubclass(target_gate, Gate):
             raise TypeError(
                 f"Class '{cls.__name__}' attribute 'target_gate' must be a Gate class, "
                 f"got {type(target_gate)} with value {target_gate}."
@@ -97,7 +97,7 @@ class ControlledGate(Gate):
             self._validate_control_value(control_value)
             self._control_value = control_value
         else:
-            self._control_value = (2 ** self.num_ctrl_qubits) - 1
+            self._control_value = (2**self.num_ctrl_qubits) - 1
 
         if self.is_parametric_gate():
             ParametricGate.__init__(

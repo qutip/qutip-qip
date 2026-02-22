@@ -81,7 +81,7 @@ class GateCompiler:
                 you can simply remove it.
                 """,
                 UserWarning,
-                stacklevel=2
+                stacklevel=2,
             )
 
     @property

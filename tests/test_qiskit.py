@@ -58,20 +58,26 @@ class TestConverter:
             req_gate.operation.name == res_gate.operation.name
         ) and (
             list(req_gate.qubits)
-            == get_qutip_index(list(res_gate.qubits), result_circuit.num_qubits)
+            == get_qutip_index(
+                list(res_gate.qubits), result_circuit.num_qubits
+            )
         )
         if not check_condition:
             return False
 
         if req_gate.is_measurement_instruction():
-            check_condition = list(req_gate.operation.classical_store) == get_qutip_index(
+            check_condition = list(
+                req_gate.operation.classical_store
+            ) == get_qutip_index(
                 res_gate.operation.classical_store, result_circuit.num_cbits
             )
         else:
             # TODO correct for float error in arg_value
             res_controls = None
             if res_gate.operation.is_controlled_gate():
-                res_controls = get_qutip_index(list(res_gate.controls), result_circuit.num_qubits)
+                res_controls = get_qutip_index(
+                    list(res_gate.controls), result_circuit.num_qubits
+                )
 
             req_controls = None
             if req_gate.operation.is_controlled_gate():
@@ -150,7 +156,7 @@ class TestConverter:
         required_circuit.add_gate(H, targets=[2])
 
         assert self._compare_circuit(result_circuit, required_circuit)
-    
+
     def test_multiqubit_circuit_conversion(self):
         """
         Test to check conversion of a circuit

@@ -67,7 +67,7 @@ class QubitCircuit:
         dims=None,
         num_cbits=0,
         user_gates=None,
-        N = None
+        N=None,
     ):
         # number of qubits in the register
         self._num_qubits = num_qubits
@@ -89,12 +89,16 @@ class QubitCircuit:
         if input_states:
             self.input_states = input_states
         else:
-            self.input_states = [None for i in range(self.num_qubits + num_cbits)]
+            self.input_states = [
+                None for i in range(self.num_qubits + num_cbits)
+            ]
 
         if output_states:
             self.output_states = output_states
         else:
-            self.output_states = [None for i in range(self.num_qubits + num_cbits)]
+            self.output_states = [
+                None for i in range(self.num_qubits + num_cbits)
+            ]
 
         if user_gates is not None:
             raise ValueError(
@@ -120,6 +124,7 @@ class QubitCircuit:
         return self._instructions
 
     gates.setter
+
     def gates(self) -> None:
         warnings.warn(
             "QubitCircuit.gates has been replaced with QubitCircuit.instructions",
@@ -167,7 +172,7 @@ class QubitCircuit:
         self,
         state: str,
         targets: IntList,
-        state_type: str = "input", # FIXME Add an enum type hinting?
+        state_type: str = "input",  # FIXME Add an enum type hinting?
     ):
         """
         Add an input or output state to the circuit. By default all the input
@@ -295,18 +300,18 @@ class QubitCircuit:
 
         if arg_value is not None or arg_label is not None:
             warnings.warn(
-                "Define 'arg_value', 'arg_label' in your Gate object e.g. RX(arg_value=np.pi)" \
+                "Define 'arg_value', 'arg_label' in your Gate object e.g. RX(arg_value=np.pi)"
                 ", 'arg_value', 'arg_label' arguments will be removed from 'add_gate' method in the future version.",
                 DeprecationWarning,
-                stacklevel=2
+                stacklevel=2,
             )
 
         if control_value is not None:
             warnings.warn(
-                "Define 'control_value', in your Gate object e.g. CX(control_value=0)" \
+                "Define 'control_value', in your Gate object e.g. CX(control_value=0)"
                 ", 'control_value' argument will be removed from 'add_gate' method in the future version.",
                 DeprecationWarning,
-                stacklevel=2
+                stacklevel=2,
             )
 
         if isinstance(gate, GLOBALPHASE):
@@ -346,7 +351,7 @@ class QubitCircuit:
                 warnings.warn(
                     "Passing Gate as a string input has been deprecated and will be removed in future versions.",
                     DeprecationWarning,
-                    stacklevel=2
+                    stacklevel=2,
                 )
                 gate_class = GATE_CLASS_MAP[gate]
 
@@ -358,7 +363,10 @@ class QubitCircuit:
                     "or Gate class or its object instantiation"
                 )
 
-            if gate_class.is_controlled_gate() and gate_class.is_parametric_gate():
+            if (
+                gate_class.is_controlled_gate()
+                and gate_class.is_parametric_gate()
+            ):
                 gate = gate_class(
                     control_value=control_value,
                     arg_value=arg_value,
@@ -622,7 +630,15 @@ class QubitCircuit:
                 measurements are added to the circuit")
 
         basis_1q_valid = ["RX", "RY", "RZ", "IDLE"]
-        basis_2q_valid = ["CNOT", "CX", "CSIGN", "CZ", "ISWAP", "SQRTSWAP", "SQRTISWAP"]
+        basis_2q_valid = [
+            "CNOT",
+            "CX",
+            "CSIGN",
+            "CZ",
+            "ISWAP",
+            "SQRTSWAP",
+            "SQRTISWAP",
+        ]
         basis_1q = []
         basis_2q = []
 
@@ -818,7 +834,9 @@ class QubitCircuit:
         # For Circuit's Global Phase
         qobj = Qobj([self.global_phase])
         if expand:
-            qobj = GLOBALPHASE(self.global_phase).get_qobj(num_qubits=self.num_qubits)
+            qobj = GLOBALPHASE(self.global_phase).get_qobj(
+                num_qubits=self.num_qubits
+            )
 
         U_list.append(qobj)
         return U_list
