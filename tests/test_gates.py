@@ -104,7 +104,7 @@ class TestExplicitForm:
     )
     def test_toffoli(self, permutation):
         test = expand_operator(
-            std.TOFFOLI.get_qobj(), dims=[2] * 3, targets=permutation
+            std.TOFFOLI().get_qobj(), dims=[2] * 3, targets=permutation
         )
         base = qutip.tensor(
             1 - qutip.basis([2, 2], [1, 1]).proj(), qutip.qeye(2)
@@ -234,11 +234,11 @@ class TestGateExpansion:
     @pytest.mark.parametrize(
         ["gate", "n_controls"],
         [
-            pytest.param(std.CX, 1, id="CX"),
-            pytest.param(std.CY, 1, id="CY"),
-            pytest.param(std.CZ, 1, id="CZ"),
-            pytest.param(std.CS, 1, id="CS"),
-            pytest.param(std.CT, 1, id="CT"),
+            pytest.param(std.CX(), 1, id="CX"),
+            pytest.param(std.CY(), 1, id="CY"),
+            pytest.param(std.CZ(), 1, id="CZ"),
+            pytest.param(std.CS(), 1, id="CS"),
+            pytest.param(std.CT(), 1, id="CT"),
             pytest.param(std.SWAP, 0, id="SWAP"),
             pytest.param(std.ISWAP, 0, id="ISWAP"),
             pytest.param(std.SQRTSWAP, 0, id="SQRTSWAP"),
@@ -272,8 +272,8 @@ class TestGateExpansion:
     @pytest.mark.parametrize(
         ["gate", "n_controls"],
         [
-            pytest.param(std.FREDKIN, 1, id="Fredkin"),
-            pytest.param(std.TOFFOLI, 2, id="Toffoli"),
+            pytest.param(std.FREDKIN(), 1, id="Fredkin"),
+            pytest.param(std.TOFFOLI(), 2, id="Toffoli"),
             # pytest.param(RandomThreeQubitGate(), 2, id="random"),
         ],
     )
@@ -336,7 +336,7 @@ class Test_expand_operator:
 
     def test_cnot_explicit(self):
         test = expand_operator(
-            std.CX.get_qobj(), dims=[2] * 3, targets=[2, 0]
+            std.CX().get_qobj(), dims=[2] * 3, targets=[2, 0]
         ).full()
         expected = np.array(
             [
@@ -395,10 +395,10 @@ class Test_expand_operator:
             np.testing.assert_allclose(test.full(), expected.full())
 
     def test_dtype(self):
-        expanded_qobj = expand_operator(std.CX.get_qobj(), dims=[2, 2, 2]).data
+        expanded_qobj = expand_operator(std.CX().get_qobj(), dims=[2, 2, 2]).data
         assert isinstance(expanded_qobj, qutip.data.CSR)
         expanded_qobj = expand_operator(
-            std.CX.get_qobj(), dims=[2, 2, 2], dtype="dense"
+            std.CX().get_qobj(), dims=[2, 2, 2], dtype="dense"
         ).data
         assert isinstance(expanded_qobj, qutip.data.Dense)
 
