@@ -395,7 +395,9 @@ class Test_expand_operator:
             np.testing.assert_allclose(test.full(), expected.full())
 
     def test_dtype(self):
-        expanded_qobj = expand_operator(std.CX().get_qobj(), dims=[2, 2, 2]).data
+        expanded_qobj = expand_operator(
+            std.CX().get_qobj(), dims=[2, 2, 2]
+        ).data
         assert isinstance(expanded_qobj, qutip.data.CSR)
         expanded_qobj = expand_operator(
             std.CX().get_qobj(), dims=[2, 2, 2], dtype="dense"

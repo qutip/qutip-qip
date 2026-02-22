@@ -50,6 +50,6 @@ qutip\_qip.operations
 
    .. autosummary::
 
-      controlled_gate
+      controlled_gate_unitary
       expand_operator
       gate_sequence_product
