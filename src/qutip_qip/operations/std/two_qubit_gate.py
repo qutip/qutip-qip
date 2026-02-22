@@ -35,7 +35,7 @@ class SWAP(_TwoQubitGate):
     Examples
     --------
     >>> from qutip_qip.operations import SWAP
-    >>> SWAP([0, 1]).get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> SWAP.get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=True
     Qobj data =
     [[1. 0. 0. 0.]
@@ -65,7 +65,7 @@ class ISWAP(_TwoQubitGate):
     Examples
     --------
     >>> from qutip_qip.operations import ISWAP
-    >>> ISWAP([0, 1]).get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> ISWAP.get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[1.+0.j 0.+0.j 0.+0.j 0.+0.j]
@@ -81,11 +81,49 @@ class ISWAP(_TwoQubitGate):
     latex_str = r"{i}{\rm SWAP}"
 
     @staticmethod
-    def get_qobj():
+    def get_qobj() -> Qobj:
         return Qobj(
             [[1, 0, 0, 0], [0, 0, 1j, 0], [0, 1j, 0, 0], [0, 0, 0, 1]],
             dims=[[2, 2], [2, 2]],
         )
+
+    @staticmethod
+    def inverse() -> Gate:
+        return ISWAPdag
+
+
+class ISWAPdag(_TwoQubitGate):
+    """
+    iSWAPdag gate.
+
+    Examples
+    --------
+    >>> from qutip_qip.operations import ISWAPdag
+    >>> ISWAPdag.get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
+    Qobj data =
+    [[1.+0.j 0.+0.j 0.+0.j 0.+0.j]
+     [0.+0.j 0.+0.j 0.-1.j 0.+0.j]
+     [0.+0.j 0.-1.j 0.+0.j 0.+0.j]
+     [0.+0.j 0.+0.j 0.+0.j 1.+0.j]]
+    """
+
+    __slots__ = ()
+
+    self_inverse = False
+    is_clifford = True
+    latex_str = r"{i}{\rm SWAPdag}"
+
+    @staticmethod
+    def get_qobj() -> Qobj:
+        return Qobj(
+            [[1, 0, 0, 0], [0, 0, -1j, 0], [0, -1j, 0, 0], [0, 0, 0, 1]],
+            dims=[[2, 2], [2, 2]],
+        )
+
+    @staticmethod
+    def inverse() -> Gate:
+        return ISWAP
 
 
 class SQRTSWAP(_TwoQubitGate):

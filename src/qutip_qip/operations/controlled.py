@@ -81,7 +81,7 @@ class ControlledGate(Gate):
             cls.validate_params = staticmethod(cls.target_gate.validate_params)
 
         # Default set_inverse
-        # cls.self_inverse = cls.target_gate.self_inverse
+        cls.self_inverse = cls.target_gate.self_inverse
 
         # In the circuit plot, only the target gate is shown.
         # The control has its own symbol.
