@@ -291,7 +291,7 @@ class T(_SingleQubitGate):
     Examples
     --------
     >>> from qutip_qip.operations import T
-    >>> T(0).get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> T.get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[1.     +0.j      0.     +0.j     ]
@@ -361,6 +361,10 @@ class RX(_SingleQubitParametricGate):
             dims=[[2], [2]],
         )
 
+    def inverse(self) -> Gate:
+        theta = self.arg_value[0]
+        return RX(-theta)
+
 
 class RY(_SingleQubitParametricGate):
     """
@@ -369,7 +373,7 @@ class RY(_SingleQubitParametricGate):
     Examples
     --------
     >>> from qutip_qip.operations import RY
-    >>> RY(0, 3.14159/2).get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> RY(3.14159/2).get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[ 0.70711 -0.70711]
@@ -390,6 +394,10 @@ class RY(_SingleQubitParametricGate):
             ]
         )
 
+    def inverse(self) -> Gate:
+        theta = self.arg_value[0]
+        return RY(-theta)
+
 
 class RZ(_SingleQubitParametricGate):
     """
@@ -398,7 +406,7 @@ class RZ(_SingleQubitParametricGate):
     Examples
     --------
     >>> from qutip_qip.operations import RZ
-    >>> RZ(0, 3.14159/2).get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> RZ(3.14159/2).get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[0.70711-0.70711j 0.     +0.j     ]
@@ -413,6 +421,10 @@ class RZ(_SingleQubitParametricGate):
     def get_qobj(self):
         phi = self.arg_value[0]
         return Qobj([[np.exp(-1j * phi / 2), 0], [0, np.exp(1j * phi / 2)]])
+
+    def inverse(self) -> Gate:
+        theta = self.arg_value[0]
+        return RZ(-theta)
 
 
 class PHASE(_SingleQubitParametricGate):
@@ -438,6 +450,10 @@ class PHASE(_SingleQubitParametricGate):
             ]
         )
 
+    def inverse(self) -> Gate:
+        phi = self.arg_value[0]
+        return PHASE(-phi)
+
 
 class R(_SingleQubitParametricGate):
     r"""
@@ -453,7 +469,7 @@ class R(_SingleQubitParametricGate):
     Examples
     --------
     >>> from qutip_qip.operations import R
-    >>> R(0, (np.pi/2, np.pi/2)).get_qobj().tidyup() # doctest: +NORMALIZE_WHITESPACE
+    >>> R((np.pi/2, np.pi/2)).get_qobj().tidyup() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[ 0.70711 -0.70711]
@@ -479,6 +495,10 @@ class R(_SingleQubitParametricGate):
                 ],
             ]
         )
+
+    def inverse(self) -> Gate:
+        theta, phi = self.arg_value
+        return R([-theta, -phi])
 
 
 class QASMU(_SingleQubitParametricGate):
@@ -517,3 +537,7 @@ class QASMU(_SingleQubitParametricGate):
                 ],
             ]
         )
+
+    def inverse(self) -> Gate:
+        theta, phi, gamma = self.arg_value
+        return QASMU([-theta, -phi, -gamma])
