@@ -223,7 +223,9 @@ class TestGateExpansion:
 
         for target in range(self.n_qubits):
             start = qutip.tensor(random[:target] + [base] + random[target:])
-            test = expand_operator(gate.get_qobj(), self.n_qubits, target) * start
+            test = (
+                expand_operator(gate.get_qobj(), self.n_qubits, target) * start
+            )
             expected = qutip.tensor(
                 random[:target] + [applied] + random[target:]
             )
@@ -244,17 +246,16 @@ class TestGateExpansion:
         ],
     )
     def test_two_qubit(self, gate, n_controls):
-        targets = [ qutip.rand_ket(2) for _ in [None] * 2]
+        targets = [qutip.rand_ket(2) for _ in [None] * 2]
         others = [qutip.rand_ket(2) for _ in [None] * self.n_qubits]
         reference = gate.get_qobj() * qutip.tensor(*targets)
 
         for q1, q2 in itertools.permutations(range(self.n_qubits), 2):
             qubits = others.copy()
             qubits[q1], qubits[q2] = targets
-            test = (
-                expand_operator(gate.get_qobj(), dims=[2]*self.n_qubits, targets=[q1,q2])
-                 * qutip.tensor(*qubits)
-            )
+            test = expand_operator(
+                gate.get_qobj(), dims=[2] * self.n_qubits, targets=[q1, q2]
+            ) * qutip.tensor(*qubits)
             expected = _tensor_with_entanglement(qubits, reference, [q1, q2])
             assert _infidelity(test, expected) < 1e-12
 
@@ -284,7 +285,9 @@ class TestGateExpansion:
         for q1, q2, q3 in itertools.permutations(range(self.n_qubits), 3):
             qubits = others.copy()
             qubits[q1], qubits[q2], qubits[q3] = targets
-            test = expand_operator(gate.get_qobj(), self.n_qubits, [q1,q2,q3]) * qutip.tensor(*qubits)
+            test = expand_operator(
+                gate.get_qobj(), self.n_qubits, [q1, q2, q3]
+            ) * qutip.tensor(*qubits)
             expected = _tensor_with_entanglement(
                 qubits, reference, [q1, q2, q3]
             )
@@ -387,9 +390,7 @@ class Test_expand_operator:
             ]
             expected = qutip.tensor(*operators)
             base_test = qutip.tensor(*[operators[x] for x in targets])
-            test = expand_operator(
-                base_test, dims=dimensions, targets=targets
-            )
+            test = expand_operator(base_test, dims=dimensions, targets=targets)
             assert test.dims == expected.dims
             np.testing.assert_allclose(test.full(), expected.full())
 
@@ -448,7 +449,8 @@ def test_gates_class():
     circuit2.add_gate(std.T, targets=1)
     circuit2.add_gate(std.R([np.pi / 4, np.pi / 6]), targets=1)
     circuit2.add_gate(
-        std.QASMU(arg_value=(np.pi / 4, np.pi / 4, np.pi / 4)), targets=0,
+        std.QASMU(arg_value=(np.pi / 4, np.pi / 4, np.pi / 4)),
+        targets=0,
     )
     circuit2.add_gate(std.CX, controls=0, targets=1)
     circuit2.add_gate(std.CPHASE(np.pi / 4), controls=0, targets=1)

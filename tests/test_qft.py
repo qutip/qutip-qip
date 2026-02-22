@@ -29,9 +29,7 @@ class TestQFT:
             totsize = N * (N + 1) / 2
             assert_equal(len(circuit.instructions), totsize)
 
-            snots = sum(
-                g.operation.name == "H" for g in circuit.instructions
-            )
+            snots = sum(g.operation.name == "H" for g in circuit.instructions)
             assert_equal(snots, N)
 
             phases = sum(

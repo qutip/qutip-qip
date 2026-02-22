@@ -113,7 +113,10 @@ def qft_gate_sequence(N=1, swapping=True, to_cnot=False):
             for j in range(i):
                 if not to_cnot:
                     qc.add_gate(
-                        CPHASE(np.pi / (2 ** (i - j)), arg_label=r"{\pi/2^{%d}}" % (i - j)),
+                        CPHASE(
+                            np.pi / (2 ** (i - j)),
+                            arg_label=r"{\pi/2^{%d}}" % (i - j),
+                        ),
                         targets=[j],
                         controls=[i],
                     )

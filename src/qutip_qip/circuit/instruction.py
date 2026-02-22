@@ -63,7 +63,10 @@ class GateInstruction(CircuitInstruction):
 
     def __post_init__(self) -> None:
         super().__post_init__()
-        if not (isinstance(self.operation, Gate) or issubclass(self.operation, Gate)):
+        if not (
+            isinstance(self.operation, Gate)
+            or issubclass(self.operation, Gate)
+        ):
             raise TypeError(f"Operation must be a Gate, got {self.operation}")
 
         if len(self.qubits) != self.operation.num_qubits:

@@ -154,7 +154,7 @@ class Gate(ABC, metaclass=_GateMetaClass):
         super().__init_subclass__(**kwargs)
 
         # Skip the below check for an abstract class
-        if inspect.isabstract(cls):  
+        if inspect.isabstract(cls):
             return
 
         # If name attribute in subclass is not defined, set it to the name of the subclass
@@ -260,7 +260,7 @@ def unitary_gate(gate_name: str, U: Qobj, namespace: str = "custom") -> Gate:
     """
 
     n = np.log2(U.shape[0])
-    inverse = (U == U.dag())
+    inverse = U == U.dag()
 
     if n != np.log2(U.shape[1]):
         raise ValueError("The unitary U must be square.")

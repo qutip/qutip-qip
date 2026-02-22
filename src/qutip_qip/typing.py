@@ -3,7 +3,14 @@ from typing import Sequence, TypeAlias
 import numpy as np
 
 __all__ = [
-    "Int", "Real", "Number", "ScalarList", "IntList", "RealList", "ScalarList", "ArrayLike",
+    "Int",
+    "Real",
+    "Number",
+    "ScalarList",
+    "IntList",
+    "RealList",
+    "ScalarList",
+    "ArrayLike",
 ]
 
 # TODO When minimum version is updated to 3.12, use type (PEP 695) in place of TypeAlias
