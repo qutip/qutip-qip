@@ -73,7 +73,7 @@ class ParametricGate(Gate):
             )
 
         self.validate_params(arg_value)
-        self.arg_value = arg_value
+        self.arg_value = list(arg_value)
         self.arg_label = arg_label
 
     @staticmethod
