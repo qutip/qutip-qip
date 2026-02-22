@@ -11,15 +11,15 @@ class Instruction:
     Parameters
     ----------
     gate: :class:`~.operations.Gate`
-        The logical quantum gate (e.g., RX, CNOT) associated with this 
+        The logical quantum gate (e.g., RX, CNOT) associated with this
         instruction.
     duration: float, optional
-        The total execution time for the instruction. If not provided, 
+        The total execution time for the instruction. If not provided,
         it is derived from the last element of the tlist.
     tlist: array_like, optional
         A list of time points at which the time-dependent coefficients are
-        applied. For the default piecewise constant (PWC) pulses used by 
-        most compilers, len(tlist) = len(coeffs) + 1. 
+        applied. For the default piecewise constant (PWC) pulses used by
+        most compilers, len(tlist) = len(coeffs) + 1.
         See :class:`.Pulse` for spline-based alternatives.
     pulse_info: list, optional
         A list of tuples, each tuple corresponding to a pair of pulse label
