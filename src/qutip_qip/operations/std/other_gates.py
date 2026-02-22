@@ -59,28 +59,12 @@ class TOFFOLI(ControlledGate):
      [0. 0. 0. 0. 0. 0. 1. 0.]]
     """
 
-    latex_str = r"{\rm TOFFOLI}"
-    target_gate = X
-
-    num_qubits: int = 3
-    num_ctrl_qubits: int = 2
     __slots__ = ()
+    num_qubits: int = 3
 
-    @staticmethod
-    def get_qobj() -> Qobj:
-        return Qobj(
-            [
-                [1, 0, 0, 0, 0, 0, 0, 0],
-                [0, 1, 0, 0, 0, 0, 0, 0],
-                [0, 0, 1, 0, 0, 0, 0, 0],
-                [0, 0, 0, 1, 0, 0, 0, 0],
-                [0, 0, 0, 0, 1, 0, 0, 0],
-                [0, 0, 0, 0, 0, 1, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 1],
-                [0, 0, 0, 0, 0, 0, 1, 0],
-            ],
-            dims=[[2, 2, 2], [2, 2, 2]],
-        )
+    num_ctrl_qubits: int = 2
+    target_gate = X
+    latex_str = r"{\rm TOFFOLI}"
 
 
 class FREDKIN(ControlledGate):
@@ -103,25 +87,9 @@ class FREDKIN(ControlledGate):
      [0. 0. 0. 0. 0. 0. 0. 1.]]
     """
 
-    latex_str = r"{\rm FREDKIN}"
-    target_gate = SWAP
-
-    num_qubits: int = 3
-    num_ctrl_qubits: int = 1
     __slots__ = ()
+    num_qubits: int = 3
 
-    @staticmethod
-    def get_qobj() -> Qobj:
-        return Qobj(
-            [
-                [1, 0, 0, 0, 0, 0, 0, 0],
-                [0, 1, 0, 0, 0, 0, 0, 0],
-                [0, 0, 1, 0, 0, 0, 0, 0],
-                [0, 0, 0, 1, 0, 0, 0, 0],
-                [0, 0, 0, 0, 1, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 1, 0],
-                [0, 0, 0, 0, 0, 1, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 1],
-            ],
-            dims=[[2, 2, 2], [2, 2, 2]],
-        )
+    num_ctrl_qubits: int = 1
+    target_gate = SWAP
+    latex_str = r"{\rm FREDKIN}"

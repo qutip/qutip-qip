@@ -86,7 +86,7 @@ def test_custom_gates():
     qc = read_qasm(filepath)
     unitaries = qc.propagators()
     assert (unitaries[0] - unitaries[1]).norm() < 1e-12
-    ry_cx = std.CX.get_qobj() * tensor(
+    ry_cx = std.CX().get_qobj() * tensor(
         identity(2), std.RY(np.pi / 2).get_qobj()
     )
     assert (unitaries[2] - ry_cx).norm() < 1e-12
