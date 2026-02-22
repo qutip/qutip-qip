@@ -51,7 +51,7 @@ class Y(_SingleQubitGate):
     Examples
     --------
     >>> from qutip_qip.operations import Y
-    >>> Y(0).get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> Y.get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=True
     Qobj data =
     [[0.+0.j 0.-1.j]
@@ -76,7 +76,7 @@ class Z(_SingleQubitGate):
     Examples
     --------
     >>> from qutip_qip.operations import Z
-    >>> Z(0).get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> Z.get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=True
     Qobj data =
     [[ 1.  0.]
@@ -121,7 +121,7 @@ class H(_SingleQubitGate):
     Examples
     --------
     >>> from qutip_qip.operations import H
-    >>> H(0).get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> H.get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=True
     Qobj data =
     [[ 0.70711  0.70711]
@@ -140,6 +140,9 @@ class H(_SingleQubitGate):
 
 
 class SNOT(H):
+    """
+    Hadamard gate (Deprecated, use H instead).
+    """
     __slots__ = ()
 
     def __init__(self):
@@ -158,8 +161,8 @@ class SQRTX(_SingleQubitGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import SQRTNOT
-    >>> SQRTNOT(0).get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> from qutip_qip.operations import SQRTX
+    >>> SQRTX.get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[0.5+0.5j 0.5-0.5j]
@@ -173,8 +176,41 @@ class SQRTX(_SingleQubitGate):
     latex_str = r"\sqrt{\rm NOT}"
 
     @staticmethod
-    def get_qobj():
+    def get_qobj() -> Qobj:
         return Qobj([[0.5 + 0.5j, 0.5 - 0.5j], [0.5 - 0.5j, 0.5 + 0.5j]])
+
+    @staticmethod
+    def inverse() -> Gate:
+        return SQRTXdag
+
+
+class SQRTXdag(_SingleQubitGate):
+    r"""
+    :math:`\sqrt{X}^{\dag}` gate.
+
+    Examples
+    --------
+    >>> from qutip_qip.operations import SQRTXdag
+    >>> SQRTXdag.get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
+    Qobj data =
+    [[0.5-0.5j 0.5+0.5j]
+     [0.5+0.5j 0.5-0.5j]]
+    """
+
+    __slots__ = ()
+
+    self_inverse = False
+    is_clifford = True
+    latex_str = r"\sqrt{\rm Xdag}"
+
+    @staticmethod
+    def get_qobj() -> Qobj:
+        return Qobj([[0.5 - 0.5j, 0.5 + 0.5j], [0.5 + 0.5j, 0.5 - 0.5j]])
+
+    @staticmethod
+    def inverse() -> Gate:
+        return SQRTX
 
 
 class SQRTNOT(SQRTX):
@@ -197,7 +233,7 @@ class S(_SingleQubitGate):
     Examples
     --------
     >>> from qutip_qip.operations import S
-    >>> S(0).get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> S.get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[1.+0.j 0.+0.j]
@@ -211,8 +247,41 @@ class S(_SingleQubitGate):
     latex_str = r"{\rm S}"
 
     @staticmethod
-    def get_qobj():
+    def get_qobj() -> Qobj:
         return Qobj([[1, 0], [0, 1j]])
+
+    @staticmethod
+    def inverse() -> Gate:
+        return Sdag
+
+
+class Sdag(_SingleQubitGate):
+    r"""
+    S gate or :math:`\sqrt{Z}` gate.
+
+    Examples
+    --------
+    >>> from qutip_qip.operations import S
+    >>> Sdag.get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
+    Qobj data =
+    [[1.+0.j 0.+0.j]
+     [0.+0.j 0.-1.j]]
+    """
+
+    __slots__ = ()
+
+    self_inverse = False
+    is_clifford = True
+    latex_str = r"{\rm Sdag}"
+
+    @staticmethod
+    def get_qobj() -> Qobj:
+        return Qobj([[1, 0], [0, -1j]])
+
+    @staticmethod
+    def inverse() -> Gate:
+        return S
 
 
 class T(_SingleQubitGate):
@@ -237,6 +306,30 @@ class T(_SingleQubitGate):
     @staticmethod
     def get_qobj():
         return Qobj([[1, 0], [0, np.exp(1j * np.pi / 4)]])
+
+
+class Tdag(_SingleQubitGate):
+    r"""
+    Tdag gate or :math:`\sqrt[4]{Z}^{\dag}` gate.
+
+    Examples
+    --------
+    >>> from qutip_qip.operations import Tdag
+    >>> Tdag.get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
+    Qobj data =
+    [[1.     +0.j      0.     +0.j     ]
+     [0.     +0.j      0.70711-0.70711j]]
+    """
+
+    __slots__ = ()
+
+    self_inverse = False
+    latex_str = r"{\rm Tdag}"
+
+    @staticmethod
+    def get_qobj():
+        return Qobj([[1, 0], [0, np.exp(-1j * np.pi / 4)]])
 
 
 class RX(_SingleQubitParametricGate):

@@ -15,7 +15,6 @@ class _GateMetaClass(ABCMeta):
             "num_ctrl_qubits",
             "num_params",
             "target_gate",
-            "self_inverse",
             "is_clifford",
         )
     )
@@ -280,3 +279,9 @@ def unitary_gate(gate_name: str, U: Qobj, namespace: str = "custom") -> Gate:
             return U
 
     return _CustomGate
+
+def inverse_gate(gate_name: str, gate: Gate, namespace: str):
+    class _InverseGate(Gate):
+        pass
+
+    return _InverseGate
