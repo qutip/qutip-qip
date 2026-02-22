@@ -252,12 +252,10 @@ def gate_sequence_product(
         return gate_sequence_product_with_expansion(U_list, left_to_right)
 
 
-def controlled_gate(
+def controlled_gate_unitary(
     U: Qobj,
-    controls: int | Sequence[int] = 0,
-    targets: int | Sequence[int] = 1,
-    N: int | None = None,
-    control_value: int = 1,
+    num_controls: int,
+    control_value: int,
 ) -> Qobj:
     """
     Create an N-qubit controlled gate from a single-qubit gate U with the given
@@ -282,25 +280,17 @@ def controlled_gate(
         Quantum object representing the controlled-U gate.
     """
     # Compatibility
-    if not isinstance(controls, Iterable):
-        controls = [controls]
-    if not isinstance(targets, Iterable):
-        targets = [targets]
-    num_controls = len(controls)
     num_targets = len(U.dims[0])
-    N = num_controls + num_targets if N is None else N
 
     # First, assume that the last qubit is the target and control qubits are
     # in the increasing order.
     # The control_value is the location of this unitary.
-    block_matrices = [np.array([[1, 0], [0, 1]])] * 2**num_controls
+    target_dim = U.shape[0]
+    block_matrices = [np.eye(target_dim) for _ in range(2**num_controls)]
     block_matrices[control_value] = U.full()
 
     result = block_diag(*block_matrices)
     result = Qobj(result, dims=[[2] * (num_controls + num_targets)] * 2)
 
     # Expand it to N qubits and permute qubits labelling
-    if controls + targets == list(range(N)):
-        return result
-    else:
-        return expand_operator(result, targets=controls + targets)
+    return result

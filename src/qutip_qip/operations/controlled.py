@@ -2,7 +2,7 @@ import inspect
 from abc import abstractmethod
 
 from qutip import Qobj
-from qutip_qip.operations import Gate, ParametricGate, controlled_gate
+from qutip_qip.operations import Gate, ParametricGate, controlled_gate_unitary
 
 
 class ControlledGate(Gate):
@@ -155,8 +155,9 @@ class ControlledGate(Gate):
         if self.is_parametric_gate():
             target_gate = target_gate(self.arg_value)
 
-        return controlled_gate(
+        return controlled_gate_unitary(
             U=target_gate.get_qobj(),
+            num_controls=self.num_ctrl_qubits,
             control_value=self.control_value,
         )
 
@@ -180,7 +181,7 @@ class ControlledGate(Gate):
         return True
 
 
-def controlled(
+def controlled_gate(
     gate: Gate,
     n_ctrl_qubits: int = 1,
     gate_name: str = "_CustomControlledGate",

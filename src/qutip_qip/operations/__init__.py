@@ -5,11 +5,11 @@ Operations on quantum circuits.
 from .utils import (
     expand_operator,
     gate_sequence_product,
-    controlled_gate,
+    controlled_gate_unitary,
 )
 from .gateclass import Gate, unitary_gate
 from .parametric import ParametricGate, AngleParametricGate
-from .controlled import ControlledGate, controlled
+from .controlled import ControlledGate, controlled_gate
 from .measurement import Measurement
 from .gates import (
     rx,
@@ -139,7 +139,7 @@ __all__ = [
     "ParametricGate",
     "ControlledGate",
     "unitary_gate",
-    "controlled",
+    "controlled_gate",
     "AngleParametricGate",
     "Measurement",
     "GATE_CLASS_MAP",
@@ -174,7 +174,7 @@ __all__ = [
     "molmer_sorensen",
     "toffoli",
     "rotation",
-    "controlled_gate",
+    "controlled_gate_unitary",
     "globalphase",
     "hadamard_transform",
     "qubit_clifford_group",
