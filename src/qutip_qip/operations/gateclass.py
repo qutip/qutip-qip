@@ -13,10 +13,11 @@ class _GateMetaClass(ABCMeta):
         (
             "num_qubits",
             "num_ctrl_qubits",
-            # "num_params",
-            # "self_inverse",
-            "target_gate",
+            "num_params",
+            "self_inverse",
             "is_clifford",
+            "target_gate",
+            "latex_str",
         )
     )
 
@@ -92,9 +93,11 @@ class _GateMetaClass(ABCMeta):
 
         This is required since num_qubits etc. are class attributes (shared by all object instances).
         """
-        for attribute in cls._read_only_set:
-            if name == attribute and hasattr(cls, attribute):
-                raise AttributeError(f"{attribute} is read-only!")
+        # Check if the attribute is in our protected set
+        # Using cls.__dict__ ignores parent classes, allowing __init_subclass__ 
+        # to set it once for the child class.
+        if name in cls._read_only_set and name in cls.__dict__:
+            raise AttributeError(f"{name} is read-only!")
         super().__setattr__(name, value)
 
 
