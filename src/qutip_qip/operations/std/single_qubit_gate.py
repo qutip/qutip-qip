@@ -174,7 +174,7 @@ class SQRTX(_SingleQubitGate):
 
     self_inverse = False
     is_clifford = True
-    latex_str = r"\sqrt{\rm NOT}"
+    latex_str = r"\sqrt{\rm X}"
 
     @staticmethod
     def get_qobj() -> Qobj:
@@ -187,7 +187,7 @@ class SQRTX(_SingleQubitGate):
 
 class SQRTXdag(_SingleQubitGate):
     r"""
-    :math:`\sqrt{X}^{\dag}` gate.
+    :math:`\sqrt{X}^\dagger` gate.
 
     Examples
     --------
@@ -203,7 +203,7 @@ class SQRTXdag(_SingleQubitGate):
 
     self_inverse = False
     is_clifford = True
-    latex_str = r"\sqrt{\rm Xdag}"
+    latex_str = r"\sqrt{\rm X}^\dagger"
 
     @staticmethod
     def get_qobj() -> Qobj:
@@ -274,7 +274,7 @@ class Sdag(_SingleQubitGate):
 
     self_inverse = False
     is_clifford = True
-    latex_str = r"{\rm Sdag}"
+    latex_str = r"{\rm S^\dagger}"
 
     @staticmethod
     def get_qobj() -> Qobj:
@@ -315,7 +315,7 @@ class T(_SingleQubitGate):
 
 class Tdag(_SingleQubitGate):
     r"""
-    Tdag gate or :math:`\sqrt[4]{Z}^{\dag}` gate.
+    Tdag gate or :math:`\sqrt[4]{Z}^\dagger` gate.
 
     Examples
     --------

@@ -168,7 +168,7 @@ class SQRTSWAP(_TwoQubitGate):
 
 class SQRTSWAPdag(_TwoQubitGate):
     r"""
-    :math:`\sqrt{\mathrm{SWAP}}^{\dag}` gate.
+    :math:`\sqrt{\mathrm{SWAP}}^\dagger` gate.
 
     Examples
     --------
@@ -185,7 +185,7 @@ class SQRTSWAPdag(_TwoQubitGate):
     __slots__ = ()
 
     self_inverse = False
-    latex_str = r"\sqrt{\rm SWAP}^{\dag}"
+    latex_str = r"\sqrt{\rm SWAP}^\dagger"
 
     @staticmethod
     def get_qobj():
@@ -249,7 +249,7 @@ class SQRTISWAP(_TwoQubitGate):
 
 class SQRTISWAPdag(_TwoQubitGate):
     r"""
-    :math:`\sqrt{\mathrm{iSWAP}}^{\dag}` gate.
+    :math:`\sqrt{\mathrm{iSWAP}}^\dagger` gate.
 
     Examples
     --------
@@ -267,7 +267,7 @@ class SQRTISWAPdag(_TwoQubitGate):
 
     self_inverse = False
     is_clifford = True
-    latex_str = r"\sqrt{{i}\rm SWAP}^{\dag}"
+    latex_str = r"\sqrt{{i}\rm SWAP}^\dagger"
 
     @staticmethod
     def get_qobj():
@@ -363,7 +363,7 @@ class BERKELEYdag(_TwoQubitGate):
     __slots__ = ()
 
     self_inverse = False
-    latex_str = r"{\rm BERKELEY^{\dag}}"
+    latex_str = r"{\rm BERKELEY^\dagger}"
 
     @staticmethod
     def get_qobj():
