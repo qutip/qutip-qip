@@ -133,7 +133,7 @@ class SQRTSWAP(_TwoQubitGate):
     Examples
     --------
     >>> from qutip_qip.operations import SQRTSWAP
-    >>> SQRTSWAP([0, 1]).get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> SQRTSWAP.get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[1. +0.j  0. +0.j  0. +0.j  0. +0.j ]
@@ -161,6 +161,50 @@ class SQRTSWAP(_TwoQubitGate):
             dims=[[2, 2], [2, 2]],
         )
 
+    @staticmethod
+    def inverse() -> Gate:
+        return SQRTSWAPdag
+
+
+class SQRTSWAPdag(_TwoQubitGate):
+    r"""
+    :math:`\sqrt{\mathrm{SWAP}}^{\dag}` gate.
+
+    Examples
+    --------
+    >>> from qutip_qip.operations import SQRTSWAPdag
+    >>> SQRTSWAPdag.get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
+    Qobj data =
+    [[1. +0.j  0. +0.j  0. +0.j  0. +0.j ]
+     [0. +0.j  0.5-0.5j 0.5+0.5j 0. +0.j ]
+     [0. +0.j  0.5+0.5j 0.5-0.5j 0. +0.j ]
+     [0. +0.j  0. +0.j  0. +0.j  1. +0.j ]]
+    """
+
+    __slots__ = ()
+
+    self_inverse = False
+    latex_str = r"\sqrt{\rm SWAP}^{\dag}"
+
+    @staticmethod
+    def get_qobj():
+        return Qobj(
+            np.array(
+                [
+                    [1, 0, 0, 0],
+                    [0, 0.5 - 0.5j, 0.5 + 0.5j, 0],
+                    [0, 0.5 + 0.5j, 0.5 - 0.5j, 0],
+                    [0, 0, 0, 1],
+                ]
+            ),
+            dims=[[2, 2], [2, 2]],
+        )
+
+    @staticmethod
+    def inverse() -> Gate:
+        return SQRTSWAP
+
 
 class SQRTISWAP(_TwoQubitGate):
     r"""
@@ -169,7 +213,7 @@ class SQRTISWAP(_TwoQubitGate):
     Examples
     --------
     >>> from qutip_qip.operations import SQRTISWAP
-    >>> SQRTISWAP([0, 1]).get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> SQRTISWAP.get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[1.     +0.j      0.     +0.j      0.     +0.j      0.     +0.j     ]
@@ -198,6 +242,51 @@ class SQRTISWAP(_TwoQubitGate):
             dims=[[2, 2], [2, 2]],
         )
 
+    @staticmethod
+    def inverse() -> Gate:
+        return SQRTISWAPdag
+
+
+class SQRTISWAPdag(_TwoQubitGate):
+    r"""
+    :math:`\sqrt{\mathrm{iSWAP}}^{\dag}` gate.
+
+    Examples
+    --------
+    >>> from qutip_qip.operations import SQRTISWAPdag
+    >>> SQRTISWAPdag.get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
+    Qobj data =
+    [[1.     +0.j      0.     +0.j      0.     +0.j      0.     +0.j     ]
+     [0.     +0.j      0.70711+0.j      0.     -0.70711j 0.     +0.j     ]
+     [0.     +0.j      0.     -0.70711j 0.70711+0.j      0.     +0.j     ]
+     [0.     +0.j      0.     +0.j      0.     +0.j      1.     +0.j     ]]
+    """
+
+    __slots__ = ()
+
+    self_inverse = False
+    is_clifford = True
+    latex_str = r"\sqrt{{i}\rm SWAP}^{\dag}"
+
+    @staticmethod
+    def get_qobj():
+        return Qobj(
+            np.array(
+                [
+                    [1, 0, 0, 0],
+                    [0, 1 / np.sqrt(2), -1j / np.sqrt(2), 0],
+                    [0, -1j / np.sqrt(2), 1 / np.sqrt(2), 0],
+                    [0, 0, 0, 1],
+                ]
+            ),
+            dims=[[2, 2], [2, 2]],
+        )
+
+    @staticmethod
+    def inverse() -> Gate:
+        return SQRTISWAP
+
 
 class BERKELEY(_TwoQubitGate):
     r"""
@@ -215,7 +304,7 @@ class BERKELEY(_TwoQubitGate):
     Examples
     --------
     >>> from qutip_qip.operations import BERKELEY
-    >>> BERKELEY([0, 1]).get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> BERKELEY.get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[0.92388+0.j      0.     +0.j      0.     +0.j      0.     +0.38268j]
@@ -241,6 +330,57 @@ class BERKELEY(_TwoQubitGate):
             dims=[[2, 2], [2, 2]],
         )
 
+    @staticmethod
+    def inverse() -> Gate:
+        return BERKELEYdag
+
+
+class BERKELEYdag(_TwoQubitGate):
+    r"""
+    BERKELEY gate.
+
+    .. math::
+
+        \begin{pmatrix}
+        \cos(\frac{\pi}{8}) & 0 & 0 & i\sin(\frac{\pi}{8}) \\
+        0 & \cos(\frac{3\pi}{8}) & i\sin(\frac{3\pi}{8}) & 0 \\
+        0 & i\sin(\frac{3\pi}{8}) & \cos(\frac{3\pi}{8}) & 0 \\
+        i\sin(\frac{\pi}{8}) & 0 & 0 & \cos(\frac{\pi}{8})
+        \end{pmatrix}
+
+    Examples
+    --------
+    >>> from qutip_qip.operations import BERKELEYdag
+    >>> BERKELEYdag.get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
+    Qobj data =
+    [[0.92388+0.j      0.     +0.j      0.     +0.j      0.     -0.38268j]
+     [0.     +0.j      0.38268+0.j      0.     -0.92388j 0.     +0.j     ]
+     [0.     +0.j      0.     -0.92388j 0.38268+0.j      0.     +0.j     ]
+     [0.     -0.38268j 0.     +0.j      0.     +0.j      0.92388+0.j     ]]
+    """
+
+    __slots__ = ()
+
+    self_inverse = False
+    latex_str = r"{\rm BERKELEY^{\dag}}"
+
+    @staticmethod
+    def get_qobj():
+        return Qobj(
+            [
+                [np.cos(np.pi / 8), 0, 0, -1.0j * np.sin(np.pi / 8)],
+                [0, np.cos(3 * np.pi / 8), -1.0j * np.sin(3 * np.pi / 8), 0],
+                [0, -1.0j * np.sin(3 * np.pi / 8), np.cos(3 * np.pi / 8), 0],
+                [-1.0j * np.sin(np.pi / 8), 0, 0, np.cos(np.pi / 8)],
+            ],
+            dims=[[2, 2], [2, 2]],
+        )
+
+    @staticmethod
+    def inverse() -> Gate:
+        return BERKELEY
+
 
 class SWAPALPHA(AngleParametricGate):
     r"""
@@ -258,7 +398,7 @@ class SWAPALPHA(AngleParametricGate):
     Examples
     --------
     >>> from qutip_qip.operations import SWAPALPHA
-    >>> SWAPALPHA([0, 1], 0.5).get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> SWAPALPHA(0.5).get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[1. +0.j  0. +0.j  0. +0.j  0. +0.j ]
@@ -295,6 +435,11 @@ class SWAPALPHA(AngleParametricGate):
             dims=[[2, 2], [2, 2]],
         )
 
+    def inverse(self) -> Gate:
+        alpha = self.arg_value[0]
+        return SWAPALPHA(-alpha)
+
+
 
 class MS(AngleParametricGate):
     r"""
@@ -312,7 +457,7 @@ class MS(AngleParametricGate):
     Examples
     --------
     >>> from qutip_qip.operations import MS
-    >>> MS([0, 1], (np.pi/2, 0)).get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> MS((np.pi/2, 0)).get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[0.70711+0.j      0.     +0.j      0.     +0.j      0.     -0.70711j]
@@ -348,6 +493,10 @@ class MS(AngleParametricGate):
             ],
             dims=[[2, 2], [2, 2]],
         )
+
+    def inverse(self) -> Gate:
+        theta, phi = self.arg_value
+        return MS([-theta, phi])
 
 
 class RZX(AngleParametricGate):
@@ -395,6 +544,10 @@ class RZX(AngleParametricGate):
             dims=[[2, 2], [2, 2]],
         )
 
+    def inverse(self) -> Gate:
+        theta = self.arg_value[0]
+        return RZX(-theta)
+
 
 class CX(_ControlledTwoQubitGate):
     """
@@ -402,8 +555,8 @@ class CX(_ControlledTwoQubitGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import CNOT
-    >>> CNOT(0, 1).get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> from qutip_qip.operations import CX
+    >>> CX(control_value=1).get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=True
     Qobj data =
     [[1. 0. 0. 0.]
@@ -439,7 +592,7 @@ class CY(_ControlledTwoQubitGate):
     Examples
     --------
     >>> from qutip_qip.operations import CY
-    >>> CY(0, 1).get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> CY().get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=True
     Qobj data =
     [[ 1.+0j  0.+0j  0.+0j  0.+0j]
@@ -462,7 +615,7 @@ class CZ(_ControlledTwoQubitGate):
     Examples
     --------
     >>> from qutip_qip.operations import CZ
-    >>> CZ(0, 1).get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> CZ().get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=True
     Qobj data =
     [[ 1.  0.  0.  0.]
@@ -579,7 +732,7 @@ class CPHASE(_ControlledTwoQubitGate):
     Examples
     --------
     >>> from qutip_qip.operations import CPHASE
-    >>> CPHASE(0, 1, np.pi/2).get_qobj().tidyup() # doctest: +NORMALIZE_WHITESPACE
+    >>> CPHASE(np.pi/2).get_qobj().tidyup() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[1.+0.j 0.+0.j 0.+0.j 0.+0.j]
@@ -643,7 +796,7 @@ class CRZ(_ControlledTwoQubitGate):
     Examples
     --------
     >>> from qutip_qip.operations import CRZ
-    >>> CRZ(0, 1, np.pi).get_qobj().tidyup() # doctest: +NORMALIZE_WHITESPACE
+    >>> CRZ(np.pi).get_qobj().tidyup() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[1.+0.j 0.+0.j 0.+0.j 0.+0.j]
