@@ -143,6 +143,7 @@ class SNOT(H):
     """
     Hadamard gate (Deprecated, use H instead).
     """
+
     __slots__ = ()
 
     def __init__(self):

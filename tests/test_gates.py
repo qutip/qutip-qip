@@ -471,33 +471,62 @@ def test_gates_class():
 
     assert pytest.approx(qutip.fidelity(result1, result2), 1.0e-6) == 1
 
+
 GATES = [
-    std.X, std.Y, std.Z, std.H, std.S, std.Sdag, std.T, std.Tdag,
-    std.SWAP, std.ISWAP, std.ISWAPdag, std.SQRTSWAP, std.SQRTISWAPdag,
-    std.SQRTISWAP, std.SQRTISWAPdag, std.BERKELEY, std.BERKELEYdag
+    std.X,
+    std.Y,
+    std.Z,
+    std.H,
+    std.S,
+    std.Sdag,
+    std.T,
+    std.Tdag,
+    std.SWAP,
+    std.ISWAP,
+    std.ISWAPdag,
+    std.SQRTSWAP,
+    std.SQRTISWAPdag,
+    std.SQRTISWAP,
+    std.SQRTISWAPdag,
+    std.BERKELEY,
+    std.BERKELEYdag,
 ]
 
 PARAMETRIC_GATE = [
-    std.RX(0.5), std.RY(0.5), std.RZ(0.5), std.PHASE(0.5), std.R((0.5, 0.9)),
-    std.QASMU((0.1, 0.2, 0.3)), std.SWAPALPHA(0.3), std.MS((0.47, 0.8)),
+    std.RX(0.5),
+    std.RY(0.5),
+    std.RZ(0.5),
+    std.PHASE(0.5),
+    std.R((0.5, 0.9)),
+    std.QASMU((0.1, 0.2, 0.3)),
+    std.SWAPALPHA(0.3),
+    std.MS((0.47, 0.8)),
     std.RZX(0.6),
 ]
 
 CONTROLLED_GATE = [
-    std.CX(), std.CY(), std.CZ(), std.CH(), std.CS(), std.CT(),
-    std.CRX(arg_value=0.7), std.CRY(arg_value=0.88), std.CRZ(arg_value=0.78),
-    std.CPHASE(arg_value=0.9), std.CQASMU(arg_value=[0.9, 0.22, 0.15]),
-    std.TOFFOLI(), std.FREDKIN()
+    std.CX(),
+    std.CY(),
+    std.CZ(),
+    std.CH(),
+    std.CS(),
+    std.CT(),
+    std.CRX(arg_value=0.7),
+    std.CRY(arg_value=0.88),
+    std.CRZ(arg_value=0.78),
+    std.CPHASE(arg_value=0.9),
+    std.CQASMU(arg_value=[0.9, 0.22, 0.15]),
+    std.TOFFOLI(),
+    std.FREDKIN(),
 ]
 
-@pytest.mark.parametrize(
-    "gate", GATES + PARAMETRIC_GATE + CONTROLLED_GATE
-)
+
+@pytest.mark.parametrize("gate", GATES + PARAMETRIC_GATE + CONTROLLED_GATE)
 def test_gate_inverse(gate: Gate):
     n = 2**gate.num_qubits
     inverse_gate = gate.inverse()
     np.testing.assert_allclose(
         (gate.get_qobj() * inverse_gate.get_qobj()).full(),
         np.eye(n),
-        atol=1e-12
+        atol=1e-12,
     )

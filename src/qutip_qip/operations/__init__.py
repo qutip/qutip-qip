@@ -139,7 +139,6 @@ __all__ = [
     "qubit_clifford_group",
     "expand_operator",
     "gate_sequence_product",
-
     # The below ones need to be removed (should only be maintained in ./std), no duplication
     "GATE_CLASS_MAP",
     "GLOBALPHASE",
