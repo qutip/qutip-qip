@@ -471,10 +471,16 @@ def test_gates_class():
 
     assert pytest.approx(qutip.fidelity(result1, result2), 1.0e-6) == 1
 
-GATES = [std.X, std.Y, std.Z, std.H, std.S, std.T, std.SWAP, std.ISWAP]
+GATES = [
+    std.X, std.Y, std.Z, std.H, std.S, std.Sdag, std.T, std.Tdag,
+    std.SWAP, std.ISWAP, std.ISWAPdag, std.SQRTSWAP, std.SQRTISWAPdag,
+    std.SQRTISWAP, std.SQRTISWAPdag, std.BERKELEY, std.BERKELEYdag
+]
+
 PARAMETRIC_GATE = [
-    std.RX(0.5), std.RY(0.5), std.RZ(0.5), std.PHASE(0.5),
-    std.R((0.5, 0.9)), std.QASMU((0.1, 0.2, 0.3))
+    std.RX(0.5), std.RY(0.5), std.RZ(0.5), std.PHASE(0.5), std.R((0.5, 0.9)),
+    std.QASMU((0.1, 0.2, 0.3)), std.SWAPALPHA(0.3), std.MS((0.47, 0.8)),
+    std.RZX(0.6),
 ]
 
 @pytest.mark.parametrize(
