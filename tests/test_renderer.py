@@ -23,13 +23,13 @@ from qutip_qip.operations.std import (
 def qc1():
     qc = QubitCircuit(4)
     qc.add_gate(ISWAP, targets=[2, 3])
-    qc.add_gate(CRX(np.pi / 2), targets=[0], controls=[1])
+    qc.add_gate(CRX(arg_value=np.pi / 2), targets=[0], controls=[1])
     qc.add_gate(SWAP, targets=[0, 3])
     qc.add_gate(BERKELEY, targets=[0, 3])
     qc.add_gate(FREDKIN, controls=[3], targets=[1, 2])
     qc.add_gate(TOFFOLI, controls=[0, 2], targets=[1])
     qc.add_gate(CX, controls=[0], targets=[1])
-    qc.add_gate(CRX(0.5), controls=[2], targets=[3])
+    qc.add_gate(CRX(arg_value=0.5), controls=[2], targets=[3])
     qc.add_gate(SWAP, targets=[0, 3])
     return qc
 
@@ -71,7 +71,7 @@ def qc2():
     qc.add_gate(BERKELEY, targets=[0, 3])
     qc.add_gate(FREDKIN, controls=[3], targets=[1, 2])
     qc.add_gate(CX, controls=[0], targets=[1])
-    qc.add_gate(CRX(0.5), controls=[0], targets=[1])
+    qc.add_gate(CRX(arg_value=0.5), controls=[0], targets=[1])
     qc.add_gate(SWAP, targets=[0, 3])
     qc.add_gate(SWAP, targets=[0, 3])
     qc.add_measurement("M", targets=[0], classical_store=0)
@@ -152,11 +152,11 @@ def qc3():
     qc.add_gate(BERKELEY, targets=[0, 3])
     qc.add_gate(FREDKIN, controls=[3], targets=[1, 2])
     qc.add_gate(CX, controls=[0], targets=[1])
-    qc.add_gate(CRX(0.5), controls=[0], targets=[1])
+    qc.add_gate(CRX(arg_value=0.5), controls=[0], targets=[1])
     qc.add_measurement("M", targets=[0], classical_store=0)
     qc.add_gate(SWAP, targets=[0, 3])
     qc.add_gate(TOFFOLI, controls=[0, 1], targets=[2])
-    qc.add_gate(CPHASE(0.75), controls=[2], targets=[3])
+    qc.add_gate(CPHASE(arg_value=0.75), controls=[2], targets=[3])
     qc.add_gate(ISWAP, targets=[1, 3])
     qc.add_measurement("M", targets=[1], classical_store=1)
     return qc

@@ -32,16 +32,16 @@ from .two_qubit_gate import (
     SWAPALPHA,
     MS,
     RZX,
+    CNOT,
     CX,
     CY,
     CZ,
-    CRX,
-    CRY,
-    CRZ,
     CS,
     CT,
     CH,
-    CNOT,
+    CRX,
+    CRY,
+    CRZ,
     CPHASE,
     CSIGN,
     CQASMU,
@@ -100,6 +100,20 @@ GATE_CLASS_MAP = {
     "CPHASE": CPHASE,
     "RZX": RZX,
     "CQASMU": CQASMU,
+}
+
+CONTROLLED_GATE_MAP = {
+    X: CX,
+    Y: CY,
+    Z: CZ,
+    H: CH,
+    S: CS,
+    T: CT,
+    RX: CRX,
+    RY: CRY,
+    RZ: CRZ,
+    PHASE: CPHASE,
+    QASMU: CQASMU,
 }
 
 

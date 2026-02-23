@@ -137,10 +137,10 @@ def test_qasm_str():
 
 def test_export_import():
     qc = QubitCircuit(3)
-    qc.add_gate(std.CRY(np.pi), targets=1, controls=0)
-    qc.add_gate(std.CRX(np.pi), targets=1, controls=0)
-    qc.add_gate(std.CRZ(np.pi), targets=1, controls=0)
-    qc.add_gate(std.CX, targets=1, controls=0)
+    qc.add_gate(std.CRY(arg_value=np.pi), targets=1, controls=0)
+    qc.add_gate(std.CRX(arg_value=np.pi), targets=1, controls=0)
+    qc.add_gate(std.CRZ(arg_value=np.pi), targets=1, controls=0)
+    qc.add_gate(std.CX(), targets=1, controls=0)
     qc.add_gate(std.TOFFOLI, targets=2, controls=[0, 1])
     # qc.add_gate(SQRTX, targets=0)
     qc.add_gate(std.CS, targets=1, controls=0)

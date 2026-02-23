@@ -79,6 +79,7 @@ class ControlledGate(Gate):
         # Automatically copy the validator from the target
         if hasattr(cls.target_gate, "validate_params"):
             cls.validate_params = staticmethod(cls.target_gate.validate_params)
+            cls.num_params = cls.target_gate.num_params
 
         # Default set_inverse
         cls.self_inverse = cls.target_gate.self_inverse
@@ -89,8 +90,8 @@ class ControlledGate(Gate):
 
     def __init__(
         self,
-        arg_value: any = None,
         control_value: int | None = None,
+        arg_value: any = None,
         arg_label: str | None = None,
     ) -> None:
         if control_value is not None:
@@ -161,6 +162,24 @@ class ControlledGate(Gate):
             control_value=self.control_value,
         )
 
+    def inverse(self) -> Gate:
+        if not self.is_parametric_gate():
+            inverse_gate = controlled_gate(
+                self.target_gate.inverse(), self.num_ctrl_qubits
+            )
+            return inverse_gate(control_value=self.control_value)
+
+        else:
+            inverse_target_gate = self.target_gate(self.arg_value).inverse()
+            arg_value = inverse_target_gate.arg_value
+            inverse_gate = controlled_gate(
+                type(inverse_target_gate), self.num_ctrl_qubits
+            )
+        
+            return inverse_gate(
+                control_value = self.control_value, arg_value=arg_value
+            )
+
     @staticmethod
     def is_controlled_gate() -> bool:
         return True
@@ -184,12 +203,15 @@ class ControlledGate(Gate):
 def controlled_gate(
     gate: Gate,
     n_ctrl_qubits: int = 1,
-    gate_name: str = "_CustomControlledGate",
+    gate_name: str | None = None,
     namespace: str = "custom",
 ) -> ControlledGate:
     """
     Gate Factory for Controlled Gate that takes a gate and num_ctrl_qubits.
     """
+
+    if gate_name is None:
+        gate_name = f"C{gate.name}"
 
     class _CustomControlledGate(ControlledGate):
         __slots__ = ()
@@ -198,6 +220,6 @@ def controlled_gate(
         num_qubits = n_ctrl_qubits + gate.num_qubits
         num_ctrl_qubits = n_ctrl_qubits
         target_gate = gate
-        latex_str = rf"C{gate.name}"
+        latex_str = r"{gate_name}"
 
     return _CustomControlledGate
