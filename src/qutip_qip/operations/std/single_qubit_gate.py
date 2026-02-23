@@ -25,7 +25,7 @@ class X(_SingleQubitGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import X
+    >>> from qutip_qip.operations.std import X
     >>> X.get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=True
     Qobj data =
@@ -50,7 +50,7 @@ class Y(_SingleQubitGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import Y
+    >>> from qutip_qip.operations.std import Y
     >>> Y.get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=True
     Qobj data =
@@ -75,7 +75,7 @@ class Z(_SingleQubitGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import Z
+    >>> from qutip_qip.operations.std import Z
     >>> Z.get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=True
     Qobj data =
@@ -100,7 +100,7 @@ class IDLE(_SingleQubitGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import IDLE
+    >>> from qutip_qip.operations.std import IDLE
     """
 
     __slots__ = ()
@@ -120,7 +120,7 @@ class H(_SingleQubitGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import H
+    >>> from qutip_qip.operations.std import H
     >>> H.get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=True
     Qobj data =
@@ -161,7 +161,7 @@ class SQRTX(_SingleQubitGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import SQRTX
+    >>> from qutip_qip.operations.std import SQRTX
     >>> SQRTX.get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
@@ -190,7 +190,7 @@ class SQRTXdag(_SingleQubitGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import SQRTXdag
+    >>> from qutip_qip.operations.std import SQRTXdag
     >>> SQRTXdag.get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
@@ -232,7 +232,7 @@ class S(_SingleQubitGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import S
+    >>> from qutip_qip.operations.std import S
     >>> S.get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
@@ -261,7 +261,7 @@ class Sdag(_SingleQubitGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import S
+    >>> from qutip_qip.operations.std import S
     >>> Sdag.get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
@@ -290,7 +290,7 @@ class T(_SingleQubitGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import T
+    >>> from qutip_qip.operations.std import T
     >>> T.get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
@@ -318,7 +318,7 @@ class Tdag(_SingleQubitGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import Tdag
+    >>> from qutip_qip.operations.std import Tdag
     >>> Tdag.get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
@@ -346,7 +346,7 @@ class RX(_SingleQubitParametricGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import RX
+    >>> from qutip_qip.operations.std import RX
     >>> RX(3.14159/2).get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
@@ -380,7 +380,7 @@ class RY(_SingleQubitParametricGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import RY
+    >>> from qutip_qip.operations.std import RY
     >>> RY(3.14159/2).get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
@@ -413,7 +413,7 @@ class RZ(_SingleQubitParametricGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import RZ
+    >>> from qutip_qip.operations.std import RZ
     >>> RZ(3.14159/2).get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
@@ -441,7 +441,7 @@ class PHASE(_SingleQubitParametricGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import PHASE
+    >>> from qutip_qip.operations.std import PHASE
     """
 
     __slots__ = ()
@@ -476,7 +476,7 @@ class R(_SingleQubitParametricGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import R
+    >>> from qutip_qip.operations.std import R
     >>> R((np.pi/2, np.pi/2)).get_qobj().tidyup() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
@@ -518,7 +518,7 @@ class QASMU(_SingleQubitParametricGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import QASMU
+    >>> from qutip_qip.operations.std import QASMU
     >>> QASMU(0, (np.pi/2, np.pi, np.pi/2)).get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =

@@ -15,7 +15,7 @@ from qutip_qip.device import (
     CircularSpinChain,
     DispersiveCavityQED,
 )
-from qutip_qip.operations import X, CX, RX, H
+from qutip_qip.operations.std import X, CX, RX, H
 
 from qiskit import QuantumCircuit
 from qiskit_aer import AerSimulator

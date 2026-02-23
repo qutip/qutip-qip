@@ -16,7 +16,7 @@ from qutip import (
     sigmam,
 )
 from qutip_qip.device import Processor, SCQubits, LinearSpinChain
-from qutip_qip.operations import X
+from qutip_qip.operations.std import X
 from qutip_qip.noise import (
     RelaxationNoise,
     DecoherenceNoise,

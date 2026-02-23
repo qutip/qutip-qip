@@ -1,5 +1,5 @@
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import SWAP, RX
+from qutip_qip.operations.std import SWAP
 
 
 def to_chain_structure(qc: QubitCircuit, setup="linear"):

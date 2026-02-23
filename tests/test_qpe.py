@@ -1,10 +1,10 @@
+import unittest
 import numpy as np
 from numpy.testing import assert_, assert_equal
-import unittest
 from qutip import Qobj, sigmaz, tensor
-from qutip_qip.operations import controlled_gate, unitary_gate
 
 from qutip_qip.algorithms.qpe import qpe
+from qutip_qip.operations import controlled_gate, unitary_gate
 
 
 class TestQPE(unittest.TestCase):

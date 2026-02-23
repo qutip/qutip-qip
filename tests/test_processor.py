@@ -5,7 +5,6 @@ import numpy as np
 import pytest
 
 import qutip
-from qutip_qip.device import Processor, LinearSpinChain
 from qutip import (
     basis,
     sigmaz,
@@ -18,10 +17,12 @@ from qutip import (
     fidelity,
 )
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import hadamard_transform, ISWAP, X
+from qutip_qip.device import Processor, LinearSpinChain
+from qutip_qip.operations import hadamard_transform
+from qutip_qip.operations.std import ISWAP, X
 from qutip_qip.noise import DecoherenceNoise, RandomNoise, ControlAmpNoise
-from qutip_qip.qubits import qubit_states
 from qutip_qip.pulse import Pulse
+from qutip_qip.qubits import qubit_states
 
 
 class TestCircuitProcessor:

@@ -9,7 +9,8 @@ import pytest
 
 import qutip
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import (
+from qutip_qip.operations import gate_sequence_product
+from qutip_qip.operations.std import (
     X,
     Y,
     Z,
@@ -22,7 +23,6 @@ from qutip_qip.operations import (
     ISWAP,
     SQRTISWAP,
     RZX,
-    gate_sequence_product,
 )
 from qutip_qip.device import (
     DispersiveCavityQED,

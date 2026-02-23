@@ -3,8 +3,8 @@ import numpy as np
 from unittest.mock import patch
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.circuit.draw import TextRenderer
-from qutip_qip.operations import (
-    controlled_gate,
+from qutip_qip.operations import controlled_gate
+from qutip_qip.operations.std import (
     IDLE,
     X,
     H,
