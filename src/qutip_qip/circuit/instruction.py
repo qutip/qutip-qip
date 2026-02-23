@@ -109,7 +109,7 @@ class GateInstruction(CircuitInstruction):
     def to_qasm(self, qasm_out) -> None:
         gate = self.operation
         args = None
-        if gate.is_parametric_gate():
+        if gate.is_parametric():
             args = gate.arg_value
 
         qasm_gate = qasm_out.qasm_name(gate.name)

@@ -105,7 +105,7 @@ class ParametricGate(Gate):
         pass
 
     @staticmethod
-    def is_parametric_gate():
+    def is_parametric():
         return True
 
     def __str__(self):

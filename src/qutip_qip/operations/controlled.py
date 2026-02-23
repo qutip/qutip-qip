@@ -77,7 +77,7 @@ class ControlledGate(Gate):
             )
 
         # Automatically copy the validator from the target
-        if cls.target_gate.is_parametric_gate():
+        if cls.target_gate.is_parametric():
             cls.validate_params = staticmethod(cls.target_gate.validate_params)
 
             # Copy the num_params if not defined
@@ -105,7 +105,7 @@ class ControlledGate(Gate):
         else:
             self._control_value = (2**self.num_ctrl_qubits) - 1
 
-        if self.is_parametric_gate():
+        if self.is_parametric():
             ParametricGate.__init__(
                 self, arg_value=arg_value, arg_label=arg_label
             )
@@ -158,7 +158,7 @@ class ControlledGate(Gate):
             The unitary matrix representing the controlled operation.
         """
         target_gate = self.target_gate
-        if self.is_parametric_gate():
+        if self.is_parametric():
             target_gate = target_gate(self.arg_value)
 
         return controlled_gate_unitary(
@@ -168,7 +168,7 @@ class ControlledGate(Gate):
         )
 
     def inverse(self) -> Gate:
-        if not self.is_parametric_gate():
+        if not self.is_parametric():
             inverse_gate = controlled_gate(
                 self.target_gate.inverse(), self.num_ctrl_qubits
             )
@@ -180,9 +180,9 @@ class ControlledGate(Gate):
             inverse_gate = controlled_gate(
                 type(inverse_target_gate), self.num_ctrl_qubits
             )
-        
+
             return inverse_gate(
-                control_value = self.control_value, arg_value=arg_value
+                control_value=self.control_value, arg_value=arg_value
             )
 
     @staticmethod
@@ -190,8 +190,8 @@ class ControlledGate(Gate):
         return True
 
     @classmethod
-    def is_parametric_gate(cls) -> bool:
-        return cls.target_gate.is_parametric_gate()
+    def is_parametric(cls) -> bool:
+        return cls.target_gate.is_parametric()
 
     def __str__(self) -> str:
         return f"Gate({self.name}, target_gate={self.target_gate}, num_ctrl_qubits={self.num_ctrl_qubits}, control_value={self.control_value})"

@@ -16,7 +16,7 @@ from qutip_qip.circuit import (
 )
 from qutip_qip.circuit.utils import _check_iterable, _check_limit_
 from qutip_qip.operations import Gate, Measurement, expand_operator
-from qutip_qip.operations.std import RX, RY,RZ, GLOBALPHASE, GATE_CLASS_MAP
+from qutip_qip.operations.std import RX, RY, RZ, GLOBALPHASE, GATE_CLASS_MAP
 from qutip_qip.typing import IntList
 
 try:
@@ -355,17 +355,14 @@ class QubitCircuit:
                     "or Gate class or its object instantiation"
                 )
 
-            if (
-                gate_class.is_controlled()
-                and gate_class.is_parametric_gate()
-            ):
+            if gate_class.is_controlled() and gate_class.is_parametric():
                 gate = gate_class(
                     control_value=control_value,
                     arg_value=arg_value,
                     arg_label=arg_label,
                 )
 
-            elif gate_class.is_parametric_gate():
+            elif gate_class.is_parametric():
                 gate = gate_class(arg_value=arg_value, arg_label=arg_label)
 
             elif gate_class.is_controlled():

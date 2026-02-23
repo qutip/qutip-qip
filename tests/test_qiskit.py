@@ -38,11 +38,11 @@ class TestConverter:
     def _compare_args(self, req_gate, res_gate):
         """Compare parameters of two gates"""
         res_arg = []
-        if res_gate.operation.is_parametric_gate():
+        if res_gate.operation.is_parametric():
             res_arg = res_gate.operation.arg_value
 
         req_arg = []
-        if req_gate.operation.is_parametric_gate():
+        if req_gate.operation.is_parametric():
             req_arg = req_gate.operation.arg_value
 
         if len(req_arg) != len(res_arg):

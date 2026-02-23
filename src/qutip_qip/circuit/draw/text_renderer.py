@@ -440,7 +440,7 @@ class TextRenderer(BaseRenderer):
                 targets = list(circ_instruction.targets)
                 controls = list(circ_instruction.controls)
 
-                if gate.is_parametric_gate() and gate.arg_label is not None:
+                if gate.is_parametric() and gate.arg_label is not None:
                     gate_text = gate.arg_label
 
                 if gate.name == "SWAP":

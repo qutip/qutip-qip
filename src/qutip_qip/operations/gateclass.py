@@ -94,7 +94,7 @@ class _GateMetaClass(ABCMeta):
         This is required since num_qubits etc. are class attributes (shared by all object instances).
         """
         # Check if the attribute is in our protected set
-        # Using cls.__dict__ ignores parent classes, allowing __init_subclass__ 
+        # Using cls.__dict__ ignores parent classes, allowing __init_subclass__
         # to set it once for the child class.
         if name in cls._read_only_set and name in cls.__dict__:
             raise AttributeError(f"{name} is read-only!")
@@ -239,7 +239,7 @@ class Gate(ABC, metaclass=_GateMetaClass):
         return False
 
     @staticmethod
-    def is_parametric_gate() -> bool:
+    def is_parametric() -> bool:
         """
         Check if the gate accepts variable parameters (e.g., rotation angles).
 
@@ -278,7 +278,7 @@ def unitary_gate(gate_name: str, U: Qobj, namespace: str = "custom") -> Gate:
         _namespace = namespace
         name = gate_name
         num_qubits = int(n)
-        self_inverse = (U == U.dag())
+        self_inverse = U == U.dag()
 
         @staticmethod
         def get_qobj():
