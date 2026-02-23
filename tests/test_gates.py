@@ -424,7 +424,7 @@ def test_gates_class():
         std.QASMU(arg_value=(np.pi / 4, np.pi / 4, np.pi / 4)), targets=0
     )
     circuit1.add_gate(std.CX, controls=0, targets=1)
-    circuit1.add_gate(std.CPHASE(np.pi / 4), controls=0, targets=1)
+    circuit1.add_gate(std.CPHASE(arg_value=np.pi / 4), controls=0, targets=1)
     circuit1.add_gate(std.SWAP, targets=[0, 1])
     circuit1.add_gate(std.ISWAP, targets=[2, 1])
     circuit1.add_gate(std.CZ, controls=[0], targets=[2])
@@ -455,7 +455,7 @@ def test_gates_class():
         targets=0,
     )
     circuit2.add_gate(std.CX, controls=0, targets=1)
-    circuit2.add_gate(std.CPHASE(np.pi / 4), controls=0, targets=1)
+    circuit2.add_gate(std.CPHASE(arg_value=np.pi / 4), controls=0, targets=1)
     circuit2.add_gate(std.SWAP, targets=[0, 1])
     circuit2.add_gate(std.ISWAP, targets=[2, 1])
     circuit2.add_gate(std.CZ, controls=[0], targets=[2])
@@ -483,8 +483,14 @@ PARAMETRIC_GATE = [
     std.RZX(0.6),
 ]
 
+CONTROLLED_GATE = [
+    std.CX(), std.CY(), std.CZ(), std.CH(), std.CS(), std.CT(),
+    std.CRX(arg_value=0.7), std.CRY(arg_value=0.88), std.CRZ(arg_value=0.78),
+    std.CPHASE(arg_value=0.9), std.CQASMU(arg_value=[0.9, 0.22, 0.15])
+]
+
 @pytest.mark.parametrize(
-    "gate", GATES + PARAMETRIC_GATE
+    "gate", GATES + PARAMETRIC_GATE + CONTROLLED_GATE
 )
 def test_gate_inverse(gate: Gate):
     n = 2**gate.num_qubits

@@ -440,7 +440,6 @@ class SWAPALPHA(AngleParametricGate):
         return SWAPALPHA(-alpha)
 
 
-
 class MS(AngleParametricGate):
     r"""
     Mølmer–Sørensen gate.
@@ -666,6 +665,9 @@ class CH(_ControlledTwoQubitGate):
 
     target_gate = H
     latex_str = r"{\rm CH}"
+
+    def inverse(self):
+        return CH(self.control_value)
 
 
 class CT(_ControlledTwoQubitGate):
