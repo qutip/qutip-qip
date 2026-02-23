@@ -209,7 +209,7 @@ class TestQubitCircuit:
         qc.add_measurement("M0", targets=[0], classical_store=[1])
         qc.add_gate(std.RY(1.570796), targets=4)
         qc.add_gate(std.RY(1.570796), targets=5)
-        qc.add_gate(std.CRX(np.pi / 2), controls=[1], targets=[2])
+        qc.add_gate(std.CRX(arg_value=np.pi / 2), controls=[1], targets=[2])
 
         qc1 = QubitCircuit(6)
         qc1.add_circuit(qc)
@@ -426,7 +426,7 @@ class TestQubitCircuit:
                 return Qobj(mat, dims=[[2], [2]])
 
         qc = QubitCircuit(3)
-        qc.add_gate(std.CRX(np.pi / 2), targets=[2], controls=[1])
+        qc.add_gate(std.CRX(arg_value=np.pi / 2), targets=[2], controls=[1])
         qc.add_gate(T1, targets=[1])
         props = qc.propagators()
         result1 = tensor(identity(2), customer_gate1(np.pi / 2))

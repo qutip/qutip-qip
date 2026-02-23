@@ -651,7 +651,7 @@ class QasmProcessor:
             )
         elif name == "cu3":
             qc.add_gate(
-                std.CQASMU(args),
+                std.CQASMU(arg_value=args),
                 controls=regs[0],
                 targets=[regs[1]],
                 classical_controls=classical_controls,

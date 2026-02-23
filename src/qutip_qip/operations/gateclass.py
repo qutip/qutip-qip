@@ -13,7 +13,8 @@ class _GateMetaClass(ABCMeta):
         (
             "num_qubits",
             "num_ctrl_qubits",
-            "num_params",
+            # "num_params",
+            # "self_inverse",
             "target_gate",
             "is_clifford",
         )
