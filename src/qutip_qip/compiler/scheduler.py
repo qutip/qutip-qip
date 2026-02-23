@@ -426,7 +426,7 @@ class Scheduler:
         --------
         >>> from qutip_qip.circuit import QubitCircuit
         >>> from qutip_qip.compiler import Scheduler
-        >>> from qutip_qip.operations import H, CZ, SWAP
+        >>> from qutip_qip.operations.std import H, CZ, SWAP
         >>> circuit = QubitCircuit(7)
         >>> circuit.add_gate(H, targets=3)  # gate0
         >>> circuit.add_gate(CZ, targets=5, controls=3)  # gate1

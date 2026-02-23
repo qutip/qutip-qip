@@ -1,5 +1,5 @@
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import CX, H
+from qutip_qip.operations.std import CX, H
 
 
 class PhaseFlipCode:

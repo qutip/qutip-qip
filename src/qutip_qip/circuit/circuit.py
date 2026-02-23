@@ -2,22 +2,12 @@
 Quantum circuit representation and simulation.
 """
 
-import numpy as np
 import warnings
 from typing import Iterable
-from qutip_qip.typing import IntList
+from qutip import qeye, Qobj
+import numpy as np
 
 from ._decompose import _resolve_to_universal, _resolve_2q_basis
-from qutip_qip.operations import (
-    Gate,
-    GLOBALPHASE,
-    RX,
-    RY,
-    RZ,
-    Measurement,
-    expand_operator,
-    GATE_CLASS_MAP,
-)
 from qutip_qip.circuit import (
     CircuitSimulator,
     CircuitInstruction,
@@ -25,7 +15,9 @@ from qutip_qip.circuit import (
     MeasurementInstruction,
 )
 from qutip_qip.circuit.utils import _check_iterable, _check_limit_
-from qutip import qeye, Qobj
+from qutip_qip.operations import Gate, Measurement, expand_operator
+from qutip_qip.operations.std import RX, RY,RZ, GLOBALPHASE, GATE_CLASS_MAP
+from qutip_qip.typing import IntList
 
 try:
     from IPython.display import Image as DisplayImage, SVG as DisplaySVG

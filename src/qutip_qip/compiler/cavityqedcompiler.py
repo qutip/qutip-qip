@@ -1,8 +1,8 @@
 import numpy as np
 
 from qutip_qip.circuit import GateInstruction
-from qutip_qip.operations import RZ
 from qutip_qip.compiler import GateCompiler, PulseInstruction
+from qutip_qip.operations.std import RZ
 
 
 class CavityQEDCompiler(GateCompiler):

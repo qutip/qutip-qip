@@ -1,8 +1,8 @@
 import numpy as np
 
 from qutip_qip.circuit import GateInstruction
-from qutip_qip.operations import RX, RY, RZX
 from qutip_qip.compiler import GateCompiler, PulseInstruction
+from qutip_qip.operations.std import RX, RY, RZX
 
 
 class SCQubitsCompiler(GateCompiler):
@@ -69,7 +69,7 @@ class SCQubitsCompiler(GateCompiler):
     >>> from qutip_qip.circuit import QubitCircuit
     >>> from qutip_qip.device import ModelProcessor, SCQubitsModel
     >>> from qutip_qip.compiler import SCQubitsCompiler
-    >>> from qutip_qip.operations import CX
+    >>> from qutip_qip.operations.std import CX
     >>>
     >>> qc = QubitCircuit(2)
     >>> qc.add_gate(CX, targets=0, controls=1)

@@ -3,7 +3,8 @@ This module provides the circuit implementation for Quantum Fourier Transform.
 """
 
 import numpy as np
-from qutip_qip.operations import H, RZ, CX, CPHASE, SWAP, expand_operator
+from qutip_qip.operations import expand_operator
+from qutip_qip.operations.std import H, RZ, CX, CPHASE, SWAP
 from qutip_qip.circuit import QubitCircuit
 from qutip import Qobj
 from qutip_qip.decompose import decompose_one_qubit_gate
