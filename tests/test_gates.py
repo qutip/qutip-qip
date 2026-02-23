@@ -486,7 +486,8 @@ PARAMETRIC_GATE = [
 CONTROLLED_GATE = [
     std.CX(), std.CY(), std.CZ(), std.CH(), std.CS(), std.CT(),
     std.CRX(arg_value=0.7), std.CRY(arg_value=0.88), std.CRZ(arg_value=0.78),
-    std.CPHASE(arg_value=0.9), std.CQASMU(arg_value=[0.9, 0.22, 0.15])
+    std.CPHASE(arg_value=0.9), std.CQASMU(arg_value=[0.9, 0.22, 0.15]),
+    std.TOFFOLI(), std.FREDKIN()
 ]
 
 @pytest.mark.parametrize(

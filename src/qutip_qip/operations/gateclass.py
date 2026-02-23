@@ -95,7 +95,7 @@ class _GateMetaClass(ABCMeta):
         for attribute in cls._read_only_set:
             if name == attribute and hasattr(cls, attribute):
                 raise AttributeError(f"{attribute} is read-only!")
-            super().__setattr__(name, value)
+        super().__setattr__(name, value)
 
 
 class Gate(ABC, metaclass=_GateMetaClass):
