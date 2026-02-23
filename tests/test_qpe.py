@@ -66,7 +66,7 @@ class TestQPE(unittest.TestCase):
 
         for i in range(num_counting):
             circ_instruction = circuit.instructions[num_counting + i]
-            assert_(circ_instruction.operation.is_controlled_gate)
+            assert_(circ_instruction.operation.is_controlled)
             assert_equal(circ_instruction.controls, [i])
             assert_equal(circ_instruction.targets, [num_counting])
 

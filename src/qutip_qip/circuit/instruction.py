@@ -93,13 +93,13 @@ class GateInstruction(CircuitInstruction):
 
     @property
     def controls(self) -> tuple[int]:
-        if self.operation.is_controlled_gate():
+        if self.operation.is_controlled():
             return self.qubits[: self.operation.num_ctrl_qubits]
         return ()
 
     @property
     def targets(self) -> tuple[int]:
-        if self.operation.is_controlled_gate():
+        if self.operation.is_controlled():
             return self.qubits[self.operation.num_ctrl_qubits :]
         return self.qubits
 

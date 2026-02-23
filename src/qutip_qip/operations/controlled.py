@@ -186,7 +186,7 @@ class ControlledGate(Gate):
             )
 
     @staticmethod
-    def is_controlled_gate() -> bool:
+    def is_controlled() -> bool:
         return True
 
     @classmethod

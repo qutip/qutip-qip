@@ -228,7 +228,7 @@ class Gate(ABC, metaclass=_GateMetaClass):
         raise NotImplementedError
 
     @staticmethod
-    def is_controlled_gate() -> bool:
+    def is_controlled() -> bool:
         """
         Check if the gate is a controlled gate.
 
