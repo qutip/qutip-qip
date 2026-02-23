@@ -470,3 +470,21 @@ def test_gates_class():
     result2 = circuit2.run(init_state)
 
     assert pytest.approx(qutip.fidelity(result1, result2), 1.0e-6) == 1
+
+GATES = [std.X, std.Y, std.Z, std.H, std.S, std.T, std.SWAP, std.ISWAP]
+PARAMETRIC_GATE = [
+    std.RX(0.5), std.RY(0.5), std.RZ(0.5), std.PHASE(0.5),
+    std.R((0.5, 0.9)), std.QASMU((0.1, 0.2, 0.3))
+]
+
+@pytest.mark.parametrize(
+    "gate", GATES + PARAMETRIC_GATE
+)
+def test_gate_inverse(gate: Gate):
+    n = 2**gate.num_qubits
+    inverse_gate = gate.inverse()
+    np.testing.assert_allclose(
+        (gate.get_qobj() * inverse_gate.get_qobj()).full(),
+        np.eye(n),
+        atol=1e-12
+    )
