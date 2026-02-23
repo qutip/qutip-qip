@@ -2,7 +2,7 @@ import pytest
 import qutip
 from qutip_qip.algorithms import PhaseFlipCode
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import Z
+from qutip_qip.operations.std import Z
 
 
 @pytest.fixture

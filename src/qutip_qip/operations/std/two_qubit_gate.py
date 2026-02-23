@@ -34,7 +34,7 @@ class SWAP(_TwoQubitGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import SWAP
+    >>> from qutip_qip.operations.std import SWAP
     >>> SWAP.get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=True
     Qobj data =
@@ -64,7 +64,7 @@ class ISWAP(_TwoQubitGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import ISWAP
+    >>> from qutip_qip.operations.std import ISWAP
     >>> ISWAP.get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
     Qobj data =
@@ -98,7 +98,7 @@ class ISWAPdag(_TwoQubitGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import ISWAPdag
+    >>> from qutip_qip.operations.std import ISWAPdag
     >>> ISWAPdag.get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
     Qobj data =
@@ -132,7 +132,7 @@ class SQRTSWAP(_TwoQubitGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import SQRTSWAP
+    >>> from qutip_qip.operations.std import SQRTSWAP
     >>> SQRTSWAP.get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
     Qobj data =
@@ -172,7 +172,7 @@ class SQRTSWAPdag(_TwoQubitGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import SQRTSWAPdag
+    >>> from qutip_qip.operations.std import SQRTSWAPdag
     >>> SQRTSWAPdag.get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
     Qobj data =
@@ -212,7 +212,7 @@ class SQRTISWAP(_TwoQubitGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import SQRTISWAP
+    >>> from qutip_qip.operations.std import SQRTISWAP
     >>> SQRTISWAP.get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
     Qobj data =
@@ -253,7 +253,7 @@ class SQRTISWAPdag(_TwoQubitGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import SQRTISWAPdag
+    >>> from qutip_qip.operations.std import SQRTISWAPdag
     >>> SQRTISWAPdag.get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
     Qobj data =
@@ -303,7 +303,7 @@ class BERKELEY(_TwoQubitGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import BERKELEY
+    >>> from qutip_qip.operations.std import BERKELEY
     >>> BERKELEY.get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
     Qobj data =
@@ -350,7 +350,7 @@ class BERKELEYdag(_TwoQubitGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import BERKELEYdag
+    >>> from qutip_qip.operations.std import BERKELEYdag
     >>> BERKELEYdag.get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
     Qobj data =
@@ -397,7 +397,7 @@ class SWAPALPHA(AngleParametricGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import SWAPALPHA
+    >>> from qutip_qip.operations.std import SWAPALPHA
     >>> SWAPALPHA(0.5).get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
     Qobj data =
@@ -456,7 +456,7 @@ class MS(AngleParametricGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import MS
+    >>> from qutip_qip.operations.std import MS
     >>> MS((np.pi/2, 0)).get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
     Qobj data =
@@ -514,7 +514,7 @@ class RZX(AngleParametricGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import RZX
+    >>> from qutip_qip.operations.std import RZX
     >>> RZX(np.pi).get_qobj().tidyup() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
     Qobj data =
@@ -555,7 +555,7 @@ class CX(_ControlledTwoQubitGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import CX
+    >>> from qutip_qip.operations.std import CX
     >>> CX(control_value=1).get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=True
     Qobj data =
@@ -591,7 +591,7 @@ class CY(_ControlledTwoQubitGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import CY
+    >>> from qutip_qip.operations.std import CY
     >>> CY().get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=True
     Qobj data =
@@ -614,7 +614,7 @@ class CZ(_ControlledTwoQubitGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import CZ
+    >>> from qutip_qip.operations.std import CZ
     >>> CZ().get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=True
     Qobj data =
@@ -659,7 +659,7 @@ class CH(_ControlledTwoQubitGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import CH
+    >>> from qutip_qip.operations.std import CH
     """
 
     __slots__ = ()
@@ -683,7 +683,7 @@ class CT(_ControlledTwoQubitGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import CPHASE
+    >>> from qutip_qip.operations.std import CT
     """
 
     __slots__ = ()
@@ -707,7 +707,7 @@ class CS(_ControlledTwoQubitGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import CPHASE
+    >>> from qutip_qip.operations.std import CS
     """
 
     __slots__ = ()
@@ -731,7 +731,7 @@ class CPHASE(_ControlledTwoQubitGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import CPHASE
+    >>> from qutip_qip.operations.std import CPHASE
     >>> CPHASE(np.pi/2).get_qobj().tidyup() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
     Qobj data =
@@ -754,7 +754,7 @@ class CRX(_ControlledTwoQubitGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import CRX
+    >>> from qutip_qip.operations.std import CRX
     """
 
     __slots__ = ()
@@ -770,7 +770,7 @@ class CRY(_ControlledTwoQubitGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import CRY
+    >>> from qutip_qip.operations.std import CRY
     """
 
     __slots__ = ()
@@ -795,7 +795,7 @@ class CRZ(_ControlledTwoQubitGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import CRZ
+    >>> from qutip_qip.operations.std import CRZ
     >>> CRZ(np.pi).get_qobj().tidyup() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
     Qobj data =
@@ -818,7 +818,7 @@ class CQASMU(_ControlledTwoQubitGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import CQASMU
+    >>> from qutip_qip.operations.std import CQASMU
     """
 
     __slots__ = ()

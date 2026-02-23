@@ -121,7 +121,8 @@ def expand_operator(
 
     Examples
     --------
-    >>> from qutip_qip.operations import expand_operator, X, CNOT
+    >>> from qutip_qip.operations import expand_operator
+    >>> from qutip_qip.operations.std import X, CNOT
     >>> import qutip
     >>> expand_operator(X.get_qobj(), dims=[2,3], targets=[0]) # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 3], [2, 3]], shape=(6, 6), type='oper', dtype=CSR, isherm=True

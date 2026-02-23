@@ -4,7 +4,7 @@ from copy import deepcopy
 import numpy as np
 
 from qutip import Qobj, QobjEvo, mesolve, mcsolve
-from qutip_qip.operations import GLOBALPHASE
+from qutip_qip.operations.std import GLOBALPHASE
 from qutip_qip.noise import Noise, process_noise
 from qutip_qip.device import Model
 from qutip_qip.device.utils import _pulse_interpolate

@@ -15,7 +15,8 @@ from qutip_qip.compiler import (
     GateCompiler,
 )
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import ParametricGate, X, RX
+from qutip_qip.operations import ParametricGate
+from qutip_qip.operations.std import X, RX
 from qutip import basis, fidelity
 
 

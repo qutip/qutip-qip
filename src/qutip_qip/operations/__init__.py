@@ -47,6 +47,7 @@ from .gates import (
     qubit_clifford_group,
 )
 
+# This should ideally be removed as it leads to duplication
 from .std import (
     X,
     Y,
@@ -102,8 +103,6 @@ __all__ = [
     "controlled_gate",
     "AngleParametricGate",
     "Measurement",
-    "GATE_CLASS_MAP",
-    "GLOBALPHASE",
     "rx",
     "ry",
     "rz",
@@ -140,6 +139,10 @@ __all__ = [
     "qubit_clifford_group",
     "expand_operator",
     "gate_sequence_product",
+
+    # The below ones need to be removed (should only be maintained in ./std), no duplication
+    "GATE_CLASS_MAP",
+    "GLOBALPHASE",
     "X",
     "Y",
     "Z",

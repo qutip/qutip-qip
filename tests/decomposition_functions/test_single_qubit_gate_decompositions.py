@@ -9,7 +9,7 @@ from qutip_qip.decompose.decompose_single_qubit_gate import (
 )
 from qutip_qip.decompose import decompose_one_qubit_gate
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import H, X, Y, Z, S, T, SQRTX
+from qutip_qip.operations.std import H, X, Y, Z, S, T, SQRTX
 
 # Fidelity closer to 1 means the two states are similar to each other
 target = 0

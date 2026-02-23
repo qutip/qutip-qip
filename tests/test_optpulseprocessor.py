@@ -15,7 +15,7 @@ from qutip import (
     sigmay,
     identity,
 )
-from qutip_qip.operations import X, CX, H, SWAP
+from qutip_qip.operations.std import X, CX, H, SWAP
 
 
 class TestOptPulseProcessor:
