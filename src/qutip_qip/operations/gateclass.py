@@ -258,30 +258,26 @@ def unitary_gate(gate_name: str, U: Qobj, namespace: str = "custom") -> Gate:
     Gate Factory for Custom Gate that wraps an arbitrary unitary matrix U.
     """
 
+    # Check whether U is unitary
     n = np.log2(U.shape[0])
-    inverse = U == U.dag()
-
     if n != np.log2(U.shape[1]):
-        raise ValueError("The unitary U must be square.")
+        raise ValueError("The U must be square matrix.")
 
     if n % 1 != 0:
         raise ValueError("The unitary U must have dim NxN, where N=2^n")
 
+    if not np.allclose((U * U.dag()).full(), np.eye(U.shape[0])):
+        raise ValueError("U must be a unitary matrix")
+
     class _CustomGate(Gate):
         __slots__ = ()
-        name = gate_name
         _namespace = namespace
+        name = gate_name
         num_qubits = int(n)
-        self_inverse = inverse
+        self_inverse = (U == U.dag())
 
         @staticmethod
         def get_qobj():
             return U
 
     return _CustomGate
-
-def inverse_gate(gate_name: str, gate: Gate, namespace: str):
-    class _InverseGate(Gate):
-        pass
-
-    return _InverseGate

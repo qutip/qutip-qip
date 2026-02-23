@@ -1,5 +1,5 @@
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import CX, TOFFOLI, X
+from qutip_qip.operations.std import CX, TOFFOLI, X
 
 
 class BitFlipCode:

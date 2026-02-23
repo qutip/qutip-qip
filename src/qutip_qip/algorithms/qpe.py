@@ -1,7 +1,8 @@
 import numpy as np
-from qutip_qip.circuit import QubitCircuit
 from qutip_qip.algorithms import qft_gate_sequence
-from qutip_qip.operations import unitary_gate, controlled_gate, H, Gate
+from qutip_qip.circuit import QubitCircuit
+from qutip_qip.operations import unitary_gate, controlled_gate, Gate
+from qutip_qip.operations.std import H
 
 
 def qpe(U, num_counting_qubits, target_qubits=None, to_cnot=False):

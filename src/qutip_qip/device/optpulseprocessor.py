@@ -70,7 +70,7 @@ class OptPulseProcessor(Processor):
 
         >>> from qutip_qip.circuit import QubitCircuit
         >>> from qutip_qip.device import OptPulseProcessor
-        >>> from qutip_qip.operations import H
+        >>> from qutip_qip.operations.std import H
         >>> qc = QubitCircuit(1)
         >>> qc.add_gate(H, targets=0)
         >>> num_tslots = 10
@@ -85,7 +85,7 @@ class OptPulseProcessor(Processor):
 
         >>> from qutip_qip.circuit import QubitCircuit
         >>> from qutip_qip.device import OptPulseProcessor
-        >>> from qutip_qip.operations import H, SWAP, CX
+        >>> from qutip_qip.operations.std import H, SWAP, CX
         >>> qc = QubitCircuit(2)
         >>> qc.add_gate(H, targets=0)
         >>> qc.add_gate(SWAP, targets=[0, 1])

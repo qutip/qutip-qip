@@ -46,7 +46,7 @@ class SCQubits(ModelProcessor):
         import qutip
         from qutip_qip.circuit import QubitCircuit
         from qutip_qip.device import SCQubits
-        from qutip_qip.operations import RY, RZ, CX
+        from qutip_qip.operations.std import RY, RZ, CX
 
         qc = QubitCircuit(2)
         qc.add_gate(RZ, targets=0, arg_value=np.pi)
