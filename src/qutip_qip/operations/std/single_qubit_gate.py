@@ -40,7 +40,7 @@ class X(_SingleQubitGate):
     latex_str = r"X"
 
     @staticmethod
-    def get_qobj():
+    def get_qobj() -> Qobj:
         return sigmax(dtype="dense")
 
 
@@ -65,7 +65,7 @@ class Y(_SingleQubitGate):
     latex_str = r"Y"
 
     @staticmethod
-    def get_qobj():
+    def get_qobj() -> Qobj:
         return sigmay(dtype="dense")
 
 
@@ -90,7 +90,7 @@ class Z(_SingleQubitGate):
     latex_str = r"Z"
 
     @staticmethod
-    def get_qobj():
+    def get_qobj() -> Qobj:
         return sigmaz(dtype="dense")
 
 
@@ -110,7 +110,7 @@ class IDLE(_SingleQubitGate):
     latex_str = r"{\rm IDLE}"
 
     @staticmethod
-    def get_qobj():
+    def get_qobj() -> Qobj:
         return qeye(2)
 
 
@@ -135,7 +135,7 @@ class H(_SingleQubitGate):
     latex_str = r"H"
 
     @staticmethod
-    def get_qobj():
+    def get_qobj() -> Qobj:
         return 1 / np.sqrt(2.0) * Qobj([[1, 1], [1, -1]])
 
 
@@ -304,8 +304,12 @@ class T(_SingleQubitGate):
     latex_str = r"{\rm T}"
 
     @staticmethod
-    def get_qobj():
+    def get_qobj() -> Qobj:
         return Qobj([[1, 0], [0, np.exp(1j * np.pi / 4)]])
+
+    @staticmethod
+    def inverse() -> Gate:
+        return Tdag
 
 
 class Tdag(_SingleQubitGate):
@@ -328,8 +332,12 @@ class Tdag(_SingleQubitGate):
     latex_str = r"{\rm Tdag}"
 
     @staticmethod
-    def get_qobj():
+    def get_qobj() -> Qobj:
         return Qobj([[1, 0], [0, np.exp(-1j * np.pi / 4)]])
+
+    @staticmethod
+    def inverse() -> Gate:
+        return T
 
 
 class RX(_SingleQubitParametricGate):
@@ -351,7 +359,7 @@ class RX(_SingleQubitParametricGate):
     num_params = 1
     latex_str = r"R_x"
 
-    def get_qobj(self):
+    def get_qobj(self) -> Qobj:
         phi = self.arg_value[0]
         return Qobj(
             [
@@ -385,7 +393,7 @@ class RY(_SingleQubitParametricGate):
     num_params = 1
     latex_str = r"R_y"
 
-    def get_qobj(self):
+    def get_qobj(self) -> Qobj:
         phi = self.arg_value[0]
         return Qobj(
             [
@@ -418,7 +426,7 @@ class RZ(_SingleQubitParametricGate):
     num_params = 1
     latex_str = r"R_z"
 
-    def get_qobj(self):
+    def get_qobj(self) -> Qobj:
         phi = self.arg_value[0]
         return Qobj([[np.exp(-1j * phi / 2), 0], [0, np.exp(1j * phi / 2)]])
 
@@ -441,7 +449,7 @@ class PHASE(_SingleQubitParametricGate):
     num_params = 1
     latex_str = r"PHASE"
 
-    def get_qobj(self):
+    def get_qobj(self) -> Qobj:
         phi = self.arg_value[0]
         return Qobj(
             [
@@ -481,7 +489,7 @@ class R(_SingleQubitParametricGate):
     num_params = 2
     latex_str = r"{\rm R}"
 
-    def get_qobj(self):
+    def get_qobj(self) -> Qobj:
         phi, theta = self.arg_value
         return Qobj(
             [
@@ -497,8 +505,8 @@ class R(_SingleQubitParametricGate):
         )
 
     def inverse(self) -> Gate:
-        theta, phi = self.arg_value
-        return R([-theta, -phi])
+        phi, theta = self.arg_value
+        return R([phi, -theta])
 
 
 class QASMU(_SingleQubitParametricGate):
@@ -523,7 +531,7 @@ class QASMU(_SingleQubitParametricGate):
     num_params = 3
     latex_str = r"{\rm QASMU}"
 
-    def get_qobj(self):
+    def get_qobj(self) -> Qobj:
         theta, phi, gamma = self.arg_value
         return Qobj(
             [
@@ -540,4 +548,4 @@ class QASMU(_SingleQubitParametricGate):
 
     def inverse(self) -> Gate:
         theta, phi, gamma = self.arg_value
-        return QASMU([-theta, -phi, -gamma])
+        return QASMU([-theta, -gamma, -phi])
