@@ -77,16 +77,21 @@ class ControlledGate(Gate):
             )
 
         # Automatically copy the validator from the target
-        if hasattr(cls.target_gate, "validate_params"):
+        if cls.target_gate.is_parametric_gate():
             cls.validate_params = staticmethod(cls.target_gate.validate_params)
-            cls.num_params = cls.target_gate.num_params
 
-        # Default set_inverse
-        cls.self_inverse = cls.target_gate.self_inverse
+            # Copy the num_params if not defined
+            if "num_params" not in cls.__dict__:
+                cls.num_params = cls.target_gate.num_params
+
+        # Default self_inverse
+        if "self_inverse" not in cls.__dict__:
+            cls.self_inverse = cls.target_gate.self_inverse
 
         # In the circuit plot, only the target gate is shown.
         # The control has its own symbol.
-        cls.latex_str = cls.target_gate.latex_str
+        if "latex_str" not in cls.__dict__:
+            cls.latex_str = cls.target_gate.latex_str
 
     def __init__(
         self,
