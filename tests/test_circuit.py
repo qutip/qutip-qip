@@ -228,7 +228,7 @@ class TestQubitCircuit:
             if qc1.instructions[i].is_gate_instruction() and (
                 qc.instructions[i].is_gate_instruction()
             ):
-                if qc.instructions[i].operation.is_controlled_gate():
+                if qc.instructions[i].operation.is_controlled():
                     assert (
                         qc1.instructions[i].controls
                         == qc.instructions[i].controls
@@ -259,7 +259,7 @@ class TestQubitCircuit:
                     qc2.instructions[i].targets[0]
                     == qc.instructions[i].targets[0] + 2
                 )
-                if qc.instructions[i].operation.is_controlled_gate():
+                if qc.instructions[i].operation.is_controlled():
                     assert (
                         qc2.instructions[i].controls[0]
                         == qc.instructions[i].controls[0] + 2

@@ -85,6 +85,6 @@ class PulseInstruction:
 
         :type: list
         """
-        if self.gate.is_controlled_gate():
+        if self.gate.is_controlled():
             return self._controls
         return None

@@ -356,7 +356,7 @@ class QubitCircuit:
                 )
 
             if (
-                gate_class.is_controlled_gate()
+                gate_class.is_controlled()
                 and gate_class.is_parametric_gate()
             ):
                 gate = gate_class(
@@ -368,7 +368,7 @@ class QubitCircuit:
             elif gate_class.is_parametric_gate():
                 gate = gate_class(arg_value=arg_value, arg_label=arg_label)
 
-            elif gate_class.is_controlled_gate():
+            elif gate_class.is_controlled():
                 gate = gate_class(control_value=control_value)
             else:
                 gate = gate_class

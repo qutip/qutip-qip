@@ -74,13 +74,13 @@ class TestConverter:
         else:
             # TODO correct for float error in arg_value
             res_controls = None
-            if res_gate.operation.is_controlled_gate():
+            if res_gate.operation.is_controlled():
                 res_controls = get_qutip_index(
                     list(res_gate.controls), result_circuit.num_qubits
                 )
 
             req_controls = None
-            if req_gate.operation.is_controlled_gate():
+            if req_gate.operation.is_controlled():
                 req_controls = list(req_gate.controls)
 
             check_condition = (

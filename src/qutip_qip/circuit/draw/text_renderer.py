@@ -151,7 +151,7 @@ class TextRenderer(BaseRenderer):
 
         sorted_targets = sorted(targets)
         # Adjust top_frame or bottom if there is a control wire
-        if gate.is_controlled_gate():
+        if gate.is_controlled():
             sorted_controls = sorted(controls)
             top_frame = (
                 (top_frame[:mid_index] + "┴" + top_frame[mid_index + 1 :])
@@ -492,7 +492,7 @@ class TextRenderer(BaseRenderer):
                         parts,
                     )
 
-                    if gate.is_controlled_gate():
+                    if gate.is_controlled():
                         sorted_controls = sorted(controls)
 
                         # check if there is control wire above the gate top
