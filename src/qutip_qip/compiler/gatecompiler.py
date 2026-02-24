@@ -51,8 +51,15 @@ class GateCompiler(object):
 
     def __init__(self, num_qubits=None, params=None, pulse_dict=None, N=None):
         self.gate_compiler = {}
-        self.num_qubits = num_qubits or N
-        self.N = num_qubits  # backward compatibility
+        self._num_qubits = num_qubits
+        if N is not None:
+            warnings.warn(
+                "The 'N' parameter is deprecated. Please use "
+                "'num_qubits' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            self._num_qubits = num_qubits  # backward compatibility
         self.params = params if params is not None else {}
         self.gate_compiler = {
             "GLOBALPHASE": self.globalphase_compiler,
@@ -76,6 +83,26 @@ class GateCompiler(object):
                 """,
                 DeprecationWarning,
             )
+
+    @property
+    def num_qubits(self) -> int:
+        """
+        Number of qubits in the circuit.
+        """
+        return self._num_qubits
+
+    @property
+    def N(self) -> int:
+        """
+        Number of qubits in the circuit.
+        """
+        warnings.warn(
+            "The 'N' parameter is deprecated. Please use "
+            "'num_qubits' instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self._num_qubits
 
     def globalphase_compiler(self, gate, args):
         """
