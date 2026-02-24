@@ -1,7 +1,7 @@
 import numpy as np
 from typing import List, Union, Optional
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import Gate, Z, ControlledGate, CSIGN
+from qutip_qip.operations import Gate, Z, ControlledGate
 
 __all__ = ["grover", "grover_oracle"]
 
@@ -107,7 +107,7 @@ def grover(
     num_iterations: Optional[int] = None,
 ) -> QubitCircuit:
     """
-    Construct the Grover search algorithim's circuit
+    Construct the Grover search algorithm's circuit.
 
     Parameters
     ----------
@@ -115,13 +115,15 @@ def grover(
         The oracle that flips the phase of marked states.
     qubits : int or list of int
         The qubits to run the search on.
+    num_solutions : int
+        The number of expected solutions M.
     num_iterations : int, optional
-        Number of iterations. Defaults to optimal for 1 solution.
+        Number of iterations. Defaults to optimal for M solutions.
 
     Returns
     -------
     QubitCircuit
-        Quantum Circuit implementing Grover's search algorithim
+        Quantum Circuit implementing Grover's search algorithm.
 
     Raises
     ------
@@ -131,15 +133,16 @@ def grover(
     Notes
     -----
     The algorithm performs the following steps:
-    1. Apply Hadamard gates to all qubits to create superposition
+
+    1. Apply Hadamard gates to all qubits to create superposition.
     2. For each iteration:
-       a. Apply the oracle (phase flip on marked states)
-       b. Apply the diffusion operator (inversion about the mean):
-          - Hadamard gates
-          - X gates
-          - Multi-controlled Z gate
-          - X gates
-          - Hadamard gates
+        a. Apply the oracle (phase flip on marked states).
+        b. Apply the diffusion operator (inversion about the mean):
+            - Hadamard gates
+            - X gates
+            - Multi-controlled Z gate
+            - X gates
+            - Hadamard gates
 
     References
     ----------
@@ -149,10 +152,11 @@ def grover(
 
     Examples
     --------
-    Search for state |01⟩ using 2 qubits:
+    Search for state :math:`|01\\rangle` using 2 qubits:
 
-        >>> oracle = grover_oracle([0, 1], marked_states=1)
-        >>> qc = grover(oracle, qubits=[0, 1])
+    >>> from qutip_qip.algorithms.grover import grover, grover_oracle
+    >>> oracle = grover_oracle([0, 1], marked_states=1)
+    >>> qc = grover(oracle, qubits=[0, 1], num_solutions=1)
 
     """
     if isinstance(qubits, int):

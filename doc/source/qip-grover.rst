@@ -41,40 +41,36 @@ Let's simulate a search on 3 qubits ($N=8$) where two states are marked: $|011\r
 .. plot::
     :context: close-figs
 
-    .. doctest::
+    First, we import the necessary components and define our search space.
 
-        >>> from qutip_qip.algorithms.grover import grover, grover_oracle
-        >>> n_qubits = 3
-        >>> marked = [3, 5]
-        >>> # 1. Create the Phase Oracle
-        >>> oracle = grover_oracle(n_qubits, marked)
-        >>> # 2. Build the Grover Circuit
-        >>> # Since N=8 and M=2, the algorithm calculates optimal iterations automatically.
-        >>> qc = grover(oracle, n_qubits, num_solutions=len(marked))
+    >>> import matplotlib.pyplot as plt
+    >>> from qiskit.visualization import plot_histogram
+    >>> from qutip import basis, tensor
+    >>> from qutip_qip.algorithms.grover import grover, grover_oracle
+    >>> n_qubits = 3
+    >>> marked = [3, 5]
 
-    We can then simulate the circuit and check the probability of success:
+    We then use the utility function :func:`.grover_oracle` to create a phase-flip oracle for our target states[cite: 8].
 
-    .. doctest::
+    >>> oracle = grover_oracle(n_qubits, marked)
 
-        >>> from qutip import basis, tensor
-        >>> U_grover = qc.compute_unitary()
-        >>> psi0 = tensor([basis(2, 0)] * n_qubits)
-        >>> psi_final = U_grover * psi0
-        >>> # Calculate probability of measuring state 3 or 5
-        >>> prob = abs(psi_final.overlap(basis(8, 3)))**2 + abs(psi_final.overlap(basis(8, 5)))**2
-        >>> print(f"Success Probability: {prob:.4f}")
-        Success Probability: 1.0000
+    Using the :func:`.grover` function, we construct the full circuit. Since we provide the mandatory ``num_solutions``, the algorithm automatically calculates the optimal number of iterations[cite: 7, 11, 15].
 
-.. plot::
-    :context: close-figs
+    >>> qc = grover(oracle, n_qubits, num_solutions=len(marked))
 
-    Grover's algorithm can also be visualized by plotting the histogram of measurement counts, showing the amplification of the marked states.
+    We can now simulate the circuit to obtain the final state vector[cite: 17].
 
-    .. code-block:: python
+    >>> U_grover = qc.compute_unitary()
+    >>> psi0 = tensor([basis(2, 0)] * n_qubits)
+    >>> psi_final = U_grover * psi0
 
-        from qiskit.visualization import plot_histogram
-        # ... (after running simulation)
-        # plot_histogram(counts)
+    To visualize the results, we calculate the measurement probabilities for all possible states and plot them[cite: 17, 18].
+
+    >>> probabilities = {
+    ...     format(i, f'0{n_qubits}b'): float(abs(psi_final.overlap(basis(2**n_qubits, i)))**2)
+    ...     for i in range(2**n_qubits)
+    ... }
+    >>> _ = plot_histogram(probabilities, title="Grover Search Results (2 Targets)")
 
 References
 ==========

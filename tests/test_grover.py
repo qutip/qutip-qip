@@ -93,7 +93,7 @@ class TestGrover:
         # N=4, M=1. Optimal iterations = 1.
         qc = grover(oracle, search_qubits, 1)
 
-        assert qc.N == 3  # max(1,2) + 1 = 3
+        assert qc.num_qubits == 3  # max(1,2) + 1 = 3
 
         U_grover = qc.compute_unitary()
 
