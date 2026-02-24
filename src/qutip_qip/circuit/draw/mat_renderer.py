@@ -601,11 +601,21 @@ class MatRenderer(BaseRenderer):
                 text_width + self.style.gate_pad * 2, self._min_gate_width
             )
             xskip = self._get_xskip(wire_list, layer)
+            # Decide what to display as gate label
+            if getattr(gate, 'arg_label', None):
+                gate_label = f"${gate.arg_label}$"  # LaTeX-style
+            elif gate.arg_value is not None:
+                gate_label = str(gate.arg_value)
+            else:
+                gate_label = ""
+
+# Gate name always visible
+            full_text = f"{gate.name}\n{gate_label}" if gate_label else gate.name
 
             gate_text = plt.Text(
                 xskip + self.style.gate_margin + gate_width / 2,
                 (adj_targets[0] + adj_targets[-1]) / 2 * self.style.wire_sep,
-                self.text,
+                full_text,
                 color=self.fontcolor,
                 fontsize=self.fontsize,
                 fontweight=self.fontweight,
@@ -615,6 +625,19 @@ class MatRenderer(BaseRenderer):
                 horizontalalignment="center",
                 zorder=self._zorder["gate_label"],
             )
+            # gate_text = plt.Text(
+            #     xskip + self.style.gate_margin + gate_width / 2,
+            #     (adj_targets[0] + adj_targets[-1]) / 2 * self.style.wire_sep,
+            #     self.text,
+            #     color=self.fontcolor,
+            #     fontsize=self.fontsize,
+            #     fontweight=self.fontweight,
+            #     fontfamily=self.fontfamily,
+            #     fontstyle=self.fontstyle,
+            #     verticalalignment="center",
+            #     horizontalalignment="center",
+            #     zorder=self._zorder["gate_label"],
+            # )
 
             gate_patch = FancyBboxPatch(
                 (
