@@ -625,20 +625,7 @@ class MatRenderer(BaseRenderer):
                 horizontalalignment="center",
                 zorder=self._zorder["gate_label"],
             )
-            # gate_text = plt.Text(
-            #     xskip + self.style.gate_margin + gate_width / 2,
-            #     (adj_targets[0] + adj_targets[-1]) / 2 * self.style.wire_sep,
-            #     self.text,
-            #     color=self.fontcolor,
-            #     fontsize=self.fontsize,
-            #     fontweight=self.fontweight,
-            #     fontfamily=self.fontfamily,
-            #     fontstyle=self.fontstyle,
-            #     verticalalignment="center",
-            #     horizontalalignment="center",
-            #     zorder=self._zorder["gate_label"],
-            # )
-
+           
             gate_patch = FancyBboxPatch(
                 (
                     xskip + self.style.gate_margin,
