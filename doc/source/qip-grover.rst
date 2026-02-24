@@ -68,13 +68,9 @@ Let's simulate a search on 3 qubits ($N=8$) where two states are marked: $|011\r
 .. plot::
     :context: close-figs
 
-    Grover's algorithm can also be visualized by plotting the histogram of measurement counts, showing the amplification of the marked states.
-
-    .. code-block:: python
-
-        from qiskit.visualization import plot_histogram
-        # ... (after running simulation)
-        # plot_histogram(counts)
+    from qiskit.visualization import plot_histogram
+    # ... (after running simulation)
+    # plot_histogram(counts)
 
 References
 ==========
