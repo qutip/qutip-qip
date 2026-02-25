@@ -1,11 +1,9 @@
-import warnings
 import numbers
-from typing import Sequence
 from collections.abc import Iterable
 
 import numpy as np
-from scipy.linalg import block_diag
 import qutip
+from scipy.linalg import block_diag
 from qutip import Qobj, identity, tensor
 
 
@@ -62,14 +60,14 @@ def _targets_to_list(targets, oper=None, N=None):
         targets = [targets]
     if not all([isinstance(t, numbers.Integral) for t in targets]):
         raise TypeError("targets should be an integer or a list of integer")
+
     # if targets has correct length
     if oper is not None:
         req_num = len(oper.dims[0])
         if len(targets) != req_num:
             raise ValueError(
                 f"The given operator needs {req_num} "
-                "target qutbis, "
-                "but {len(targets)} given."
+                f"target qubits, but {len(targets)} given."
             )
 
     # If targets is smaller than N
@@ -81,10 +79,8 @@ def _targets_to_list(targets, oper=None, N=None):
 
 def expand_operator(
     oper: Qobj,
-    N: None = None,
-    targets: int | list[int] | None = None,
-    dims: list[int] | None = None,
-    cyclic_permutation: bool = False,
+    dims: Iterable[int],
+    targets: int | Iterable[int] | None = None,
     dtype: str | None = None,
 ):
     """
@@ -102,14 +98,6 @@ def expand_operator(
     targets : int or list of int
         The indices of subspace that are acted on.
         Permutation can also be realized by changing the orders of the indices.
-    N : int
-        Deprecated. Number of qubits. Please use `dims`.
-    cyclic_permutation : boolean, optional
-        Deprecated.
-        Expand for all cyclic permutation of the targets.
-        E.g. if ``N=3`` and `oper` is a 2-qubit operator,
-        the result will be a list of three operators,
-        each acting on qubits 0 and 1, 1 and 2, 2 and 0.
     dtype : str, optional
         Data type of the output `Qobj`. Only for qutip version larger than 5.
 
@@ -121,9 +109,9 @@ def expand_operator(
 
     Examples
     --------
-    >>> from qutip_qip.operations import expand_operator
-    >>> from qutip_qip.operations.std import X, CNOT
     >>> import qutip
+    >>> from qutip_qip.operations import expand_operator
+    >>> from qutip_qip.operations.std import X, CX
     >>> expand_operator(X.get_qobj(), dims=[2,3], targets=[0]) # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 3], [2, 3]], shape=(6, 6), type='oper', dtype=CSR, isherm=True
     Qobj data =
@@ -133,7 +121,7 @@ def expand_operator(
      [1. 0. 0. 0. 0. 0.]
      [0. 1. 0. 0. 0. 0.]
      [0. 0. 1. 0. 0. 0.]]
-    >>> expand_operator(CNOT.get_qobj(), dims=[2,2,2], targets=[1, 2]) # doctest: +NORMALIZE_WHITESPACE
+    >>> expand_operator(CX().get_qobj(), dims=[2,2,2], targets=[1, 2]) # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2, 2], [2, 2, 2]], shape=(8, 8), type='oper', dtype=CSR, isherm=True
     Qobj data =
     [[1. 0. 0. 0. 0. 0. 0. 0.]
@@ -144,7 +132,7 @@ def expand_operator(
      [0. 0. 0. 0. 0. 1. 0. 0.]
      [0. 0. 0. 0. 0. 0. 0. 1.]
      [0. 0. 0. 0. 0. 0. 1. 0.]]
-    >>> expand_operator(CNOT.get_qobj(), dims=[2, 2, 2], targets=[2, 0]) # doctest: +NORMALIZE_WHITESPACE
+    >>> expand_operator(CX().get_qobj(), dims=[2, 2, 2], targets=[2, 0]) # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2, 2], [2, 2, 2]], shape=(8, 8), type='oper', dtype=CSR, isherm=True
     Qobj data =
     [[1. 0. 0. 0. 0. 0. 0. 0.]
@@ -159,41 +147,12 @@ def expand_operator(
     dtype = dtype or qutip.settings.core["default_dtype"] or qutip.data.CSR
     oper = oper.to(dtype)
 
-    if N is not None:
-        warnings.warn(
-            "The function expand_operator has been generalized to "
-            "arbitrary subsystems instead of only qubit systems."
-            "Please use the new signature e.g.\n"
-            "expand_operator(oper, dims=[2, 3, 2, 2], targets=2)",
-            DeprecationWarning,
-            stacklevel=2,
-        )
+    if not isinstance(dims, Iterable):
+        raise ValueError(f"dims needs to be an interable {not type(dims)}.")
 
-    if dims is not None and N is None:
-        if not isinstance(dims, Iterable):
-            f"dims needs to be an interable {not type(dims)}."
-        N = len(dims)  # backward compatibility
-
-    if dims is None:
-        dims = [2] * N
+    N = len(dims)
     targets = _targets_to_list(targets, oper=oper, N=N)
     _check_oper_dims(oper, dims=dims, targets=targets)
-
-    # Call expand_operator for all cyclic permutation of the targets.
-    if cyclic_permutation:
-        warnings.warn(
-            "cyclic_permutation is deprecated, "
-            "please use loop through different targets manually.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        oper_list = []
-        for i in range(N):
-            new_targets = np.mod(np.array(targets) + i, N)
-            oper_list.append(
-                expand_operator(oper, N=N, targets=new_targets, dims=dims)
-            )
-        return oper_list
 
     # Generate the correct order for permutation,
     # eg. if N = 5, targets = [3,0], the order is [1,2,3,0,4].
@@ -202,12 +161,14 @@ def expand_operator(
     new_order = [0] * N
     for i, t in enumerate(targets):
         new_order[t] = i
+
     # allocate the rest qutbits (not targets) to the empty
     # position in new_order
     rest_pos = [q for q in list(range(N)) if q not in targets]
     rest_qubits = list(range(len(targets), N))
     for i, ind in enumerate(rest_pos):
         new_order[ind] = rest_qubits[i]
+
     id_list = [identity(dims[i]) for i in rest_pos]
     out = tensor([oper] + id_list).permute(new_order)
     return out.to(dtype)
