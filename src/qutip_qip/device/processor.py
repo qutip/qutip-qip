@@ -1120,7 +1120,7 @@ class Processor:
             init_state = states
         if analytical:
             if kwargs or self.noise:
-                raise warnings.warn(
+                raise warnings.warn( # FIXME this should raise an Error Type
                     "Analytical matrices exponentiation"
                     "does not process noise or"
                     "any keyword arguments."
