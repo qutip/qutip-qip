@@ -116,7 +116,6 @@ class QubitCircuit:
         return self._instructions
 
     gates.setter
-
     def gates(self) -> None:
         warnings.warn(
             "QubitCircuit.gates has been replaced with QubitCircuit.instructions",
@@ -530,7 +529,6 @@ class QubitCircuit:
         state,
         cbits=None,
         measure_results=None,
-        precompute_unitary=False,
     ):
         """
         Calculate the result of one instance of circuit run.
@@ -558,14 +556,11 @@ class QubitCircuit:
             mode = "density_matrix_simulator"
         else:
             raise TypeError("State is not a ket or a density matrix.")
-        sim = CircuitSimulator(
-            self,
-            mode,
-            precompute_unitary,
-        )
+
+        sim = CircuitSimulator(self, mode)
         return sim.run(state, cbits, measure_results).get_final_states(0)
 
-    def run_statistics(self, state, cbits=None, precompute_unitary=False):
+    def run_statistics(self, state, cbits=None):
         """
         Calculate all the possible outputs of a circuit
         (varied by measurement gates).
@@ -589,7 +584,7 @@ class QubitCircuit:
             mode = "density_matrix_simulator"
         else:
             raise TypeError("State is not a ket or a density matrix.")
-        sim = CircuitSimulator(self, mode, precompute_unitary)
+        sim = CircuitSimulator(self, mode)
         return sim.run_statistics(state, cbits)
 
     def resolve_gates(self, basis=["CNOT", "CX", "RX", "RY", "RZ"]):

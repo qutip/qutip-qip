@@ -6,7 +6,6 @@ import numpy as np
 from qutip import ket2dm, Qobj
 from qutip_qip.circuit.simulator import CircuitResult
 from qutip_qip.operations import expand_operator
-import warnings
 
 
 def _decimal_to_binary(decimal, length):
@@ -35,12 +34,7 @@ class CircuitSimulator:
     Operator based circuit simulator.
     """
 
-    def __init__(
-        self,
-        qc,
-        mode: str = "state_vector_simulator",
-        precompute_unitary: bool = False,
-    ):
+    def __init__(self, qc, mode: str = "state_vector_simulator") -> None:
         """
         Simulate state evolution for Quantum Circuits.
 
@@ -66,10 +60,6 @@ class CircuitSimulator:
         self._qc = qc
         self.dims = qc.dims
         self.mode = mode
-        if precompute_unitary:
-            warnings.warn(
-                "Precomputing the full unitary is no longer supported. Switching to normal simulation mode."
-            )
 
     @property
     def qc(self):
