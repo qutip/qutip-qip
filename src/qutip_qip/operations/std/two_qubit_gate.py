@@ -88,7 +88,7 @@ class ISWAP(_TwoQubitGate):
         )
 
     @staticmethod
-    def inverse() -> Gate:
+    def inverse_gate() -> Gate:
         return ISWAPdag
 
 
@@ -122,7 +122,7 @@ class ISWAPdag(_TwoQubitGate):
         )
 
     @staticmethod
-    def inverse() -> Gate:
+    def inverse_gate() -> Gate:
         return ISWAP
 
 
@@ -162,7 +162,7 @@ class SQRTSWAP(_TwoQubitGate):
         )
 
     @staticmethod
-    def inverse() -> Gate:
+    def inverse_gate() -> Gate:
         return SQRTSWAPdag
 
 
@@ -202,7 +202,7 @@ class SQRTSWAPdag(_TwoQubitGate):
         )
 
     @staticmethod
-    def inverse() -> Gate:
+    def inverse_gate() -> Gate:
         return SQRTSWAP
 
 
@@ -243,7 +243,7 @@ class SQRTISWAP(_TwoQubitGate):
         )
 
     @staticmethod
-    def inverse() -> Gate:
+    def inverse_gate() -> Gate:
         return SQRTISWAPdag
 
 
@@ -284,7 +284,7 @@ class SQRTISWAPdag(_TwoQubitGate):
         )
 
     @staticmethod
-    def inverse() -> Gate:
+    def inverse_gate() -> Gate:
         return SQRTISWAP
 
 
@@ -331,7 +331,7 @@ class BERKELEY(_TwoQubitGate):
         )
 
     @staticmethod
-    def inverse() -> Gate:
+    def inverse_gate() -> Gate:
         return BERKELEYdag
 
 
@@ -378,7 +378,7 @@ class BERKELEYdag(_TwoQubitGate):
         )
 
     @staticmethod
-    def inverse() -> Gate:
+    def inverse_gate() -> Gate:
         return BERKELEY
 
 
@@ -435,7 +435,7 @@ class SWAPALPHA(AngleParametricGate):
             dims=[[2, 2], [2, 2]],
         )
 
-    def inverse(self) -> Gate:
+    def inverse_gate(self) -> Gate:
         alpha = self.arg_value[0]
         return SWAPALPHA(-alpha)
 
@@ -493,7 +493,7 @@ class MS(AngleParametricGate):
             dims=[[2, 2], [2, 2]],
         )
 
-    def inverse(self) -> Gate:
+    def inverse_gate(self) -> Gate:
         theta, phi = self.arg_value
         return MS([-theta, phi])
 
@@ -543,7 +543,7 @@ class RZX(AngleParametricGate):
             dims=[[2, 2], [2, 2]],
         )
 
-    def inverse(self) -> Gate:
+    def inverse_gate(self) -> Gate:
         theta = self.arg_value[0]
         return RZX(-theta)
 
@@ -666,7 +666,7 @@ class CH(_ControlledTwoQubitGate):
     target_gate = H
     latex_str = r"{\rm CH}"
 
-    def inverse(self):
+    def inverse_gate(self):
         return CH(self.control_value)
 
 

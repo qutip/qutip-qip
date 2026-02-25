@@ -211,7 +211,7 @@ class Gate(ABC, metaclass=_GateMetaClass):
         pass
 
     @classmethod
-    def inverse(cls) -> Gate:
+    def inverse_gate(cls) -> Gate:
         """
         Return the inverse of the gate.
 
