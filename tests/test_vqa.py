@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 import qutip
-from qutip_qip.operations import expand_operator
+from qutip_qip.operations import expand_operator, H
 from qutip_qip.vqa import (
     VQA,
     VQABlock,
@@ -89,7 +89,7 @@ class TestVQACircuit:
         """
         vqa = VQA(num_qubits=1, num_layers=3)
         initial_block = VQABlock(qutip.sigmax(), initial=True)
-        h_block = VQABlock("SNOT", targets=[0])
+        h_block = VQABlock(H.get_qobj(), targets=[0])
         vqa.add_block(initial_block)
         vqa.add_block(h_block)
         # Expect [X, H, H, H] for the three layers

@@ -1,15 +1,7 @@
 import numpy as np
-import cmath
 import pytest
 
-from qutip import (
-    Qobj,
-    average_gate_fidelity,
-    rand_unitary,
-    sigmax,
-    sigmay,
-    sigmaz,
-)
+from qutip import average_gate_fidelity
 from qutip_qip.decompose.decompose_single_qubit_gate import (
     _ZYZ_rotation,
     _ZXZ_rotation,
@@ -17,22 +9,17 @@ from qutip_qip.decompose.decompose_single_qubit_gate import (
 )
 from qutip_qip.decompose import decompose_one_qubit_gate
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations.gates import snot, sqrtnot
+from qutip_qip.operations import H, X, Y, Z, S, T, SQRTX
 
 # Fidelity closer to 1 means the two states are similar to each other
-H = snot()
-sigmax = sigmax()
-sigmay = sigmay()
-sigmaz = sigmaz()
-SQRTNOT = sqrtnot()
-T = Qobj([[1, 0], [0, cmath.rect(1, np.pi / 4)]])
-S = Qobj([[1, 0], [0, 1j]])
 target = 0
+gate_list = [H, X, Y, Z, SQRTX, S, T]
 
+# TODO Add a custom gate - rand_unitary(2)
 
 # Tests for private functions
 @pytest.mark.parametrize(
-    "gate", [H, sigmax, sigmay, sigmaz, SQRTNOT, S, T, rand_unitary(2)]
+    "gate", gate_list
 )
 @pytest.mark.parametrize(
     "method", [_ZYZ_rotation, _ZXZ_rotation, _ZYZ_pauli_X]
@@ -40,38 +27,38 @@ target = 0
 def test_single_qubit_to_rotations(gate, method):
     """Initial matrix and product of final decompositions are same within some
     phase."""
-    gate_list = method(gate)
+    gate_list = method(gate.get_qobj())
     circuit = QubitCircuit(1)
     for g in gate_list:
         circuit.add_gate(g, targets=[0])
     decomposed_gates_final_matrix = circuit.compute_unitary()
     fidelity_of_input_output = average_gate_fidelity(
-        gate, decomposed_gates_final_matrix
+        gate.get_qobj(), decomposed_gates_final_matrix
     )
     assert np.isclose(fidelity_of_input_output, 1.0)
 
 
 @pytest.mark.parametrize(
-    "gate", [H, sigmax, sigmay, sigmaz, SQRTNOT, S, T, rand_unitary(2)]
+    "gate", gate_list
 )
 @pytest.mark.parametrize("method", ["ZXZ", "ZYZ", "ZYZ_PauliX"])
 def test_check_single_qubit_to_decompose_to_rotations(gate, method):
     """Initial matrix and product of final decompositions are same within some
     phase."""
     circuit = QubitCircuit(1)
-    gate_list = decompose_one_qubit_gate(gate, method)
+    gate_list = decompose_one_qubit_gate(gate.get_qobj(), method)
     for g in gate_list:
         circuit.add_gate(g, targets=[0])
 
     decomposed_gates_final_matrix = circuit.compute_unitary()
     fidelity_of_input_output = average_gate_fidelity(
-        gate, decomposed_gates_final_matrix
+        gate.get_qobj(), decomposed_gates_final_matrix
     )
     assert np.isclose(fidelity_of_input_output, 1.0)
 
 
 @pytest.mark.parametrize(
-    "gate", [H, sigmax, sigmay, sigmaz, SQRTNOT, S, T, rand_unitary(2)]
+    "gate", gate_list
 )
 @pytest.mark.parametrize(
     "method", [_ZYZ_rotation, _ZXZ_rotation, _ZYZ_pauli_X]
@@ -79,17 +66,17 @@ def test_check_single_qubit_to_decompose_to_rotations(gate, method):
 def test_output_is_tuple(gate, method):
     """Initial matrix and product of final decompositions are same within some
     phase."""
-    gate_list = method(gate)
+    gate_list = method(gate.get_qobj())
     assert isinstance(gate_list, tuple)
 
 
 # Tests for public functions
 @pytest.mark.parametrize(
-    "gate", [H, sigmax, sigmay, sigmaz, SQRTNOT, S, T, rand_unitary(2)]
+    "gate", gate_list
 )
 @pytest.mark.parametrize("method", ["ZXZ", "ZYZ", "ZYZ_PauliX"])
 def test_check_single_qubit_to_decompose_to_rotations_tuple(gate, method):
     """Initial matrix and product of final decompositions are same within some
     phase."""
-    gate_list = decompose_one_qubit_gate(gate, method)
+    gate_list = decompose_one_qubit_gate(gate.get_qobj(), method)
     assert isinstance(gate_list, tuple)

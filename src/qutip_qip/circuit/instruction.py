@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from qutip_qip.operations import Gate, Measurement, ParametrizedGate
+from qutip_qip.operations import Gate, Measurement
 
 
 def _validate_non_negative_int_tuple(T: any, txt: str = ""):
@@ -63,7 +63,7 @@ class GateInstruction(CircuitInstruction):
 
     def __post_init__(self) -> None:
         super().__post_init__()
-        if not isinstance(self.operation, Gate):
+        if not (isinstance(self.operation, Gate) or issubclass(self.operation, Gate)):
             raise TypeError(f"Operation must be a Gate, got {self.operation}")
 
         if len(self.qubits) != self.operation.num_qubits:
@@ -90,11 +90,15 @@ class GateInstruction(CircuitInstruction):
 
     @property
     def controls(self) -> tuple[int]:
-        return self.qubits[: self.operation.num_ctrl_qubits]
+        if self.operation.is_controlled_gate():
+            return self.qubits[: self.operation.num_ctrl_qubits]
+        return ()
 
     @property
     def targets(self) -> tuple[int]:
-        return self.qubits[self.operation.num_ctrl_qubits :]
+        if self.operation.is_controlled_gate():
+            return self.qubits[self.operation.num_ctrl_qubits :]
+        return self.qubits
 
     def is_gate_instruction(self) -> bool:
         return True
@@ -102,7 +106,7 @@ class GateInstruction(CircuitInstruction):
     def to_qasm(self, qasm_out) -> None:
         gate = self.operation
         args = None
-        if isinstance(gate, ParametrizedGate):
+        if gate.is_parametric_gate():
             args = gate.arg_value
 
         qasm_gate = qasm_out.qasm_name(gate.name)

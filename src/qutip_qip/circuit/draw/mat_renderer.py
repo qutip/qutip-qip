@@ -14,11 +14,7 @@ from matplotlib.patches import (
 
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.circuit.draw import BaseRenderer, StyleConfig
-from qutip_qip.operations import (
-    Gate,
-    ControlledGate,
-    ParametrizedGate,
-)
+from qutip_qip.operations import Gate
 
 
 class MatRenderer(BaseRenderer):
@@ -50,7 +46,7 @@ class MatRenderer(BaseRenderer):
         super().__init__(self.style)
         self._qc = qc
         self._ax = ax
-        self._qwires = qc.N
+        self._qwires = qc.num_qubits
         self._cwires = qc.num_cbits
 
         # default values
@@ -788,7 +784,7 @@ class MatRenderer(BaseRenderer):
                 style = style if style is not None else {}
                 self.text = gate.name
 
-                if isinstance(gate, ParametrizedGate):
+                if gate.is_parametric_gate():
                     self.text = (
                         gate.arg_label
                         if gate.arg_label is not None

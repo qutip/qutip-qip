@@ -4,7 +4,7 @@ from copy import deepcopy
 import numpy as np
 
 from qutip import Qobj, QobjEvo, mesolve, mcsolve
-from qutip_qip.operations import globalphase
+from qutip_qip.operations import GLOBALPHASE
 from qutip_qip.noise import Noise, process_noise
 from qutip_qip.device import Model
 from qutip_qip.device.utils import _pulse_interpolate
@@ -1027,7 +1027,7 @@ class Processor:
         try:  # correct_global_phase are defined for ModelProcessor
             if self.correct_global_phase and self.global_phase != 0:
                 U_list.append(
-                    globalphase(self.global_phase, N=self.num_qubits)
+                    GLOBALPHASE(self.global_phase).get_qobj(self.num_qubits)
                 )
         except AttributeError:
             pass
@@ -1110,6 +1110,7 @@ class Processor:
             warnings.warn(
                 "states will be deprecated and replaced by init_state",
                 DeprecationWarning,
+                stacklevel=2
             )
         if init_state is None and states is None:
             raise ValueError("Qubit state not defined.")

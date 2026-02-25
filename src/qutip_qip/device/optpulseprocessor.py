@@ -70,8 +70,9 @@ class OptPulseProcessor(Processor):
 
         >>> from qutip_qip.circuit import QubitCircuit
         >>> from qutip_qip.device import OptPulseProcessor
+        >>> from qutip_qip.operations import H
         >>> qc = QubitCircuit(1)
-        >>> qc.add_gate("SNOT", targets=0)
+        >>> qc.add_gate(H, targets=0)
         >>> num_tslots = 10
         >>> evo_time = 10
         >>> processor = OptPulseProcessor(1, drift=sigmaz())
@@ -84,17 +85,18 @@ class OptPulseProcessor(Processor):
 
         >>> from qutip_qip.circuit import QubitCircuit
         >>> from qutip_qip.device import OptPulseProcessor
+        >>> from qutip_qip.operations import H, SWAP, CX
         >>> qc = QubitCircuit(2)
-        >>> qc.add_gate("SNOT", targets=0)
-        >>> qc.add_gate("SWAP", targets=[0, 1])
-        >>> qc.add_gate('CNOT', controls=1, targets=[0])
+        >>> qc.add_gate(H, targets=0)
+        >>> qc.add_gate(SWAP, targets=[0, 1])
+        >>> qc.add_gate(CX, controls=1, targets=[0])
         >>> processor = OptPulseProcessor(2, drift=tensor([sigmaz()]*2))
         >>> processor.add_control(sigmax(), cyclic_permutation=True)
         >>> processor.add_control(sigmay(), cyclic_permutation=True)
         >>> processor.add_control(tensor([sigmay(), sigmay()]))
-        >>> setting_args = {"SNOT": {"num_tslots": 10, "evo_time": 1},\
+        >>> setting_args = {"H": {"num_tslots": 10, "evo_time": 1},\
                         "SWAP": {"num_tslots": 30, "evo_time": 3},\
-                        "CNOT": {"num_tslots": 30, "evo_time": 3}}
+                        "CX": {"num_tslots": 30, "evo_time": 3}}
         >>> tlist, coeffs = processor.load_circuit(\
                 qc, setting_args=setting_args, merge_gates=False)
 

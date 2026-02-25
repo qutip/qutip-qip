@@ -15,7 +15,7 @@ from qutip_qip.compiler import (
     GateCompiler,
 )
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import ParametrizedGate
+from qutip_qip.operations import ParametricGate, X, RX
 from qutip import basis, fidelity
 
 
@@ -26,8 +26,8 @@ def test_compiling_with_scheduler():
     The numerical results are tested in test_device.py
     """
     circuit = QubitCircuit(2)
-    circuit.add_gate("X", targets=0)
-    circuit.add_gate("X", targets=1)
+    circuit.add_gate(X, targets=0)
+    circuit.add_gate(X, targets=1)
     processor = DispersiveCavityQED(2)
 
     processor.load_circuit(circuit, schedule_mode=None)
@@ -79,27 +79,33 @@ def test_compiling_gates_different_sampling_number():
                 )
             ]
 
-    class U1(ParametrizedGate):
-        @property
-        def num_qubits(self) -> int:
-            return 1
+    class U1(ParametricGate):
+        num_qubits = 1
+        num_params = 1
+        self_inverse = False
 
-        def get_compact_qobj(self):
+        def get_qobj(self):
             pass
 
-    class U2(ParametrizedGate):
-        @property
-        def num_qubits(self) -> int:
-            return 2
+        def validate_params(self, arg_value):
+            pass
 
-        def get_compact_qobj(self):
+    class U2(ParametricGate):
+        num_qubits = 2
+        num_params = 1
+        self_inverse = False
+
+        def get_qobj(self):
+            pass
+
+        def validate_params(self, arg_value):
             pass
 
     num_qubits = 2
     circuit = QubitCircuit(num_qubits)
-    circuit.add_gate(U1, targets=0, arg_value=1.0)
-    circuit.add_gate(U2, targets=[0, 1], arg_value=1.0)
-    circuit.add_gate(U1, targets=0, arg_value=1.0)
+    circuit.add_gate(U1(arg_value=1.0), targets=0)
+    circuit.add_gate(U2(1.0), targets=[0, 1])
+    circuit.add_gate(U1(1.0), targets=0)
 
     compiler = MockCompiler(num_qubits=2)
     compiled_tlists, compiled_coeffs = compiler.compile(circuit)
@@ -131,7 +137,7 @@ class MyCompiler(GateCompiler):  # compiler class
             1000,
             maximum=args["params"]["sx"][targets[0]],
             # The operator is Pauli Z/X/Y, without 1/2.
-            area=circuit_instruction.operation.arg_value / 2.0 / np.pi * 0.5,
+            area=circuit_instruction.operation.arg_value[0] / 2.0 / np.pi * 0.5,
         )
         pulse_info = [("sx" + str(targets[0]), coeff)]
         return [PulseInstruction(circuit_instruction, tlist, pulse_info)]
@@ -153,9 +159,9 @@ schedule_mode = [
 def test_compiler_with_continous_pulse(spline_kind, schedule_mode):
     num_qubits = 2
     circuit = QubitCircuit(num_qubits)
-    circuit.add_gate("X", targets=0)
-    circuit.add_gate("X", targets=1)
-    circuit.add_gate("X", targets=0)
+    circuit.add_gate(X, targets=0)
+    circuit.add_gate(X, targets=1)
+    circuit.add_gate(X, targets=0)
 
     processor = CircularSpinChain(num_qubits)
     processor.spline_kind = spline_kind
@@ -173,7 +179,7 @@ def rx_compiler_without_pulse_dict(circuit_instruction, args):
     give the index of control pulses in the Processor.
     """
     targets = circuit_instruction.targets
-    arg_value = circuit_instruction.operation.arg_value
+    arg_value = circuit_instruction.operation.arg_value[0]
     g = args["params"]["sx"][targets[0]]
     coeff = np.sign(arg_value) * g
     tlist = abs(arg_value) / (2 * g) / np.pi / 2
@@ -187,8 +193,8 @@ def test_compiler_without_pulse_dict():
     """
     num_qubits = 2
     circuit = QubitCircuit(num_qubits)
-    circuit.add_gate("X", targets=[0])
-    circuit.add_gate("X", targets=[1])
+    circuit.add_gate(X, targets=[0])
+    circuit.add_gate(X, targets=[1])
     processor = CircularSpinChain(num_qubits)
     compiler = SpinChainCompiler(
         num_qubits, params=processor.params, setup="circular"
@@ -209,7 +215,7 @@ def test_compiler_result_format():
     """
     num_qubits = 1
     circuit = QubitCircuit(num_qubits)
-    circuit.add_gate("RX", targets=[0], arg_value=np.pi / 2)
+    circuit.add_gate(RX(np.pi / 2), targets=[0])
     processor = LinearSpinChain(num_qubits)
     compiler = SpinChainCompiler(
         num_qubits, params=processor.params, setup="circular"

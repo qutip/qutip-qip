@@ -24,13 +24,13 @@ class TestQFT:
         """
         for N in range(1, 6):
             circuit = qft_gate_sequence(N, swapping=False)
-            assert_equal(circuit.N, N)
+            assert_equal(circuit.num_qubits, N)
 
             totsize = N * (N + 1) / 2
             assert_equal(len(circuit.instructions), totsize)
 
             snots = sum(
-                g.operation.name == "SNOT" for g in circuit.instructions
+                g.operation.name == "H" for g in circuit.instructions
             )
             assert_equal(snots, N)
 

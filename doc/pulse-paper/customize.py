@@ -51,7 +51,7 @@ class MyModel(Model):
         elif label[:2] == "sy":
             return 2 * np.pi * sigmay() / 2, [targets]
         else:
-            raise NotImplementError("Unknown control.")
+            raise ValueError("Unknown control.")
 
 
 class MyCompiler(GateCompiler):

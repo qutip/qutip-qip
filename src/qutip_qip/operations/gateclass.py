@@ -1,277 +1,466 @@
-from collections.abc import Iterable
-from abc import ABC, abstractmethod
+from abc import ABC, ABCMeta, abstractmethod
+import inspect
 
 import numpy as np
 from qutip import Qobj
-from qutip_qip.operations import controlled_gate, expand_operator
-
-"""
-.. testsetup::
-
-   import numpy as np
-   np.set_printoptions(5)
-"""
+from qutip_qip.operations import controlled_gate
 
 
-class Gate(ABC):
+class _GateMetaClass(ABCMeta):
+    """
+    The purpose of this meta class is to enforce read-only constraints on specific class attributes.
+    
+    This meta class prevents critical attributes from being overwritten 
+    after definition, while still allowing them to be set during inheritance.
+
+    For example:
+         class X(Gate):
+            num_qubits = 1   # Allowed (during class creation)
+
+    But:
+        X.num_qubits = 2     # Raises AttributeError (prevention of overwrite)
+
+    This is required since num_qubits etc. are class attributes (shared by all object instances).
+    """
+
+    _read_only = ["num_qubits", "num_ctrl_qubits", "num_params", "target_gate", "self_inverse", "is_clifford"]
+    _read_only_set = set(_read_only)
+
+    def __setattr__(cls, name: str, value: any) -> None:
+        for attribute in cls._read_only_set:
+            if name == attribute and hasattr(cls, attribute):
+                raise AttributeError(f"{attribute} is read-only!")
+            super().__setattr__(name, value)
+
+
+class Gate(ABC, metaclass=_GateMetaClass):
     r"""
-    Base class for a quantum gate,
-    concrete gate classes need to be defined as subclasses.
+    Abstract base class for a quantum gate.
+
+    Concrete gate classes or gate implementations should be defined as subclasses 
+    of this class.
+
+    Attributes
+    ----------
+    name : str
+        The name of the gate. If not manually set, this defaults to the 
+        class name. This is a class attribute; modifying it affects all 
+        instances.
+
+    num_qubits : int
+        The number of qubits the gate acts upon. This is a mandatory 
+        class attribute for subclasses.
+
+    self_inverse: bool
+        Indicates if the gate is its own inverse (e.g., $U = U^{-1}$).
+
+    is_clifford: bool
+        Indicates if the gate belongs to the Clifford group, which maps 
+        Pauli operators to Pauli operators. Default value is False
+
+    latex_str : str
+        The LaTeX string representation of the gate (used for circuit drawing).
+        Defaults to the class name if not provided.
+    """
+
+    def __init_subclass__(cls, **kwargs):
+        """
+        Automatically runs when a new subclass is defined via inheritance.
+
+        This method sets the ``name`` and ``latex_str`` attributes 
+        if they are not defined in the subclass. It also validates that 
+        ``num_qubits`` is a non-negative integer.
+        """
+
+        super().__init_subclass__(**kwargs)
+        if inspect.isabstract(cls): # Skip the below check for an abstract class
+            return
+
+        # If name attribute in subclass is not defined, set it to the name of the subclass
+        # e.g. class H(Gate):
+        #         pass
+        
+        #      print(H.name) -> 'H'
+        
+        # e.g. class H(Gate):
+        #         name = "Hadamard"
+        #         pass
+        
+        #      print(H.name) -> 'Hadamard'
+
+        if "name" not in cls.__dict__:
+            cls.name = cls.__name__
+
+        # Same as above for attribute latex_str (used in circuit draw)
+        if "latex_str" not in cls.__dict__:
+            cls.latex_str = cls.__name__
+
+        # Assert num_qubits is a non-negative integer
+        num_qubits = getattr(cls, "num_qubits", None)
+        if (type(num_qubits) is not int) or (num_qubits < 0):
+            raise TypeError(
+                f"Class '{cls.__name__}' attribute 'num_qubits' must be a non-negative integer, "
+                f"got {type(num_qubits)} with value {num_qubits}."
+            )
+
+    @property
+    @abstractmethod
+    def num_qubits(self) -> Qobj:
+        pass
+
+    @staticmethod
+    @abstractmethod
+    def get_qobj() -> Qobj:
+        """
+        Get the :class:`qutip.Qobj` representation of the gate operator.
+
+        Returns
+        -------
+        qobj : :obj:`qutip.Qobj`
+            The compact gate operator as a unitary matrix.
+        """
+        pass
+
+    @property
+    def is_clifford(self) -> bool:
+        return False
+
+    @property
+    @abstractmethod
+    def self_inverse(self) -> bool:
+        pass
+
+    def inverse(self):
+        """
+        Return the inverse of the gate.
+
+        If ``self_inverse`` is True, returns ``self``. Otherwise, 
+        returns the specific inverse gate class.
+
+        Returns
+        -------
+        Gate
+            A Gate instance representing $G^{-1}$.
+        """
+        if self.self_inverse:
+            return self
+        # Implement this via gate factory?
+
+    @staticmethod
+    def is_controlled_gate() -> bool:
+        """
+        Check if the gate is a controlled gate.
+
+        Returns
+        -------
+        bool
+        """
+        return False
+
+    @staticmethod
+    def is_parametric_gate() -> bool:
+        """
+        Check if the gate accepts variable parameters (e.g., rotation angles).
+
+        Returns
+        -------
+        bool
+            True if the gate is parametric (e.g., RX, RY, RZ), False otherwise.
+        """
+        return False
+
+    def __str__(self) -> str:
+        return f"Gate({self.name})"
+
+    def __repr__(self) -> str:
+        return f"Gate({self.name}, num_qubits={self.num_qubits}, qobj={self.get_qobj()})"
+
+
+class ParametricGate(Gate):
+    r"""
+    Abstract base class for parametric quantum gates.
 
     Parameters
     ----------
-    arg_value : object
-        Argument value of the gate. It will be saved as an attributes and
-        can be accessed when generating the `:obj:qutip.Qobj`.
-    control_value : int, optional
-        The decimal value of controlling bits for executing
-        the unitary operator on the target qubits.
-        E.g. if the gate should be executed when the zero-th bit is 1,
-        ``controll_value=1``;
-        If the gate should be executed when the two bits are 1 and 0,
-        ``controll_value=2``.
-    arg_label : string
-        Label for the argument, it will be shown in the circuit plot,
-        representing the argument value provided to the gate, e.g,
-        if ``arg_label="\phi" the latex name for the gate in the circuit plot
-        will be ``$U(\phi)$``.
-    name : string, optional
-        The name of the gate. This is kept for backward compatibility
-        to identify different gates.
-        In most cases it is identical to the class name,
-        but that is not guaranteed.
-        It is recommended to use ``isinstance``
-        or ``issubclass`` to identify a gate rather than
-        comparing the name string.
+    arg_value : float or Sequence
+        The argument value(s) for the gate. If a single float is provided,
+        it is converted to a list. These values are saved as attributes 
+        and can be accessed or modified later.
+
+    arg_label : str, optional
+        Label for the argument to be shown in the circuit plot. 
+        
+        Example:
+        If ``arg_label="\phi"``, the LaTeX name for the gate in the circuit 
+        plot will be rendered as ``$U(\phi)$``.
+
+    Attributes
+    ----------
+    num_params : int
+        The number of parameters required by the gate. This is a mandatory 
+        class attribute for subclasses.
+
+    arg_value : Sequence
+        The numerical values of the parameters provided to the gate.
+
+    arg_label : str, optional
+        The LaTeX string representing the parameter variable in circuit plots.
+
+    Raises
+    ------
+    ValueError
+        If the number of provided arguments does not match `num_params`.
     """
 
-    latex_str = r"U"
+    def __init_subclass__(cls, **kwargs) -> None:
+        """
+        Validates the subclass definition.
 
-    def __init_subclass__(cls, **kwargs):
+        Ensures that `num_params` is defined as a positive integer.
+        """
         super().__init_subclass__(**kwargs)
-        cls.latex_str = cls.__name__
+        if inspect.isabstract(cls):
+            return
 
-    def __init__(
-        self,
-        name: str = None,
-    ):
-        """
-        Create a gate with specified parameters.
-        """
-        self.name = name if name is not None else self.__class__.__name__
+        # Assert num_params is a positive integer
+        num_params = getattr(cls, "num_params", None)
+        if (type(num_params) is not int) or (num_params < 1):
+            raise TypeError(
+                f"Class '{cls.__name__}' attribute 'num_params' must be a postive integer, "
+                f"got {type(num_params)} with value {num_params}."
+            )
+
+    def __init__(self, arg_value: float, arg_label: str | None = None):
+        if type(arg_value) is float or type(arg_value) is np.float64:
+            arg_value = [arg_value]
+
+        if len(arg_value) != self.num_params:
+            raise ValueError(f"Requires {self.num_params} parameters, got {len(arg_value)} parameters")
+
+        self.validate_params(arg_value)
+        self.arg_value = arg_value
+        self.arg_label = arg_label
 
     @property
     @abstractmethod
-    def num_qubits(self) -> int:
+    def num_params(self) -> Qobj:
         pass
-
-    @property
-    def num_ctrl_qubits(self) -> int:
-        return 0
 
     @abstractmethod
-    def get_compact_qobj(self) -> Qobj:
-        """
-        Get the compact :class:`qutip.Qobj` representation of the gate
-        operator, ignoring the controls and targets.
-        In the unitary representation,
-        it always assumes that the first few qubits are controls,
-        then targets.
+    def validate_params(self, arg_value):
+        r"""
+        Validate the provided parameters.
 
-        Returns
-        -------
-        qobj : :obj:`qutip.Qobj`
-            The compact gate operator as a unitary matrix.
-        """
-        pass
-
-    def get_qobj(self, qubits, dims=None):
-        """
-        Get the :class:`qutip.Qobj` representation of the gate operator.
-        The operator is expanded to the full Hilbert space according to
-        the controls and targets qubits defined for the gate.
+        This method should be implemented by subclasses to check if the 
+        parameters are valid type and within valid range (e.g., $0 \le \theta < 2\pi$).
 
         Parameters
         ----------
-        num_qubits : int, optional
-            The number of qubits.
-            If not given, use the minimal number of qubits required
-            by the target and control qubits.
-        dims : list, optional
-            A list representing the dimensions of each quantum system.
-            If not given, it is assumed to be an all-qubit system.
+        arg_value : list of float
+            The parameters to validate.
+        """
+        pass
+
+    @abstractmethod
+    def get_qobj(self) -> Qobj:
+        """
+        Get the QuTiP quantum object representation using the current parameters.
 
         Returns
         -------
-        qobj : :obj:`qutip.Qobj`
-            The compact gate operator as a unitary matrix.
+        qobj : qutip.Qobj
+            The unitary matrix representing the gate with the specific `arg_value`.
         """
-        # This method isn't being used in the codebase
-        return expand_operator(
-            self.get_compact_qobj(),
-            dims=dims,
-            targets=qubits,
-        )
+        pass
+
+    @staticmethod
+    def is_parametric_gate():
+        return True
 
     def __str__(self):
         return f"""
-            Gate({self.name},
+            Gate({self.name}, arg_value={self.arg_value},
+            arg_label={self.arg_label}),
         """
-
-    def __repr__(self):
-        return str(self)
-
-    def _repr_latex_(self):
-        return str(self)
 
 
 class ControlledGate(Gate):
+    r"""
+    Abstract base class for controlled quantum gates.
+
+    A controlled gate applies a target unitary operation only when the control 
+    qubits are in a specific state. 
+
+    Parameters
+    ----------
+    control_value : int, optional
+        The decimal value of the control state required to execute the 
+        unitary operator on the target qubits.
+        
+        Examples:
+        * If the gate should execute when the 0-th qubit is $|1\rangle$, 
+            set ``control_value=1``.
+        * If the gate should execute when two control qubits are $|10\rangle$ 
+            (binary 10), set ``control_value=2``.
+        
+        Defaults to all-ones (e.g., $2^N - 1$) if not provided.
+
+    Attributes
+    ----------
+    num_ctrl_qubits : int
+        The number of qubits acting as controls.
+
+    target_gate : Gate
+        The gate to be applied to the target qubits.
+    """
+
+    def __init_subclass__(cls, **kwargs):
+        """
+        Validates the subclass definition.
+
+        Ensures that:
+        1. `num_ctrl_qubits` is a positive integer.
+        2. `num_ctrl_qubits` is less than the total `num_qubits`.
+        3. The sum of `num_ctrl_qubits` and `target.num_qubits` equals the total `num_qubits`.
+        """
+
+        super().__init_subclass__(**kwargs)
+        if inspect.isabstract(cls):
+            return
+
+        # Assert num_ctrl_qubits is a positive integer
+        num_ctrl_qubits = getattr(cls, "num_ctrl_qubits", None)
+        if (type(num_ctrl_qubits) is not int) or (num_ctrl_qubits < 1):
+            raise TypeError(
+                f"Class '{cls.__name__}' attribute 'num_ctrl_qubits' must be a postive integer, "
+                f"got {type(num_ctrl_qubits)} with value {num_ctrl_qubits}."
+            )
+
+        if cls.num_ctrl_qubits >= cls.num_qubits:
+            raise ValueError(f"{cls.__name__}: 'num_ctrl_qubits' must be less than the 'num_qubits'")
+
+        # Assert num_ctrl_qubits + target_gate.num_qubits = num_qubits
+        if cls.num_ctrl_qubits + cls.target_gate.num_qubits != cls.num_qubits:
+            raise AttributeError(f"'num_ctrls_qubits' {cls.num_ctrl_qubits} + 'target_gate qubits' {cls.target_gate.num_qubits} must be equal to 'num_qubits' {cls.num_qubits}")
+
+        # Default value for control_value
+        cls._control_value = 2**cls.num_ctrl_qubits - 1
+
     def __init__(
         self,
-        target_gate=None,
-        control_value=None,
-    ):
-        if target_gate is None:
-            if self._target_gate_class is not None:
-                target_gate = self._target_gate_class
-            else:
-                raise ValueError(
-                    "target_gate must be provided either as argument or class attribute."
-                )
-
-        super().__init__()
-        self.target_gate = target_gate
-        if control_value is None:
-            self._control_value = 2**self.num_ctrl_qubits - 1
-        else:
+        arg_value: any = None,
+        control_value: int | None = None,
+        arg_label: str | None = None,
+    ) -> None:
+        if control_value is not None:
             self._validate_control_value(control_value)
             self._control_value = control_value
+
+        if self.is_parametric_gate():
+            ParametricGate.__init__(self, arg_value=arg_value, arg_label=arg_label)
+
         # In the circuit plot, only the target gate is shown.
         # The control has its own symbol.
-        self.latex_str = target_gate.latex_str
+        self.latex_str = self.target_gate.latex_str
+
+    @property
+    @abstractmethod
+    def num_ctrl_qubits() -> int:
+        pass
+
+    @property
+    @abstractmethod
+    def target_gate() -> int:
+        pass
+
+    @property
+    def self_inverse(self) -> int:
+        return self.target_gate.self_inverse
 
     @property
     def control_value(self) -> int:
         return self._control_value
 
-    @property
-    def num_qubits(self) -> int:
-        return self.target_gate.num_qubits + self.num_ctrl_qubits
+    def _validate_control_value(self, control_value: int) -> None:
+        """
+        Internal validation for the control value.
 
-    @property
-    @abstractmethod
-    def num_ctrl_qubits(self) -> int:
-        raise NotImplementedError
-
-    def _validate_control_value(self, control_value: int):
-        if type(control_value) is not int:
-            raise TypeError(
-                f"Control value must be an int, got {control_value}"
-            )
-
-        if control_value < 0:
-            raise ValueError(
-                f"Control value can't be negative, got {control_value}"
-            )
-
-        if control_value > 2**self.num_ctrl_qubits - 1:
-            raise ValueError(
-                f"""Control value can't be greater than 2^num_ctrl_qubits - 1,
-                     got {control_value}"""
-            )
-
-    def __str__(self):
-        return f"""
-            Gate({self.name},
-            control_value={self.control_value},
+        Raises
+        ------
+        TypeError
+            If control_value is not an integer.
+        ValueError
+            If control_value is negative or exceeds the maximum value 
+            possible for the number of control qubits ($2^N - 1$).
         """
 
-    def get_compact_qobj(self):
+        if type(control_value) is not int:
+            raise TypeError(f"Control value must be an int, got {control_value}")
+
+        if control_value < 0:
+            raise ValueError(f"Control value can't be negative, got {control_value}")
+
+        if control_value > 2**self.num_ctrl_qubits - 1:
+            raise ValueError(f"Control value can't be greater than 2^num_ctrl_qubits - 1, got {control_value}")
+
+    def get_qobj(self) -> Qobj:
+        """
+        Construct the full Qobj representation of the controlled gate.
+
+        Returns
+        -------
+        qobj : qutip.Qobj
+            The unitary matrix representing the controlled operation.
+        """
+        if self.is_parametric_gate():
+            return controlled_gate(
+                U=self.target_gate(self.arg_value).get_qobj(),
+                control_value=self.control_value,
+            )
+
         return controlled_gate(
-            U=self.target_gate.get_compact_qobj(),
+            U=self.target_gate.get_qobj(),
             control_value=self.control_value,
         )
 
+    @staticmethod
+    def is_controlled_gate() -> bool:
+        return True
 
-class ParametrizedGate(Gate):
-    def __init__(
-        self,
-        arg_value: float,
-        arg_label: str = None,
-    ):
-        super().__init__()
-        self.arg_label = arg_label
-        self.arg_value = arg_value
+    @classmethod
+    def is_parametric_gate(cls) -> bool:
+        return cls.target_gate.is_parametric_gate()
 
-    def __str__(self):
-        return f"""
-            Gate({self.name}, arg_value={self.arg_value},
-            arg_label={self.arg_label},
-        """
+    def __str__(self) -> str:
+        return f"Gate({self.name}, target_gate={self.target_gate}, num_ctrl_qubits={self.num_ctrl_qubits}, control_value={self.control_value})"
 
 
-class ControlledParamGate(ParametrizedGate, ControlledGate):
-    def __init__(
-        self,
-        arg_value,
-        arg_label=None,
-        target_gate=None,
-        control_value=1,
-    ):
-        if target_gate is None:
-            if self._target_gate_class is not None:
-                target_gate = self._target_gate_class
-            else:
-                raise ValueError(
-                    "target_gate must be provided either as argument or class attribute."
-                )
-
-        ControlledGate.__init__(
-            self,
-            target_gate=target_gate(arg_value=arg_value, arg_label=arg_label),
-            control_value=control_value,
-        )
-        self.arg_label = arg_label
-        self.arg_value = arg_value
-
-    def __str__(self):
-        return f"""
-            Gate({self.name},
-            arg_value={self.arg_value}, arg_label={self.arg_label},
-            control_value={self.control_value},
-        """
-
-
-def custom_gate_factory(name: str, U: Qobj) -> Gate:
+def custom_gate_factory(gate_name: str, U: Qobj) -> Gate:
     """
     Gate Factory for Custom Gate that wraps an arbitrary unitary matrix U.
     """
 
+    inverse = (U == U.dag())
+
     class CustomGate(Gate):
         latex_str = r"U"
+        name = gate_name
+        num_qubits = int(np.log2(U.shape[0]))
+        self_inverse = inverse
 
-        def __init__(
-            self,
-        ):
-            super().__init__(
-                name=name,
-            )
+        def __init__(self):
             self._U = U
 
         @staticmethod
-        def get_compact_qobj():
+        def get_qobj():
             return U
-
-        @property
-        def num_qubits(self) -> int:
-            return int(np.log2(U.shape[0]))
 
     return CustomGate
 
 
 def controlled_gate_factory(
-    target_gate: Gate,
-    num_ctrl_qubits: int = 1,
+    gate: Gate,
+    n_ctrl_qubits: int = 1,
     control_value: int = -1,
 ) -> ControlledGate:
     """
@@ -279,49 +468,28 @@ def controlled_gate_factory(
     """
 
     class _CustomGate(ControlledGate):
-        latex_str = r"{\rm CU}"
-        _target_gate_class = target_gate
+        latex_str = rf"C{gate.name}"
+        target_gate = gate
+        num_qubits = n_ctrl_qubits + target_gate.num_qubits
+        num_ctrl_qubits = n_ctrl_qubits
 
         @property
         def control_value(self) -> int:
             if control_value == -1:
-                return 2**num_ctrl_qubits - 1
+                return 2**n_ctrl_qubits - 1
             return control_value
-
-        @property
-        def num_ctrl_qubits(self) -> int:
-            return num_ctrl_qubits
-
-        @property
-        def num_qubits(self) -> int:
-            return target_gate.num_qubits + self.num_ctrl_qubits
 
     return _CustomGate
 
 
-class SingleQubitGate(Gate):
-    """Abstract one-qubit gate."""
+class AngleParametricGate(ParametricGate):
+    def validate_params(self, arg_value):
+        for arg in arg_value:
+            try:
+                float(arg)
+            except TypeError:
+                raise ValueError(f"Invalid arg {arg} in arg_value")
 
     @property
-    def num_qubits(self) -> int:
-        return 1
-
-
-class ParametrizedSingleQubitGate(ParametrizedGate):
-    @property
-    def num_qubits(self) -> int:
-        return 1
-
-
-class TwoQubitGate(Gate):
-    """Abstract two-qubit gate."""
-
-    @property
-    def num_qubits(self) -> int:
-        return 2
-
-
-class ParametrizedTwoQubitGate(ParametrizedGate):
-    @property
-    def num_qubits(self) -> int:
-        return 2
+    def self_inverse(self) -> int:
+        return False
