@@ -213,7 +213,7 @@ class TestGateExpansion:
         for target in range(self.n_qubits):
             start = qutip.tensor(random[:target] + [base] + random[target:])
             test = (
-                expand_operator(gate.get_qobj(), self.n_qubits, target) * start
+                expand_operator(gate.get_qobj(), targets=target, dims=[2]*self.n_qubits) * start
             )
             expected = qutip.tensor(
                 random[:target] + [applied] + random[target:]
@@ -267,7 +267,7 @@ class TestGateExpansion:
             qubits = others.copy()
             qubits[q1], qubits[q2], qubits[q3] = targets
             test = expand_operator(
-                gate.get_qobj(), self.n_qubits, [q1, q2, q3]
+                gate.get_qobj(), targets=[q1, q2, q3], dims=[2]*self.n_qubits
             ) * qutip.tensor(*qubits)
             expected = _tensor_with_entanglement(
                 qubits, reference, [q1, q2, q3]
