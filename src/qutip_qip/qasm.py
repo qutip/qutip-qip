@@ -543,8 +543,8 @@ class QasmProcessor:
             "h": std.H,
             "t": std.T,
             "s": std.S,
-            # "sdg": sdg,
-            # "tdg": tdg,
+            "sdg": std.Sdag,
+            "tdg": std.Tdag,
         }
         if len(args) == 0:
             args = None
@@ -569,20 +569,6 @@ class QasmProcessor:
         elif name == "id":
             qc.add_gate(
                 std.IDLE,
-                targets=regs[0],
-                classical_controls=classical_controls,
-                classical_control_value=classical_control_value,
-            )
-        elif name == "sdg":
-            qc.add_gate(
-                std.RZ(-np.pi / 2),
-                targets=regs[0],
-                classical_controls=classical_controls,
-                classical_control_value=classical_control_value,
-            )
-        elif name == "tdg":
-            qc.add_gate(
-                std.RZ(-np.pi / 4),
                 targets=regs[0],
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,

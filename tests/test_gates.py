@@ -3,10 +3,10 @@ import pytest
 import itertools
 import numpy as np
 import qutip
-from qutip.core.gates import hadamard_transform, qubit_clifford_group
+from qutip.core.gates import hadamard_transform
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations import (
-    Gate, expand_operator, controlled_gate, unitary_gate
+    Gate, expand_operator, controlled_gate, unitary_gate, qubit_clifford_group
 )
 import qutip_qip.operations.std as std
 
@@ -136,7 +136,6 @@ class TestExplicitForm:
         )
 
 
-@pytest.mark.skip("qubit_clifford_group was deprecated in gates.py")
 class TestCliffordGroup:
     """
     Test a sufficient set of conditions to prove that we have a full Clifford
