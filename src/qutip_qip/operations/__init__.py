@@ -11,7 +11,7 @@ from .gateclass import Gate, unitary_gate
 from .parametric import ParametricGate, AngleParametricGate
 from .controlled import ControlledGate, controlled_gate
 from .measurement import Measurement
-from .gates import (
+from .old_gates import (
     rx,
     ry,
     rz,
