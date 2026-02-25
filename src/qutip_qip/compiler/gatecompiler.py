@@ -119,7 +119,7 @@ class GateCompiler(object):
 
     def compile(self, circuit, schedule_mode=None, args=None):
         """
-        Compile the the native gates into control pulse sequence.
+        Compile the native gates into control pulse sequence.
         It calls each compiling method and concatenates
         the compiled pulses.
 
@@ -144,7 +144,7 @@ class GateCompiler(object):
         Returns
         -------
         tlist, coeffs: array_like or dict
-            Compiled ime sequence and pulse coefficients.
+            Compiled time sequence and pulse coefficients.
             if ``return_array`` is true, return
             A 2d NumPy array of the shape ``(len(ctrls), len(tlist))``.
             Each row corresponds to the control pulse sequence for
