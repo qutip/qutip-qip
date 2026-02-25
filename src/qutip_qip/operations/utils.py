@@ -7,7 +7,11 @@ from scipy.linalg import block_diag
 from qutip import Qobj, identity, tensor
 
 
-def _check_oper_dims(oper: Qobj, dims=None, targets=None):
+def _check_oper_dims(
+    oper: Qobj,
+    dims: Iterable[int] | None = None,
+    targets: Iterable[int] | None = None,
+) -> None:
     """
     Check if the given operator is valid.
 
@@ -27,7 +31,8 @@ def _check_oper_dims(oper: Qobj, dims=None, targets=None):
             "The operator is not an "
             "Qobj with the same input and output dimensions."
         )
-    # if operator dims matches the target dims
+
+    # If operator dims matches the target dims
     if dims is not None and targets is not None:
         targ_dims = [dims[t] for t in targets]
         if oper.dims[0] != targ_dims:
@@ -37,7 +42,11 @@ def _check_oper_dims(oper: Qobj, dims=None, targets=None):
             )
 
 
-def _targets_to_list(targets, oper=None, N=None):
+def _targets_to_list(
+    targets: int | Iterable[int],
+    oper: Qobj | None = None,
+    N: int | None = None
+) -> list[int]:
     """
     transform targets to a list and check validity.
 
@@ -82,7 +91,7 @@ def expand_operator(
     dims: Iterable[int],
     targets: int | Iterable[int] | None = None,
     dtype: str | None = None,
-):
+) -> Qobj:
     """
     Expand an operator to one that acts on a system with desired dimensions.
 
@@ -175,8 +184,11 @@ def expand_operator(
 
 
 def gate_sequence_product(
-    U_list, left_to_right=True, inds_list=None, expand=False
-):
+    U_list: list[Qobj],
+    left_to_right: bool = True,
+    inds_list: list[list[int]] | None = None,
+    expand: bool = False
+) -> Qobj | tuple[Qobj, list[int]]:
     """
     Calculate the overall unitary matrix for a given list of unitary operations.
 
