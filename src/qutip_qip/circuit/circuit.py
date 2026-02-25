@@ -248,12 +248,12 @@ class QubitCircuit:
     def add_gate(
         self,
         gate: Gate | str,
-        targets: Iterable[int] = [],
-        controls: Iterable[int] = [],
+        targets: int | Iterable[int] = [],
+        controls: int | Iterable[int] = [],
         arg_value: any = None,
         arg_label: str | None = None,
         control_value: int | None = None,
-        classical_controls: Iterable[int] = [],
+        classical_controls: int | Iterable[int] = [],
         classical_control_value: int | None = None,
         style: dict = None,
         index: None = None,
@@ -337,7 +337,8 @@ class QubitCircuit:
         if len(classical_controls) > 0 and classical_control_value is None:
             classical_control_value = 2 ** (len(classical_controls)) - 1
 
-        # This can be remove if the gate input is only restricted to Gate or its object instead of strings
+        # This conditional block can be remove if the gate input is only
+        # restricted to Gate subclasses or object instead of strings in the future.
         if not isinstance(gate, Gate):
             if type(gate) is str and gate in GATE_CLASS_MAP:
                 warnings.warn(
@@ -369,6 +370,12 @@ class QubitCircuit:
                 gate = gate_class(control_value=control_value)
             else:
                 gate = gate_class
+
+        if gate.is_controlled() and len(controls) != gate.num_ctrl_qubits:
+            raise ValueError(f"{gate.name} takes {gate.num_ctrl_qubits} qubits, but {len(controls)} were provided.")
+
+        if len(controls) + len(targets) != gate.num_qubits:
+            raise ValueError(f"{gate.name} takes {gate.num_qubits} qubits, but {len(controls) + len(targets)} were provided.")
 
         qubits = []
         if controls is not None:

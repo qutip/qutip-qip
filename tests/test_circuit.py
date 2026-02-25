@@ -325,8 +325,7 @@ class TestQubitCircuit:
         assert qc.instructions[2].operation.name == "TOFFOLI"
         assert qc.instructions[4].cbits == (0, 1)
 
-    @pytest.mark.skip(reason="Changing the interface completely")
-    @pytest.mark.parametrize("gate", ["X", "Y", "Z", "S", "T"])
+    @pytest.mark.parametrize("gate", [std.X, std.Y, std.Z, std.S, std.T])
     def test_exceptions(self, gate):
         """
         Text exceptions are thrown correctly for inadequate inputs
@@ -740,7 +739,7 @@ class TestQubitCircuit:
         shutil.which("pdflatex") is None, reason="requires pdflatex"
     )
     def test_export_image(self, in_temporary_directory):
-        from qutip_qip.circuit.texrenderer import CONVERTERS
+        from qutip_qip.circuit.draw import CONVERTERS
 
         qc = QubitCircuit(2, reverse_states=False)
         qc.add_gate(std.CZ, controls=[0], targets=[1])
