@@ -39,7 +39,7 @@ class ControlledGate(Gate):
     num_ctrl_qubits: int
     target_gate: Gate
 
-    def __init_subclass__(cls, **kwargs):
+    def __init_subclass__(cls, **kwargs) -> None:
         """
         Validates the subclass definition.
         """
@@ -167,15 +167,15 @@ class ControlledGate(Gate):
             control_value=self.control_value,
         )
 
-    def inverse(self) -> Gate:
+    def inverse_gate(self) -> Gate:
         if not self.is_parametric():
             inverse_gate = controlled_gate(
-                self.target_gate.inverse(), self.num_ctrl_qubits
+                self.target_gate.inverse_gate(), self.num_ctrl_qubits
             )
             return inverse_gate(control_value=self.control_value)
 
         else:
-            inverse_target_gate = self.target_gate(self.arg_value).inverse()
+            inverse_target_gate = self.target_gate(self.arg_value).inverse_gate()
             arg_value = inverse_target_gate.arg_value
             inverse_gate = controlled_gate(
                 type(inverse_target_gate), self.num_ctrl_qubits
