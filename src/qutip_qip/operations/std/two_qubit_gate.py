@@ -112,7 +112,7 @@ class ISWAPdag(_TwoQubitGate):
 
     self_inverse = False
     is_clifford = True
-    latex_str = r"{i}{\rm SWAPdag}"
+    latex_str = r"{i}{\rm SWAP^\dagger}"
 
     @staticmethod
     def get_qobj() -> Qobj:

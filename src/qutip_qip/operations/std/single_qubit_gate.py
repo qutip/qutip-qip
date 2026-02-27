@@ -358,7 +358,7 @@ class RX(_SingleQubitParametricGate):
     __slots__ = ()
 
     num_params = 1
-    latex_str = r"R_x"
+    latex_str = r"RX"
 
     def get_qobj(self) -> Qobj:
         phi = self.arg_value[0]
@@ -392,7 +392,7 @@ class RY(_SingleQubitParametricGate):
     __slots__ = ()
 
     num_params = 1
-    latex_str = r"R_y"
+    latex_str = r"RY"
 
     def get_qobj(self) -> Qobj:
         phi = self.arg_value[0]
@@ -425,7 +425,7 @@ class RZ(_SingleQubitParametricGate):
     __slots__ = ()
 
     num_params = 1
-    latex_str = r"R_z"
+    latex_str = r"RZ"
 
     def get_qobj(self) -> Qobj:
         phi = self.arg_value[0]
