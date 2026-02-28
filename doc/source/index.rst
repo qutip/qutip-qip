@@ -24,6 +24,7 @@ qutip-qip |version|: QuTiP quantum information processing
     qip-processor.rst
     qip-vqa.rst
     qip-qiskit.rst
+    qip-deutsch-jozsa.rst
 
 .. toctree::
     :maxdepth: 2
