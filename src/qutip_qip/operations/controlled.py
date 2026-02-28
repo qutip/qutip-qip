@@ -1,8 +1,25 @@
 import inspect
+from typing import Type
+from functools import partial
 from abc import abstractmethod
 
 from qutip import Qobj
 from qutip_qip.operations import Gate, ParametricGate, controlled_gate_unitary
+
+
+class class_or_instance_method:
+    """
+    Binds a method to the instance if called on an instance,
+    or to the class if called on the class.
+    """
+    def __init__(self, func):
+        self.func = func
+
+    def __get__(self, instance, owner):
+        if instance is None:
+            return partial(self.func, owner) # Called on the class (e.g., CX.get_qobj())
+        
+        return partial(self.func, instance) # Called on the instance (e.g., CRX(0.5).get_qobj())
 
 
 class ControlledGate(Gate):
@@ -33,7 +50,7 @@ class ControlledGate(Gate):
 
     num_ctrl_qubits: int
     ctrl_value: int
-    target_gate: Gate
+    target_gate: Type[Gate]
 
     def __init_subclass__(cls, **kwargs) -> None:
         """
@@ -72,8 +89,10 @@ class ControlledGate(Gate):
                 f"'num_ctrls_qubits' {cls.num_ctrl_qubits} + 'target_gate qubits' {cls.target_gate.num_qubits} must be equal to 'num_qubits' {cls.num_qubits}"
             )
 
-        # Check ctrl_value is valid
         cls._validate_control_value()
+
+        if hasattr(cls.target_gate, "num_params") and "num_params" not in cls.__dict__:
+            cls.num_params = cls.target_gate.num_params
 
         # Default self_inverse
         if "self_inverse" not in cls.__dict__:
@@ -84,10 +103,21 @@ class ControlledGate(Gate):
         if "latex_str" not in cls.__dict__:
             cls.latex_str = cls.target_gate.latex_str
 
+    def __init__(self, *args, **kwargs) -> None:
+        self._target_inst = self.target_gate(*args, **kwargs)
+
     @property
     @abstractmethod
     def target_gate() -> Gate:
         pass
+
+    def __getattr__(self, name: str) -> any:
+        """
+        If an attribute (like 'arg_value') or method (like 'validate_params')
+        isn't found on the ControlledGate, Python falls back to this method.
+        We forward the request to the underlying target gate instance.
+        """
+        return getattr(self._target_inst, name)
 
     @property
     def self_inverse(self) -> int:
@@ -118,8 +148,8 @@ class ControlledGate(Gate):
                 f"2^num_ctrl_qubits - 1, got {cls.ctrl_value}"
             )
 
-    @classmethod
-    def get_qobj(cls) -> Qobj:
+    @class_or_instance_method
+    def get_qobj(self_or_cls) -> Qobj:
         """
         Construct the full Qobj representation of the controlled gate.
 
@@ -128,15 +158,19 @@ class ControlledGate(Gate):
         qobj : qutip.Qobj
             The unitary matrix representing the controlled operation.
         """
-        target_gate = cls.target_gate
-        # if self.is_parametric():
-        #     target_gate = target_gate(self.arg_value)
-
+        if isinstance(self_or_cls, type):
+            return controlled_gate_unitary(
+                U=self_or_cls.target_gate.get_qobj(),
+                num_controls=self_or_cls.num_ctrl_qubits,
+                control_value=self_or_cls.ctrl_value,
+            )
+        
         return controlled_gate_unitary(
-            U=target_gate.get_qobj(),
-            num_controls=cls.num_ctrl_qubits,
-            control_value=cls.ctrl_value,
+            U=self_or_cls._target_inst.get_qobj(),
+            num_controls=self_or_cls.num_ctrl_qubits,
+            control_value=self_or_cls.ctrl_value,
         )
+
 
     def inverse_gate(self) -> Gate:
         if not self.is_parametric():
