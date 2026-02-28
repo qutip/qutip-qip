@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from qutip_qip.circuit.draw.color_theme import qutip, light, dark, modern
 
 
-@dataclass
+@dataclass(slots=True)
 class StyleConfig:
     """
     Dataclass to store the style configuration for circuit customization.
@@ -83,6 +83,7 @@ class StyleConfig:
     label_pad: float = 0.1
     bulge: str | bool = True
     align_layer: bool = False
+    measure_color = "#000000"
     theme: str | dict = "qutip"
     title: str | None = None
     bgcolor: str | None = None
@@ -94,7 +95,6 @@ class StyleConfig:
         if isinstance(self.bulge, bool):
             self.bulge = "round4" if self.bulge else "square"
 
-        self.measure_color = "#000000"
         if self.theme == "qutip":
             self.theme = qutip
         elif self.theme == "light":
