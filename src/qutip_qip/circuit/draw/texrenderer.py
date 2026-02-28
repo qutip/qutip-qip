@@ -8,7 +8,6 @@ import collections
 from typing import Callable
 
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import Gate, ParametrizedGate, ControlledGate
 
 
 # As a general note wherever you see {{}} in a python rf string that represents a {}
@@ -23,7 +22,7 @@ class TeXRenderer:
     def __init__(self, qc: QubitCircuit):
 
         self.qc = qc
-        self.N = qc.N
+        self.num_qubits = qc.num_qubits
         self.num_cbits = qc.num_cbits
         self.instructions = qc.instructions
         self.input_states = qc.input_states
@@ -43,7 +42,7 @@ class TeXRenderer:
 
     def _gate_label(self, gate) -> str:
         gate_label = gate.latex_str
-        if isinstance(gate, ParametrizedGate) and gate.arg_label is not None:
+        if gate.is_parametric() and gate.arg_label is not None:
             return rf"{gate_label}({gate.arg_label})"
         return rf"{gate_label}"
 
@@ -69,7 +68,7 @@ class TeXRenderer:
                 col = []
                 _swap_processing = False
 
-                for n in range(self.N + self.num_cbits):
+                for n in range(self.num_qubits + self.num_cbits):
                     if targets and n in targets:
                         if len(targets) > 1:
                             if gate.name == "SWAP":
@@ -99,7 +98,7 @@ class TeXRenderer:
                                     rf" \ghost{{{self._gate_label(gate)}}} "
                                 )
 
-                        elif gate.name == "CNOT":
+                        elif gate.name == "CNOT" or gate.name == "CX":
                             col.append(r" \targ ")
                         elif gate.name == "CY":
                             col.append(r" \targ ")
@@ -120,7 +119,7 @@ class TeXRenderer:
                         )
                         col.append(rf" \ctrl{{{control_tag}}} ")
 
-                    elif len(cbits) and (n - self.N) in cbits:
+                    elif len(cbits) and (n - self.num_qubits) in cbits:
                         control_tag = (-1 if self.reverse_states else 1) * (
                             targets[0] - n
                         )
@@ -134,10 +133,10 @@ class TeXRenderer:
                 cbits = list(circ_instruction.cbits)
                 col = []
 
-                for n in range(self.N + self.num_cbits):
+                for n in range(self.num_qubits + self.num_cbits):
                     if n in qubits:
                         col.append(r" \meter")
-                    elif (n - self.N) == cbits[0]:
+                    elif (n - self.num_qubits) == cbits[0]:
                         sgn = 1 if self.reverse_states else -1
                         store_tag = sgn * (n - qubits[0])
                         col.append(rf" \qw \cwx[{store_tag}] ")
@@ -149,19 +148,19 @@ class TeXRenderer:
 
         input_states_quantum = [
             r"\lstick{\ket{" + x + "}}" if x is not None else ""
-            for x in self.input_states[: self.N]
+            for x in self.input_states[: self.num_qubits]
         ]
         input_states_classical = [
             r"\lstick{" + x + "}" if x is not None else ""
-            for x in self.input_states[self.N :]
+            for x in self.input_states[self.num_qubits :]
         ]
         input_states = input_states_quantum + input_states_classical
 
         code = ""
         n_iter = (
-            reversed(range(self.N + self.num_cbits))
+            reversed(range(self.num_qubits + self.num_cbits))
             if self.reverse_states
-            else range(self.N + self.num_cbits)
+            else range(self.num_qubits + self.num_cbits)
         )
         for n in n_iter:
             code += rf" & {input_states[n]}"

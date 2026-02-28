@@ -6,7 +6,6 @@ import numpy as np
 from qutip import ket2dm, Qobj
 from qutip_qip.circuit.simulator import CircuitResult
 from qutip_qip.operations import expand_operator
-import warnings
 
 
 def _decimal_to_binary(decimal, length):
@@ -35,12 +34,7 @@ class CircuitSimulator:
     Operator based circuit simulator.
     """
 
-    def __init__(
-        self,
-        qc,
-        mode: str = "state_vector_simulator",
-        precompute_unitary: bool = False,
-    ):
+    def __init__(self, qc, mode: str = "state_vector_simulator") -> None:
         """
         Simulate state evolution for Quantum Circuits.
 
@@ -66,10 +60,6 @@ class CircuitSimulator:
         self._qc = qc
         self.dims = qc.dims
         self.mode = mode
-        if precompute_unitary:
-            warnings.warn(
-                "Precomputing the full unitary is no longer supported. Switching to normal simulation mode."
-            )
 
     @property
     def qc(self):
@@ -277,7 +267,7 @@ class CircuitSimulator:
         U: Qobj
             unitary to be applied.
         """
-        U = operation.get_compact_qobj()
+        U = operation.get_qobj()
         U = expand_operator(
             U,
             dims=self.dims,
@@ -301,7 +291,7 @@ class CircuitSimulator:
             state = state.reshape(self._tensor_dims)
 
         # Prepare the gate tensor.
-        gate = gate.get_compact_qobj()
+        gate = gate.get_qobj()
         gate_array = gate.full().reshape(gate.dims[0] + gate.dims[1])
 
         # Compute the tensor indices and call einsum.

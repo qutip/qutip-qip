@@ -6,11 +6,7 @@ from math import ceil
 
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.circuit.draw import BaseRenderer, StyleConfig
-from qutip_qip.operations import (
-    Gate,
-    ControlledGate,
-    ParametrizedGate,
-)
+from qutip_qip.operations import Gate
 
 
 class TextRenderer(BaseRenderer):
@@ -26,7 +22,7 @@ class TextRenderer(BaseRenderer):
 
         super().__init__(self.style)
         self._qc = qc
-        self._qwires = qc.N
+        self._qwires = qc.num_qubits
         self._cwires = qc.num_cbits
         self._layer_list = [[] for _ in range(self._qwires + self._cwires)]
 
@@ -155,7 +151,7 @@ class TextRenderer(BaseRenderer):
 
         sorted_targets = sorted(targets)
         # Adjust top_frame or bottom if there is a control wire
-        if isinstance(gate, ControlledGate):
+        if gate.is_controlled():
             sorted_controls = sorted(controls)
             top_frame = (
                 (top_frame[:mid_index] + "┴" + top_frame[mid_index + 1 :])
@@ -444,10 +440,7 @@ class TextRenderer(BaseRenderer):
                 targets = list(circ_instruction.targets)
                 controls = list(circ_instruction.controls)
 
-                if (
-                    isinstance(gate, ParametrizedGate)
-                    and gate.arg_label is not None
-                ):
+                if gate.is_parametric() and gate.arg_label is not None:
                     gate_text = gate.arg_label
 
                 if gate.name == "SWAP":
@@ -499,7 +492,7 @@ class TextRenderer(BaseRenderer):
                         parts,
                     )
 
-                    if isinstance(gate, ControlledGate):
+                    if gate.is_controlled():
                         sorted_controls = sorted(controls)
 
                         # check if there is control wire above the gate top

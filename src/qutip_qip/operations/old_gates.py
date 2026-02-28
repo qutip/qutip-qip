@@ -1,5 +1,7 @@
-import numbers
-from collections.abc import Iterable
+"""
+Deprecated module, will be removed in future versions.
+"""
+
 from itertools import product
 from functools import partial, reduce
 from operator import mul
@@ -8,8 +10,8 @@ import warnings
 import numpy as np
 import scipy.sparse as sp
 
-import qutip
 from qutip import Qobj, identity, qeye, sigmax, sigmay, sigmaz, tensor, fock_dm
+from qutip_qip.operations import expand_operator
 
 
 # Single Qubit Gates
@@ -34,6 +36,10 @@ def x_gate(N=None, target=0):
         a single-qubit rotation through pi radians around the x-axis.
 
     """
+    warnings.warn(
+        "x_gate has been deprecated and will be removed in future version. \
+        Use X.get_qobj() instead.", DeprecationWarning, stacklevel=2
+    )
     if N is not None:
         _deprecation_warnings_gate_expansion()
         return expand_operator(x_gate(), dims=[2] * N, targets=target)
@@ -50,10 +56,34 @@ def y_gate(N=None, target=0):
         a single-qubit rotation through pi radians around the y-axis.
 
     """
+    warnings.warn(
+        "Y_gate has been deprecated and will be removed in future version. \
+        Use Y.get_qobj() instead.", DeprecationWarning, stacklevel=2
+    )
     if N is not None:
         _deprecation_warnings_gate_expansion()
         return expand_operator(y_gate(), dims=[2] * N, targets=target)
     return sigmay()
+
+
+def z_gate(N=None, target=0):
+    """Pauli-Z gate or sigmaz operator.
+
+    Returns
+    -------
+    result : :class:`qutip.Qobj`
+        Quantum object for operator describing
+        a single-qubit rotation through pi radians around the z-axis.
+
+    """
+    warnings.warn(
+        "z_gate has been deprecated and will be removed in future version. \
+        Use Z.get_qobj() instead.", DeprecationWarning, stacklevel=2
+    )
+    if N is not None:
+        _deprecation_warnings_gate_expansion()
+        return expand_operator(z_gate(), dims=[2] * N, targets=target)
+    return sigmaz()
 
 
 def cy_gate(N=None, control=0, target=1):
@@ -65,6 +95,10 @@ def cy_gate(N=None, control=0, target=1):
         Quantum object for operator describing the rotation.
 
     """
+    warnings.warn(
+        "cy_gate has been deprecated and will be removed in future version. \
+        Use CY.get_qobj() instead.", DeprecationWarning, stacklevel=2
+    )
     if (control == 1 and target == 0) and N is None:
         N = 2
 
@@ -79,22 +113,6 @@ def cy_gate(N=None, control=0, target=1):
     )
 
 
-def z_gate(N=None, target=0):
-    """Pauli-Z gate or sigmaz operator.
-
-    Returns
-    -------
-    result : :class:`qutip.Qobj`
-        Quantum object for operator describing
-        a single-qubit rotation through pi radians around the z-axis.
-
-    """
-    if N is not None:
-        _deprecation_warnings_gate_expansion()
-        return expand_operator(z_gate(), dims=[2] * N, targets=target)
-    return sigmaz()
-
-
 def cz_gate(N=None, control=0, target=1):
     """Controlled Z gate.
 
@@ -104,6 +122,10 @@ def cz_gate(N=None, control=0, target=1):
         Quantum object for operator describing the rotation.
 
     """
+    warnings.warn(
+        "cz_gate has been deprecated and will be removed in future version. \
+        Use CZ.get_qobj() instead.", DeprecationWarning, stacklevel=2
+    )
     if (control == 1 and target == 0) and N is None:
         N = 2
 
@@ -128,6 +150,10 @@ def s_gate(N=None, target=0):
         a 90 degree rotation around the z-axis.
 
     """
+    warnings.warn(
+        "s_gate has been deprecated and will be removed in future version. \
+        Use S.get_qobj() instead.", DeprecationWarning, stacklevel=2
+    )
     if N is not None:
         _deprecation_warnings_gate_expansion()
         return expand_operator(s_gate(), dims=[2] * N, targets=target)
@@ -143,6 +169,10 @@ def cs_gate(N=None, control=0, target=1):
         Quantum object for operator describing the rotation.
 
     """
+    warnings.warn(
+        "cs_gate has been deprecated and will be removed in future version. \
+        Use CS.get_qobj() instead.", DeprecationWarning, stacklevel=2
+    )
     if (control == 1 and target == 0) and N is None:
         N = 2
 
@@ -166,6 +196,10 @@ def t_gate(N=None, target=0):
         Quantum object for operator describing a phase shift of pi/4.
 
     """
+    warnings.warn(
+        "t_gate has been deprecated and will be removed in future version. \
+        Use T.get_qobj() instead.", DeprecationWarning, stacklevel=2
+    )
     if N is not None:
         _deprecation_warnings_gate_expansion()
         return expand_operator(t_gate(), dims=[2] * N, targets=target)
@@ -181,6 +215,10 @@ def ct_gate(N=None, control=0, target=1):
         Quantum object for operator describing the rotation.
 
     """
+    warnings.warn(
+        "ct_gate has been deprecated and will be removed in future version. \
+        Use CT.get_qobj() instead.", DeprecationWarning, stacklevel=2
+    )
     if (control == 1 and target == 0) and N is None:
         N = 2
 
@@ -209,6 +247,10 @@ def rx(phi, N=None, target=0):
         Quantum object for operator describing the rotation.
 
     """
+    warnings.warn(
+        "rxRTNOT has been deprecated and will be removed in future version. \
+        Use RX(angle).get_qobj() instead.", DeprecationWarning, stacklevel=2
+    )
     if N is not None:
         _deprecation_warnings_gate_expansion()
         return expand_operator(rx(phi), dims=[2] * N, targets=target)
@@ -229,6 +271,10 @@ def ry(phi, N=None, target=0):
         Quantum object for operator describing the rotation.
 
     """
+    warnings.warn(
+        "ryRTNOT has been deprecated and will be removed in future version. \
+        Use RY(angle).get_qobj() instead.", DeprecationWarning, stacklevel=2
+    )
     if N is not None:
         _deprecation_warnings_gate_expansion()
         return expand_operator(ry(phi), dims=[2] * N, targets=target)
@@ -249,6 +295,10 @@ def rz(phi, N=None, target=0):
         Quantum object for operator describing the rotation.
 
     """
+    warnings.warn(
+        "rzRTNOT has been deprecated and will be removed in future version. \
+        Use RZ(angle).get_qobj() instead.", DeprecationWarning, stacklevel=2
+    )
     if N is not None:
         _deprecation_warnings_gate_expansion()
         return expand_operator(rz(phi), dims=[2] * N, targets=target)
@@ -264,6 +314,10 @@ def sqrtnot(N=None, target=0):
         Quantum object for operator describing the square root NOT gate.
 
     """
+    warnings.warn(
+        "sqrtnot has been deprecated and will be removed in future version. \
+        Use SQRTNOT.get_qobj() instead.", DeprecationWarning, stacklevel=2
+    )
     if N is not None:
         _deprecation_warnings_gate_expansion()
         return expand_operator(sqrtnot(), dims=[2] * N, targets=target)
@@ -288,6 +342,10 @@ shape = [2, 2], type='oper', dtype=Dense, isherm=True
      [ 0.70710678+0.j -0.70710678+0.j]]
 
     """
+    warnings.warn(
+        "snot has been deprecated and will be removed in future version. \
+        Use H.get_qobj() instead.", DeprecationWarning, stacklevel=2
+    )
     if N is not None:
         _deprecation_warnings_gate_expansion()
         return expand_operator(snot(), dims=[2] * N, targets=target)
@@ -318,6 +376,10 @@ shape = [2, 2], type='oper', dtype=Dense, isherm=False
      [ 0.00000000+0.j          0.70710678+0.70710678j]]
 
     """
+    warnings.warn(
+        "phase has been deprecated and will be removed in future version. \
+        Use PHASE(angle).get_qobj() instead.", DeprecationWarning, stacklevel=2
+    )
     if N is not None:
         _deprecation_warnings_gate_expansion()
         return expand_operator(phasegate(theta), dims=[2] * N, targets=target)
@@ -345,6 +407,12 @@ def qrot(theta, phi, N=None, target=0):
         Quantum object representation of physical qubit rotation under
         a rabi pulse.
     """
+    warnings.warn(
+        "qrot has been deprecated and will be removed in future version. \
+        Use R([theta, phi]).get_qobj() instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     if N is not None:
         _deprecation_warnings_gate_expansion()
         return expand_operator(qrot(theta, phi), dims=[2] * N, targets=target)
@@ -386,6 +454,12 @@ def qasmu_gate(args, N=None, target=0):
         Quantum object representation of the QASM U-gate as defined in the
         OpenQASM standard.
     """
+    warnings.warn(
+        "qasmu_gate has been deprecated and will be removed in future version. \
+        Use QASMU([theta, phi, gamma]).get_qobj() instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
 
     theta, phi, gamma = args
     if N is not None:
@@ -424,6 +498,13 @@ def cphase(theta, N=2, control=0, target=1):
     U : qobj
         Quantum object representation of controlled phase gate.
     """
+    warnings.warn(
+        "cphase has been deprecated and will be removed in future version. \
+        Use CPHASE(angle).get_qobj() instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
     if N != 2 or control != 0 or target != 1:
         _deprecation_warnings_gate_expansion()
 
@@ -466,6 +547,11 @@ shape = [4, 4], type='oper', dtype=Dense, isherm=True
          [ 0.+0.j  0.+0.j  1.+0.j  0.+0.j]]
 
     """
+    warnings.warn(
+        "cnot has been deprecated and will be removed in future version. \
+        Use CX.get_qobj() instead.", DeprecationWarning, stacklevel=2
+    )
+
     if (control == 1 and target == 0) and N is None:
         N = 2
 
@@ -499,6 +585,11 @@ shape = [4, 4], type='oper', dtype=Dense, isherm=True
          [ 0.+0.j  0.+0.j  0.+0.j  -1.+0.j]]
 
     """
+    warnings.warn(
+        "csign has been deprecated and will be removed in future version. \
+        Use CZ.get_qobj() instead.", DeprecationWarning, stacklevel=2
+    )
+
     if (control == 1 and target == 0) and N is None:
         N = 2
 
@@ -532,6 +623,11 @@ shape = [4, 4], type='oper', dtype=Dense, isherm=True
          [ 0.+sin(pi/8).j  0.+0.j           0.+0.j           cos(pi/8).+0.j]]
 
     """
+    warnings.warn(
+        "berkley has been deprecated and will be removed in future version. \
+        Use BERKELEY.get_qobj() instead.", DeprecationWarning, stacklevel=2
+    )
+
     if (targets[0] == 1 and targets[1] == 0) and N is None:
         N = 2
 
@@ -570,6 +666,13 @@ shape = [4, 4], type='oper', dtype=Dense, isherm=True
      [ 0.+0.j  0.+0.j                    0.+0.j                    1.+0.j]]
 
     """
+    warnings.warn(
+        "swapalpha has been deprecated and will be removed in future version. \
+        Use SWAPALPHA(angle).get_qobj() instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
     if (targets[0] == 1 and targets[1] == 0) and N is None:
         N = 2
 
@@ -617,6 +720,10 @@ shape = [4, 4], type='oper', dtype=Dense, isherm=True
      [ 0.+0.j  0.+0.j  0.+0.j  1.+0.j]]
 
     """
+    warnings.warn(
+        "SWAP has been deprecated and will be removed in future version. \
+        Use SWAP.get_qobj() instead.", DeprecationWarning, stacklevel=2
+    )
     if targets != [0, 1] and N is None:
         N = 2
 
@@ -648,6 +755,10 @@ shape = [4, 4], type='oper', dtype=Dense, isherm=False
      [ 0.+0.j  0.+1.j  0.+0.j  0.+0.j]
      [ 0.+0.j  0.+0.j  0.+0.j  1.+0.j]]
     """
+    warnings.warn(
+        "ISWAP has been deprecated and will be removed in future version. \
+        Use ISWAP.get_qobj() instead.", DeprecationWarning, stacklevel=2
+    )
     if targets != [0, 1] and N is None:
         N = 2
 
@@ -669,6 +780,10 @@ def sqrtswap(N=None, targets=[0, 1]):
         Quantum object representation of square root SWAP gate
 
     """
+    warnings.warn(
+        "SQRTSWAP has been deprecated and will be removed in future version. \
+        Use SQRTSWAP.get_qobj() instead.", DeprecationWarning, stacklevel=2
+    )
     if targets != [0, 1] and N is None:
         N = 2
 
@@ -712,6 +827,10 @@ shape = [4, 4], type='oper', dtype=Dense, isherm=False
        0.00000000+0.j          1.00000000+0.j]]
 
     """
+    warnings.warn(
+        "SQRTISWAP has been deprecated and will be removed in future version. \
+        Use SQRTISWAP.get_qobj() instead.", DeprecationWarning, stacklevel=2
+    )
     if targets != [0, 1] and N is None:
         N = 2
 
@@ -751,6 +870,12 @@ def molmer_sorensen(theta, phi=0.0, N=None, targets=[0, 1]):
     molmer_sorensen_gate : :class:`qutip.Qobj`
         Quantum object representation of the Mølmer–Sørensen gate.
     """
+    warnings.warn(
+        "MS has been deprecated and will be removed in future version. \
+        Use MS([theta, phi]).get_qobj() instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     if targets != [0, 1] and N is None:
         N = 2
 
@@ -809,6 +934,10 @@ def fredkin(N=None, control=0, targets=[1, 2]):
          [ 0.+0.j  0.+0.j  0.+0.j  0.+0.j  0.+0.j  0.+0.j  0.+0.j  1.+0.j]]
 
     """
+    warnings.warn(
+        "fredkin has been deprecated and will be removed in future version. \
+        Use FREDKIN.get_qobj() instead.", DeprecationWarning, stacklevel=2
+    )
     if [control, targets[0], targets[1]] != [0, 1, 2] and N is None:
         N = 3
 
@@ -856,6 +985,10 @@ def toffoli(N=None, controls=[0, 1], target=2):
 
 
     """
+    warnings.warn(
+        "toffoli has been deprecated and will be removed in future version. \
+        Use TOFFOLI.get_qobj() instead.", DeprecationWarning, stacklevel=2
+    )
     if [controls[0], controls[1], target] != [0, 1, 2] and N is None:
         N = 3
 
@@ -899,61 +1032,6 @@ def rotation(op, phi, N=None, target=0):
     return (-1j * op * phi / 2).expm()
 
 
-def controlled_gate(
-    U,
-    controls=0,
-    targets=1,
-    N=None,
-    control_value=1,
-):
-    """
-    Create an N-qubit controlled gate from a single-qubit gate U with the given
-    control and target qubits.
-
-    Parameters
-    ----------
-    U : :class:`qutip.Qobj`
-        An arbitrary unitary gate.
-    controls : list of int
-        The index of the first control qubit.
-    targets : list of int
-        The index of the target qubit.
-    N : int
-        The total number of qubits.
-    control_value : int
-        The decimal value of the controlled qubits that activates the gate U.
-
-    Returns
-    -------
-    result : qobj
-        Quantum object representing the controlled-U gate.
-    """
-    # Compatibility
-    if not isinstance(controls, Iterable):
-        controls = [controls]
-    if not isinstance(targets, Iterable):
-        targets = [targets]
-    num_controls = len(controls)
-    num_targets = len(U.dims[0])
-    N = num_controls + num_targets if N is None else N
-
-    # First, assume that the last qubit is the target and control qubits are
-    # in the increasing order.
-    # The control_value is the location of this unitary.
-    block_matrices = [np.array([[1, 0], [0, 1]])] * 2**num_controls
-    block_matrices[control_value] = U.full()
-    from scipy.linalg import block_diag  # move this to the top of the file
-
-    result = block_diag(*block_matrices)
-    result = Qobj(result, dims=[[2] * (num_controls + num_targets)] * 2)
-
-    # Expand it to N qubits and permute qubits labelling
-    if controls + targets == list(range(N)):
-        return result
-    else:
-        return expand_operator(result, N, targets=controls + targets)
-
-
 def globalphase(theta, N=1):
     """
     Returns quantum object representing the global phase shift gate.
@@ -978,6 +1056,12 @@ shape = [2, 2], type='oper', dtype=Dense, isherm=False
      [ 0.00000000+0.j          0.70710678+0.70710678j]]
 
     """
+    warnings.warn(
+        "global_phase has been deprecated and will be removed in future version. \
+        Use GLOBALPHASE(phase).get_qobj() instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     data = np.exp(1.0j * theta) * sp.eye(
         2**N, 2**N, dtype=complex, format="csr"
     )
@@ -987,18 +1071,6 @@ shape = [2, 2], type='oper', dtype=Dense, isherm=False
 #
 # Operation on Gates
 #
-
-
-def _hamming_distance(x, bits=32):
-    """
-    Calculate the bit-wise Hamming distance of x from 0: That is, the number
-    1s in the integer x.
-    """
-    tot = 0
-    while x:
-        tot += 1
-        x &= x - 1
-    return tot
 
 
 def hadamard_transform(N=1):
@@ -1084,243 +1156,3 @@ def qubit_clifford_group(N=None, target=0):
             yield expand_operator(op, N, target)
         else:
             yield op
-
-
-#
-# Gate Expand
-#
-
-
-def _check_oper_dims(oper, dims=None, targets=None):
-    """
-    Check if the given operator is valid.
-
-    Parameters
-    ----------
-    oper : :class:`qutip.Qobj`
-        The quantum object to be checked.
-    dims : list, optional
-        A list of integer for the dimension of each composite system.
-        e.g ``[2, 2, 2, 2, 2]`` for 5 qubits system.
-    targets : int or list of int, optional
-        The indices of subspace that are acted on.
-    """
-    # if operator matches N
-    if not isinstance(oper, Qobj) or oper.dims[0] != oper.dims[1]:
-        raise ValueError(
-            "The operator is not an "
-            "Qobj with the same input and output dimensions."
-        )
-    # if operator dims matches the target dims
-    if dims is not None and targets is not None:
-        targ_dims = [dims[t] for t in targets]
-        if oper.dims[0] != targ_dims:
-            raise ValueError(
-                "The operator dims {} do not match "
-                "the target dims {}.".format(oper.dims[0], targ_dims)
-            )
-
-
-def _targets_to_list(targets, oper=None, N=None):
-    """
-    transform targets to a list and check validity.
-
-    Parameters
-    ----------
-    targets : int or list of int
-        The indices of subspace that are acted on.
-    oper : :class:`qutip.Qobj`, optional
-        An operator, the type of the :class:`qutip.Qobj`
-        has to be an operator
-        and the dimension matches the tensored qubit Hilbert space
-        e.g. dims = ``[[2, 2, 2], [2, 2, 2]]``
-    N : int, optional
-        The number of subspace in the system.
-    """
-    # if targets is a list of integer
-    if targets is None:
-        targets = list(range(len(oper.dims[0])))
-    if not hasattr(targets, "__iter__"):
-        targets = [targets]
-    if not all([isinstance(t, numbers.Integral) for t in targets]):
-        raise TypeError("targets should be an integer or a list of integer")
-    # if targets has correct length
-    if oper is not None:
-        req_num = len(oper.dims[0])
-        if len(targets) != req_num:
-            raise ValueError(
-                "The given operator needs {} "
-                "target qutbis, "
-                "but {} given.".format(req_num, len(targets))
-            )
-    # if targets is smaller than N
-    if N is not None:
-        if not all([t < N for t in targets]):
-            raise ValueError("Targets must be smaller than N={}.".format(N))
-    return targets
-
-
-def expand_operator(
-    oper, N=None, targets=None, dims=None, cyclic_permutation=False, dtype=None
-):
-    """
-    Expand an operator to one that acts on a system with desired dimensions.
-
-    Parameters
-    ----------
-    oper : :class:`qutip.Qobj`
-        An operator that act on the subsystem, has to be an operator and the
-        dimension matches the tensored dims Hilbert space
-        e.g. oper.dims = ``[[2, 3], [2, 3]]``
-    dims : list
-        A list of integer for the dimension of each composite system.
-        E.g ``[2, 3, 2, 3, 4]``.
-    targets : int or list of int
-        The indices of subspace that are acted on.
-        Permutation can also be realized by changing the orders of the indices.
-    N : int
-        Deprecated. Number of qubits. Please use `dims`.
-    cyclic_permutation : boolean, optional
-        Deprecated.
-        Expand for all cyclic permutation of the targets.
-        E.g. if ``N=3`` and `oper` is a 2-qubit operator,
-        the result will be a list of three operators,
-        each acting on qubits 0 and 1, 1 and 2, 2 and 0.
-    dtype : str, optional
-        Data type of the output `Qobj`. Only for qutip version larger than 5.
-
-
-    Returns
-    -------
-    expanded_oper : :class:`qutip.Qobj`
-        The expanded operator acting on a system with desired dimension.
-
-    Examples
-    --------
-    >>> from qutip_qip.operations import expand_operator, x_gate, cnot
-    >>> import qutip
-    >>> expand_operator(x_gate(), dims=[2,3], targets=[0]) # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims=[[2, 3], [2, 3]], shape=(6, 6), type='oper', dtype=CSR, isherm=True
-    Qobj data =
-    [[0. 0. 0. 1. 0. 0.]
-     [0. 0. 0. 0. 1. 0.]
-     [0. 0. 0. 0. 0. 1.]
-     [1. 0. 0. 0. 0. 0.]
-     [0. 1. 0. 0. 0. 0.]
-     [0. 0. 1. 0. 0. 0.]]
-    >>> expand_operator(cnot(), dims=[2,2,2], targets=[1, 2]) # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims=[[2, 2, 2], [2, 2, 2]], shape=(8, 8), type='oper', dtype=CSR, isherm=True
-    Qobj data =
-    [[1. 0. 0. 0. 0. 0. 0. 0.]
-     [0. 1. 0. 0. 0. 0. 0. 0.]
-     [0. 0. 0. 1. 0. 0. 0. 0.]
-     [0. 0. 1. 0. 0. 0. 0. 0.]
-     [0. 0. 0. 0. 1. 0. 0. 0.]
-     [0. 0. 0. 0. 0. 1. 0. 0.]
-     [0. 0. 0. 0. 0. 0. 0. 1.]
-     [0. 0. 0. 0. 0. 0. 1. 0.]]
-    >>> expand_operator(cnot(), dims=[2, 2, 2], targets=[2, 0]) # doctest: +NORMALIZE_WHITESPACE
-    Quantum object: dims=[[2, 2, 2], [2, 2, 2]], shape=(8, 8), type='oper', dtype=CSR, isherm=True
-    Qobj data =
-    [[1. 0. 0. 0. 0. 0. 0. 0.]
-     [0. 0. 0. 0. 0. 1. 0. 0.]
-     [0. 0. 1. 0. 0. 0. 0. 0.]
-     [0. 0. 0. 0. 0. 0. 0. 1.]
-     [0. 0. 0. 0. 1. 0. 0. 0.]
-     [0. 1. 0. 0. 0. 0. 0. 0.]
-     [0. 0. 0. 0. 0. 0. 1. 0.]
-     [0. 0. 0. 1. 0. 0. 0. 0.]]
-    """
-    dtype = dtype or qutip.settings.core["default_dtype"] or qutip.data.CSR
-    oper = oper.to(dtype)
-
-    if N is not None:
-        warnings.warn(
-            "The function expand_operator has been generalized to "
-            "arbitrary subsystems instead of only qubit systems."
-            "Please use the new signature e.g.\n"
-            "expand_operator(oper, dims=[2, 3, 2, 2], targets=2)",
-            DeprecationWarning,
-        )
-
-    if dims is not None and N is None:
-        if not isinstance(dims, Iterable):
-            f"dims needs to be an interable {not type(dims)}."
-        N = len(dims)  # backward compatibility
-
-    if dims is None:
-        dims = [2] * N
-    targets = _targets_to_list(targets, oper=oper, N=N)
-    _check_oper_dims(oper, dims=dims, targets=targets)
-
-    # Call expand_operator for all cyclic permutation of the targets.
-    if cyclic_permutation:
-        warnings.warn(
-            "cyclic_permutation is deprecated, "
-            "please use loop through different targets manually.",
-            DeprecationWarning,
-        )
-        oper_list = []
-        for i in range(N):
-            new_targets = np.mod(np.array(targets) + i, N)
-            oper_list.append(
-                expand_operator(oper, N=N, targets=new_targets, dims=dims)
-            )
-        return oper_list
-
-    # Generate the correct order for permutation,
-    # eg. if N = 5, targets = [3,0], the order is [1,2,3,0,4].
-    # If the operator is cnot,
-    # this order means that the 3rd qubit controls the 0th qubit.
-    new_order = [0] * N
-    for i, t in enumerate(targets):
-        new_order[t] = i
-    # allocate the rest qutbits (not targets) to the empty
-    # position in new_order
-    rest_pos = [q for q in list(range(N)) if q not in targets]
-    rest_qubits = list(range(len(targets), N))
-    for i, ind in enumerate(rest_pos):
-        new_order[ind] = rest_qubits[i]
-    id_list = [identity(dims[i]) for i in rest_pos]
-    out = tensor([oper] + id_list).permute(new_order)
-    return out.to(dtype)
-
-
-def gate_sequence_product(
-    U_list, left_to_right=True, inds_list=None, expand=False
-):
-    """
-    Calculate the overall unitary matrix for a given list of unitary operations.
-
-    Parameters
-    ----------
-    U_list: list
-        List of gates implementing the quantum circuit.
-
-    left_to_right: Boolean, optional
-        Check if multiplication is to be done from left to right.
-
-    inds_list: list of list of int, optional
-        If expand=True, list of qubit indices corresponding to U_list
-        to which each unitary is applied.
-
-    expand: Boolean, optional
-        Check if the list of unitaries need to be expanded to full dimension.
-
-    Returns
-    -------
-    U_overall : qobj
-        Unitary matrix corresponding to U_list.
-
-    overall_inds : list of int, optional
-        List of qubit indices on which U_overall applies.
-    """
-    from qutip_qip.circuit.simulator import (
-        gate_sequence_product,
-        gate_sequence_product_with_expansion,
-    )
-
-    if expand:
-        return gate_sequence_product(U_list, inds_list)
-    else:
-        return gate_sequence_product_with_expansion(U_list, left_to_right)

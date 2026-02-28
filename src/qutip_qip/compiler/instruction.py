@@ -1,6 +1,5 @@
 from copy import deepcopy
 import numpy as np
-from qutip_qip.operations import ControlledGate
 
 
 class PulseInstruction:
@@ -86,6 +85,6 @@ class PulseInstruction:
 
         :type: list
         """
-        if isinstance(self.gate, ControlledGate):
+        if self.gate.is_controlled():
             return self._controls
         return None

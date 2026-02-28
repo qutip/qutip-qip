@@ -7,7 +7,7 @@ from qutip import basis, tensor, Qobj, qeye, expect
 from qutip_qip.circuit import QubitCircuit
 from scipy.optimize import minimize
 from scipy.linalg import expm_frechet
-from qutip_qip.operations import gate_sequence_product, custom_gate_factory
+from qutip_qip.operations import gate_sequence_product, unitary_gate, Gate
 
 
 class VQA:
@@ -127,6 +127,7 @@ class VQA:
         circ = QubitCircuit(self.num_qubits)
         i = 0
         for layer_num in range(self.num_layers):
+            Gate.clear_cache("vqa")
             for block in self.blocks:
                 if block.initial and layer_num > 0:
                     continue
@@ -136,8 +137,9 @@ class VQA:
                     n = block.get_free_parameters_num()
 
                     current_params = angles[i : i + n] if n > 0 else []
-                    gate_instance = custom_gate_factory(
-                        name=block.name,
+                    gate_instance = unitary_gate(
+                        gate_name=block.name,
+                        namespace="vqa",
                         U=block.get_unitary(current_params),
                     )
 
@@ -493,7 +495,7 @@ class ParameterizedHamiltonian:
         Hamiltonian term which does not require parameters.
     """
 
-    def __init__(self, parameterized_terms=[], constant_term=None):
+    def __init__(self, parameterized_terms=(), constant_term=None):
         self.p_terms = parameterized_terms
         self.c_term = constant_term
         self.num_parameters = len(parameterized_terms)

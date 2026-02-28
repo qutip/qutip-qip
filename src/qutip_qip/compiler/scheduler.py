@@ -426,14 +426,15 @@ class Scheduler:
         --------
         >>> from qutip_qip.circuit import QubitCircuit
         >>> from qutip_qip.compiler import Scheduler
+        >>> from qutip_qip.operations.std import H, CZ, SWAP
         >>> circuit = QubitCircuit(7)
-        >>> circuit.add_gate("SNOT", targets=3)  # gate0
-        >>> circuit.add_gate("CZ", targets=5, controls=3)  # gate1
-        >>> circuit.add_gate("CZ", targets=4, controls=3)  # gate2
-        >>> circuit.add_gate("CZ", targets=2, controls=3)  # gate3
-        >>> circuit.add_gate("CZ", targets=6, controls=5)  # gate4
-        >>> circuit.add_gate("CZ", targets=2, controls=6)  # gate5
-        >>> circuit.add_gate("SWAP", targets=[0, 2])  # gate6
+        >>> circuit.add_gate(H, targets=3)  # gate0
+        >>> circuit.add_gate(CZ, targets=5, controls=3)  # gate1
+        >>> circuit.add_gate(CZ, targets=4, controls=3)  # gate2
+        >>> circuit.add_gate(CZ, targets=2, controls=3)  # gate3
+        >>> circuit.add_gate(CZ, targets=6, controls=5)  # gate4
+        >>> circuit.add_gate(CZ, targets=2, controls=6)  # gate5
+        >>> circuit.add_gate(SWAP, targets=[0, 2])  # gate6
         >>>
         >>> scheduler = Scheduler("ASAP")
         >>> scheduler.schedule(circuit, gates_schedule=True)
@@ -547,7 +548,7 @@ class Scheduler:
                 [instruction1, instruction2],
                 key=lambda instruction: instruction.name,
             )
-            if instruction1.name == "CNOT" and instruction2.name in (
+            if instruction1.name in ["CNOT", "CX"] and instruction2.name in (
                 "X",
                 "RX",
             ):
@@ -555,7 +556,7 @@ class Scheduler:
                     commute = True
                 else:
                     commute = False
-            elif instruction1.name == "CNOT" and instruction2.name in (
+            elif instruction1.name in ["CNOT", "CX"] and instruction2.name in (
                 "Z",
                 "RZ",
             ):

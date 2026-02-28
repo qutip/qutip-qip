@@ -1,6 +1,5 @@
 from qutip_qip.circuit import QubitCircuit
-
-__all__ = ["BitFlipCode"]
+from qutip_qip.operations.std import CX, TOFFOLI, X
 
 
 class BitFlipCode:
@@ -57,7 +56,7 @@ class BitFlipCode:
             )
         control = data_qubits[0]
         for target in data_qubits[1:]:
-            qc.add_gate("CNOT", controls=control, targets=target)
+            qc.add_gate(CX, controls=control, targets=target)
 
     def syndrome_and_correction_circuit(self, data_qubits, syndrome_qubits):
         """
@@ -85,16 +84,16 @@ class BitFlipCode:
 
         total_qubits = max(data_qubits + syndrome_qubits) + 1
         classical_bits = len(syndrome_qubits)
-        qc = QubitCircuit(N=total_qubits, num_cbits=classical_bits)
+        qc = QubitCircuit(num_qubits=total_qubits, num_cbits=classical_bits)
 
         dq = data_qubits
         sq = syndrome_qubits
 
         # Syndrome extraction: parity checks
-        qc.add_gate("CNOT", controls=dq[0], targets=sq[0])
-        qc.add_gate("CNOT", controls=dq[1], targets=sq[0])
-        qc.add_gate("CNOT", controls=dq[1], targets=sq[1])
-        qc.add_gate("CNOT", controls=dq[2], targets=sq[1])
+        qc.add_gate(CX, controls=dq[0], targets=sq[0])
+        qc.add_gate(CX, controls=dq[1], targets=sq[0])
+        qc.add_gate(CX, controls=dq[1], targets=sq[1])
+        qc.add_gate(CX, controls=dq[2], targets=sq[1])
 
         # Measurements into classical registers
         qc.add_measurement(sq[0], sq[0], classical_store=0)
@@ -103,19 +102,19 @@ class BitFlipCode:
         # Classical-controlled corrections based on measurement outcomes
         # 2 (10): X on qubit 0, 3 (11): X on qubit 1, 1 (01): X on qubit 2
         qc.add_gate(
-            "X",
+            X,
             targets=dq[0],
             classical_controls=[0, 1],
             classical_control_value=2,
         )
         qc.add_gate(
-            "X",
+            X,
             targets=dq[1],
             classical_controls=[0, 1],
             classical_control_value=3,
         )
         qc.add_gate(
-            "X",
+            X,
             targets=dq[2],
             classical_controls=[0, 1],
             classical_control_value=1,
@@ -144,7 +143,7 @@ class BitFlipCode:
         qc = QubitCircuit(max(data_qubits) + 1)
         control = data_qubits[0]
         for target in reversed(data_qubits[1:]):
-            qc.add_gate("CNOT", controls=control, targets=target)
+            qc.add_gate(CX, controls=control, targets=target)
 
-        qc.add_gate("TOFFOLI", controls=data_qubits[1:], targets=control)
+        qc.add_gate(TOFFOLI, controls=data_qubits[1:], targets=control)
         return qc

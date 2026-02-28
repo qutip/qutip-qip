@@ -22,14 +22,13 @@ qutip\_qip.operations
       RY
       RZ
       H
-      SNOT
       SQRTNOT
       S
       T
       QASMU
       SWAP
       ISWAP
-      CNOT
+      CX
       SQRTSWAP
       SQRTISWAP
       BERKELEY
@@ -37,8 +36,6 @@ qutip\_qip.operations
       MS
       TOFFOLI
       FREDKIN
-      CNOT
-      CSIGN
       CRX
       CRY
       CRZ
@@ -53,39 +50,6 @@ qutip\_qip.operations
 
    .. autosummary::
 
-      berkeley
-      cnot
-      controlled_gate
-      cphase
-      cs_gate
-      csign
-      ct_gate
-      cy_gate
-      cz_gate
+      controlled_gate_unitary
       expand_operator
-      fredkin
       gate_sequence_product
-      globalphase
-      hadamard_transform
-      iswap
-      molmer_sorensen
-      phasegate
-      qasmu_gate
-      qrot
-      qubit_clifford_group
-      rotation
-      rx
-      ry
-      rz
-      s_gate
-      snot
-      sqrtiswap
-      sqrtnot
-      sqrtswap
-      swap
-      swapalpha
-      t_gate
-      toffoli
-      x_gate
-      y_gate
-      z_gate

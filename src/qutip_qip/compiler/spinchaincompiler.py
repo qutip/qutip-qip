@@ -140,7 +140,10 @@ class SpinChainCompiler(GateCompiler):
             args["num_samples"],
             maximum=self.params[param_label][targets[0]],
             # The operator is Pauli Z/X/Y, without 1/2.
-            area=circuit_instruction.operation.arg_value / 2.0 / np.pi * 0.5,
+            area=circuit_instruction.operation.arg_value[0]
+            / 2.0
+            / np.pi
+            * 0.5,
         )
         pulse_info = [(op_label + str(targets[0]), coeff)]
         return [PulseInstruction(circuit_instruction, tlist, pulse_info)]
@@ -193,7 +196,7 @@ class SpinChainCompiler(GateCompiler):
         coeff, tlist = self.generate_pulse_shape(
             args["shape"], args["num_samples"], maximum, area
         )
-        if self.N != 2 and q1 == 0 and q2 == self.N - 1:
+        if self.num_qubits != 2 and q1 == 0 and q2 == self.num_qubits - 1:
             pulse_name = "g" + str(q2)
         else:
             pulse_name = "g" + str(q1)

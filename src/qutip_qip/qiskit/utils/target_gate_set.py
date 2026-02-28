@@ -27,7 +27,7 @@ QUTIP_TO_QISKIT_GATE_MAP: dict[str, Gate] = {
     "X": XGate(),
     "Y": YGate(),
     "Z": ZGate(),
-    "SNOT": HGate(),
+    "H": HGate(),
     "S": SGate(),
     "T": TGate(),
     "RX": RXGate(theta=0.0),
@@ -36,7 +36,7 @@ QUTIP_TO_QISKIT_GATE_MAP: dict[str, Gate] = {
     "SWAP": SwapGate(),
     "QASMU": UGate(theta=0.0, phi=0.0, lam=0.0),
     # Controlled Gates
-    "CNOT": CXGate(),
+    "CX": CXGate(),
     "CY": CYGate(),
     "CZ": CZGate(),
     "CRX": CRXGate(theta=0.0),

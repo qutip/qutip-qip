@@ -1,8 +1,8 @@
 import numpy as np
 
 from qutip_qip.circuit import GateInstruction
-from qutip_qip.operations import RZ
 from qutip_qip.compiler import GateCompiler, PulseInstruction
+from qutip_qip.operations.std import RZ
 
 
 class CavityQEDCompiler(GateCompiler):
@@ -116,7 +116,7 @@ class CavityQEDCompiler(GateCompiler):
             args["num_samples"],
             maximum=self.params[param_label][targets[0]],
             # The operator is Pauli Z/X/Y, without 1/2.
-            area=circuit_instruction.operation.arg_value / 2.0 / np.pi * 0.5,
+            area=circuit_instruction.operation.arg_value[0] / (4.0 * np.pi),
         )
         pulse_info = [(op_label + str(targets[0]), coeff)]
         return [PulseInstruction(circuit_instruction, tlist, pulse_info)]

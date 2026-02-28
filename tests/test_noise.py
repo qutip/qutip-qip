@@ -16,6 +16,7 @@ from qutip import (
     sigmam,
 )
 from qutip_qip.device import Processor, SCQubits, LinearSpinChain
+from qutip_qip.operations.std import X
 from qutip_qip.noise import (
     RelaxationNoise,
     DecoherenceNoise,
@@ -81,7 +82,7 @@ class TestNoise:
         Test if there are errors raised because of wrong tlist handling.
         """
         qc = QubitCircuit(1)
-        qc.add_gate("X", targets=0)
+        qc.add_gate(X, targets=0)
         proc = LinearSpinChain(1)
         proc.load_circuit(qc)
         tlist = np.linspace(0, 30.0, 100)
@@ -208,7 +209,7 @@ class TestNoise:
 
     def test_zz_cross_talk(self):
         circuit = QubitCircuit(2)
-        circuit.add_gate("X", targets=0)
+        circuit.add_gate(X, targets=0)
         processor = SCQubits(2)
         processor.add_noise(ZZCrossTalk(processor.params))
         processor.load_circuit(circuit)

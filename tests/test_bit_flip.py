@@ -2,6 +2,7 @@ import pytest
 import qutip
 from qutip_qip.algorithms import BitFlipCode
 from qutip_qip.circuit import QubitCircuit
+from qutip_qip.operations.std import X
 
 
 @pytest.fixture
@@ -24,7 +25,7 @@ def test_encode_circuit_structure(code, data_qubits):
     code.encode_circuit(qc, data_qubits)
     assert len(qc.instructions) == 2
 
-    assert qc.instructions[0].operation.name == "CNOT"
+    assert qc.instructions[0].operation.name == "CX"
     assert qc.instructions[0].controls == (0,)
     assert qc.instructions[0].targets == (1,)
     assert qc.instructions[1].controls == (0,)
@@ -44,8 +45,8 @@ def test_bitflip_correction(code, data_qubits, syndrome_qubits):
     state = qc_encode.run(state)
 
     # Step 2: Apply bit-flip error to qubit 0
-    qc_error = QubitCircuit(N=5)
-    qc_error.add_gate("X", targets=[0])
+    qc_error = QubitCircuit(num_qubits=5)
+    qc_error.add_gate(X, targets=[0])
     state = qc_error.run(state)
 
     # Step 3: Syndrome + correction

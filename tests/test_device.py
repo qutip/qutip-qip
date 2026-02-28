@@ -9,18 +9,20 @@ import pytest
 
 import qutip
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import (
+from qutip_qip.operations import gate_sequence_product
+from qutip_qip.operations.std import (
     X,
     Y,
     Z,
-    SNOT,
+    CX,
+    H,
+    IDLE,
     RX,
     RY,
     RZ,
     ISWAP,
     SQRTISWAP,
     RZX,
-    gate_sequence_product,
 )
 from qutip_qip.device import (
     DispersiveCavityQED,
@@ -41,7 +43,7 @@ single_gate_tests = [
     pytest.param(2, [Z], [0], id="Z"),
     pytest.param(2, [X], [0], id="X"),
     pytest.param(2, [Y], [0], id="Y"),
-    pytest.param(2, [SNOT], [0], id="SNOT"),
+    pytest.param(2, [H], [0], id="H"),
     pytest.param(2, [_rz], [0], id="RZ"),
     pytest.param(2, [_rx], [0], id="RX"),
     pytest.param(2, [_ry], [0], id="RY"),
@@ -176,19 +178,19 @@ def _test_numerical_evolution_helper(
 
 
 circuit = QubitCircuit(3)
-circuit.add_gate("RX", targets=[0], arg_value=np.pi / 2)
-circuit.add_gate("RZ", targets=[2], arg_value=np.pi)
-circuit.add_gate("CNOT", targets=[0], controls=[1])
-circuit.add_gate("ISWAP", targets=[2, 1])
-circuit.add_gate("Y", targets=[2])
-circuit.add_gate("Z", targets=[0])
-circuit.add_gate("IDLE", targets=[1], arg_value=1.0)
-circuit.add_gate("CNOT", targets=[0], controls=[2])
-circuit.add_gate("Z", targets=[1])
-circuit.add_gate("X", targets=[1])
+circuit.add_gate(RX(np.pi / 2), targets=[0])
+circuit.add_gate(RZ(np.pi), targets=[2])
+circuit.add_gate(CX, targets=[0], controls=[1])
+circuit.add_gate(ISWAP, targets=[2, 1])
+circuit.add_gate(Y, targets=[2])
+circuit.add_gate(Z, targets=[0])
+circuit.add_gate(IDLE, targets=[1])
+circuit.add_gate(CX, targets=[0], controls=[2])
+circuit.add_gate(Z, targets=[1])
+circuit.add_gate(X, targets=[1])
 
 circuit2 = deepcopy(circuit)
-circuit2.add_gate("SQRTISWAP", targets=[0, 2])  # supported only by SpinChain
+circuit2.add_gate(SQRTISWAP, targets=[0, 2])  # supported only by SpinChain
 
 
 @pytest.mark.filterwarnings("ignore:Not in the dispersive regime")
@@ -208,9 +210,9 @@ circuit2.add_gate("SQRTISWAP", targets=[0, 2])  # supported only by SpinChain
 )
 @pytest.mark.parametrize(("schedule_mode"), ["ASAP", "ALAP", None])
 def test_numerical_circuit(circuit, device_class, kwargs, schedule_mode):
-    num_qubits = circuit.N
+    num_qubits = circuit.num_qubits
     with warnings.catch_warnings(record=True):
-        device = device_class(circuit.N, **kwargs)
+        device = device_class(circuit.num_qubits, **kwargs)
     device.load_circuit(circuit, schedule_mode=schedule_mode)
 
     state = qutip.rand_ket(2**num_qubits)
@@ -228,12 +230,10 @@ def test_numerical_circuit(circuit, device_class, kwargs, schedule_mode):
         init_state = _ket_expaned_dims(state, device.dims)
     else:
         init_state = state
-
     options = {"store_final_state": True, "nsteps": 50000}
     result = device.run_state(
         init_state=init_state, analytical=False, options=options
     )
-
     if isinstance(device, DispersiveCavityQED):
         target = qutip.tensor(extra, target)
     elif isinstance(device, SCQubits):
@@ -249,8 +249,8 @@ def test_numerical_circuit(circuit, device_class, kwargs, schedule_mode):
 def test_pulse_plotting(processor_class):
     plt = pytest.importorskip("matplotlib.pyplot")
     qc = QubitCircuit(3)
-    qc.add_gate("CNOT", targets=1, controls=0)
-    qc.add_gate("X", targets=1)
+    qc.add_gate(CX, targets=1, controls=0)
+    qc.add_gate(X, targets=1)
 
     processor = processor_class(3)
     processor.load_circuit(qc)
@@ -269,7 +269,7 @@ def _compute_propagator(processor, circuit):
 def test_scqubits_single_qubit_gate():
     # Check the accuracy of the single-qubit gate for SCQubits.
     circuit = QubitCircuit(1)
-    circuit.add_gate("X", targets=[0])
+    circuit.add_gate(X, targets=[0])
     processor = SCQubits(1, omega_single=0.04)
     processor.load_circuit(circuit)
     U = _compute_propagator(processor, circuit)
@@ -287,7 +287,7 @@ def test_idling_accuracy():
     """
     processor = SCQubits(2, omega_single=0.04)
     circuit = QubitCircuit(1)
-    circuit.add_gate("X", targets=[0])
+    circuit.add_gate(X, targets=[0])
     processor.load_circuit(circuit)
     U = _compute_propagator(processor, circuit)
     error_1_gate = 1 - qutip.average_gate_fidelity(
@@ -295,8 +295,8 @@ def test_idling_accuracy():
     )
 
     circuit = QubitCircuit(2)
-    circuit.add_gate("X", targets=[0])
-    circuit.add_gate("X", targets=[1])
+    circuit.add_gate(X, targets=[0])
+    circuit.add_gate(X, targets=[1])
     # Turning off scheduling to keep the idling.
     processor.load_circuit(circuit, schedule_mode=False)
     U = _compute_propagator(processor, circuit)

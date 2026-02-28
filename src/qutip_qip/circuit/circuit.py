@@ -2,21 +2,12 @@
 Quantum circuit representation and simulation.
 """
 
-import numpy as np
 import warnings
 from typing import Iterable
+from qutip import qeye, Qobj
+import numpy as np
 
 from ._decompose import _resolve_to_universal, _resolve_2q_basis
-from qutip_qip.operations import (
-    Gate,
-    ControlledGate,
-    ParametrizedGate,
-    ControlledParamGate,
-    GLOBALPHASE,
-    Measurement,
-    expand_operator,
-    GATE_CLASS_MAP,
-)
 from qutip_qip.circuit import (
     CircuitSimulator,
     CircuitInstruction,
@@ -24,7 +15,9 @@ from qutip_qip.circuit import (
     MeasurementInstruction,
 )
 from qutip_qip.circuit.utils import _check_iterable, _check_limit_
-from qutip import qeye, Qobj
+from qutip_qip.operations import Gate, Measurement, expand_operator
+from qutip_qip.operations.std import RX, RY, RZ, GLOBALPHASE, GATE_CLASS_MAP
+from qutip_qip.typing import IntList
 
 try:
     from IPython.display import Image as DisplayImage, SVG as DisplaySVG
@@ -45,7 +38,7 @@ class QubitCircuit:
 
     Parameters
     ----------
-    N : int
+    num_qubits : int
         Number of qubits in the system.
     input_states : list
         A list of string such as `0`,'+', "A", "Y". Only used for latex.
@@ -59,31 +52,45 @@ class QubitCircuit:
 
     def __init__(
         self,
-        N,
+        num_qubits=None,
         input_states=None,
         output_states=None,
         reverse_states=True,
         dims=None,
         num_cbits=0,
         user_gates=None,
+        N=None,
     ):
         # number of qubits in the register
-        self.N = N
+        self._num_qubits = num_qubits
+        if N is not None:
+            warnings.warn(
+                "The 'N' parameter is deprecated. Please use "
+                "'num_qubits' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            self._num_qubits = N
+
         self.reverse_states = reverse_states
-        self.num_cbits = num_cbits
-        self._instructions: list[CircuitInstruction] = []
+        self.num_cbits: int = num_cbits
         self._global_phase: float = 0.0
-        self.dims = dims if dims is not None else [2] * N
+        self._instructions: list[CircuitInstruction] = []
+        self.dims = dims if dims is not None else [2] * self.num_qubits
 
         if input_states:
             self.input_states = input_states
         else:
-            self.input_states = [None for i in range(N + num_cbits)]
+            self.input_states = [
+                None for i in range(self.num_qubits + num_cbits)
+            ]
 
         if output_states:
             self.output_states = output_states
         else:
-            self.output_states = [None for i in range(N + num_cbits)]
+            self.output_states = [
+                None for i in range(self.num_qubits + num_cbits)
+            ]
 
         if user_gates is not None:
             raise ValueError(
@@ -100,31 +107,50 @@ class QubitCircuit:
         self._global_phase %= 2 * np.pi
 
     @property
-    def gates(self):
+    def gates(self) -> list[CircuitInstruction]:
         warnings.warn(
             "QubitCircuit.gates has been replaced with QubitCircuit.instructions",
-            UserWarning,
+            DeprecationWarning,
             stacklevel=2,
         )
         return self._instructions
 
     gates.setter
-
-    def gates(self):
+    def gates(self) -> None:
         warnings.warn(
             "QubitCircuit.gates has been replaced with QubitCircuit.instructions",
-            UserWarning,
+            DeprecationWarning,
             stacklevel=2,
         )
 
     @property
-    def instructions(self):
+    def instructions(self) -> list[CircuitInstruction]:
         return self._instructions
+
+    @property
+    def num_qubits(self) -> int:
+        """
+        Number of qubits in the circuit.
+        """
+        return self._num_qubits
+
+    @property
+    def N(self) -> int:
+        """
+        Number of qubits in the circuit.
+        """
+        warnings.warn(
+            "The 'N' parameter is deprecated. Please use "
+            "'num_qubits' instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self._num_qubits
 
     def __repr__(self) -> str:
         return ""
 
-    def _repr_png_(self):
+    def _repr_png_(self) -> None:
         """
         Provide PNG representation for Jupyter Notebook.
         """
@@ -133,9 +159,14 @@ class QubitCircuit:
         except ImportError:
             self.draw("text")
 
-    def add_state(self, state, targets=None, state_type="input"):
+    def add_state(
+        self,
+        state: str,
+        targets: IntList,
+        state_type: str = "input",  # FIXME Add an enum type hinting?
+    ):
         """
-        Add an input or ouput state to the circuit. By default all the input
+        Add an input or output state to the circuit. By default all the input
         and output states will be initialized to `None`. A particular state can
         be added by specifying the state and the qubit where it has to be added
         along with the type as input or output.
@@ -157,16 +188,17 @@ class QubitCircuit:
         if state_type == "input":
             for i in targets:
                 self.input_states[i] = state
+
         if state_type == "output":
             for i in targets:
                 self.output_states[i] = state
 
     def add_measurement(
         self,
-        measurement,
-        targets,
-        classical_store,
-        index=None,
+        measurement: str | Measurement,
+        targets: int | IntList,
+        classical_store: int,
+        index: None = None,
     ):
         """
         Adds a measurement with specified parameters to the circuit.
@@ -174,7 +206,7 @@ class QubitCircuit:
         Parameters
         ----------
         measurement: string
-            Measurement name. If name is an instance of `Measuremnent`,
+            Measurement name. If name is an instance of `Measurement`,
             parameters are unpacked and added.
         targets: list
             Gate targets
@@ -215,12 +247,12 @@ class QubitCircuit:
     def add_gate(
         self,
         gate: Gate | str,
-        targets: Iterable[int] = [],
-        controls: Iterable[int] = [],
+        targets: int | Iterable[int] =(),
+        controls: int | Iterable[int] = (),
         arg_value: any = None,
         arg_label: str | None = None,
-        control_value: int | None = None,
-        classical_controls: Iterable[int] = [],
+        control_value: None = None,
+        classical_controls: int | Iterable[int] = (),
         classical_control_value: int | None = None,
         style: dict = None,
         index: None = None,
@@ -245,7 +277,7 @@ class QubitCircuit:
             Label for gate representation.
         classical_controls : int or list of int, optional
             Indices of classical bits to control the gate.
-        control_value : int, optional
+        control_value : optional
             Value of classical bits to control on, the classical controls are
             interpreted as an integer with the lowest bit being the first one.
             If not specified, then the value is interpreted to be
@@ -257,11 +289,27 @@ class QubitCircuit:
         if index is not None:
             raise ValueError("argument index is no longer supported")
 
+        if arg_value is not None or arg_label is not None:
+            warnings.warn(
+                "Define 'arg_value', 'arg_label' in your Gate object e.g. RX(arg_value=np.pi)"
+                ", 'arg_value', 'arg_label' arguments will be removed from 'add_gate' method in the future version.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
+        if control_value is not None:
+            warnings.warn(
+                "'control_value' is no longer a valid argument and has been deprecated and will be removed in the future version. "
+                "Use gate = controlled(gates.X, num_ctrl_qubits=1, control_value=0) instead",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
         if isinstance(gate, GLOBALPHASE):
-            self.add_global_phase(gate.arg_value)
+            self.add_global_phase(gate.arg_value[0])
             return
 
-        # Handling case for int input
+        # Handling case for int input (TODO use try except)
         targets = [targets] if type(targets) is int else targets
         controls = [controls] if type(controls) is int else controls
         classical_controls = (
@@ -276,20 +324,29 @@ class QubitCircuit:
         _check_iterable("classical_controls", classical_controls)
 
         # Checks each element is of given type (e.g. int) and within the limit
-        _check_limit_("targets", targets, self.N - 1, int)
-        _check_limit_("controls", controls, self.N - 1, int)
+        _check_limit_("targets", targets, self.num_qubits - 1, int)
+        _check_limit_("controls", controls, self.num_qubits - 1, int)
         _check_limit_(
             "classical_controls", classical_controls, self.num_cbits - 1, int
         )
+
+        # Check len(controls) == gate.num_ctrl_qubits
 
         # Default value for classical control
         if len(classical_controls) > 0 and classical_control_value is None:
             classical_control_value = 2 ** (len(classical_controls)) - 1
 
-        # This can be remove if the gate input is only restricted to Gate or its object instead of strings
+        # This conditional block can be remove if the gate input is only
+        # restricted to Gate subclasses or object instead of strings in the future.
         if not isinstance(gate, Gate):
             if type(gate) is str and gate in GATE_CLASS_MAP:
+                warnings.warn(
+                    "Passing Gate as a string input has been deprecated and will be removed in future versions.",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
                 gate_class = GATE_CLASS_MAP[gate]
+
             elif issubclass(gate, Gate):
                 gate_class = gate
             else:
@@ -298,29 +355,22 @@ class QubitCircuit:
                     "or Gate class or its object instantiation"
                 )
 
-            if issubclass(gate_class, ControlledParamGate):
-                gate = gate_class(
-                    control_value=control_value,
-                    arg_value=arg_value,
-                    arg_label=arg_label,
-                )
-
-            elif issubclass(gate_class, ParametrizedGate):
+            if gate_class.is_parametric():
                 gate = gate_class(arg_value=arg_value, arg_label=arg_label)
 
-            elif issubclass(gate_class, ControlledGate):
-                gate = gate_class(
-                    control_value=control_value,
-                )
-
             else:
-                gate = gate_class()
+                gate = gate_class
+
+        if gate.is_controlled() and len(controls) != gate.num_ctrl_qubits:
+            raise ValueError(f"{gate.name} takes {gate.num_ctrl_qubits} qubits, but {len(controls)} were provided.")
+
+        if len(controls) + len(targets) != gate.num_qubits:
+            raise ValueError(f"{gate.name} takes {gate.num_qubits} qubits, but {len(controls) + len(targets)} were provided.")
 
         qubits = []
         if controls is not None:
             qubits.extend(controls)
-        if targets is not None:
-            qubits.extend(targets)
+        qubits.extend(targets)
 
         cbits = tuple()
         if classical_controls is not None:
@@ -349,7 +399,7 @@ class QubitCircuit:
         start : int
             The qubit on which the first gate is applied.
         """
-        if self.N - start < qc.N:
+        if self.num_qubits - start < qc.num_qubits:
             raise NotImplementedError("Targets exceed number of qubits.")
 
         for circuit_op in qc.instructions:
@@ -399,7 +449,7 @@ class QubitCircuit:
                 for i in range(end - index):
                     self._instructions.pop(index + i)
 
-            elif end is not None and end > self.N:
+            elif end is not None and end > self.num_qubits:
                 raise ValueError("End target exceeds number \
                     of gates + measurements.")
 
@@ -438,7 +488,7 @@ class QubitCircuit:
 
         """
         temp = QubitCircuit(
-            self.N,
+            self.num_qubits,
             reverse_states=self.reverse_states,
             num_cbits=self.num_cbits,
             input_states=self.input_states,
@@ -470,7 +520,6 @@ class QubitCircuit:
         state,
         cbits=None,
         measure_results=None,
-        precompute_unitary=False,
     ):
         """
         Calculate the result of one instance of circuit run.
@@ -498,14 +547,11 @@ class QubitCircuit:
             mode = "density_matrix_simulator"
         else:
             raise TypeError("State is not a ket or a density matrix.")
-        sim = CircuitSimulator(
-            self,
-            mode,
-            precompute_unitary,
-        )
+
+        sim = CircuitSimulator(self, mode)
         return sim.run(state, cbits, measure_results).get_final_states(0)
 
-    def run_statistics(self, state, cbits=None, precompute_unitary=False):
+    def run_statistics(self, state, cbits=None):
         """
         Calculate all the possible outputs of a circuit
         (varied by measurement gates).
@@ -529,10 +575,10 @@ class QubitCircuit:
             mode = "density_matrix_simulator"
         else:
             raise TypeError("State is not a ket or a density matrix.")
-        sim = CircuitSimulator(self, mode, precompute_unitary)
+        sim = CircuitSimulator(self, mode)
         return sim.run_statistics(state, cbits)
 
-    def resolve_gates(self, basis=["CNOT", "RX", "RY", "RZ"]):
+    def resolve_gates(self, basis=["CNOT", "CX", "RX", "RY", "RZ"]):
         """
         Unitary matrix calculator for N qubits returning the individual
         steps as unitary matrices operating from left to right in the specified
@@ -566,7 +612,15 @@ class QubitCircuit:
                 measurements are added to the circuit")
 
         basis_1q_valid = ["RX", "RY", "RZ", "IDLE"]
-        basis_2q_valid = ["CNOT", "CSIGN", "ISWAP", "SQRTSWAP", "SQRTISWAP"]
+        basis_2q_valid = [
+            "CNOT",
+            "CX",
+            "CSIGN",
+            "CZ",
+            "ISWAP",
+            "SQRTSWAP",
+            "SQRTISWAP",
+        ]
         basis_1q = []
         basis_2q = []
 
@@ -593,11 +647,11 @@ class QubitCircuit:
 
         match = False
         qc_temp = QubitCircuit(
-            self.N,
+            self.num_qubits,
             reverse_states=self.reverse_states,
             num_cbits=self.num_cbits,
         )
-        temp_resolved = QubitCircuit(self.N)
+        temp_resolved = QubitCircuit(self.num_qubits)
 
         for circ_instruction in self.instructions:
             gate = circ_instruction.operation
@@ -608,17 +662,11 @@ class QubitCircuit:
                 temp_resolved.add_global_phase(phase=np.pi / 2)
 
                 if gate.name == "X":
-                    temp_resolved.add_gate(
-                        "RX", targets=targets, arg_value=np.pi
-                    )
+                    temp_resolved.add_gate(RX(np.pi), targets=targets)
                 elif gate.name == "Y":
-                    temp_resolved.add_gate(
-                        "RY", targets=targets, arg_value=np.pi
-                    )
+                    temp_resolved.add_gate(RY(np.pi), targets=targets)
                 else:
-                    temp_resolved.add_gate(
-                        "RZ", targets=targets, arg_value=np.pi
-                    )
+                    temp_resolved.add_gate(RZ(np.pi), targets=targets)
 
             else:
                 try:
@@ -641,7 +689,7 @@ class QubitCircuit:
 
         qc_temp.add_global_phase(temp_resolved.global_phase)
 
-        for basis_unit in ["CSIGN", "ISWAP", "SQRTSWAP", "SQRTISWAP"]:
+        for basis_unit in ["CSIGN", "CZ", "ISWAP", "SQRTSWAP", "SQRTISWAP"]:
             if basis_unit in basis_2q:
                 match = True
                 _resolve_2q_basis(basis_unit, qc_temp, temp_resolved)
@@ -663,62 +711,44 @@ class QubitCircuit:
 
             if gate.name == "RX" and "RX" not in basis_1q:
                 qc_temp.add_gate(
-                    "RY",
+                    RY(arg_value=-half_pi, arg_label=r"-\pi/2"),
                     targets=targets,
-                    arg_value=-half_pi,
-                    arg_label=r"-\pi/2",
                 )
                 qc_temp.add_gate(
-                    "RZ",
+                    RZ(arg_value=gate.arg_value, arg_label=gate.arg_label),
                     targets=targets,
-                    arg_value=gate.arg_value,
-                    arg_label=gate.arg_label,
                 )
                 qc_temp.add_gate(
-                    "RY",
+                    RY(arg_value=-half_pi, arg_label=r"\pi/2"),
                     targets=targets,
-                    arg_value=-half_pi,
-                    arg_label=r"\pi/2",
                 )
 
             elif gate.name == "RY" and "RY" not in basis_1q:
                 qc_temp.add_gate(
-                    "RZ",
+                    RZ(arg_value=-half_pi, arg_label=r"-\pi/2"),
                     targets=targets,
-                    arg_value=-half_pi,
-                    arg_label=r"-\pi/2",
                 )
                 qc_temp.add_gate(
-                    "RX",
+                    RX(arg_value=gate.arg_value, arg_label=gate.arg_label),
                     targets=targets,
-                    arg_value=gate.arg_value,
-                    arg_label=gate.arg_label,
                 )
                 qc_temp.add_gate(
-                    "RZ",
+                    RZ(arg_value=half_pi, arg_label=r"\pi/2"),
                     targets=targets,
-                    arg_value=half_pi,
-                    arg_label=r"\pi/2",
                 )
 
             elif gate.name == "RZ" and "RZ" not in basis_1q:
                 qc_temp.add_gate(
-                    "RX",
+                    RX(arg_value=-half_pi, arg_label=r"-\pi/2"),
                     targets=targets,
-                    arg_value=-half_pi,
-                    arg_label=r"-\pi/2",
                 )
                 qc_temp.add_gate(
-                    "RY",
+                    RY(arg_value=gate.arg_value, arg_label=gate.arg_label),
                     targets=targets,
-                    arg_value=gate.arg_value,
-                    arg_label=gate.arg_label,
                 )
                 qc_temp.add_gate(
-                    "RX",
+                    RX(arg_value=half_pi, arg_label=r"\pi/2"),
                     targets=targets,
-                    arg_value=half_pi,
-                    arg_label=r"\pi/2",
                 )
             else:
                 qc_temp.add_gate(
@@ -741,7 +771,7 @@ class QubitCircuit:
         ----------
         expand : bool, optional
             Whether to expand the unitary matrices for the individual
-            steps to the full Hilbert space for N qubits.
+            steps to the full Hilbert space for num_qubits.
             Defaults to ``True``.
             If ``False``, the unitary matrices will not be expanded and the
             list of unitaries will need to be combined with the list of
@@ -778,15 +808,17 @@ class QubitCircuit:
 
         # For Gate Instructions
         for gate, qubits in gates:
-            qobj = gate.get_compact_qobj()
+            qobj = gate.get_qobj()
             if expand:
                 qobj = expand_operator(qobj, dims=self.dims, targets=qubits)
             U_list.append(qobj)
 
         # For Circuit's Global Phase
-        qobj = Qobj(self.global_phase)
+        qobj = Qobj([self.global_phase])
         if expand:
-            qobj = GLOBALPHASE(self.global_phase).get_qobj(self.N)
+            qobj = GLOBALPHASE(self.global_phase).get_qobj(
+                num_qubits=self.num_qubits
+            )
 
         U_list.append(qobj)
         return U_list
@@ -901,7 +933,7 @@ class QubitCircuit:
             object to store QASM output.
         """
 
-        qasm_out.output("qreg q[{}];".format(self.N))
+        qasm_out.output("qreg q[{}];".format(self.num_qubits))
         if self.num_cbits:
             qasm_out.output("creg c[{}];".format(self.num_cbits))
         qasm_out.output(n=1)
