@@ -19,13 +19,14 @@ class _ControlledTwoQubitGate(ControlledGate):
     """
     This class allows correctly generating the gate instance
     when a redundant control_value is given, e.g.
-    ``CNOT(0, 1, control_value=1)``,
+    ``CX``,
     and raise an error if it is 0.
     """
 
     __slots__ = ()
     num_qubits: Final[int] = 2
     num_ctrl_qubits: Final[int] = 1
+    ctrl_value: Final[int] = 1
 
 
 class SWAP(_TwoQubitGate):
@@ -555,7 +556,7 @@ class CX(_ControlledTwoQubitGate):
     Examples
     --------
     >>> from qutip_qip.operations.std import CX
-    >>> CX(control_value=1).get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> CX.get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=True
     Qobj data =
     [[1. 0. 0. 0.]
@@ -574,14 +575,14 @@ class CX(_ControlledTwoQubitGate):
 class CNOT(CX):
     __slots__ = ()
 
-    def __init__(self, control_value=None):
+    def __init__(self):
         warnings.warn(
             "CNOT is deprecated and will be removed in future versions. "
             "Use CX  instead.",
             DeprecationWarning,
             stacklevel=2,
         )
-        super().__init__(control_value)
+        super().__init__()
 
 
 class CY(_ControlledTwoQubitGate):
@@ -602,8 +603,8 @@ class CY(_ControlledTwoQubitGate):
 
     __slots__ = ()
 
-    target_gate = Y
     is_clifford = True
+    target_gate = Y
     latex_str = r"{\rm CY}"
 
 
@@ -665,9 +666,6 @@ class CH(_ControlledTwoQubitGate):
 
     target_gate = H
     latex_str = r"{\rm CH}"
-
-    def inverse_gate(self):
-        return CH(self.control_value)
 
 
 class CT(_ControlledTwoQubitGate):
@@ -777,9 +775,9 @@ class CRY(_ControlledTwoQubitGate):
 
     __slots__ = ()
 
-    latex_str = r"{\rm CRY}"
-    target_gate = RY
     num_params: int = 1
+    target_gate = RY
+    latex_str = r"{\rm CRY}"
 
 
 class CRZ(_ControlledTwoQubitGate):

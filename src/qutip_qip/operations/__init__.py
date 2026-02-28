@@ -9,7 +9,7 @@ from .utils import (
 )
 from .gateclass import Gate, unitary_gate
 from .parametric import ParametricGate, AngleParametricGate
-from .controlled import ControlledGate, controlled_gate
+from .controlled import ControlledGate, controlled
 from .measurement import Measurement
 from .old_gates import (
     rx,
@@ -100,7 +100,7 @@ __all__ = [
     "ParametricGate",
     "ControlledGate",
     "unitary_gate",
-    "controlled_gate",
+    "controlled",
     "AngleParametricGate",
     "Measurement",
     "rx",

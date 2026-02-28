@@ -12,9 +12,15 @@ class ControlledGate(Gate):
     A controlled gate applies a target unitary operation only when the control
     qubits are in a specific state.
 
-    Parameters
+    Attributes
     ----------
-    control_value : int, optional
+    num_ctrl_qubits : int
+        The number of qubits acting as controls.
+
+    target_gate : Gate
+        The gate to be applied to the target qubits.
+
+    ctrl_value : int
         The decimal value of the control state required to execute the
         unitary operator on the target qubits.
 
@@ -23,20 +29,11 @@ class ControlledGate(Gate):
             set ``control_value=1``.
         * If the gate should execute when two control qubits are $|10\rangle$
             (binary 10), set ``control_value=0b10``.
-
-        Defaults to all-ones (e.g., $2^N - 1$) if not provided.
-
-    Attributes
-    ----------
-    num_ctrl_qubits : int
-        The number of qubits acting as controls.
-
-    target_gate : Gate
-        The gate to be applied to the target qubits.
     """
 
     __slots__ = ("arg_value", "arg_label", "_control_value")
     num_ctrl_qubits: int
+    ctrl_value: int
     target_gate: Gate
 
     def __init_subclass__(cls, **kwargs) -> None:
@@ -164,25 +161,25 @@ class ControlledGate(Gate):
         return controlled_gate_unitary(
             U=target_gate.get_qobj(),
             num_controls=self.num_ctrl_qubits,
-            control_value=self.control_value,
+            control_value=self.ctrl_value,
         )
 
     def inverse_gate(self) -> Gate:
         if not self.is_parametric():
-            inverse_gate = controlled_gate(
+            inverse_gate = controlled(
                 self.target_gate.inverse_gate(), self.num_ctrl_qubits
             )
-            return inverse_gate(control_value=self.control_value)
+            return inverse_gate(control_value=self.ctrl_value)
 
         else:
             inverse_target_gate = self.target_gate(self.arg_value).inverse_gate()
             arg_value = inverse_target_gate.arg_value
-            inverse_gate = controlled_gate(
+            inverse_gate = controlled(
                 type(inverse_target_gate), self.num_ctrl_qubits
             )
 
             return inverse_gate(
-                control_value=self.control_value, arg_value=arg_value
+                control_value=self.ctrl_value, arg_value=arg_value
             )
 
     @staticmethod
@@ -193,21 +190,23 @@ class ControlledGate(Gate):
     def is_parametric(cls) -> bool:
         return cls.target_gate.is_parametric()
 
-    def __str__(self) -> str:
-        return f"Gate({self.name}, target_gate={self.target_gate}, num_ctrl_qubits={self.num_ctrl_qubits}, control_value={self.control_value})"
+    @classmethod
+    def __str__(cls) -> str:
+        return f"Gate({cls.name}, target_gate={cls.target_gate}, num_ctrl_qubits={cls.num_ctrl_qubits}, control_value={cls.ctrl_value})"
 
-    def __eq__(self, other) -> bool:
-        if type(self) is not type(other):
-            return False
+    # def __eq__(self, other) -> bool:
+    #     if type(self) is not type(other):
+    #         return False
 
-        if self.control_value != other.control_value:
-            return False
-        return True
+    #     if self.control_value != other.control_value:
+    #         return False
+    #     return True
 
 
-def controlled_gate(
+def controlled(
     gate: Gate,
     n_ctrl_qubits: int = 1,
+    control_value: int | None = None,
     gate_name: str | None = None,
     namespace: str = "custom",
 ) -> ControlledGate:
@@ -218,12 +217,16 @@ def controlled_gate(
     if gate_name is None:
         gate_name = f"C{gate.name}"
 
+    if control_value is None:
+        control_value = 2**n_ctrl_qubits - 1
+
     class _CustomControlledGate(ControlledGate):
         __slots__ = ()
         _namespace = namespace
         name = gate_name
         num_qubits = n_ctrl_qubits + gate.num_qubits
         num_ctrl_qubits = n_ctrl_qubits
+        ctrl_value = control_value
         target_gate = gate
         latex_str = r"{gate_name}"
 

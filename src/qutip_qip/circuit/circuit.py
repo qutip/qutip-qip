@@ -251,7 +251,7 @@ class QubitCircuit:
         controls: int | Iterable[int] = [],
         arg_value: any = None,
         arg_label: str | None = None,
-        control_value: int | None = None,
+        control_value: None = None,
         classical_controls: int | Iterable[int] = [],
         classical_control_value: int | None = None,
         style: dict = None,
@@ -277,7 +277,7 @@ class QubitCircuit:
             Label for gate representation.
         classical_controls : int or list of int, optional
             Indices of classical bits to control the gate.
-        control_value : int, optional
+        control_value : optional
             Value of classical bits to control on, the classical controls are
             interpreted as an integer with the lowest bit being the first one.
             If not specified, then the value is interpreted to be
@@ -299,8 +299,8 @@ class QubitCircuit:
 
         if control_value is not None:
             warnings.warn(
-                "Define 'control_value', in your Gate object e.g. CX(control_value=0)"
-                ", 'control_value' argument will be removed from 'add_gate' method in the future version.",
+                "'control_value' is no longer a valid argument and has been deprecated and will be removed in the future version. "
+                "Use gate = controlled(gates.X, num_ctrl_qubits=1, control_value=0) instead",
                 DeprecationWarning,
                 stacklevel=2,
             )
@@ -355,18 +355,11 @@ class QubitCircuit:
                     "or Gate class or its object instantiation"
                 )
 
-            if gate_class.is_controlled() and gate_class.is_parametric():
-                gate = gate_class(
-                    control_value=control_value,
-                    arg_value=arg_value,
-                    arg_label=arg_label,
-                )
-
-            elif gate_class.is_parametric():
+            if gate_class.is_parametric():
                 gate = gate_class(arg_value=arg_value, arg_label=arg_label)
 
             elif gate_class.is_controlled():
-                gate = gate_class(control_value=control_value)
+                gate = gate_class()
             else:
                 gate = gate_class
 
