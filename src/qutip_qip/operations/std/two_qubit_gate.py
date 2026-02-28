@@ -4,7 +4,7 @@ import warnings
 import numpy as np
 from qutip import Qobj
 
-from qutip_qip.operations import Gate, ControlledGate, AngleParametricGate
+from qutip_qip.operations import Gate, ControlledGate, AngleParametricGate, ControlledParamGate
 from qutip_qip.operations.std import X, Y, Z, H, S, T, RX, RY, RZ, QASMU, PHASE
 
 
@@ -23,6 +23,13 @@ class _ControlledTwoQubitGate(ControlledGate):
     and raise an error if it is 0.
     """
 
+    __slots__ = ()
+    num_qubits: Final[int] = 2
+    num_ctrl_qubits: Final[int] = 1
+    ctrl_value: Final[int] = 1
+
+
+class _ControlledParametricTwoQubitGate(ControlledParamGate, AngleParametricGate):
     __slots__ = ()
     num_qubits: Final[int] = 2
     num_ctrl_qubits: Final[int] = 1
@@ -716,7 +723,7 @@ class CS(_ControlledTwoQubitGate):
     latex_str = r"{\rm CS}"
 
 
-class CPHASE(_ControlledTwoQubitGate):
+class CPHASE(_ControlledParametricTwoQubitGate):
     r"""
     CPHASE gate.
 
@@ -748,7 +755,7 @@ class CPHASE(_ControlledTwoQubitGate):
     latex_str = r"{\rm CPHASE}"
 
 
-class CRX(_ControlledTwoQubitGate):
+class CRX(_ControlledParametricTwoQubitGate):
     r"""
     Controlled X rotation.
 
@@ -764,7 +771,7 @@ class CRX(_ControlledTwoQubitGate):
     latex_str = r"{\rm CRX}"
 
 
-class CRY(_ControlledTwoQubitGate):
+class CRY(_ControlledParametricTwoQubitGate):
     r"""
     Controlled Y rotation.
 
@@ -780,7 +787,7 @@ class CRY(_ControlledTwoQubitGate):
     latex_str = r"{\rm CRY}"
 
 
-class CRZ(_ControlledTwoQubitGate):
+class CRZ(_ControlledParametricTwoQubitGate):
     r"""
     CRZ gate.
 
@@ -812,7 +819,7 @@ class CRZ(_ControlledTwoQubitGate):
     latex_str = r"{\rm CRZ}"
 
 
-class CQASMU(_ControlledTwoQubitGate):
+class CQASMU(_ControlledParametricTwoQubitGate):
     r"""
     Controlled QASMU rotation.
 
