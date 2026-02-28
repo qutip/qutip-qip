@@ -4,7 +4,7 @@ from functools import partial
 from abc import abstractmethod
 
 from qutip import Qobj
-from qutip_qip.operations import Gate, ParametricGate, controlled_gate_unitary
+from qutip_qip.operations import Gate, controlled_gate_unitary
 
 
 class class_or_instance_method:
@@ -91,9 +91,6 @@ class ControlledGate(Gate):
 
         cls._validate_control_value()
 
-        if hasattr(cls.target_gate, "num_params") and "num_params" not in cls.__dict__:
-            cls.num_params = cls.target_gate.num_params
-
         # Default self_inverse
         if "self_inverse" not in cls.__dict__:
             cls.self_inverse = cls.target_gate.self_inverse
@@ -106,11 +103,6 @@ class ControlledGate(Gate):
     def __init__(self, *args, **kwargs) -> None:
         self._target_inst = self.target_gate(*args, **kwargs)
 
-    @property
-    @abstractmethod
-    def target_gate() -> Gate:
-        pass
-
     def __getattr__(self, name: str) -> any:
         """
         If an attribute (like 'arg_value') or method (like 'validate_params')
@@ -118,6 +110,11 @@ class ControlledGate(Gate):
         We forward the request to the underlying target gate instance.
         """
         return getattr(self._target_inst, name)
+
+    @property
+    @abstractmethod
+    def target_gate() -> Gate:
+        pass
 
     @property
     def self_inverse(self) -> int:
@@ -200,62 +197,6 @@ class ControlledGate(Gate):
     @classmethod
     def __str__(cls) -> str:
         return f"Gate({cls.name}, target_gate={cls.target_gate}, num_ctrl_qubits={cls.num_ctrl_qubits}, control_value={cls.ctrl_value})"
-
-
-class ControlledParamGate(ControlledGate, ParametricGate):
-    def __init__(self, arg_value, arg_label: str | None = None) -> None:
-        ParametricGate.__init__(self, arg_value=arg_value, arg_label=arg_label)
-
-    def __init_subclass__(cls, **kwargs) -> None:
-        """
-        Validates the subclass definition.
-        """
-
-        super().__init_subclass__(**kwargs)
-        if inspect.isabstract(cls):
-            return
-
-        # Automatically copy the validator from the target
-        # if cls.target_gate.is_parametric():
-        #     cls.validate_params = staticmethod(cls.target_gate.validate_params)
-
-        # Copy the num_params if not defined
-        if "num_params" not in cls.__dict__:
-            cls.num_params = cls.target_gate.num_params
-
-    def get_qobj(self) -> Qobj:
-        """
-        Construct the full Qobj representation of the controlled gate.
-
-        Returns
-        -------
-        qobj : qutip.Qobj
-            The unitary matrix representing the controlled operation.
-        """
-        target_gate = self.target_gate(self.arg_value)
-
-        return controlled_gate_unitary(
-            U=target_gate.get_qobj(),
-            num_controls=self.num_ctrl_qubits,
-            control_value=self.ctrl_value,
-        )
-
-    def inverse_gate(self) -> Gate:
-        inverse_target_gate = self.target_gate(self.arg_value).inverse_gate()
-        arg_value = inverse_target_gate.arg_value
-        inverse_gate = controlled(
-            type(inverse_target_gate), self.num_ctrl_qubits, self.ctrl_value
-        )
-
-        return inverse_gate(arg_value=arg_value)
-
-    @property
-    def self_inverse(self) -> int:
-        return self.target_gate.self_inverse
-
-    @staticmethod
-    def is_parametric() -> bool:
-        return True
 
 
 def controlled(
