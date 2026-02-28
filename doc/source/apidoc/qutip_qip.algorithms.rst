@@ -22,3 +22,5 @@ qutip\_qip.algorithms
 
       qft
       qpe
+      grover
+      grover_oracle
