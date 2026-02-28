@@ -495,7 +495,7 @@ class ParameterizedHamiltonian:
         Hamiltonian term which does not require parameters.
     """
 
-    def __init__(self, parameterized_terms=[], constant_term=None):
+    def __init__(self, parameterized_terms=(), constant_term=None):
         self.p_terms = parameterized_terms
         self.c_term = constant_term
         self.num_parameters = len(parameterized_terms)

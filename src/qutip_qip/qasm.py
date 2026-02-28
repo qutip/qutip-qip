@@ -509,7 +509,7 @@ class QasmProcessor:
         name,
         regs,
         args=None,
-        classical_controls=[],
+        classical_controls=(),
         classical_control_value=None,
     ):
         """
@@ -686,7 +686,7 @@ class QasmProcessor:
         name,
         com_regs,
         com_args,
-        classical_controls=[],
+        classical_controls=(),
         classical_control_value=None,
     ):
         """
@@ -742,7 +742,7 @@ class QasmProcessor:
         self,
         qc,
         command,
-        classical_controls=[],
+        classical_controls=(),
         classical_control_value=None,
     ):
         """
