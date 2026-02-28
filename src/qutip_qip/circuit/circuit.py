@@ -358,8 +358,6 @@ class QubitCircuit:
             if gate_class.is_parametric():
                 gate = gate_class(arg_value=arg_value, arg_label=arg_label)
 
-            elif gate_class.is_controlled():
-                gate = gate_class()
             else:
                 gate = gate_class
 

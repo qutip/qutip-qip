@@ -30,7 +30,7 @@ class TestQPE(unittest.TestCase):
 
         controlled_u = controlled(
             gate=unitary_gate(gate_name="CU", U=U),
-        )()
+        )
 
         assert_equal(controlled_u.ctrl_value, 1)
         assert_((controlled_u.target_gate.get_qobj() - U).norm() < 1e-12)

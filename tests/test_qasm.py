@@ -86,7 +86,7 @@ def test_custom_gates():
     qc = read_qasm(filepath)
     unitaries = qc.propagators()
     assert (unitaries[0] - unitaries[1]).norm() < 1e-12
-    ry_cx = std.CX().get_qobj() * tensor(
+    ry_cx = std.CX.get_qobj() * tensor(
         identity(2), std.RY(np.pi / 2).get_qobj()
     )
     assert (unitaries[2] - ry_cx).norm() < 1e-12
@@ -140,7 +140,7 @@ def test_export_import():
     qc.add_gate(std.CRY(arg_value=np.pi), targets=1, controls=0)
     qc.add_gate(std.CRX(arg_value=np.pi), targets=1, controls=0)
     qc.add_gate(std.CRZ(arg_value=np.pi), targets=1, controls=0)
-    qc.add_gate(std.CX(), targets=1, controls=0)
+    qc.add_gate(std.CX, targets=1, controls=0)
     qc.add_gate(std.TOFFOLI, targets=2, controls=[0, 1])
     # qc.add_gate(SQRTX, targets=0)
     qc.add_gate(std.CS, targets=1, controls=0)
