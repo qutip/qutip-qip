@@ -22,3 +22,4 @@ qutip\_qip.algorithms
 
       qft
       qpe
+      deutsch_jozsa
