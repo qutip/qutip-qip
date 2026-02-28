@@ -6,7 +6,7 @@ import qutip
 from qutip.core.gates import hadamard_transform
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations import (
-    Gate, expand_operator, controlled_gate, unitary_gate, qubit_clifford_group
+    Gate, expand_operator, controlled, unitary_gate, qubit_clifford_group
 )
 import qutip_qip.operations.std as std
 
@@ -248,7 +248,7 @@ class TestGateExpansion:
             assert _infidelity(test, expected) < 1e-12
 
     random_gate = unitary_gate("random", qutip.rand_unitary([2] * 1))
-    RandomThreeQubitGate = controlled_gate(random_gate, 2)
+    RandomThreeQubitGate = controlled(random_gate, 2)
     @pytest.mark.parametrize(
         ["gate", "n_controls"],
         [

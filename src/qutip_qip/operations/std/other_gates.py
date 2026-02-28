@@ -63,6 +63,7 @@ class TOFFOLI(ControlledGate):
     num_qubits: int = 3
 
     num_ctrl_qubits: int = 2
+    ctrl_value = 0b11
     target_gate = X
     latex_str = r"{\rm TOFFOLI}"
 
@@ -91,5 +92,6 @@ class FREDKIN(ControlledGate):
     num_qubits: int = 3
 
     num_ctrl_qubits: int = 1
+    ctrl_value = 1
     target_gate = SWAP
     latex_str = r"{\rm FREDKIN}"
