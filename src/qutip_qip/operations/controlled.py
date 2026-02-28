@@ -31,7 +31,6 @@ class ControlledGate(Gate):
             (binary 10), set ``ctrl_value=0b10``.
     """
 
-    __slots__ = ("arg_value", "arg_label", "_control_value")
     num_ctrl_qubits: int
     ctrl_value: int
     target_gate: Gate
@@ -180,39 +179,39 @@ class ControlledGate(Gate):
         return f"Gate({cls.name}, target_gate={cls.target_gate}, num_ctrl_qubits={cls.num_ctrl_qubits}, control_value={cls.ctrl_value})"
 
 
-# class ControlledParamGate(ControlledGate, ParametricGate):
-#     def __init__(self, arg_value, arg_label: str | None = None) -> None:
-#         ParametricGate.__init__(self, arg_value=arg_value, arg_label=arg_label)
+class ControlledParamGate(ControlledGate, ParametricGate):
+    def __init__(self, arg_value, arg_label: str | None = None) -> None:
+        ParametricGate.__init__(self, arg_value=arg_value, arg_label=arg_label)
 
-#     def __init_subclass__(cls, **kwargs) -> None:
-#         """
-#         Validates the subclass definition.
-#         """
+    def __init_subclass__(cls, **kwargs) -> None:
+        """
+        Validates the subclass definition.
+        """
 
-#         super().__init_subclass__(**kwargs)
-#         if inspect.isabstract(cls):
-#             return
+        super().__init_subclass__(**kwargs)
+        if inspect.isabstract(cls):
+            return
 
-#         # Copy the num_params if not defined
-#         if "num_params" not in cls.__dict__:
-#             cls.num_params = cls.target_gate.num_params
+        # Copy the num_params if not defined
+        if "num_params" not in cls.__dict__:
+            cls.num_params = cls.target_gate.num_params
 
-#     def inverse_gate(self) -> Gate:
-#         inverse_target_gate = self.target_gate(self.arg_value).inverse_gate()
-#         arg_value = inverse_target_gate.arg_value
-#         inverse_gate = controlled(
-#             type(inverse_target_gate), self.num_ctrl_qubits, self.ctrl_value
-#         )
+    def inverse_gate(self) -> Gate:
+        inverse_target_gate = self.target_gate(self.arg_value).inverse_gate()
+        arg_value = inverse_target_gate.arg_value
+        inverse_gate = controlled(
+            type(inverse_target_gate), self.num_ctrl_qubits, self.ctrl_value
+        )
 
-#         return inverse_gate(arg_value=arg_value)
+        return inverse_gate(arg_value=arg_value)
 
-#     @property
-#     def self_inverse(self) -> int:
-#         return self.target_gate.self_inverse
+    @property
+    def self_inverse(self) -> int:
+        return self.target_gate.self_inverse
 
-#     @staticmethod
-#     def is_parametric() -> bool:
-#         return True
+    @staticmethod
+    def is_parametric() -> bool:
+        return True
 
 
 def controlled(
