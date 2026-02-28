@@ -26,9 +26,9 @@ class ControlledGate(Gate):
 
         Examples:
         * If the gate should execute when the 0-th qubit is $|1\rangle$,
-            set ``control_value=1``.
+            set ``ctrl_value=1``.
         * If the gate should execute when two control qubits are $|10\rangle$
-            (binary 10), set ``control_value=0b10``.
+            (binary 10), set ``ctrl_value=0b10``.
     """
 
     __slots__ = ("arg_value", "arg_label", "_control_value")
@@ -73,6 +73,9 @@ class ControlledGate(Gate):
                 f"'num_ctrls_qubits' {cls.num_ctrl_qubits} + 'target_gate qubits' {cls.target_gate.num_qubits} must be equal to 'num_qubits' {cls.num_qubits}"
             )
 
+        # Check ctrl_value is valid
+        cls._validate_control_value()
+
         # Automatically copy the validator from the target
         if cls.target_gate.is_parametric():
             cls.validate_params = staticmethod(cls.target_gate.validate_params)
@@ -90,22 +93,9 @@ class ControlledGate(Gate):
         if "latex_str" not in cls.__dict__:
             cls.latex_str = cls.target_gate.latex_str
 
-    def __init__(
-        self,
-        control_value: int | None = None,
-        arg_value: any = None,
-        arg_label: str | None = None,
-    ) -> None:
-        if control_value is not None:
-            self._validate_control_value(control_value)
-            self._control_value = control_value
-        else:
-            self._control_value = (2**self.num_ctrl_qubits) - 1
-
+    def __init__(self, arg_value: any = None, arg_label: str | None = None) -> None:
         if self.is_parametric():
-            ParametricGate.__init__(
-                self, arg_value=arg_value, arg_label=arg_label
-            )
+            ParametricGate.__init__(self, arg_value=arg_value, arg_label=arg_label)
 
     @property
     @abstractmethod
@@ -116,12 +106,8 @@ class ControlledGate(Gate):
     def self_inverse(self) -> int:
         return self.target_gate.self_inverse
 
-    @property
-    def control_value(self) -> int:
-        return self._control_value
-
     @classmethod
-    def _validate_control_value(cls, control_value: int) -> None:
+    def _validate_control_value(cls) -> None:
         """
         Internal validation for the control value.
 
@@ -134,15 +120,15 @@ class ControlledGate(Gate):
             possible for the number of control qubits ($2^N - 1$).
         """
 
-        if type(control_value) is not int:
+        if type(cls.ctrl_value) is not int:
             raise TypeError(
-                f"Control value must be an int, got {control_value}"
+                f"Control value must be an int, got {cls.ctrl_value}"
             )
 
-        if control_value < 0 or control_value > 2**cls.num_ctrl_qubits - 1:
+        if cls.ctrl_value < 0 or cls.ctrl_value > 2**cls.num_ctrl_qubits - 1:
             raise ValueError(
                 f"Control value can't be negative and can't be greater than "
-                f"2^num_ctrl_qubits - 1, got {control_value}"
+                f"2^num_ctrl_qubits - 1, got {cls.ctrl_value}"
             )
 
     def get_qobj(self) -> Qobj:
@@ -166,21 +152,20 @@ class ControlledGate(Gate):
 
     def inverse_gate(self) -> Gate:
         if not self.is_parametric():
-            inverse_gate = controlled(
-                self.target_gate.inverse_gate(), self.num_ctrl_qubits
-            )
-            return inverse_gate(control_value=self.ctrl_value)
+            return controlled(
+                self.target_gate.inverse_gate(),
+                self.num_ctrl_qubits,
+                self.ctrl_value
+            )()
 
         else:
             inverse_target_gate = self.target_gate(self.arg_value).inverse_gate()
             arg_value = inverse_target_gate.arg_value
             inverse_gate = controlled(
-                type(inverse_target_gate), self.num_ctrl_qubits
+                type(inverse_target_gate), self.num_ctrl_qubits, self.ctrl_value
             )
 
-            return inverse_gate(
-                control_value=self.ctrl_value, arg_value=arg_value
-            )
+            return inverse_gate(arg_value=arg_value)
 
     @staticmethod
     def is_controlled() -> bool:
@@ -194,13 +179,40 @@ class ControlledGate(Gate):
     def __str__(cls) -> str:
         return f"Gate({cls.name}, target_gate={cls.target_gate}, num_ctrl_qubits={cls.num_ctrl_qubits}, control_value={cls.ctrl_value})"
 
-    # def __eq__(self, other) -> bool:
-    #     if type(self) is not type(other):
-    #         return False
 
-    #     if self.control_value != other.control_value:
-    #         return False
-    #     return True
+# class ControlledParamGate(ControlledGate, ParametricGate):
+#     def __init__(self, arg_value, arg_label: str | None = None) -> None:
+#         ParametricGate.__init__(self, arg_value=arg_value, arg_label=arg_label)
+
+#     def __init_subclass__(cls, **kwargs) -> None:
+#         """
+#         Validates the subclass definition.
+#         """
+
+#         super().__init_subclass__(**kwargs)
+#         if inspect.isabstract(cls):
+#             return
+
+#         # Copy the num_params if not defined
+#         if "num_params" not in cls.__dict__:
+#             cls.num_params = cls.target_gate.num_params
+
+#     def inverse_gate(self) -> Gate:
+#         inverse_target_gate = self.target_gate(self.arg_value).inverse_gate()
+#         arg_value = inverse_target_gate.arg_value
+#         inverse_gate = controlled(
+#             type(inverse_target_gate), self.num_ctrl_qubits, self.ctrl_value
+#         )
+
+#         return inverse_gate(arg_value=arg_value)
+
+#     @property
+#     def self_inverse(self) -> int:
+#         return self.target_gate.self_inverse
+
+#     @staticmethod
+#     def is_parametric() -> bool:
+#         return True
 
 
 def controlled(
