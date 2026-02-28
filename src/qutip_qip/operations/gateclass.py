@@ -14,6 +14,7 @@ class _GateMetaClass(ABCMeta):
             "num_qubits",
             "num_ctrl_qubits",
             "num_params",
+            "ctrl_value",
             "self_inverse",
             "is_clifford",
             "target_gate",
@@ -36,6 +37,7 @@ class _GateMetaClass(ABCMeta):
 
         # Don't register the Abstract Gate Classes or private helpers
         if inspect.isabstract(cls) or name.startswith("_"):
+            cls._is_frozen = True
             return
 
         namespace = attrs.get("namespace", "std")
@@ -50,33 +52,10 @@ class _GateMetaClass(ABCMeta):
             )
         cls._registry[namespace].add(name)
 
-    def clear_cache(cls, namespace: str):
-        """
-        Clears the gate class registry based on the namespace.
+        # This class attribute (flag) signals class (or subclass) is built,
+        # don't overwrite any defaults like num_qubits etc in __setattr__.
+        cls._is_frozen = True
 
-        Parameters
-        ----------
-        namespace : str, optional
-            If provided, only clears gates belonging to this namespace
-            (e.g., 'custom'). If None, clears ALL gates (useful for hard resets).
-        """
-        if namespace == "std":
-            raise ValueError("Can't clear std Gates")
-        else:
-            cls._registry[namespace] = set()
-
-    def __call__(cls, *args, **kwargs):
-        """
-        So creating CNOT(control_value=1) 10,000 times (e.g., for a large circuit) becomes instant
-        because it's just a dictionary lookup after the first time. Also in memory
-        we only need to store one copy of CNOT gate, no matter how many times it appears
-        in the circuit.
-        """
-        return super().__call__(*args, **kwargs)
-
-        # For RX(0.5), RX(0.1) we want different instances.
-        # Same for CX(control_value=0), CX(control_value=1)
-        # TODO This needs to be implemented efficiently
 
     def __setattr__(cls, name: str, value: any) -> None:
         """
@@ -93,12 +72,33 @@ class _GateMetaClass(ABCMeta):
 
         This is required since num_qubits etc. are class attributes (shared by all object instances).
         """
-        # Check if the attribute is in our protected set
-        # Using cls.__dict__ ignores parent classes, allowing __init_subclass__
-        # to set it once for the child class.
-        if name in cls._read_only_set and name in cls.__dict__:
+        # cls.__dict__.get() instead of getattr() ensures we don't 
+        # accidentally inherit the True flag from a parent class for _is_frozen.
+        if cls.__dict__.get("_is_frozen", False) and name in cls._read_only_set:
             raise AttributeError(f"{name} is read-only!")
         super().__setattr__(name, value)
+
+
+    def __str__(self) -> str:
+        return f"Gate({self.name})"
+
+    def __repr__(self) -> str:
+        return f"Gate({self.name}, num_qubits={self.num_qubits})"
+
+    def clear_cache(cls, namespace: str):
+        """
+        Clears the gate class registry based on the namespace.
+
+        Parameters
+        ----------
+        namespace : str, optional
+            If provided, only clears gates belonging to this namespace
+            (e.g., 'custom'). If None, clears ALL gates (useful for hard resets).
+        """
+        if namespace == "std":
+            raise ValueError("Can't clear std Gates")
+        else:
+            cls._registry[namespace] = set()
 
 
 class Gate(ABC, metaclass=_GateMetaClass):
@@ -249,12 +249,6 @@ class Gate(ABC, metaclass=_GateMetaClass):
             True if the gate is parametric (e.g., RX, RY, RZ), False otherwise.
         """
         return False
-
-    def __str__(self) -> str:
-        return f"Gate({self.name})"
-
-    def __repr__(self) -> str:
-        return f"Gate({self.name}, num_qubits={self.num_qubits}, qobj={self.get_qobj()})"
 
 
 def unitary_gate(gate_name: str, U: Qobj, namespace: str = "custom") -> Gate:

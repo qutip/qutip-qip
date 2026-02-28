@@ -31,11 +31,11 @@ class ControlledGate(Gate):
 
     Attributes
     ----------
-    num_ctrl_qubits : int
-        The number of qubits acting as controls.
-
     target_gate : Gate
         The gate to be applied to the target qubits.
+
+    num_ctrl_qubits : int
+        The number of qubits acting as controls.
 
     ctrl_value : int
         The decimal value of the control state required to execute the
@@ -47,6 +47,7 @@ class ControlledGate(Gate):
         * If the gate should execute when two control qubits are $|10\rangle$
             (binary 10), set ``ctrl_value=0b10``.
     """
+    __slots__ = ('_target_inst')
 
     num_ctrl_qubits: int
     ctrl_value: int
@@ -88,10 +89,10 @@ class ControlledGate(Gate):
             raise AttributeError(
                 f"'num_ctrls_qubits' {cls.num_ctrl_qubits} + 'target_gate qubits' {cls.target_gate.num_qubits} must be equal to 'num_qubits' {cls.num_qubits}"
             )
-
         cls._validate_control_value()
 
         # Default self_inverse
+        # Don't replace cls.__dict__ with hasattr() that does a MRO search
         if "self_inverse" not in cls.__dict__:
             cls.self_inverse = cls.target_gate.self_inverse
 
@@ -110,6 +111,17 @@ class ControlledGate(Gate):
         We forward the request to the underlying target gate instance.
         """
         return getattr(self._target_inst, name)
+
+    def __setattr__(self, name, value) -> None:
+        """
+        Intercept attribute assignment. If it's our internal storage variable,
+        set it normally on this instance. Otherwise, forward the assignment
+        to the underlying target gate.
+        """
+        if name == "_target_inst":
+            super().__setattr__(name, value)
+        else:
+            setattr(self._target_inst, name, value)
 
     @property
     @abstractmethod
