@@ -146,7 +146,7 @@ class ControlledGate(Gate):
             )
 
     @class_or_instance_method
-    def get_qobj(self_or_cls) -> Qobj:
+    def get_qobj(cls_or_self) -> Qobj:
         """
         Construct the full Qobj representation of the controlled gate.
 
@@ -155,36 +155,36 @@ class ControlledGate(Gate):
         qobj : qutip.Qobj
             The unitary matrix representing the controlled operation.
         """
-        if isinstance(self_or_cls, type):
+        if isinstance(cls_or_self, type):
             return controlled_gate_unitary(
-                U=self_or_cls.target_gate.get_qobj(),
-                num_controls=self_or_cls.num_ctrl_qubits,
-                control_value=self_or_cls.ctrl_value,
+                U=cls_or_self.target_gate.get_qobj(),
+                num_controls=cls_or_self.num_ctrl_qubits,
+                control_value=cls_or_self.ctrl_value,
             )
         
         return controlled_gate_unitary(
-            U=self_or_cls._target_inst.get_qobj(),
-            num_controls=self_or_cls.num_ctrl_qubits,
-            control_value=self_or_cls.ctrl_value,
+            U=cls_or_self._target_inst.get_qobj(),
+            num_controls=cls_or_self.num_ctrl_qubits,
+            control_value=cls_or_self.ctrl_value,
         )
 
-
-    def inverse_gate(self) -> Gate:
-        if not self.is_parametric():
+    @class_or_instance_method
+    def inverse_gate(cls_or_self) -> Gate:
+        if isinstance(cls_or_self, type):
             return controlled(
-                self.target_gate.inverse_gate(),
-                self.num_ctrl_qubits,
-                self.ctrl_value
+                cls_or_self.target_gate.inverse_gate(),
+                cls_or_self.num_ctrl_qubits,
+                cls_or_self.ctrl_value
             )
 
-        # else:
-        #     inverse_target_gate = self.target_gate(self.arg_value).inverse_gate()
-        #     arg_value = inverse_target_gate.arg_value
-        #     inverse_gate = controlled(
-        #         type(inverse_target_gate), self.num_ctrl_qubits, self.ctrl_value
-        #     )
-
-        #     return inverse_gate(arg_value=arg_value)
+        inverse_target_gate = cls_or_self._target_inst.inverse_gate()
+        arg_value = inverse_target_gate.arg_value
+        inverse_gate = controlled(
+            type(inverse_target_gate),
+            cls_or_self.num_ctrl_qubits,
+            cls_or_self.ctrl_value
+        )
+        return inverse_gate(arg_value=arg_value)
 
     @staticmethod
     def is_controlled() -> bool:
