@@ -599,7 +599,7 @@ class CY(_ControlledTwoQubitGate):
     Examples
     --------
     >>> from qutip_qip.operations.std import CY
-    >>> CY().get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> CY.get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=True
     Qobj data =
     [[ 1.+0j  0.+0j  0.+0j  0.+0j]
@@ -622,7 +622,7 @@ class CZ(_ControlledTwoQubitGate):
     Examples
     --------
     >>> from qutip_qip.operations.std import CZ
-    >>> CZ().get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> CZ.get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=True
     Qobj data =
     [[ 1.  0.  0.  0.]

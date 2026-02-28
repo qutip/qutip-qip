@@ -75,14 +75,6 @@ class ControlledGate(Gate):
         # Check ctrl_value is valid
         cls._validate_control_value()
 
-        # Automatically copy the validator from the target
-        if cls.target_gate.is_parametric():
-            cls.validate_params = staticmethod(cls.target_gate.validate_params)
-
-            # Copy the num_params if not defined
-            if "num_params" not in cls.__dict__:
-                cls.num_params = cls.target_gate.num_params
-
         # Default self_inverse
         if "self_inverse" not in cls.__dict__:
             cls.self_inverse = cls.target_gate.self_inverse
@@ -91,10 +83,6 @@ class ControlledGate(Gate):
         # The control has its own symbol.
         if "latex_str" not in cls.__dict__:
             cls.latex_str = cls.target_gate.latex_str
-
-    def __init__(self, arg_value: any = None, arg_label: str | None = None) -> None:
-        if self.is_parametric():
-            ParametricGate.__init__(self, arg_value=arg_value, arg_label=arg_label)
 
     @property
     @abstractmethod
@@ -130,7 +118,8 @@ class ControlledGate(Gate):
                 f"2^num_ctrl_qubits - 1, got {cls.ctrl_value}"
             )
 
-    def get_qobj(self) -> Qobj:
+    @classmethod
+    def get_qobj(cls) -> Qobj:
         """
         Construct the full Qobj representation of the controlled gate.
 
@@ -139,14 +128,14 @@ class ControlledGate(Gate):
         qobj : qutip.Qobj
             The unitary matrix representing the controlled operation.
         """
-        target_gate = self.target_gate
-        if self.is_parametric():
-            target_gate = target_gate(self.arg_value)
+        target_gate = cls.target_gate
+        # if self.is_parametric():
+        #     target_gate = target_gate(self.arg_value)
 
         return controlled_gate_unitary(
             U=target_gate.get_qobj(),
-            num_controls=self.num_ctrl_qubits,
-            control_value=self.ctrl_value,
+            num_controls=cls.num_ctrl_qubits,
+            control_value=cls.ctrl_value,
         )
 
     def inverse_gate(self) -> Gate:
@@ -155,16 +144,16 @@ class ControlledGate(Gate):
                 self.target_gate.inverse_gate(),
                 self.num_ctrl_qubits,
                 self.ctrl_value
-            )()
-
-        else:
-            inverse_target_gate = self.target_gate(self.arg_value).inverse_gate()
-            arg_value = inverse_target_gate.arg_value
-            inverse_gate = controlled(
-                type(inverse_target_gate), self.num_ctrl_qubits, self.ctrl_value
             )
 
-            return inverse_gate(arg_value=arg_value)
+        # else:
+        #     inverse_target_gate = self.target_gate(self.arg_value).inverse_gate()
+        #     arg_value = inverse_target_gate.arg_value
+        #     inverse_gate = controlled(
+        #         type(inverse_target_gate), self.num_ctrl_qubits, self.ctrl_value
+        #     )
+
+        #     return inverse_gate(arg_value=arg_value)
 
     @staticmethod
     def is_controlled() -> bool:
@@ -192,9 +181,30 @@ class ControlledParamGate(ControlledGate, ParametricGate):
         if inspect.isabstract(cls):
             return
 
+        # Automatically copy the validator from the target
+        # if cls.target_gate.is_parametric():
+        #     cls.validate_params = staticmethod(cls.target_gate.validate_params)
+
         # Copy the num_params if not defined
         if "num_params" not in cls.__dict__:
             cls.num_params = cls.target_gate.num_params
+
+    def get_qobj(self) -> Qobj:
+        """
+        Construct the full Qobj representation of the controlled gate.
+
+        Returns
+        -------
+        qobj : qutip.Qobj
+            The unitary matrix representing the controlled operation.
+        """
+        target_gate = self.target_gate(self.arg_value)
+
+        return controlled_gate_unitary(
+            U=target_gate.get_qobj(),
+            num_controls=self.num_ctrl_qubits,
+            control_value=self.ctrl_value,
+        )
 
     def inverse_gate(self) -> Gate:
         inverse_target_gate = self.target_gate(self.arg_value).inverse_gate()
