@@ -17,10 +17,10 @@ qutip: dict[str, str] = {
     "RX": "#5EBDF8",  # Light Sky Blue
     "RY": "#5EBDF8",  # Light Sky Blue
     "RZ": "#5EBDF8",  # Light Sky Blue
-    "CNOT": "#3B3470",  # Indigo
     "CPHASE": "#456DB2",  # Steel Blue
     "TOFFOLI": "#3B3470",  # Indigo
     "SWAP": "#3B3470",  # Indigo
+    "CNOT": "#9598F5",  # Light Slate Blue
     "CX": "#9598F5",  # Light Slate Blue
     "CY": "#9598F5",  # Light Slate Blue
     "CZ": "#9598F5",  # Light Slate Blue
@@ -48,10 +48,10 @@ light: dict[str, str] = {
     "RX": "#B3E6E4",  # Light Teal
     "RY": "#B3E6E4",  # Light Teal
     "RZ": "#B3E6E4",  # Light Teal
-    "CNOT": "#B7C9F2",  # Light Indigo
     "CPHASE": "#D5E0F2",  # Light Slate Blue
     "TOFFOLI": "#E6CCE6",  # Soft Lavender
     "SWAP": "#FFB6B6",  # Lighter Coral Pink
+    "CNOT": "#E0E2F7",  # Very Light Indigo
     "CX": "#E0E2F7",  # Very Light Indigo
     "CY": "#E0E2F7",  # Very Light Indigo
     "CZ": "#E0E2F7",  # Very Light Indigo
@@ -79,10 +79,10 @@ dark: dict[str, str] = {
     "RX": "#87CEEB",  # Sky Blue
     "RY": "#87CEEB",  # Sky Blue
     "RZ": "#87CEEB",  # Sky Blue
-    "CNOT": "#6495ED",  # Cornflower Blue
     "CPHASE": "#8A2BE2",  # Blue Violet
     "TOFFOLI": "#DA70D6",  # Orchid
     "SWAP": "#BA55D3",  # Medium Orchid
+    "CNOT": "#4682B4",  # Steel Blue
     "CX": "#4682B4",  # Steel Blue
     "CY": "#4682B4",  # Steel Blue
     "CZ": "#4682B4",  # Steel Blue
@@ -111,10 +111,10 @@ modern: dict[str, str] = {
     "RX": "#2F4F4F",  # Dark Slate Teal
     "RY": "#2F4F4F",  # Dark Slate Teal
     "RZ": "#2F4F4F",  # Dark Slate Teal
-    "CNOT": "#4A6D7C",  # Dark Slate Blue Gray
     "CPHASE": "#5E7D8B",  # Dark Slate Blue
     "TOFFOLI": "#4A4A4A",  # Dark Gray
     "SWAP": "#6A9ACD",  # Slate Blue
+    "CNOT": "#5D8AA8",  # Medium Slate Blue
     "CX": "#5D8AA8",  # Medium Slate Blue
     "CY": "#5D8AA8",  # Medium Slate Blue
     "CZ": "#5D8AA8",  # Medium Slate Blue

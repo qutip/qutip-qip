@@ -277,7 +277,7 @@ class CircuitSimulator:
         U: Qobj
             unitary to be applied.
         """
-        U = operation.get_compact_qobj()
+        U = operation.get_qobj()
         U = expand_operator(
             U,
             dims=self.dims,
@@ -301,7 +301,7 @@ class CircuitSimulator:
             state = state.reshape(self._tensor_dims)
 
         # Prepare the gate tensor.
-        gate = gate.get_compact_qobj()
+        gate = gate.get_qobj()
         gate_array = gate.full().reshape(gate.dims[0] + gate.dims[1])
 
         # Compute the tensor indices and call einsum.

@@ -1,9 +1,7 @@
 import numpy as np
-from qutip_qip.operations import custom_gate_factory, controlled_gate_factory
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.algorithms import qft_gate_sequence
-
-__all__ = ["qpe"]
+from qutip_qip.operations import custom_gate_factory, controlled_gate_factory, H
 
 
 def qpe(U, num_counting_qubits, target_qubits=None, to_cnot=False):
@@ -54,7 +52,7 @@ def qpe(U, num_counting_qubits, target_qubits=None, to_cnot=False):
 
     # Apply Hadamard gates to all counting qubits
     for i in range(num_counting_qubits):
-        qc.add_gate("SNOT", targets=[i])
+        qc.add_gate(H, targets=[i])
 
     # Apply controlled-U gates with increasing powers
     for i in range(num_counting_qubits):
@@ -64,8 +62,8 @@ def qpe(U, num_counting_qubits, target_qubits=None, to_cnot=False):
 
         # Add controlled-U^power gate
         controlled_u = controlled_gate_factory(
-            target_gate=custom_gate_factory(
-                name="U^power gate",
+            gate=custom_gate_factory(
+                gate_name="U^power gate",
                 U=U_power,
             )(),
         )

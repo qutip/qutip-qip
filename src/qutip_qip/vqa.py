@@ -137,7 +137,7 @@ class VQA:
 
                     current_params = angles[i : i + n] if n > 0 else []
                     gate_instance = custom_gate_factory(
-                        name=block.name,
+                        gate_name=block.name,
                         U=block.get_unitary(current_params),
                     )
 

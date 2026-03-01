@@ -187,7 +187,7 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
                     if hasattr(qutip_circuit, "name")
                     else ""
                 ),
-                "n_qubits": qutip_circuit.N,
+                "n_qubits": qutip_circuit.num_qubits,
             }
 
             exp_res.append(

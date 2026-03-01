@@ -101,6 +101,3 @@ class Measurement:
 
     def __repr__(self):
         return str(self)
-
-    def _repr_latex_(self):
-        return str(self)
