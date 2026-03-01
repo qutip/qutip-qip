@@ -1,4 +1,4 @@
-from typing import Final
+from typing import Final, Type
 from abc import abstractmethod
 from functools import cache, lru_cache
 import warnings
@@ -70,12 +70,13 @@ class SWAP(_TwoQubitGate):
 
     __slots__ = ()
 
-    self_inverse = True
-    is_clifford = True
-    latex_str = r"{\rm SWAP}"
+    self_inverse: Final[bool] = True
+    is_clifford: Final[bool] = True
+    latex_str: Final[str] = r"{\rm SWAP}"
 
     @staticmethod
-    def get_qobj():
+    @cache
+    def get_qobj() -> Qobj:
         return Qobj(
             [[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]],
             dims=[[2, 2], [2, 2]],
@@ -100,11 +101,12 @@ class ISWAP(_TwoQubitGate):
 
     __slots__ = ()
 
-    self_inverse = False
-    is_clifford = True
-    latex_str = r"{i}{\rm SWAP}"
+    self_inverse: Final[bool] = False
+    is_clifford: Final[bool] = True
+    latex_str: Final[str] = r"{i}{\rm SWAP}"
 
     @staticmethod
+    @cache
     def get_qobj() -> Qobj:
         return Qobj(
             [[1, 0, 0, 0], [0, 0, 1j, 0], [0, 1j, 0, 0], [0, 0, 0, 1]],
@@ -112,7 +114,7 @@ class ISWAP(_TwoQubitGate):
         )
 
     @staticmethod
-    def inverse() -> Gate:
+    def inverse() -> Type[Gate]:
         return ISWAPdag
 
 
@@ -134,11 +136,12 @@ class ISWAPdag(_TwoQubitGate):
 
     __slots__ = ()
 
-    self_inverse = False
-    is_clifford = True
-    latex_str = r"{i}{\rm SWAP^\dagger}"
+    self_inverse: Final[bool] = False
+    is_clifford: Final[bool] = True
+    latex_str: Final[str] = r"{i}{\rm SWAP^\dagger}"
 
     @staticmethod
+    @cache
     def get_qobj() -> Qobj:
         return Qobj(
             [[1, 0, 0, 0], [0, 0, -1j, 0], [0, -1j, 0, 0], [0, 0, 0, 1]],
@@ -146,7 +149,7 @@ class ISWAPdag(_TwoQubitGate):
         )
 
     @staticmethod
-    def inverse() -> Gate:
+    def inverse() -> Type[Gate]:
         return ISWAP
 
 
@@ -168,10 +171,11 @@ class SQRTSWAP(_TwoQubitGate):
 
     __slots__ = ()
 
-    self_inverse = False
-    latex_str = r"\sqrt{\rm SWAP}"
+    self_inverse: Final[bool] = False
+    latex_str: Final[str] = r"\sqrt{\rm SWAP}"
 
     @staticmethod
+    @cache
     def get_qobj():
         return Qobj(
             np.array(
@@ -186,7 +190,7 @@ class SQRTSWAP(_TwoQubitGate):
         )
 
     @staticmethod
-    def inverse() -> Gate:
+    def inverse() -> Type[Gate]:
         return SQRTSWAPdag
 
 
@@ -208,10 +212,11 @@ class SQRTSWAPdag(_TwoQubitGate):
 
     __slots__ = ()
 
-    self_inverse = False
-    latex_str = r"\sqrt{\rm SWAP}^\dagger"
+    self_inverse: Final[bool] = False
+    latex_str: Final[str] = r"\sqrt{\rm SWAP}^\dagger"
 
     @staticmethod
+    @cache
     def get_qobj():
         return Qobj(
             np.array(
@@ -226,7 +231,7 @@ class SQRTSWAPdag(_TwoQubitGate):
         )
 
     @staticmethod
-    def inverse() -> Gate:
+    def inverse() -> Type[Gate]:
         return SQRTSWAP
 
 
@@ -248,11 +253,12 @@ class SQRTISWAP(_TwoQubitGate):
 
     __slots__ = ()
 
-    self_inverse = False
-    is_clifford = True
-    latex_str = r"\sqrt{{i}\rm SWAP}"
+    self_inverse: Final[bool] = False
+    is_clifford: Final[bool] = True
+    latex_str: Final[str] = r"\sqrt{{i}\rm SWAP}"
 
     @staticmethod
+    @cache
     def get_qobj():
         return Qobj(
             np.array(
@@ -267,7 +273,7 @@ class SQRTISWAP(_TwoQubitGate):
         )
 
     @staticmethod
-    def inverse() -> Gate:
+    def inverse() -> Type[Gate]:
         return SQRTISWAPdag
 
 
@@ -289,11 +295,12 @@ class SQRTISWAPdag(_TwoQubitGate):
 
     __slots__ = ()
 
-    self_inverse = False
-    is_clifford = True
-    latex_str = r"\sqrt{{i}\rm SWAP}^\dagger"
+    self_inverse: Final[bool] = False
+    is_clifford: Final[bool] = True
+    latex_str: Final[str] = r"\sqrt{{i}\rm SWAP}^\dagger"
 
     @staticmethod
+    @cache
     def get_qobj():
         return Qobj(
             np.array(
@@ -308,7 +315,7 @@ class SQRTISWAPdag(_TwoQubitGate):
         )
 
     @staticmethod
-    def inverse() -> Gate:
+    def inverse() -> Type[Gate]:
         return SQRTISWAP
 
 
@@ -339,10 +346,11 @@ class BERKELEY(_TwoQubitGate):
 
     __slots__ = ()
 
-    self_inverse = False
-    latex_str = r"{\rm BERKELEY}"
+    self_inverse: Final[bool] = False
+    latex_str: Final[str] = r"{\rm BERKELEY}"
 
     @staticmethod
+    @cache
     def get_qobj():
         return Qobj(
             [
@@ -355,7 +363,7 @@ class BERKELEY(_TwoQubitGate):
         )
 
     @staticmethod
-    def inverse() -> Gate:
+    def inverse() -> Type[Gate]:
         return BERKELEYdag
 
 
@@ -386,10 +394,11 @@ class BERKELEYdag(_TwoQubitGate):
 
     __slots__ = ()
 
-    self_inverse = False
-    latex_str = r"{\rm BERKELEY^\dagger}"
+    self_inverse: Final[bool] = False
+    latex_str: Final[str] = r"{\rm BERKELEY^\dagger}"
 
     @staticmethod
+    @cache
     def get_qobj():
         return Qobj(
             [
@@ -402,7 +411,7 @@ class BERKELEYdag(_TwoQubitGate):
         )
 
     @staticmethod
-    def inverse() -> Gate:
+    def inverse() -> Type[Gate]:
         return BERKELEY
 
 
@@ -433,9 +442,8 @@ class SWAPALPHA(_TwoQubitParametricGate):
 
     __slots__ = ()
 
-    num_qubits = 2
-    num_params: int = 1
-    latex_str = r"{\rm SWAPALPHA}"
+    num_params: Final[int] = 1
+    latex_str: Final[str] = r"{\rm SWAPALPHA}"
 
     @staticmethod
     @lru_cache(maxsize=128)
@@ -493,9 +501,8 @@ class MS(_TwoQubitParametricGate):
 
     __slots__ = ()
 
-    num_qubits = 2
-    num_params: int = 2
-    latex_str = r"{\rm MS}"
+    num_params: Final[int] = 2
+    latex_str: Final[str] = r"{\rm MS}"
 
     @staticmethod
     @lru_cache(maxsize=128)
@@ -553,9 +560,8 @@ class RZX(_TwoQubitParametricGate):
 
     __slots__ = ()
 
-    num_qubits = 2
-    num_params = 1
-    latex_str = r"{\rm RZX}"
+    num_params: Final[int] = 1
+    latex_str: Final[str] = r"{\rm RZX}"
 
     @staticmethod
     @lru_cache(maxsize=128)
@@ -596,9 +602,9 @@ class CX(_ControlledTwoQubitGate):
 
     __slots__ = ()
 
-    target_gate = X
-    is_clifford = True
-    latex_str = r"{\rm CNOT}"
+    target_gate: Final[Type[Gate]] = X
+    is_clifford: Final[bool] = True
+    latex_str: Final[str] = r"{\rm CNOT}"
 
     @staticmethod
     @cache
@@ -640,13 +646,13 @@ class CY(_ControlledTwoQubitGate):
 
     __slots__ = ()
 
-    is_clifford = True
-    target_gate = Y
-    latex_str = r"{\rm CY}"
+    is_clifford: Final[bool] = True
+    target_gate: Final[Type[Gate]] = Y
+    latex_str: Final[str] = r"{\rm CY}"
 
     @staticmethod
     @cache
-    def get_qobj():
+    def get_qobj() -> Qobj:
         return Qobj(
             [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, -1j], [0, 0, 1j, 0]],
             dims=[[2, 2], [2, 2]],
@@ -671,13 +677,13 @@ class CZ(_ControlledTwoQubitGate):
 
     __slots__ = ()
 
-    target_gate = Z
-    is_clifford = True
-    latex_str = r"{\rm CZ}"
+    target_gate: Final[Type[Gate]] = Z
+    is_clifford: Final[bool] = True
+    latex_str: Final[str] = r"{\rm CZ}"
 
     @staticmethod
     @cache
-    def get_qobj():
+    def get_qobj() -> Qobj:
         return Qobj(
             [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]],
             dims=[[2, 2], [2, 2]],
@@ -717,12 +723,12 @@ class CH(_ControlledTwoQubitGate):
 
     __slots__ = ()
 
-    target_gate = H
-    latex_str = r"{\rm CH}"
+    target_gate: Final[Type[Gate]] = H
+    latex_str: Final[str] = r"{\rm CH}"
 
     @staticmethod
     @cache
-    def get_qobj():
+    def get_qobj() -> Qobj:
         sq_2 = 1 / np.sqrt(2)
         return Qobj(
             [
@@ -755,12 +761,12 @@ class CT(_ControlledTwoQubitGate):
 
     __slots__ = ()
 
-    target_gate = T
-    latex_str = r"{\rm CT}"
+    target_gate: Final[Type[Gate]] = T
+    latex_str: Final[str] = r"{\rm CT}"
 
     @staticmethod
     @cache
-    def get_qobj():
+    def get_qobj() -> Qobj:
         return Qobj(
             [
                 [1, 0, 0, 0],
@@ -792,12 +798,12 @@ class CS(_ControlledTwoQubitGate):
 
     __slots__ = ()
 
-    target_gate = S
-    latex_str = r"{\rm CS}"
+    target_gate: Final[Type[Gate]] = S
+    latex_str: Final[str] = r"{\rm CS}"
 
     @staticmethod
     @cache
-    def get_qobj():
+    def get_qobj() -> Qobj:
         return Qobj(
             np.array(
                 [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1j]]
@@ -817,9 +823,9 @@ class CRX(_ControlledTwoQubitGate):
 
     __slots__ = ()
 
-    num_params: int = 1
-    target_gate = RX
-    latex_str = r"{\rm CRX}"
+    num_params: Final[int] = 1
+    target_gate: Final[Type[Gate]] = RX
+    latex_str: Final[str] = r"{\rm CRX}"
 
     @staticmethod
     @lru_cache(maxsize=128)
@@ -849,9 +855,9 @@ class CRY(_ControlledTwoQubitGate):
 
     __slots__ = ()
 
-    num_params: int = 1
-    target_gate = RY
-    latex_str = r"{\rm CRY}"
+    num_params: Final[int] = 1
+    target_gate: Final[Type[Gate]] = RY
+    latex_str: Final[str] = r"{\rm CRY}"
 
     @staticmethod
     @lru_cache(maxsize=128)
@@ -897,9 +903,9 @@ class CRZ(_ControlledTwoQubitGate):
 
     __slots__ = ()
 
-    num_params: int = 1
-    target_gate = RZ
-    latex_str = r"{\rm CRZ}"
+    num_params: Final[int] = 1
+    target_gate: Final[Type[Gate]] = RZ
+    latex_str: Final[str] = r"{\rm CRZ}"
 
     @staticmethod
     @lru_cache(maxsize=128)
@@ -945,9 +951,9 @@ class CPHASE(_ControlledTwoQubitGate):
 
     __slots__ = ()
 
-    num_params: int = 1
-    target_gate = PHASE
-    latex_str = r"{\rm CPHASE}"
+    num_params: Final[int] = 1
+    target_gate: Final[Type[Gate]] = PHASE
+    latex_str: Final[str] = r"{\rm CPHASE}"
 
     @staticmethod
     @lru_cache(maxsize=128)
@@ -977,9 +983,9 @@ class CQASMU(_ControlledTwoQubitGate):
 
     __slots__ = ()
 
-    num_params: int = 3
-    target_gate = QASMU
-    latex_str = r"{\rm CQASMU}"
+    num_params: Final[int] = 3
+    target_gate: Final[Type[Gate]] = QASMU
+    latex_str: Final[str] = r"{\rm CQASMU}"
 
     @staticmethod
     @lru_cache(maxsize=128)

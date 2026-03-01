@@ -1,4 +1,5 @@
 from functools import cache, lru_cache
+from typing import Final, Type
 from abc import abstractmethod
 import warnings
 import numpy as np
@@ -11,14 +12,14 @@ class _SingleQubitGate(Gate):
     """Abstract one-qubit gate."""
 
     __slots__ = ()
-    num_qubits = 1
+    num_qubits: Final[int] = 1
 
 
 class _SingleQubitParametricGate(AngleParametricGate):
     """Abstract one-qubit parametric gate."""
 
     __slots__ = ()
-    num_qubits = 1
+    num_qubits: Final[int] = 1
 
     @abstractmethod
     def _compute_qobj(arg_value: tuple[float]) -> Qobj:
@@ -44,9 +45,9 @@ class X(_SingleQubitGate):
 
     __slots__ = ()
 
-    self_inverse = True
-    is_clifford = True
-    latex_str = r"X"
+    self_inverse: Final[bool] = True
+    is_clifford: Final[bool] = True
+    latex_str: Final[str] = r"X"
 
     @staticmethod
     @cache
@@ -70,9 +71,9 @@ class Y(_SingleQubitGate):
 
     __slots__ = ()
 
-    self_inverse = True
-    is_clifford = True
-    latex_str = r"Y"
+    self_inverse: Final[bool] = True
+    is_clifford: Final[bool] = True
+    latex_str: Final[str] = r"Y"
 
     @staticmethod
     @cache
@@ -96,9 +97,9 @@ class Z(_SingleQubitGate):
 
     __slots__ = ()
 
-    self_inverse = True
-    is_clifford = True
-    latex_str = r"Z"
+    self_inverse: Final[bool] = True
+    is_clifford: Final[bool] = True
+    latex_str: Final[str] = r"Z"
 
     @staticmethod
     @cache
@@ -117,9 +118,9 @@ class IDLE(_SingleQubitGate):
 
     __slots__ = ()
 
-    self_inverse = True
-    is_clifford = True
-    latex_str = r"{\rm IDLE}"
+    self_inverse: Final[bool] = True
+    is_clifford: Final[bool] = True
+    latex_str: Final[str] = r"{\rm IDLE}"
 
     @staticmethod
     @cache
@@ -143,9 +144,9 @@ class H(_SingleQubitGate):
 
     __slots__ = ()
 
-    self_inverse = True
-    is_clifford = True
-    latex_str = r"H"
+    self_inverse: Final[bool] = True
+    is_clifford: Final[bool] = True
+    latex_str: Final[str] = r"H"
 
     @staticmethod
     @cache
@@ -186,9 +187,9 @@ class SQRTX(_SingleQubitGate):
 
     __slots__ = ()
 
-    self_inverse = False
-    is_clifford = True
-    latex_str = r"\sqrt{\rm X}"
+    self_inverse: Final[bool] = False
+    is_clifford: Final[bool] = True
+    latex_str: Final[str] = r"\sqrt{\rm X}"
 
     @staticmethod
     @cache
@@ -196,7 +197,7 @@ class SQRTX(_SingleQubitGate):
         return Qobj([[0.5 + 0.5j, 0.5 - 0.5j], [0.5 - 0.5j, 0.5 + 0.5j]])
 
     @staticmethod
-    def inverse() -> Gate:
+    def inverse() -> Type[Gate]:
         return SQRTXdag
 
 
@@ -216,9 +217,9 @@ class SQRTXdag(_SingleQubitGate):
 
     __slots__ = ()
 
-    self_inverse = False
-    is_clifford = True
-    latex_str = r"\sqrt{\rm X}^\dagger"
+    self_inverse: Final[bool] = False
+    is_clifford: Final[bool] = True
+    latex_str: Final[str] = r"\sqrt{\rm X}^\dagger"
 
     @staticmethod
     @cache
@@ -226,7 +227,7 @@ class SQRTXdag(_SingleQubitGate):
         return Qobj([[0.5 - 0.5j, 0.5 + 0.5j], [0.5 + 0.5j, 0.5 - 0.5j]])
 
     @staticmethod
-    def inverse() -> Gate:
+    def inverse() -> Type[Gate]:
         return SQRTX
 
 
@@ -259,9 +260,9 @@ class S(_SingleQubitGate):
 
     __slots__ = ()
 
-    self_inverse = False
-    is_clifford = True
-    latex_str = r"{\rm S}"
+    self_inverse: Final[bool] = False
+    is_clifford: Final[bool] = True
+    latex_str: Final[str] = r"{\rm S}"
 
     @staticmethod
     @cache
@@ -269,7 +270,7 @@ class S(_SingleQubitGate):
         return Qobj([[1, 0], [0, 1j]])
 
     @staticmethod
-    def inverse() -> Gate:
+    def inverse() -> Type[Gate]:
         return Sdag
 
 
@@ -289,9 +290,9 @@ class Sdag(_SingleQubitGate):
 
     __slots__ = ()
 
-    self_inverse = False
-    is_clifford = True
-    latex_str = r"{\rm S^\dagger}"
+    self_inverse: Final[bool] = False
+    is_clifford: Final[bool] = True
+    latex_str: Final[str] = r"{\rm S^\dagger}"
 
     @staticmethod
     @cache
@@ -299,7 +300,7 @@ class Sdag(_SingleQubitGate):
         return Qobj([[1, 0], [0, -1j]])
 
     @staticmethod
-    def inverse() -> Gate:
+    def inverse() -> Type[Gate]:
         return S
 
 
@@ -319,8 +320,8 @@ class T(_SingleQubitGate):
 
     __slots__ = ()
 
-    self_inverse = False
-    latex_str = r"{\rm T}"
+    self_inverse: Final[bool] = False
+    latex_str: Final[str] = r"{\rm T}"
 
     @staticmethod
     @cache
@@ -328,7 +329,7 @@ class T(_SingleQubitGate):
         return Qobj([[1, 0], [0, np.exp(1j * np.pi / 4)]])
 
     @staticmethod
-    def inverse() -> Gate:
+    def inverse() -> Type[Gate]:
         return Tdag
 
 
@@ -348,8 +349,8 @@ class Tdag(_SingleQubitGate):
 
     __slots__ = ()
 
-    self_inverse = False
-    latex_str = r"{\rm Tdag}"
+    self_inverse: Final[bool] = False
+    latex_str: Final[str] = r"{\rm Tdag}"
 
     @staticmethod
     @cache
@@ -357,7 +358,7 @@ class Tdag(_SingleQubitGate):
         return Qobj([[1, 0], [0, np.exp(-1j * np.pi / 4)]])
 
     @staticmethod
-    def inverse() -> Gate:
+    def inverse() -> Type[Gate]:
         return T
 
 
@@ -377,8 +378,8 @@ class RX(_SingleQubitParametricGate):
 
     __slots__ = ()
 
-    num_params = 1
-    latex_str = r"RX"
+    num_params: Final[int] = 1
+    latex_str: Final[str] = r"R_x"
 
     @staticmethod
     @lru_cache(maxsize=128)
@@ -413,8 +414,8 @@ class RY(_SingleQubitParametricGate):
 
     __slots__ = ()
 
-    num_params = 1
-    latex_str = r"RY"
+    num_params: Final[int] = 1
+    latex_str: Final[str] = r"R_y"
 
     @staticmethod
     @lru_cache(maxsize=128)
@@ -448,8 +449,8 @@ class RZ(_SingleQubitParametricGate):
 
     __slots__ = ()
 
-    num_params = 1
-    latex_str = r"RZ"
+    num_params: Final[int] = 1
+    latex_str: Final[str] = r"R_z"
 
     @staticmethod
     @lru_cache(maxsize=128)
@@ -473,8 +474,8 @@ class PHASE(_SingleQubitParametricGate):
 
     __slots__ = ()
 
-    num_params = 1
-    latex_str = r"PHASE"
+    num_params: Final[int] = 1
+    latex_str: Final[str] = r"PHASE"
 
     @staticmethod
     @lru_cache(maxsize=128)
@@ -515,8 +516,8 @@ class R(_SingleQubitParametricGate):
 
     __slots__ = ()
 
-    num_params = 2
-    latex_str = r"{\rm R}"
+    num_params: Final[int] = 2
+    latex_str: Final[str] = r"{\rm R}"
 
     @staticmethod
     @lru_cache(maxsize=128)
@@ -559,8 +560,8 @@ class QASMU(_SingleQubitParametricGate):
 
     __slots__ = ()
 
-    num_params = 3
-    latex_str = r"{\rm QASMU}"
+    num_params: Final[int] = 3
+    latex_str: Final[str] = r"{\rm QASMU}"
 
     @staticmethod
     @lru_cache(maxsize=128)

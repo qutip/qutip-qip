@@ -1,10 +1,11 @@
 from functools import cache
+from typing import Final, Type
 
 import scipy.sparse as sp
 import numpy as np
 from qutip import Qobj
 
-from qutip_qip.operations import ControlledGate, AngleParametricGate
+from qutip_qip.operations import Gate, ControlledGate, AngleParametricGate
 from qutip_qip.operations.gates import X, SWAP
 
 
@@ -16,12 +17,12 @@ class GLOBALPHASE(AngleParametricGate):
     --------
     >>> from qutip_qip.operations.gates import GLOBALPHASE
     """
-
-    num_qubits: int = 0
-    num_params: int = 1
-    self_inverse = False
-    latex_str = r"{\rm GLOBALPHASE}"
     __slots__ = ()
+
+    num_qubits: Final[int] = 0
+    num_params: Final[int] = 1
+    self_inverse: Final[bool] = False
+    latex_str: Final[str] = r"{\rm GLOBALPHASE}"
 
     def __init__(self, arg_value: float = 0.0):
         super().__init__(arg_value=arg_value)
@@ -62,12 +63,14 @@ class TOFFOLI(ControlledGate):
     """
 
     __slots__ = ()
-    num_qubits: int = 3
 
-    num_ctrl_qubits: int = 2
-    ctrl_value = 0b11
-    target_gate = X
-    latex_str = r"{\rm TOFFOLI}"
+    num_qubits: Final[int] = 3
+    num_ctrl_qubits: Final[int] = 2
+    ctrl_value: Final[int] = 0b11
+
+    target_gate: Final[Type[Gate]] = X
+    self_inverse: Final[bool] = True
+    latex_str: Final[str] = r"{\rm TOFFOLI}"
 
     @staticmethod
     @cache
@@ -108,12 +111,14 @@ class FREDKIN(ControlledGate):
     """
 
     __slots__ = ()
-    num_qubits: int = 3
 
-    num_ctrl_qubits: int = 1
-    ctrl_value = 1
-    target_gate = SWAP
-    latex_str = r"{\rm FREDKIN}"
+    num_qubits: Final[int] = 3
+    num_ctrl_qubits: Final[int] = 1
+    ctrl_value: Final[int] = 1
+
+    target_gate: Final[Type[Gate]] = SWAP
+    self_inverse: Final[bool] = True
+    latex_str: Final[str] = r"{\rm FREDKIN}"
 
     @staticmethod
     @cache
