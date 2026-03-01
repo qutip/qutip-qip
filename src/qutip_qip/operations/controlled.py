@@ -181,22 +181,22 @@ class ControlledGate(Gate):
         )
 
     @class_or_instance_method
-    def inverse_gate(cls_or_self) -> Gate:
+    def inverse(cls_or_self) -> Gate:
         if isinstance(cls_or_self, type):
             return controlled(
-                cls_or_self.target_gate.inverse_gate(),
+                cls_or_self.target_gate.inverse(),
                 cls_or_self.num_ctrl_qubits,
                 cls_or_self.ctrl_value
             )
 
-        inverse_target_gate = cls_or_self._target_inst.inverse_gate()
+        inverse_target_gate = cls_or_self._target_inst.inverse()
         arg_value = inverse_target_gate.arg_value
-        inverse_gate = controlled(
+        inverse = controlled(
             type(inverse_target_gate),
             cls_or_self.num_ctrl_qubits,
             cls_or_self.ctrl_value
         )
-        return inverse_gate(arg_value=arg_value)
+        return inverse(arg_value=arg_value)
 
     @staticmethod
     def is_controlled() -> bool:
