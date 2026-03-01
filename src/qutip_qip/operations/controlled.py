@@ -12,14 +12,19 @@ class class_or_instance_method:
     Binds a method to the instance if called on an instance,
     or to the class if called on the class.
     """
+
     def __init__(self, func):
         self.func = func
 
     def __get__(self, instance, owner):
         if instance is None:
-            return partial(self.func, owner) # Called on the class (e.g., CX.get_qobj())
-        
-        return partial(self.func, instance) # Called on the instance (e.g., CRX(0.5).get_qobj())
+            return partial(
+                self.func, owner
+            )  # Called on the class (e.g., CX.get_qobj())
+
+        return partial(
+            self.func, instance
+        )  # Called on the instance (e.g., CRX(0.5).get_qobj())
 
 
 class ControlledGate(Gate):
@@ -47,7 +52,8 @@ class ControlledGate(Gate):
         * If the gate should execute when two control qubits are $|10\rangle$
             (binary 10), set ``ctrl_value=0b10``.
     """
-    __slots__ = ('_target_inst')
+
+    __slots__ = "_target_inst"
 
     num_ctrl_qubits: int
     ctrl_value: int
@@ -173,7 +179,7 @@ class ControlledGate(Gate):
                 num_controls=cls_or_self.num_ctrl_qubits,
                 control_value=cls_or_self.ctrl_value,
             )
-        
+
         return controlled_gate_unitary(
             U=cls_or_self._target_inst.get_qobj(),
             num_controls=cls_or_self.num_ctrl_qubits,
@@ -186,7 +192,7 @@ class ControlledGate(Gate):
             return controlled(
                 cls_or_self.target_gate.inverse(),
                 cls_or_self.num_ctrl_qubits,
-                cls_or_self.ctrl_value
+                cls_or_self.ctrl_value,
             )
 
         inverse_target_gate = cls_or_self._target_inst.inverse()
@@ -194,7 +200,7 @@ class ControlledGate(Gate):
         inverse = controlled(
             type(inverse_target_gate),
             cls_or_self.num_ctrl_qubits,
-            cls_or_self.ctrl_value
+            cls_or_self.ctrl_value,
         )
         return inverse(arg_value=arg_value)
 

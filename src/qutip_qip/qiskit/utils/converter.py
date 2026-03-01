@@ -3,32 +3,32 @@
 from qiskit.circuit import QuantumCircuit
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations import Gate
-import qutip_qip.operations.std as std
+import qutip_qip.operations.gates as gates
 
 # TODO Expand this dictionary for other gates like CS etc.
 _map_gates: dict[str, Gate] = {
-    "p": std.PHASE,
-    "x": std.X,
-    "y": std.Y,
-    "z": std.Z,
-    "h": std.H,
-    "s": std.S,
-    "t": std.T,
-    "rx": std.RX,
-    "ry": std.RY,
-    "rz": std.RZ,
-    "swap": std.SWAP,
-    "u": std.QASMU,
+    "p": gates.PHASE,
+    "x": gates.X,
+    "y": gates.Y,
+    "z": gates.Z,
+    "h": gates.H,
+    "s": gates.S,
+    "t": gates.T,
+    "rx": gates.RX,
+    "ry": gates.RY,
+    "rz": gates.RZ,
+    "swap": gates.SWAP,
+    "u": gates.QASMU,
 }
 
 _map_controlled_gates: dict[str, Gate] = {
-    "cx": std.CX,
-    "cy": std.CY,
-    "cz": std.CZ,
-    "crx": std.CRX,
-    "cry": std.CRY,
-    "crz": std.CRZ,
-    "cp": std.CPHASE,
+    "cx": gates.CX,
+    "cy": gates.CY,
+    "cz": gates.CZ,
+    "crx": gates.CRX,
+    "cry": gates.CRY,
+    "crz": gates.CRZ,
+    "cp": gates.CPHASE,
 }
 
 _ignore_gates: list[str] = ["id", "barrier"]

@@ -4,7 +4,7 @@ from unittest.mock import patch
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.circuit.draw import TextRenderer
 from qutip_qip.operations import controlled
-from qutip_qip.operations.std import (
+from qutip_qip.operations.gates import (
     IDLE,
     X,
     H,

@@ -16,7 +16,7 @@ from qutip_qip.circuit import (
 )
 from qutip_qip.circuit.utils import _check_iterable, _check_limit_
 from qutip_qip.operations import Gate, Measurement, expand_operator
-from qutip_qip.operations.std import RX, RY, RZ, GLOBALPHASE, GATE_CLASS_MAP
+from qutip_qip.operations.gates import RX, RY, RZ, GLOBALPHASE, GATE_CLASS_MAP
 from qutip_qip.typing import IntList
 
 try:
@@ -116,6 +116,7 @@ class QubitCircuit:
         return self._instructions
 
     gates.setter
+
     def gates(self) -> None:
         warnings.warn(
             "QubitCircuit.gates has been replaced with QubitCircuit.instructions",
@@ -247,7 +248,7 @@ class QubitCircuit:
     def add_gate(
         self,
         gate: Gate | str,
-        targets: int | Iterable[int] =(),
+        targets: int | Iterable[int] = (),
         controls: int | Iterable[int] = (),
         arg_value: any = None,
         arg_label: str | None = None,
@@ -362,10 +363,14 @@ class QubitCircuit:
                 gate = gate_class
 
         if gate.is_controlled() and len(controls) != gate.num_ctrl_qubits:
-            raise ValueError(f"{gate.name} takes {gate.num_ctrl_qubits} qubits, but {len(controls)} were provided.")
+            raise ValueError(
+                f"{gate.name} takes {gate.num_ctrl_qubits} qubits, but {len(controls)} were provided."
+            )
 
         if len(controls) + len(targets) != gate.num_qubits:
-            raise ValueError(f"{gate.name} takes {gate.num_qubits} qubits, but {len(controls) + len(targets)} were provided.")
+            raise ValueError(
+                f"{gate.name} takes {gate.num_qubits} qubits, but {len(controls) + len(targets)} were provided."
+            )
 
         qubits = []
         if controls is not None:

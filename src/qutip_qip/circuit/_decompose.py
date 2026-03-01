@@ -5,7 +5,7 @@ individual gate classes.
 """
 
 import numpy as np
-from qutip_qip.operations.std import (
+from qutip_qip.operations.gates import (
     RX,
     RY,
     RZ,

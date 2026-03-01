@@ -19,7 +19,7 @@ from qutip import (
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.device import Processor, LinearSpinChain
 from qutip_qip.operations import hadamard_transform
-from qutip_qip.operations.std import ISWAP, X
+from qutip_qip.operations.gates import ISWAP, X
 from qutip_qip.noise import DecoherenceNoise, RandomNoise, ControlAmpNoise
 from qutip_qip.pulse import Pulse
 from qutip_qip.qubits import qubit_states

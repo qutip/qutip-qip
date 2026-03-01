@@ -56,7 +56,6 @@ class _GateMetaClass(ABCMeta):
         # don't overwrite any defaults like num_qubits etc in __setattr__.
         cls._is_frozen = True
 
-
     def __setattr__(cls, name: str, value: any) -> None:
         """
         One of the main purpose of this meta class is to enforce read-only constraints
@@ -72,12 +71,14 @@ class _GateMetaClass(ABCMeta):
 
         This is required since num_qubits etc. are class attributes (shared by all object instances).
         """
-        # cls.__dict__.get() instead of getattr() ensures we don't 
+        # cls.__dict__.get() instead of getattr() ensures we don't
         # accidentally inherit the True flag from a parent class for _is_frozen.
-        if cls.__dict__.get("_is_frozen", False) and name in cls._read_only_set:
+        if (
+            cls.__dict__.get("_is_frozen", False)
+            and name in cls._read_only_set
+        ):
             raise AttributeError(f"{name} is read-only!")
         super().__setattr__(name, value)
-
 
     def __str__(self) -> str:
         return f"Gate({self.name})"

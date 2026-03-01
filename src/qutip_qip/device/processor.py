@@ -4,7 +4,7 @@ from copy import deepcopy
 import numpy as np
 
 from qutip import Qobj, QobjEvo, mesolve, mcsolve
-from qutip_qip.operations.std import GLOBALPHASE
+from qutip_qip.operations.gates import GLOBALPHASE
 from qutip_qip.noise import Noise, process_noise
 from qutip_qip.device import Model
 from qutip_qip.device.utils import _pulse_interpolate
@@ -1120,7 +1120,7 @@ class Processor:
             init_state = states
         if analytical:
             if kwargs or self.noise:
-                raise warnings.warn( # FIXME this should raise an Error Type
+                raise warnings.warn(  # FIXME this should raise an Error Type
                     "Analytical matrices exponentiation"
                     "does not process noise or"
                     "any keyword arguments."

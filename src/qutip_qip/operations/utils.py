@@ -45,7 +45,7 @@ def _check_oper_dims(
 def _targets_to_list(
     targets: int | Iterable[int],
     oper: Qobj | None = None,
-    N: int | None = None
+    N: int | None = None,
 ) -> list[int]:
     """
     transform targets to a list and check validity.
@@ -85,6 +85,7 @@ def _targets_to_list(
             raise ValueError("Targets must be smaller than N={}.".format(N))
     return targets
 
+
 def expand_operator(
     oper: Qobj,
     dims: Iterable[int],
@@ -119,7 +120,7 @@ def expand_operator(
     --------
     >>> import qutip
     >>> from qutip_qip.operations import expand_operator
-    >>> from qutip_qip.operations.std import X, CX
+    >>> from qutip_qip.operations.gates import X, CX
     >>> expand_operator(X.get_qobj(), dims=[2,3], targets=[0]) # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 3], [2, 3]], shape=(6, 6), type='oper', dtype=CSR, isherm=True
     Qobj data =
@@ -181,6 +182,7 @@ def expand_operator(
     out = tensor([oper] + id_list).permute(new_order)
     return out.to(dtype)
 
+
 def hadamard_transform(N=1):
     """Quantum object representing the N-qubit Hadamard gate.
 
@@ -195,11 +197,12 @@ def hadamard_transform(N=1):
 
     return tensor([H] * N)
 
+
 def gate_sequence_product(
     U_list: list[Qobj],
     left_to_right: bool = True,
     inds_list: list[list[int]] | None = None,
-    expand: bool = False
+    expand: bool = False,
 ) -> Qobj | tuple[Qobj, list[int]]:
     """
     Calculate the overall unitary matrix for a given list of unitary operations.

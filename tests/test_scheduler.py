@@ -4,7 +4,7 @@ from copy import deepcopy
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.compiler import PulseInstruction, Scheduler
 from qutip_qip.operations import ControlledGate
-from qutip_qip.operations.std import (
+from qutip_qip.operations.gates import (
     GATE_CLASS_MAP,
     CX,
     X,

@@ -1113,7 +1113,7 @@ def qubit_clifford_group(N=None, target=0):
     warnings.warn(
         "qubit_clifford has been deprecated and will be removed in future version.",
         DeprecationWarning,
-        stacklevel=2
+        stacklevel=2,
     )
 
     # The Ross-Selinger presentation of the single-qubit Clifford

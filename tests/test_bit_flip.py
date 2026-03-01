@@ -2,7 +2,7 @@ import pytest
 import qutip
 from qutip_qip.algorithms import BitFlipCode
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations.std import X
+from qutip_qip.operations.gates import X
 
 
 @pytest.fixture

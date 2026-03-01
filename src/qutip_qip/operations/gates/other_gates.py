@@ -5,7 +5,7 @@ import numpy as np
 from qutip import Qobj
 
 from qutip_qip.operations import ControlledGate, AngleParametricGate
-from qutip_qip.operations.std import X, SWAP
+from qutip_qip.operations.gates import X, SWAP
 
 
 class GLOBALPHASE(AngleParametricGate):
@@ -14,7 +14,7 @@ class GLOBALPHASE(AngleParametricGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations.std import GLOBALPHASE
+    >>> from qutip_qip.operations.gates import GLOBALPHASE
     """
 
     num_qubits: int = 0
@@ -47,7 +47,7 @@ class TOFFOLI(ControlledGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations.std import TOFFOLI
+    >>> from qutip_qip.operations.gates import TOFFOLI
     >>> TOFFOLI.get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2, 2], [2, 2, 2]], shape=(8, 8), type='oper', dtype=Dense, isherm=True
     Qobj data =
@@ -93,7 +93,7 @@ class FREDKIN(ControlledGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations.std import FREDKIN
+    >>> from qutip_qip.operations.gates import FREDKIN
     >>> FREDKIN.get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2, 2], [2, 2, 2]], shape=(8, 8), type='oper', dtype=Dense, isherm=True
     Qobj data =

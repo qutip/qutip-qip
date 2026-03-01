@@ -7,7 +7,7 @@ from qutip import Qobj
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.decompose import decompose_one_qubit_gate
 from qutip_qip.operations import expand_operator
-from qutip_qip.operations.std import H, RZ, CX, CPHASE, SWAP
+from qutip_qip.operations.gates import H, RZ, CX, CPHASE, SWAP
 
 
 def qft(N=1):
