@@ -17,14 +17,12 @@ class class_or_instance_method:
         self.func = func
 
     def __get__(self, instance, owner):
+        # Called on the class (e.g., CX.get_qobj())
         if instance is None:
-            return partial(
-                self.func, owner
-            )  # Called on the class (e.g., CX.get_qobj())
+            return partial(self.func, owner)
 
-        return partial(
-            self.func, instance
-        )  # Called on the instance (e.g., CRX(0.5).get_qobj())
+        # Called on the instance (e.g., CRX(0.5).get_qobj())
+        return partial(self.func, instance) 
 
 
 class ControlledGate(Gate):
