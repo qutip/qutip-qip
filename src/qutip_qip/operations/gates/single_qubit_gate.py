@@ -1,4 +1,5 @@
-from functools import cache
+from functools import cache, lru_cache
+from abc import abstractmethod
 import warnings
 import numpy as np
 
@@ -18,6 +19,13 @@ class _SingleQubitParametricGate(AngleParametricGate):
 
     __slots__ = ()
     num_qubits = 1
+
+    @abstractmethod
+    def _compute_qobj(arg_value: tuple[float]) -> Qobj:
+        pass
+
+    def get_qobj(self) -> Qobj:
+        return self._compute_qobj(tuple(self.arg_value))
 
 
 class X(_SingleQubitGate):
@@ -372,8 +380,10 @@ class RX(_SingleQubitParametricGate):
     num_params = 1
     latex_str = r"RX"
 
-    def get_qobj(self) -> Qobj:
-        phi = self.arg_value[0]
+    @staticmethod
+    @lru_cache(maxsize=128)
+    def _compute_qobj(arg_value: tuple[float]) -> Qobj:
+        phi = arg_value[0]
         return Qobj(
             [
                 [np.cos(phi / 2), -1j * np.sin(phi / 2)],
@@ -406,8 +416,10 @@ class RY(_SingleQubitParametricGate):
     num_params = 1
     latex_str = r"RY"
 
-    def get_qobj(self) -> Qobj:
-        phi = self.arg_value[0]
+    @staticmethod
+    @lru_cache(maxsize=128)
+    def _compute_qobj(arg_value: tuple[float]) -> Qobj:
+        phi = arg_value[0]
         return Qobj(
             [
                 [np.cos(phi / 2), -np.sin(phi / 2)],
@@ -439,8 +451,10 @@ class RZ(_SingleQubitParametricGate):
     num_params = 1
     latex_str = r"RZ"
 
-    def get_qobj(self) -> Qobj:
-        phi = self.arg_value[0]
+    @staticmethod
+    @lru_cache(maxsize=128)
+    def _compute_qobj(arg_value: tuple[float]) -> Qobj:
+        phi = arg_value[0]
         return Qobj([[np.exp(-1j * phi / 2), 0], [0, np.exp(1j * phi / 2)]])
 
     def inverse(self) -> Gate:
@@ -462,8 +476,10 @@ class PHASE(_SingleQubitParametricGate):
     num_params = 1
     latex_str = r"PHASE"
 
-    def get_qobj(self) -> Qobj:
-        phi = self.arg_value[0]
+    @staticmethod
+    @lru_cache(maxsize=128)
+    def _compute_qobj(arg_value: tuple[float]) -> Qobj:
+        phi = arg_value[0]
         return Qobj(
             [
                 [1, 0],
@@ -502,8 +518,10 @@ class R(_SingleQubitParametricGate):
     num_params = 2
     latex_str = r"{\rm R}"
 
-    def get_qobj(self) -> Qobj:
-        phi, theta = self.arg_value
+    @staticmethod
+    @lru_cache(maxsize=128)
+    def _compute_qobj(arg_value: tuple[float]) -> Qobj:
+        phi, theta = arg_value
         return Qobj(
             [
                 [
@@ -544,8 +562,10 @@ class QASMU(_SingleQubitParametricGate):
     num_params = 3
     latex_str = r"{\rm QASMU}"
 
-    def get_qobj(self) -> Qobj:
-        theta, phi, gamma = self.arg_value
+    @staticmethod
+    @lru_cache(maxsize=128)
+    def _compute_qobj(arg_value: tuple[float]) -> Qobj:
+        theta, phi, gamma = arg_value
         return Qobj(
             [
                 [
