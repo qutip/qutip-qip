@@ -3,10 +3,9 @@ import pytest
 import itertools
 import numpy as np
 import qutip
-from qutip.core.gates import hadamard_transform
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations import (
-    Gate, expand_operator, controlled, unitary_gate, qubit_clifford_group
+    Gate, expand_operator, controlled, unitary_gate, qubit_clifford_group, hadamard_transform
 )
 import qutip_qip.operations.std as std
 

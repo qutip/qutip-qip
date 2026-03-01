@@ -85,7 +85,6 @@ def _targets_to_list(
             raise ValueError("Targets must be smaller than N={}.".format(N))
     return targets
 
-
 def expand_operator(
     oper: Qobj,
     dims: Iterable[int],
@@ -182,6 +181,19 @@ def expand_operator(
     out = tensor([oper] + id_list).permute(new_order)
     return out.to(dtype)
 
+def hadamard_transform(N=1):
+    """Quantum object representing the N-qubit Hadamard gate.
+
+    Returns
+    -------
+    q : qobj
+        Quantum object representation of the N-qubit Hadamard gate.
+
+    """
+    data = [[1, 1], [1, -1]]
+    H = Qobj(data) / np.sqrt(2)
+
+    return tensor([H] * N)
 
 def gate_sequence_product(
     U_list: list[Qobj],

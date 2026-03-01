@@ -1073,21 +1073,6 @@ shape = [2, 2], type='oper', dtype=Dense, isherm=False
 #
 
 
-def hadamard_transform(N=1):
-    """Quantum object representing the N-qubit Hadamard gate.
-
-    Returns
-    -------
-    q : qobj
-        Quantum object representation of the N-qubit Hadamard gate.
-
-    """
-    data = [[1, 1], [1, -1]]
-    H = Qobj(data) / np.sqrt(2)
-
-    return tensor([H] * N)
-
-
 def _powers(op, N):
     """
     Generator that yields powers of an operator `op`,
@@ -1124,6 +1109,12 @@ def qubit_clifford_group(N=None, target=0):
         Clifford operators, represented as Qobj instances.
 
     """
+
+    warnings.warn(
+        "qubit_clifford has been deprecated and will be removed in future version.",
+        DeprecationWarning,
+        stacklevel=2
+    )
 
     # The Ross-Selinger presentation of the single-qubit Clifford
     # group expresses each element in the form C_{ijk} = E^i X^j S^k

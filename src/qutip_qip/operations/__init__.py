@@ -3,6 +3,7 @@ Operations on quantum circuits.
 """
 
 from .utils import (
+    hadamard_transform,
     expand_operator,
     gate_sequence_product,
     controlled_gate_unitary,
@@ -43,7 +44,6 @@ from .old_gates import (
     toffoli,
     rotation,
     globalphase,
-    hadamard_transform,
     qubit_clifford_group,
 )
 
