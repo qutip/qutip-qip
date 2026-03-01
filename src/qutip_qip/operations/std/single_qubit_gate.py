@@ -1,3 +1,4 @@
+from functools import cache
 import warnings
 import numpy as np
 
@@ -40,6 +41,7 @@ class X(_SingleQubitGate):
     latex_str = r"X"
 
     @staticmethod
+    @cache
     def get_qobj() -> Qobj:
         return sigmax(dtype="dense")
 
@@ -65,6 +67,7 @@ class Y(_SingleQubitGate):
     latex_str = r"Y"
 
     @staticmethod
+    @cache
     def get_qobj() -> Qobj:
         return sigmay(dtype="dense")
 
@@ -90,6 +93,7 @@ class Z(_SingleQubitGate):
     latex_str = r"Z"
 
     @staticmethod
+    @cache
     def get_qobj() -> Qobj:
         return sigmaz(dtype="dense")
 
@@ -110,6 +114,7 @@ class IDLE(_SingleQubitGate):
     latex_str = r"{\rm IDLE}"
 
     @staticmethod
+    @cache
     def get_qobj() -> Qobj:
         return qeye(2)
 
@@ -135,6 +140,7 @@ class H(_SingleQubitGate):
     latex_str = r"H"
 
     @staticmethod
+    @cache
     def get_qobj() -> Qobj:
         return 1 / np.sqrt(2.0) * Qobj([[1, 1], [1, -1]])
 
@@ -177,6 +183,7 @@ class SQRTX(_SingleQubitGate):
     latex_str = r"\sqrt{\rm X}"
 
     @staticmethod
+    @cache
     def get_qobj() -> Qobj:
         return Qobj([[0.5 + 0.5j, 0.5 - 0.5j], [0.5 - 0.5j, 0.5 + 0.5j]])
 
@@ -206,6 +213,7 @@ class SQRTXdag(_SingleQubitGate):
     latex_str = r"\sqrt{\rm X}^\dagger"
 
     @staticmethod
+    @cache
     def get_qobj() -> Qobj:
         return Qobj([[0.5 - 0.5j, 0.5 + 0.5j], [0.5 + 0.5j, 0.5 - 0.5j]])
 
@@ -248,6 +256,7 @@ class S(_SingleQubitGate):
     latex_str = r"{\rm S}"
 
     @staticmethod
+    @cache
     def get_qobj() -> Qobj:
         return Qobj([[1, 0], [0, 1j]])
 
@@ -277,6 +286,7 @@ class Sdag(_SingleQubitGate):
     latex_str = r"{\rm S^\dagger}"
 
     @staticmethod
+    @cache
     def get_qobj() -> Qobj:
         return Qobj([[1, 0], [0, -1j]])
 
@@ -305,6 +315,7 @@ class T(_SingleQubitGate):
     latex_str = r"{\rm T}"
 
     @staticmethod
+    @cache
     def get_qobj() -> Qobj:
         return Qobj([[1, 0], [0, np.exp(1j * np.pi / 4)]])
 
@@ -333,6 +344,7 @@ class Tdag(_SingleQubitGate):
     latex_str = r"{\rm Tdag}"
 
     @staticmethod
+    @cache
     def get_qobj() -> Qobj:
         return Qobj([[1, 0], [0, np.exp(-1j * np.pi / 4)]])
 

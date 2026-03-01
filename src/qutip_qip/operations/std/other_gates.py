@@ -1,7 +1,9 @@
+from functools import cache
+
 import scipy.sparse as sp
 import numpy as np
-
 from qutip import Qobj
+
 from qutip_qip.operations import ControlledGate, AngleParametricGate
 from qutip_qip.operations.std import X, SWAP
 
@@ -67,6 +69,23 @@ class TOFFOLI(ControlledGate):
     target_gate = X
     latex_str = r"{\rm TOFFOLI}"
 
+    @staticmethod
+    @cache
+    def get_qobj() -> Qobj:
+        return Qobj(
+            [
+                [1, 0, 0, 0, 0, 0, 0, 0],
+                [0, 1, 0, 0, 0, 0, 0, 0],
+                [0, 0, 1, 0, 0, 0, 0, 0],
+                [0, 0, 0, 1, 0, 0, 0, 0],
+                [0, 0, 0, 0, 1, 0, 0, 0],
+                [0, 0, 0, 0, 0, 1, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 1],
+                [0, 0, 0, 0, 0, 0, 1, 0],
+            ],
+            dims=[[2, 2, 2], [2, 2, 2]],
+        )
+
 
 class FREDKIN(ControlledGate):
     """
@@ -95,3 +114,20 @@ class FREDKIN(ControlledGate):
     ctrl_value = 1
     target_gate = SWAP
     latex_str = r"{\rm FREDKIN}"
+
+    @staticmethod
+    @cache
+    def get_qobj() -> Qobj:
+        return Qobj(
+            [
+                [1, 0, 0, 0, 0, 0, 0, 0],
+                [0, 1, 0, 0, 0, 0, 0, 0],
+                [0, 0, 1, 0, 0, 0, 0, 0],
+                [0, 0, 0, 1, 0, 0, 0, 0],
+                [0, 0, 0, 0, 1, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 1, 0],
+                [0, 0, 0, 0, 0, 1, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 1],
+            ],
+            dims=[[2, 2, 2], [2, 2, 2]],
+        )

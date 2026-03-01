@@ -1,4 +1,5 @@
 from typing import Final
+from functools import cache
 import warnings
 
 import numpy as np
@@ -27,6 +28,7 @@ class _ControlledTwoQubitGate(ControlledGate):
     num_qubits: Final[int] = 2
     num_ctrl_qubits: Final[int] = 1
     ctrl_value: Final[int] = 1
+
 
 class SWAP(_TwoQubitGate):
     """
@@ -570,6 +572,14 @@ class CX(_ControlledTwoQubitGate):
     is_clifford = True
     latex_str = r"{\rm CNOT}"
 
+    @staticmethod
+    @cache
+    def get_qobj() -> Qobj:
+        return Qobj(
+            [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]],
+            dims=[[2, 2], [2, 2]],
+        )
+
 
 class CNOT(CX):
     __slots__ = ()
@@ -606,6 +616,14 @@ class CY(_ControlledTwoQubitGate):
     target_gate = Y
     latex_str = r"{\rm CY}"
 
+    @staticmethod
+    @cache
+    def get_qobj():
+        return Qobj(
+            [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, -1j], [0, 0, 1j, 0]],
+            dims=[[2, 2], [2, 2]],
+        )
+
 
 class CZ(_ControlledTwoQubitGate):
     """
@@ -628,6 +646,14 @@ class CZ(_ControlledTwoQubitGate):
     target_gate = Z
     is_clifford = True
     latex_str = r"{\rm CZ}"
+
+    @staticmethod
+    @cache
+    def get_qobj():
+        return Qobj(
+            [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]],
+            dims=[[2, 2], [2, 2]],
+        )
 
 
 class CSIGN(CZ):
@@ -666,6 +692,20 @@ class CH(_ControlledTwoQubitGate):
     target_gate = H
     latex_str = r"{\rm CH}"
 
+    @staticmethod
+    @cache
+    def get_qobj():
+        sq_2 = 1 / np.sqrt(2)
+        return Qobj(
+            [
+                [1, 0, 0, 0],
+                [0, 1, 0, 0],
+                [0, 0, sq_2, sq_2],
+                [0, 0, sq_2, -sq_2],
+            ],
+            dims=[[2, 2], [2, 2]],
+        )
+
 
 class CT(_ControlledTwoQubitGate):
     r"""
@@ -690,6 +730,19 @@ class CT(_ControlledTwoQubitGate):
     target_gate = T
     latex_str = r"{\rm CT}"
 
+    @staticmethod
+    @cache
+    def get_qobj():
+        return Qobj(
+            [
+                [1, 0, 0, 0],
+                [0, 1, 0, 0],
+                [0, 0, 1, 0],
+                [0, 0, 0, (1 + 1j) / np.sqrt(2)],
+            ],
+            dims=[[2, 2], [2, 2]],
+        )
+
 
 class CS(_ControlledTwoQubitGate):
     r"""
@@ -713,6 +766,16 @@ class CS(_ControlledTwoQubitGate):
 
     target_gate = S
     latex_str = r"{\rm CS}"
+
+    @staticmethod
+    @cache
+    def get_qobj():
+        return Qobj(
+            np.array(
+                [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1j]]
+            ),
+            dims=[[2, 2], [2, 2]],
+        )
 
 
 class CPHASE(_ControlledTwoQubitGate):
