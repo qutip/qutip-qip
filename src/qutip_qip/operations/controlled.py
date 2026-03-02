@@ -185,7 +185,7 @@ class ControlledGate(Gate):
         )
 
     @class_or_instance_method
-    def inverse(cls_or_self) -> Gate:
+    def inverse(cls_or_self) -> Gate | Type[Gate]:
         if isinstance(cls_or_self, type):
             return controlled(
                 cls_or_self.target_gate.inverse(),
@@ -193,14 +193,19 @@ class ControlledGate(Gate):
                 cls_or_self.ctrl_value,
             )
 
-        inverse_target_gate = cls_or_self._target_inst.inverse()
-        arg_value = inverse_target_gate.arg_value
-        inverse = controlled(
-            type(inverse_target_gate),
-            cls_or_self.num_ctrl_qubits,
-            cls_or_self.ctrl_value,
-        )
-        return inverse(*arg_value)
+        elif cls_or_self._target_inst.is_parametric():
+            inverse_gate_class, param = cls_or_self._target_inst.inverse(
+                expanded=True
+            )
+            inverse = controlled(
+                inverse_gate_class,
+                cls_or_self.num_ctrl_qubits,
+                cls_or_self.ctrl_value,
+            )
+            return inverse(*param)
+
+        else:
+            raise NotImplementedError
 
     @staticmethod
     def is_controlled() -> bool:

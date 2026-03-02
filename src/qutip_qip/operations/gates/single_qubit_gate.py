@@ -396,8 +396,13 @@ class RX(_SingleQubitParametricGate):
             dims=[[2], [2]],
         )
 
-    def inverse(self) -> Gate:
+    def inverse(
+        self, expanded: bool = False
+    ) -> Gate | tuple[Type[Gate], tuple[float]]:
+
         theta = self.arg_value[0]
+        if expanded:
+            return RX, (-theta,)
         return RX(-theta)
 
 
@@ -434,8 +439,13 @@ class RY(_SingleQubitParametricGate):
             ]
         )
 
-    def inverse(self) -> Gate:
+    def inverse(
+        self, expanded: bool = False
+    ) -> Gate | tuple[Type[Gate], tuple[float]]:
+
         theta = self.arg_value[0]
+        if expanded:
+            return RY, (-theta,)
         return RY(-theta)
 
 
@@ -467,8 +477,13 @@ class RZ(_SingleQubitParametricGate):
         phi = arg_value[0]
         return Qobj([[np.exp(-1j * phi / 2), 0], [0, np.exp(1j * phi / 2)]])
 
-    def inverse(self) -> Gate:
+    def inverse(
+        self, expanded: bool = False
+    ) -> Gate | tuple[Type[Gate], tuple[float]]:
+
         theta = self.arg_value[0]
+        if expanded:
+            return RZ, (-theta,)
         return RZ(-theta)
 
 
@@ -500,8 +515,13 @@ class PHASE(_SingleQubitParametricGate):
             ]
         )
 
-    def inverse(self) -> Gate:
+    def inverse(
+        self, expanded: bool = False
+    ) -> Gate | tuple[Type[Gate], tuple[float]]:
+
         theta = self.arg_value[0]
+        if expanded:
+            return PHASE, (-theta,)
         return PHASE(-theta)
 
 
@@ -551,9 +571,16 @@ class R(_SingleQubitParametricGate):
             ]
         )
 
-    def inverse(self) -> Gate:
+    def inverse(
+        self, expanded: bool = False
+    ) -> Gate | tuple[Type[Gate], tuple[float, float]]:
+
         phi, theta = self.arg_value
-        return R(phi, -theta)
+        inverse_params = (phi, -theta)
+
+        if expanded:
+            return R, inverse_params
+        return R(*inverse_params)
 
 
 class QASMU(_SingleQubitParametricGate):
@@ -604,6 +631,13 @@ class QASMU(_SingleQubitParametricGate):
             ]
         )
 
-    def inverse(self) -> Gate:
+    def inverse(
+        self, expanded: bool = False
+    ) -> Gate | tuple[Type[Gate], tuple[float, float, float]]:
+
         theta, phi, gamma = self.arg_value
-        return QASMU(-theta, -gamma, -phi)
+        inverse_param = (-theta, -gamma, -phi)
+
+        if expanded:
+            return QASMU, inverse_param
+        return QASMU(*inverse_param)

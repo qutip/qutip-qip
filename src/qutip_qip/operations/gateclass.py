@@ -2,6 +2,7 @@
 from __future__ import annotations
 from abc import ABC, ABCMeta, abstractmethod
 import inspect
+from typing import Type
 
 import numpy as np
 from qutip import Qobj
@@ -242,7 +243,7 @@ class Gate(ABC, metaclass=_GateMetaClass):
         pass
 
     @classmethod
-    def inverse(cls) -> Gate:
+    def inverse(cls) -> Type[Gate]:
         """
         Return the inverse of the gate.
 
@@ -282,7 +283,9 @@ class Gate(ABC, metaclass=_GateMetaClass):
         return False
 
 
-def unitary_gate(gate_name: str, U: Qobj, namespace: str = "custom") -> Gate:
+def unitary_gate(
+    gate_name: str, U: Qobj, namespace: str = "custom"
+) -> Type[Gate]:
     """
     Gate Factory for Custom Gate that wraps an arbitrary unitary matrix U.
     """

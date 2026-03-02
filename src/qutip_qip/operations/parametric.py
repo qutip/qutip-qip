@@ -80,10 +80,12 @@ class ParametricGate(Gate):
     def arg_value(self, new_args: Sequence):
         if not isinstance(new_args, Sequence):
             new_args = [new_args]
-            
+
         if len(new_args) != self.num_params:
-            raise ValueError(f"Requires {self.num_params} parameters, got {len(new_args)}")
-            
+            raise ValueError(
+                f"Requires {self.num_params} parameters, got {len(new_args)}"
+            )
+
         self.validate_params(new_args)
         self._arg_value = tuple(new_args)
 
@@ -114,6 +116,11 @@ class ParametricGate(Gate):
             The unitary matrix representing the gate with the specific `arg_value`.
         """
         pass
+
+    def inverse(self, expanded: bool = False) -> Gate:
+        if self.self_inverse:
+            return self
+        raise NotImplementedError
 
     @staticmethod
     def is_parametric():
