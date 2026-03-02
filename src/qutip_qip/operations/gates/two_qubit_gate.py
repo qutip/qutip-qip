@@ -440,10 +440,14 @@ class SWAPALPHA(_TwoQubitParametricGate):
      [0. +0.j  0. +0.j  0. +0.j  1. +0.j ]]
     """
 
-    __slots__ = ()
+    __slots__ = ("alpha")
 
     num_params: Final[int] = 1
     latex_str: Final[str] = r"{\rm SWAPALPHA}"
+
+    def __init__(self, alpha: float, arg_label: str | None = None):
+        super().__init__(alpha, arg_label=arg_label)
+        self.alpha = alpha
 
     @staticmethod
     @lru_cache(maxsize=128)
@@ -470,8 +474,7 @@ class SWAPALPHA(_TwoQubitParametricGate):
         )
 
     def inverse(self) -> Gate:
-        alpha = self.arg_value[0]
-        return SWAPALPHA(-alpha)
+        return SWAPALPHA(alpha=-self.alpha)
 
 
 class MS(_TwoQubitParametricGate):
@@ -499,10 +502,15 @@ class MS(_TwoQubitParametricGate):
      [0.     -0.70711j 0.     +0.j      0.     +0.j      0.70711+0.j     ]]
     """
 
-    __slots__ = ()
+    __slots__ = ("theta", "phi")
 
     num_params: Final[int] = 2
     latex_str: Final[str] = r"{\rm MS}"
+
+    def __init__(self, theta: float, phi: float, arg_label: str | None = None):
+        super().__init__(theta, phi, arg_label=arg_label)
+        self.theta = theta
+        self.phi = phi
 
     @staticmethod
     @lru_cache(maxsize=128)
@@ -529,8 +537,7 @@ class MS(_TwoQubitParametricGate):
         )
 
     def inverse(self) -> Gate:
-        theta, phi = self.arg_value
-        return MS([-theta, phi])
+        return MS(theta=-self.theta, phi=self.phi)
 
 
 class RZX(_TwoQubitParametricGate):
@@ -558,10 +565,14 @@ class RZX(_TwoQubitParametricGate):
     [0.+0.j 0.+0.j 0.+1.j 0.+0.j]]
     """
 
-    __slots__ = ()
+    __slots__ = ("theta")
 
     num_params: Final[int] = 1
     latex_str: Final[str] = r"{\rm RZX}"
+
+    def __init__(self, theta: float, arg_label: str | None = None):
+        super().__init__(theta, arg_label=arg_label)
+        self.theta = theta
 
     @staticmethod
     @lru_cache(maxsize=128)
@@ -581,7 +592,7 @@ class RZX(_TwoQubitParametricGate):
 
     def inverse(self) -> Gate:
         theta = self.arg_value[0]
-        return RZX(-theta)
+        return RZX(theta=-theta)
 
 
 class CX(_ControlledTwoQubitGate):

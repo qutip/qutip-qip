@@ -376,10 +376,14 @@ class RX(_SingleQubitParametricGate):
      [0.     -0.70711j 0.70711+0.j     ]]
     """
 
-    __slots__ = ()
+    __slots__ = ("theta")
 
     num_params: Final[int] = 1
     latex_str: Final[str] = r"R_x"
+
+    def __init__(self, theta: float, arg_label = None):
+        super().__init__(theta, arg_label=arg_label)
+        self.theta = theta
 
     @staticmethod
     @lru_cache(maxsize=128)
@@ -394,8 +398,7 @@ class RX(_SingleQubitParametricGate):
         )
 
     def inverse(self) -> Gate:
-        theta = self.arg_value[0]
-        return RX(-theta)
+        return RX(theta=-self.theta)
 
 
 class RY(_SingleQubitParametricGate):
@@ -412,10 +415,14 @@ class RY(_SingleQubitParametricGate):
      [ 0.70711  0.70711]]
     """
 
-    __slots__ = ()
+    __slots__ = ("theta")
 
     num_params: Final[int] = 1
     latex_str: Final[str] = r"R_y"
+
+    def __init__(self, theta: float, arg_label: str | None = None):
+        super().__init__(theta, arg_label=arg_label)
+        self.theta = theta
 
     @staticmethod
     @lru_cache(maxsize=128)
@@ -429,8 +436,7 @@ class RY(_SingleQubitParametricGate):
         )
 
     def inverse(self) -> Gate:
-        theta = self.arg_value[0]
-        return RY(-theta)
+        return RY(theta=-self.theta)
 
 
 class RZ(_SingleQubitParametricGate):
@@ -447,10 +453,14 @@ class RZ(_SingleQubitParametricGate):
      [0.     +0.j      0.70711+0.70711j]]
     """
 
-    __slots__ = ()
+    __slots__ = ("theta")
 
     num_params: Final[int] = 1
     latex_str: Final[str] = r"R_z"
+
+    def __init__(self, theta: float, arg_label: str | None = None):
+        super().__init__(theta, arg_label=arg_label)
+        self.theta = theta
 
     @staticmethod
     @lru_cache(maxsize=128)
@@ -459,8 +469,7 @@ class RZ(_SingleQubitParametricGate):
         return Qobj([[np.exp(-1j * phi / 2), 0], [0, np.exp(1j * phi / 2)]])
 
     def inverse(self) -> Gate:
-        theta = self.arg_value[0]
-        return RZ(-theta)
+        return RZ(theta=-self.theta)
 
 
 class PHASE(_SingleQubitParametricGate):
@@ -472,10 +481,14 @@ class PHASE(_SingleQubitParametricGate):
     >>> from qutip_qip.operations.gates import PHASE
     """
 
-    __slots__ = ()
+    __slots__ = ("theta")
 
     num_params: Final[int] = 1
     latex_str: Final[str] = r"PHASE"
+
+    def __init__(self, theta: float, arg_label: str | None = None):
+        super().__init__(theta, arg_label=arg_label)
+        self.theta = theta
 
     @staticmethod
     @lru_cache(maxsize=128)
@@ -489,8 +502,7 @@ class PHASE(_SingleQubitParametricGate):
         )
 
     def inverse(self) -> Gate:
-        phi = self.arg_value[0]
-        return PHASE(-phi)
+        return PHASE(theta=-self.theta)
 
 
 class R(_SingleQubitParametricGate):
@@ -507,17 +519,22 @@ class R(_SingleQubitParametricGate):
     Examples
     --------
     >>> from qutip_qip.operations.gates import R
-    >>> R((np.pi/2, np.pi/2)).get_qobj().tidyup() # doctest: +NORMALIZE_WHITESPACE
+    >>> R(np.pi/2, np.pi/2).get_qobj().tidyup() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[ 0.70711 -0.70711]
      [ 0.70711  0.70711]]
     """
 
-    __slots__ = ()
+    __slots__ = ("theta", "phi")
 
     num_params: Final[int] = 2
     latex_str: Final[str] = r"{\rm R}"
+
+    def __init__(self, phi: float, theta: float, arg_label: str | None = None):
+        super().__init__(phi, theta, arg_label=arg_label)
+        self.phi = phi
+        self.theta = theta
 
     @staticmethod
     @lru_cache(maxsize=128)
@@ -537,8 +554,7 @@ class R(_SingleQubitParametricGate):
         )
 
     def inverse(self) -> Gate:
-        phi, theta = self.arg_value
-        return R([phi, -theta])
+        return R(phi=self.phi, theta=-self.theta)
 
 
 class QASMU(_SingleQubitParametricGate):
@@ -558,10 +574,16 @@ class QASMU(_SingleQubitParametricGate):
      [ 0.5+0.5j -0.5+0.5j]]
     """
 
-    __slots__ = ()
+    __slots__ = ("theta", "phi", "gamma")
 
     num_params: Final[int] = 3
     latex_str: Final[str] = r"{\rm QASMU}"
+
+    def __init__(self, theta: float, phi: float, gamma: float, arg_label: str | None = None):
+        super().__init__(theta, phi, gamma, arg_label=arg_label)
+        self.theta = theta
+        self.phi = phi
+        self.gamma = gamma
 
     @staticmethod
     @lru_cache(maxsize=128)
@@ -581,5 +603,4 @@ class QASMU(_SingleQubitParametricGate):
         )
 
     def inverse(self) -> Gate:
-        theta, phi, gamma = self.arg_value
-        return QASMU([-theta, -gamma, -phi])
+        return QASMU(-self.theta, -self.gamma, -self.phi)

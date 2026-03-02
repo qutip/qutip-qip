@@ -456,7 +456,7 @@ def qasmu_gate(args, N=None, target=0):
     """
     warnings.warn(
         "qasmu_gate has been deprecated and will be removed in future version. \
-        Use QASMU([theta, phi, gamma]).get_qobj() instead.",
+        Use QASMU(theta, phi, gamma).get_qobj() instead.",
         DeprecationWarning,
         stacklevel=2,
     )

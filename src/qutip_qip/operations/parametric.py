@@ -42,7 +42,7 @@ class ParametricGate(Gate):
         If the number of provided arguments does not match `num_params`.
     """
 
-    __slots__ = ("arg_value", "arg_label")
+    __slots__ = ("_arg_value", "arg_label")
     num_params: int
 
     def __init_subclass__(cls, **kwargs) -> None:
@@ -63,18 +63,18 @@ class ParametricGate(Gate):
                 f"got {type(num_params)} with value {num_params}."
             )
 
-    def __init__(self, arg_value: float, arg_label: str | None = None):
-        if not isinstance(arg_value, Iterable):
-            arg_value = [arg_value]
-
-        if len(arg_value) != self.num_params:
+    def __init__(self, *args, arg_label: str | None = None):
+        if len(args) != self.num_params:
             raise ValueError(
-                f"Requires {self.num_params} parameters, got {len(arg_value)}"
+                f"Requires {self.num_params} parameters, got {len(args)}"
             )
-
-        self.validate_params(arg_value)
-        self.arg_value = list(arg_value)
+        self.validate_params(args)
+        self._arg_value = args
         self.arg_label = arg_label
+
+    @property
+    def arg_value(self) -> tuple[any]:
+        return self._arg_value
 
     @staticmethod
     @abstractmethod
@@ -121,6 +121,9 @@ class ParametricGate(Gate):
         if self.arg_value != other.arg_value:
             return False
         return True
+
+    def __hash__(self) -> None:
+        pass
 
 
 class AngleParametricGate(ParametricGate):

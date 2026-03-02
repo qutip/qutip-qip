@@ -200,7 +200,7 @@ class ControlledGate(Gate):
             cls_or_self.num_ctrl_qubits,
             cls_or_self.ctrl_value,
         )
-        return inverse(arg_value=arg_value)
+        return inverse(*arg_value)
 
     @staticmethod
     def is_controlled() -> bool:
