@@ -18,8 +18,8 @@ def _validate_non_negative_int_tuple(T: any, txt: str = ""):
 @dataclass(frozen=True, slots=True)
 class CircuitInstruction(ABC):
     operation: Gate | Measurement
-    qubits: tuple[int] = tuple()
-    cbits: tuple[int] = tuple()
+    qubits: tuple[int, ...] = tuple()
+    cbits: tuple[int, ...] = tuple()
     style: dict = field(default_factory=dict)
 
     def __post_init__(self):
@@ -96,13 +96,13 @@ class GateInstruction(CircuitInstruction):
                 )
 
     @property
-    def controls(self) -> tuple[int]:
+    def controls(self) -> tuple[int, ...]:
         if self.operation.is_controlled():
             return self.qubits[: self.operation.num_ctrl_qubits]
         return ()
 
     @property
-    def targets(self) -> tuple[int]:
+    def targets(self) -> tuple[int, ...]:
         if self.operation.is_controlled():
             return self.qubits[self.operation.num_ctrl_qubits :]
         return self.qubits

@@ -36,7 +36,7 @@ class _TwoQubitParametricGate(AngleParametricGate):
     num_qubits: Final[int] = 2
 
     @abstractmethod
-    def _compute_qobj(arg_value: tuple[float]) -> Qobj:
+    def _compute_qobj(arg_value: tuple[float, ...]) -> Qobj:
         pass
 
     def get_qobj(self) -> Qobj:
@@ -517,7 +517,7 @@ class MS(_TwoQubitParametricGate):
 
     @staticmethod
     @lru_cache(maxsize=128)
-    def _compute_qobj(arg_value: tuple[float]) -> Qobj:
+    def _compute_qobj(arg_value: tuple[float, float]) -> Qobj:
         theta, phi = arg_value
         return Qobj(
             [
@@ -1040,7 +1040,7 @@ class CQASMU(_ControlledTwoQubitGate):
 
     @staticmethod
     @lru_cache(maxsize=128)
-    def _compute_qobj(arg_value: tuple[float]) -> Qobj:
+    def _compute_qobj(arg_value: tuple[float, float, float]) -> Qobj:
         theta, phi, gamma = arg_value
         return Qobj(
             [

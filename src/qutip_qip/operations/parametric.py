@@ -73,7 +73,7 @@ class ParametricGate(Gate):
         self.arg_label = arg_label
 
     @property
-    def arg_value(self) -> tuple[any]:
+    def arg_value(self) -> tuple[any, ...]:
         return self._arg_value
 
     @arg_value.setter

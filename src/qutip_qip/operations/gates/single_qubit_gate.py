@@ -22,7 +22,7 @@ class _SingleQubitParametricGate(AngleParametricGate):
     num_qubits: Final[int] = 1
 
     @abstractmethod
-    def _compute_qobj(arg_value: tuple[float]) -> Qobj:
+    def _compute_qobj(arg_value: tuple[float, ...]) -> Qobj:
         pass
 
     def get_qobj(self) -> Qobj:
@@ -556,7 +556,7 @@ class R(_SingleQubitParametricGate):
 
     @staticmethod
     @lru_cache(maxsize=128)
-    def _compute_qobj(arg_value: tuple[float]) -> Qobj:
+    def _compute_qobj(arg_value: tuple[float, float]) -> Qobj:
         phi, theta = arg_value
         return Qobj(
             [
