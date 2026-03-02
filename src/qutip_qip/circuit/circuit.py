@@ -720,7 +720,7 @@ class QubitCircuit:
                     targets=targets,
                 )
                 qc_temp.add_gate(
-                    RZ(gate.theta, arg_label=gate.arg_label),
+                    RZ(gate.arg_value[0], arg_label=gate.arg_label),
                     targets=targets,
                 )
                 qc_temp.add_gate(
@@ -734,7 +734,7 @@ class QubitCircuit:
                     targets=targets,
                 )
                 qc_temp.add_gate(
-                    RX(gate.theta, arg_label=gate.arg_label),
+                    RX(gate.arg_value[0], arg_label=gate.arg_label),
                     targets=targets,
                 )
                 qc_temp.add_gate(
@@ -748,7 +748,7 @@ class QubitCircuit:
                     targets=targets,
                 )
                 qc_temp.add_gate(
-                    RY(gate.theta, arg_label=gate.arg_label),
+                    RY(gate.arg_value[0], arg_label=gate.arg_label),
                     targets=targets,
                 )
                 qc_temp.add_gate(

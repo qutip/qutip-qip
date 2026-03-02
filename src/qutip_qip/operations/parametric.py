@@ -1,6 +1,6 @@
 import inspect
 from abc import abstractmethod
-from collections.abc import Iterable
+from collections.abc import Sequence
 
 from qutip import Qobj
 from qutip_qip.operations import Gate
@@ -69,12 +69,23 @@ class ParametricGate(Gate):
                 f"Requires {self.num_params} parameters, got {len(args)}"
             )
         self.validate_params(args)
-        self._arg_value = args
+        self._arg_value = tuple(args)
         self.arg_label = arg_label
 
     @property
     def arg_value(self) -> tuple[any]:
         return self._arg_value
+
+    @arg_value.setter
+    def arg_value(self, new_args: Sequence):
+        if not isinstance(new_args, Sequence):
+            new_args = [new_args]
+            
+        if len(new_args) != self.num_params:
+            raise ValueError(f"Requires {self.num_params} parameters, got {len(new_args)}")
+            
+        self.validate_params(new_args)
+        self._arg_value = tuple(new_args)
 
     @staticmethod
     @abstractmethod

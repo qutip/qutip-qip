@@ -22,7 +22,7 @@ class class_or_instance_method:
             return partial(self.func, owner)
 
         # Called on the instance (e.g., CRX(0.5).get_qobj())
-        return partial(self.func, instance) 
+        return partial(self.func, instance)
 
 
 class ControlledGate(Gate):

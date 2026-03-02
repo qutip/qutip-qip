@@ -227,9 +227,7 @@ def _gate_FREDKIN(circ_instruction, temp_resolved):
         gate=RZ(-3 * pi / 4, arg_label=r"-3\pi/4"),
         targets=targets[1],
     )
-    temp_resolved.add_gate(
-        RX(pi / 2, arg_label=r"\pi/2"), targets=targets[1]
-    )
+    temp_resolved.add_gate(RX(pi / 2, arg_label=r"\pi/2"), targets=targets[1])
     temp_resolved.add_gate(
         RZ(-pi / 2, arg_label=r"-\pi/2"),
         targets=targets[1],

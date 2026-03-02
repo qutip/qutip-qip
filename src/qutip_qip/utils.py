@@ -4,7 +4,8 @@ Module for Helper functions.
 
 from qutip import Qobj
 
-__all__ = ['valid_unitary']
+__all__ = ["valid_unitary"]
+
 
 def valid_unitary(gate, num_qubits):
     """Verifies input is a valid quantum gate i.e. unitary Qobj.

@@ -140,6 +140,6 @@ def _cphase_to_cnot(targets, controls, arg_value, qc: QubitCircuit):
     qc.add_gate(decomposed_gates[4], targets=targets)
     qc.add_gate(CX, targets=targets, controls=controls)
     qc.add_gate(RZ(arg_value / 2), targets=controls)
-    gate = decomposed_gates[7] # This is a GLOBALPHASE Gate
-    gate.phase += arg_value / 4
+    gate = decomposed_gates[7]  # This is a GLOBALPHASE Gate
+    gate.arg_value = gate.arg_value[0] + arg_value / 4
     qc.add_gate(gate, targets=targets)

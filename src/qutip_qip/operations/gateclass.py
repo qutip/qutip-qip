@@ -97,25 +97,24 @@ class _GateMetaClass(ABCMeta):
         if isinstance(other, _GateMetaClass):
             cls_name = getattr(cls, "name", None)
             other_name = getattr(other, "name", None)
-            
+
             cls_namespace = getattr(cls, "_namespace", "std")
             other_namespace = getattr(other, "_namespace", "std")
-            
+
             # They are equal if they share the same name and namespace
             return cls_name == other_name and cls_namespace == other_namespace
-            
+
         return False
 
     def __hash__(cls) -> int:
         """
-        Required because __eq__ is overridden. 
+        Required because __eq__ is overridden.
         Hashes the class based on its unique identity (namespace and name)
         so it can still be safely used in the _registry sets and dicts.
         """
-        return hash((
-            getattr(cls, "namespace", "std"), 
-            getattr(cls, "name", None)
-        ))
+        return hash(
+            (getattr(cls, "namespace", "std"), getattr(cls, "name", None))
+        )
 
     def clear_cache(cls, namespace: str):
         """

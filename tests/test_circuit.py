@@ -131,9 +131,9 @@ class TestQubitCircuit:
         qc.add_gate(gates.TOFFOLI, controls=[0, 1], targets=[2])
         qc.add_gate(gates.H, targets=[3])
         qc.add_gate(gates.SWAP, targets=[1, 4])
-        qc.add_gate(gates.RY(np.pi/2), targets=4)
-        qc.add_gate(gates.RY(np.pi/2), targets=5)
-        qc.add_gate(gates.RX(-np.pi/2), targets=[3])
+        qc.add_gate(gates.RY(np.pi / 2), targets=4)
+        qc.add_gate(gates.RY(np.pi / 2), targets=5)
+        qc.add_gate(gates.RX(-np.pi / 2), targets=[3])
 
         # Test explicit gate addition
         assert qc.instructions[0].operation.name == "CX"
@@ -151,15 +151,15 @@ class TestQubitCircuit:
         # Test adding 1 qubit gate on [start, end] qubits
         assert qc.instructions[5].operation.name == "RY"
         assert qc.instructions[5].targets == (4,)
-        assert qc.instructions[5].operation.arg_value[0] == np.pi/2
+        assert qc.instructions[5].operation.arg_value[0] == np.pi / 2
         assert qc.instructions[6].operation.name == "RY"
         assert qc.instructions[6].targets == (5,)
-        assert qc.instructions[6].operation.arg_value[0] == np.pi/2
+        assert qc.instructions[6].operation.arg_value[0] == np.pi / 2
 
         # Test adding 1 qubit gate on qubits [3]
         assert qc.instructions[7].operation.name == "RX"
         assert qc.instructions[7].targets == (3,)
-        assert qc.instructions[7].operation.arg_value[0] == -np.pi/2
+        assert qc.instructions[7].operation.arg_value[0] == -np.pi / 2
 
         class DUMMY1(Gate):
             num_qubits = 1

@@ -40,7 +40,7 @@ class _TwoQubitParametricGate(AngleParametricGate):
         pass
 
     def get_qobj(self) -> Qobj:
-        return self._compute_qobj(tuple(self.arg_value))
+        return self._compute_qobj(self.arg_value)
 
 
 class _ControlledTwoQubitGate(ControlledGate):
@@ -176,7 +176,7 @@ class SQRTSWAP(_TwoQubitGate):
 
     @staticmethod
     @cache
-    def get_qobj():
+    def get_qobj() -> Qobj:
         return Qobj(
             np.array(
                 [
@@ -217,7 +217,7 @@ class SQRTSWAPdag(_TwoQubitGate):
 
     @staticmethod
     @cache
-    def get_qobj():
+    def get_qobj() -> Qobj:
         return Qobj(
             np.array(
                 [
@@ -259,7 +259,7 @@ class SQRTISWAP(_TwoQubitGate):
 
     @staticmethod
     @cache
-    def get_qobj():
+    def get_qobj() -> Qobj:
         return Qobj(
             np.array(
                 [
@@ -301,7 +301,7 @@ class SQRTISWAPdag(_TwoQubitGate):
 
     @staticmethod
     @cache
-    def get_qobj():
+    def get_qobj() -> Qobj:
         return Qobj(
             np.array(
                 [
@@ -351,7 +351,7 @@ class BERKELEY(_TwoQubitGate):
 
     @staticmethod
     @cache
-    def get_qobj():
+    def get_qobj() -> Qobj:
         return Qobj(
             [
                 [np.cos(np.pi / 8), 0, 0, 1.0j * np.sin(np.pi / 8)],
@@ -399,7 +399,7 @@ class BERKELEYdag(_TwoQubitGate):
 
     @staticmethod
     @cache
-    def get_qobj():
+    def get_qobj() -> Qobj:
         return Qobj(
             [
                 [np.cos(np.pi / 8), 0, 0, -1.0j * np.sin(np.pi / 8)],
@@ -440,14 +440,13 @@ class SWAPALPHA(_TwoQubitParametricGate):
      [0. +0.j  0. +0.j  0. +0.j  1. +0.j ]]
     """
 
-    __slots__ = ("alpha")
+    __slots__ = "alpha"
 
     num_params: Final[int] = 1
     latex_str: Final[str] = r"{\rm SWAPALPHA}"
 
     def __init__(self, alpha: float, arg_label: str | None = None):
         super().__init__(alpha, arg_label=arg_label)
-        self.alpha = alpha
 
     @staticmethod
     @lru_cache(maxsize=128)
@@ -474,7 +473,8 @@ class SWAPALPHA(_TwoQubitParametricGate):
         )
 
     def inverse(self) -> Gate:
-        return SWAPALPHA(alpha=-self.alpha)
+        alpha = self.arg_value[0]
+        return SWAPALPHA(-alpha)
 
 
 class MS(_TwoQubitParametricGate):
@@ -509,8 +509,6 @@ class MS(_TwoQubitParametricGate):
 
     def __init__(self, theta: float, phi: float, arg_label: str | None = None):
         super().__init__(theta, phi, arg_label=arg_label)
-        self.theta = theta
-        self.phi = phi
 
     @staticmethod
     @lru_cache(maxsize=128)
@@ -537,7 +535,8 @@ class MS(_TwoQubitParametricGate):
         )
 
     def inverse(self) -> Gate:
-        return MS(theta=-self.theta, phi=self.phi)
+        theta, phi = self.arg_value
+        return MS(-theta, phi)
 
 
 class RZX(_TwoQubitParametricGate):
@@ -565,14 +564,13 @@ class RZX(_TwoQubitParametricGate):
     [0.+0.j 0.+0.j 0.+1.j 0.+0.j]]
     """
 
-    __slots__ = ("theta")
+    __slots__ = "theta"
 
     num_params: Final[int] = 1
     latex_str: Final[str] = r"{\rm RZX}"
 
     def __init__(self, theta: float, arg_label: str | None = None):
         super().__init__(theta, arg_label=arg_label)
-        self.theta = theta
 
     @staticmethod
     @lru_cache(maxsize=128)
@@ -592,7 +590,7 @@ class RZX(_TwoQubitParametricGate):
 
     def inverse(self) -> Gate:
         theta = self.arg_value[0]
-        return RZX(theta=-theta)
+        return RZX(-theta)
 
 
 class CX(_ControlledTwoQubitGate):
@@ -838,21 +836,25 @@ class CRX(_ControlledTwoQubitGate):
     target_gate: Final[Type[Gate]] = RX
     latex_str: Final[str] = r"{\rm CRX}"
 
+    def __init__(self, theta: float, arg_label: str | None = None):
+        super().__init__(theta, arg_label=arg_label)
+
     @staticmethod
     @lru_cache(maxsize=128)
     def _compute_qobj(arg_value: tuple[float]) -> Qobj:
-        phi = arg_value[0]
+        theta = arg_value[0]
         return Qobj(
-            [[1, 0, 0, 0],
-             [0, 1, 0, 0],
-             [0, 0, np.cos(phi / 2), -1j * np.sin(phi / 2)],
-             [0, 0, -1j * np.sin(phi / 2), np.cos(phi / 2)]
+            [
+                [1, 0, 0, 0],
+                [0, 1, 0, 0],
+                [0, 0, np.cos(theta / 2), -1j * np.sin(theta / 2)],
+                [0, 0, -1j * np.sin(theta / 2), np.cos(theta / 2)],
             ],
-            dims = [[2,2], [2,2]]
+            dims=[[2, 2], [2, 2]],
         )
 
     def get_qobj(self) -> Qobj:
-        return self._compute_qobj(tuple(self.arg_value))
+        return self._compute_qobj(self.arg_value)
 
 
 class CRY(_ControlledTwoQubitGate):
@@ -870,21 +872,25 @@ class CRY(_ControlledTwoQubitGate):
     target_gate: Final[Type[Gate]] = RY
     latex_str: Final[str] = r"{\rm CRY}"
 
+    def __init__(self, theta: float, arg_label: str | None = None):
+        super().__init__(theta, arg_label=arg_label)
+
     @staticmethod
     @lru_cache(maxsize=128)
     def _compute_qobj(arg_value: tuple[float]) -> Qobj:
-        phi = arg_value[0]
+        theta = arg_value[0]
         return Qobj(
-            [[1, 0, 0, 0],
-             [0, 1, 0, 0],
-             [0, 0, np.cos(phi / 2), -np.sin(phi / 2)],
-             [0, 0, np.sin(phi / 2), np.cos(phi / 2)]
+            [
+                [1, 0, 0, 0],
+                [0, 1, 0, 0],
+                [0, 0, np.cos(theta / 2), -np.sin(theta / 2)],
+                [0, 0, np.sin(theta / 2), np.cos(theta / 2)],
             ],
-            dims = [[2,2], [2,2]]
+            dims=[[2, 2], [2, 2]],
         )
 
     def get_qobj(self) -> Qobj:
-        return self._compute_qobj(tuple(self.arg_value))
+        return self._compute_qobj(self.arg_value)
 
 
 class CRZ(_ControlledTwoQubitGate):
@@ -918,21 +924,25 @@ class CRZ(_ControlledTwoQubitGate):
     target_gate: Final[Type[Gate]] = RZ
     latex_str: Final[str] = r"{\rm CRZ}"
 
+    def __init__(self, theta: float, arg_label: str | None = None):
+        super().__init__(theta, arg_label=arg_label)
+
     @staticmethod
     @lru_cache(maxsize=128)
     def _compute_qobj(arg_value: tuple[float]) -> Qobj:
-        phi = arg_value[0]
+        theta = arg_value[0]
         return Qobj(
-            [[1, 0, 0, 0],
-             [0, 1, 0, 0],
-             [0, 0, np.exp(-1j * phi / 2), 0],
-             [0, 0, 0, np.exp(1j * phi / 2)]
+            [
+                [1, 0, 0, 0],
+                [0, 1, 0, 0],
+                [0, 0, np.exp(-1j * theta / 2), 0],
+                [0, 0, 0, np.exp(1j * theta / 2)],
             ],
-            dims = [[2,2], [2,2]]
+            dims=[[2, 2], [2, 2]],
         )
 
     def get_qobj(self) -> Qobj:
-        return self._compute_qobj(tuple(self.arg_value))
+        return self._compute_qobj(self.arg_value)
 
 
 class CPHASE(_ControlledTwoQubitGate):
@@ -966,21 +976,25 @@ class CPHASE(_ControlledTwoQubitGate):
     target_gate: Final[Type[Gate]] = PHASE
     latex_str: Final[str] = r"{\rm CPHASE}"
 
+    def __init__(self, theta: float, arg_label: str | None = None):
+        super().__init__(theta, arg_label=arg_label)
+
     @staticmethod
     @lru_cache(maxsize=128)
     def _compute_qobj(arg_value: tuple[float]) -> Qobj:
-        phi = arg_value[0]
+        theta = arg_value[0]
         return Qobj(
-            [[1, 0, 0, 0],
-             [0, 1, 0, 0],
-             [0, 0, 1, 0],
-             [0, 0, 0, np.exp(1j * phi)]
+            [
+                [1, 0, 0, 0],
+                [0, 1, 0, 0],
+                [0, 0, 1, 0],
+                [0, 0, 0, np.exp(1j * theta)],
             ],
-            dims = [[2,2], [2,2]]
+            dims=[[2, 2], [2, 2]],
         )
 
     def get_qobj(self) -> Qobj:
-        return self._compute_qobj(tuple(self.arg_value))
+        return self._compute_qobj(self.arg_value)
 
 
 class CQASMU(_ControlledTwoQubitGate):
@@ -998,19 +1012,38 @@ class CQASMU(_ControlledTwoQubitGate):
     target_gate: Final[Type[Gate]] = QASMU
     latex_str: Final[str] = r"{\rm CQASMU}"
 
+    def __init__(
+        self,
+        theta: float,
+        phi: float,
+        gamma: float,
+        arg_label: str | None = None,
+    ):
+        super().__init__(theta, phi, gamma, arg_label=arg_label)
+
     @staticmethod
     @lru_cache(maxsize=128)
     def _compute_qobj(arg_value: tuple[float]) -> Qobj:
         theta, phi, gamma = arg_value
         return Qobj(
-            [[1, 0, 0, 0],
-             [0, 1, 0, 0],
-             [0, 0, np.exp(-1j * (phi + gamma) / 2) * np.cos(theta / 2),
-                    -np.exp(-1j * (phi - gamma) / 2) * np.sin(theta / 2)],
-             [0, 0, np.exp(1j * (phi - gamma) / 2) * np.sin(theta / 2),
-                    np.exp(1j * (phi + gamma) / 2) * np.cos(theta / 2)]]
-            , dims = [[2,2], [2,2]]
+            [
+                [1, 0, 0, 0],
+                [0, 1, 0, 0],
+                [
+                    0,
+                    0,
+                    np.exp(-1j * (phi + gamma) / 2) * np.cos(theta / 2),
+                    -np.exp(-1j * (phi - gamma) / 2) * np.sin(theta / 2),
+                ],
+                [
+                    0,
+                    0,
+                    np.exp(1j * (phi - gamma) / 2) * np.sin(theta / 2),
+                    np.exp(1j * (phi + gamma) / 2) * np.cos(theta / 2),
+                ],
+            ],
+            dims=[[2, 2], [2, 2]],
         )
 
     def get_qobj(self) -> Qobj:
-        return self._compute_qobj(tuple(self.arg_value))
+        return self._compute_qobj(self.arg_value)

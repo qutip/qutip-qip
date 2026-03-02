@@ -118,7 +118,7 @@ def _ZYZ_pauli_X(input_gate):
 
     Phase_gate = GLOBALPHASE(global_phase_angle)
     Rz_A = RZ(
-alpha,
+        alpha,
         arg_label=rf"{(alpha / np.pi):0.2f} \times \pi",
     )
     Ry_A = RY(

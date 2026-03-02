@@ -17,7 +17,8 @@ class GLOBALPHASE(AngleParametricGate):
     --------
     >>> from qutip_qip.operations.gates import GLOBALPHASE
     """
-    __slots__ = ("phase")
+
+    __slots__ = "phase"
 
     num_qubits: Final[int] = 0
     num_params: Final[int] = 1
@@ -26,18 +27,18 @@ class GLOBALPHASE(AngleParametricGate):
 
     def __init__(self, phase: float = 0.0):
         super().__init__(phase)
-        self.phase = phase
 
     def __repr__(self):
-        return f"Gate({self.name}, phase {self.phase})"
+        return f"Gate({self.name}, phase {self.arg_value[0]})"
 
     def get_qobj(self, num_qubits=None):
+        phase = self.arg_value[0]
         if num_qubits is None:
-            return Qobj(self.phase)
+            return Qobj(phase)
 
         N = 2**num_qubits
         return Qobj(
-            np.exp(1.0j * self.phase)
+            np.exp(1.0j * phase)
             * sp.eye(N, N, dtype=complex, format="csr"),
             dims=[[2] * num_qubits, [2] * num_qubits],
         )
