@@ -219,6 +219,20 @@ class ControlledGate(Gate):
     def __str__(cls) -> str:
         return f"Gate({cls.name}, target_gate={cls.target_gate}, num_ctrl_qubits={cls.num_ctrl_qubits}, control_value={cls.ctrl_value})"
 
+    def __eq__(self, other) -> bool:
+        # Returns for false for CRX(0.5), CRY(0.5)
+        if type(self) is not type(other):
+            return False
+
+        # Returns for false for CRX(0.5), CRX(0.6)
+        if self._target_inst != other._target_inst:
+            return False
+
+        return True
+
+    def __hash__(self) -> int:
+        return hash((type(self), self._target_inst))
+
 
 def controlled(
     gate: Gate,

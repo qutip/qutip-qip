@@ -133,14 +133,17 @@ class ParametricGate(Gate):
         """
 
     def __eq__(self, other) -> bool:
+        # Returns for false for RX(0.5), RY(0.5)
         if type(self) is not type(other):
             return False
 
+        # Returns for false for RX(0.5), RX(0.6)
         if self.arg_value != other.arg_value:
             return False
+
         return True
 
-    def __hash__(self) -> None:
+    def __hash__(self) -> int:
         return hash((type(self), self.arg_value))
 
 
