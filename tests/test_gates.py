@@ -121,7 +121,7 @@ class TestExplicitForm:
     )
     def test_molmer_sorensen(self, angle, expected):
         np.testing.assert_allclose(
-            gates.MS(angle).get_qobj().full(), expected.full(), atol=1e-15
+            gates.MS(*angle).get_qobj().full(), expected.full(), atol=1e-15
         )
 
     @pytest.mark.parametrize(
@@ -136,7 +136,7 @@ class TestExplicitForm:
     )
     def test_zero_rotations_are_identity(self, gate, n_angles):
         np.testing.assert_allclose(
-            np.eye(2), gate([0] * n_angles).get_qobj().full(), atol=1e-15
+            np.eye(2), gate(*[0] * n_angles).get_qobj().full(), atol=1e-15
         )
 
 
@@ -146,7 +146,8 @@ class TestCliffordGroup:
     group for a single qubit.
     """
 
-    clifford = list(qubit_clifford_group())
+    with pytest.warns(DeprecationWarning):
+        clifford = list(qubit_clifford_group())
     pauli = [qutip.qeye(2), qutip.sigmax(), qutip.sigmay(), qutip.sigmaz()]
 
     def test_single_qubit_group_dimension_is_24(self):
@@ -208,7 +209,8 @@ class TestGateExpansion:
     def test_single_qubit_rotation(self, gate: Gate, n_angles: int):
         base = qutip.rand_ket(2)
         if n_angles > 0:
-            gate = gate(2 * np.pi * np.random.rand(n_angles))
+            angles = 2 * np.pi * (np.random.rand(n_angles))
+            gate = gate(*angles)
 
         applied = gate.get_qobj() * base
         random = [qutip.rand_ket(2) for _ in [None] * (self.n_qubits - 1)]
@@ -237,9 +239,7 @@ class TestGateExpansion:
             pytest.param(gates.SWAP, 0, id="SWAP"),
             pytest.param(gates.ISWAP, 0, id="ISWAP"),
             pytest.param(gates.SQRTSWAP, 0, id="SQRTSWAP"),
-            pytest.param(
-                gates.MS([0.5 * np.pi, 0.0]), 0, id="Molmer-Sorensen"
-            ),
+            pytest.param(gates.MS(0.5 * np.pi, 0.0), 0, id="Molmer-Sorensen"),
         ],
     )
     def test_two_qubit(self, gate, n_controls):
@@ -409,21 +409,17 @@ def test_gates_class():
     circuit1.add_gate(gates.SQRTX, targets=0)
     circuit1.add_gate(gates.S, targets=2)
     circuit1.add_gate(gates.T, targets=1)
-    circuit1.add_gate(gates.R(arg_value=(np.pi / 4, np.pi / 6)), targets=1)
-    circuit1.add_gate(
-        gates.QASMU(arg_value=(np.pi / 4, np.pi / 4, np.pi / 4)), targets=0
-    )
+    circuit1.add_gate(gates.R(np.pi / 4, np.pi / 6), targets=1)
+    circuit1.add_gate(gates.QASMU(np.pi / 4, np.pi / 4, np.pi / 4), targets=0)
     circuit1.add_gate(gates.CX, controls=0, targets=1)
-    circuit1.add_gate(gates.CPHASE(arg_value=np.pi / 4), controls=0, targets=1)
+    circuit1.add_gate(gates.CPHASE(np.pi / 4), controls=0, targets=1)
     circuit1.add_gate(gates.SWAP, targets=[0, 1])
     circuit1.add_gate(gates.ISWAP, targets=[2, 1])
     circuit1.add_gate(gates.CZ, controls=[0], targets=[2])
     circuit1.add_gate(gates.SQRTSWAP, [2, 0])
     circuit1.add_gate(gates.SQRTISWAP, [0, 1])
     circuit1.add_gate(gates.SWAPALPHA(np.pi / 4), [1, 2])
-    circuit1.add_gate(
-        gates.MS(arg_value=(np.pi / 4, np.pi / 7)), targets=[1, 0]
-    )
+    circuit1.add_gate(gates.MS(np.pi / 4, np.pi / 7), targets=[1, 0])
     circuit1.add_gate(gates.TOFFOLI, controls=[2, 0], targets=[1])
     circuit1.add_gate(gates.FREDKIN, controls=[0], targets=[1, 2])
     circuit1.add_gate(gates.BERKELEY, targets=[1, 0])
@@ -441,26 +437,21 @@ def test_gates_class():
     circuit2.add_gate(gates.SQRTX, targets=0)
     circuit2.add_gate(gates.S, targets=2)
     circuit2.add_gate(gates.T, targets=1)
-    circuit2.add_gate(gates.R([np.pi / 4, np.pi / 6]), targets=1)
-    circuit2.add_gate(
-        gates.QASMU(arg_value=(np.pi / 4, np.pi / 4, np.pi / 4)),
-        targets=0,
-    )
+    circuit2.add_gate(gates.R(np.pi / 4, np.pi / 6), targets=1)
+    circuit2.add_gate(gates.QASMU(np.pi / 4, np.pi / 4, np.pi / 4), targets=0)
     circuit2.add_gate(gates.CX, controls=0, targets=1)
-    circuit2.add_gate(gates.CPHASE(arg_value=np.pi / 4), controls=0, targets=1)
+    circuit2.add_gate(gates.CPHASE(np.pi / 4), controls=0, targets=1)
     circuit2.add_gate(gates.SWAP, targets=[0, 1])
     circuit2.add_gate(gates.ISWAP, targets=[2, 1])
     circuit2.add_gate(gates.CZ, controls=[0], targets=[2])
     circuit2.add_gate(gates.SQRTSWAP, targets=[2, 0])
     circuit2.add_gate(gates.SQRTISWAP, targets=[0, 1])
     circuit2.add_gate(gates.SWAPALPHA(np.pi / 4), targets=[1, 2])
-    circuit2.add_gate(
-        gates.MS(arg_value=(np.pi / 4, np.pi / 7)), targets=[1, 0]
-    )
+    circuit2.add_gate(gates.MS(np.pi / 4, np.pi / 7), targets=[1, 0])
     circuit2.add_gate(gates.TOFFOLI, controls=[2, 0], targets=[1])
     circuit2.add_gate(gates.FREDKIN, controls=[0], targets=[1, 2])
     circuit2.add_gate(gates.BERKELEY, targets=[1, 0])
-    circuit2.add_gate(gates.RZX(arg_value=1.0), targets=[1, 0])
+    circuit2.add_gate(gates.RZX(1.0), targets=[1, 0])
     result2 = circuit2.run(init_state)
 
     assert pytest.approx(qutip.fidelity(result1, result2), 1.0e-6) == 1
@@ -491,10 +482,10 @@ PARAMETRIC_GATE = [
     gates.RY(0.5),
     gates.RZ(0.5),
     gates.PHASE(0.5),
-    gates.R((0.5, 0.9)),
-    gates.QASMU((0.1, 0.2, 0.3)),
+    gates.R(0.5, 0.9),
+    gates.QASMU(0.1, 0.2, 0.3),
     gates.SWAPALPHA(0.3),
-    gates.MS((0.47, 0.8)),
+    gates.MS(0.47, 0.8),
     gates.RZX(0.6),
 ]
 
@@ -505,11 +496,11 @@ CONTROLLED_GATE = [
     gates.CH,
     gates.CS,
     gates.CT,
-    gates.CRX(arg_value=0.7),
-    gates.CRY(arg_value=0.88),
-    gates.CRZ(arg_value=0.78),
-    gates.CPHASE(arg_value=0.9),
-    gates.CQASMU(arg_value=[0.9, 0.22, 0.15]),
+    gates.CRX(0.7),
+    gates.CRY(0.88),
+    gates.CRZ(0.78),
+    gates.CPHASE(0.9),
+    gates.CQASMU(0.9, 0.22, 0.15),
     gates.TOFFOLI,
     gates.FREDKIN,
 ]

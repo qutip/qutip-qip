@@ -131,9 +131,9 @@ class TestQubitCircuit:
         qc.add_gate(gates.TOFFOLI, controls=[0, 1], targets=[2])
         qc.add_gate(gates.H, targets=[3])
         qc.add_gate(gates.SWAP, targets=[1, 4])
-        qc.add_gate(gates.RY(arg_value=1.570796), targets=4)
-        qc.add_gate(gates.RY(arg_value=1.570796), targets=5)
-        qc.add_gate(gates.RX(arg_value=-1.570796), targets=[3])
+        qc.add_gate(gates.RY(np.pi/2), targets=4)
+        qc.add_gate(gates.RY(np.pi/2), targets=5)
+        qc.add_gate(gates.RX(-np.pi/2), targets=[3])
 
         # Test explicit gate addition
         assert qc.instructions[0].operation.name == "CX"
@@ -151,15 +151,15 @@ class TestQubitCircuit:
         # Test adding 1 qubit gate on [start, end] qubits
         assert qc.instructions[5].operation.name == "RY"
         assert qc.instructions[5].targets == (4,)
-        assert qc.instructions[5].operation.arg_value[0] == 1.570796
+        assert qc.instructions[5].operation.arg_value[0] == np.pi/2
         assert qc.instructions[6].operation.name == "RY"
         assert qc.instructions[6].targets == (5,)
-        assert qc.instructions[6].operation.arg_value[0] == 1.570796
+        assert qc.instructions[6].operation.arg_value[0] == np.pi/2
 
         # Test adding 1 qubit gate on qubits [3]
         assert qc.instructions[7].operation.name == "RX"
         assert qc.instructions[7].targets == (3,)
-        assert qc.instructions[7].operation.arg_value[0] == -1.570796
+        assert qc.instructions[7].operation.arg_value[0] == -np.pi/2
 
         class DUMMY1(Gate):
             num_qubits = 1
@@ -209,7 +209,7 @@ class TestQubitCircuit:
         qc.add_measurement("M0", targets=[0], classical_store=[1])
         qc.add_gate(gates.RY(1.570796), targets=4)
         qc.add_gate(gates.RY(1.570796), targets=5)
-        qc.add_gate(gates.CRX(arg_value=np.pi / 2), controls=[1], targets=[2])
+        qc.add_gate(gates.CRX(np.pi / 2), controls=[1], targets=[2])
 
         qc1 = QubitCircuit(6)
         qc1.add_circuit(qc)
@@ -382,7 +382,7 @@ class TestQubitCircuit:
         """
         qc = QubitCircuit(3, num_cbits=1)
 
-        qc.add_gate(gates.RX(arg_value=3.141, arg_label=r"\pi/2"), targets=[0])
+        qc.add_gate(gates.RX(3.141, arg_label=r"\pi/2"), targets=[0])
         qc.add_gate(gates.CX, targets=[1], controls=[0])
         qc.add_measurement("M1", targets=[1], classical_store=0)
         qc.add_gate(gates.H, targets=[2])
@@ -427,7 +427,7 @@ class TestQubitCircuit:
                 return Qobj(mat, dims=[[2], [2]])
 
         qc = QubitCircuit(3)
-        qc.add_gate(gates.CRX(arg_value=np.pi / 2), targets=[2], controls=[1])
+        qc.add_gate(gates.CRX(np.pi / 2), targets=[2], controls=[1])
         qc.add_gate(T1, targets=[1])
         props = qc.propagators()
         result1 = tensor(identity(2), customer_gate1(np.pi / 2))

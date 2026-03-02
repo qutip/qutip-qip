@@ -2,12 +2,13 @@
 
 import re
 import os
+import warnings
 from itertools import chain
 from copy import deepcopy
-import warnings
+from collections.abc import Iterable
+from math import pi  # Don't remove
 
 import numpy as np
-from math import pi  # Don't remove
 
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations import unitary_gate
@@ -494,7 +495,7 @@ class QasmProcessor:
                     *list(
                         map(
                             lambda x: (
-                                x if isinstance(x, list) else [x] * expand
+                                x if isinstance(x, Iterable) else [x] * expand
                             ),
                             new_regs,
                         )
@@ -553,15 +554,14 @@ class QasmProcessor:
 
         if name == "u3":
             qc.add_gate(
-                gates.QASMU(args),
+                gates.QASMU(*args),
                 targets=regs[0],
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
             )
         elif name == "u2":
-            u2_args = [np.pi / 2, args[0], args[1]]
             qc.add_gate(
-                gates.QASMU(u2_args),
+                gates.QASMU(np.pi / 2, args[0], args[1]),
                 targets=regs[0],
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
@@ -621,7 +621,7 @@ class QasmProcessor:
             )
         elif name == "crz":
             qc.add_gate(
-                gates.CRZ(arg_value=args),
+                gates.CRZ(args),
                 targets=regs[1],
                 controls=regs[0],
                 classical_controls=classical_controls,
@@ -629,7 +629,7 @@ class QasmProcessor:
             )
         elif name == "cu1":
             qc.add_gate(
-                gates.CPHASE(arg_value=args),
+                gates.CPHASE(args),
                 targets=regs[1],
                 controls=regs[0],
                 classical_controls=classical_controls,
@@ -637,7 +637,7 @@ class QasmProcessor:
             )
         elif name == "cu3":
             qc.add_gate(
-                gates.CQASMU(arg_value=args),
+                gates.CQASMU(*args),
                 controls=regs[0],
                 targets=[regs[1]],
                 classical_controls=classical_controls,
@@ -723,7 +723,7 @@ class QasmProcessor:
             )
         elif name == "U":
             qc.add_gate(
-                gates.QASMU(arg_value=[float(arg) for arg in com_args]),
+                gates.QASMU(*com_args),
                 targets=int(com_regs[0]),
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
@@ -799,7 +799,7 @@ class QasmProcessor:
                     classical_control_value=classical_control_value,
                 )
             else:
-                if not isinstance(regs, list):
+                if not isinstance(regs, Iterable):
                     regs = [regs]
 
                 if custom_gate_unitary is not None:
@@ -1000,7 +1000,7 @@ class QasmOutput:
             q_regs = ",".join(q_regs)
 
         if q_args:
-            if isinstance(q_args, list):
+            if isinstance(q_args, Iterable):
                 q_args = ",".join([str(arg) for arg in q_args])
             return "{}({}) {};".format(q_name, q_args, q_regs)
         else:

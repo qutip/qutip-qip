@@ -34,9 +34,9 @@ from qutip_qip.device import (
 _tol = 3.0e-2
 num_qubits = 2
 
-_rx = RX(arg_value=np.pi / 2, arg_label=r"\pi/2")
-_ry = RY(arg_value=np.pi / 2, arg_label=r"\pi/2")
-_rz = RZ(arg_value=np.pi / 2, arg_label=r"\pi/2")
+_rx = RX(np.pi / 2, arg_label=r"\pi/2")
+_ry = RY(np.pi / 2, arg_label=r"\pi/2")
+_rz = RZ(np.pi / 2, arg_label=r"\pi/2")
 
 
 single_gate_tests = [
@@ -127,7 +127,7 @@ def test_numerical_evolution(num_qubits, gates, targets, device_class, kwargs):
 
 
 # Test for RZX gate, only available on SCQubits.
-_rzx = RZX(arg_value=np.pi / 2)
+_rzx = RZX(np.pi / 2)
 
 
 @pytest.mark.parametrize(

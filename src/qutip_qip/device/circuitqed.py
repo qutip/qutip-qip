@@ -49,8 +49,8 @@ class SCQubits(ModelProcessor):
         from qutip_qip.operations.gates import RY, RZ, CX
 
         qc = QubitCircuit(2)
-        qc.add_gate(RZ, targets=0, arg_value=np.pi)
-        qc.add_gate(RY, targets=1, arg_value=np.pi)
+        qc.add_gate(RZ(np.pi), targets=0)
+        qc.add_gate(RY(np.pi), targets=1)
         qc.add_gate(CX, targets=0, controls=1)
 
         processor = SCQubits(2)

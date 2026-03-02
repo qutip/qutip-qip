@@ -15,7 +15,7 @@ from qutip_qip.compiler import (
     GateCompiler,
 )
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import ParametricGate
+from qutip_qip.operations import AngleParametricGate
 from qutip_qip.operations.gates import X, RX
 from qutip import basis, fidelity
 
@@ -80,7 +80,7 @@ def test_compiling_gates_different_sampling_number():
                 )
             ]
 
-    class U1(ParametricGate):
+    class U1(AngleParametricGate):
         num_qubits = 1
         num_params = 1
         self_inverse = False
@@ -88,10 +88,7 @@ def test_compiling_gates_different_sampling_number():
         def get_qobj(self):
             pass
 
-        def validate_params(self, arg_value):
-            pass
-
-    class U2(ParametricGate):
+    class U2(AngleParametricGate):
         num_qubits = 2
         num_params = 1
         self_inverse = False
@@ -99,12 +96,9 @@ def test_compiling_gates_different_sampling_number():
         def get_qobj(self):
             pass
 
-        def validate_params(self, arg_value):
-            pass
-
     num_qubits = 2
     circuit = QubitCircuit(num_qubits)
-    circuit.add_gate(U1(arg_value=1.0), targets=0)
+    circuit.add_gate(U1(1.0), targets=0)
     circuit.add_gate(U2(1.0), targets=[0, 1])
     circuit.add_gate(U1(1.0), targets=0)
 

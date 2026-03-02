@@ -58,17 +58,17 @@ def _ZYZ_rotation(input_gate):
     check_gate(input_gate, num_qubits=1)
     alpha, theta, beta, global_phase_angle = _angles_for_ZYZ(input_gate)
 
-    Phase_gate = GLOBALPHASE(arg_value=global_phase_angle)
+    Phase_gate = GLOBALPHASE(global_phase_angle)
     Rz_beta = RZ(
-        arg_value=beta,
+        beta,
         arg_label=rf"{(beta / np.pi):0.2f} \times \pi",
     )
     Ry_theta = RY(
-        arg_value=theta,
+        theta,
         arg_label=rf"{(theta / np.pi):0.2f} \times \pi",
     )
     Rz_alpha = RZ(
-        arg_value=alpha,
+        alpha,
         arg_label=rf"{(alpha / np.pi):0.2f} \times \pi",
     )
 
@@ -90,17 +90,17 @@ def _ZXZ_rotation(input_gate):
     beta = beta + np.pi / 2
     # theta and global phase are same as ZYZ values
 
-    Phase_gate = GLOBALPHASE(arg_value=global_phase_angle)
+    Phase_gate = GLOBALPHASE(global_phase_angle)
     Rz_alpha = RZ(
-        arg_value=alpha,
+        alpha,
         arg_label=rf"{(alpha / np.pi):0.2f} \times \pi".format,
     )
     Rx_theta = RX(
-        arg_value=theta,
+        theta,
         arg_label=rf"{(theta / np.pi):0.2f} \times \pi",
     )
     Rz_beta = RZ(
-        arg_value=beta,
+        beta,
         arg_label=rf"{(beta / np.pi):0.2f} \times \pi",
     )
 
@@ -116,26 +116,26 @@ def _ZYZ_pauli_X(input_gate):
     check_gate(input_gate, num_qubits=1)
     alpha, theta, beta, global_phase_angle = _angles_for_ZYZ(input_gate)
 
-    Phase_gate = GLOBALPHASE(arg_value=global_phase_angle)
+    Phase_gate = GLOBALPHASE(global_phase_angle)
     Rz_A = RZ(
-        arg_value=alpha,
+alpha,
         arg_label=rf"{(alpha / np.pi):0.2f} \times \pi",
     )
     Ry_A = RY(
-        arg_value=theta / 2,
+        theta / 2,
         arg_label=rf"{(theta / np.pi):0.2f} \times \pi",
     )
     Pauli_X = X
     Ry_B = RY(
-        arg_value=-theta / 2,
+        -theta / 2,
         arg_label=rf"{(-theta / np.pi):0.2f} \times \pi",
     )
     Rz_B = RZ(
-        arg_value=-(alpha + beta) / 2,
+        -(alpha + beta) / 2,
         arg_label=rf"{(-(alpha + beta) / (2 * np.pi)):0.2f} \times \pi",
     )
     Rz_C = RZ(
-        arg_value=(-alpha + beta) / 2,
+        (-alpha + beta) / 2,
         arg_label=rf"{((-alpha + beta) / (2 * np.pi)):0.2f} \times \pi",
     )
 

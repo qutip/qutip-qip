@@ -255,6 +255,9 @@ class CircuitSimulator:
             else:
                 state = self._evolve_state(gate, qubits, current_state)
 
+        else:
+            raise ValueError(f"Invalid operation {self.qc.instructions[self._op_index]}")
+
         self._state = state
         self._op_index += 1
 

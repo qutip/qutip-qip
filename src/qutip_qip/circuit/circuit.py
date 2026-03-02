@@ -250,7 +250,7 @@ class QubitCircuit:
         gate: Gate | str,
         targets: int | Iterable[int] = (),
         controls: int | Iterable[int] = (),
-        arg_value: any = None,
+        arg_value: None = None,
         arg_label: str | None = None,
         control_value: None = None,
         classical_controls: int | Iterable[int] = (),
@@ -292,7 +292,7 @@ class QubitCircuit:
 
         if arg_value is not None or arg_label is not None:
             warnings.warn(
-                "Define 'arg_value', 'arg_label' in your Gate object e.g. RX(arg_value=np.pi)"
+                "Define 'arg_value', 'arg_label' in your Gate object e.g. RX(np.pi)"
                 ", 'arg_value', 'arg_label' arguments will be removed from 'add_gate' method in the future version.",
                 DeprecationWarning,
                 stacklevel=2,
@@ -357,7 +357,7 @@ class QubitCircuit:
                 )
 
             if gate_class.is_parametric():
-                gate = gate_class(arg_value=arg_value, arg_label=arg_label)
+                gate = gate_class(arg_value, arg_label=arg_label)
 
             else:
                 gate = gate_class
@@ -716,43 +716,43 @@ class QubitCircuit:
 
             if gate.name == "RX" and "RX" not in basis_1q:
                 qc_temp.add_gate(
-                    RY(arg_value=-half_pi, arg_label=r"-\pi/2"),
+                    RY(-half_pi, arg_label=r"-\pi/2"),
                     targets=targets,
                 )
                 qc_temp.add_gate(
-                    RZ(arg_value=gate.arg_value, arg_label=gate.arg_label),
+                    RZ(gate.theta, arg_label=gate.arg_label),
                     targets=targets,
                 )
                 qc_temp.add_gate(
-                    RY(arg_value=-half_pi, arg_label=r"\pi/2"),
+                    RY(-half_pi, arg_label=r"\pi/2"),
                     targets=targets,
                 )
 
             elif gate.name == "RY" and "RY" not in basis_1q:
                 qc_temp.add_gate(
-                    RZ(arg_value=-half_pi, arg_label=r"-\pi/2"),
+                    RZ(-half_pi, arg_label=r"-\pi/2"),
                     targets=targets,
                 )
                 qc_temp.add_gate(
-                    RX(arg_value=gate.arg_value, arg_label=gate.arg_label),
+                    RX(gate.theta, arg_label=gate.arg_label),
                     targets=targets,
                 )
                 qc_temp.add_gate(
-                    RZ(arg_value=half_pi, arg_label=r"\pi/2"),
+                    RZ(half_pi, arg_label=r"\pi/2"),
                     targets=targets,
                 )
 
             elif gate.name == "RZ" and "RZ" not in basis_1q:
                 qc_temp.add_gate(
-                    RX(arg_value=-half_pi, arg_label=r"-\pi/2"),
+                    RX(-half_pi, arg_label=r"-\pi/2"),
                     targets=targets,
                 )
                 qc_temp.add_gate(
-                    RY(arg_value=gate.arg_value, arg_label=gate.arg_label),
+                    RY(gate.theta, arg_label=gate.arg_label),
                     targets=targets,
                 )
                 qc_temp.add_gate(
-                    RX(arg_value=half_pi, arg_label=r"\pi/2"),
+                    RX(half_pi, arg_label=r"\pi/2"),
                     targets=targets,
                 )
             else:

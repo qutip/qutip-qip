@@ -71,10 +71,11 @@ class SpinChainCompiler(GateCompiler):
     >>> from qutip_qip.circuit import QubitCircuit
     >>> from qutip_qip.device import ModelProcessor, SpinChainModel
     >>> from qutip_qip.compiler import SpinChainCompiler
+    >>> from qutip_qip.operations.gates import RX, RZ
     >>>
     >>> qc = QubitCircuit(2)
-    >>> qc.add_gate("RX", targets=0, arg_value=np.pi)
-    >>> qc.add_gate("RZ", targets=1, arg_value=np.pi)
+    >>> qc.add_gate(RX(np.pi), targets=0)
+    >>> qc.add_gate(RZ(np.pi), targets=1)
     >>>
     >>> model = SpinChainModel(2, "linear", g=0.1)
     >>> processor = ModelProcessor(model=model)

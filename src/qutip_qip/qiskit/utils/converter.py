@@ -119,7 +119,7 @@ def convert_qiskit_circuit_to_qutip(
         if qiskit_instruction.name in _map_gates.keys():
             gate = _map_gates[qiskit_instruction.name]
             if gate.is_parametric():
-                gate = gate(arg_value)
+                gate = gate(*arg_value)
 
             qutip_circuit.add_gate(
                 gate,

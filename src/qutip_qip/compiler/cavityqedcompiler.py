@@ -195,7 +195,7 @@ class CavityQEDCompiler(GateCompiler):
         # corrections
         compiled_gate1 = self.gate_compiler["RZ"](
             GateInstruction(
-                operation=RZ(arg_value=correction_angle), qubits=(q1,)
+                operation=RZ(correction_angle), qubits=(q1,)
             ),
             args,
         )
@@ -203,7 +203,7 @@ class CavityQEDCompiler(GateCompiler):
 
         compiled_gate2 = self.gate_compiler["RZ"](
             GateInstruction(
-                operation=RZ(arg_value=correction_angle), qubits=(q2,)
+                operation=RZ(correction_angle), qubits=(q2,)
             ),
             args,
         )

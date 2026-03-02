@@ -137,16 +137,16 @@ def test_qasm_str():
 
 def test_export_import():
     qc = QubitCircuit(3)
-    qc.add_gate(gates.CRY(arg_value=np.pi), targets=1, controls=0)
-    qc.add_gate(gates.CRX(arg_value=np.pi), targets=1, controls=0)
-    qc.add_gate(gates.CRZ(arg_value=np.pi), targets=1, controls=0)
+    qc.add_gate(gates.CRY(np.pi), targets=1, controls=0)
+    qc.add_gate(gates.CRX(np.pi), targets=1, controls=0)
+    qc.add_gate(gates.CRZ(np.pi), targets=1, controls=0)
     qc.add_gate(gates.CX, targets=1, controls=0)
     qc.add_gate(gates.TOFFOLI, targets=2, controls=[0, 1])
     # qc.add_gate(SQRTX, targets=0)
     qc.add_gate(gates.CS, targets=1, controls=0)
     qc.add_gate(gates.CT, targets=1, controls=0)
     qc.add_gate(gates.SWAP, targets=[0, 1])
-    qc.add_gate(gates.QASMU(arg_value=[np.pi, np.pi, np.pi]), targets=[0])
+    qc.add_gate(gates.QASMU(np.pi, np.pi, np.pi), targets=[0])
     qc.add_gate(gates.RX(np.pi), targets=[0])
     qc.add_gate(gates.RY(np.pi), targets=[0])
     qc.add_gate(gates.RZ(np.pi), targets=[0])
@@ -156,7 +156,7 @@ def test_export_import():
     qc.add_gate(gates.Z, targets=[0])
     qc.add_gate(gates.S, targets=[0])
     qc.add_gate(gates.T, targets=[0])
-    # qc.add_gate(CZ, targets=[0], controls=[1])
+    # qc.add_gate(gates.CZ, targets=[0], controls=[1])
 
     # The generated code by default has a inclusion statement of
     # qelib1.inc, which will trigger a warning when read.

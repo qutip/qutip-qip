@@ -283,27 +283,27 @@ class SCQubitsCompiler(GateCompiler):
 
         # += extends a list in Python
         result += self.gate_compiler["RX"](
-            GateInstruction(operation=RX(arg_value=-PI / 2), qubits=(q2,)),
+            GateInstruction(operation=RX(-PI / 2), qubits=(q2,)),
             args,
         )
 
         result += self.gate_compiler["RZX"](
-            GateInstruction(operation=RZX(arg_value=PI / 2), qubits=(q1, q2)),
+            GateInstruction(operation=RZX(PI / 2), qubits=(q1, q2)),
             args,
         )
 
         result += self.gate_compiler["RX"](
-            GateInstruction(operation=RX(arg_value=-PI / 2), qubits=(q1,)),
+            GateInstruction(operation=RX(-PI / 2), qubits=(q1,)),
             args,
         )
 
         result += self.gate_compiler["RY"](
-            GateInstruction(operation=RY(arg_value=-PI / 2), qubits=(q1,)),
+            GateInstruction(operation=RY(-PI / 2), qubits=(q1,)),
             args,
         )
 
         result += self.gate_compiler["RX"](
-            GateInstruction(operation=RX(arg_value=PI / 2), qubits=(q1,)),
+            GateInstruction(operation=RX(PI / 2), qubits=(q1,)),
             args,
         )
 
