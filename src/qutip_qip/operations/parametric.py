@@ -64,12 +64,8 @@ class ParametricGate(Gate):
             )
 
     def __init__(self, *args, arg_label: str | None = None):
-        if len(args) != self.num_params:
-            raise ValueError(
-                f"Requires {self.num_params} parameters, got {len(args)}"
-            )
-        self.validate_params(args)
-        self._arg_value = tuple(args)
+        # This auto triggers a call to arg_value setter (where checks happen)
+        self.arg_value = args
         self.arg_label = arg_label
 
     @property
@@ -133,18 +129,15 @@ class ParametricGate(Gate):
         """
 
     def __eq__(self, other) -> bool:
-        # Returns for false for RX(0.5), RY(0.5)
+        # Returns false for RX(0.5), RY(0.5)
         if type(self) is not type(other):
             return False
 
-        # Returns for false for RX(0.5), RX(0.6)
+        # Returns false for RX(0.5), RX(0.6)
         if self.arg_value != other.arg_value:
             return False
 
         return True
-
-    def __hash__(self) -> int:
-        return hash((type(self), self.arg_value))
 
 
 class AngleParametricGate(ParametricGate):

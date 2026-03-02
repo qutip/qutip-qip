@@ -127,14 +127,13 @@ class ControlledGate(Gate):
         else:
             setattr(self._target_inst, name, value)
 
+    # Although target_gate is specified as a class attribute, It has been
+    # been made an abstract method to make ControlledGate abstract (required!)
+    # This is because Python currently doesn't support abstract class attributes.
     @property
     @abstractmethod
     def target_gate() -> Gate:
         pass
-
-    @property
-    def self_inverse(self) -> int:
-        return self.target_gate.self_inverse
 
     @classmethod
     def _validate_control_value(cls) -> None:
@@ -220,18 +219,15 @@ class ControlledGate(Gate):
         return f"Gate({cls.name}, target_gate={cls.target_gate}, num_ctrl_qubits={cls.num_ctrl_qubits}, control_value={cls.ctrl_value})"
 
     def __eq__(self, other) -> bool:
-        # Returns for false for CRX(0.5), CRY(0.5)
+        # Returns false for CRX(0.5), CRY(0.5)
         if type(self) is not type(other):
             return False
 
-        # Returns for false for CRX(0.5), CRX(0.6)
+        # Returns false for CRX(0.5), CRX(0.6)
         if self._target_inst != other._target_inst:
             return False
 
         return True
-
-    def __hash__(self) -> int:
-        return hash((type(self), self._target_inst))
 
 
 def controlled(
