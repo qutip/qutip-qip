@@ -1,8 +1,13 @@
+"""
+Module for Helper functions.
+"""
+
 from qutip import Qobj
 
+__all__ = ['valid_unitary']
 
-def check_gate(gate, num_qubits):
-    """Verifies input is a valid quantum gate.
+def valid_unitary(gate, num_qubits):
+    """Verifies input is a valid quantum gate i.e. unitary Qobj.
 
     Parameters
     ----------
@@ -19,7 +24,9 @@ def check_gate(gate, num_qubits):
     """
     if not isinstance(gate, Qobj):
         raise TypeError("The input matrix is not a Qobj.")
+
     if not gate.isunitary:
         raise ValueError("Input is not unitary.")
+
     if gate.dims != [[2] * num_qubits] * 2:
         raise ValueError(f"Input is not a unitary on {num_qubits} qubits.")

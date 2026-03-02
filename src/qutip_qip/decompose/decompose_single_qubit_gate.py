@@ -2,7 +2,7 @@ import warnings
 import numpy as np
 import cmath
 
-from qutip_qip.decompose._utility import check_gate
+from qutip_qip.utils import valid_unitary
 from qutip_qip.operations.gates import GLOBALPHASE, X, RX, RY, RZ
 
 
@@ -55,7 +55,7 @@ def _ZYZ_rotation(input_gate):
     input_gate : :class:`qutip.Qobj`
         The matrix that's supposed to be decomposed should be a Qobj.
     """
-    check_gate(input_gate, num_qubits=1)
+    valid_unitary(input_gate, num_qubits=1)
     alpha, theta, beta, global_phase_angle = _angles_for_ZYZ(input_gate)
 
     Phase_gate = GLOBALPHASE(global_phase_angle)
@@ -84,7 +84,7 @@ def _ZXZ_rotation(input_gate):
     input_gate : :class:`qutip.Qobj`
         The matrix that's supposed to be decomposed should be a Qobj.
     """
-    check_gate(input_gate, num_qubits=1)
+    valid_unitary(input_gate, num_qubits=1)
     alpha, theta, beta, global_phase_angle = _angles_for_ZYZ(input_gate)
     alpha = alpha - np.pi / 2
     beta = beta + np.pi / 2
@@ -113,7 +113,7 @@ def _ZXZ_rotation(input_gate):
 def _ZYZ_pauli_X(input_gate):
     """Returns a 1 qubit unitary as a product of ZYZ rotation matrices and
     Pauli X."""
-    check_gate(input_gate, num_qubits=1)
+    valid_unitary(input_gate, num_qubits=1)
     alpha, theta, beta, global_phase_angle = _angles_for_ZYZ(input_gate)
 
     Phase_gate = GLOBALPHASE(global_phase_angle)
@@ -221,7 +221,7 @@ def decompose_one_qubit_gate(input_gate, method):
         :math:`\textrm{B}`, 1 gates forming :math:`\textrm{C}`, and some global
         phase gate.
     """
-    check_gate(input_gate, num_qubits=1)
+    valid_unitary(input_gate, num_qubits=1)
     f = _single_decompositions_dictionary.get(method, None)
     if f is None:
         raise MethodError(f"Invalid decomposition method: {method!r}")
