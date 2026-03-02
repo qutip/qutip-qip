@@ -155,21 +155,25 @@ def _test_numerical_evolution_helper(
     state = qutip.rand_ket(2**num_qubits)
     state.dims = [[2] * num_qubits, [1] * num_qubits]
     target = circuit.run(state)
+
     if isinstance(device, DispersiveCavityQED):
         num_ancilla = len(device.dims) - num_qubits
         ancilla_indices = slice(0, num_ancilla)
         extra = qutip.basis(device.dims[ancilla_indices], [0] * num_ancilla)
         init_state = qutip.tensor(extra, state)
+
     elif isinstance(device, SCQubits):
         # expand to 3-level represetnation
         init_state = _ket_expaned_dims(state, device.dims)
     else:
         init_state = state
+
     options = {"store_final_state": True, "nsteps": 50000}
     result = device.run_state(
         init_state=init_state, analytical=False, options=options
     )
     numerical_result = result.final_state
+
     if isinstance(device, DispersiveCavityQED):
         target = qutip.tensor(extra, target)
     elif isinstance(device, SCQubits):
@@ -230,10 +234,12 @@ def test_numerical_circuit(circuit, device_class, kwargs, schedule_mode):
         init_state = _ket_expaned_dims(state, device.dims)
     else:
         init_state = state
+
     options = {"store_final_state": True, "nsteps": 50000}
     result = device.run_state(
         init_state=init_state, analytical=False, options=options
     )
+
     if isinstance(device, DispersiveCavityQED):
         target = qutip.tensor(extra, target)
     elif isinstance(device, SCQubits):

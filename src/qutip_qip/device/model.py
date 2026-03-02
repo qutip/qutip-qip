@@ -67,7 +67,7 @@ class Model:
             The control Hamiltonian in the form of ``(qobj, targets)``.
         """
         if hasattr(self, "_old_index_label_map"):
-            if isinstance(label, int):
+            if type(label) is int:
                 label = self._old_index_label_map[label]
         return self._controls[label]
 

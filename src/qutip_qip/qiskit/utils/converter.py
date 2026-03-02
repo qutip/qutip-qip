@@ -1,5 +1,6 @@
 """Conversion of circuits from qiskit to qutip_qip."""
 
+from collections.abc import Iterable
 from qiskit.circuit import QuantumCircuit
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations import Gate
@@ -57,7 +58,7 @@ def get_qutip_index(bit_index: int | list, total_bits: int) -> int:
     the 0st bit is mapped to the 0th bit and (n-1)th bit to (n-q)th bit
     and so on. Essentially the bit order stays the same.
     """
-    if isinstance(bit_index, list):
+    if isinstance(bit_index, Iterable):
         return [get_qutip_index(bit, total_bits) for bit in bit_index]
     else:
         return bit_index

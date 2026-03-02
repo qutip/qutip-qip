@@ -8,7 +8,7 @@ def _validate_non_negative_int_tuple(T: any, txt: str = ""):
         raise TypeError(f"Must pass a tuple for {txt}, got {type(T)}")
 
     for q in T:
-        if not isinstance(q, int):
+        if type(q) is not int:
             raise ValueError(f"All {txt} indices must be an int, found {q}")
 
         if q < 0:

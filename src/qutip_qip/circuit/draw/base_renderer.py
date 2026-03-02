@@ -92,7 +92,7 @@ class StyleConfig:
     wire_color: str | None = None
 
     def __post_init__(self):
-        if isinstance(self.bulge, bool):
+        if type(self.bulge) is bool:
             self.bulge = "round4" if self.bulge else "square"
 
         if self.theme == "qutip":

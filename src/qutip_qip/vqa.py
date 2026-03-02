@@ -2,11 +2,14 @@
 
 import types
 import random
+from collections.abc import Sequence
+
 import numpy as np
 from qutip import basis, tensor, Qobj, qeye, expect
-from qutip_qip.circuit import QubitCircuit
 from scipy.optimize import minimize
 from scipy.linalg import expm_frechet
+
+from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations import gate_sequence_product, unitary_gate, Gate
 
 
@@ -49,12 +52,16 @@ class VQA:
 
         if self.num_qubits < 1:
             raise ValueError("Expected 1 or more qubits")
-        if not isinstance(self.num_qubits, int):
+
+        if type(self.num_qubits) is not int:
             raise TypeError("Expected an integer number of qubits")
+
         if self.num_layers < 1:
             raise ValueError("Expected 1 or more layer")
-        if not isinstance(self.num_layers, int):
+
+        if type(self.num_layers) is not int:
             raise TypeError("Expected an integer number of layers")
+
         if self.cost_method not in self._cost_methods:
             raise ValueError(
                 f"Cost method {self.cost_method} not one of "
@@ -293,20 +300,22 @@ class VQA:
 
         n_free_params = self.get_free_parameters_num()
         # Set initial circuit parameters
-        if isinstance(initial, str):
+        if type(initial) is str:
             if initial == "random":
                 angles = [random.random() for i in range(n_free_params)]
             elif initial == "ones":
                 angles = [1 for i in range(n_free_params)]
             else:
                 raise ValueError("Invalid initial condition string")
-        elif isinstance(initial, list) or isinstance(initial, np.ndarray):
+
+        elif isinstance(initial, Sequence):
             if len(initial) != n_free_params:
                 raise ValueError(
                     f"Expected {n_free_params} initial parameters"
                     f"but got {len(initial)}."
                 )
             angles = initial
+
         else:
             raise ValueError(
                 "Initial conditions were neither a list of values"
@@ -567,14 +576,18 @@ class VQABlock:
         if isinstance(operator, Qobj):
             if not self.is_unitary:
                 self.num_parameters = 1
-        elif isinstance(operator, str):
+
+        elif type(operator) is str:
             self.is_native_gate = True
             if targets is None:
                 raise ValueError("Targets must be specified for native gates")
+
         elif isinstance(operator, ParameterizedHamiltonian):
             self.num_parameters = operator.num_parameters
+
         elif isinstance(operator, types.FunctionType):
             self.num_parameters = 1
+
         else:
             raise ValueError(
                 "operator should be either: Qobj | function which"
@@ -612,13 +625,15 @@ class VQABlock:
         # Case where the operator is a string referring to an existing gate.
         if self.is_native_gate:
             raise TypeError("Can't compute unitary of native gate")
+
         # Function returning Qobj unitary
         if isinstance(self.operator, types.FunctionType):
-            # In the future, this could be generalized to multiple angles
+            # TODO In the future, this could be generalized to multiple angles
             unitary = self.operator(angles[0])
             if not isinstance(unitary, Qobj):
                 raise TypeError("Provided function does not return Qobj")
             return unitary
+
         # ParameterizedHamiltonian instance
         if isinstance(self.operator, ParameterizedHamiltonian):
             return (-1j * self.operator.get_hamiltonian(angles)).expm()
@@ -656,6 +671,7 @@ class VQABlock:
                 "Can only take derivative of block specified "
                 "by Hamiltonians or ParameterizedHamiltonian instances."
             )
+
         if isinstance(self.operator, ParameterizedHamiltonian):
             arg = -1j * self.operator.get_hamiltonian(angles)
             direction = -1j * self.operator.p_terms[term_index]
@@ -663,6 +679,7 @@ class VQABlock:
                 expm_frechet(arg.full(), direction.full(), compute_expm=False),
                 dims=direction.dims,
             )
+
         if len(angles) != 1:
             raise ValueError(
                 "Expected a single angle for non-"

@@ -42,7 +42,7 @@ def qpe(U, num_counting_qubits, target_qubits=None, to_cnot=False):
         target_qubits = list(
             range(num_counting_qubits, num_counting_qubits + num_target_qubits)
         )
-    elif isinstance(target_qubits, int):
+    elif type(target_qubits) is int:
         target_qubits = [target_qubits]
         num_target_qubits = 1
     else:

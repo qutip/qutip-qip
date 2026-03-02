@@ -68,7 +68,7 @@ class _EvoElement:
         if self.tlist is None and self.coeff is None:
             qu = QobjEvo(mat) * 0.0
 
-        elif isinstance(self.coeff, bool):
+        elif type(self.coeff) is bool:
             if self.coeff:
                 if self.tlist is None:
                     qu = QobjEvo(mat, tlist=self.tlist)

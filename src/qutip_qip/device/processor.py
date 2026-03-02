@@ -1,4 +1,4 @@
-from collections.abc import Iterable
+from collections.abc import Sequence
 import warnings
 from copy import deepcopy
 import numpy as np
@@ -176,7 +176,7 @@ class Processor:
     def _unify_targets(self, qobj, targets):
         if targets is None:
             targets = list(range(len(qobj.dims[0])))
-        if not isinstance(targets, Iterable):
+        if not isinstance(targets, Sequence):
             targets = [targets]
         return targets
 
@@ -380,7 +380,7 @@ class Processor:
         self.set_coeffs(coeffs)
 
     def _generate_iterator_from_dict_or_list(self, value):
-        if isinstance(value, dict):
+        if type(value) is dict:
             iterator = value.items()
         elif isinstance(value, (list, np.ndarray)):
             iterator = enumerate(value)
@@ -442,6 +442,7 @@ class Processor:
             for pulse in self.pulses:
                 pulse.tlist = tlist
             return
+
         iterator = self._generate_iterator_from_dict_or_list(tlist)
         pulse_dict = self.get_pulse_dict()
         for pulse_label, value in iterator:
@@ -490,24 +491,29 @@ class Processor:
         self._is_pulses_valid()
         if not self.pulses:
             return np.array((0, 0), dtype=float)
+
         if full_tlist is None:
             full_tlist = self.get_full_tlist()
+
         coeffs_list = []
         for pulse in self.pulses:
             if pulse.tlist is None and pulse.coeff is None:
                 coeffs_list.append(np.zeros(len(full_tlist)))
                 continue
+
             if not isinstance(pulse.coeff, (bool, np.ndarray)):
                 raise ValueError(
                     "get_full_coeffs only works for "
                     "NumPy array or bool coeff."
                 )
-            if isinstance(pulse.coeff, bool):
+
+            if type(pulse.coeff) is bool:
                 if pulse.coeff:
                     coeffs_list.append(np.ones(len(full_tlist)))
                 else:
                     coeffs_list.append(np.zeros(len(full_tlist)))
                 continue
+
             if self.spline_kind == "step_func":
                 arg = {"_step_func_coeff": True}
                 coeffs_list.append(
@@ -623,7 +629,7 @@ class Processor:
             The label of the pulse
         """
         if indices is not None:
-            if not isinstance(indices, Iterable):
+            if not isinstance(indices, Sequence):
                 indices = [indices]
             indices.sort(reverse=True)
             for ind in indices:
@@ -690,7 +696,7 @@ class Processor:
 
     def find_pulse(self, pulse_name):
         pulse_dict = self.get_pulse_dict()
-        if isinstance(pulse_name, int):
+        if type(pulse_name) is int:
             return self.pulses[pulse_name]
         else:
             try:

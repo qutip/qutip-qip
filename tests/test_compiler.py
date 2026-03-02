@@ -231,9 +231,9 @@ def test_compiler_result_format():
 
     compiler.gate_compiler["RX"] = rx_compiler_without_pulse_dict
     tlist, coeffs = compiler.compile(circuit)
-    assert isinstance(tlist, dict)
+    assert type(tlist) is dict
     assert 0 in tlist
-    assert isinstance(coeffs, dict)
+    assert type(coeffs) is dict
     assert 0 in coeffs
     processor.coeffs = coeffs
     processor.set_all_tlist(tlist)

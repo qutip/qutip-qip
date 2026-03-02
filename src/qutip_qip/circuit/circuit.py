@@ -629,7 +629,7 @@ class QubitCircuit:
         basis_1q = []
         basis_2q = []
 
-        if isinstance(basis, list):
+        if isinstance(basis, Iterable):
             for gate in basis:
                 if gate in basis_2q_valid:
                     basis_2q.append(gate)
