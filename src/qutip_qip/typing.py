@@ -6,10 +6,9 @@ __all__ = [
     "Int",
     "Real",
     "Number",
-    "ScalarList",
-    "IntList",
-    "RealList",
-    "ScalarList",
+    "IntSequence",
+    "RealSequence",
+    "ScalarSequence",
     "ArrayLike",
 ]
 
@@ -19,8 +18,8 @@ Int: TypeAlias = int | np.integer
 Real: TypeAlias = int | float | np.integer | np.floating
 Number: TypeAlias = int | float | complex | np.number
 
-IntList = Sequence[Int]
-RealList = Sequence[Real]
-ScalarList = Sequence[Number]
+IntSequence = Sequence[Int]
+RealSequence = Sequence[Real]
+ScalarSequence = Sequence[Number]
 
 ArrayLike = Sequence[any] | np.ndarray

@@ -1,25 +1,46 @@
-from typing import Iterable
+from typing import TypeVar, Sequence
+import numpy as np
+from qutip_qip.typing import Int, IntSequence
+
+T = TypeVar("T")  # T can be any type
 
 
-def _check_iterable(input_name: str, input_value: any):
-    try:
-        iter(input_value)
-    except TypeError:
-        raise TypeError(
-            f"{input_name} must be an iterable input, got {input_value}."
+def check_limit(
+    input_name: str, input_value: Sequence[T], lower_limit: T, upper_limit: T
+):
+    if len(input_value) == 0:
+        return
+
+    min_element = min(input_value)
+    if min_element < lower_limit:
+        raise ValueError(
+            f"Each entry of {input_name} must be greater than {lower_limit}, but found {min_element}."
+        )
+
+    max_element = max(input_value)
+    if max_element > upper_limit:
+        raise ValueError(
+            f"Each entry of {input_name} must be less than {upper_limit}, but found {max_element}."
         )
 
 
-def _check_limit_(
-    input_name: str, input_value: Iterable, limit, element_type: type = int
-):
-    for e in input_value:
-        if type(e) is not element_type:
-            raise TypeError(
-                f"Each entry of {input_name} must be less than {limit}, got {input_value}."
-            )
+def convert_int_to_list(
+    input_name: str, input_value: Int | IntSequence
+) -> IntSequence:
+    if isinstance(input_value, Int):
+        return [input_value]
 
-        if e > limit:
-            raise ValueError(
-                f"Each entry of {input_name} must be less than {limit}, got {input_value}."
-            )
+    elif isinstance(input_value, Sequence) and not isinstance(
+        input_value, str
+    ):
+        for i, val in enumerate(input_value):
+            if not isinstance(val, Int):
+                raise TypeError(
+                    f"All elements in '{input_name}' must be integers. "
+                    f"Found {type(val).__name__} ({val}) at index {i}."
+                )
+        return input_value
+    else:
+        raise TypeError(
+            f"{input_name} must be an int or sequence of int, got {input_value}."
+        )

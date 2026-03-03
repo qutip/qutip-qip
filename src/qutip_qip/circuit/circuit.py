@@ -3,7 +3,7 @@ Quantum circuit representation and simulation.
 """
 
 import warnings
-from typing import Iterable
+from typing import Iterable, Type
 from qutip import qeye, Qobj
 import numpy as np
 
@@ -14,10 +14,10 @@ from qutip_qip.circuit import (
     GateInstruction,
     MeasurementInstruction,
 )
-from qutip_qip.circuit.utils import _check_iterable, _check_limit_
+from qutip_qip.circuit.utils import check_limit, convert_int_to_list
 from qutip_qip.operations import Gate, Measurement, expand_operator
 from qutip_qip.operations import gates as std
-from qutip_qip.typing import IntList
+from qutip_qip.typing import Int, IntSequence
 
 try:
     from IPython.display import Image as DisplayImage, SVG as DisplaySVG
@@ -99,35 +99,6 @@ class QubitCircuit:
             )
 
     @property
-    def global_phase(self):
-        return self._global_phase
-
-    def add_global_phase(self, phase: float):
-        self._global_phase += phase
-        self._global_phase %= 2 * np.pi
-
-    @property
-    def gates(self) -> list[CircuitInstruction]:
-        warnings.warn(
-            "QubitCircuit.gates has been replaced with QubitCircuit.instructions",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return self._instructions
-
-    gates.setter
-    def gates(self) -> None:
-        warnings.warn(
-            "QubitCircuit.gates has been replaced with QubitCircuit.instructions",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-    @property
-    def instructions(self) -> list[CircuitInstruction]:
-        return self._instructions
-
-    @property
     def num_qubits(self) -> int:
         """
         Number of qubits in the circuit.
@@ -150,19 +121,41 @@ class QubitCircuit:
     def __repr__(self) -> str:
         return ""
 
-    def _repr_png_(self) -> None:
-        """
-        Provide PNG representation for Jupyter Notebook.
-        """
-        try:
-            self.draw(renderer="matplotlib")
-        except ImportError:
-            self.draw("text")
+    @property
+    def global_phase(self):
+        return self._global_phase
+
+    def add_global_phase(self, phase: float):
+        self._global_phase += phase
+        self._global_phase %= 2 * np.pi
+
+    @property
+    def gates(self) -> list[CircuitInstruction]:
+        warnings.warn(
+            "QubitCircuit.gates has been replaced with QubitCircuit.instructions",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self._instructions
+
+    # fmt: off
+    gates.setter
+    def gates(self) -> None:
+        warnings.warn(
+            "QubitCircuit.gates has been replaced with QubitCircuit.instructions",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+    # fmt: on
+
+    @property
+    def instructions(self) -> list[CircuitInstruction]:
+        return self._instructions
 
     def add_state(
         self,
         state: str,
-        targets: IntList,
+        targets: IntSequence,
         state_type: str = "input",  # FIXME Add an enum type hinting?
     ):
         """
@@ -196,7 +189,7 @@ class QubitCircuit:
     def add_measurement(
         self,
         measurement: str | Measurement,
-        targets: int | IntList,
+        targets: int | IntSequence,
         classical_store: int,
         index: None = None,
     ):
@@ -246,15 +239,15 @@ class QubitCircuit:
 
     def add_gate(
         self,
-        gate: Gate | str,
+        gate: Gate | Type[Gate] | str,
         targets: int | Iterable[int] = (),
         controls: int | Iterable[int] = (),
-        arg_value: None = None,
-        arg_label: str | None = None,
-        control_value: None = None,
         classical_controls: int | Iterable[int] = (),
         classical_control_value: int | None = None,
         style: dict = None,
+        arg_value: None = None,
+        arg_label: None = None,
+        control_value: None = None,
         index: None = None,
     ):
         """
@@ -262,7 +255,7 @@ class QubitCircuit:
 
         Parameters
         ----------
-        gate: string or :class:`~.operations.Gate`
+        gate: :class:`~.operations.Gate` or :obj:`~.operations.Gate` or str
             Gate name. If gate is an instance of :class:`~.operations.Gate`,
             parameters are unpacked and added.
         targets: int or list, optional
@@ -286,6 +279,7 @@ class QubitCircuit:
         style:
             For circuit draw
         """
+        # Deprecation warnings
         if index is not None:
             raise ValueError("argument index is no longer supported")
 
@@ -309,32 +303,19 @@ class QubitCircuit:
             self.add_global_phase(gate.arg_value[0])
             return
 
-        # Handling case for int input (TODO use try except)
-        targets = [targets] if type(targets) is int else targets
-        controls = [controls] if type(controls) is int else controls
-        classical_controls = (
-            [classical_controls]
-            if type(classical_controls) is int
-            else classical_controls
+        # Handling case for integer input
+        targets = convert_int_to_list("targets", targets)
+        controls = convert_int_to_list("controls", controls)
+        classical_controls = convert_int_to_list(
+            "classical_controls", classical_controls
         )
 
-        # This will raise an error if not an iterable type (e.g. list, tuple, etc.)
-        _check_iterable("targets", targets)
-        _check_iterable("controls", controls)
-        _check_iterable("classical_controls", classical_controls)
-
-        # Checks each element is of given type (e.g. int) and within the limit
-        _check_limit_("targets", targets, self.num_qubits - 1, int)
-        _check_limit_("controls", controls, self.num_qubits - 1, int)
-        _check_limit_(
-            "classical_controls", classical_controls, self.num_cbits - 1, int
+        # Checks each element within the limit
+        check_limit("targets", targets, 0, self.num_qubits - 1)
+        check_limit("controls", controls, 0, self.num_qubits - 1)
+        check_limit(
+            "classical_controls", classical_controls, 0, self.num_cbits - 1
         )
-
-        # Check len(controls) == gate.num_ctrl_qubits
-
-        # Default value for classical control
-        if len(classical_controls) > 0 and classical_control_value is None:
-            classical_control_value = 2 ** (len(classical_controls)) - 1
 
         # This conditional block can be remove if the gate input is only
         # restricted to Gate subclasses or object instead of strings in the future.
@@ -361,6 +342,19 @@ class QubitCircuit:
             else:
                 gate = gate_class
 
+        # Check for gates
+        if not (isinstance(gate, Gate) or issubclass(gate, Gate)):
+            raise TypeError(f"gate must be of type Gate, got {gate}")
+        elif gate.is_parametric() and (not isinstance(gate, Gate)):
+            raise TypeError(
+                "You must pass an instantiated object for a Parametrized Gate"
+            )
+        elif (not gate.is_parametric()) and (not issubclass(gate, Gate)):
+            raise TypeError(
+                "You must pass a Gate type for a non-parametrized gate"
+            )
+
+        # Check len(controls) == gate.num_ctrl_qubits
         if gate.is_controlled() and len(controls) != gate.num_ctrl_qubits:
             raise ValueError(
                 f"{gate.name} takes {gate.num_ctrl_qubits} qubits, but {len(controls)} were provided."
@@ -371,20 +365,35 @@ class QubitCircuit:
                 f"{gate.name} takes {gate.num_qubits} qubits, but {len(controls) + len(targets)} were provided."
             )
 
-        qubits = []
-        if controls is not None:
-            qubits.extend(controls)
-        qubits.extend(targets)
+        # Check for classical control
+        default_classical_ctrl_val = 2 ** (len(classical_controls)) - 1
 
-        cbits = tuple()
-        if classical_controls is not None:
-            cbits = tuple(classical_controls)
+        if classical_control_value is None:
+            if len(classical_controls) > 0:
+                classical_control_value = default_classical_ctrl_val
+
+        elif not isinstance(classical_control_value, Int):
+            raise TypeError(
+                f"classical_control_value must be an integer or None, got {classical_control_value}"
+            )
+
+        elif (
+            classical_control_value < 0
+            or classical_control_value > default_classical_ctrl_val
+        ):
+            raise ValueError(
+                f"{classical_control_value} must be with [0, {default_classical_ctrl_val}]"
+            )
+
+        qubits = []
+        qubits.extend(controls)
+        qubits.extend(targets)
 
         self._instructions.append(
             GateInstruction(
                 operation=gate,
                 qubits=tuple(qubits),
-                cbits=cbits,
+                cbits=tuple(classical_controls),
                 cbits_ctrl_value=classical_control_value,
                 style=style,
             )
