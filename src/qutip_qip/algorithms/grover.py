@@ -1,5 +1,6 @@
+import warnings
 import numpy as np
-from typing import List, Union, Optional
+from typing import Sequence
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations import Gate, Z, ControlledGate
 
@@ -33,7 +34,7 @@ class OracleGate(Gate):
 
 
 def grover_oracle(
-    qubits: Union[int, List[int]], marked_states: Union[int, List[int]]
+    qubits: int | Sequence[int], marked_states: int | Sequence[int]
 ) -> QubitCircuit:
     """
     Constructs a Phase Oracle circuit for Grover's algorithm.
@@ -62,9 +63,9 @@ def grover_oracle(
 
     for state in marked_states:
         # Safety check
-        if state >= 2**n_qubits:
+        if state < 0 or state >= 2**n_qubits:
             raise ValueError(
-                f"Marked state {state} is out of bounds for {n_qubits} qubits."
+                f"Marked state {state} is out of bounds for {n_qubits} qubits. Valid range is [0, {2**n_qubits-1}]."
             )
 
         binary_rep = format(state, f"0{n_qubits}b")
@@ -102,16 +103,16 @@ def grover_oracle(
 
 def grover(
     oracle: QubitCircuit,
-    qubits: Union[int, List[int]],
+    qubits: int | Sequence[int],
     num_solutions: int,
-    num_iterations: Optional[int] = None,
+    num_iterations: int | None = None,
 ) -> QubitCircuit:
     """
     Construct the Grover search algorithm's circuit.
 
     Parameters
     ----------
-    oracle : QubitCircuit, Gate, or Qobj
+    oracle : :class:`~.circuit.QubitCircuit` or :class:`~.operations.Gate` or :class:`qutip.Qobj`
         The oracle that flips the phase of marked states.
     qubits : int or list of int
         The qubits to run the search on.
@@ -172,11 +173,17 @@ def grover(
     # Calculate optimal Iterations if none provided:
     if num_iterations is None:
         N = 2**n_qubits
+
+        if num_solutions <= 0:
+            raise ValueError("num_solutions must be greater than 0.")
         if num_solutions >= N:
+            warnings.warn(
+                "Number of solutions is equal/greater to the search space. 0 Grover Iterations applied."
+            )
             num_iterations = 0
         else:
             calc = (np.pi / 4) * np.sqrt(N / num_solutions)
-            num_iterations = max(1, int(np.floor(calc)))
+            num_iterations = int(np.floor(calc))
 
     # Grover Iterations:
     for _ in range(num_iterations):
@@ -184,9 +191,9 @@ def grover(
         if isinstance(oracle, QubitCircuit):
             qc.gates.extend(oracle.gates)
         elif isinstance(oracle, Gate):
-            if set(oracle.targets) != set(qubits):
+            if not set(oracle.targets).issubset(qubits):
                 raise ValueError(
-                    f"Oracle gate targets {oracle.targets} do not match algorithm qubits {qubits}"
+                    f"Oracle gate targets {oracle.targets} are not a subset of algorithm qubits {qubits}"
                 )
             qc.add_gate(oracle)
         else:

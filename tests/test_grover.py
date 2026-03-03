@@ -25,7 +25,7 @@ class TestGrover:
             diag[s] = -1
         U_expected = Qobj(np.diag(diag), dims=dims)
 
-        assert (U_sim - U_expected).norm() < 1e-6
+        assert np.allclose(U_sim.full(), U_expected.full())
 
     def test_grover_oracle_bounds_error(self):
         """Test that grover_oracle raises error for out-of-bounds states."""
@@ -122,4 +122,6 @@ class TestGrover:
         assert len(qc_b.gates) > 0
 
         # Compare unitaries
-        assert (qc_a.compute_unitary() - qc_b.compute_unitary()).norm() < 1e-6
+        assert np.allclose(
+            qc_a.compute_unitary().full(), qc_b.compute_unitary().full()
+        )
