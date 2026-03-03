@@ -34,7 +34,7 @@ class ControlledGate(Gate):
 
     Attributes
     ----------
-    target_gate : Gate
+    target_gate : :class:`.Gate`
         The gate to be applied to the target qubits.
 
     num_ctrl_qubits : int
@@ -132,7 +132,7 @@ class ControlledGate(Gate):
     # This is because Python currently doesn't support abstract class attributes.
     @property
     @abstractmethod
-    def target_gate() -> Gate:
+    def target_gate() -> Type[Gate]:
         pass
 
     @classmethod
@@ -234,7 +234,7 @@ class ControlledGate(Gate):
 
 
 def controlled(
-    gate: Gate,
+    gate: Type[Gate],
     n_ctrl_qubits: int = 1,
     control_value: int | None = None,
     gate_name: str | None = None,

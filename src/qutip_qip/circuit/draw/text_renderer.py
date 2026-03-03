@@ -3,6 +3,7 @@ Module for rendering a quantum circuit in text format.
 """
 
 from math import ceil
+from typing import Type
 
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.circuit.draw import BaseRenderer, StyleConfig
@@ -117,7 +118,7 @@ class TextRenderer(BaseRenderer):
 
     def _draw_multiq_gate(
         self,
-        gate: Gate,
+        gate: Gate | Type[Gate],
         gate_text: str,
         targets: list[int],
         controls: list[int],
@@ -334,7 +335,7 @@ class TextRenderer(BaseRenderer):
 
     def _update_qbridge(
         self,
-        gate: Gate,
+        gate: Gate | Type[Gate],
         targets: list[int],
         controls: list[int],
         wire_list_control: list[int],

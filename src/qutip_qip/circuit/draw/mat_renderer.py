@@ -2,6 +2,7 @@
 Module for rendering a quantum circuit using matplotlib library.
 """
 
+from typing import Type
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
@@ -521,7 +522,7 @@ class MatRenderer(BaseRenderer):
 
     def _draw_multiq_gate(
         self,
-        gate: Gate,
+        gate: Gate | Type[Gate],
         targets: list[int],
         controls: list[int],
         cbits: list[int],

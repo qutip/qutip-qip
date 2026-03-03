@@ -7,11 +7,12 @@ from itertools import chain
 from copy import deepcopy
 from collections.abc import Iterable
 from math import pi  # Don't remove
+from typing import Type
 
 import numpy as np
 
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import get_unitary_gate
+from qutip_qip.operations import Gate, get_unitary_gate
 import qutip_qip.operations.gates as gates
 
 __all__ = ["read_qasm", "save_qasm", "print_qasm", "circuit_to_qasm_str"]
@@ -1004,7 +1005,7 @@ class QasmOutput:
         else:
             return "{} {};".format(q_name, q_regs)
 
-    def _qasm_defns(self, gate):
+    def _qasm_defns(self, gate: Gate | Type[Gate]):
         """
         Define QASM gates for QuTiP gates that do not have QASM counterparts.
 

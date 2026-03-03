@@ -1,4 +1,4 @@
-from qiskit.circuit.gate import Gate
+import qiskit
 from qiskit.circuit.library import (
     PhaseGate,
     XGate,
@@ -21,7 +21,7 @@ from qiskit.circuit.library import (
     CPhaseGate,
 )
 
-QUTIP_TO_QISKIT_GATE_MAP: dict[str, Gate] = {
+QUTIP_TO_QISKIT_GATE_MAP: dict[str, qiskit.circuit.Gate] = {
     # Single Qubit Gates
     "PHASEGATE": PhaseGate(theta=0.0),
     "X": XGate(),

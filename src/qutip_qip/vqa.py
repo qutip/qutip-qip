@@ -10,7 +10,7 @@ from scipy.optimize import minimize
 from scipy.linalg import expm_frechet
 
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import gate_sequence_product, get_unitary_gate, Gate
+from qutip_qip.operations import Gate, gate_sequence_product, get_unitary_gate
 
 
 class VQA:

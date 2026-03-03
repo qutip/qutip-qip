@@ -1,6 +1,7 @@
 from copy import deepcopy
 import pytest
 import itertools
+from typing import Type
 import numpy as np
 import qutip
 from qutip_qip.circuit import QubitCircuit
@@ -206,7 +207,7 @@ class TestGateExpansion:
             pytest.param(gates.R, 2, id="Rabi rotation"),
         ],
     )
-    def test_single_qubit_rotation(self, gate: Gate, n_angles: int):
+    def test_single_qubit_rotation(self, gate: Type[Gate], n_angles: int):
         base = qutip.rand_ket(2)
         if n_angles > 0:
             angles = 2 * np.pi * (np.random.rand(n_angles))
@@ -267,7 +268,7 @@ class TestGateExpansion:
             pytest.param(RandomThreeQubitGate, 2, id="random"),
         ],
     )
-    def test_three_qubit(self, gate: Gate, n_controls):
+    def test_three_qubit(self, gate: Type[Gate], n_controls):
         targets = [qutip.rand_ket(2) for _ in [None] * 3]
         others = [qutip.rand_ket(2) for _ in [None] * self.n_qubits]
         reference = gate.get_qobj() * qutip.tensor(targets)
@@ -507,7 +508,7 @@ CONTROLLED_GATE = [
 
 
 @pytest.mark.parametrize("gate", GATES + PARAMETRIC_GATE + CONTROLLED_GATE)
-def test_gate_inverse(gate: Gate):
+def test_gate_inverse(gate: Gate | Type[Gate]):
     n = 2**gate.num_qubits
     inverse = gate.inverse()
     np.testing.assert_allclose(

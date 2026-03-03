@@ -1,13 +1,14 @@
 """Conversion of circuits from qiskit to qutip_qip."""
 
 from collections.abc import Iterable
+from typing import Type
 from qiskit.circuit import QuantumCircuit
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations import Gate
 import qutip_qip.operations.gates as gates
 
 # TODO Expand this dictionary for other gates like CS etc.
-_map_gates: dict[str, Gate] = {
+_map_gates: dict[str, Type[Gate]] = {
     "p": gates.PHASE,
     "x": gates.X,
     "y": gates.Y,
@@ -22,7 +23,7 @@ _map_gates: dict[str, Gate] = {
     "u": gates.QASMU,
 }
 
-_map_controlled_gates: dict[str, Gate] = {
+_map_controlled_gates: dict[str, Type[Gate]] = {
     "cx": gates.CX,
     "cy": gates.CY,
     "cz": gates.CZ,

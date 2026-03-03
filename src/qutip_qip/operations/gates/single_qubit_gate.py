@@ -1,6 +1,5 @@
 from functools import cache, lru_cache
 from typing import Final, Type
-from abc import abstractmethod
 import warnings
 import numpy as np
 

@@ -1,5 +1,4 @@
 from typing import Final, Type
-from abc import abstractmethod
 from functools import cache, lru_cache
 import warnings
 
