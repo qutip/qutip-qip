@@ -139,38 +139,49 @@ The pre-defined gates for the class :class:`~.operations.Gate` are shown in the 
 ====================  ========================================
 Gate name                           Description
 ====================  ========================================
-"RX"                  Rotation around x axis
-"RY"                  Rotation around y axis
-"RZ"                  Rotation around z axis
-"R"                   Arbitrary single qubit rotation
 "X"                   Pauli-X gate
 "Y"                   Pauli-Y gate
 "Z"                   Pauli-Z gate
-"S"                   Single-qubit rotation or Z90
-"T"                   Square root of S gate
-"SQRTX"               Square root of X gate
 "H"                   Hadamard gate
-"PHASEGATE"           Add a phase one the state 1
+"S"                   Single-qubit rotation or Z90
+"Sdag"                Inverse of S gate
+"T"                   Square root of S gate
+"Tdag"                Inverse of T gate
+"SQRTX"               Square root of X gate
+"SQRTXdag"            Inverse of SQRTX gate
+"RX"                  Rotation around x axis
+"RY"                  Rotation around y axis
+"RZ"                  Rotation around z axis
+"PHASE"               Adds a relative phase to ket 1
+"R"                   Arbitrary single qubit rotation
+"QASMU"               U rotation gate used as a primitive in the QASM standard
+"CX"                  (CNOT) Controlled X gate
+"CY"                  Controlled Y gate
+"CZ"                  Controlled Z gate
+"CH"                  Controlled H gate
+"CS"                  Controlled S gate
+"CT"                  Controlled T gate
 "CRX"                 Controlled rotation around x axis
 "CRY"                 Controlled rotation around y axis
 "CRZ"                 Controlled rotation around z axis
-"CX"                  Controlled X gate (also called CNOT)
-"CY"                  Controlled Y gate
-"CZ"                  Controlled Z gate
-"CS"                  Controlled S gate
-"CT"                  Controlled T gate
-"CPHASE"              Controlled phase gate
-"QASMU"               U rotation gate used as a primitive in the QASM standard
-"BERKELEY"            Berkeley gate
-"SWAPalpha"           SWAPalpha gate
+"CPHASE"              Controlled Phase gate
+"CQASMU"              Controlled QASMU gate
 "SWAP"                Swap the states of two qubits
 "ISWAP"               Swap gate with additional phase for 01 and 10 states
+"ISWAPdag"            Inverse of ISWAP gate
 "SQRTSWAP"            Square root of the SWAP gate
+"SQRTSWAPdag"         Inverse of SQRTSWAP gate
 "SQRTISWAP"           Square root of the ISWAP gate
+"SQRTISWAPdag"        Inverse of SQRTISWAP gate
+"BERKELEY"            Berkeley gate
+"BERKELEYdag"         Inverse of BERKELEY gate
+"SWAPALPHA"           SWAPALPHA gate
 "MS"                  Mølmer-Sørensen gate
+"RZX"                 RZX gate
+"TOFFOLI"             (CCX) Toffoli gate
 "FREDKIN"             Fredkin gate
-"TOFFOLI"             Toffoli gate
-"GLOBALPHASE"         Global phase
+"GLOBALPHASE"         Global phase gate
+"IDLE"                Identity gate
 ====================  ========================================
 
 For some of the gates listed above, :class:`.QubitCircuit` also has a primitive :func:`.QubitCircuit.resolve_gates()` method that decomposes them into elementary gate sets such as CX or SWAP with single-qubit gates (RX, RY and RZ). However, this method is not fully optimized. It is very likely that the depth of the circuit can be further reduced by merging quantum gates. It is required that the gate resolution be carried out before the measurements to the circuit are added.
