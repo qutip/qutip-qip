@@ -4,7 +4,7 @@ from numpy.testing import assert_, assert_equal
 from qutip import Qobj, sigmaz, tensor
 
 from qutip_qip.algorithms.qpe import qpe
-from qutip_qip.operations import controlled, unitary_gate
+from qutip_qip.operations import controlled, get_unitary_gate
 
 
 class TestQPE(unittest.TestCase):
@@ -14,11 +14,11 @@ class TestQPE(unittest.TestCase):
 
     def test_custom_gate(self):
         """
-        Test if unitary_gate correctly stores and returns the quantum object
+        Test if get_unitary_gate correctly stores and returns the quantum object
         """
         U = Qobj([[0, 1], [1, 0]])
 
-        custom = unitary_gate(gate_name="custom", U=U)
+        custom = get_unitary_gate(gate_name="custom", U=U)
         qobj = custom.get_qobj()
         assert_((qobj - U).norm() < 1e-12)
 
@@ -29,7 +29,7 @@ class TestQPE(unittest.TestCase):
         U = Qobj([[0, 1], [1, 0]])
 
         controlled_u = controlled(
-            gate=unitary_gate(gate_name="CU", U=U),
+            gate=get_unitary_gate(gate_name="CU", U=U),
         )
 
         assert_equal(controlled_u.ctrl_value, 1)

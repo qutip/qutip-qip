@@ -8,7 +8,7 @@ from qutip_qip.operations import (
     Gate,
     expand_operator,
     controlled,
-    unitary_gate,
+    get_unitary_gate,
     qubit_clifford_group,
     hadamard_transform,
 )
@@ -256,7 +256,7 @@ class TestGateExpansion:
             expected = _tensor_with_entanglement(qubits, reference, [q1, q2])
             assert _infidelity(test, expected) < 1e-12
 
-    random_gate = unitary_gate("random", qutip.rand_unitary([2] * 1))
+    random_gate = get_unitary_gate("random", qutip.rand_unitary([2] * 1))
     RandomThreeQubitGate = controlled(random_gate, 2)
 
     @pytest.mark.parametrize(

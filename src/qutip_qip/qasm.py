@@ -11,7 +11,7 @@ from math import pi  # Don't remove
 import numpy as np
 
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import unitary_gate
+from qutip_qip.operations import get_unitary_gate
 import qutip_qip.operations.gates as gates
 
 __all__ = ["read_qasm", "save_qasm", "print_qasm", "circuit_to_qasm_str"]
@@ -804,7 +804,7 @@ class QasmProcessor:
 
                 if custom_gate_unitary is not None:
                     # Instantiate the wrapper gate
-                    gate_obj = unitary_gate(
+                    gate_obj = get_unitary_gate(
                         gate_name=gate_name,
                         U=custom_gate_unitary,
                     )

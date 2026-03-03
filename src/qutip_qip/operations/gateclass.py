@@ -283,7 +283,7 @@ class Gate(ABC, metaclass=_GateMetaClass):
         return False
 
 
-def unitary_gate(
+def get_unitary_gate(
     gate_name: str, U: Qobj, namespace: str = "custom"
 ) -> Type[Gate]:
     """
