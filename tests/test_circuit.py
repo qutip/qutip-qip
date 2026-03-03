@@ -136,28 +136,28 @@ class TestQubitCircuit:
         qc.add_gate(gates.RX(-np.pi / 2), targets=[3])
 
         # Test explicit gate addition
-        assert qc.instructions[0].operation.name == "CX"
+        assert qc.instructions[0].operation == gates.CX
         assert qc.instructions[0].targets == (1,)
         assert qc.instructions[0].controls == (0,)
 
         # Test direct gate addition
-        assert qc.instructions[1].operation.name == "SWAP"
+        assert qc.instructions[1].operation == gates.SWAP
         assert qc.instructions[1].targets == (1, 4)
 
         # Test specified position gate addition
-        assert qc.instructions[3].operation.name == "H"
+        assert qc.instructions[3].operation == gates.H
         assert qc.instructions[3].targets == (3,)
 
         # Test adding 1 qubit gate on [start, end] qubits
-        assert qc.instructions[5].operation.name == "RY"
+        assert isinstance(qc.instructions[5].operation, gates.RY)
         assert qc.instructions[5].targets == (4,)
         assert qc.instructions[5].operation.arg_value[0] == np.pi / 2
-        assert qc.instructions[6].operation.name == "RY"
+        assert isinstance(qc.instructions[6].operation, gates.RY)
         assert qc.instructions[6].targets == (5,)
         assert qc.instructions[6].operation.arg_value[0] == np.pi / 2
 
         # Test adding 1 qubit gate on qubits [3]
-        assert qc.instructions[7].operation.name == "RX"
+        assert isinstance(qc.instructions[7].operation, gates.RX)
         assert qc.instructions[7].targets == (3,)
         assert qc.instructions[7].operation.arg_value[0] == -np.pi / 2
 
@@ -322,7 +322,7 @@ class TestQubitCircuit:
         assert qc.instructions[5].cbits[0] == 2
 
         # checking if gates are added correctly with measurements
-        assert qc.instructions[2].operation.name == "TOFFOLI"
+        assert qc.instructions[2].operation == gates.TOFFOLI
         assert qc.instructions[4].cbits == (0, 1)
 
     @pytest.mark.parametrize(
@@ -351,15 +351,15 @@ class TestQubitCircuit:
         qc.add_gate(gates.S, targets=[1])
         qc.add_gate(gates.T, targets=[2])
 
-        assert qc.instructions[8].operation.name == "T"
-        assert qc.instructions[7].operation.name == "S"
-        assert qc.instructions[6].operation.name == "CZ"
-        assert qc.instructions[5].operation.name == "CT"
-        assert qc.instructions[4].operation.name == "Z"
-        assert qc.instructions[3].operation.name == "CS"
-        assert qc.instructions[2].operation.name == "Y"
-        assert qc.instructions[1].operation.name == "CY"
-        assert qc.instructions[0].operation.name == "X"
+        assert qc.instructions[8].operation == gates.T
+        assert qc.instructions[7].operation == gates.S
+        assert qc.instructions[6].operation == gates.CZ
+        assert qc.instructions[5].operation == gates.CT
+        assert qc.instructions[4].operation == gates.Z
+        assert qc.instructions[3].operation == gates.CS
+        assert qc.instructions[2].operation == gates.Y
+        assert qc.instructions[1].operation == gates.CY
+        assert qc.instructions[0].operation == gates.X
 
         assert qc.instructions[8].targets == (2,)
         assert qc.instructions[7].targets == (1,)
@@ -394,10 +394,10 @@ class TestQubitCircuit:
 
         qc_rev = qc.reverse_circuit()
 
-        assert qc_rev.instructions[0].operation.name == "H"
+        assert qc_rev.instructions[0].operation == gates.H
         assert qc_rev.instructions[1].operation.name == "M1"
-        assert qc_rev.instructions[2].operation.name == "CX"
-        assert qc_rev.instructions[3].operation.name == "RX"
+        assert qc_rev.instructions[2].operation == gates.CX
+        assert isinstance(qc_rev.instructions[3].operation, gates.RX)
 
         assert qc_rev.input_states[0] == "0"
         assert qc_rev.input_states[2] is None

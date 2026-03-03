@@ -5,6 +5,7 @@ from qutip import Qobj, sigmaz, tensor
 
 from qutip_qip.algorithms.qpe import qpe
 from qutip_qip.operations import controlled, get_unitary_gate
+from qutip_qip.operations import gates as std
 
 
 class TestQPE(unittest.TestCase):
@@ -127,11 +128,9 @@ class TestQPE(unittest.TestCase):
         num_counting = 2
 
         circuit1 = qpe(U, num_counting_qubits=num_counting, to_cnot=False)
-
         circuit2 = qpe(U, num_counting_qubits=num_counting, to_cnot=True)
-
         has_cnot = any(
-            gate.operation.name == "CX" for gate in circuit2.instructions
+            gate.operation == std.CX for gate in circuit2.instructions
         )
         assert_(has_cnot)
         assert_(len(circuit2.instructions) > len(circuit1.instructions))

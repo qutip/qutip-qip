@@ -283,10 +283,8 @@ class QasmProcessor:
                 elif command[0] == "}":
                     if not curr_gate.gates_inside:
                         raise NotImplementedError(
-                            "QASM: opaque gate {} are  \
-                                                   not allowed, please define \
-                                                   or omit \
-                                                   them".format(curr_gate.name)
+                            f"QASM: opaque gate {curr_gate.name} are  \
+                            not allowed, please define or omit them"
                         )
                     open_bracket_mode = False
                     self.gate_names.add(curr_gate.name)
@@ -1016,25 +1014,26 @@ class QasmOutput:
             QuTiP gate which needs to be defined in QASM format.
         """
 
-        if gate.name == "CRY":
+        if isinstance(gate, gates.CRY):
             gate_def = "gate cry(theta) a,b { cu3(theta,0,0) a,b; }"
-        elif gate.name == "CRX":
+        elif isinstance(gate, gates.CRX):
             gate_def = "gate crx(theta) a,b { cu3(theta,-pi/2,pi/2) a,b; }"
-        elif gate.name == "SQRTX":
+        elif gate == gates.SQRTX:
             gate_def = "gate sqrtnot a {h a; u1(-pi/2) a; h a; }"
-        elif gate.name == "CZ":
+        elif gate == gates.CZ:
             gate_def = "gate cz a,b { cu1(pi) a,b; }"
-        elif gate.name == "CS":
+        elif gate == gates.CS:
             gate_def = "gate cs a,b { cu1(pi/2) a,b; }"
-        elif gate.name == "CT":
+        elif gate == gates.CT:
             gate_def = "gate ct a,b { cu1(pi/4) a,b; }"
-        elif gate.name == "SWAP":
+        elif gate == gates.SWAP:
             gate_def = "gate swap a,b { cx a,b; cx b,a; cx a,b; }"
         else:
+            print(gate)
             err_msg = f"No definition specified for {gate.name} gate"
             raise NotImplementedError(err_msg)
 
-        self.output("// QuTiP definition for gate {}".format(gate.name))
+        self.output(f"// QuTiP definition for gate {gate.name}")
         self.output(gate_def)
         self.gate_name_map[gate.name] = gate.name.lower()
 

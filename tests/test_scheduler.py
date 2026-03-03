@@ -121,7 +121,7 @@ def _instructions1():
 
     instruction_list = []
     for circuit_ins in circuit3.instructions:
-        if circuit_ins.operation.name == "H":
+        if circuit_ins.operation == H:
             instruction_list.append(PulseInstruction(circuit_ins, duration=1))
         else:
             instruction_list.append(PulseInstruction(circuit_ins, duration=2))

@@ -192,7 +192,10 @@ class ControlledGate(Gate):
                 cls_or_self.ctrl_value,
             )
 
-        elif cls_or_self._target_inst.is_parametric():
+        elif (
+            isinstance(cls_or_self, object)
+            and cls_or_self._target_inst.is_parametric()
+        ):
             inverse_gate_class, param = cls_or_self._target_inst.inverse(
                 expanded=True
             )

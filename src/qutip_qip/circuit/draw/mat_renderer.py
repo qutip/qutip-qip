@@ -15,6 +15,7 @@ from matplotlib.patches import (
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.circuit.draw import BaseRenderer, StyleConfig
 from qutip_qip.operations import Gate
+from qutip_qip.operations import gates as std
 
 
 class MatRenderer(BaseRenderer):
@@ -543,7 +544,7 @@ class MatRenderer(BaseRenderer):
         )
         com_xskip = self._get_xskip(wire_list, layer)
 
-        if gate.name == "CNOT" or gate.name == "CX":
+        if gate in [std.CNOT, std.CX]:
             self._draw_control_node(controls[0], com_xskip, self.color)
             self._draw_target_node(targets[0], com_xskip, self.color)
             self._draw_qbridge(targets[0], controls[0], com_xskip, self.color)
@@ -554,7 +555,7 @@ class MatRenderer(BaseRenderer):
                 com_xskip,
             )
 
-        elif gate.name == "SWAP":
+        elif gate == std.SWAP:
             self._draw_swap_mark(targets[0], com_xskip, self.color)
             self._draw_swap_mark(targets[1], com_xskip, self.color)
             self._draw_qbridge(targets[0], targets[1], com_xskip, self.color)
@@ -565,7 +566,7 @@ class MatRenderer(BaseRenderer):
                 com_xskip,
             )
 
-        elif gate.name == "TOFFOLI":
+        elif gate == std.TOFFOLI:
             self._draw_control_node(controls[0], com_xskip, self.color)
             self._draw_control_node(controls[1], com_xskip, self.color)
             self._draw_target_node(targets[0], com_xskip, self.color)

@@ -8,6 +8,7 @@ import collections
 from typing import Callable
 
 from qutip_qip.circuit import QubitCircuit
+from qutip_qip.operations import gates as std
 
 
 # As a general note wherever you see {{}} in a python rf string that represents a {}
@@ -71,7 +72,7 @@ class TeXRenderer:
                 for n in range(self.num_qubits + self.num_cbits):
                     if targets and n in targets:
                         if len(targets) > 1:
-                            if gate.name == "SWAP":
+                            if gate == std.SWAP:
                                 if _swap_processing:
                                     col.append(r" \qswap \qw")
                                     continue
@@ -98,17 +99,17 @@ class TeXRenderer:
                                     rf" \ghost{{{self._gate_label(gate)}}} "
                                 )
 
-                        elif gate.name == "CNOT" or gate.name == "CX":
+                        elif gate in [std.CNOT, std.CX]:
                             col.append(r" \targ ")
-                        elif gate.name == "CY":
+                        elif gate == std.CY:
                             col.append(r" \targ ")
-                        elif gate.name == "CZ":
+                        elif gate == std.CZ:
                             col.append(r" \targ ")
-                        elif gate.name == "CS":
+                        elif gate == std.CS:
                             col.append(r" \targ ")
-                        elif gate.name == "CT":
+                        elif gate == std.CT:
                             col.append(r" \targ ")
-                        elif gate.name == "TOFFOLI":
+                        elif gate == std.TOFFOLI:
                             col.append(r" \targ ")
                         else:
                             col.append(rf" \gate{{{self._gate_label(gate)}}} ")

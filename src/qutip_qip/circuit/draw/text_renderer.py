@@ -7,6 +7,7 @@ from math import ceil
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.circuit.draw import BaseRenderer, StyleConfig
 from qutip_qip.operations import Gate
+from qutip_qip.operations import gates as std
 
 
 class TextRenderer(BaseRenderer):
@@ -443,7 +444,7 @@ class TextRenderer(BaseRenderer):
                 if gate.is_parametric() and gate.arg_label is not None:
                     gate_text = gate.arg_label
 
-                if gate.name == "SWAP":
+                if gate == std.SWAP:
                     wire_list = list(range(min(targets), max(targets) + 1))
                     width = 4 * ceil(self.style.gate_pad) + 1
                 else:
@@ -483,7 +484,7 @@ class TextRenderer(BaseRenderer):
                 self._update_cbridge(qubits, cbits, wire_list, width)
 
             elif circ_instruction.is_gate_instruction():
-                if gate.name == "SWAP":
+                if gate == std.SWAP:
                     self._update_swap_gate(wire_list)
                 else:
                     self._update_target_multiq(

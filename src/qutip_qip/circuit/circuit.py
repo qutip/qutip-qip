@@ -16,7 +16,7 @@ from qutip_qip.circuit import (
 )
 from qutip_qip.circuit.utils import _check_iterable, _check_limit_
 from qutip_qip.operations import Gate, Measurement, expand_operator
-from qutip_qip.operations.gates import RX, RY, RZ, GLOBALPHASE, GATE_CLASS_MAP
+from qutip_qip.operations import gates as std
 from qutip_qip.typing import IntList
 
 try:
@@ -116,7 +116,6 @@ class QubitCircuit:
         return self._instructions
 
     gates.setter
-
     def gates(self) -> None:
         warnings.warn(
             "QubitCircuit.gates has been replaced with QubitCircuit.instructions",
@@ -306,7 +305,7 @@ class QubitCircuit:
                 stacklevel=2,
             )
 
-        if isinstance(gate, GLOBALPHASE):
+        if isinstance(gate, std.GLOBALPHASE):
             self.add_global_phase(gate.arg_value[0])
             return
 
@@ -340,13 +339,13 @@ class QubitCircuit:
         # This conditional block can be remove if the gate input is only
         # restricted to Gate subclasses or object instead of strings in the future.
         if not isinstance(gate, Gate):
-            if type(gate) is str and gate in GATE_CLASS_MAP:
+            if type(gate) is str and gate in std.GATE_CLASS_MAP:
                 warnings.warn(
                     "Passing Gate as a string input has been deprecated and will be removed in future versions.",
                     DeprecationWarning,
                     stacklevel=2,
                 )
-                gate_class = GATE_CLASS_MAP[gate]
+                gate_class = std.GATE_CLASS_MAP[gate]
 
             elif issubclass(gate, Gate):
                 gate_class = gate
@@ -663,15 +662,15 @@ class QubitCircuit:
             targets = circ_instruction.targets
             controls = circ_instruction.controls
 
-            if gate.name in ("X", "Y", "Z"):
+            if gate in (std.X, std.Y, std.Z):
                 temp_resolved.add_global_phase(phase=np.pi / 2)
 
-                if gate.name == "X":
-                    temp_resolved.add_gate(RX(np.pi), targets=targets)
-                elif gate.name == "Y":
-                    temp_resolved.add_gate(RY(np.pi), targets=targets)
+                if gate == std.X:
+                    temp_resolved.add_gate(std.RX(np.pi), targets=targets)
+                elif gate == std.Y:
+                    temp_resolved.add_gate(std.RY(np.pi), targets=targets)
                 else:
-                    temp_resolved.add_gate(RZ(np.pi), targets=targets)
+                    temp_resolved.add_gate(std.RZ(np.pi), targets=targets)
 
             else:
                 try:
@@ -714,45 +713,45 @@ class QubitCircuit:
             targets = circ_instruction.targets
             controls = circ_instruction.controls
 
-            if gate.name == "RX" and "RX" not in basis_1q:
+            if isinstance(gate, std.RX) and "RX" not in basis_1q:
                 qc_temp.add_gate(
-                    RY(-half_pi, arg_label=r"-\pi/2"),
+                    std.RY(-half_pi, arg_label=r"-\pi/2"),
                     targets=targets,
                 )
                 qc_temp.add_gate(
-                    RZ(gate.arg_value[0], arg_label=gate.arg_label),
+                    std.RZ(gate.arg_value[0], arg_label=gate.arg_label),
                     targets=targets,
                 )
                 qc_temp.add_gate(
-                    RY(-half_pi, arg_label=r"\pi/2"),
-                    targets=targets,
-                )
-
-            elif gate.name == "RY" and "RY" not in basis_1q:
-                qc_temp.add_gate(
-                    RZ(-half_pi, arg_label=r"-\pi/2"),
-                    targets=targets,
-                )
-                qc_temp.add_gate(
-                    RX(gate.arg_value[0], arg_label=gate.arg_label),
-                    targets=targets,
-                )
-                qc_temp.add_gate(
-                    RZ(half_pi, arg_label=r"\pi/2"),
+                    std.RY(-half_pi, arg_label=r"\pi/2"),
                     targets=targets,
                 )
 
-            elif gate.name == "RZ" and "RZ" not in basis_1q:
+            elif isinstance(gate, std.RY) and "RY" not in basis_1q:
                 qc_temp.add_gate(
-                    RX(-half_pi, arg_label=r"-\pi/2"),
+                    std.RZ(-half_pi, arg_label=r"-\pi/2"),
                     targets=targets,
                 )
                 qc_temp.add_gate(
-                    RY(gate.arg_value[0], arg_label=gate.arg_label),
+                    std.RX(gate.arg_value[0], arg_label=gate.arg_label),
                     targets=targets,
                 )
                 qc_temp.add_gate(
-                    RX(half_pi, arg_label=r"\pi/2"),
+                    std.RZ(half_pi, arg_label=r"\pi/2"),
+                    targets=targets,
+                )
+
+            elif isinstance(gate, std.RZ) and "RZ" not in basis_1q:
+                qc_temp.add_gate(
+                    std.RX(-half_pi, arg_label=r"-\pi/2"),
+                    targets=targets,
+                )
+                qc_temp.add_gate(
+                    std.RY(gate.arg_value[0], arg_label=gate.arg_label),
+                    targets=targets,
+                )
+                qc_temp.add_gate(
+                    std.RX(half_pi, arg_label=r"\pi/2"),
                     targets=targets,
                 )
             else:
@@ -821,7 +820,7 @@ class QubitCircuit:
         # For Circuit's Global Phase
         qobj = Qobj([self.global_phase])
         if expand:
-            qobj = GLOBALPHASE(self.global_phase).get_qobj(
+            qobj = std.GLOBALPHASE(self.global_phase).get_qobj(
                 num_qubits=self.num_qubits
             )
 
