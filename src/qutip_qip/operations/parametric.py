@@ -101,7 +101,6 @@ class ParametricGate(Gate):
         """
         pass
 
-    @abstractmethod
     def get_qobj(self) -> Qobj:
         """
         Get the QuTiP quantum object representation using the current parameters.
@@ -111,6 +110,12 @@ class ParametricGate(Gate):
         qobj : qutip.Qobj
             The unitary matrix representing the gate with the specific `arg_value`.
         """
+        return self._compute_qobj(self.arg_value)
+
+    @staticmethod
+    @abstractmethod
+    def _compute_qobj(args: tuple) -> "Qobj":
+        """Every child must implement this pure math helper."""
         pass
 
     def inverse(self, expanded: bool = False) -> Gate:

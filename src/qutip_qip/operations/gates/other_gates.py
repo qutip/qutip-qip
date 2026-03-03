@@ -31,6 +31,9 @@ class GLOBALPHASE(AngleParametricGate):
     def __repr__(self):
         return f"Gate({self.name}, phase {self.arg_value[0]})"
 
+    def _compute_qobj():
+        pass
+
     def get_qobj(self, num_qubits=None):
         phase = self.arg_value[0]
         if num_qubits is None:

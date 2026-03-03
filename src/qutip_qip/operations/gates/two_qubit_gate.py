@@ -35,13 +35,6 @@ class _TwoQubitParametricGate(AngleParametricGate):
     __slots__ = ()
     num_qubits: Final[int] = 2
 
-    @abstractmethod
-    def _compute_qobj(arg_value: tuple[float, ...]) -> Qobj:
-        pass
-
-    def get_qobj(self) -> Qobj:
-        return self._compute_qobj(self.arg_value)
-
 
 class _ControlledTwoQubitGate(ControlledGate):
     """Abstract two-qubit Controlled Gate (both parametric and non-parametric)."""

@@ -21,13 +21,6 @@ class _SingleQubitParametricGate(AngleParametricGate):
     __slots__ = ()
     num_qubits: Final[int] = 1
 
-    @abstractmethod
-    def _compute_qobj(arg_value: tuple[float, ...]) -> Qobj:
-        pass
-
-    def get_qobj(self) -> Qobj:
-        return self._compute_qobj(self.arg_value)
-
 
 class X(_SingleQubitGate):
     """
