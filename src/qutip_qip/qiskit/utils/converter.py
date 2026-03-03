@@ -7,30 +7,39 @@ from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations import Gate
 import qutip_qip.operations.gates as gates
 
-# TODO Expand this dictionary for other gates like CS etc.
+# TODO Expand this dictionary for all the valid qiskit gates
+# https://quantum.cloud.ibm.com/docs/en/api/qiskit/circuit_library#standard-gates
 _map_gates: dict[str, Type[Gate]] = {
-    "p": gates.PHASE,
     "x": gates.X,
     "y": gates.Y,
     "z": gates.Z,
     "h": gates.H,
     "s": gates.S,
+    "sdag": gates.Sdag,
     "t": gates.T,
+    "tdag": gates.Tdag,
+    "sx": gates.SQRTX,
+    "sxdag": gates.SQRTXdag,
     "rx": gates.RX,
     "ry": gates.RY,
     "rz": gates.RZ,
+    "p": gates.PHASE,
+    "u3": gates.QASMU,
     "swap": gates.SWAP,
-    "u": gates.QASMU,
 }
 
 _map_controlled_gates: dict[str, Type[Gate]] = {
     "cx": gates.CX,
     "cy": gates.CY,
     "cz": gates.CZ,
+    "ch": gates.CH,
+    "cs": gates.CS,
+    "ct": gates.CT,
     "crx": gates.CRX,
     "cry": gates.CRY,
     "crz": gates.CRZ,
     "cp": gates.CPHASE,
+    "cu3": gates.CQASMU,
 }
 
 _ignore_gates: list[str] = ["id", "barrier"]
