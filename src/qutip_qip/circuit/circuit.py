@@ -946,9 +946,9 @@ class QubitCircuit:
             object to store QASM output.
         """
 
-        qasm_out.output("qreg q[{}];".format(self.num_qubits))
+        qasm_out.output(f"qreg q[{self.num_qubits}];")
         if self.num_cbits:
-            qasm_out.output("creg c[{}];".format(self.num_cbits))
+            qasm_out.output(f"creg c[{self.num_cbits}];")
         qasm_out.output(n=1)
 
         for circ_instruction in self.instructions:

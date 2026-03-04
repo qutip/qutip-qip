@@ -655,13 +655,13 @@ class Processor:
                 continue
             if pulse.tlist is None:
                 raise ValueError(
-                    "Pulse id={} is invalid. "
-                    "Please define a tlist for the pulse.".format(i)
+                    f"Pulse id={i} is invalid. "
+                    "Please define a tlist for the pulse."
                 )
             if pulse.tlist is not None and pulse.coeff is None:
                 raise ValueError(
-                    "Pulse id={} is invalid. "
-                    "Please define a coeff for the pulse.".format(i)
+                    f"Pulse id={i} is invalid. "
+                    "Please define a coeff for the pulse."
                 )
             coeff_len = len(pulse.coeff)
             tlist_len = len(pulse.tlist)
@@ -671,10 +671,10 @@ class Processor:
                 else:
                     raise ValueError(
                         "The length of tlist and coeff of the pulse "
-                        "labelled {} is invalid. "
+                        f"labelled {i} is invalid. "
                         "It's either len(tlist)=len(coeff) or "
                         "len(tlist)-1=len(coeff) for coefficients "
-                        "as step function".format(i)
+                        "as step function"
                     )
             else:
                 if coeff_len == tlist_len:
@@ -682,8 +682,8 @@ class Processor:
                 else:
                     raise ValueError(
                         "The length of tlist and coeff of the pulse "
-                        "labelled {} is invalid. "
-                        "It should be either len(tlist)=len(coeff)".format(i)
+                        f"labelled {i} is invalid. "
+                        "It should be either len(tlist)=len(coeff)"
                     )
         return True
 
@@ -703,9 +703,9 @@ class Processor:
                 return self.pulses[pulse_dict[pulse_name]]
             except KeyError:
                 raise KeyError(
-                    "Pulse name {} undefined. "
+                    f"Pulse name {pulse_name} undefined. "
                     "Please define it in the attribute "
-                    "`pulse_dict`.".format(pulse_name)
+                    "`pulse_dict`."
                 )
 
     @property

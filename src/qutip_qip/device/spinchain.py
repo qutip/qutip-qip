@@ -407,13 +407,11 @@ class SpinChainModel(Model):
         num_qubits = self.num_qubits
         num_coupling = self._get_num_coupling()
         return [
-            {f"sx{m}": r"$\sigma_x^{}$".format(m) for m in range(num_qubits)},
-            {f"sz{m}": r"$\sigma_z^{}$".format(m) for m in range(num_qubits)},
+            {f"sx{m}": rf"$\sigma_x^{m}$" for m in range(num_qubits)},
+            {f"sz{m}": rf"$\sigma_z^{m}$" for m in range(num_qubits)},
             {
-                f"g{m}": r"$\sigma_x^{}\sigma_x^{} +"
-                r" \sigma_y^{}\sigma_y^{}$".format(
-                    m, (m + 1) % num_qubits, m, (m + 1) % num_qubits
-                )
+                f"g{m}": rf"$\sigma_x^{m}\sigma_x^{(m + 1) % num_qubits} +"
+                rf" \sigma_y^{m}\sigma_y^{(m + 1) % num_qubits}$"
                 for m in range(num_coupling)
             },
         ]

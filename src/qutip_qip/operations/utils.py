@@ -82,7 +82,7 @@ def _targets_to_list(
     # If targets is smaller than N
     if N is not None:
         if not all([t < N for t in targets]):
-            raise ValueError("Targets must be smaller than N={}.".format(N))
+            raise ValueError(f"Targets must be smaller than N={N}.")
     return targets
 
 

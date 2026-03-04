@@ -67,9 +67,9 @@ class RelaxationNoise(Noise):
             return T
         else:
             raise ValueError(
-                "Invalid relaxation time T={},"
+                f"Invalid relaxation time T={T},"
                 "either the length is not equal to the number of qubits, "
-                "or T is not a positive number.".format(T)
+                "or T is not a positive number."
             )
 
     def get_noisy_pulses(
@@ -108,7 +108,7 @@ class RelaxationNoise(Noise):
         if len(self.t1) != N or len(self.t2) != N:
             raise ValueError(
                 "Length of t1 or t2 does not match N, "
-                "len(t1)={}, len(t2)={}".format(len(self.t1), len(self.t2))
+                f"len(t1)={len(self.t1)}, len(t2)={len(self.t2)}"
             )
 
         if self.targets is None:
@@ -129,8 +129,8 @@ class RelaxationNoise(Noise):
                 if t1 is not None:
                     if 2 * t1 < t2:
                         raise ValueError(
-                            "t1={}, t2={} does not fulfill "
-                            "2*t1>t2".format(t1, t2)
+                            f"t1={t1}, t2={t2} does not fulfill "
+                            "2*t1>t2"
                         )
                     T2_eff = 1.0 / (1.0 / t2 - 1.0 / 2.0 / t1)
                 else:

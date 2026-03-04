@@ -263,7 +263,7 @@ class TeXRenderer:
     @classmethod
     def _make_converter(
         self, configuration: dict
-    ) -> Callable[dict, str | bytes]:
+    ) -> Callable[[str, int], str | bytes]:
         """
         Create the actual conversion function of signature
             file_stem: str -> 'T,

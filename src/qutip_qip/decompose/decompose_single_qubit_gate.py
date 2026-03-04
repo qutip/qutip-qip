@@ -93,7 +93,7 @@ def _ZXZ_rotation(input_gate):
     Phase_gate = GLOBALPHASE(global_phase_angle)
     Rz_alpha = RZ(
         alpha,
-        arg_label=rf"{(alpha / np.pi):0.2f} \times \pi".format,
+        arg_label=rf"{(alpha / np.pi):0.2f} \times \pi",
     )
     Rx_theta = RX(
         theta,

@@ -153,7 +153,7 @@ class TestCircuitProcessor:
             np.exp(-1.0 / t2 * end_time) * 0.5 + 0.5,
             rtol=1e-5,
             err_msg="Error in t1 & t2 simulation, "
-            "with t1={} and t2={}".format(t1, t2),
+            f"with t1={t1} and t2={t2}",
         )
 
     def test_plot(self):

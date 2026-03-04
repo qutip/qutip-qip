@@ -56,9 +56,7 @@ def _tokenize_line(command):
         if groups:
             tokens = ["if", "(", groups.group(1), ")"]
             tokens_gate = _tokenize_line(
-                "{} ({}) {}".format(
-                    groups.group(2), groups.group(3), groups.group(4)
-                )
+                f"{groups.group(2)} ({groups.group(3)}) {groups.group(4)}"
             )
             tokens += tokens_gate
         # for classically controlled gates without arguments
@@ -770,9 +768,9 @@ class QasmProcessor:
         reg_set = self._regs_processor(regs, "gate")
 
         if args:
-            gate_name = "{}({})".format(command[0], ",".join(args))
+            gate_name = f"{command[0]}({','.join(args)})"
         else:
-            gate_name = "{}".format(command[0])
+            gate_name = f"{command[0]}"
 
         # creates custom-gate (if required) using gate defn and provided args
         custom_gate_unitary = None
@@ -849,9 +847,7 @@ class QasmProcessor:
                     classical_control_value,
                 )
             else:
-                err = "QASM: {} is not a valid QASM command.".format(
-                    command[0]
-                )
+                err = f"QASM: {command[0]} is not a valid QASM command."
                 raise SyntaxError(err)
 
 
@@ -994,16 +990,16 @@ class QasmOutput:
         q_regs = q_controls + q_targets
 
         if isinstance(q_targets[0], int):
-            q_regs = ",".join(["q[{}]".format(reg) for reg in q_regs])
+            q_regs = ",".join([f"q[{reg}]" for reg in q_regs])
         else:
             q_regs = ",".join(q_regs)
 
         if q_args:
             if isinstance(q_args, Iterable):
                 q_args = ",".join([str(arg) for arg in q_args])
-            return "{}({}) {};".format(q_name, q_args, q_regs)
+            return f"{q_name}({q_args}) {q_regs};"
         else:
-            return "{} {};".format(q_name, q_regs)
+            return f"{q_name} {q_regs};"
 
     def _qasm_defns(self, gate: Gate | Type[Gate]):
         """
@@ -1145,4 +1141,4 @@ def save_qasm(qc, file_loc):
     lines = qasm_out._qasm_output(qc)
     with open(file_loc, "w") as f:
         for line in lines:
-            f.write("{}\n".format(line))
+            f.write(f"{line}\n")

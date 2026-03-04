@@ -42,9 +42,9 @@ def get_control_latex(model):
     num_qubits = model.num_qubits
     num_coupling = model._get_num_coupling()
     return [
-        {f"sx{m}": r"$\sigma_x^{}$".format(m) for m in range(num_qubits)},
-        {f"sz{m}": r"$\sigma_z^{}$".format(m) for m in range(num_qubits)},
-        {f"g{m}": r"$g_{}$".format(m) for m in range(num_coupling)},
+        {f"sx{m}": rf"$\sigma_x^{m}$" for m in range(num_qubits)},
+        {f"sz{m}": rf"$\sigma_z^{m}$" for m in range(num_qubits)},
+        {f"g{m}": rf"$g_{m}$" for m in range(num_coupling)},
     ]
 
 

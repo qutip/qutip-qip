@@ -134,9 +134,7 @@ class _EvoElement:
         try:
             return self._get_qobjevo_helper(spline_kind, dims=dims)
         except Exception as err:
-            print(
-                "The Evolution element went wrong was\n {}".format(str(self))
-            )
+            print(f"The Evolution element went wrong was\n {str(self)}")
             raise (err)
 
     def __str__(self) -> str:
