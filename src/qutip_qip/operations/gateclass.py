@@ -6,6 +6,9 @@ from typing import Type
 
 import numpy as np
 from qutip import Qobj
+from qutip_qip.namespace import NameSpace, NameSpaceRegistry, STD_NS
+
+GATE_NS = NameSpace("gates", parent=STD_NS)
 
 
 class _GateMetaClass(ABCMeta):
@@ -41,17 +44,8 @@ class _GateMetaClass(ABCMeta):
             cls._is_frozen = True
             return
 
-        namespace = attrs.get("namespace", "std")
-        name = cls.name
-
-        if namespace not in cls._registry:
-            cls._registry[namespace] = set()
-
-        if name in cls._registry[namespace]:
-            raise TypeError(
-                f"Gate Conflict: '{name}' is already defined in namespace '{namespace}' "
-            )
-        cls._registry[namespace].add(name)
+        namespace = attrs.get("namespace", GATE_NS)
+        NameSpaceRegistry.register(namespace, cls.name, cls)
 
         # This class attribute (flag) signals class (or subclass) is built,
         # don't overwrite any defaults like num_qubits etc in __setattr__.
