@@ -50,7 +50,7 @@ class _GateMetaClass(ABCMeta):
 
         # We obviously don't register abstract classes to the namespace.
         namespace = cls.namespace
-        namespace.register(cls.name, cls)
+        namespace.register(cls.name)
 
     def __setattr__(cls, name: str, value: any) -> None:
         """

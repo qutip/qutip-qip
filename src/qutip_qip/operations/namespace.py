@@ -36,7 +36,7 @@ GlobalNameSpaceRegistry = _GlobalRegistry()
 class NameSpace:
     local_name: str
     parent: NameSpace | None = None
-    _registry: dict[str, any] = field(default_factory=dict)
+    _registry: set[str] = field(default_factory=set)
 
     def __post_init__(self):
         if "." in self.local_name:
@@ -52,37 +52,14 @@ class NameSpace:
             return f"{self.parent.name}.{self.local_name}"
         return self.local_name
 
-    def register(self, name: str, item: any) -> None:
+    def register(self, name: str) -> None:
         """Safely adds an item to the specific namespace."""
         name_upper = name.upper()
         if name_upper in self._registry:
-            existing_item = self._registry[name_upper]
-
-            # Tolerate harmless reloads from pytest double-imports or Jupyter cell re-runs
-            if getattr(existing_item, "__module__", None) == getattr(
-                item, "__module__", None
-            ) and getattr(existing_item, "__name__", None) == getattr(
-                item, "__name__", None
-            ):
-
-                # Silently overwrite with the fresh reloaded class and continue
-                self._registry[name_upper] = item
-                return
-
             raise ValueError(
                 f"'{name_upper}' already exists in namespace '{self.name}'"
             )
-
-        self._registry[name_upper] = item
-
-    def get(self, name: str) -> any:
-        """Retrieves an item from a specific namespace."""
-        try:
-            return self._registry[name.upper()]
-        except KeyError:
-            raise KeyError(
-                f"'{name.upper()}' not found in namespace '{self.name}'."
-            )
+        self._registry.add(name_upper)
 
     def __hash__(self) -> int:
         return hash(self.name)
