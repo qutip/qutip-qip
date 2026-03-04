@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import List, Tuple, Hashable
+from typing import Hashable
 
 from qutip import Qobj
 from qutip_qip.noise import Noise
@@ -40,7 +40,7 @@ class Model:
         self._noise = []
 
     # TODO make this a property
-    def get_all_drift(self) -> List[Tuple[Qobj, List[int]]]:
+    def get_all_drift(self) -> list[tuple[Qobj, list[int]]]:
         """
         Get all the drift Hamiltonians.
 
@@ -52,7 +52,7 @@ class Model:
         """
         return self._drift
 
-    def get_control(self, label: Hashable) -> Tuple[Qobj, List[int]]:
+    def get_control(self, label: Hashable) -> tuple[Qobj, list[int]]:
         """
         Get the control Hamiltonian corresponding to the label.
 
@@ -71,7 +71,7 @@ class Model:
                 label = self._old_index_label_map[label]
         return self._controls[label]
 
-    def get_control_labels(self) -> List[Hashable]:
+    def get_control_labels(self) -> list[Hashable]:
         """
         Get a list of all available control Hamiltonians.
         Optional, required only when plotting the pulses or
@@ -85,7 +85,7 @@ class Model:
         """
         return list(self._controls.keys())
 
-    def get_noise(self) -> List[Noise]:
+    def get_noise(self) -> list[Noise]:
         """
         Get a list of :obj:`.Noise` objects.
         Single qubit relaxation (T1, T2) are not included here.
