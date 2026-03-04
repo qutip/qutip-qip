@@ -56,6 +56,19 @@ class NameSpace:
         """Safely adds an item to the specific namespace."""
         name_upper = name.upper()
         if name_upper in self._registry:
+            existing_item = self._registry[name_upper]
+
+            # Tolerate harmless reloads from pytest double-imports or Jupyter cell re-runs
+            if getattr(existing_item, "__module__", None) == getattr(
+                item, "__module__", None
+            ) and getattr(existing_item, "__name__", None) == getattr(
+                item, "__name__", None
+            ):
+
+                # Silently overwrite with the fresh reloaded class and continue
+                self._registry[name_upper] = item
+                return
+
             raise ValueError(
                 f"'{name_upper}' already exists in namespace '{self.name}'"
             )

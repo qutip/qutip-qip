@@ -167,7 +167,7 @@ class TestQubitCircuit:
         assert qc.instructions[7].operation.arg_value[0] == -np.pi / 2
 
         class DUMMY1(Gate):
-            _namespace = NS_USER
+            namespace = NS_USER
             num_qubits = 1
             self_inverse = False
 
@@ -421,7 +421,7 @@ class TestQubitCircuit:
             return Qobj(mat, dims=[[2, 2], [2, 2]])
 
         class T1(Gate):
-            _namespace = NS_USER
+            namespace = NS_USER
             num_qubits = 1
             self_inverse = True
 
@@ -449,7 +449,7 @@ class TestQubitCircuit:
         mat3 = qp.rand_unitary(3)
 
         class CTRLMAT3(Gate):
-            _namespace = NS_USER
+            namespace = NS_USER
             num_qubits = 2
             self_inverse = False
 

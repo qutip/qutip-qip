@@ -15,7 +15,7 @@ from qutip_qip.compiler import (
     GateCompiler,
 )
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import AngleParametricGate
+from qutip_qip.operations import AngleParametricGate, NS_USER
 from qutip_qip.operations.gates import X, RX
 from qutip import basis, fidelity
 
@@ -81,6 +81,7 @@ def test_compiling_gates_different_sampling_number():
             ]
 
     class U1(AngleParametricGate):
+        namespace = NS_USER
         num_qubits = 1
         num_params = 1
         self_inverse = False
@@ -89,6 +90,7 @@ def test_compiling_gates_different_sampling_number():
             pass
 
     class U2(AngleParametricGate):
+        namespace = NS_USER
         num_qubits = 2
         num_params = 1
         self_inverse = False

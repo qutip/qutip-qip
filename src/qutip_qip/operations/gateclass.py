@@ -8,21 +8,23 @@ import numpy as np
 from qutip import Qobj
 from qutip_qip.operations.namespace import NameSpace, NS_USER
 
+_read_only_set: set[str] = set(
+    (
+        "namespace",
+        "num_qubits",
+        "num_ctrl_qubits",
+        "num_params",
+        "ctrl_value",
+        "self_inverse",
+        "is_clifford",
+        "target_gate",
+        "latex_str",
+    )
+)
+
 
 class _GateMetaClass(ABCMeta):
     _registry: dict[str, set] = {}
-    _read_only_set: set[str] = set(
-        (
-            "num_qubits",
-            "num_ctrl_qubits",
-            "num_params",
-            "ctrl_value",
-            "self_inverse",
-            "is_clifford",
-            "target_gate",
-            "latex_str",
-        )
-    )
 
     def __init__(cls, name, bases, attrs):
         """
@@ -47,7 +49,7 @@ class _GateMetaClass(ABCMeta):
         cls._is_frozen = True
 
         # We obviously don't register abstract classes to the namespace.
-        namespace = cls._namespace
+        namespace = cls.namespace
         namespace.register(cls.name, cls)
 
     def __setattr__(cls, name: str, value: any) -> None:
@@ -92,8 +94,8 @@ class _GateMetaClass(ABCMeta):
             cls_name = getattr(cls, "name", None)
             other_name = getattr(other, "name", None)
 
-            cls_namespace = getattr(cls, "_namespace", "std")
-            other_namespace = getattr(other, "_namespace", "std")
+            cls_namespace = getattr(cls, "namespace", None)
+            other_namespace = getattr(other, "namespace", None)
 
             # They are equal if they share the same name and namespace
             return cls_name == other_name and cls_namespace == other_namespace
@@ -161,7 +163,7 @@ class Gate(ABC, metaclass=_GateMetaClass):
     # instead of a default dynamic sized __dict__ created in object instances.
     # This helps save memory, faster lookup time & restrict adding new attributes to class.
     __slots__ = ()
-    _namespace: NameSpace
+    namespace: NameSpace
 
     name: str
     num_qubits: int
@@ -183,6 +185,11 @@ class Gate(ABC, metaclass=_GateMetaClass):
         # Skip the below check for an abstract class
         if inspect.isabstract(cls):
             return
+
+        if getattr(cls, "namespace", None) is None:
+            raise AttributeError(
+                f"Missing attribute namespace from {cls.__name__}"
+            )
 
         # If name attribute in subclass is not defined, set it to the name of the subclass
         # e.g. class H(Gate):
@@ -276,7 +283,7 @@ class Gate(ABC, metaclass=_GateMetaClass):
 
 
 def get_unitary_gate(
-    gate_name: str, U: Qobj, namespace: NameSpace = NS_USER
+    gate_name: str, U: Qobj, gate_namespace: NameSpace = NS_USER
 ) -> Type[Gate]:
     """
     Gate Factory for Custom Gate that wraps an arbitrary unitary matrix U.
@@ -295,7 +302,7 @@ def get_unitary_gate(
 
     class _CustomGate(Gate):
         __slots__ = ()
-        _namespace = namespace
+        namespace = gate_namespace
         name = gate_name
         num_qubits = int(n)
         self_inverse = U == U.dag()

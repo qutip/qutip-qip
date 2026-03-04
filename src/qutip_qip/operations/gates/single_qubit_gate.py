@@ -5,14 +5,14 @@ import numpy as np
 
 from qutip import Qobj, sigmax, sigmay, sigmaz, qeye
 from qutip_qip.operations import Gate, AngleParametricGate
-from qutip_qip.operations.namespace import NS_GATE
+from qutip_qip.operations.namespace import NS_GATE, NameSpace
 
 
 class _SingleQubitGate(Gate):
     """Abstract one-qubit gate."""
 
     __slots__ = ()
-    _namespace = NS_GATE
+    namespace: NameSpace = NS_GATE
     num_qubits: Final[int] = 1
 
 
@@ -20,6 +20,7 @@ class _SingleQubitParametricGate(AngleParametricGate):
     """Abstract one-qubit parametric gate."""
 
     __slots__ = ()
+    namespace: NameSpace = NS_GATE
     num_qubits: Final[int] = 1
 
 

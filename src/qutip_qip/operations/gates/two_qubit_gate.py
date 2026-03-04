@@ -26,7 +26,7 @@ class _TwoQubitGate(Gate):
     """Abstract two-qubit gate."""
 
     __slots__ = ()
-    _namespace = NS_GATE
+    namespace = NS_GATE
     num_qubits: Final[int] = 2
 
 
@@ -34,7 +34,7 @@ class _TwoQubitParametricGate(AngleParametricGate):
     """Abstract two-qubit Parametric Gate (non-controlled)."""
 
     __slots__ = ()
-    _namespace = NS_GATE
+    namespace = NS_GATE
     num_qubits: Final[int] = 2
 
 
@@ -42,7 +42,7 @@ class _ControlledTwoQubitGate(ControlledGate):
     """Abstract two-qubit Controlled Gate (both parametric and non-parametric)."""
 
     __slots__ = ()
-    _namespace = NS_GATE
+    namespace = NS_GATE
 
     num_qubits: Final[int] = 2
     num_ctrl_qubits: Final[int] = 1

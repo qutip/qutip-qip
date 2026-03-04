@@ -20,7 +20,7 @@ class GLOBALPHASE(AngleParametricGate):
     """
 
     __slots__ = "phase"
-    _namespace = NS_GATE
+    namespace = NS_GATE
 
     num_qubits: Final[int] = 0
     num_params: Final[int] = 1
@@ -69,7 +69,7 @@ class TOFFOLI(ControlledGate):
     """
 
     __slots__ = ()
-    _namespace = NS_GATE
+    namespace = NS_GATE
 
     num_qubits: Final[int] = 3
     num_ctrl_qubits: Final[int] = 2
@@ -118,7 +118,7 @@ class FREDKIN(ControlledGate):
     """
 
     __slots__ = ()
-    _namespace = NS_GATE
+    namespace = NS_GATE
 
     num_qubits: Final[int] = 3
     num_ctrl_qubits: Final[int] = 1

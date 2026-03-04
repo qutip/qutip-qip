@@ -146,7 +146,7 @@ class VQA:
                     current_params = angles[i : i + n] if n > 0 else []
                     gate_instance = get_unitary_gate(
                         gate_name=block.name,
-                        namespace="vqa",
+                        # namespace="vqa",
                         U=block.get_unitary(current_params),
                     )
 
