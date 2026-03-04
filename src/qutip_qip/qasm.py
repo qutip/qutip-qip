@@ -5,7 +5,7 @@ import os
 import warnings
 from itertools import chain
 from copy import deepcopy
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from math import pi  # Don't remove
 from typing import Type
 
@@ -796,7 +796,7 @@ class QasmProcessor:
                     classical_control_value=classical_control_value,
                 )
             else:
-                if not isinstance(regs, Iterable):
+                if not isinstance(regs, Sequence):
                     regs = [regs]
 
                 if custom_gate_unitary is not None:

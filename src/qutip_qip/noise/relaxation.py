@@ -1,10 +1,10 @@
-import numbers
-import numpy as np
 from collections.abc import Iterable
+import numpy as np
 
 from qutip import destroy, num
 from qutip_qip.noise import Noise
 from qutip_qip.pulse import Pulse
+from qutip_qip.typing import Int, IntSequence, Real, RealSequence
 
 
 class RelaxationNoise(Noise):
@@ -37,15 +37,16 @@ class RelaxationNoise(Noise):
 
     def __init__(
         self,
-        t1: float | list[float] | None = None,
-        t2: float | list[float] | None = None,
-        targets: int | list[int] | None = None,
+        t1: Real | RealSequence | None = None,
+        t2: Real | RealSequence | None = None,
+        targets: Int | IntSequence | None = None,
     ):
         self.t1 = t1
         self.t2 = t2
         self.targets = targets
 
-    def _T_to_list(self, T: float | list[float], N: int) -> list[float]:
+    @staticmethod
+    def _T_to_list(T: Real | RealSequence, N: int) -> RealSequence:
         """
         Check if the relaxation time is valid
 
@@ -61,7 +62,7 @@ class RelaxationNoise(Noise):
         T: list of float
             The relaxation time in Python list form
         """
-        if (isinstance(T, numbers.Real) and T > 0) or T is None:
+        if (isinstance(T, Real) and T > 0) or T is None:
             return [T] * N
         elif isinstance(T, Iterable) and len(T) == N:
             return T
@@ -74,8 +75,8 @@ class RelaxationNoise(Noise):
 
     def get_noisy_pulses(
         self,
-        dims: list[int] | None = None,
-        pulses: list[Pulse] | None = None,
+        dims: IntSequence | None = None,
+        pulses: RealSequence | None = None,
         systematic_noise: Pulse | None = None,
     ) -> tuple[list[Pulse], Pulse]:
         """

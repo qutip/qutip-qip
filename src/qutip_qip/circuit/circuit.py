@@ -14,10 +14,10 @@ from qutip_qip.circuit import (
     GateInstruction,
     MeasurementInstruction,
 )
-from qutip_qip.circuit.utils import check_limit, convert_int_to_list
 from qutip_qip.operations import Gate, Measurement, expand_operator
 from qutip_qip.operations import gates as std
 from qutip_qip.typing import Int, IntSequence
+from qutip_qip.utils import check_limit, convert_type_input_to_sequence
 
 try:
     from IPython.display import Image as DisplayImage, SVG as DisplaySVG
@@ -240,9 +240,9 @@ class QubitCircuit:
     def add_gate(
         self,
         gate: Gate | Type[Gate] | str,
-        targets: int | Iterable[int] = (),
-        controls: int | Iterable[int] = (),
-        classical_controls: int | Iterable[int] = (),
+        targets: int | IntSequence = (),
+        controls: int | IntSequence = (),
+        classical_controls: int | IntSequence = (),
         classical_control_value: int | None = None,
         style: dict = None,
         arg_value: None = None,
@@ -304,10 +304,10 @@ class QubitCircuit:
             return
 
         # Handling case for integer input
-        targets = convert_int_to_list("targets", targets)
-        controls = convert_int_to_list("controls", controls)
-        classical_controls = convert_int_to_list(
-            "classical_controls", classical_controls
+        targets = convert_type_input_to_sequence(int, "targets", targets)
+        controls = convert_type_input_to_sequence(int, "controls", controls)
+        classical_controls = convert_type_input_to_sequence(
+            int, "classical_controls", classical_controls
         )
 
         # Checks each element within the limit
