@@ -6,7 +6,7 @@ from typing import Type
 
 import numpy as np
 from qutip import Qobj
-from qutip_qip.namespace import NameSpace, NameSpaceRegistry, STD_NS
+from qutip_qip.operations import NameSpace, STD_NS
 
 GATE_NS = NameSpace("gates", parent=STD_NS)
 
@@ -44,12 +44,13 @@ class _GateMetaClass(ABCMeta):
             cls._is_frozen = True
             return
 
-        namespace = attrs.get("namespace", GATE_NS)
-        NameSpaceRegistry.register(namespace, cls.name, cls)
-
-        # This class attribute (flag) signals class (or subclass) is built,
+        # _is_frozen class attribute (flag) signals class (or subclass) is built,
         # don't overwrite any defaults like num_qubits etc in __setattr__.
         cls._is_frozen = True
+        namespace = attrs.get("namespace", GATE_NS)
+
+        # We obviously don't register abstract classes to the namespace.
+        namespace.register(cls.name, cls)
 
     def __setattr__(cls, name: str, value: any) -> None:
         """

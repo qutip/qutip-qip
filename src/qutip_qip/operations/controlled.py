@@ -4,7 +4,12 @@ from functools import partial
 from abc import abstractmethod
 
 from qutip import Qobj
-from qutip_qip.operations import Gate, controlled_gate_unitary
+from qutip_qip.operations import (
+    Gate,
+    NameSpace,
+    USER_NS,
+    controlled_gate_unitary,
+)
 
 
 class class_or_instance_method:
@@ -238,7 +243,7 @@ def controlled(
     n_ctrl_qubits: int = 1,
     control_value: int | None = None,
     gate_name: str | None = None,
-    namespace: str = "custom",
+    gate_namespace: NameSpace = USER_NS,
 ) -> ControlledGate:
     """
     Gate Factory for Controlled Gate that takes a gate and num_ctrl_qubits.
@@ -252,7 +257,7 @@ def controlled(
 
     class _CustomControlledGate(ControlledGate):
         __slots__ = ()
-        _namespace = namespace
+        namespace = gate_namespace
         name = gate_name
         num_qubits = n_ctrl_qubits + gate.num_qubits
         num_ctrl_qubits = n_ctrl_qubits

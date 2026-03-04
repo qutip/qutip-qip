@@ -2,6 +2,12 @@
 Operations on quantum circuits.
 """
 
+from .namespace import (
+    GlobalNameSpaceRegistry,
+    NameSpace,
+    STD_NS,
+    USER_NS,
+)
 from .utils import (
     hadamard_transform,
     expand_operator,
@@ -48,6 +54,10 @@ from .old_gates import (
 )
 
 __all__ = [
+    "NameSpace",
+    "GlobalNameSpaceRegistry",
+    "STD_NS",
+    "USER_NS",
     "Gate",
     "ParametricGate",
     "ControlledGate",
