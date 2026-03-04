@@ -6,9 +6,7 @@ from typing import Type
 
 import numpy as np
 from qutip import Qobj
-from qutip_qip.operations import NameSpace, STD_NS
-
-GATE_NS = NameSpace("gates", parent=STD_NS)
+from qutip_qip.operations.namespace import NameSpace, NS_USER
 
 
 class _GateMetaClass(ABCMeta):
@@ -47,9 +45,9 @@ class _GateMetaClass(ABCMeta):
         # _is_frozen class attribute (flag) signals class (or subclass) is built,
         # don't overwrite any defaults like num_qubits etc in __setattr__.
         cls._is_frozen = True
-        namespace = attrs.get("namespace", GATE_NS)
 
         # We obviously don't register abstract classes to the namespace.
+        namespace = cls._namespace
         namespace.register(cls.name, cls)
 
     def __setattr__(cls, name: str, value: any) -> None:
@@ -163,14 +161,13 @@ class Gate(ABC, metaclass=_GateMetaClass):
     # instead of a default dynamic sized __dict__ created in object instances.
     # This helps save memory, faster lookup time & restrict adding new attributes to class.
     __slots__ = ()
+    _namespace: NameSpace
 
-    _namespace: str = "std"
+    name: str
     num_qubits: int
     self_inverse: bool = False
     is_clifford: bool = False
-
-    name = None
-    latex_str = None
+    latex_str: str
 
     def __init_subclass__(cls, **kwargs):
         """
@@ -279,7 +276,7 @@ class Gate(ABC, metaclass=_GateMetaClass):
 
 
 def get_unitary_gate(
-    gate_name: str, U: Qobj, namespace: str = "custom"
+    gate_name: str, U: Qobj, namespace: NameSpace = NS_USER
 ) -> Type[Gate]:
     """
     Gate Factory for Custom Gate that wraps an arbitrary unitary matrix U.

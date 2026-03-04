@@ -130,8 +130,7 @@ class RelaxationNoise(Noise):
                 if t1 is not None:
                     if 2 * t1 < t2:
                         raise ValueError(
-                            f"t1={t1}, t2={t2} does not fulfill "
-                            "2*t1>t2"
+                            f"t1={t1}, t2={t2} does not fulfill " "2*t1>t2"
                         )
                     T2_eff = 1.0 / (1.0 / t2 - 1.0 / 2.0 / t1)
                 else:

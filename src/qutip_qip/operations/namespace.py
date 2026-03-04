@@ -81,5 +81,6 @@ class NameSpace:
         return str(self)
 
 
-STD_NS = NameSpace("std")  # DEFAULT NAMESPACE
-USER_NS = NameSpace("user")  # Default for anything defined by the user
+NS_STD = NameSpace("std")  # DEFAULT NAMESPACE
+NS_GATE = NameSpace("gates", parent=NS_STD)  # Default Gate Namespace
+NS_USER = NameSpace("user")  # Default for anything defined by the user

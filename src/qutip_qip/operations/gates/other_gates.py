@@ -7,6 +7,7 @@ from qutip import Qobj
 
 from qutip_qip.operations import Gate, ControlledGate, AngleParametricGate
 from qutip_qip.operations.gates import X, SWAP
+from qutip_qip.operations.namespace import NS_GATE
 
 
 class GLOBALPHASE(AngleParametricGate):
@@ -19,6 +20,7 @@ class GLOBALPHASE(AngleParametricGate):
     """
 
     __slots__ = "phase"
+    _namespace = NS_GATE
 
     num_qubits: Final[int] = 0
     num_params: Final[int] = 1
@@ -67,6 +69,7 @@ class TOFFOLI(ControlledGate):
     """
 
     __slots__ = ()
+    _namespace = NS_GATE
 
     num_qubits: Final[int] = 3
     num_ctrl_qubits: Final[int] = 2
@@ -115,6 +118,7 @@ class FREDKIN(ControlledGate):
     """
 
     __slots__ = ()
+    _namespace = NS_GATE
 
     num_qubits: Final[int] = 3
     num_ctrl_qubits: Final[int] = 1

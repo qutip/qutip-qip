@@ -5,8 +5,7 @@ Operations on quantum circuits.
 from .namespace import (
     GlobalNameSpaceRegistry,
     NameSpace,
-    STD_NS,
-    USER_NS,
+    NS_USER,
 )
 from .utils import (
     hadamard_transform,
@@ -56,8 +55,7 @@ from .old_gates import (
 __all__ = [
     "NameSpace",
     "GlobalNameSpaceRegistry",
-    "STD_NS",
-    "USER_NS",
+    "NS_USER",
     "Gate",
     "ParametricGate",
     "ControlledGate",

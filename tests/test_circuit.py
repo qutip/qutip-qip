@@ -5,8 +5,7 @@ import numpy as np
 from pathlib import Path
 
 
-from qutip_qip.circuit import QubitCircuit, CircuitSimulator
-from qutip_qip.circuit.draw import TeXRenderer
+import qutip as qp
 from qutip import (
     tensor,
     Qobj,
@@ -18,13 +17,19 @@ from qutip import (
     ket2dm,
     identity,
 )
-from qutip_qip.qasm import read_qasm
-from qutip_qip.operations import Gate, Measurement, gate_sequence_product
+
+from qutip_qip.circuit import QubitCircuit, CircuitSimulator
+from qutip_qip.circuit.draw import TeXRenderer
+from qutip_qip.decompose.decompose_single_qubit_gate import _ZYZ_rotation
+from qutip_qip.operations import (
+    Gate,
+    Measurement,
+    gate_sequence_product,
+    NS_USER,
+)
 import qutip_qip.operations.gates as gates
 from qutip_qip.transpiler import to_chain_structure
-from qutip_qip.decompose.decompose_single_qubit_gate import _ZYZ_rotation
-
-import qutip as qp
+from qutip_qip.qasm import read_qasm
 
 
 def _op_dist(A, B):
@@ -162,6 +167,7 @@ class TestQubitCircuit:
         assert qc.instructions[7].operation.arg_value[0] == -np.pi / 2
 
         class DUMMY1(Gate):
+            _namespace = NS_USER
             num_qubits = 1
             self_inverse = False
 
@@ -415,6 +421,7 @@ class TestQubitCircuit:
             return Qobj(mat, dims=[[2, 2], [2, 2]])
 
         class T1(Gate):
+            _namespace = NS_USER
             num_qubits = 1
             self_inverse = True
 
@@ -442,6 +449,7 @@ class TestQubitCircuit:
         mat3 = qp.rand_unitary(3)
 
         class CTRLMAT3(Gate):
+            _namespace = NS_USER
             num_qubits = 2
             self_inverse = False
 

@@ -19,12 +19,14 @@ from qutip_qip.operations.gates import (
     QASMU,
     PHASE,
 )
+from qutip_qip.operations.namespace import NS_GATE
 
 
 class _TwoQubitGate(Gate):
     """Abstract two-qubit gate."""
 
     __slots__ = ()
+    _namespace = NS_GATE
     num_qubits: Final[int] = 2
 
 
@@ -32,6 +34,7 @@ class _TwoQubitParametricGate(AngleParametricGate):
     """Abstract two-qubit Parametric Gate (non-controlled)."""
 
     __slots__ = ()
+    _namespace = NS_GATE
     num_qubits: Final[int] = 2
 
 
@@ -39,6 +42,8 @@ class _ControlledTwoQubitGate(ControlledGate):
     """Abstract two-qubit Controlled Gate (both parametric and non-parametric)."""
 
     __slots__ = ()
+    _namespace = NS_GATE
+
     num_qubits: Final[int] = 2
     num_ctrl_qubits: Final[int] = 1
     ctrl_value: Final[int] = 1

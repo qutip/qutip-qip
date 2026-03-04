@@ -7,7 +7,7 @@ from qutip import Qobj
 from qutip_qip.operations import (
     Gate,
     NameSpace,
-    USER_NS,
+    NS_USER,
     controlled_gate_unitary,
 )
 
@@ -243,14 +243,16 @@ def controlled(
     n_ctrl_qubits: int = 1,
     control_value: int | None = None,
     gate_name: str | None = None,
-    gate_namespace: NameSpace = USER_NS,
+    gate_namespace: NameSpace = NS_USER,
 ) -> ControlledGate:
     """
     Gate Factory for Controlled Gate that takes a gate and num_ctrl_qubits.
     """
 
     if gate_name is None:
-        gate_name = f"C{gate.name}"
+        # print(n_ctrl_qubits)
+        # gate_name = f"{'C'*{n_ctrl_qubits}}{gate.name}"
+        gate_name = f"{'C'}{gate.name}"
 
     if control_value is None:
         control_value = 2**n_ctrl_qubits - 1
