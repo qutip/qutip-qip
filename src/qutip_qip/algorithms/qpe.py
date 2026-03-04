@@ -55,7 +55,7 @@ def qpe(U, num_counting_qubits, target_qubits=None, to_cnot=False):
     for i in range(num_counting_qubits):
         qc.add_gate(H, targets=[i])
 
-    Gate.clear_cache("qpe")
+    # Gate.clear_cache("qpe")
     # Apply controlled-U gates with increasing powers
     for i in range(num_counting_qubits):
         power = 2 ** (num_counting_qubits - i - 1)

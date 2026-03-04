@@ -134,7 +134,7 @@ class VQA:
         circ = QubitCircuit(self.num_qubits)
         i = 0
         for layer_num in range(self.num_layers):
-            Gate.clear_cache("vqa")
+            # Gate.clear_cache("vqa")
             for block in self.blocks:
                 if block.initial and layer_num > 0:
                     continue

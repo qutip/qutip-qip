@@ -3,9 +3,9 @@ Operations on quantum circuits.
 """
 
 from .namespace import (
-    GlobalNameSpaceRegistry,
     NameSpace,
     NS_USER,
+    NS_USER_GATES,
 )
 from .utils import (
     hadamard_transform,
@@ -54,8 +54,8 @@ from .old_gates import (
 
 __all__ = [
     "NameSpace",
-    "GlobalNameSpaceRegistry",
     "NS_USER",
+    "NS_USER_GATES",
     "Gate",
     "ParametricGate",
     "ControlledGate",

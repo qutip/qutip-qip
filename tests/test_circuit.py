@@ -25,7 +25,7 @@ from qutip_qip.operations import (
     Gate,
     Measurement,
     gate_sequence_product,
-    NS_USER,
+    NS_USER_GATES,
 )
 import qutip_qip.operations.gates as gates
 from qutip_qip.transpiler import to_chain_structure
@@ -167,7 +167,7 @@ class TestQubitCircuit:
         assert qc.instructions[7].operation.arg_value[0] == -np.pi / 2
 
         class DUMMY1(Gate):
-            namespace = NS_USER
+            namespace = NS_USER_GATES
             num_qubits = 1
             self_inverse = False
 
@@ -421,7 +421,7 @@ class TestQubitCircuit:
             return Qobj(mat, dims=[[2, 2], [2, 2]])
 
         class T1(Gate):
-            namespace = NS_USER
+            namespace = NS_USER_GATES
             num_qubits = 1
             self_inverse = True
 
@@ -449,7 +449,7 @@ class TestQubitCircuit:
         mat3 = qp.rand_unitary(3)
 
         class CTRLMAT3(Gate):
-            namespace = NS_USER
+            namespace = NS_USER_GATES
             num_qubits = 2
             self_inverse = False
 

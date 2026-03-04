@@ -3,6 +3,7 @@ import numpy as np
 import qutip
 from qutip_qip.operations import expand_operator
 from qutip_qip.operations.gates import H
+from qutip_qip.operations.namespace import NS_GATE, NS_USER_GATES
 from qutip_qip.vqa import (
     VQA,
     VQABlock,
@@ -241,3 +242,8 @@ class TestOptimizationResult:
         S = [1, 2, 3]
         result = OptimizationResult(fakeScipyRes, qutip.basis(8, 1))
         assert result._label_to_sets(S, "|010>") == "{1, 3} {2}"
+
+        print(NS_USER_GATES._registry)
+        print()
+        print(NS_GATE._registry)
+        assert False

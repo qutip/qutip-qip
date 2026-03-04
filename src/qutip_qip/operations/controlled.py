@@ -7,7 +7,7 @@ from qutip import Qobj
 from qutip_qip.operations import (
     Gate,
     NameSpace,
-    NS_USER,
+    NS_USER_GATES,
     controlled_gate_unitary,
 )
 
@@ -190,6 +190,9 @@ class ControlledGate(Gate):
 
     @class_or_instance_method
     def inverse(cls_or_self) -> Gate | Type[Gate]:
+        if cls_or_self.self_inverse:
+            return cls_or_self
+
         if isinstance(cls_or_self, type):
             return controlled(
                 cls_or_self.target_gate.inverse(),
@@ -243,7 +246,7 @@ def controlled(
     n_ctrl_qubits: int = 1,
     control_value: int | None = None,
     gate_name: str | None = None,
-    gate_namespace: NameSpace = NS_USER,
+    gate_namespace: NameSpace = NS_USER_GATES,
 ) -> ControlledGate:
     """
     Gate Factory for Controlled Gate that takes a gate and num_ctrl_qubits.

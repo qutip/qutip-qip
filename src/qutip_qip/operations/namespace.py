@@ -18,7 +18,7 @@ class _SingletonMeta(type):
         return cls._instances[cls]
 
 
-class _GlobalRegistry(metaclass=_SingletonMeta):
+class _GlobalNameSpaceRegistry(metaclass=_SingletonMeta):
     def __init__(self):
         self._registry: set[NameSpace] = set()
 
@@ -29,7 +29,7 @@ class _GlobalRegistry(metaclass=_SingletonMeta):
         self._registry.add(namespace)
 
 
-GlobalNameSpaceRegistry = _GlobalRegistry()
+_GlobalRegistry = _GlobalNameSpaceRegistry()
 
 
 @dataclass
@@ -44,7 +44,7 @@ class NameSpace:
                 f"Namespace local_name '{self.local_name}' cannot contain dots. "
                 f"Dots are reserved for hierarchical resolution."
             )
-        GlobalNameSpaceRegistry.register_namespace(self)
+        _GlobalRegistry.register_namespace(self)
 
     @cached_property
     def name(self) -> str:
@@ -56,7 +56,7 @@ class NameSpace:
         """Safely adds an item to the specific namespace."""
         name_upper = name.upper()
         if name_upper in self._registry:
-            raise ValueError(
+            raise NameError(
                 f"'{name_upper}' already exists in namespace '{self.name}'"
             )
         self._registry.add(name_upper)
@@ -73,4 +73,6 @@ class NameSpace:
 
 NS_STD = NameSpace("std")  # DEFAULT NAMESPACE
 NS_GATE = NameSpace("gates", parent=NS_STD)  # Default Gate Namespace
+
 NS_USER = NameSpace("user")  # Default for anything defined by the user
+NS_USER_GATES = NameSpace("gates", parent=NS_USER)  # Any user gates defined

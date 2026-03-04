@@ -7,7 +7,7 @@ import qutip
 from qutip_qip.qasm import read_qasm, circuit_to_qasm_str
 from qutip_qip.circuit import QubitCircuit
 from qutip import tensor, rand_ket, basis, identity
-from qutip_qip.operations import Measurement, Gate
+from qutip_qip.operations import Measurement
 import qutip_qip.operations.gates as gates
 
 
@@ -172,17 +172,16 @@ def test_export_import():
 
 
 def test_read_qasm_1():
-    Gate.clear_cache(namespace="custom")
     filename = "w-state.qasm"
     filepath = Path(__file__).parent / "qasm_files" / filename
     read_qasm(filepath)
 
 
 def test_read_qasm_2():
-    Gate.clear_cache(namespace="custom")
     filename2 = "w-state_with_comments.qasm"
     filepath2 = Path(__file__).parent / "qasm_files" / filename2
-    read_qasm(filepath2)
+    with pytest.raises(NameError, match="'CH' already exists in namespace 'user.gates'"):
+        read_qasm(filepath2)
 
 
 def test_parsing_mode(tmp_path):

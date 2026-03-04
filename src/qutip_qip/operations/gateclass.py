@@ -6,7 +6,7 @@ from typing import Type
 
 import numpy as np
 from qutip import Qobj
-from qutip_qip.operations.namespace import NameSpace, NS_USER
+from qutip_qip.operations.namespace import NameSpace, NS_USER_GATES
 
 _read_only_set: set[str] = set(
     (
@@ -24,8 +24,6 @@ _read_only_set: set[str] = set(
 
 
 class _GateMetaClass(ABCMeta):
-    _registry: dict[str, set] = {}
-
     def __init__(cls, name, bases, attrs):
         """
         This method is automatically invoked during class creation. It validates that
@@ -40,7 +38,7 @@ class _GateMetaClass(ABCMeta):
         super().__init__(name, bases, attrs)
 
         # Don't register the Abstract Gate Classes or private helpers
-        if inspect.isabstract(cls) or name.startswith("_"):
+        if inspect.isabstract(cls):
             cls._is_frozen = True
             return
 
@@ -71,7 +69,7 @@ class _GateMetaClass(ABCMeta):
         # accidentally inherit the True flag from a parent class for _is_frozen.
         if (
             cls.__dict__.get("_is_frozen", False)
-            and name in cls._read_only_set
+            and name in _read_only_set
         ):
             raise AttributeError(f"{name} is read-only!")
         super().__setattr__(name, value)
@@ -111,21 +109,6 @@ class _GateMetaClass(ABCMeta):
         return hash(
             (getattr(cls, "namespace", "std"), getattr(cls, "name", None))
         )
-
-    def clear_cache(cls, namespace: str):
-        """
-        Clears the gate class registry based on the namespace.
-
-        Parameters
-        ----------
-        namespace : str, optional
-            If provided, only clears gates belonging to this namespace
-            (e.g., 'custom'). If None, clears ALL gates (useful for hard resets).
-        """
-        if namespace == "std":
-            raise ValueError("Can't clear std Gates")
-        else:
-            cls._registry[namespace] = set()
 
 
 class Gate(ABC, metaclass=_GateMetaClass):
@@ -283,7 +266,7 @@ class Gate(ABC, metaclass=_GateMetaClass):
 
 
 def get_unitary_gate(
-    gate_name: str, U: Qobj, gate_namespace: NameSpace = NS_USER
+    gate_name: str, U: Qobj, gate_namespace: NameSpace = NS_USER_GATES
 ) -> Type[Gate]:
     """
     Gate Factory for Custom Gate that wraps an arbitrary unitary matrix U.
