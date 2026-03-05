@@ -177,7 +177,8 @@ def grover(
             raise ValueError("num_solutions must be greater than 0.")
         elif num_solutions >= N:
             raise ValueError(
-                "Number of solutions is equal/greater to the search space.")
+                "Number of solutions is equal/greater to the search space."
+            )
         else:
             calc = (np.pi / 4) * np.sqrt(N / num_solutions)
             num_iterations = int(np.floor(calc))
