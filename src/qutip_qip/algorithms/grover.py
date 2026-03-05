@@ -105,6 +105,7 @@ def grover(
     qubits: int | Sequence[int],
     num_solutions: int,
     num_iterations: int | None = None,
+    N: int | None = None,
 ) -> QubitCircuit:
     """
     Construct the Grover search algorithm's circuit.
@@ -119,6 +120,8 @@ def grover(
         The number of expected solutions M.
     num_iterations : int, optional
         Number of iterations. Defaults to optimal for M solutions.
+    N: int,optional
+        Total number of qubits in the system.
 
     Returns
     -------
@@ -163,13 +166,30 @@ def grover(
         qubits = list(range(qubits))
 
     n_qubits = len(qubits)
-    qc = QubitCircuit(max(qubits) + 1)
+
+    if N is not None:
+        if N <= 0:
+            raise ValueError(f"N must be a positive integer, got {N}.")
+        min_required = max(qubits) + 1
+        if N < min_required:
+            raise ValueError(
+                f"N={N} is too small. The search qubits {qubits} "
+                f"require at least {min_required} total qubits."
+            )
+
+    total_qubits = N if N is not None else (max(qubits) + 1)
+    qc = QubitCircuit(total_qubits)
 
     # Superposition:
     for q in qubits:
         qc.add_gate("SNOT", targets=q)
 
     # Calculate optimal Iterations if none provided:
+    if num_iterations is not None and num_iterations <= 0:
+        raise ValueError(
+            f"num_iterations must be a positive integer, got {num_iterations}."
+        )
+
     if num_iterations is None:
         N = 2**n_qubits
 

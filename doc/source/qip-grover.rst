@@ -31,6 +31,7 @@ Argument                           Description
 ``qubits``            List of qubit indices (or integer count) to run the search on.
 ``num_solutions``     **Mandatory** integer representing the number of marked states :math:`M`.
 ``num_iterations``    Optional integer for manual control over the rotation count.
+``N``                 Optional total number of qubits when searching on a subset of a larger system.
 ====================  ==================================================
 
 Example: Searching for Multiple Targets

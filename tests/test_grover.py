@@ -91,18 +91,19 @@ class TestGrover:
         oracle = grover_oracle(search_qubits, target_local_state)
 
         # N=4, M=1. Optimal iterations = 1.
-        qc = grover(oracle, search_qubits, 1)
+        qc = grover(oracle, search_qubits, 1, N=sys_qubits)
 
-        assert qc.num_qubits == 3  # max(1,2) + 1 = 3
-
+        assert qc.num_qubits == sys_qubits
         U_grover = qc.compute_unitary()
 
-        # We simulate on 3 qubits (0, 1, 2). q0 is idle. q1,q2 are grover.
-        psi0 = tensor(basis(2, 0), basis(2, 0), basis(2, 0))  # |000>
+        # All 4 qubits start in |0>. q0 and q3 are idle, q1 and q2 are grover.
+        psi0 = tensor([basis(2, 0)] * sys_qubits)  # |0000>
         psi_final = U_grover * psi0
 
         # Expected: |0> (idle) tensor |11> (grover result)
-        psi_expected = tensor(basis(2, 0), basis(2, 1), basis(2, 1))
+        psi_expected = tensor(
+            basis(2, 0), basis(2, 1), basis(2, 1), basis(2, 0)
+        )
 
         fidelity = abs(psi_final.overlap(psi_expected)) ** 2
         assert fidelity > 0.9999
@@ -125,3 +126,27 @@ class TestGrover:
         assert np.allclose(
             qc_a.compute_unitary().full(), qc_b.compute_unitary().full()
         )
+
+    def test_grover_invalid_N(self):
+        """Test that grover raises errors for invalid N values."""
+        oracle = grover_oracle([1, 2], 3)
+
+        with pytest.raises(ValueError, match="too small"):
+            grover(oracle, [1, 2], 1, N=2)  # needs at least 3
+
+        with pytest.raises(ValueError, match="positive integer"):
+            grover(oracle, [1, 2], 1, N=-1)
+
+    def test_grover_invalid_num_iterations(self):
+        """Test that grover raises errors for invalid num_iterations."""
+        oracle = grover_oracle(2, 3)
+
+        with pytest.raises(
+            ValueError, match="num_iterations must be a positive"
+        ):
+            grover(oracle, 2, 1, num_iterations=0)
+
+        with pytest.raises(
+            ValueError, match="num_iterations must be a positive"
+        ):
+            grover(oracle, 2, 1, num_iterations=-3)
