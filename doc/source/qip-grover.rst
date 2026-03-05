@@ -61,6 +61,9 @@ Let's simulate a search on 3 qubits (:math:`N=8`) where two states are marked: :
 
     >>> qc.draw()
 
+.. plot::
+    :context: close-figs
+
     We can now simulate the circuit by computing the full unitary and applying it to the initial state.
 
     >>> U_grover = qc.compute_unitary()

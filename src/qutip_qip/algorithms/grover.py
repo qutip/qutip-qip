@@ -1,4 +1,3 @@
-import warnings
 import numpy as np
 from typing import Sequence
 from qutip_qip.circuit import QubitCircuit
@@ -41,9 +40,9 @@ def grover_oracle(
 
     Parameters
     ----------
-    qubits : int or list of int
+    qubits : int or sequence of int
         The specific qubit indices the oracle acts on.
-    marked_states : int or list of int
+    marked_states : int or sequence of int
         The states to mark (integer representation).
 
     Returns
@@ -114,7 +113,7 @@ def grover(
     ----------
     oracle : :class:`~.circuit.QubitCircuit` or :class:`~.operations.Gate` or :class:`qutip.Qobj`
         The oracle that flips the phase of marked states.
-    qubits : int or list of int
+    qubits : int or sequence of int
         The qubits to run the search on.
     num_solutions : int
         The number of expected solutions M.
@@ -176,11 +175,9 @@ def grover(
 
         if num_solutions <= 0:
             raise ValueError("num_solutions must be greater than 0.")
-        if num_solutions >= N:
-            warnings.warn(
-                "Number of solutions is equal/greater to the search space. 0 Grover Iterations applied."
-            )
-            num_iterations = 0
+        elif num_solutions >= N:
+            raise ValueError(
+                "Number of solutions is equal/greater to the search space.")
         else:
             calc = (np.pi / 4) * np.sqrt(N / num_solutions)
             num_iterations = int(np.floor(calc))
