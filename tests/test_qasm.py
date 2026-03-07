@@ -180,8 +180,7 @@ def test_read_qasm_1():
 def test_read_qasm_2():
     filename2 = "w-state_with_comments.qasm"
     filepath2 = Path(__file__).parent / "qasm_files" / filename2
-    with pytest.raises(NameError, match="'CH' already exists in namespace 'user.gates'"):
-        read_qasm(filepath2)
+    read_qasm(filepath2)
 
 
 def test_parsing_mode(tmp_path):

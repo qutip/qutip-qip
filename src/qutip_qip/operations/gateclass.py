@@ -6,7 +6,7 @@ from typing import Type
 
 import numpy as np
 from qutip import Qobj
-from qutip_qip.operations.namespace import NameSpace, NS_USER_GATES
+from qutip_qip.operations.namespace import NameSpace
 
 _read_only_set: set[str] = set(
     (
@@ -46,9 +46,10 @@ class _GateMetaClass(ABCMeta):
         # don't overwrite any defaults like num_qubits etc in __setattr__.
         cls._is_frozen = True
 
-        # We obviously don't register abstract classes to the namespace.
-        namespace = cls.namespace
-        namespace.register(cls.name)
+        # Namespace being None corresponds to Temporary Gates
+        # Only if it is provided register it
+        if getattr(cls, "namespace", None) is not None:
+            cls.namespace.register(cls)
 
     def __setattr__(cls, name: str, value: any) -> None:
         """
@@ -67,10 +68,7 @@ class _GateMetaClass(ABCMeta):
         """
         # cls.__dict__.get() instead of getattr() ensures we don't
         # accidentally inherit the True flag from a parent class for _is_frozen.
-        if (
-            cls.__dict__.get("_is_frozen", False)
-            and name in _read_only_set
-        ):
+        if cls.__dict__.get("_is_frozen", False) and name in _read_only_set:
             raise AttributeError(f"{name} is read-only!")
         super().__setattr__(name, value)
 
@@ -146,7 +144,7 @@ class Gate(ABC, metaclass=_GateMetaClass):
     # instead of a default dynamic sized __dict__ created in object instances.
     # This helps save memory, faster lookup time & restrict adding new attributes to class.
     __slots__ = ()
-    namespace: NameSpace
+    namespace: NameSpace | None = None
 
     name: str
     num_qubits: int
@@ -168,11 +166,6 @@ class Gate(ABC, metaclass=_GateMetaClass):
         # Skip the below check for an abstract class
         if inspect.isabstract(cls):
             return
-
-        if getattr(cls, "namespace", None) is None:
-            raise AttributeError(
-                f"Missing attribute namespace from {cls.__name__}"
-            )
 
         # If name attribute in subclass is not defined, set it to the name of the subclass
         # e.g. class H(Gate):
@@ -266,7 +259,7 @@ class Gate(ABC, metaclass=_GateMetaClass):
 
 
 def get_unitary_gate(
-    gate_name: str, U: Qobj, gate_namespace: NameSpace = NS_USER_GATES
+    gate_name: str, U: Qobj, gate_namespace: NameSpace | None = None
 ) -> Type[Gate]:
     """
     Gate Factory for Custom Gate that wraps an arbitrary unitary matrix U.

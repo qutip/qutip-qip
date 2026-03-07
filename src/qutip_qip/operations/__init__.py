@@ -2,11 +2,7 @@
 Operations on quantum circuits.
 """
 
-from .namespace import (
-    NameSpace,
-    NS_USER,
-    NS_USER_GATES,
-)
+from .namespace import NameSpace
 from .utils import (
     hadamard_transform,
     expand_operator,
@@ -54,8 +50,6 @@ from .old_gates import (
 
 __all__ = [
     "NameSpace",
-    "NS_USER",
-    "NS_USER_GATES",
     "Gate",
     "ParametricGate",
     "ControlledGate",

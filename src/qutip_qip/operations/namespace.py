@@ -26,7 +26,14 @@ class _GlobalNameSpaceRegistry(metaclass=_SingletonMeta):
         """Safely adds an item to the specific namespace."""
         if namespace in self._registry:
             raise ValueError(f"Existing namespace {namespace}")
+
+        # Note: This does mean that gate (or operation) is never garbage
+        # collected until the Namespace exists. This is fine for standard gates.
         self._registry.add(namespace)
+
+        # Default behaviour for user defining his own gates is that namespace is None,
+        # Thus those gates are considered temporary by default, we use the same logic in
+        # QPE for Controlled Unitary gates, VQA (until Ops i.e. composite gates are introduced).
 
 
 _GlobalRegistry = _GlobalNameSpaceRegistry()
@@ -52,14 +59,13 @@ class NameSpace:
             return f"{self.parent.name}.{self.local_name}"
         return self.local_name
 
-    def register(self, name: str) -> None:
+    def register(self, operation_cls: any) -> None:
         """Safely adds an item to the specific namespace."""
-        name_upper = name.upper()
-        if name_upper in self._registry:
+        if operation_cls in self._registry:
             raise NameError(
-                f"'{name_upper}' already exists in namespace '{self.name}'"
+                f"'{operation_cls.name}' already exists in namespace '{self.name}'"
             )
-        self._registry.add(name_upper)
+        self._registry.add(operation_cls)
 
     def __hash__(self) -> int:
         return hash(self.name)
@@ -73,6 +79,3 @@ class NameSpace:
 
 NS_STD = NameSpace("std")  # DEFAULT NAMESPACE
 NS_GATE = NameSpace("gates", parent=NS_STD)  # Default Gate Namespace
-
-NS_USER = NameSpace("user")  # Default for anything defined by the user
-NS_USER_GATES = NameSpace("gates", parent=NS_USER)  # Any user gates defined
