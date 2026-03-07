@@ -55,7 +55,7 @@ class ControlledGate(Gate):
             (binary 10), set ``ctrl_value=0b10``.
     """
 
-    __slots__ = "_target_inst"
+    __slots__ = ("_target_inst",)
 
     num_ctrl_qubits: int
     ctrl_value: int
@@ -189,34 +189,27 @@ class ControlledGate(Gate):
 
     @class_or_instance_method
     def inverse(cls_or_self) -> Gate | Type[Gate]:
-        # Non-parametrized Gates e.g. S
-        if not cls_or_self.is_parametric():
-            if cls_or_self.self_inverse:
-                inverse_gate = cls_or_self
+        if cls_or_self.self_inverse:
+            inverse_gate = cls_or_self
 
-            else:
-                inverse_gate = controlled(
-                    cls_or_self.target_gate.inverse(),
-                    cls_or_self.num_ctrl_qubits,
-                    cls_or_self.ctrl_value,
-                )
+        # Non-parametrized Gates e.g. S
+        if isinstance(cls_or_self, type):
+            inverse_gate = controlled(
+                cls_or_self.target_gate.inverse(),
+                cls_or_self.num_ctrl_qubits,
+                cls_or_self.ctrl_value,
+            )
 
         else:
             inverse_gate_class, param = cls_or_self._target_inst.inverse(
                 expanded=True
             )
 
-            if cls_or_self.self_inverse:
-                # RX has the same class inverse RX but with different parameter
-                # So we shouldn't ideally redefine the class RX (redundant).
-                inverse_gate = type(cls_or_self)(*param)
-
-            else:
-                inverse_gate = controlled(
-                    inverse_gate_class,
-                    cls_or_self.num_ctrl_qubits,
-                    cls_or_self.ctrl_value,
-                )(*param)
+            inverse_gate = controlled(
+                inverse_gate_class,
+                cls_or_self.num_ctrl_qubits,
+                cls_or_self.ctrl_value,
+            )(*param)
 
         return inverse_gate
 
@@ -258,13 +251,18 @@ def controlled(
     if gate_namespace is None:
         gate_namespace = gate.namespace
 
-    if gate_name is None:
-        # print(n_ctrl_qubits)
-        # gate_name = f"{'C'*{n_ctrl_qubits}}{gate.name}"
-        gate_name = f"{'C'}{gate.name}"
-
     if control_value is None:
         control_value = 2**n_ctrl_qubits - 1
+
+    if gate_name is None:
+        gate_name = f"{'C' * n_ctrl_qubits}{gate.name}"
+
+    if gate_namespace is not None:
+        found_gate = gate_namespace.get(
+            (gate.name, n_ctrl_qubits, control_value)
+        )
+        if found_gate is not None:
+            return found_gate
 
     class _CustomControlledGate(ControlledGate):
         __slots__ = ()

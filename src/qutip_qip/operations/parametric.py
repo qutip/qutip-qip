@@ -119,6 +119,8 @@ class ParametricGate(Gate):
         pass
 
     def inverse(self, expanded: bool = False) -> Gate:
+        if self.self_inverse:
+            return self
         raise NotImplementedError
 
     @staticmethod

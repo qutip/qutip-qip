@@ -43,7 +43,7 @@ _GlobalRegistry = _GlobalNameSpaceRegistry()
 class NameSpace:
     local_name: str
     parent: NameSpace | None = None
-    _registry: set[str] = field(default_factory=set)
+    _registry: dict[str, any] = field(default_factory=dict)
 
     def __post_init__(self):
         if "." in self.local_name:
@@ -59,13 +59,23 @@ class NameSpace:
             return f"{self.parent.name}.{self.local_name}"
         return self.local_name
 
-    def register(self, operation_cls: any) -> None:
-        """Safely adds an item to the specific namespace."""
-        if operation_cls in self._registry:
+    def register(
+        self, name: str | tuple[str, int, int], operation_cls: any
+    ) -> None:
+        """Safely adds an item to the specific namespace.
+        name is str for a non-controlled Gate
+        name is a tuple (target_gate.name, num_ctrl_qubits, ctrl_values) for a Controlled gate.
+        """
+        if name in self._registry:
             raise NameError(
                 f"'{operation_cls.name}' already exists in namespace '{self.name}'"
             )
-        self._registry.add(operation_cls)
+        self._registry[name] = operation_cls
+
+    def get(self, name: str | tuple[str, int, int]) -> any:
+        if name not in self._registry:
+            return None
+        return self._registry[name]
 
     def __hash__(self) -> int:
         return hash(self.name)

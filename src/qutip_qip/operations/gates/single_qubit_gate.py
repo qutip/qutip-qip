@@ -374,7 +374,6 @@ class RX(_SingleQubitParametricGate):
     __slots__ = ()
 
     num_params: Final[int] = 1
-    self_inverse: Final[bool] = True
     latex_str: Final[str] = r"R_x"
 
     def __init__(self, theta: float, arg_label=None):
@@ -419,7 +418,6 @@ class RY(_SingleQubitParametricGate):
     __slots__ = ()
 
     num_params: Final[int] = 1
-    self_inverse: Final[bool] = True
     latex_str: Final[str] = r"R_y"
 
     def __init__(self, theta: float, arg_label: str | None = None):
@@ -463,7 +461,6 @@ class RZ(_SingleQubitParametricGate):
     __slots__ = ()
 
     num_params: Final[int] = 1
-    self_inverse: Final[bool] = True
     latex_str: Final[str] = r"R_z"
 
     def __init__(self, theta: float, arg_label: str | None = None):
@@ -497,7 +494,6 @@ class PHASE(_SingleQubitParametricGate):
     __slots__ = ()
 
     num_params: Final[int] = 1
-    self_inverse: Final[bool] = True
     latex_str: Final[str] = r"PHASE"
 
     def __init__(self, theta: float, arg_label: str | None = None):
@@ -548,7 +544,6 @@ class R(_SingleQubitParametricGate):
     __slots__ = ()
 
     num_params: Final[int] = 2
-    self_inverse: Final[bool] = True
     latex_str: Final[str] = r"{\rm R}"
 
     def __init__(self, phi: float, theta: float, arg_label: str | None = None):
@@ -603,7 +598,6 @@ class QASMU(_SingleQubitParametricGate):
     __slots__ = ()
 
     num_params: Final[int] = 3
-    self_inverse: Final[bool] = True
     latex_str: Final[str] = r"{\rm QASMU}"
 
     def __init__(

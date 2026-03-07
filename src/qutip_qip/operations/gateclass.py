@@ -49,7 +49,16 @@ class _GateMetaClass(ABCMeta):
         # Namespace being None corresponds to Temporary Gates
         # Only if it is provided register it
         if getattr(cls, "namespace", None) is not None:
-            cls.namespace.register(cls)
+            cls.namespace.register(cls.name, cls)
+
+        # For lookup dictionary for Controlled Gates
+        # e.g. controlled(X, num_ctrl_qubits=1, ctrl_value=1) this is CX,
+        # why do we have to define it again if it already exists.
+        if getattr(cls, "namespace", None) is not None and cls.is_controlled():
+            cls.namespace.register(
+                (cls.target_gate.name, cls.num_ctrl_qubits, cls.ctrl_value),
+                cls,
+            )
 
     def __setattr__(cls, name: str, value: any) -> None:
         """

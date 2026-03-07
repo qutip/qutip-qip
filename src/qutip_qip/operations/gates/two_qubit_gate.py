@@ -440,7 +440,6 @@ class SWAPALPHA(_TwoQubitParametricGate):
     __slots__ = "alpha"
 
     num_params: Final[int] = 1
-    self_inverse: Final[bool] = True
     latex_str: Final[str] = r"{\rm SWAPALPHA}"
 
     def __init__(self, alpha: float, arg_label: str | None = None):
@@ -508,7 +507,6 @@ class MS(_TwoQubitParametricGate):
     __slots__ = ("theta", "phi")
 
     num_params: Final[int] = 2
-    self_inverse: Final[bool] = True
     latex_str: Final[str] = r"{\rm MS}"
 
     def __init__(self, theta: float, phi: float, arg_label: str | None = None):
@@ -578,7 +576,6 @@ class RZX(_TwoQubitParametricGate):
     __slots__ = "theta"
 
     num_params: Final[int] = 1
-    self_inverse: Final[bool] = True
     latex_str: Final[str] = r"{\rm RZX}"
 
     def __init__(self, theta: float, arg_label: str | None = None):
@@ -641,17 +638,7 @@ class CX(_ControlledTwoQubitGate):
         )
 
 
-class CNOT(CX):
-    __slots__ = ()
-
-    def __init__(self):
-        warnings.warn(
-            "CNOT is deprecated and will be removed in future versions. "
-            "Use CX  instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        super().__init__()
+CNOT = CX
 
 
 class CY(_ControlledTwoQubitGate):
@@ -716,17 +703,7 @@ class CZ(_ControlledTwoQubitGate):
         )
 
 
-class CSIGN(CZ):
-    __slots__ = ()
-
-    def __init__(self):
-        warnings.warn(
-            "CSIGN is deprecated and will be removed in future versions. "
-            "Use CZ instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        super().__init__()
+CSIGN = CZ
 
 
 class CH(_ControlledTwoQubitGate):
