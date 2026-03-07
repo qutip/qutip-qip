@@ -199,8 +199,30 @@ class Gate(ABC, metaclass=_GateMetaClass):
         num_qubits = getattr(cls, "num_qubits", None)
         if (type(num_qubits) is not int) or (num_qubits < 0):
             raise TypeError(
-                f"Class '{cls.__name__}' attribute 'num_qubits' must be a non-negative integer, "
+                f"Class '{cls.name}' attribute 'num_qubits' must be a non-negative integer, "
                 f"got {type(num_qubits)} with value {num_qubits}."
+            )
+
+        # Check is_clifford is a bool
+        if type(cls.is_clifford) is not bool:
+            raise TypeError(
+                f"Class '{cls.name}' attribute 'is_clifford' must be a bool, "
+                f"got {type(cls.is_clifford)} with value {cls.is_clifford}."
+            )
+
+        # Check self_inverse is a bool
+        if type(cls.self_inverse) is not bool:
+            raise TypeError(
+                f"Class '{cls.name}' attribute 'self_inverse' must be a bool, "
+                f"got {type(cls.self_inverse)} with value {cls.self_inverse}."
+            )
+
+        # Can't define inverse() method if self_inverse is set True
+        if cls.self_inverse and "inverse" in cls.__dict__:
+            raise TypeError(
+                f"Gate '{cls.name}' is marked as self_inverse=True. "
+                f"You are not allowed to override the 'inverse()' method. "
+                f"Remove the method; the base class handles it automatically."
             )
 
     def __init__(self) -> None:

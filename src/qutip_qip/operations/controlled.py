@@ -189,9 +189,6 @@ class ControlledGate(Gate):
 
     @class_or_instance_method
     def inverse(cls_or_self) -> Gate | Type[Gate]:
-        if cls_or_self.self_inverse:
-            inverse_gate = cls_or_self
-
         # Non-parametrized Gates e.g. S
         if isinstance(cls_or_self, type):
             inverse_gate = controlled(
