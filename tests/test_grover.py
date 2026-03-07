@@ -32,6 +32,50 @@ class TestGrover:
         with pytest.raises(ValueError, match="out of bounds"):
             grover_oracle(2, [4])  # 2 qubits only go up to state 3
 
+    def test_grover_invalid_N(self):
+        """Test that grover raises errors for invalid N values."""
+        oracle = grover_oracle([1, 2], 3)
+
+        with pytest.raises(ValueError, match="too small"):
+            grover(oracle, [1, 2], 1, N=2)  # needs at least 3
+
+        with pytest.raises(ValueError, match="positive integer"):
+            grover(oracle, [1, 2], 1, N=-1)
+
+    def test_grover_invalid_num_iterations(self):
+        """Test that grover raises errors for invalid num_iterations."""
+        oracle = grover_oracle(2, 3)
+
+        with pytest.raises(
+            ValueError, match="num_iterations must be a positive"
+        ):
+            grover(oracle, 2, 1, num_iterations=0)
+
+        with pytest.raises(
+            ValueError, match="num_iterations must be a positive"
+        ):
+            grover(oracle, 2, 1, num_iterations=-3)
+
+    def test_grover_1_qubit(self):
+        """
+        Full algoritm test: 1 qubit(edge-case), searching for |0>.
+        """
+        n_qubits = 1
+        target_state = 0  # |0>
+
+        oracle = grover_oracle(n_qubits, target_state)
+        qc = grover(oracle, n_qubits, 1)
+
+        U_grover = qc.compute_unitary()
+        psi0 = basis(2, 0)  # Start at |0>
+        psi_final = U_grover * psi0
+
+        # Expected state: |0>
+        prob_target = abs(psi_final.overlap(basis(2, target_state))) ** 2
+
+        # For M = N/2, grover yields 50%
+        assert np.isclose(prob_target, 0.5)
+
     def test_grover_2_qubit(self):
         """
         Full algorithm test: 2 qubits, searching for |11> (state 3).
@@ -126,27 +170,3 @@ class TestGrover:
         assert np.allclose(
             qc_a.compute_unitary().full(), qc_b.compute_unitary().full()
         )
-
-    def test_grover_invalid_N(self):
-        """Test that grover raises errors for invalid N values."""
-        oracle = grover_oracle([1, 2], 3)
-
-        with pytest.raises(ValueError, match="too small"):
-            grover(oracle, [1, 2], 1, N=2)  # needs at least 3
-
-        with pytest.raises(ValueError, match="positive integer"):
-            grover(oracle, [1, 2], 1, N=-1)
-
-    def test_grover_invalid_num_iterations(self):
-        """Test that grover raises errors for invalid num_iterations."""
-        oracle = grover_oracle(2, 3)
-
-        with pytest.raises(
-            ValueError, match="num_iterations must be a positive"
-        ):
-            grover(oracle, 2, 1, num_iterations=0)
-
-        with pytest.raises(
-            ValueError, match="num_iterations must be a positive"
-        ):
-            grover(oracle, 2, 1, num_iterations=-3)

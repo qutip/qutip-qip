@@ -75,27 +75,30 @@ def grover_oracle(
                 qc.add_gate("X", targets=qubits[i])
 
         # Change state by Multi Controlled Z Gate
-        ctrls = qubits[:-1]
-        tgt = qubits[-1]
-
-        ctrl_val = 2 ** len(ctrls) - 1
-
-        if len(ctrls) == 1:
-            qc.add_gate("CSIGN", controls=ctrls, targets=tgt)
+        if n_qubits == 1:
+            qc.add_gate("Z", targets=qubits[0])
         else:
-            qc.add_gate(
-                ControlledGate(
-                    controls=ctrls,
-                    targets=tgt,
-                    control_value=ctrl_val,
-                    target_gate=Z,
-                )
-            )
+            ctrls = qubits[:-1]
+            tgt = qubits[-1]
 
-        # uncompute by X
-        for i, char in enumerate(binary_rep):
-            if char == "0":
-                qc.add_gate("X", targets=qubits[i])
+            ctrl_val = 2 ** len(ctrls) - 1
+
+            if len(ctrls) == 1:
+                qc.add_gate("CSIGN", controls=ctrls, targets=tgt)
+            else:
+                qc.add_gate(
+                    ControlledGate(
+                        controls=ctrls,
+                        targets=tgt,
+                        control_value=ctrl_val,
+                        target_gate=Z,
+                    )
+                )
+
+            # uncompute by X
+            for i, char in enumerate(binary_rep):
+                if char == "0":
+                    qc.add_gate("X", targets=qubits[i])
 
     return qc
 
@@ -166,7 +169,9 @@ def grover(
         qubits = list(range(qubits))
 
     n_qubits = len(qubits)
+    search_space_size = 2**n_qubits
 
+    # Validation check for N
     if N is not None:
         if N <= 0:
             raise ValueError(f"N must be a positive integer, got {N}.")
@@ -176,6 +181,14 @@ def grover(
                 f"N={N} is too small. The search qubits {qubits} "
                 f"require at least {min_required} total qubits."
             )
+
+    # Validation check for num_solutions:
+    if num_solutions <= 0:
+        raise ValueError("num_solutions must be greater than 0.")
+    if num_solutions >= search_space_size:
+        raise ValueError(
+            "Number of solutions is equal/greater to the search space."
+        )
 
     total_qubits = N if N is not None else (max(qubits) + 1)
     qc = QubitCircuit(total_qubits)
@@ -191,17 +204,8 @@ def grover(
         )
 
     if num_iterations is None:
-        N = 2**n_qubits
-
-        if num_solutions <= 0:
-            raise ValueError("num_solutions must be greater than 0.")
-        elif num_solutions >= N:
-            raise ValueError(
-                "Number of solutions is equal/greater to the search space."
-            )
-        else:
-            calc = (np.pi / 4) * np.sqrt(N / num_solutions)
-            num_iterations = int(np.floor(calc))
+        calc = (np.pi / 4) * np.sqrt(search_space_size / num_solutions)
+        num_iterations = int(np.floor(calc))
 
     # Grover Iterations:
     for _ in range(num_iterations):
@@ -225,21 +229,24 @@ def grover(
             qc.add_gate("X", targets=q)
 
         # Projection (Multi-Controlled Z)
-        ctrls = qubits[:-1]
-        tgt = qubits[-1]
-        ctrl_val = 2 ** (len(ctrls)) - 1
-
-        if len(ctrls) == 1:
-            qc.add_gate("CSIGN", controls=ctrls, targets=tgt)
+        if n_qubits == 1:
+            qc.add_gate("Z", targets=qubits[0])
         else:
-            qc.add_gate(
-                ControlledGate(
-                    controls=ctrls,
-                    targets=tgt,
-                    control_value=ctrl_val,
-                    target_gate=Z,
+            ctrls = qubits[:-1]
+            tgt = qubits[-1]
+            ctrl_val = 2 ** (len(ctrls)) - 1
+
+            if len(ctrls) == 1:
+                qc.add_gate("CSIGN", controls=ctrls, targets=tgt)
+            else:
+                qc.add_gate(
+                    ControlledGate(
+                        controls=ctrls,
+                        targets=tgt,
+                        control_value=ctrl_val,
+                        target_gate=Z,
+                    )
                 )
-            )
 
         for q in qubits:
             qc.add_gate("X", targets=q)
