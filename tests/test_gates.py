@@ -511,6 +511,9 @@ CONTROLLED_GATE = [
 def test_gate_inverse(gate: Gate | Type[Gate]):
     n = 2**gate.num_qubits
     inverse = gate.inverse()
+    print(gate.name)
+    print(gate.get_qobj())
+    print(inverse.get_qobj())
     np.testing.assert_allclose(
         (gate.get_qobj() * inverse.get_qobj()).full(),
         np.eye(n),

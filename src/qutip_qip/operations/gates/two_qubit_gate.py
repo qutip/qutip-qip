@@ -440,6 +440,7 @@ class SWAPALPHA(_TwoQubitParametricGate):
     __slots__ = "alpha"
 
     num_params: Final[int] = 1
+    self_inverse: Final[bool] = True
     latex_str: Final[str] = r"{\rm SWAPALPHA}"
 
     def __init__(self, alpha: float, arg_label: str | None = None):
@@ -507,6 +508,7 @@ class MS(_TwoQubitParametricGate):
     __slots__ = ("theta", "phi")
 
     num_params: Final[int] = 2
+    self_inverse: Final[bool] = True
     latex_str: Final[str] = r"{\rm MS}"
 
     def __init__(self, theta: float, phi: float, arg_label: str | None = None):
@@ -576,6 +578,7 @@ class RZX(_TwoQubitParametricGate):
     __slots__ = "theta"
 
     num_params: Final[int] = 1
+    self_inverse: Final[bool] = True
     latex_str: Final[str] = r"{\rm RZX}"
 
     def __init__(self, theta: float, arg_label: str | None = None):

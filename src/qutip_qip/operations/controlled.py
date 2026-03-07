@@ -189,32 +189,36 @@ class ControlledGate(Gate):
 
     @class_or_instance_method
     def inverse(cls_or_self) -> Gate | Type[Gate]:
-        if cls_or_self.self_inverse:
-            return cls_or_self
+        # Non-parametrized Gates e.g. S
+        if not cls_or_self.is_parametric():
+            if cls_or_self.self_inverse:
+                inverse_gate = cls_or_self
 
-        if isinstance(cls_or_self, type):
-            return controlled(
-                cls_or_self.target_gate.inverse(),
-                cls_or_self.num_ctrl_qubits,
-                cls_or_self.ctrl_value,
-            )
+            else:
+                inverse_gate = controlled(
+                    cls_or_self.target_gate.inverse(),
+                    cls_or_self.num_ctrl_qubits,
+                    cls_or_self.ctrl_value,
+                )
 
-        elif (
-            isinstance(cls_or_self, object)
-            and cls_or_self._target_inst.is_parametric()
-        ):
+        else:
             inverse_gate_class, param = cls_or_self._target_inst.inverse(
                 expanded=True
             )
-            inverse = controlled(
-                inverse_gate_class,
-                cls_or_self.num_ctrl_qubits,
-                cls_or_self.ctrl_value,
-            )
-            return inverse(*param)
 
-        else:
-            raise NotImplementedError
+            if cls_or_self.self_inverse:
+                # RX has the same class inverse RX but with different parameter
+                # So we shouldn't ideally redefine the class RX (redundant).
+                inverse_gate = type(cls_or_self)(*param)
+
+            else:
+                inverse_gate = controlled(
+                    inverse_gate_class,
+                    cls_or_self.num_ctrl_qubits,
+                    cls_or_self.ctrl_value,
+                )(*param)
+
+        return inverse_gate
 
     @staticmethod
     def is_controlled() -> bool:
@@ -251,8 +255,8 @@ def controlled(
     Gate Factory for Controlled Gate that takes a gate and num_ctrl_qubits.
     """
 
-    # if gate_namespace is None:
-    #     gate_namespace = gate.namespace
+    if gate_namespace is None:
+        gate_namespace = gate.namespace
 
     if gate_name is None:
         # print(n_ctrl_qubits)
