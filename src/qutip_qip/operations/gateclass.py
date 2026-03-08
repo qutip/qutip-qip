@@ -1,7 +1,7 @@
 # annotations import won't be needed after minimum version becomes 3.14 (PEP 749)
 from __future__ import annotations
-from abc import ABC, ABCMeta, abstractmethod
 import inspect
+from abc import ABC, ABCMeta, abstractmethod
 from typing import Type
 
 import numpy as np
@@ -24,6 +24,11 @@ _read_only_set: set[str] = set(
 
 
 class _GateMetaClass(ABCMeta):
+    # __slots__ in Python are meant to fixed-size array of attribute values
+    # instead of a default dynamic sized __dict__ created in object instances.
+    # This helps save memory, faster lookup time & restrict adding new attributes to class.
+    __slots__ = ()
+
     def __init__(cls, name, bases, attrs):
         """
         This method is automatically invoked during class creation. It validates that
@@ -92,19 +97,12 @@ class _GateMetaClass(ABCMeta):
         if not isinstance(other, type):
             return False
 
+        # 'is' keyword in Python checks check if two variables refer to
+        # the exact same object in memory, since non-parametrized gate classes
+        # are not meant to be parametrized it works, ParametrizedGate class
+        # has its own __eq__ method which acts on an instance.
         if cls is other:
             return True
-
-        if isinstance(other, _GateMetaClass):
-            cls_name = getattr(cls, "name", None)
-            other_name = getattr(other, "name", None)
-
-            cls_namespace = getattr(cls, "namespace", None)
-            other_namespace = getattr(other, "namespace", None)
-
-            # They are equal if they share the same name and namespace
-            return cls_name == other_name and cls_namespace == other_namespace
-
         return False
 
     def __hash__(cls) -> int:
@@ -113,9 +111,7 @@ class _GateMetaClass(ABCMeta):
         Hashes the class based on its unique identity (namespace and name)
         so it can still be safely used in the _registry sets and dicts.
         """
-        return hash(
-            (getattr(cls, "namespace", "std"), getattr(cls, "name", None))
-        )
+        return id(cls) # By default Python using id() for hashing
 
 
 class Gate(ABC, metaclass=_GateMetaClass):
@@ -148,10 +144,6 @@ class Gate(ABC, metaclass=_GateMetaClass):
         The LaTeX string representation of the gate (used for circuit drawing).
         Defaults to the class name if not provided.
     """
-
-    # __slots__ in Python are meant to fixed-size array of attribute values
-    # instead of a default dynamic sized __dict__ created in object instances.
-    # This helps save memory, faster lookup time & restrict adding new attributes to class.
     __slots__ = ()
     namespace: NameSpace | None = None
 

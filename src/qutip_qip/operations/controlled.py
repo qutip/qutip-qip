@@ -1,4 +1,5 @@
 import inspect
+import warnings
 from typing import Type
 from functools import partial
 from abc import abstractmethod
@@ -228,10 +229,13 @@ class ControlledGate(Gate):
             return False
 
         # Returns false for CRX(0.5), CRX(0.6)
-        if self._target_inst != other._target_inst:
+        if self.is_parametric() and self._target_inst != other._target_inst:
             return False
 
         return True
+
+    def __hash__(self) -> int:
+        return super().__hash__()
 
 
 def controlled(
@@ -259,6 +263,10 @@ def controlled(
             (gate.name, n_ctrl_qubits, control_value)
         )
         if found_gate is not None:
+            warnings.warn(
+                f"Found the same existing Controlled Gate {found_gate.name}",
+                UserWarning
+            )
             return found_gate
 
     class _CustomControlledGate(ControlledGate):

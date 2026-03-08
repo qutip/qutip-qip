@@ -144,6 +144,9 @@ class ParametricGate(Gate):
 
         return True
 
+    def __hash__(self) -> int:
+        return super().__hash__()
+
 
 class AngleParametricGate(ParametricGate):
     __slots__ = ()
