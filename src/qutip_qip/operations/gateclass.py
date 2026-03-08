@@ -24,11 +24,6 @@ _read_only_set: set[str] = set(
 
 
 class _GateMetaClass(ABCMeta):
-    # __slots__ in Python are meant to fixed-size array of attribute values
-    # instead of a default dynamic sized __dict__ created in object instances.
-    # This helps save memory, faster lookup time & restrict adding new attributes to class.
-    __slots__ = ()
-
     def __init__(cls, name, bases, attrs):
         """
         This method is automatically invoked during class creation. It validates that
@@ -59,7 +54,7 @@ class _GateMetaClass(ABCMeta):
         # For lookup dictionary for Controlled Gates
         # e.g. controlled(X, num_ctrl_qubits=1, ctrl_value=1) this is CX,
         # why do we have to define it again if it already exists.
-        if getattr(cls, "namespace", None) is not None and cls.is_controlled():
+        if cls.is_controlled() and getattr(cls, "namespace", None) is not None:
             cls.namespace.register(
                 (cls.target_gate.name, cls.num_ctrl_qubits, cls.ctrl_value),
                 cls,
@@ -145,6 +140,9 @@ class Gate(ABC, metaclass=_GateMetaClass):
         Defaults to the class name if not provided.
     """
 
+    # __slots__ in Python are meant to fixed-size array of attribute values
+    # instead of a default dynamic sized __dict__ created in object instances.
+    # This helps save memory, faster lookup time & restrict adding new attributes to class.
     __slots__ = ()
     namespace: NameSpace | None = None
 
@@ -216,6 +214,36 @@ class Gate(ABC, metaclass=_GateMetaClass):
                 f"Gate '{cls.name}' is marked as self_inverse=True. "
                 f"You are not allowed to override the 'inverse()' method. "
                 f"Remove the method; the base class handles it automatically."
+            )
+
+        try:
+            param_flag = cls.is_parametric()
+        except TypeError as e:
+            raise TypeError(
+                f"Class '{cls.name}' must define 'is_parametric()' as a callable "
+                f"@staticmethod or @classmethod taking no instance arguments. "
+                f"Error: {e}"
+            )
+
+        if type(param_flag) is not bool:
+            raise TypeError(
+                f"Class '{cls.name}' method 'is_controlled()' must return a strict bool, "
+                f"got {type(param_flag)} with value {param_flag}."
+            )
+
+        try:
+            control_flag = cls.is_controlled()
+        except TypeError as e:
+            raise TypeError(
+                f"Class '{cls.name}' must define 'is_parametric()' as a callable "
+                f"@staticmethod or @classmethod taking no instance arguments. "
+                f"Error: {e}"
+            )
+
+        if type(control_flag) is not bool:
+            raise TypeError(
+                f"Class '{cls.name}' method 'is_controlled()' must return a strict bool, "
+                f"got {type(control_flag)} with value {control_flag}."
             )
 
     def __init__(self) -> None:

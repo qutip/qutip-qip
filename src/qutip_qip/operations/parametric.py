@@ -4,6 +4,7 @@ from collections.abc import Sequence
 
 from qutip import Qobj
 from qutip_qip.operations import Gate
+from qutip_qip.typing import Real
 
 
 class ParametricGate(Gate):
@@ -63,6 +64,25 @@ class ParametricGate(Gate):
                 f"got {type(num_params)} with value {num_params}."
             )
 
+        # Validate params must take only one arguments args
+        # Inspect doesn't count self/cls as another argument
+        validate_params_func = getattr(cls, "validate_params")
+        if len(inspect.signature(validate_params_func).parameters) > 1:
+            raise SyntaxError(
+                f"Class '{cls.name}' method 'validate_params()' must take exactly 1 "
+                f"additional arguments (only the implicit 'args'),"
+                f" but it takes {len(inspect.signature(validate_params_func).parameters)}."
+            )
+
+        # _compute_qobj method must take only one arguments arg_value
+        compute_qobj_func = getattr(cls, "_compute_qobj")
+        if len(inspect.signature(compute_qobj_func).parameters) > 1:
+            raise SyntaxError(
+                f"Class '{cls.name}' method '_compute_qobj()' must take exactly 1 "
+                f"additional arguments (only the implicit 'arg_value'),"
+                f" but it takes {len(inspect.signature(compute_qobj_func).parameters)}."
+            )
+
     def __init__(self, *args, arg_label: str | None = None):
         # This auto triggers a call to arg_value setter (where checks happen)
         self.arg_value = args
@@ -115,7 +135,6 @@ class ParametricGate(Gate):
     @staticmethod
     @abstractmethod
     def _compute_qobj(args: tuple) -> "Qobj":
-        """Every child must implement this pure math helper."""
         pass
 
     def inverse(self, expanded: bool = False) -> Gate:
@@ -154,7 +173,5 @@ class AngleParametricGate(ParametricGate):
     @staticmethod
     def validate_params(arg_value):
         for arg in arg_value:
-            try:
-                float(arg)
-            except TypeError:
+            if not isinstance(arg, Real):
                 raise ValueError(f"Invalid arg {arg} in arg_value")

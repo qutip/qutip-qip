@@ -19,7 +19,7 @@ class GLOBALPHASE(AngleParametricGate):
     >>> from qutip_qip.operations.gates import GLOBALPHASE
     """
 
-    __slots__ = "phase"
+    __slots__ = ()
     namespace = NS_GATE
 
     num_qubits: Final[int] = 0
@@ -34,7 +34,7 @@ class GLOBALPHASE(AngleParametricGate):
         return f"Gate({self.name}, phase {self.arg_value[0]})"
 
     def _compute_qobj():
-        pass
+        raise NotImplementedError
 
     def get_qobj(self, num_qubits=None):
         phase = self.arg_value[0]

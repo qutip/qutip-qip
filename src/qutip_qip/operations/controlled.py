@@ -133,7 +133,7 @@ class ControlledGate(Gate):
             setattr(self._target_inst, name, value)
 
     # Although target_gate is specified as a class attribute, It has been
-    # been made an abstract method to make ControlledGate abstract (required!)
+    # been made an abstract method to make ControlledGate abstract (required in Metaclass)
     # This is because Python currently doesn't support abstract class attributes.
     @property
     @abstractmethod

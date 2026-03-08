@@ -1,6 +1,5 @@
 from typing import Final, Type
 from functools import cache, lru_cache
-import warnings
 
 import numpy as np
 from qutip import Qobj

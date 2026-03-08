@@ -1026,7 +1026,6 @@ class QasmOutput:
         elif gate == gates.SWAP:
             gate_def = "gate swap a,b { cx a,b; cx b,a; cx a,b; }"
         else:
-            print(gate)
             err_msg = f"No definition specified for {gate.name} gate"
             raise NotImplementedError(err_msg)
 
