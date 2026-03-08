@@ -273,8 +273,7 @@ class TestGateExpansion:
         ],
     )
     def test_three_qubit(self, gate: Type[Gate], n_controls):
-        targets = [qutip.rand_ket(2) for _ in [
-None] * 3]
+        targets = [qutip.rand_ket(2) for _ in [None] * 3]
         others = [qutip.rand_ket(2) for _ in [None] * self.n_qubits]
         reference = gate.get_qobj() * qutip.tensor(targets)
 
@@ -454,149 +453,27 @@ CONTROLLED_GATE = [
 def test_gate_inverse(gate: Gate | Type[Gate]):
     n = 2**gate.num_qubits
     inverse = gate.inverse()
-    print(gate.name)
-    print(gate.get_qobj())
-    print(inverse.get_qobj())
     np.testing.assert_allclose(
         (gate.get_qobj() * inverse.get_qobj()).full(),
         np.eye(n),
         atol=1e-12,
     )
 
+def test_gate_equality():
+    assert gates.CX == gates.CX
+    assert gates.CX != gates.CY
+    assert gates.CX != gates.CRX(0.5)
 
-class TestOperationsErrors:
-    def test_gateclass_errors(self):
-        with pytest.raises(TypeError):
-            class BadGate(Gate):
-                num_qubits = -1
+    assert gates.RX(0.5) == gates.RX(0.5)
+    assert gates.RX(0.5) != gates.RY(0.5)
+    assert gates.RX(0.5) != gates.RX(0.6)
 
-                def get_qobj(cls): pass
+    assert gates.CRX(0.5) == gates.CRX(0.5)
+    assert gates.CRX(0.5) != gates.CRY(0.5)
+    assert gates.CRX(0.5) != gates.CRX(0.6)
 
-        with pytest.raises(TypeError):
-            class BadGate2(Gate):
-                num_qubits = 1
-                is_clifford = 1  # attribute 'is_clifford' must be a bool
 
-                def get_qobj(cls): pass
-
-        with pytest.raises(TypeError):
-            class BadGate3(Gate):
-                num_qubits = 1
-                self_inverse = 1  # attribute 'self_inverse' must be a bool
-
-                def get_qobj(cls): pass
-
-        with pytest.raises(TypeError):
-            class BadGate4(Gate):
-                num_qubits = 1
-                self_inverse = True
-
-                def get_qobj(cls): pass
-                def inverse(cls): pass  # Can't define inverse method is self_inverse=True
-
-        class GoodGate(Gate):
-            num_qubits = 1
-            @staticmethod
-            def get_qobj(): pass
-
-        with pytest.raises(AttributeError):
-            GoodGate.num_qubits = 2
-            # For a given gateclass, class attribute like num_qubit can't be modified 
-
-        with pytest.raises(NotImplementedError):
-            GoodGate.inverse()
-
-        U_rect = qutip.Qobj(np.eye(2, 3))
-        with pytest.raises(ValueError):
-            get_unitary_gate("U_rect", U_rect)  # U must be a square matrix
-
-        U_dim = qutip.Qobj(np.eye(3))
-        with pytest.raises(ValueError):
-            get_unitary_gate("U_dim", U_dim)  # 3 != 2^n
-
-        U_not_unitary = qutip.Qobj(np.zeros((2, 2)))
-        with pytest.raises(ValueError):
-            get_unitary_gate("U_not_unitary", U_not_unitary)  # U must be unitaru
-    
-    def test_parametric_gate_errors(self):
-        with pytest.raises(TypeError):
-            class BadParamGate(ParametricGate):
-                num_params = -1
-                @staticmethod
-                def _compute_qobj(args): pass
-                @staticmethod
-                def validate_params(args): pass
-
-        with pytest.raises(TypeError):
-            class BadParamGate2(ParametricGate):
-                num_params = 1.5
-                @staticmethod
-                def _compute_qobj(args): pass
-                @staticmethod
-                def validate_params(args): pass
-
-        class GoodParamGate(AngleParametricGate):
-            num_qubits = 1
-            num_params = 2
-            @staticmethod
-            def _compute_qobj(args): return qutip.qeye(2)
-
-        with pytest.raises(ValueError, match="Requires 2 parameters, got 1"):
-            GoodParamGate(1.0)
-
-        with pytest.raises(ValueError):
-            GoodParamGate(1.0, "wrong") # second argument is a string instead of float
-
-        gate = GoodParamGate(1.0, 2.0)
-        with pytest.raises(NotImplementedError):
-            gate.inverse()
-
-    def test_controlled_gate_errors(self):
-        from qutip_qip.operations.controlled import ControlledGate
-        import qutip_qip.operations.gates as gates
-
-        with pytest.raises(TypeError):
-            class BadCtrlGate(ControlledGate):
-                target_gate = gates.RX(0)  # target_gate must be a gate subclass not an instantiated onject
-                num_ctrl_qubits = 1
-                ctrl_value = 1
-                num_qubits = 2
-
-        with pytest.raises(TypeError):
-            class BadCtrlGate2(ControlledGate):
-                target_gate = gates.X
-                num_ctrl_qubits = -1  # Can't be negative
-                ctrl_value = 1
-                num_qubits = 2
-
-        with pytest.raises(ValueError):
-            class BadCtrlGate3(ControlledGate):
-                target_gate = gates.X
-                num_qubits = 2
-                num_ctrl_qubits = 2  # Must be less than num_qubit
-                ctrl_value = 1
-
-        with pytest.raises(AttributeError):
-            class BadCtrlGate4(ControlledGate):
-                target_gate = gates.X
-                num_ctrl_qubits = 1  # No of control qubits must be 2, since target gate is X
-                ctrl_value = 1
-                num_qubits = 3
-
-        with pytest.raises(TypeError):
-            class BadCtrlGate5(ControlledGate):
-                target_gate = gates.X
-                num_ctrl_qubits = 1
-                ctrl_value = 1.5  # Control value must be an int
-                num_qubits = 2
-
-        with pytest.raises(ValueError):
-            class BadCtrlGate6(ControlledGate):
-                target_gate = gates.X
-                num_ctrl_qubits = 1
-                ctrl_value = 2  # Control value can't be greater than 1 in this case
-                num_qubits = 2
-
+class TestGateErrors:
     def test_namespace_errors(self):
         with pytest.raises(ValueError):
             NameSpace("bad.namespace")  # namespace cannot contain dots
@@ -612,20 +489,240 @@ class TestOperationsErrors:
         with pytest.raises(NameError, match="already exists in namespace"):
             ns1.register("tmp_gate", TmpGate)
 
+        assert ns1.get("tmp") is None
+        assert ns1.get("tmp_gate") is TmpGate
+
+    def test_gateclass_errors(self):
+        with pytest.raises(TypeError):
+
+            class BadGate(Gate):
+                num_qubits = -1
+
+                def get_qobj(cls):
+                    pass
+
+        with pytest.raises(TypeError):
+
+            class BadGate2(Gate):
+                num_qubits = 1
+                is_clifford = 1  # attribute 'is_clifford' must be a bool
+
+                def get_qobj(cls):
+                    pass
+
+        with pytest.raises(TypeError):
+
+            class BadGate3(Gate):
+                num_qubits = 1
+                self_inverse = 1  # attribute 'self_inverse' must be a bool
+
+                def get_qobj(cls):
+                    pass
+
+        with pytest.raises(TypeError):
+
+            class BadGate4(Gate):
+                num_qubits = 1
+                self_inverse = True
+
+                def get_qobj(cls):
+                    pass
+
+                def inverse(cls):
+                    pass  # Can't define inverse method is self_inverse=True
+
+        class GoodGate(Gate):
+            num_qubits = 1
+
+            @staticmethod
+            def get_qobj():
+                pass
+
+        with pytest.raises(AttributeError):
+            # For a given gateclass, class attribute like num_qubit can't be modified
+            GoodGate.num_qubits = 2
+
+        with pytest.raises(NotImplementedError):
+            GoodGate.inverse()
+
+        U_rect = qutip.Qobj(np.eye(2, 3))
+        with pytest.raises(ValueError):
+            get_unitary_gate("U_rect", U_rect)  # U must be a square matrix
+
+        U_dim = qutip.Qobj(np.eye(3))
+        with pytest.raises(ValueError):
+            get_unitary_gate("U_dim", U_dim)  # 3 != 2^n
+
+        U_not_unitary = qutip.Qobj(np.zeros((2, 2)))
+        with pytest.raises(ValueError):
+            get_unitary_gate(
+                "U_not_unitary", U_not_unitary
+            )  # U must be unitaru
+
+        with pytest.raises(TypeError):
+
+            class NotGoodGate(GoodGate):
+                def is_controlled(args):
+                    return args  # is_controlled can't take arguments
+
+        with pytest.raises(TypeError):
+
+            class NotGoodGate2(GoodGate):
+                def is_controlled():
+                    return 1  # must return a bool
+
+        with pytest.raises(TypeError):
+
+            class NotGoodGate3(GoodGate):
+                def is_parametric(args):
+                    return args  # is_parametric can't take arguments
+
+        with pytest.raises(TypeError):
+
+            class NotGoodGate4(GoodGate):
+                def is_parametric():
+                    return 1  # must return a bool
+
+    def test_parametric_gate_errors(self):
+        with pytest.raises(TypeError):
+
+            class BadParamGate(ParametricGate):
+                num_params = -1
+
+                @staticmethod
+                def _compute_qobj(args):
+                    pass
+
+                @staticmethod
+                def validate_params(args):
+                    pass
+
+        with pytest.raises(TypeError):
+
+            class BadParamGate2(ParametricGate):
+                num_params = 1.5
+
+                @staticmethod
+                def _compute_qobj(args):
+                    pass
+
+                @staticmethod
+                def validate_params(args):
+                    pass
+
+        class GoodParamGate(AngleParametricGate):
+            num_qubits = 1
+            num_params = 2
+
+            @staticmethod
+            def _compute_qobj(args):
+                return qutip.qeye(2)
+
+        with pytest.raises(ValueError, match="Requires 2 parameters, got 1"):
+            GoodParamGate(1.0)
+
+        with pytest.raises(ValueError):
+            GoodParamGate(
+                1.0, "wrong"
+            )  # second argument is a string instead of float
+
+        gate = GoodParamGate(1.0, 2.0)
+        with pytest.raises(NotImplementedError):
+            gate.inverse()
+
+        with pytest.raises(SyntaxError):
+
+            class NotGoodParamGate(GoodParamGate):
+                def validate_params(arg1, arg2):
+                    pass
+
+        with pytest.raises(SyntaxError):
+
+            class NotGoodParamGate2(GoodParamGate):
+                def _compute_qobj(arg1, arg2):
+                    pass
+
+    def test_controlled_gate_errors(self):
+        from qutip_qip.operations.controlled import ControlledGate
+        import qutip_qip.operations.gates as gates
+
+        with pytest.raises(TypeError):
+
+            class BadCtrlGate(ControlledGate):
+                target_gate = gates.RX(
+                    0
+                )  # target_gate must be a gate subclass not an instantiated onject
+                num_ctrl_qubits = 1
+                ctrl_value = 1
+                num_qubits = 2
+
+        with pytest.raises(TypeError):
+
+            class BadCtrlGate2(ControlledGate):
+                target_gate = gates.X
+                num_ctrl_qubits = -1  # Can't be negative
+                ctrl_value = 1
+                num_qubits = 2
+
+        with pytest.raises(ValueError):
+
+            class BadCtrlGate3(ControlledGate):
+                target_gate = gates.X
+                num_qubits = 2
+                num_ctrl_qubits = 2  # Must be less than num_qubit
+                ctrl_value = 1
+
+        with pytest.raises(AttributeError):
+
+            class BadCtrlGate4(ControlledGate):
+                target_gate = gates.X
+                num_ctrl_qubits = (
+                    1  # No of control qubits must be 2, since target gate is X
+                )
+                ctrl_value = 1
+                num_qubits = 3
+
+        with pytest.raises(TypeError):
+
+            class BadCtrlGate5(ControlledGate):
+                target_gate = gates.X
+                num_ctrl_qubits = 1
+                ctrl_value = 1.5  # Control value must be an int
+                num_qubits = 2
+
+        with pytest.raises(ValueError):
+
+            class BadCtrlGate6(ControlledGate):
+                target_gate = gates.X
+                num_ctrl_qubits = 1
+                ctrl_value = (
+                    2  # Control value can't be greater than 1 in this case
+                )
+                num_qubits = 2
+
     def test_utils_errors(self):
         from qutip_qip.operations.utils import (
-            _check_oper_dims, _targets_to_list, expand_operator, gate_sequence_product
+            _check_oper_dims,
+            _targets_to_list,
+            expand_operator,
+            gate_sequence_product,
         )
 
         with pytest.raises(ValueError):
-            _check_oper_dims(qutip.basis(2, 0))  # The operator is not an Qobj with the same input and output dimensions.
+            _check_oper_dims(
+                qutip.basis(2, 0)
+            )  # The operator is not an Qobj with the same input and output dimensions.
 
         op = qutip.qeye(2)
         with pytest.raises(ValueError):
-            _check_oper_dims(oper=op, dims=[3], targets=[0])  # The dims don't match
+            _check_oper_dims(
+                oper=op, dims=[3], targets=[0]
+            )  # The dims don't match
 
         with pytest.raises(TypeError):
-            _targets_to_list(1.5, op, 1)  # targets should be an integer or a list of integer
+            _targets_to_list(
+                1.5, op, 1
+            )  # targets should be an integer or a list of integer
 
         with pytest.raises(ValueError):
             expand_operator(op, 2, 0)  # dims needs to be an interable
@@ -646,15 +743,55 @@ class TestOperationsErrors:
         with pytest.raises(TypeError):
             gates.CRX.get_qobj()
 
-def test_gate_equality():
-    assert gates.CX == gates.CX
-    assert gates.CX != gates.CY
-    assert gates.CX != gates.CRX(0.5)
-    
-    assert gates.RX(0.5) == gates.RX(0.5)
-    assert gates.RX(0.5) != gates.RY(0.5)
-    assert gates.RX(0.5) != gates.RX(0.6)
+        # Control_value > 2^n -1
+        with pytest.raises(ValueError):
+            controlled(gates.X, n_ctrl_qubits=1, control_value=2)
 
-    assert gates.CRX(0.5) == gates.CRX(0.5)
-    assert gates.CRX(0.5) != gates.CRY(0.5)
-    assert gates.CRX(0.5) != gates.CRX(0.6)
+        with pytest.raises(TypeError):
+            controlled(gates.X, n_ctrl_qubits=0)  # num_ctrl_qubits > 0
+
+    def test_class_attribute_modification(self):
+        with pytest.raises(AttributeError):
+            gates.CX.namespace = NameSpace("temp")
+
+        with pytest.raises(AttributeError):
+            gates.X.num_qubits = 0
+
+        with pytest.raises(AttributeError):
+            gates.X.is_clifford = False
+
+        with pytest.raises(AttributeError):
+            gates.X.self_inverse = False
+
+        with pytest.raises(AttributeError):
+            gates.CX.num_ctrl_qubits = 0
+
+        with pytest.raises(AttributeError):
+            gates.CX.ctrl_value = 0
+
+        with pytest.raises(AttributeError):
+            gates.CX.target_gate = gates.Y
+
+        with pytest.raises(AttributeError):
+            gates.RX.num_params = 2
+
+        with pytest.raises(AttributeError):
+            gates.RY.latex_str = "R_y"
+
+        class H(Gate):
+            num_qubits = 1
+
+            def get_qobj():
+                pass
+
+        assert H.name == "H"
+        assert H.latex_str == "H"
+
+        class H(Gate):
+            name = "Hadamard"
+            num_qubits = 1
+
+            def get_qobj():
+                pass
+
+        H.name = "Hadamard"

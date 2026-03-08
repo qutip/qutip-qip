@@ -102,8 +102,6 @@ class TestConverter:
 
         for i, res_ins in enumerate(result_circuit.instructions):
             req_ins = required_circuit.instructions[i]
-            print(req_ins)
-            print(res_ins)
 
             if not self._compare_gate_instructions(
                 req_ins, res_ins, result_circuit
