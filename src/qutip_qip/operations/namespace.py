@@ -68,7 +68,7 @@ class NameSpace:
         """
         if name in self._registry:
             raise NameError(
-                f"'{operation_cls.name}' already exists in namespace '{self.name}'"
+                f"'{operation_cls.__name__}' already exists in namespace '{self.name}'"
             )
         self._registry[name] = operation_cls
 

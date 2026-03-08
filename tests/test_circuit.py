@@ -5,7 +5,7 @@ import numpy as np
 from pathlib import Path
 
 
-import qutip as qp
+import qutip
 from qutip import (
     tensor,
     Qobj,
@@ -439,7 +439,7 @@ class TestQubitCircuit:
         """
         Test for circuit with N-level system.
         """
-        mat3 = qp.rand_unitary(3)
+        mat3 = qutip.rand_unitary(3)
 
         class CTRLMAT3(Gate):
             num_qubits = 2
@@ -461,12 +461,12 @@ class TestQubitCircuit:
         qc = QubitCircuit(2, dims=[3, 2])
         qc.add_gate(CTRLMAT3, targets=[1, 0])
         props = qc.propagators()
-        final_fid = qp.average_gate_fidelity(mat3, ptrace(props[0], 0) - 1)
+        final_fid = qutip.average_gate_fidelity(mat3, ptrace(props[0], 0) - 1)
         assert pytest.approx(final_fid, 1.0e-6) == 1
 
         init_state = basis([3, 2], [0, 1])
         result = qc.run(init_state)
-        final_fid = qp.fidelity(result, props[0] * init_state)
+        final_fid = qutip.fidelity(result, props[0] * init_state)
         assert pytest.approx(final_fid, 1.0e-6) == 1.0
 
     @pytest.mark.repeat(10)
@@ -504,7 +504,7 @@ class TestQubitCircuit:
             classical_control_value=1,
         )
         result = qc.run(basis(2, 0), cbits=[1, 0])
-        fid = qp.fidelity(result, basis(2, 0))
+        fid = qutip.fidelity(result, basis(2, 0))
         assert pytest.approx(fid, 1.0e-6) == 1
 
         qc = QubitCircuit(1, num_cbits=2)
@@ -515,7 +515,7 @@ class TestQubitCircuit:
             classical_control_value=2,
         )
         result = qc.run(basis(2, 0), cbits=[1, 0])
-        fid = qp.fidelity(result, basis(2, 1))
+        fid = qutip.fidelity(result, basis(2, 1))
         assert pytest.approx(fid, 1.0e-6) == 1
 
     def test_runstatistics_teleportation(self):
@@ -581,12 +581,12 @@ class TestQubitCircuit:
         # if we don's select the measurement result,
         # the two circuit should return the same value.
         np.random.seed(0)
-        final_state = qc.run(qp.basis(2, 0), cbits=[0], measure_results=[0])
-        fid = pytest.approx(qp.fidelity(final_state, basis(2, 0)))
+        final_state = qc.run(qutip.basis(2, 0), cbits=[0], measure_results=[0])
+        fid = pytest.approx(qutip.fidelity(final_state, basis(2, 0)))
         assert fid == 1.0
         np.random.seed(0)
-        final_state = qc.run(qp.basis(2, 0), cbits=[0], measure_results=[1])
-        fid = pytest.approx(qp.fidelity(final_state, basis(2, 1)))
+        final_state = qc.run(qutip.basis(2, 0), cbits=[0], measure_results=[1])
+        fid = pytest.approx(qutip.fidelity(final_state, basis(2, 1)))
         assert fid == 1.0
 
     def test_gate_product(self):
@@ -769,3 +769,65 @@ class TestQubitCircuit:
 
         assert qc2.reverse_states is True
         assert qc2.input_states == [None] * 3
+
+
+def test_gates_class():
+    init_state = qutip.rand_ket([2, 2, 2])
+
+    circuit1 = QubitCircuit(3)
+    circuit1.add_gate(gates.X, targets=1)
+    circuit1.add_gate(gates.Y, targets=1)
+    circuit1.add_gate(gates.Z, targets=2)
+    circuit1.add_gate(gates.RX(np.pi / 4), targets=0)
+    circuit1.add_gate(gates.RY(np.pi / 4), targets=0)
+    circuit1.add_gate(gates.RZ(np.pi / 4), targets=1)
+    circuit1.add_gate(gates.H, targets=0)
+    circuit1.add_gate(gates.SQRTX, targets=0)
+    circuit1.add_gate(gates.S, targets=2)
+    circuit1.add_gate(gates.T, targets=1)
+    circuit1.add_gate(gates.R(np.pi / 4, np.pi / 6), targets=1)
+    circuit1.add_gate(gates.QASMU(np.pi / 4, np.pi / 4, np.pi / 4), targets=0)
+    circuit1.add_gate(gates.CX, controls=0, targets=1)
+    circuit1.add_gate(gates.CPHASE(np.pi / 4), controls=0, targets=1)
+    circuit1.add_gate(gates.SWAP, targets=[0, 1])
+    circuit1.add_gate(gates.ISWAP, targets=[2, 1])
+    circuit1.add_gate(gates.CZ, controls=[0], targets=[2])
+    circuit1.add_gate(gates.SQRTSWAP, [2, 0])
+    circuit1.add_gate(gates.SQRTISWAP, [0, 1])
+    circuit1.add_gate(gates.SWAPALPHA(np.pi / 4), [1, 2])
+    circuit1.add_gate(gates.MS(np.pi / 4, np.pi / 7), targets=[1, 0])
+    circuit1.add_gate(gates.TOFFOLI, controls=[2, 0], targets=[1])
+    circuit1.add_gate(gates.FREDKIN, controls=[0], targets=[1, 2])
+    circuit1.add_gate(gates.BERKELEY, targets=[1, 0])
+    circuit1.add_gate(gates.RZX(1.0), targets=[1, 0])
+    result1 = circuit1.run(init_state)
+
+    circuit2 = QubitCircuit(3)
+    circuit2.add_gate(gates.X, targets=1)
+    circuit2.add_gate(gates.Y, targets=1)
+    circuit2.add_gate(gates.Z, targets=2)
+    circuit2.add_gate(gates.RX(np.pi / 4), targets=0)
+    circuit2.add_gate(gates.RY(np.pi / 4), targets=0)
+    circuit2.add_gate(gates.RZ(np.pi / 4), targets=1)
+    circuit2.add_gate(gates.H, targets=0)
+    circuit2.add_gate(gates.SQRTX, targets=0)
+    circuit2.add_gate(gates.S, targets=2)
+    circuit2.add_gate(gates.T, targets=1)
+    circuit2.add_gate(gates.R(np.pi / 4, np.pi / 6), targets=1)
+    circuit2.add_gate(gates.QASMU(np.pi / 4, np.pi / 4, np.pi / 4), targets=0)
+    circuit2.add_gate(gates.CX, controls=0, targets=1)
+    circuit2.add_gate(gates.CPHASE(np.pi / 4), controls=0, targets=1)
+    circuit2.add_gate(gates.SWAP, targets=[0, 1])
+    circuit2.add_gate(gates.ISWAP, targets=[2, 1])
+    circuit2.add_gate(gates.CZ, controls=[0], targets=[2])
+    circuit2.add_gate(gates.SQRTSWAP, targets=[2, 0])
+    circuit2.add_gate(gates.SQRTISWAP, targets=[0, 1])
+    circuit2.add_gate(gates.SWAPALPHA(np.pi / 4), targets=[1, 2])
+    circuit2.add_gate(gates.MS(np.pi / 4, np.pi / 7), targets=[1, 0])
+    circuit2.add_gate(gates.TOFFOLI, controls=[2, 0], targets=[1])
+    circuit2.add_gate(gates.FREDKIN, controls=[0], targets=[1, 2])
+    circuit2.add_gate(gates.BERKELEY, targets=[1, 0])
+    circuit2.add_gate(gates.RZX(1.0), targets=[1, 0])
+    result2 = circuit2.run(init_state)
+
+    assert pytest.approx(qutip.fidelity(result1, result2), 1.0e-6) == 1
