@@ -85,7 +85,7 @@ def test_compiling_gates_different_sampling_number():
         num_params = 1
         self_inverse = False
 
-        def _compute_qobj(self):
+        def compute_qobj(self):
             pass
 
     class U2(AngleParametricGate):
@@ -93,7 +93,7 @@ def test_compiling_gates_different_sampling_number():
         num_params = 1
         self_inverse = False
 
-        def _compute_qobj():
+        def compute_qobj():
             pass
 
     num_qubits = 2

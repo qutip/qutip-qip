@@ -153,7 +153,7 @@ def expand_operator(
         The indices of subspace that are acted on.
         Permutation can also be realized by changing the orders of the indices.
     dtype : str, optional
-        Data type of the output `Qobj`. Only for qutip version larger than 5.
+        Data type of the output `Qobj`.
 
 
     Returns

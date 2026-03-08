@@ -459,6 +459,7 @@ def test_gate_inverse(gate: Gate | Type[Gate]):
         atol=1e-12,
     )
 
+
 def test_gate_equality():
     assert gates.CX == gates.CX
     assert gates.CX != gates.CY
@@ -590,7 +591,7 @@ class TestGateErrors:
                 num_params = -1
 
                 @staticmethod
-                def _compute_qobj(args):
+                def compute_qobj(args):
                     pass
 
                 @staticmethod
@@ -603,7 +604,7 @@ class TestGateErrors:
                 num_params = 1.5
 
                 @staticmethod
-                def _compute_qobj(args):
+                def compute_qobj(args):
                     pass
 
                 @staticmethod
@@ -615,7 +616,7 @@ class TestGateErrors:
             num_params = 2
 
             @staticmethod
-            def _compute_qobj(args):
+            def compute_qobj(args):
                 return qutip.qeye(2)
 
         with pytest.raises(ValueError, match="Requires 2 parameters, got 1"):
@@ -639,7 +640,7 @@ class TestGateErrors:
         with pytest.raises(SyntaxError):
 
             class NotGoodParamGate2(GoodParamGate):
-                def _compute_qobj(arg1, arg2):
+                def compute_qobj(arg1, arg2, dtype):
                     pass
 
     def test_controlled_gate_errors(self):

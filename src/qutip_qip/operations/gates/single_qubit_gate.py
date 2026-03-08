@@ -46,8 +46,8 @@ class X(_SingleQubitGate):
 
     @staticmethod
     @cache
-    def get_qobj() -> Qobj:
-        return sigmax(dtype="dense")
+    def get_qobj(dtype: str = "dense") -> Qobj:
+        return sigmax(dtype=dtype)
 
 
 class Y(_SingleQubitGate):
@@ -72,8 +72,8 @@ class Y(_SingleQubitGate):
 
     @staticmethod
     @cache
-    def get_qobj() -> Qobj:
-        return sigmay(dtype="dense")
+    def get_qobj(dtype: str = "dense") -> Qobj:
+        return sigmay(dtype=dtype)
 
 
 class Z(_SingleQubitGate):
@@ -98,8 +98,8 @@ class Z(_SingleQubitGate):
 
     @staticmethod
     @cache
-    def get_qobj() -> Qobj:
-        return sigmaz(dtype="dense")
+    def get_qobj(dtype: str = "dense") -> Qobj:
+        return sigmaz(dtype=dtype)
 
 
 class IDLE(_SingleQubitGate):
@@ -119,8 +119,8 @@ class IDLE(_SingleQubitGate):
 
     @staticmethod
     @cache
-    def get_qobj() -> Qobj:
-        return qeye(2)
+    def get_qobj(dtype: str = "dense") -> Qobj:
+        return qeye(2, dtype=dtype)
 
 
 class H(_SingleQubitGate):
@@ -145,25 +145,12 @@ class H(_SingleQubitGate):
 
     @staticmethod
     @cache
-    def get_qobj() -> Qobj:
-        return 1 / np.sqrt(2.0) * Qobj([[1, 1], [1, -1]])
+    def get_qobj(dtype: str = "dense") -> Qobj:
+        sq_half = 1 / np.sqrt(2.0)
+        return Qobj([[sq_half, sq_half], [sq_half, -sq_half]], dtype=dtype)
 
 
-class SNOT(H):
-    """
-    Hadamard gate (Deprecated, use H instead).
-    """
-
-    __slots__ = ()
-
-    def __init__(self):
-        warnings.warn(
-            "SNOT is deprecated and will be removed in future versions. "
-            "Use H instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        super().__init__()
+SNOT = H
 
 
 class SQRTX(_SingleQubitGate):
@@ -188,8 +175,10 @@ class SQRTX(_SingleQubitGate):
 
     @staticmethod
     @cache
-    def get_qobj() -> Qobj:
-        return Qobj([[0.5 + 0.5j, 0.5 - 0.5j], [0.5 - 0.5j, 0.5 + 0.5j]])
+    def get_qobj(dtype: str = "dense") -> Qobj:
+        return Qobj(
+            [[0.5 + 0.5j, 0.5 - 0.5j], [0.5 - 0.5j, 0.5 + 0.5j]], dtype=dtype
+        )
 
     @staticmethod
     def inverse() -> Type[Gate]:
@@ -218,8 +207,10 @@ class SQRTXdag(_SingleQubitGate):
 
     @staticmethod
     @cache
-    def get_qobj() -> Qobj:
-        return Qobj([[0.5 - 0.5j, 0.5 + 0.5j], [0.5 + 0.5j, 0.5 - 0.5j]])
+    def get_qobj(dtype: str = "dense") -> Qobj:
+        return Qobj(
+            [[0.5 - 0.5j, 0.5 + 0.5j], [0.5 + 0.5j, 0.5 - 0.5j]], dtype=dtype
+        )
 
     @staticmethod
     def inverse() -> Type[Gate]:
@@ -261,8 +252,8 @@ class S(_SingleQubitGate):
 
     @staticmethod
     @cache
-    def get_qobj() -> Qobj:
-        return Qobj([[1, 0], [0, 1j]])
+    def get_qobj(dtype: str = "dense") -> Qobj:
+        return Qobj([[1, 0], [0, 1j]], dtype=dtype)
 
     @staticmethod
     def inverse() -> Type[Gate]:
@@ -291,8 +282,8 @@ class Sdag(_SingleQubitGate):
 
     @staticmethod
     @cache
-    def get_qobj() -> Qobj:
-        return Qobj([[1, 0], [0, -1j]])
+    def get_qobj(dtype: str = "dense") -> Qobj:
+        return Qobj([[1, 0], [0, -1j]], dtype=dtype)
 
     @staticmethod
     def inverse() -> Type[Gate]:
@@ -320,8 +311,8 @@ class T(_SingleQubitGate):
 
     @staticmethod
     @cache
-    def get_qobj() -> Qobj:
-        return Qobj([[1, 0], [0, np.exp(1j * np.pi / 4)]])
+    def get_qobj(dtype: str = "dense") -> Qobj:
+        return Qobj([[1, 0], [0, np.exp(1j * np.pi / 4)]], dtype=dtype)
 
     @staticmethod
     def inverse() -> Type[Gate]:
@@ -349,8 +340,8 @@ class Tdag(_SingleQubitGate):
 
     @staticmethod
     @cache
-    def get_qobj() -> Qobj:
-        return Qobj([[1, 0], [0, np.exp(-1j * np.pi / 4)]])
+    def get_qobj(dtype: str = "dense") -> Qobj:
+        return Qobj([[1, 0], [0, np.exp(-1j * np.pi / 4)]], dtype=dtype)
 
     @staticmethod
     def inverse() -> Type[Gate]:
@@ -381,7 +372,7 @@ class RX(_SingleQubitParametricGate):
 
     @staticmethod
     @lru_cache(maxsize=128)
-    def _compute_qobj(arg_value: tuple[float]) -> Qobj:
+    def compute_qobj(arg_value: tuple[float], dtype: str) -> Qobj:
         phi = arg_value[0]
         return Qobj(
             [
@@ -389,6 +380,7 @@ class RX(_SingleQubitParametricGate):
                 [-1j * np.sin(phi / 2), np.cos(phi / 2)],
             ],
             dims=[[2], [2]],
+            dtype=dtype,
         )
 
     def inverse(
@@ -425,13 +417,15 @@ class RY(_SingleQubitParametricGate):
 
     @staticmethod
     @lru_cache(maxsize=128)
-    def _compute_qobj(arg_value: tuple[float]) -> Qobj:
+    def compute_qobj(arg_value: tuple[float], dtype: str) -> Qobj:
         phi = arg_value[0]
         return Qobj(
             [
                 [np.cos(phi / 2), -np.sin(phi / 2)],
                 [np.sin(phi / 2), np.cos(phi / 2)],
-            ]
+            ],
+            dims=[[2], [2]],
+            dtype=dtype,
         )
 
     def inverse(
@@ -468,9 +462,13 @@ class RZ(_SingleQubitParametricGate):
 
     @staticmethod
     @lru_cache(maxsize=128)
-    def _compute_qobj(arg_value: tuple[float]) -> Qobj:
+    def compute_qobj(arg_value: tuple[float], dtype: str) -> Qobj:
         phi = arg_value[0]
-        return Qobj([[np.exp(-1j * phi / 2), 0], [0, np.exp(1j * phi / 2)]])
+        return Qobj(
+            [[np.exp(-1j * phi / 2), 0], [0, np.exp(1j * phi / 2)]],
+            dims=[[2], [2]],
+            dtype=dtype,
+        )
 
     def inverse(
         self, expanded: bool = False
@@ -501,13 +499,12 @@ class PHASE(_SingleQubitParametricGate):
 
     @staticmethod
     @lru_cache(maxsize=128)
-    def _compute_qobj(arg_value: tuple[float]) -> Qobj:
+    def compute_qobj(arg_value: tuple[float], dtype: str) -> Qobj:
         phi = arg_value[0]
         return Qobj(
-            [
-                [1, 0],
-                [0, np.exp(1j * phi)],
-            ]
+            [[1, 0], [0, np.exp(1j * phi)]],
+            dims=[[2], [2]],
+            dtype=dtype,
         )
 
     def inverse(
@@ -551,7 +548,7 @@ class R(_SingleQubitParametricGate):
 
     @staticmethod
     @lru_cache(maxsize=128)
-    def _compute_qobj(arg_value: tuple[float, float]) -> Qobj:
+    def compute_qobj(arg_value: tuple[float, float], dtype: str) -> Qobj:
         phi, theta = arg_value
         return Qobj(
             [
@@ -563,7 +560,9 @@ class R(_SingleQubitParametricGate):
                     -1.0j * np.exp(1.0j * phi) * np.sin(theta / 2.0),
                     np.cos(theta / 2.0),
                 ],
-            ]
+            ],
+            dims=[[2], [2]],
+            dtype=dtype,
         )
 
     def inverse(
@@ -611,7 +610,7 @@ class QASMU(_SingleQubitParametricGate):
 
     @staticmethod
     @lru_cache(maxsize=128)
-    def _compute_qobj(arg_value: tuple[float]) -> Qobj:
+    def compute_qobj(arg_value: tuple[float], dtype: str) -> Qobj:
         theta, phi, gamma = arg_value
         return Qobj(
             [
@@ -623,7 +622,9 @@ class QASMU(_SingleQubitParametricGate):
                     np.exp(1j * (phi - gamma) / 2) * np.sin(theta / 2),
                     np.exp(1j * (phi + gamma) / 2) * np.cos(theta / 2),
                 ],
-            ]
+            ],
+            dims=[[2], [2]],
+            dtype=dtype,
         )
 
     def inverse(

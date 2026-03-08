@@ -166,7 +166,7 @@ class ControlledGate(Gate):
             )
 
     @class_or_instance_method
-    def get_qobj(cls_or_self) -> Qobj:
+    def get_qobj(cls_or_self, dtype: str = "dense") -> Qobj:
         """
         Construct the full Qobj representation of the controlled gate.
 
@@ -177,13 +177,13 @@ class ControlledGate(Gate):
         """
         if isinstance(cls_or_self, type):
             return controlled_gate_unitary(
-                U=cls_or_self.target_gate.get_qobj(),
+                U=cls_or_self.target_gate.get_qobj(dtype),
                 num_controls=cls_or_self.num_ctrl_qubits,
                 control_value=cls_or_self.ctrl_value,
             )
 
         return controlled_gate_unitary(
-            U=cls_or_self._target_inst.get_qobj(),
+            U=cls_or_self._target_inst.get_qobj(dtype),
             num_controls=cls_or_self.num_ctrl_qubits,
             control_value=cls_or_self.ctrl_value,
         )

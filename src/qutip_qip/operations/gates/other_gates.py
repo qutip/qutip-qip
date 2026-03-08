@@ -33,18 +33,19 @@ class GLOBALPHASE(AngleParametricGate):
     def __repr__(self):
         return f"Gate({self.name}, phase {self.arg_value[0]})"
 
-    def _compute_qobj():
+    def compute_qobj():
         raise NotImplementedError
 
-    def get_qobj(self, num_qubits=None):
+    def get_qobj(self, num_qubits=None, dtype: str = "dense"):
         phase = self.arg_value[0]
         if num_qubits is None:
-            return Qobj(phase)
+            return Qobj(phase, dtype=dtype)
 
         N = 2**num_qubits
         return Qobj(
             np.exp(1.0j * phase) * sp.eye(N, N, dtype=complex, format="csr"),
             dims=[[2] * num_qubits, [2] * num_qubits],
+            dtype=dtype,
         )
 
 
@@ -81,7 +82,7 @@ class TOFFOLI(ControlledGate):
 
     @staticmethod
     @cache
-    def get_qobj() -> Qobj:
+    def get_qobj(dtype: str = "dense") -> Qobj:
         return Qobj(
             [
                 [1, 0, 0, 0, 0, 0, 0, 0],
@@ -94,6 +95,7 @@ class TOFFOLI(ControlledGate):
                 [0, 0, 0, 0, 0, 0, 1, 0],
             ],
             dims=[[2, 2, 2], [2, 2, 2]],
+            dtype=dtype,
         )
 
 
@@ -130,7 +132,7 @@ class FREDKIN(ControlledGate):
 
     @staticmethod
     @cache
-    def get_qobj() -> Qobj:
+    def get_qobj(dtype: str = "dense") -> Qobj:
         return Qobj(
             [
                 [1, 0, 0, 0, 0, 0, 0, 0],
@@ -143,4 +145,5 @@ class FREDKIN(ControlledGate):
                 [0, 0, 0, 0, 0, 0, 0, 1],
             ],
             dims=[[2, 2, 2], [2, 2, 2]],
+            dtype=dtype,
         )

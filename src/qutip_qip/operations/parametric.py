@@ -74,12 +74,12 @@ class ParametricGate(Gate):
                 f" but it takes {len(inspect.signature(validate_params_func).parameters)}."
             )
 
-        # _compute_qobj method must take only one arguments arg_value
-        compute_qobj_func = getattr(cls, "_compute_qobj")
-        if len(inspect.signature(compute_qobj_func).parameters) > 1:
+        # compute_qobj method must take only two arguments arg_value, dtype
+        compute_qobj_func = getattr(cls, "compute_qobj")
+        if len(inspect.signature(compute_qobj_func).parameters) > 2:
             raise SyntaxError(
-                f"Class '{cls.name}' method '_compute_qobj()' must take exactly 1 "
-                f"additional arguments (only the implicit 'arg_value'),"
+                f"Class '{cls.name}' method 'compute_qobj()' must take exactly 1 "
+                f"additional arguments (only the implicit 'arg_value, dtype'),"
                 f" but it takes {len(inspect.signature(compute_qobj_func).parameters)}."
             )
 
@@ -119,9 +119,9 @@ class ParametricGate(Gate):
         arg_value : list of float
             The parameters to validate.
         """
-        pass
+        raise NotImplementedError
 
-    def get_qobj(self) -> Qobj:
+    def get_qobj(self, dtype: str = "dense") -> Qobj:
         """
         Get the QuTiP quantum object representation using the current parameters.
 
@@ -130,12 +130,12 @@ class ParametricGate(Gate):
         qobj : qutip.Qobj
             The unitary matrix representing the gate with the specific `arg_value`.
         """
-        return self._compute_qobj(self.arg_value)
+        return self.compute_qobj(self.arg_value, dtype)
 
     @staticmethod
     @abstractmethod
-    def _compute_qobj(args: tuple) -> "Qobj":
-        pass
+    def compute_qobj(args: tuple, dtype: str) -> Qobj:
+        raise NotImplementedError
 
     def inverse(self, expanded: bool = False) -> Gate:
         if self.self_inverse:

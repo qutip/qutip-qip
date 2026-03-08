@@ -258,7 +258,7 @@ class Gate(ABC, metaclass=_GateMetaClass):
 
     @staticmethod
     @abstractmethod
-    def get_qobj() -> Qobj:
+    def get_qobj(dtype: str = "dense") -> Qobj:
         """
         Get the :class:`qutip.Qobj` representation of the gate operator.
 
@@ -267,7 +267,7 @@ class Gate(ABC, metaclass=_GateMetaClass):
         qobj : :obj:`qutip.Qobj`
             The compact gate operator as a unitary matrix.
         """
-        pass
+        raise NotImplementedError
 
     @classmethod
     def inverse(cls) -> Type[Gate]:
@@ -336,7 +336,7 @@ def get_unitary_gate(
         self_inverse = U == U.dag()
 
         @staticmethod
-        def get_qobj():
-            return U
+        def get_qobj(dtype=U.dtype):
+            return U.to(dtype)
 
     return _CustomGate
