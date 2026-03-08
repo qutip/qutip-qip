@@ -57,14 +57,14 @@ class PhaseFlipCode:
             raise ValueError("Expected 3 data qubits.")
         qc = QubitCircuit(max(data_qubits) + 1)
 
-        # Convert to X-basis
-        for q in data_qubits:
-            qc.add_gate("SNOT", targets=[q])
-
         # Bit-flip-style encoding
         control = data_qubits[0]
         for target in data_qubits[1:]:
             qc.add_gate("CNOT", controls=control, targets=target)
+
+        # Convert to X-basis
+        for q in data_qubits:
+            qc.add_gate("SNOT", targets=[q])
 
         return qc
 
@@ -95,11 +95,19 @@ class PhaseFlipCode:
         dq = data_qubits
         sq = syndrome_qubits
 
+        # Convert back from X-basis
+        for q in data_qubits:
+            qc.add_gate("SNOT", targets=[q])
+
         # Parity checks
         qc.add_gate("CNOT", controls=dq[0], targets=sq[0])
         qc.add_gate("CNOT", controls=dq[1], targets=sq[0])
         qc.add_gate("CNOT", controls=dq[1], targets=sq[1])
         qc.add_gate("CNOT", controls=dq[2], targets=sq[1])
+
+        # Convert to X-basis
+        for q in data_qubits:
+            qc.add_gate("SNOT", targets=[q])
 
         # Measure syndrome qubits
         qc.add_measurement(sq[0], sq[0], classical_store=0)
@@ -147,12 +155,12 @@ class PhaseFlipCode:
             raise ValueError("Expected 3 data qubits.")
         qc = QubitCircuit(max(data_qubits) + 1)
 
-        control = data_qubits[0]
-        for target in reversed(data_qubits[1:]):
-            qc.add_gate("CNOT", controls=control, targets=target)
-
         # Convert back from X-basis
         for q in data_qubits:
             qc.add_gate("SNOT", targets=[q])
+
+        control = data_qubits[0]
+        for target in reversed(data_qubits[1:]):
+            qc.add_gate("CNOT", controls=control, targets=target)
 
         return qc
