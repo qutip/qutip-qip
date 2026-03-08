@@ -493,6 +493,10 @@ class TestGateErrors:
         assert ns1.get("tmp") is None
         assert ns1.get("tmp_gate") is TmpGate
 
+        ns1._remove("tmp_gate")
+        with pytest.raises(KeyError):
+            ns1._remove("tmp_gate")
+
     def test_gateclass_errors(self):
         with pytest.raises(TypeError):
 

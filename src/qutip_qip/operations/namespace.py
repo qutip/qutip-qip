@@ -77,6 +77,13 @@ class NameSpace:
             return None
         return self._registry[name]
 
+    def _remove(self, name: str | tuple[str, int, int]) -> None:
+        if name not in self._registry:
+            raise KeyError(
+                f"{name} does not exists in namespace '{self.name} "
+            )
+        del self._registry[name]
+
     def __hash__(self) -> int:
         return hash(self.name)
 
