@@ -190,8 +190,11 @@ class ControlledGate(Gate):
 
     @class_or_instance_method
     def inverse(cls_or_self) -> Gate | Type[Gate]:
+        if cls_or_self.self_inverse:
+            inverse_gate = cls_or_self
+
         # Non-parametrized Gates e.g. S
-        if isinstance(cls_or_self, type):
+        elif isinstance(cls_or_self, type):
             inverse_gate = controlled(
                 cls_or_self.target_gate.inverse(),
                 cls_or_self.num_ctrl_qubits,
@@ -265,7 +268,7 @@ def controlled(
         if found_gate is not None:
             warnings.warn(
                 f"Found the same existing Controlled Gate {found_gate.name}",
-                UserWarning
+                UserWarning,
             )
             return found_gate
 

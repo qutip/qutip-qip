@@ -111,7 +111,7 @@ class _GateMetaClass(ABCMeta):
         Hashes the class based on its unique identity (namespace and name)
         so it can still be safely used in the _registry sets and dicts.
         """
-        return id(cls) # By default Python using id() for hashing
+        return id(cls)  # By default Python using id() for hashing
 
 
 class Gate(ABC, metaclass=_GateMetaClass):
@@ -144,6 +144,7 @@ class Gate(ABC, metaclass=_GateMetaClass):
         The LaTeX string representation of the gate (used for circuit drawing).
         Defaults to the class name if not provided.
     """
+
     __slots__ = ()
     namespace: NameSpace | None = None
 
