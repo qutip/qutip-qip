@@ -65,13 +65,13 @@ def get_qutip_index(bit_index: int | list, total_bits: int) -> int:
     Note
     ----
     When we convert a circuit from qiskit to qutip,
-    the 0st bit is mapped to the 0th bit and (n-1)th bit to (n-q)th bit
-    and so on. Essentially the bit order stays the same.
+    the 0st bit is mapped to the (n-1)th bit and 1st bit to (n-2)th bit
+    and so on. Essentially the bit order is reversed.
     """
     if isinstance(bit_index, Iterable):
         return [get_qutip_index(bit, total_bits) for bit in bit_index]
     else:
-        return bit_index
+        return total_bits - 1 - bit_index
 
 
 def _get_mapped_bits(bits: list | tuple, bit_map: dict[int, int]) -> list:

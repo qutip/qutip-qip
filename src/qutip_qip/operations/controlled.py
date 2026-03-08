@@ -148,9 +148,9 @@ class ControlledGate(Gate):
         Raises
         ------
         TypeError
-            If control_value is not an integer.
+            If ctrl_value is not an integer.
         ValueError
-            If control_value is negative or exceeds the maximum value
+            If ctrl_value is negative or exceeds the maximum value
             possible for the number of control qubits ($2^N - 1$).
         """
 

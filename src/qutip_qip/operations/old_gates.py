@@ -1026,6 +1026,12 @@ def rotation(op, phi, N=None, target=0):
         Quantum object for operator describing the rotation.
 
     """
+    warnings.warn(
+        "rotation has been deprecated and will be removed in future version.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
     if N is not None:
         _deprecation_warnings_gate_expansion()
         return expand_operator(rotation(op, phi), N, target)

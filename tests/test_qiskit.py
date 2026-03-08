@@ -213,7 +213,7 @@ class TestCircuitSimulator:
         obtain predetermined results.
         """
         random.seed(1)
-        predefined_counts = {"0": 233, "11": 267, "10": 270, "1": 254}
+        predefined_counts = {"0": 233, "11": 267, "1": 270, "10": 254}
 
         circ = QuantumCircuit(2, 2)
         circ.h(0)
