@@ -1,5 +1,6 @@
 import pytest
 import qutip
+import numpy as np
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.algorithms import PhaseFlipCode
 
@@ -50,8 +51,10 @@ def test_phaseflip_correction_simulation(
     Test across all possible single-qubit errors and multiple random initial states.
     """
     for _ in range(5):
+        seed = np.random.randint(0, 2**31 - 1)
+
         # Random initial qubit state
-        psi = qutip.rand_ket(2)
+        psi = qutip.rand_ket(2, seed=seed)
 
         # Full system: qubit + 2 redundant qubits + 2 ancillas
         state = qutip.tensor([psi] + [qutip.basis(2, 0)] * 4)
@@ -80,6 +83,7 @@ def test_phaseflip_correction_simulation(
         final = state.ptrace(0)
         fidelity = qutip.fidelity(psi, final)
 
-        assert (
-            fidelity > 0.99
-        ), f"Failed on state {psi} with error on qubit {error_qubit}. Fidelity: {fidelity:.4f}"
+        assert fidelity > 0.99, (
+            f"Failed on random seed {seed} on error qubit {error_qubit}. "
+            f"Fidelity: {fidelity:.4f}"
+        )
