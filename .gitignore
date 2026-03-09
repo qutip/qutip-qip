@@ -7,6 +7,9 @@ __pycache__/
 *.html
 *.htm
 
+# Pdf files (from plots in /pulse-paper)
+*.pdf
+
 # C extensions
 *.so
 
