@@ -110,6 +110,11 @@ class ControlledGate(Gate):
         if "latex_str" not in cls.__dict__:
             cls.latex_str = cls.target_gate.latex_str
 
+        if not cls.is_controlled():
+            raise ValueError(
+                f"Class '{cls.name}' method 'is_controlled()' must always return True."
+            )
+
     def __init__(self, *args, **kwargs) -> None:
         self._target_inst = self.target_gate(*args, **kwargs)
 

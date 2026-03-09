@@ -83,6 +83,11 @@ class ParametricGate(Gate):
                 f" but it takes {len(inspect.signature(compute_qobj_func).parameters)}."
             )
 
+        if not cls.is_parametric():
+            raise ValueError(
+                f"Class '{cls.name}' method 'is_parametric()' must always return True."
+            )
+
     def __init__(self, *args, arg_label: str | None = None):
         # This auto triggers a call to arg_value setter (where checks happen)
         self.arg_value = args
