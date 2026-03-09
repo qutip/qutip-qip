@@ -9,6 +9,7 @@ __pycache__/
 
 # Pdf files (from plots in /pulse-paper)
 *.pdf
+/pulse-paper/deutsch-jozsa-qutip.qasm
 
 # C extensions
 *.so
