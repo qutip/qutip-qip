@@ -115,7 +115,7 @@ jobs:
     - name: Test code examples for the pulse paper
       run: |
         cd pulse-paper
-        python *.py
+        for f in *.py; do python "$f"; done
 
   finalise:
     name: Finalise coverage reporting

@@ -17,7 +17,7 @@ from qutip import (
 )
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations import AngleParametricGate
-from qutip_qip.operations import gates
+from qutip_qip.operations.gates import RX, RY, Z
 from qutip_qip.device import ModelProcessor, Model
 from qutip_qip.compiler import GateCompiler, PulseInstruction
 from qutip_qip.noise import Noise
@@ -25,6 +25,19 @@ from qutip_qip.noise import Noise
 plt.rcParams.update({"text.usetex": False, "font.size": 10})
 LINEWIDTH = 3.48692403487
 TEXTWIDTH = 7.1398920714
+
+
+class ROT(AngleParametricGate):
+    num_qubits = 1
+    num_params = 1
+
+    def __init__(self, arg_value):
+        super().__init__(arg_value)
+
+    def compute_qobj(args, dtype) -> Qobj:
+        # This is not required, because Pules levele implementation
+        # of this gate is already provided.
+        pass
 
 
 class MyModel(Model):
@@ -64,9 +77,9 @@ class MyCompiler(GateCompiler):
         super().__init__(num_qubits, params=params)
         self.params = params
         self.gate_compiler = {
-            "ROT": self.rotation_with_phase_compiler,
-            "RX": self.single_qubit_gate_compiler,
-            "RY": self.single_qubit_gate_compiler,
+            ROT: self.rotation_with_phase_compiler,
+            RX: self.single_qubit_gate_compiler,
+            RY: self.single_qubit_gate_compiler,
         }
 
     def generate_pulse(self, circ_op, tlist, coeff, phase=0.0):
@@ -134,8 +147,8 @@ class MyCompiler(GateCompiler):
 num_qubits = 1
 
 circuit = QubitCircuit(1)
-circuit.add_gate(gates.RX(np.pi / 2), targets=0)
-circuit.add_gate(gates.Z, targets=0)
+circuit.add_gate(RX(np.pi / 2), targets=0)
+circuit.add_gate(Z, targets=0)
 result1 = circuit.run(basis(2, 0))
 
 mycompiler = MyCompiler(num_qubits, {"pulse_amplitude": 0.02})
@@ -218,18 +231,6 @@ def single_crosstalk_simulation(num_gates):
         num_qubits, {"pulse_amplitude": 0.02, "duration": 25}
     )
     myprocessor.add_noise(ClassicalCrossTalk(1.0))
-
-    class ROT(AngleParametricGate):
-        num_qubits = 1
-        num_params = 1
-
-        def __init__(self, arg_value):
-            super().__init__(arg_value)
-
-        def compute_qobj(arg_value) -> Qobj:
-            # This is not required, because Pules levele implementation
-            # of this gate is already provided.
-            pass
 
     # Define a randome circuit.
     gates_set = [

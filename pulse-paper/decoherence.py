@@ -5,25 +5,11 @@ from qutip import sigmaz, basis, sigmax, sigmam
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.device import LinearSpinChain
 from qutip_qip.noise import DecoherenceNoise
-from qutip_qip.operations import AngleParametricGate
-from qutip_qip.operations.gates import RX
+from qutip_qip.operations.gates import RX, IDLE
 
 plt.rcParams.update({"text.usetex": False, "font.size": 10})
 TEXTWIDTH = 7.1398920714
 LINEWIDTH = 3.48692403487
-
-
-class IDLE(AngleParametricGate):
-    num_qubits = 1
-    num_params = 1
-
-    def __init__(self, T: float, arg_label=None):
-        super().__init__(T, arg_label=arg_label)
-
-    def compute_qobj(args, dtype):
-        # Not required as pulse level implementation of the same is
-        # present in the compiler.
-        pass
 
 
 # Define a Ramsey experiment.
