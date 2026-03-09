@@ -39,9 +39,8 @@ class PhaseFlipCode:
         """
         Constructs the encoding circuit for the phase-flip code.
 
-        The logical qubit is encoded into an entangled state in the X-basis using Hadamard
-        (H) gates followed by two CNOT gates. This creates redundancy to detect and correct
-        a single phase error.
+        The logical qubit is first encoded by two CX gates and then converted to the X-basis
+        using Hadamard (H). This creates redundancy to detect and correct a single phase error.
 
         Args:
             data_qubits (list[int]): Indices of 3 data qubits.
@@ -70,7 +69,8 @@ class PhaseFlipCode:
         """
         Builds the circuit for syndrome extraction and correction.
 
-        Parity is measured between data qubit pairs using ancillas and CNOT gates.
+        The data qubits are temporarily converted back to the Z-basis so parity
+        can be measured between pairs using ancillas and CNOT gates.
         Measurements are stored in classical bits, and Z corrections are applied
         conditionally based on the measured syndrome.
 
@@ -137,8 +137,9 @@ class PhaseFlipCode:
         """
         Constructs the decoding circuit that reverses the encoding operation.
 
-        It first applies the inverse of the CNOT encoding, then converts the qubits
-        back from the X-basis to the Z-basis using Hadamard (H) gates.
+        It first applies the Hadamard (H) gates to convert the qubits back from
+        the X-basis to the Z-basis, then applies the inverse of the CX encoding to
+        decode the qubits.
 
         Args:
             data_qubits (list[int]): Indices of 3 data qubits.
