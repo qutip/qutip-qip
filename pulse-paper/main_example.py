@@ -4,7 +4,7 @@ from qutip import basis
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.compiler import Scheduler, PulseInstruction
 from qutip_qip.device import LinearSpinChain, SpinChainModel, Processor
-from qutip_qip.operations.gates import H, X, CX 
+from qutip_qip.operations.gates import H, X, CX
 from qutip_qip.noise import RelaxationNoise
 
 qc = QubitCircuit(3)
