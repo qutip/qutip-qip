@@ -162,7 +162,7 @@ def grover(
 
     >>> from qutip_qip.algorithms.grover import grover, grover_oracle
     >>> oracle = grover_oracle([0, 1], marked_states=1)
-    >>> qc = grover(oracle, qubits=[0, 1], num_solutions=1)
+    >>> qc = grover(oracle, search_qubits=[0, 1], num_solutions=1)
 
     """
     if isinstance(search_qubits, int):
