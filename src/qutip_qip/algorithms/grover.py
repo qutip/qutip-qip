@@ -33,14 +33,14 @@ class OracleGate(Gate):
 
 
 def grover_oracle(
-    qubits: int | Sequence[int], marked_states: int | Sequence[int]
+    search_qubits: int | Sequence[int], marked_states: int | Sequence[int]
 ) -> QubitCircuit:
     """
     Constructs a Phase Oracle circuit for Grover's algorithm.
 
     Parameters
     ----------
-    qubits : int or sequence of int
+    search_qubits : int or sequence of int
         The specific qubit indices the oracle acts on.
     marked_states : int or sequence of int
         The states to mark (integer representation).
@@ -50,15 +50,15 @@ def grover_oracle(
     QubitCircuit
         The oracle circuit.
     """
-    if isinstance(qubits, int):
-        qubits = list(range(qubits))
+    if isinstance(search_qubits, int):
+        search_qubits = list(range(search_qubits))
 
     if isinstance(marked_states, int):
         marked_states = [marked_states]
 
-    n_qubits = len(qubits)
+    n_qubits = len(search_qubits)
     # We need a circuit big enough to hold the highest qubit index
-    qc = QubitCircuit(max(qubits) + 1)
+    qc = QubitCircuit(max(search_qubits) + 1)
 
     for state in marked_states:
         # Safety check
@@ -72,14 +72,14 @@ def grover_oracle(
         # Flip 0 bits:
         for i, char in enumerate(binary_rep):
             if char == "0":
-                qc.add_gate("X", targets=qubits[i])
+                qc.add_gate("X", targets=search_qubits[i])
 
         # Change state by Multi Controlled Z Gate
         if n_qubits == 1:
-            qc.add_gate("Z", targets=qubits[0])
+            qc.add_gate("Z", targets=search_qubits[0])
         else:
-            ctrls = qubits[:-1]
-            tgt = qubits[-1]
+            ctrls = search_qubits[:-1]
+            tgt = search_qubits[-1]
 
             ctrl_val = 2 ** len(ctrls) - 1
 
@@ -98,17 +98,17 @@ def grover_oracle(
             # uncompute by X
             for i, char in enumerate(binary_rep):
                 if char == "0":
-                    qc.add_gate("X", targets=qubits[i])
+                    qc.add_gate("X", targets=search_qubits[i])
 
     return qc
 
 
 def grover(
     oracle: QubitCircuit,
-    qubits: int | Sequence[int],
+    search_qubits: int | Sequence[int],
     num_solutions: int,
     num_iterations: int | None = None,
-    N: int | None = None,
+    num_qubits: int | None = None,
 ) -> QubitCircuit:
     """
     Construct the Grover search algorithm's circuit.
@@ -117,13 +117,13 @@ def grover(
     ----------
     oracle : :class:`~.circuit.QubitCircuit` or :class:`~.operations.Gate` or :class:`qutip.Qobj`
         The oracle that flips the phase of marked states.
-    qubits : int or sequence of int
+    search_qubits : int or sequence of int
         The qubits to run the search on.
     num_solutions : int
         The number of expected solutions M.
     num_iterations : int, optional
         Number of iterations. Defaults to optimal for M solutions.
-    N: int,optional
+    num_qubits: int,optional
         Total number of qubits in the system.
 
     Returns
@@ -165,20 +165,22 @@ def grover(
     >>> qc = grover(oracle, qubits=[0, 1], num_solutions=1)
 
     """
-    if isinstance(qubits, int):
-        qubits = list(range(qubits))
+    if isinstance(search_qubits, int):
+        search_qubits = list(range(search_qubits))
 
-    n_qubits = len(qubits)
+    n_qubits = len(search_qubits)
     search_space_size = 2**n_qubits
 
     # Validation check for N
-    if N is not None:
-        if N <= 0:
-            raise ValueError(f"N must be a positive integer, got {N}.")
-        min_required = max(qubits) + 1
-        if N < min_required:
+    if num_qubits is not None:
+        if num_qubits <= 0:
             raise ValueError(
-                f"N={N} is too small. The search qubits {qubits} "
+                f"N must be a positive integer, got {num_qubits}."
+            )
+        min_required = max(search_qubits) + 1
+        if num_qubits < min_required:
+            raise ValueError(
+                f"Total Qubits={num_qubits} is too small. The search qubits {search_qubits} "
                 f"require at least {min_required} total qubits."
             )
 
@@ -190,11 +192,11 @@ def grover(
             "Number of solutions is equal/greater to the search space."
         )
 
-    total_qubits = N if N is not None else (max(qubits) + 1)
-    qc = QubitCircuit(total_qubits)
+    num_qubits = (max(search_qubits) + 1) if num_qubits is None else num_qubits
+    qc = QubitCircuit(num_qubits)
 
     # Superposition:
-    for q in qubits:
+    for q in search_qubits:
         qc.add_gate("SNOT", targets=q)
 
     # Calculate optimal Iterations if none provided:
@@ -213,27 +215,27 @@ def grover(
         if isinstance(oracle, QubitCircuit):
             qc.gates.extend(oracle.gates)
         elif isinstance(oracle, Gate):
-            if not set(oracle.targets).issubset(qubits):
+            if not set(oracle.targets).issubset(search_qubits):
                 raise ValueError(
-                    f"Oracle gate targets {oracle.targets} are not a subset of algorithm qubits {qubits}"
+                    f"Oracle gate targets {oracle.targets} are not a subset of algorithm qubits {search_qubits}"
                 )
             qc.add_gate(oracle)
         else:
-            qc.add_gate(OracleGate(qubits, oracle))
+            qc.add_gate(OracleGate(search_qubits, oracle))
 
         # Diffusion (Inversion about the mean)
-        for q in qubits:
+        for q in search_qubits:
             qc.add_gate("SNOT", targets=q)
 
-        for q in qubits:
+        for q in search_qubits:
             qc.add_gate("X", targets=q)
 
         # Projection (Multi-Controlled Z)
         if n_qubits == 1:
-            qc.add_gate("Z", targets=qubits[0])
+            qc.add_gate("Z", targets=search_qubits[0])
         else:
-            ctrls = qubits[:-1]
-            tgt = qubits[-1]
+            ctrls = search_qubits[:-1]
+            tgt = search_qubits[-1]
             ctrl_val = 2 ** (len(ctrls)) - 1
 
             if len(ctrls) == 1:
@@ -248,10 +250,10 @@ def grover(
                     )
                 )
 
-        for q in qubits:
+        for q in search_qubits:
             qc.add_gate("X", targets=q)
 
-        for q in qubits:
+        for q in search_qubits:
             qc.add_gate("SNOT", targets=q)
 
     return qc

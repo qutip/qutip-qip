@@ -19,8 +19,8 @@ class TestGrover:
         U_sim = qc_oracle.compute_unitary()
 
         dims = [[2] * n_qubits, [2] * n_qubits]
-        N = 2**n_qubits
-        diag = np.ones(N)
+        num_qubits = 2**n_qubits
+        diag = np.ones(num_qubits)
         for s in marked_states:
             diag[s] = -1
         U_expected = Qobj(np.diag(diag), dims=dims)
@@ -33,14 +33,14 @@ class TestGrover:
             grover_oracle(2, [4])  # 2 qubits only go up to state 3
 
     def test_grover_invalid_N(self):
-        """Test that grover raises errors for invalid N values."""
+        """Test that grover raises errors for invalid num_qubits values."""
         oracle = grover_oracle([1, 2], 3)
 
         with pytest.raises(ValueError, match="too small"):
-            grover(oracle, [1, 2], 1, N=2)  # needs at least 3
+            grover(oracle, [1, 2], 1, num_qubits=2)  # needs at least 3
 
         with pytest.raises(ValueError, match="positive integer"):
-            grover(oracle, [1, 2], 1, N=-1)
+            grover(oracle, [1, 2], 1, num_qubits=-1)
 
     def test_grover_invalid_num_iterations(self):
         """Test that grover raises errors for invalid num_iterations."""
@@ -135,7 +135,7 @@ class TestGrover:
         oracle = grover_oracle(search_qubits, target_local_state)
 
         # N=4, M=1. Optimal iterations = 1.
-        qc = grover(oracle, search_qubits, 1, N=sys_qubits)
+        qc = grover(oracle, search_qubits, 1, num_qubits=sys_qubits)
 
         assert qc.num_qubits == sys_qubits
         U_grover = qc.compute_unitary()
