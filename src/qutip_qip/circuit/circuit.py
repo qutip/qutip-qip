@@ -3,16 +3,20 @@ Quantum circuit representation and simulation.
 """
 
 import warnings
+import inspect
 from typing import Iterable, Type
 from qutip import qeye, Qobj
 import numpy as np
 
-from ._decompose import _resolve_to_universal, _resolve_2q_basis
 from qutip_qip.circuit import (
     CircuitSimulator,
     CircuitInstruction,
     GateInstruction,
     MeasurementInstruction,
+)
+from qutip_qip.circuit._decompose import (
+    _resolve_to_universal,
+    _resolve_2q_basis,
 )
 from qutip_qip.operations import Gate, Measurement, expand_operator
 from qutip_qip.operations import gates as std
@@ -305,6 +309,53 @@ class QubitCircuit:
             self.add_global_phase(gate.arg_value[0])
             return
 
+        # This conditional block can be remove if the gate input is only
+        # restricted to Gate subclasses or object instead of strings in the future.
+        if not isinstance(gate, Gate):
+            if type(gate) is str:
+                if gate in std.GATE_CLASS_MAP:
+                    warnings.warn(
+                        "Passing Gate as a string input has been deprecated and will be removed in future versions.",
+                        DeprecationWarning,
+                        stacklevel=2,
+                    )
+                    gate_class = std.GATE_CLASS_MAP[gate]
+
+                else:
+                    raise KeyError(
+                        "Can only pass standard gate name as strings"
+                        "or Gate class or its object instantiation"
+                    )
+
+            elif issubclass(gate, Gate):
+                gate_class = gate
+
+            else:
+                raise TypeError(
+                    "gate must be of Gate type or oject or a string ",
+                    f"got {type(gate)} instead."
+                )
+
+            if gate_class.is_parametric():
+                gate = gate_class(arg_value, arg_label=arg_label)
+
+            else:
+                gate = gate_class
+
+        # Check for gates
+        if inspect.isabstract(gate):
+            raise TypeError("gate must not be an abstract class")
+        elif not (isinstance(gate, Gate) or issubclass(gate, Gate)):
+            raise TypeError(f"gate must be of type Gate, got {gate}")
+        elif gate.is_parametric() and (not isinstance(gate, Gate)):
+            raise TypeError(
+                "You must pass an instantiated object for a Parametrized Gate"
+            )
+        elif (not gate.is_parametric()) and (not issubclass(gate, Gate)):
+            raise TypeError(
+                "You must pass a Gate type for a non-parametrized gate"
+            )
+
         # Handling case for integer input
         targets = convert_type_input_to_sequence(int, "targets", targets)
         controls = convert_type_input_to_sequence(int, "controls", controls)
@@ -318,43 +369,6 @@ class QubitCircuit:
         check_limit(
             "classical_controls", classical_controls, 0, self.num_cbits - 1
         )
-
-        # This conditional block can be remove if the gate input is only
-        # restricted to Gate subclasses or object instead of strings in the future.
-        if not isinstance(gate, Gate):
-            if type(gate) is str and gate in std.GATE_CLASS_MAP:
-                warnings.warn(
-                    "Passing Gate as a string input has been deprecated and will be removed in future versions.",
-                    DeprecationWarning,
-                    stacklevel=2,
-                )
-                gate_class = std.GATE_CLASS_MAP[gate]
-
-            elif issubclass(gate, Gate):
-                gate_class = gate
-            else:
-                raise ValueError(
-                    "Can only pass standard gate name as strings"
-                    "or Gate class or its object instantiation"
-                )
-
-            if gate_class.is_parametric():
-                gate = gate_class(arg_value, arg_label=arg_label)
-
-            else:
-                gate = gate_class
-
-        # Check for gates
-        if not (isinstance(gate, Gate) or issubclass(gate, Gate)):
-            raise TypeError(f"gate must be of type Gate, got {gate}")
-        elif gate.is_parametric() and (not isinstance(gate, Gate)):
-            raise TypeError(
-                "You must pass an instantiated object for a Parametrized Gate"
-            )
-        elif (not gate.is_parametric()) and (not issubclass(gate, Gate)):
-            raise TypeError(
-                "You must pass a Gate type for a non-parametrized gate"
-            )
 
         # Check len(controls) == gate.num_ctrl_qubits
         if gate.is_controlled() and len(controls) != gate.num_ctrl_qubits:

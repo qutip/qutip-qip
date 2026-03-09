@@ -179,4 +179,4 @@ class AngleParametricGate(ParametricGate):
     def validate_params(arg_value):
         for arg in arg_value:
             if not isinstance(arg, Real):
-                raise ValueError(f"Invalid arg {arg} in arg_value")
+                raise TypeError(f"Invalid arg {arg} in arg_value")
