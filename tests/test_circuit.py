@@ -18,7 +18,13 @@ from qutip import (
     identity,
 )
 
-from qutip_qip.circuit import QubitCircuit, CircuitSimulator
+from qutip_qip.circuit import (
+    QubitCircuit,
+    CircuitSimulator,
+    CircuitInstruction,
+    GateInstruction,
+    MeasurementInstruction,
+)
 from qutip_qip.circuit.draw import TeXRenderer
 from qutip_qip.decompose.decompose_single_qubit_gate import _ZYZ_rotation
 from qutip_qip.operations import Gate, Measurement, gate_sequence_product
@@ -769,6 +775,153 @@ class TestQubitCircuit:
 
         assert qc2.reverse_states is True
         assert qc2.input_states == [None] * 3
+
+
+class TestAddGateError:
+    def test_add_gate_errors(self):
+        qc = QubitCircuit(3, num_cbits=1)
+
+        with pytest.raises(KeyError):
+            qc.add_gate("123")  # Can only pass standard gate name as strings
+
+        with pytest.raises(TypeError):
+
+            class BadGate: ...  # Doesn't inherit for Gate
+
+            qc.add_gate(BadGate)
+
+        with pytest.raises(TypeError):
+
+            class AbstractGate(
+                Gate
+            ): ...  # Doesn't define num_qubits, get_qobj
+
+            qc.add_gate(AbstractGate)
+
+        with pytest.raises(TypeError):
+            qc.add_gate(gates.RX, targets=[0])  # RX must be initialized
+
+        with pytest.raises(TypeError):
+            qc.add_gate(gates.X(), targets=[0])  # X can't be initialized
+
+        with pytest.raises(ValueError):
+            qc.add_gate(
+                gates.CX, targets=[], controls=[]
+            )  # targets, controls are empty
+
+        with pytest.raises(ValueError):
+            qc.add_gate(gates.CX, targets=[0], controls=[])
+
+        with pytest.raises(ValueError):
+            qc.add_gate(gates.CX, targets=[1, 2], controls=[])
+
+        with pytest.raises(ValueError):
+            qc.add_gate(gates.CX, targets=[1], controls=[-1])
+
+        with pytest.raises(ValueError):
+            qc.add_gate(gates.CX, targets=[-1], controls=[1])
+
+        with pytest.raises(ValueError):
+            qc.add_gate(
+                gates.X,
+                targets=[0],
+                classical_controls=[-1],  # Each entry must be non -negative
+                classical_control_value=1,
+            )
+
+        with pytest.raises(TypeError):
+            qc.add_gate(
+                gates.X,
+                targets=[0],
+                classical_controls=[0],
+                classical_control_value="1",  # Can't be string
+            )
+
+        with pytest.raises(ValueError):
+            qc.add_gate(
+                gates.X,
+                targets=[0],
+                classical_controls=[0],
+                classical_control_value=2,  # Incorrect
+            )
+
+        with pytest.raises(ValueError):
+            qc.add_gate(
+                gates.X,
+                targets=[0],
+                classical_controls=[0],
+                classical_control_value=-1,  # Can't be negative
+            )
+
+
+class TestInstructionErrors:
+    def test_instruction_post_init_errors(self):
+        class MockInstruction(CircuitInstruction):
+            def to_qasm(self, qasm_out):
+                pass
+
+            def __str__(self):
+                return ""
+
+        with pytest.raises(ValueError):
+            # Circuit Instruction must operate on at least one qubit or cbit
+            MockInstruction("gate", qubits=(), cbits=())
+
+        with pytest.raises(TypeError):
+            MockInstruction(
+                "gate", qubits=[0], cbits=()
+            )  # Must pass a tuple for qubits
+
+        with pytest.raises(ValueError):
+            MockInstruction(
+                "gate", qubits=(0.5,), cbits=()
+            )  # All qubit indices must be an int
+
+        with pytest.raises(ValueError):
+            MockInstruction(
+                "gate", qubits=(-1,), cbits=()
+            )  # qubit indices must be non-negative
+
+        with pytest.raises(ValueError, match="Found repeated qubits"):
+            MockInstruction("gate", qubits=(0, 0), cbits=())
+
+        with pytest.raises(ValueError, match="Found repeated cbits"):
+            MockInstruction("gate", qubits=(0,), cbits=(0, 0))
+
+    def test_gate_instruction_errors(self):
+        with pytest.raises(TypeError):
+            GateInstruction(operation="not a gate", qubits=(0,))
+
+        with pytest.raises(ValueError):
+            GateInstruction(
+                operation=gates.X, qubits=(0, 1)
+            )  # requires 1 qubits
+
+        with pytest.raises(ValueError):
+            GateInstruction(operation=gates.X, qubits=(0,), cbits=(0,))
+            # cbits_ctrl_value can't be None if classical controls are provided
+
+        with pytest.raises(ValueError):
+            # Classical Control value can't be negative
+            GateInstruction(
+                operation=gates.X, qubits=(0,), cbits=(0,), cbits_ctrl_value=-1
+            )
+
+        with pytest.raises(ValueError):
+            # Classical Control value can't be greater than 1 in this case
+            GateInstruction(
+                operation=gates.X, qubits=(0,), cbits=(0,), cbits_ctrl_value=2
+            )
+
+    def test_measurement_instruction_errors(self):
+        with pytest.raises(TypeError):
+            # Operation must be of type Measurement
+            MeasurementInstruction(operation="M0", qubits=(0,), cbits=(0,))
+
+        meas = Measurement("M0", targets=[0], classical_store=0)
+        with pytest.raises(ValueError):
+            # Measurement requires equal number of qubits and cbits
+            MeasurementInstruction(operation=meas, qubits=(0, 1), cbits=(0,))
 
 
 def test_gates_class():

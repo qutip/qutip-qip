@@ -333,7 +333,7 @@ class QubitCircuit:
             else:
                 raise TypeError(
                     "gate must be of Gate type or oject or a string ",
-                    f"got {type(gate)} instead."
+                    f"got {type(gate)} instead.",
                 )
 
             if gate_class.is_parametric():

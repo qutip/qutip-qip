@@ -626,7 +626,7 @@ class TestGateErrors:
         with pytest.raises(ValueError, match="Requires 2 parameters, got 1"):
             GoodParamGate(1.0)
 
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             GoodParamGate(
                 1.0, "wrong"
             )  # second argument is a string instead of float
