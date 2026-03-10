@@ -99,7 +99,7 @@ class TeXRenderer:
                                     rf" \ghost{{{self._gate_label(gate)}}} "
                                 )
 
-                        elif gate in [std.CNOT, std.CX]:
+                        elif gate == std.CX:
                             col.append(r" \targ ")
                         elif gate == std.CY:
                             col.append(r" \targ ")

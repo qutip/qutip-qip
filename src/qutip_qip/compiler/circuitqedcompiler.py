@@ -90,7 +90,6 @@ class SCQubitsCompiler(GateCompiler):
                 "RY": self.ry_compiler,
                 "RX": self.rx_compiler,
                 "CX": self.cnot_compiler,
-                "CNOT": self.cnot_compiler,
                 "RZX": self.rzx_compiler,
             }
         )

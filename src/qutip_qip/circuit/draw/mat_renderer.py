@@ -545,7 +545,7 @@ class MatRenderer(BaseRenderer):
         )
         com_xskip = self._get_xskip(wire_list, layer)
 
-        if gate in [std.CNOT, std.CX]:
+        if gate == std.CX:
             self._draw_control_node(controls[0], com_xskip, self.color)
             self._draw_target_node(targets[0], com_xskip, self.color)
             self._draw_qbridge(targets[0], controls[0], com_xskip, self.color)

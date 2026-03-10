@@ -38,7 +38,6 @@ qutip: dict[str, str] = {
     "SWAPALPHA": "#7648CB",  # Dark Orchid
     "MS": "#7648CB",  # Dark Orchid
     "RZX": "#7648CB",  # Dark Orchid
-    "CNOT": "#9598F5",  # Light Slate Blue
     "CX": "#9598F5",  # Light Slate Blue
     "CY": "#9598F5",  # Light Slate Blue
     "CZ": "#9598F5",  # Light Slate Blue
@@ -90,7 +89,6 @@ light: dict[str, str] = {
     "SWAPALPHA": "#CDC1E8",  # Light Purple
     "MS": "#CDC1E8",  # Light Purple
     "RZX": "#CDC1E8",  # Light Purple
-    "CNOT": "#E0E2F7",  # Very Light Indigo
     "CX": "#E0E2F7",  # Very Light Indigo
     "CY": "#E0E2F7",  # Very Light Indigo
     "CZ": "#E0E2F7",  # Very Light Indigo
@@ -142,7 +140,6 @@ dark: dict[str, str] = {
     "SWAPALPHA": "#6A5ACD",  # Slate Blue
     "MS": "#6A5ACD",  # Slate Blue
     "RZX": "#6A5ACD",  # Slate Blue
-    "CNOT": "#4682B4",  # Steel Blue
     "CX": "#4682B4",  # Steel Blue
     "CY": "#4682B4",  # Steel Blue
     "CZ": "#4682B4",  # Steel Blue
@@ -195,7 +192,6 @@ modern: dict[str, str] = {
     "SWAPALPHA": "#4A5D6D",  # Dark Slate Blue
     "MS": "#4A5D6D",  # Dark Slate Blue
     "RZX": "#4A5D6D",  # Dark Slate Blue
-    "CNOT": "#5D8AA8",  # Medium Slate Blue
     "CX": "#5D8AA8",  # Medium Slate Blue
     "CY": "#5D8AA8",  # Medium Slate Blue
     "CZ": "#5D8AA8",  # Medium Slate Blue

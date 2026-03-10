@@ -935,7 +935,6 @@ _GATE_NAME_TO_QASM_NAME = {
     "T": "t",
     "CRZ": "crz",
     "CX": "cx",
-    "CNOT": "cx",
     "TOFFOLI": "ccx",
 }
 

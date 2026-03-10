@@ -319,7 +319,7 @@ def _basis_CZ(qc_temp, temp_resolved):
         targets = circ_instruction.targets
         controls = circ_instruction.controls
 
-        if gate == CNOT or gate == CX:
+        if gate == CX:
             qc_temp.add_gate(
                 gate=RY(-half_pi, arg_label=r"-\pi/2"),
                 targets=targets,
@@ -351,7 +351,7 @@ def _basis_ISWAP(qc_temp, temp_resolved):
         targets = circ_instruction.targets
         controls = circ_instruction.controls
 
-        if gate == CNOT or gate == CX:
+        if gate == CX:
             qc_temp.add_global_phase(phase=quarter_pi)
             qc_temp.add_gate(ISWAP, targets=[controls[0], targets[0]])
             qc_temp.add_gate(
@@ -412,7 +412,7 @@ def _basis_SQRTSWAP(qc_temp, temp_resolved):
         targets = circ_instruction.targets
         controls = circ_instruction.controls
 
-        if gate == CNOT or gate == CX:
+        if gate == CX:
             qc_temp.add_gate(
                 gate=RY(half_pi, arg_label=r"\pi/2"),
                 targets=targets,
@@ -453,7 +453,7 @@ def _basis_SQRTISWAP(qc_temp, temp_resolved):
         targets = circ_instruction.targets
         controls = circ_instruction.controls
 
-        if gate == CNOT or gate == CX:
+        if gate == CX:
             qc_temp.add_gate(
                 gate=RY(-half_pi, arg_label=r"-\pi/2"),
                 targets=controls,

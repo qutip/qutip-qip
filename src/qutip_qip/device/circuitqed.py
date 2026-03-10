@@ -69,7 +69,7 @@ class SCQubits(ModelProcessor):
             **params,
         )
         super().__init__(model=model)
-        self.native_gates = ["RX", "RY", "CNOT", "CX", "RZX"]
+        self.native_gates = ["RX", "RY", "CX", "RZX"]
         self._default_compiler = SCQubitsCompiler
         self.pulse_mode = "continuous"
 
