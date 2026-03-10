@@ -283,10 +283,11 @@ def get_controlled_gate(
         __slots__ = ()
         namespace = gate_namespace
         name = gate_name
-        num_qubits = n_ctrl_qubits + gate.num_qubits
+        latex_str = rf"{gate_name}"
+
         num_ctrl_qubits = n_ctrl_qubits
+        num_qubits = n_ctrl_qubits + gate.num_qubits
         ctrl_value = control_value
         target_gate = gate
-        latex_str = r"{gate_name}"
 
     return _CustomControlledGate

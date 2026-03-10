@@ -83,7 +83,7 @@ def _check_oper_dims(
         if oper.dims[0] != targ_dims:
             raise ValueError(
                 f"The operator dims {oper.dims[0]} do not match "
-                "the target dims {targ_dims}."
+                f"the target dims {targ_dims}."
             )
 
 
