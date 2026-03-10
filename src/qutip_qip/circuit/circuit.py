@@ -300,7 +300,7 @@ class QubitCircuit:
                 "'control_value' is no longer a valid argument and has been deprecated and will be removed in the future version. "
                 "from qutip_qip.operations import controlled",
                 "from qutip_qip.operations.gates import X",
-                "Example: gate = controlled(X, num_ctrl_qubits=1, control_value=0) instead",
+                "Example: gate = get_controlled_gate(X, num_ctrl_qubits=1, control_value=0) instead",
                 DeprecationWarning,
                 stacklevel=2,
             )

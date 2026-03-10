@@ -52,7 +52,7 @@ class _GateMetaClass(ABCMeta):
             cls.namespace.register(cls.name, cls)
 
         # For lookup dictionary for Controlled Gates
-        # e.g. controlled(X, num_ctrl_qubits=1, ctrl_value=1) this is CX,
+        # e.g. get_controlled_gate(X, num_ctrl_qubits=1, ctrl_value=1) this is CX,
         # why do we have to define it again if it already exists.
         if cls.is_controlled() and getattr(cls, "namespace", None) is not None:
             cls.namespace.register(
@@ -86,27 +86,6 @@ class _GateMetaClass(ABCMeta):
 
     def __repr__(cls) -> str:
         return f"Gate({cls.name}, num_qubits={cls.num_qubits})"
-
-    def __eq__(cls, other: any) -> bool:
-        # Return False if other is not a class.
-        if not isinstance(other, type):
-            return False
-
-        # 'is' keyword in Python checks check if two variables refer to
-        # the exact same object in memory, since non-parametrized gate classes
-        # are not meant to be parametrized it works, ParametrizedGate class
-        # has its own __eq__ method which acts on an instance.
-        if cls is other:
-            return True
-        return False
-
-    def __hash__(cls) -> int:
-        """
-        Required because __eq__ is overridden.
-        Hashes the class based on its unique identity (namespace and name)
-        so it can still be safely used in the _registry sets and dicts.
-        """
-        return id(cls)  # By default Python using id() for hashing
 
 
 class Gate(ABC, metaclass=_GateMetaClass):

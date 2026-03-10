@@ -200,7 +200,7 @@ class ControlledGate(Gate):
 
         # Non-parametrized Gates e.g. S
         elif isinstance(cls_or_self, type):
-            inverse_gate = controlled(
+            inverse_gate = get_controlled_gate(
                 cls_or_self.target_gate.inverse(),
                 cls_or_self.num_ctrl_qubits,
                 cls_or_self.ctrl_value,
@@ -211,7 +211,7 @@ class ControlledGate(Gate):
                 expanded=True
             )
 
-            inverse_gate = controlled(
+            inverse_gate = get_controlled_gate(
                 inverse_gate_class,
                 cls_or_self.num_ctrl_qubits,
                 cls_or_self.ctrl_value,
@@ -246,7 +246,7 @@ class ControlledGate(Gate):
         return super().__hash__()
 
 
-def controlled(
+def get_controlled_gate(
     gate: Type[Gate],
     n_ctrl_qubits: int = 1,
     control_value: int | None = None,

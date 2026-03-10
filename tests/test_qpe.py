@@ -4,7 +4,7 @@ from numpy.testing import assert_, assert_equal
 from qutip import Qobj, sigmaz, tensor
 
 from qutip_qip.algorithms.qpe import qpe
-from qutip_qip.operations import controlled, get_unitary_gate
+from qutip_qip.operations import get_controlled_gate, get_unitary_gate
 from qutip_qip.operations import gates as std
 
 
@@ -29,7 +29,7 @@ class TestQPE(unittest.TestCase):
         """
         U = Qobj([[0, 1], [1, 0]])
 
-        controlled_u = controlled(
+        controlled_u = get_controlled_gate(
             gate=get_unitary_gate(gate_name="CU", U=U),
         )
 
