@@ -31,12 +31,12 @@ class GLOBALPHASE(AngleParametricGate):
         super().__init__(phase)
 
     def __repr__(self):
-        return f"Gate({self.name}, phase {self.arg_value[0]})"
+        return f"Gate({self.name}, phase {self.arg_value[0]}) -> Qobj:"
 
-    def compute_qobj():
+    def compute_qobj(arg_value, dtype):
         raise NotImplementedError
 
-    def get_qobj(self, num_qubits=None, dtype: str = "dense"):
+    def get_qobj(self, num_qubits=None, dtype: str = "dense") -> Qobj:
         phase = self.arg_value[0]
         if num_qubits is None:
             return Qobj(phase, dtype=dtype)

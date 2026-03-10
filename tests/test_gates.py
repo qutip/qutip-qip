@@ -621,7 +621,7 @@ class TestGateErrors:
             num_params = 2
 
             @staticmethod
-            def compute_qobj(args):
+            def compute_qobj(args, dtype):
                 return qutip.qeye(2)
 
         with pytest.raises(ValueError, match="Requires 2 parameters, got 1"):

@@ -64,8 +64,8 @@ class ParametricGate(Gate):
                 f"got {type(num_params)} with value {num_params}."
             )
 
-        # Validate params must take only one arguments args
-        # Inspect doesn't count self/cls as another argument
+        # Validate params must take only one argument 'args'
+        # Inspect doesn't count self/cls as an argument
         validate_params_func = getattr(cls, "validate_params")
         if len(inspect.signature(validate_params_func).parameters) > 1:
             raise SyntaxError(
@@ -76,10 +76,10 @@ class ParametricGate(Gate):
 
         # compute_qobj method must take only two arguments arg_value, dtype
         compute_qobj_func = getattr(cls, "compute_qobj")
-        if len(inspect.signature(compute_qobj_func).parameters) > 2:
+        if len(inspect.signature(compute_qobj_func).parameters) != 2:
             raise SyntaxError(
-                f"Class '{cls.name}' method 'compute_qobj()' must take exactly 1 "
-                f"additional arguments (only the implicit 'arg_value, dtype'),"
+                f"Class '{cls.name}' method 'compute_qobj()' must take exactly 2 "
+                f"arguments (only the implicit 'arg_value, dtype'),"
                 f" but it takes {len(inspect.signature(compute_qobj_func).parameters)}."
             )
 
@@ -87,6 +87,12 @@ class ParametricGate(Gate):
             raise ValueError(
                 f"Class '{cls.name}' method 'is_parametric()' must always return True."
             )
+
+        if cls.is_controlled():
+            raise ValueError(
+                f"Class '{cls.name}' method 'is_controlled()' must always return False."
+            )
+
 
     def __init__(self, *args, arg_label: str | None = None):
         # This auto triggers a call to arg_value setter (where checks happen)

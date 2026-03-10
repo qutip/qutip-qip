@@ -1,8 +1,8 @@
 import inspect
 import warnings
-from typing import Type
-from functools import partial
 from abc import abstractmethod
+from functools import partial
+from typing import Type
 
 from qutip import Qobj
 from qutip_qip.operations import (
@@ -115,6 +115,12 @@ class ControlledGate(Gate):
                 f"Class '{cls.name}' method 'is_controlled()' must always return True."
             )
 
+        if cls.is_parametric() != cls.target_gate.is_parametric():
+            raise ValueError(
+                f"Class '{cls.name}' method 'is_parametric()' must return {cls.target_gate.is_parametric()}."
+            )
+
+
     def __init__(self, *args, **kwargs) -> None:
         self._target_inst = self.target_gate(*args, **kwargs)
 
@@ -181,14 +187,12 @@ class ControlledGate(Gate):
             The unitary matrix representing the controlled operation.
         """
         if isinstance(cls_or_self, type):
-            return controlled_gate_unitary(
-                U=cls_or_self.target_gate.get_qobj(dtype),
-                num_controls=cls_or_self.num_ctrl_qubits,
-                control_value=cls_or_self.ctrl_value,
-            )
-
+            target_gate = cls_or_self.target_gate
+        else:
+            target_gate = cls_or_self._target_inst
+        
         return controlled_gate_unitary(
-            U=cls_or_self._target_inst.get_qobj(dtype),
+            U=target_gate.get_qobj(dtype),
             num_controls=cls_or_self.num_ctrl_qubits,
             control_value=cls_or_self.ctrl_value,
         )
@@ -258,9 +262,6 @@ def get_controlled_gate(
     """
     Gate Factory for Controlled Gate that takes a gate and num_ctrl_qubits.
     """
-
-    if gate_namespace is None:
-        gate_namespace = gate.namespace
 
     if control_value is None:
         control_value = 2**n_ctrl_qubits - 1
