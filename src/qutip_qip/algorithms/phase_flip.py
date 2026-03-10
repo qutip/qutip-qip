@@ -95,7 +95,7 @@ class PhaseFlipCode:
 
         # Convert back from X-basis
         for q in data_qubits:
-            qc.add_gate("SNOT", targets=[q])
+            qc.add_gate("H", targets=[q])
 
         # Parity checks
         qc.add_gate(CX, controls=dq[0], targets=sq[0])
@@ -105,7 +105,7 @@ class PhaseFlipCode:
 
         # Convert to X-basis
         for q in data_qubits:
-            qc.add_gate("SNOT", targets=[q])
+            qc.add_gate("H", targets=[q])
 
         # Measure syndrome qubits
         qc.add_measurement(sq[0], sq[0], classical_store=0)
