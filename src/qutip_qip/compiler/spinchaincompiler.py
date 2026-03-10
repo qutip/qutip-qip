@@ -1,6 +1,13 @@
 import numpy as np
 
 from qutip_qip.compiler import GateCompiler, PulseInstruction
+from qutip_qip.operations.gates import (
+    GLOBALPHASE,
+    ISWAP,
+    RX,
+    RZ,
+    SQRTISWAP,
+)
 
 
 class SpinChainCompiler(GateCompiler):
@@ -101,11 +108,11 @@ class SpinChainCompiler(GateCompiler):
         super().__init__(num_qubits, params=params, pulse_dict=pulse_dict, N=N)
         self.gate_compiler.update(
             {
-                "ISWAP": self.iswap_compiler,
-                "SQRTISWAP": self.sqrtiswap_compiler,
-                "RZ": self.rz_compiler,
-                "RX": self.rx_compiler,
-                "GLOBALPHASE": self.globalphase_compiler,
+                ISWAP: self.iswap_compiler,
+                SQRTISWAP: self.sqrtiswap_compiler,
+                RZ: self.rz_compiler,
+                RX: self.rx_compiler,
+                GLOBALPHASE: self.globalphase_compiler,
             }
         )
         self.global_phase = global_phase

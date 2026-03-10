@@ -56,8 +56,8 @@ def test_compiling_gates_different_sampling_number():
     class MockCompiler(GateCompiler):
         def __init__(self, num_qubits, params=None):
             super().__init__(num_qubits, params=params)
-            self.gate_compiler["U1"] = self.single_qubit_gate_compiler
-            self.gate_compiler["U2"] = self.two_qubit_gate_compiler
+            self.gate_compiler[U1] = self.single_qubit_gate_compiler
+            self.gate_compiler[U2] = self.two_qubit_gate_compiler
             self.args.update({"params": params})
 
         def single_qubit_gate_compiler(self, circuit_instruction, args):
@@ -122,7 +122,7 @@ class MyCompiler(GateCompiler):  # compiler class
     def __init__(self, num_qubits, params):
         super().__init__(num_qubits, params=params)
         # pass our compiler function as a compiler for RX (rotation around X) gate.
-        self.gate_compiler["RX"] = self.rx_compiler
+        self.gate_compiler[RX] = self.rx_compiler
         self.args.update({"params": params})
 
     def rx_compiler(self, circuit_instruction, args):
@@ -197,7 +197,7 @@ def test_compiler_without_pulse_dict():
     compiler = SpinChainCompiler(
         num_qubits, params=processor.params, setup="circular"
     )
-    compiler.gate_compiler["RX"] = rx_compiler_without_pulse_dict
+    compiler.gate_compiler[RX] = rx_compiler_without_pulse_dict
     compiler.args = {"params": processor.params}
     processor.load_circuit(circuit, compiler=compiler)
     result = processor.run_state(basis([2, 2], [0, 0]))
@@ -229,7 +229,7 @@ def test_compiler_result_format():
     assert_array_equal(processor.pulses[0].coeff, coeffs["sx0"])
     assert_array_equal(processor.pulses[0].tlist, tlist["sx0"])
 
-    compiler.gate_compiler["RX"] = rx_compiler_without_pulse_dict
+    compiler.gate_compiler[RX] = rx_compiler_without_pulse_dict
     tlist, coeffs = compiler.compile(circuit)
     assert type(tlist) is dict
     assert 0 in tlist
