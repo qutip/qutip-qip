@@ -6,32 +6,6 @@ from qutip_qip.operations import Gate, Z, ControlledGate
 __all__ = ["grover", "grover_oracle"]
 
 
-class OracleGate(Gate):
-    """
-    Custom gate that wraps an arbitrary quantum oracle operator.
-    """
-
-    def __init__(self, targets, U, **kwargs):
-        """
-        Initialize an OracleGate.
-
-        Parameters
-        ----------
-        targets : int or list of int
-            The qubit(s) on which the oracle gate acts.
-        U : Qobj
-            The unitary operator representing the oracle.
-        **kwargs
-            Additional keyword arguments to pass to the parent Gate class.
-        """
-        super().__init__(targets=targets, **kwargs)
-        self.U = U
-        self.latex_str = r"Oracle"
-
-    def get_compact_qobj(self):
-        return self.U
-
-
 def grover_oracle(
     search_qubits: int | Sequence[int], marked_states: int | Sequence[int]
 ) -> QubitCircuit:
@@ -104,7 +78,7 @@ def grover_oracle(
 
 
 def grover(
-    oracle: QubitCircuit,
+    oracle: QubitCircuit | Gate,
     search_qubits: int | Sequence[int],
     num_solutions: int,
     num_iterations: int | None = None,
@@ -115,7 +89,7 @@ def grover(
 
     Parameters
     ----------
-    oracle : :class:`~.circuit.QubitCircuit` or :class:`~.operations.Gate` or :class:`qutip.Qobj`
+    oracle : :class:`~.circuit.QubitCircuit` or :class:`~.operations.Gate`
         The oracle that flips the phase of marked states.
     search_qubits : int or sequence of int
         The qubits to run the search on.
@@ -200,9 +174,9 @@ def grover(
         qc.add_gate("SNOT", targets=q)
 
     # Calculate optimal Iterations if none provided:
-    if num_iterations is not None and num_iterations <= 0:
+    if num_iterations is not None and num_iterations < 0:
         raise ValueError(
-            f"num_iterations must be a positive integer, got {num_iterations}."
+            f"num_iterations must not be a negative integer, got {num_iterations}."
         )
 
     if num_iterations is None:
@@ -220,8 +194,6 @@ def grover(
                     f"Oracle gate targets {oracle.targets} are not a subset of algorithm qubits {search_qubits}"
                 )
             qc.add_gate(oracle)
-        else:
-            qc.add_gate(OracleGate(search_qubits, oracle))
 
         # Diffusion (Inversion about the mean)
         for q in search_qubits:

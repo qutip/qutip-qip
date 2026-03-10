@@ -47,12 +47,7 @@ class TestGrover:
         oracle = grover_oracle(2, 3)
 
         with pytest.raises(
-            ValueError, match="num_iterations must be a positive"
-        ):
-            grover(oracle, 2, 1, num_iterations=0)
-
-        with pytest.raises(
-            ValueError, match="num_iterations must be a positive"
+            ValueError, match="num_iterations must not be a negative"
         ):
             grover(oracle, 2, 1, num_iterations=-3)
 
@@ -151,22 +146,3 @@ class TestGrover:
 
         fidelity = abs(psi_final.overlap(psi_expected)) ** 2
         assert fidelity > 0.9999
-
-    def test_grover_oracle_types(self):
-        """Test that the main function accepts Gate and Qobj oracles."""
-        qubits = [0]
-
-        # Qobj Oracle (Z gate for 1 qubit marks state |1>)
-        oracle_qobj = Qobj([[1, 0], [0, -1]])
-        qc_a = grover(oracle_qobj, qubits, 1)
-        assert len(qc_a.gates) > 0
-
-        # Gate Oracle
-        oracle_gate = Gate("Z", targets=[0])
-        qc_b = grover(oracle_gate, qubits, 1)
-        assert len(qc_b.gates) > 0
-
-        # Compare unitaries
-        assert np.allclose(
-            qc_a.compute_unitary().full(), qc_b.compute_unitary().full()
-        )

@@ -10,28 +10,28 @@ It works by iteratively rotating a quantum state vector toward a "marked" soluti
 Overview
 ========
 
-Grover's algorithm is a fundamental quantum algorithm that finds the unique input to a black-box function that produces a particular output value. In ``qutip-qip``, the implementation consists of two main components:
+Grover's algorithm is a fundamental quantum algorithm that finds the unique input to a black-box function that produces a particular output value. The implementation consists of two main components:
 
-* **The Oracle**: A phase oracle that flips the sign of the amplitude for the "marked" or "target" states.
-* **The Diffusion Operator**: Also known as the "inversion about the mean" operator, which amplifies the probability of measuring the marked states.
+* **The Oracle**: A phase oracle that flips the sign of the amplitude for the "marked" states passed by the user.
+* **The Diffusion Operator**: This operator flips the current state about its previous state.
 
 The algorithm requires an optimal number of iterations, approximately :math:`\frac{\pi}{4}\sqrt{\frac{N}{M}}`, where :math:`N=2^n` is the size of the search space and :math:`M` is the number of marked states.
 
 Constructing the Algorithm
 ==========================
 
-In this module, you can construct the full search circuit using the :func:`.grover` function. To make the process easier, a utility function :func:`.grover_oracle` is provided to generate standard phase-flip oracles.
+In this module, you can construct the full Grover search circuit using the :func:`.grover` function. To make the process easier, a utility function :func:`.grover_oracle` is provided to generate standard phase-flip oracles if the marked states are known.
 
 The :func:`.grover` function requires the following:
 
 ====================  ==================================================
 Argument                           Description
 ====================  ==================================================
-``oracle``            A :class:`.QubitCircuit`, :class:`.Gate`, or :class:`~.Qobj` representing the phase oracle.
-``qubits``            List of qubit indices (or integer count) to run the search on.
-``num_solutions``     **Mandatory** integer representing the number of marked states :math:`M`.
+``oracle``            A :class:`.QubitCircuit` or :class:`.Gate` representing the phase oracle.
+``search_qubits``     List of qubit indices (or integer count) to run the search on.
+``num_solutions``     Integer representing the number of marked states :math:`M`.
 ``num_iterations``    Optional integer for manual control over the rotation count.
-``N``                 Optional total number of qubits when searching on a subset of a larger system.
+``num_qubits``        Optional total number of qubits when searching on a subset of a larger system.
 ====================  ==================================================
 
 Example: Searching for Multiple Targets
@@ -50,7 +50,7 @@ Let's simulate a search on 3 qubits (:math:`N=8`) where two states are marked: :
     >>> n_qubits = 3
     >>> marked = [3, 5]
 
-    We then use the utility function :func:`.grover_oracle` to create a phase-flip oracle for our target states.
+    We then use the utility function :func:`.grover_oracle` to create a phase-flip oracle for our marked states.
 
     >>> oracle = grover_oracle(n_qubits, marked)
 
