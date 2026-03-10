@@ -21,7 +21,7 @@ def _pulse_interpolate(pulse, tlist):
         coeff = np.zeros(len(tlist))
         return coeff
 
-    if isinstance(pulse.coeff, bool):
+    if type(pulse.coeff) is bool:
         if pulse.coeff:
             coeff = np.ones(len(tlist))
         else:

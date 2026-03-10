@@ -988,7 +988,7 @@ class QasmOutput:
             q_controls = []
         q_regs = q_controls + q_targets
 
-        if isinstance(q_targets[0], int):
+        if type(q_targets[0]) is int:
             q_regs = ",".join([f"q[{reg}]" for reg in q_regs])
         else:
             q_regs = ",".join(q_regs)
@@ -1010,9 +1010,9 @@ class QasmOutput:
             QuTiP gate which needs to be defined in QASM format.
         """
 
-        if isinstance(gate, gates.CRY):
+        if type(gate) is gates.CRY:
             gate_def = "gate cry(theta) a,b { cu3(theta,0,0) a,b; }"
-        elif isinstance(gate, gates.CRX):
+        elif type(gate) is gates.CRX:
             gate_def = "gate crx(theta) a,b { cu3(theta,-pi/2,pi/2) a,b; }"
         elif gate == gates.SQRTX:
             gate_def = "gate sqrtnot a {h a; u1(-pi/2) a; h a; }"

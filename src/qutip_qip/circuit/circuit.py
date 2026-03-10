@@ -305,7 +305,7 @@ class QubitCircuit:
                 stacklevel=2,
             )
 
-        if isinstance(gate, std.GLOBALPHASE):
+        if type(gate) is std.GLOBALPHASE:
             self.add_global_phase(gate.arg_value[0])
             return
 
@@ -730,7 +730,7 @@ class QubitCircuit:
             targets = circ_instruction.targets
             controls = circ_instruction.controls
 
-            if isinstance(gate, std.RX) and "RX" not in basis_1q:
+            if type(gate) is std.RX and "RX" not in basis_1q:
                 qc_temp.add_gate(
                     std.RY(-half_pi, arg_label=r"-\pi/2"),
                     targets=targets,
@@ -744,7 +744,7 @@ class QubitCircuit:
                     targets=targets,
                 )
 
-            elif isinstance(gate, std.RY) and "RY" not in basis_1q:
+            elif type(gate) is std.RY and "RY" not in basis_1q:
                 qc_temp.add_gate(
                     std.RZ(-half_pi, arg_label=r"-\pi/2"),
                     targets=targets,
@@ -758,7 +758,7 @@ class QubitCircuit:
                     targets=targets,
                 )
 
-            elif isinstance(gate, std.RZ) and "RZ" not in basis_1q:
+            elif type(gate) is std.RZ and "RZ" not in basis_1q:
                 qc_temp.add_gate(
                     std.RX(-half_pi, arg_label=r"-\pi/2"),
                     targets=targets,
