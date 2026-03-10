@@ -84,14 +84,19 @@ class NameSpace:
             )
         del self._registry[name]
 
-    def __hash__(self) -> int:
-        return hash(self.name)
-
     def __str__(self) -> str:
         return self.name
 
     def __repr__(self):
         return str(self)
+
+    def __eq__(self, other) -> bool:
+        if type(other) is not NameSpace:
+            return False
+        return self.name == other.name
+
+    def __hash__(self) -> int:
+        return hash(self.name)
 
 
 NS_STD = NameSpace("std")  # DEFAULT NAMESPACE

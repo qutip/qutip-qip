@@ -169,7 +169,7 @@ class ParametricGate(Gate):
         return True
 
     def __hash__(self) -> int:
-        return super().__hash__()
+        return hash((type(self), self.arg_value))
 
 
 class AngleParametricGate(ParametricGate):

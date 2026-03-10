@@ -243,7 +243,9 @@ class ControlledGate(Gate):
         return True
 
     def __hash__(self) -> int:
-        return super().__hash__()
+        if self.is_parametric():
+            return hash((type(self), self._target_inst))
+        return hash(type(self))
 
 
 def get_controlled_gate(
