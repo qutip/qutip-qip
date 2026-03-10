@@ -87,6 +87,7 @@ class _GateMetaClass(ABCMeta):
         """
         # cls.__dict__.get() instead of getattr() ensures we don't
         # accidentally inherit the True flag from a parent class for _is_frozen.
+
         if cls.__dict__.get("_is_frozen", False) and name in _read_only_set:
             raise AttributeError(f"{name} is read-only!")
         super().__setattr__(name, value)
@@ -145,16 +146,15 @@ class Gate(ABC, metaclass=_GateMetaClass):
         """
         Automatically runs when a new subclass is defined via inheritance.
 
-        This method sets the ``name`` and ``latex_str`` attributes
-        if they are not defined in the subclass. It also validates that
-        ``num_qubits`` is a non-negative integer.
+        This method sets the ``name`` and ``latex_str`` attributes if
+        they are not defined in the subclass. It also validates that ``num_qubits``
+        is a non-negative integer, ``is_clifford``, ``self_inverse`` are
+        bool and ``inverse`` method is not defined if ``self_inverse`` is set True.
         """
-
-        super().__init_subclass__(**kwargs)
 
         # Skip the below check for an abstract class
         if inspect.isabstract(cls):
-            return
+            return super().__init_subclass__(**kwargs)
 
         # If name attribute in subclass is not defined, set it to the name of the subclass
         # e.g. class H(Gate):
@@ -235,14 +235,17 @@ class Gate(ABC, metaclass=_GateMetaClass):
                 f"got {type(control_flag)} with value {control_flag}."
             )
 
+        return super().__init_subclass__(**kwargs)
+
+
     def __init__(self) -> None:
         """
-        This method is overwritten by Parametrized and Controlled Gates.
+        This method is overwritten in case of Parametrized and Controlled Gates.
         """
         raise TypeError(
-            f"Gate '{type(self).name}' can't be initialized. "
+            f"Gate '{type(self).name}' can't be initialised. "
             f"If your gate requires parameters, it must inherit from 'ParametricGate'. "
-            f"Or if it must be controlled and needs control_value, it must inherit from 'ControlledGate'."
+            f"Or if it must be controlled, it must inherit from 'ControlledGate'."
         )
 
     @staticmethod
@@ -268,7 +271,7 @@ class Gate(ABC, metaclass=_GateMetaClass):
 
         Returns
         -------
-        Gate
+        Type[Gate]
             A Gate instance representing $G^{-1}$.
         """
         if cls.self_inverse:
