@@ -1,10 +1,10 @@
-from collections.abc import Iterable
+from collections.abc import Sequence
 import warnings
 from copy import deepcopy
 import numpy as np
 
 from qutip import Qobj, QobjEvo, mesolve, mcsolve
-from qutip_qip.operations import GLOBALPHASE
+from qutip_qip.operations.gates import GLOBALPHASE
 from qutip_qip.noise import Noise, process_noise
 from qutip_qip.device import Model
 from qutip_qip.device.utils import _pulse_interpolate
@@ -176,7 +176,7 @@ class Processor:
     def _unify_targets(self, qobj, targets):
         if targets is None:
             targets = list(range(len(qobj.dims[0])))
-        if not isinstance(targets, Iterable):
+        if not isinstance(targets, Sequence):
             targets = [targets]
         return targets
 
@@ -380,7 +380,7 @@ class Processor:
         self.set_coeffs(coeffs)
 
     def _generate_iterator_from_dict_or_list(self, value):
-        if isinstance(value, dict):
+        if type(value) is dict:
             iterator = value.items()
         elif isinstance(value, (list, np.ndarray)):
             iterator = enumerate(value)
@@ -442,6 +442,7 @@ class Processor:
             for pulse in self.pulses:
                 pulse.tlist = tlist
             return
+
         iterator = self._generate_iterator_from_dict_or_list(tlist)
         pulse_dict = self.get_pulse_dict()
         for pulse_label, value in iterator:
@@ -490,24 +491,29 @@ class Processor:
         self._is_pulses_valid()
         if not self.pulses:
             return np.array((0, 0), dtype=float)
+
         if full_tlist is None:
             full_tlist = self.get_full_tlist()
+
         coeffs_list = []
         for pulse in self.pulses:
             if pulse.tlist is None and pulse.coeff is None:
                 coeffs_list.append(np.zeros(len(full_tlist)))
                 continue
+
             if not isinstance(pulse.coeff, (bool, np.ndarray)):
                 raise ValueError(
                     "get_full_coeffs only works for "
                     "NumPy array or bool coeff."
                 )
-            if isinstance(pulse.coeff, bool):
+
+            if type(pulse.coeff) is bool:
                 if pulse.coeff:
                     coeffs_list.append(np.ones(len(full_tlist)))
                 else:
                     coeffs_list.append(np.zeros(len(full_tlist)))
                 continue
+
             if self.spline_kind == "step_func":
                 arg = {"_step_func_coeff": True}
                 coeffs_list.append(
@@ -623,7 +629,7 @@ class Processor:
             The label of the pulse
         """
         if indices is not None:
-            if not isinstance(indices, Iterable):
+            if not isinstance(indices, Sequence):
                 indices = [indices]
             indices.sort(reverse=True)
             for ind in indices:
@@ -649,13 +655,13 @@ class Processor:
                 continue
             if pulse.tlist is None:
                 raise ValueError(
-                    "Pulse id={} is invalid. "
-                    "Please define a tlist for the pulse.".format(i)
+                    f"Pulse id={i} is invalid. "
+                    "Please define a tlist for the pulse."
                 )
             if pulse.tlist is not None and pulse.coeff is None:
                 raise ValueError(
-                    "Pulse id={} is invalid. "
-                    "Please define a coeff for the pulse.".format(i)
+                    f"Pulse id={i} is invalid. "
+                    "Please define a coeff for the pulse."
                 )
             coeff_len = len(pulse.coeff)
             tlist_len = len(pulse.tlist)
@@ -665,10 +671,10 @@ class Processor:
                 else:
                     raise ValueError(
                         "The length of tlist and coeff of the pulse "
-                        "labelled {} is invalid. "
+                        f"labelled {i} is invalid. "
                         "It's either len(tlist)=len(coeff) or "
                         "len(tlist)-1=len(coeff) for coefficients "
-                        "as step function".format(i)
+                        "as step function"
                     )
             else:
                 if coeff_len == tlist_len:
@@ -676,8 +682,8 @@ class Processor:
                 else:
                     raise ValueError(
                         "The length of tlist and coeff of the pulse "
-                        "labelled {} is invalid. "
-                        "It should be either len(tlist)=len(coeff)".format(i)
+                        f"labelled {i} is invalid. "
+                        "It should be either len(tlist)=len(coeff)"
                     )
         return True
 
@@ -690,16 +696,16 @@ class Processor:
 
     def find_pulse(self, pulse_name):
         pulse_dict = self.get_pulse_dict()
-        if isinstance(pulse_name, int):
+        if type(pulse_name) is int:
             return self.pulses[pulse_name]
         else:
             try:
                 return self.pulses[pulse_dict[pulse_name]]
             except KeyError:
                 raise KeyError(
-                    "Pulse name {} undefined. "
+                    f"Pulse name {pulse_name} undefined. "
                     "Please define it in the attribute "
-                    "`pulse_dict`.".format(pulse_name)
+                    "`pulse_dict`."
                 )
 
     @property
@@ -1110,7 +1116,7 @@ class Processor:
             warnings.warn(
                 "states will be deprecated and replaced by init_state",
                 DeprecationWarning,
-                stacklevel=2
+                stacklevel=2,
             )
         if init_state is None and states is None:
             raise ValueError("Qubit state not defined.")
@@ -1120,7 +1126,7 @@ class Processor:
             init_state = states
         if analytical:
             if kwargs or self.noise:
-                raise warnings.warn(
+                raise warnings.warn(  # FIXME this should raise an Error Type
                     "Analytical matrices exponentiation"
                     "does not process noise or"
                     "any keyword arguments."

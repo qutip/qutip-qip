@@ -2,30 +2,26 @@
 Quantum circuit representation and simulation.
 """
 
-import numpy as np
 import warnings
-from typing import Iterable
-from qutip_qip.typing import IntList
+import inspect
+from typing import Iterable, Type
+from qutip import qeye, Qobj
+import numpy as np
 
-from ._decompose import _resolve_to_universal, _resolve_2q_basis
-from qutip_qip.operations import (
-    Gate,
-    GLOBALPHASE,
-    RX,
-    RY,
-    RZ,
-    Measurement,
-    expand_operator,
-    GATE_CLASS_MAP,
-)
 from qutip_qip.circuit import (
     CircuitSimulator,
     CircuitInstruction,
     GateInstruction,
     MeasurementInstruction,
 )
-from qutip_qip.circuit.utils import _check_iterable, _check_limit_
-from qutip import qeye, Qobj
+from qutip_qip.circuit._decompose import (
+    _resolve_to_universal,
+    _resolve_2q_basis,
+)
+from qutip_qip.operations import Gate, Measurement, expand_operator
+from qutip_qip.operations import gates as std
+from qutip_qip.typing import Int, IntSequence
+from qutip_qip.utils import check_limit, convert_type_input_to_sequence
 
 try:
     from IPython.display import Image as DisplayImage, SVG as DisplaySVG
@@ -67,7 +63,7 @@ class QubitCircuit:
         dims=None,
         num_cbits=0,
         user_gates=None,
-        N = None
+        N=None,
     ):
         # number of qubits in the register
         self._num_qubits = num_qubits
@@ -89,47 +85,22 @@ class QubitCircuit:
         if input_states:
             self.input_states = input_states
         else:
-            self.input_states = [None for i in range(self.num_qubits + num_cbits)]
+            self.input_states = [
+                None for i in range(self.num_qubits + num_cbits)
+            ]
 
         if output_states:
             self.output_states = output_states
         else:
-            self.output_states = [None for i in range(self.num_qubits + num_cbits)]
+            self.output_states = [
+                None for i in range(self.num_qubits + num_cbits)
+            ]
 
         if user_gates is not None:
             raise ValueError(
                 "`user_gates` has been removed from qutip-qip from version 0.5.0"
                 "To define custom gates refer to this example in documentation <link>"
             )
-
-    @property
-    def global_phase(self):
-        return self._global_phase
-
-    def add_global_phase(self, phase: float):
-        self._global_phase += phase
-        self._global_phase %= 2 * np.pi
-
-    @property
-    def gates(self) -> list[CircuitInstruction]:
-        warnings.warn(
-            "QubitCircuit.gates has been replaced with QubitCircuit.instructions",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return self._instructions
-
-    gates.setter
-    def gates(self) -> None:
-        warnings.warn(
-            "QubitCircuit.gates has been replaced with QubitCircuit.instructions",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-    @property
-    def instructions(self) -> list[CircuitInstruction]:
-        return self._instructions
 
     @property
     def num_qubits(self) -> int:
@@ -154,20 +125,42 @@ class QubitCircuit:
     def __repr__(self) -> str:
         return ""
 
-    def _repr_png_(self) -> None:
-        """
-        Provide PNG representation for Jupyter Notebook.
-        """
-        try:
-            self.draw(renderer="matplotlib")
-        except ImportError:
-            self.draw("text")
+    @property
+    def global_phase(self):
+        return self._global_phase
+
+    def add_global_phase(self, phase: float):
+        self._global_phase += phase
+        self._global_phase %= 2 * np.pi
+
+    @property
+    def gates(self) -> list[CircuitInstruction]:
+        warnings.warn(
+            "QubitCircuit.gates has been replaced with QubitCircuit.instructions",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self._instructions
+
+    # fmt: off
+    gates.setter
+    def gates(self) -> None:
+        warnings.warn(
+            "QubitCircuit.gates has been replaced with QubitCircuit.instructions",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+    # fmt: on
+
+    @property
+    def instructions(self) -> list[CircuitInstruction]:
+        return self._instructions
 
     def add_state(
         self,
         state: str,
-        targets: IntList,
-        state_type: str = "input", # FIXME Add an enum type hinting?
+        targets: IntSequence,
+        state_type: str = "input",  # FIXME Add an enum type hinting?
     ):
         """
         Add an input or output state to the circuit. By default all the input
@@ -200,7 +193,7 @@ class QubitCircuit:
     def add_measurement(
         self,
         measurement: str | Measurement,
-        targets: int | IntList,
+        targets: int | IntSequence,
         classical_store: int,
         index: None = None,
     ):
@@ -250,15 +243,15 @@ class QubitCircuit:
 
     def add_gate(
         self,
-        gate: Gate | str,
-        targets: Iterable[int] = [],
-        controls: Iterable[int] = [],
-        arg_value: any = None,
-        arg_label: str | None = None,
-        control_value: int | None = None,
-        classical_controls: Iterable[int] = [],
+        gate: Gate | Type[Gate] | str,
+        targets: int | IntSequence = (),
+        controls: int | IntSequence = (),
+        classical_controls: int | IntSequence = (),
         classical_control_value: int | None = None,
         style: dict = None,
+        arg_value: None = None,
+        arg_label: None = None,
+        control_value: None = None,
         index: None = None,
     ):
         """
@@ -266,7 +259,7 @@ class QubitCircuit:
 
         Parameters
         ----------
-        gate: string or :class:`~.operations.Gate`
+        gate: :class:`~.operations.Gate` or :obj:`~.operations.Gate` or str
             Gate name. If gate is an instance of :class:`~.operations.Gate`,
             parameters are unpacked and added.
         targets: int or list, optional
@@ -281,7 +274,7 @@ class QubitCircuit:
             Label for gate representation.
         classical_controls : int or list of int, optional
             Indices of classical bits to control the gate.
-        control_value : int, optional
+        control_value : optional
             Value of classical bits to control on, the classical controls are
             interpreted as an integer with the lowest bit being the first one.
             If not specified, then the value is interpreted to be
@@ -290,104 +283,133 @@ class QubitCircuit:
         style:
             For circuit draw
         """
+        # Deprecation warnings
         if index is not None:
             raise ValueError("argument index is no longer supported")
 
         if arg_value is not None or arg_label is not None:
             warnings.warn(
-                "Define 'arg_value', 'arg_label' in your Gate object e.g. RX(arg_value=np.pi)" \
+                "Define 'arg_value', 'arg_label' in your Gate object e.g. RX(np.pi)"
                 ", 'arg_value', 'arg_label' arguments will be removed from 'add_gate' method in the future version.",
                 DeprecationWarning,
-                stacklevel=2
+                stacklevel=2,
             )
 
         if control_value is not None:
             warnings.warn(
-                "Define 'control_value', in your Gate object e.g. CX(control_value=0)" \
-                ", 'control_value' argument will be removed from 'add_gate' method in the future version.",
+                "'control_value' is no longer a valid argument and has been deprecated and will be removed in the future version. "
+                "from qutip_qip.operations import controlled",
+                "from qutip_qip.operations.gates import X",
+                "Example: gate = get_controlled_gate(X, num_ctrl_qubits=1, control_value=0) instead",
                 DeprecationWarning,
-                stacklevel=2
+                stacklevel=2,
             )
 
-        if isinstance(gate, GLOBALPHASE):
+        if type(gate) is std.GLOBALPHASE:
             self.add_global_phase(gate.arg_value[0])
             return
 
-        # Handling case for int input (TODO use try except)
-        targets = [targets] if type(targets) is int else targets
-        controls = [controls] if type(controls) is int else controls
-        classical_controls = (
-            [classical_controls]
-            if type(classical_controls) is int
-            else classical_controls
-        )
-
-        # This will raise an error if not an iterable type (e.g. list, tuple, etc.)
-        _check_iterable("targets", targets)
-        _check_iterable("controls", controls)
-        _check_iterable("classical_controls", classical_controls)
-
-        # Checks each element is of given type (e.g. int) and within the limit
-        _check_limit_("targets", targets, self.num_qubits - 1, int)
-        _check_limit_("controls", controls, self.num_qubits - 1, int)
-        _check_limit_(
-            "classical_controls", classical_controls, self.num_cbits - 1, int
-        )
-
-        # Check len(controls) == gate.num_ctrl_qubits
-
-        # Default value for classical control
-        if len(classical_controls) > 0 and classical_control_value is None:
-            classical_control_value = 2 ** (len(classical_controls)) - 1
-
-        # This can be remove if the gate input is only restricted to Gate or its object instead of strings
+        # This conditional block can be remove if the gate input is only
+        # restricted to Gate subclasses or object instead of strings in the future.
         if not isinstance(gate, Gate):
-            if type(gate) is str and gate in GATE_CLASS_MAP:
-                warnings.warn(
-                    "Passing Gate as a string input has been deprecated and will be removed in future versions.",
-                    DeprecationWarning,
-                    stacklevel=2
-                )
-                gate_class = GATE_CLASS_MAP[gate]
+            if type(gate) is str:
+                if gate in std.GATE_CLASS_MAP:
+                    warnings.warn(
+                        "Passing Gate as a string input has been deprecated and will be removed in future versions.",
+                        DeprecationWarning,
+                        stacklevel=2,
+                    )
+                    gate_class = std.GATE_CLASS_MAP[gate]
+
+                else:
+                    raise KeyError(
+                        "Can only pass standard gate name as strings"
+                        "or Gate class or its object instantiation"
+                    )
 
             elif issubclass(gate, Gate):
                 gate_class = gate
-            else:
-                raise ValueError(
-                    "Can only pass standard gate name as strings"
-                    "or Gate class or its object instantiation"
-                )
-
-            if gate_class.is_controlled_gate() and gate_class.is_parametric_gate():
-                gate = gate_class(
-                    control_value=control_value,
-                    arg_value=arg_value,
-                    arg_label=arg_label,
-                )
-
-            elif gate_class.is_parametric_gate():
-                gate = gate_class(arg_value=arg_value, arg_label=arg_label)
-
-            elif gate_class.is_controlled_gate():
-                gate = gate_class(control_value=control_value)
 
             else:
-                gate = gate()
+                raise TypeError(
+                    "gate must be of Gate type or oject or a string ",
+                    f"got {type(gate)} instead.",
+                )
+
+            if gate_class.is_parametric():
+                gate = gate_class(arg_value, arg_label=arg_label)
+
+            else:
+                gate = gate_class
+
+        # Check for gates
+        if inspect.isabstract(gate):
+            raise TypeError("gate must not be an abstract class")
+        elif not (isinstance(gate, Gate) or issubclass(gate, Gate)):
+            raise TypeError(f"gate must be of type Gate, got {gate}")
+        elif gate.is_parametric() and (not isinstance(gate, Gate)):
+            raise TypeError(
+                "You must pass an instantiated object for a Parametrized Gate"
+            )
+        elif (not gate.is_parametric()) and (not issubclass(gate, Gate)):
+            raise TypeError(
+                "You must pass a Gate type for a non-parametrized gate"
+            )
+
+        # Handling case for integer input
+        targets = convert_type_input_to_sequence(int, "targets", targets)
+        controls = convert_type_input_to_sequence(int, "controls", controls)
+        classical_controls = convert_type_input_to_sequence(
+            int, "classical_controls", classical_controls
+        )
+
+        # Checks each element within the limit
+        check_limit("targets", targets, 0, self.num_qubits - 1)
+        check_limit("controls", controls, 0, self.num_qubits - 1)
+        check_limit(
+            "classical_controls", classical_controls, 0, self.num_cbits - 1
+        )
+
+        # Check len(controls) == gate.num_ctrl_qubits
+        if gate.is_controlled() and len(controls) != gate.num_ctrl_qubits:
+            raise ValueError(
+                f"{gate.name} takes {gate.num_ctrl_qubits} qubits, but {len(controls)} were provided."
+            )
+
+        if len(controls) + len(targets) != gate.num_qubits:
+            raise ValueError(
+                f"{gate.name} takes {gate.num_qubits} qubits, but {len(controls) + len(targets)} were provided."
+            )
+
+        # Check for classical control
+        default_classical_ctrl_val = 2 ** (len(classical_controls)) - 1
+
+        if classical_control_value is None:
+            if len(classical_controls) > 0:
+                classical_control_value = default_classical_ctrl_val
+
+        elif not isinstance(classical_control_value, Int):
+            raise TypeError(
+                f"classical_control_value must be an integer or None, got {classical_control_value}"
+            )
+
+        elif (
+            classical_control_value < 0
+            or classical_control_value > default_classical_ctrl_val
+        ):
+            raise ValueError(
+                f"{classical_control_value} must be with [0, {default_classical_ctrl_val}]"
+            )
 
         qubits = []
-        if controls is not None:
-            qubits.extend(controls)
+        qubits.extend(controls)
         qubits.extend(targets)
-
-        cbits = tuple()
-        if classical_controls is not None:
-            cbits = tuple(classical_controls)
 
         self._instructions.append(
             GateInstruction(
                 operation=gate,
                 qubits=tuple(qubits),
-                cbits=cbits,
+                cbits=tuple(classical_controls),
                 cbits_ctrl_value=classical_control_value,
                 style=style,
             )
@@ -527,7 +549,6 @@ class QubitCircuit:
         state,
         cbits=None,
         measure_results=None,
-        precompute_unitary=False,
     ):
         """
         Calculate the result of one instance of circuit run.
@@ -555,14 +576,11 @@ class QubitCircuit:
             mode = "density_matrix_simulator"
         else:
             raise TypeError("State is not a ket or a density matrix.")
-        sim = CircuitSimulator(
-            self,
-            mode,
-            precompute_unitary,
-        )
+
+        sim = CircuitSimulator(self, mode)
         return sim.run(state, cbits, measure_results).get_final_states(0)
 
-    def run_statistics(self, state, cbits=None, precompute_unitary=False):
+    def run_statistics(self, state, cbits=None):
         """
         Calculate all the possible outputs of a circuit
         (varied by measurement gates).
@@ -586,10 +604,10 @@ class QubitCircuit:
             mode = "density_matrix_simulator"
         else:
             raise TypeError("State is not a ket or a density matrix.")
-        sim = CircuitSimulator(self, mode, precompute_unitary)
+        sim = CircuitSimulator(self, mode)
         return sim.run_statistics(state, cbits)
 
-    def resolve_gates(self, basis=["CNOT", "CX", "RX", "RY", "RZ"]):
+    def resolve_gates(self, basis=["CX", "RX", "RY", "RZ"]):
         """
         Unitary matrix calculator for N qubits returning the individual
         steps as unitary matrices operating from left to right in the specified
@@ -622,12 +640,19 @@ class QubitCircuit:
             raise NotImplementedError("adjacent_gates must be called before \
                 measurements are added to the circuit")
 
-        basis_1q_valid = ["RX", "RY", "RZ", "IDLE"]
-        basis_2q_valid = ["CNOT", "CX", "CSIGN", "CZ", "ISWAP", "SQRTSWAP", "SQRTISWAP"]
+        basis_1q_valid = ["RX", "RY", "RZ", "IDENTITY"]
+        basis_2q_valid = [
+            "CX",
+            "CSIGN",
+            "CZ",
+            "ISWAP",
+            "SQRTSWAP",
+            "SQRTISWAP",
+        ]
         basis_1q = []
         basis_2q = []
 
-        if isinstance(basis, list):
+        if isinstance(basis, Iterable):
             for gate in basis:
                 if gate in basis_2q_valid:
                     basis_2q.append(gate)
@@ -661,15 +686,15 @@ class QubitCircuit:
             targets = circ_instruction.targets
             controls = circ_instruction.controls
 
-            if gate.name in ("X", "Y", "Z"):
+            if gate in (std.X, std.Y, std.Z):
                 temp_resolved.add_global_phase(phase=np.pi / 2)
 
-                if gate.name == "X":
-                    temp_resolved.add_gate(RX(np.pi), targets=targets)
-                elif gate.name == "Y":
-                    temp_resolved.add_gate(RY(np.pi), targets=targets)
+                if gate == std.X:
+                    temp_resolved.add_gate(std.RX(np.pi), targets=targets)
+                elif gate == std.Y:
+                    temp_resolved.add_gate(std.RY(np.pi), targets=targets)
                 else:
-                    temp_resolved.add_gate(RZ(np.pi), targets=targets)
+                    temp_resolved.add_gate(std.RZ(np.pi), targets=targets)
 
             else:
                 try:
@@ -712,45 +737,45 @@ class QubitCircuit:
             targets = circ_instruction.targets
             controls = circ_instruction.controls
 
-            if gate.name == "RX" and "RX" not in basis_1q:
+            if type(gate) is std.RX and "RX" not in basis_1q:
                 qc_temp.add_gate(
-                    RY(arg_value=-half_pi, arg_label=r"-\pi/2"),
+                    std.RY(-half_pi, arg_label=r"-\pi/2"),
                     targets=targets,
                 )
                 qc_temp.add_gate(
-                    RZ(arg_value=gate.arg_value, arg_label=gate.arg_label),
+                    std.RZ(gate.arg_value[0], arg_label=gate.arg_label),
                     targets=targets,
                 )
                 qc_temp.add_gate(
-                    RY(arg_value=-half_pi, arg_label=r"\pi/2"),
-                    targets=targets,
-                )
-
-            elif gate.name == "RY" and "RY" not in basis_1q:
-                qc_temp.add_gate(
-                    RZ(arg_value=-half_pi, arg_label=r"-\pi/2"),
-                    targets=targets,
-                )
-                qc_temp.add_gate(
-                    RX(arg_value=gate.arg_value, arg_label=gate.arg_label),
-                    targets=targets,
-                )
-                qc_temp.add_gate(
-                    RZ(arg_value=half_pi, arg_label=r"\pi/2"),
+                    std.RY(-half_pi, arg_label=r"\pi/2"),
                     targets=targets,
                 )
 
-            elif gate.name == "RZ" and "RZ" not in basis_1q:
+            elif type(gate) is std.RY and "RY" not in basis_1q:
                 qc_temp.add_gate(
-                    RX(arg_value=-half_pi, arg_label=r"-\pi/2"),
+                    std.RZ(-half_pi, arg_label=r"-\pi/2"),
                     targets=targets,
                 )
                 qc_temp.add_gate(
-                    RY(arg_value=gate.arg_value, arg_label=gate.arg_label),
+                    std.RX(gate.arg_value[0], arg_label=gate.arg_label),
                     targets=targets,
                 )
                 qc_temp.add_gate(
-                    RX(arg_value=half_pi, arg_label=r"\pi/2"),
+                    std.RZ(half_pi, arg_label=r"\pi/2"),
+                    targets=targets,
+                )
+
+            elif type(gate) is std.RZ and "RZ" not in basis_1q:
+                qc_temp.add_gate(
+                    std.RX(-half_pi, arg_label=r"-\pi/2"),
+                    targets=targets,
+                )
+                qc_temp.add_gate(
+                    std.RY(gate.arg_value[0], arg_label=gate.arg_label),
+                    targets=targets,
+                )
+                qc_temp.add_gate(
+                    std.RX(half_pi, arg_label=r"\pi/2"),
                     targets=targets,
                 )
             else:
@@ -819,7 +844,9 @@ class QubitCircuit:
         # For Circuit's Global Phase
         qobj = Qobj([self.global_phase])
         if expand:
-            qobj = GLOBALPHASE(self.global_phase).get_qobj(num_qubits=self.num_qubits)
+            qobj = std.GLOBALPHASE(self.global_phase).get_qobj(
+                num_qubits=self.num_qubits
+            )
 
         U_list.append(qobj)
         return U_list
@@ -934,9 +961,9 @@ class QubitCircuit:
             object to store QASM output.
         """
 
-        qasm_out.output("qreg q[{}];".format(self.num_qubits))
+        qasm_out.output(f"qreg q[{self.num_qubits}];")
         if self.num_cbits:
-            qasm_out.output("creg c[{}];".format(self.num_cbits))
+            qasm_out.output(f"creg c[{self.num_cbits}];")
         qasm_out.output(n=1)
 
         for circ_instruction in self.instructions:

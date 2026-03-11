@@ -1,6 +1,13 @@
 import numpy as np
 
 from qutip_qip.compiler import GateCompiler, PulseInstruction
+from qutip_qip.operations.gates import (
+    GLOBALPHASE,
+    ISWAP,
+    RX,
+    RZ,
+    SQRTISWAP,
+)
 
 
 class SpinChainCompiler(GateCompiler):
@@ -71,10 +78,11 @@ class SpinChainCompiler(GateCompiler):
     >>> from qutip_qip.circuit import QubitCircuit
     >>> from qutip_qip.device import ModelProcessor, SpinChainModel
     >>> from qutip_qip.compiler import SpinChainCompiler
+    >>> from qutip_qip.operations.gates import RX, RZ
     >>>
     >>> qc = QubitCircuit(2)
-    >>> qc.add_gate("RX", targets=0, arg_value=np.pi)
-    >>> qc.add_gate("RZ", targets=1, arg_value=np.pi)
+    >>> qc.add_gate(RX(np.pi), targets=0)
+    >>> qc.add_gate(RZ(np.pi), targets=1)
     >>>
     >>> model = SpinChainModel(2, "linear", g=0.1)
     >>> processor = ModelProcessor(model=model)
@@ -100,11 +108,11 @@ class SpinChainCompiler(GateCompiler):
         super().__init__(num_qubits, params=params, pulse_dict=pulse_dict, N=N)
         self.gate_compiler.update(
             {
-                "ISWAP": self.iswap_compiler,
-                "SQRTISWAP": self.sqrtiswap_compiler,
-                "RZ": self.rz_compiler,
-                "RX": self.rx_compiler,
-                "GLOBALPHASE": self.globalphase_compiler,
+                ISWAP: self.iswap_compiler,
+                SQRTISWAP: self.sqrtiswap_compiler,
+                RZ: self.rz_compiler,
+                RX: self.rx_compiler,
+                GLOBALPHASE: self.globalphase_compiler,
             }
         )
         self.global_phase = global_phase
@@ -140,7 +148,10 @@ class SpinChainCompiler(GateCompiler):
             args["num_samples"],
             maximum=self.params[param_label][targets[0]],
             # The operator is Pauli Z/X/Y, without 1/2.
-            area=circuit_instruction.operation.arg_value[0] / 2.0 / np.pi * 0.5,
+            area=circuit_instruction.operation.arg_value[0]
+            / 2.0
+            / np.pi
+            * 0.5,
         )
         pulse_info = [(op_label + str(targets[0]), coeff)]
         return [PulseInstruction(circuit_instruction, tlist, pulse_info)]

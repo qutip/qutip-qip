@@ -8,6 +8,7 @@ import collections
 from typing import Callable
 
 from qutip_qip.circuit import QubitCircuit
+from qutip_qip.operations import gates as std
 
 
 # As a general note wherever you see {{}} in a python rf string that represents a {}
@@ -42,7 +43,7 @@ class TeXRenderer:
 
     def _gate_label(self, gate) -> str:
         gate_label = gate.latex_str
-        if gate.is_parametric_gate() and gate.arg_label is not None:
+        if gate.is_parametric() and gate.arg_label is not None:
             return rf"{gate_label}({gate.arg_label})"
         return rf"{gate_label}"
 
@@ -71,7 +72,7 @@ class TeXRenderer:
                 for n in range(self.num_qubits + self.num_cbits):
                     if targets and n in targets:
                         if len(targets) > 1:
-                            if gate.name == "SWAP":
+                            if gate == std.SWAP:
                                 if _swap_processing:
                                     col.append(r" \qswap \qw")
                                     continue
@@ -98,17 +99,17 @@ class TeXRenderer:
                                     rf" \ghost{{{self._gate_label(gate)}}} "
                                 )
 
-                        elif gate.name == "CNOT" or gate.name == "CX":
+                        elif gate == std.CX:
                             col.append(r" \targ ")
-                        elif gate.name == "CY":
+                        elif gate == std.CY:
                             col.append(r" \targ ")
-                        elif gate.name == "CZ":
+                        elif gate == std.CZ:
                             col.append(r" \targ ")
-                        elif gate.name == "CS":
+                        elif gate == std.CS:
                             col.append(r" \targ ")
-                        elif gate.name == "CT":
+                        elif gate == std.CT:
                             col.append(r" \targ ")
-                        elif gate.name == "TOFFOLI":
+                        elif gate == std.TOFFOLI:
                             col.append(r" \targ ")
                         else:
                             col.append(rf" \gate{{{self._gate_label(gate)}}} ")
@@ -262,7 +263,7 @@ class TeXRenderer:
     @classmethod
     def _make_converter(
         self, configuration: dict
-    ) -> Callable[dict, str | bytes]:
+    ) -> Callable[[str, int], str | bytes]:
         """
         Create the actual conversion function of signature
             file_stem: str -> 'T,

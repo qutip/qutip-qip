@@ -2,7 +2,7 @@ import pytest
 import qutip
 from qutip_qip.algorithms import BitFlipCode
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import X
+from qutip_qip.operations.gates import X, CX
 
 
 @pytest.fixture
@@ -25,7 +25,7 @@ def test_encode_circuit_structure(code, data_qubits):
     code.encode_circuit(qc, data_qubits)
     assert len(qc.instructions) == 2
 
-    assert qc.instructions[0].operation.name == "CX"
+    assert qc.instructions[0].operation == CX
     assert qc.instructions[0].controls == (0,)
     assert qc.instructions[0].targets == (1,)
     assert qc.instructions[1].controls == (0,)

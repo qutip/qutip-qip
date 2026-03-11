@@ -46,11 +46,11 @@ class SCQubits(ModelProcessor):
         import qutip
         from qutip_qip.circuit import QubitCircuit
         from qutip_qip.device import SCQubits
-        from qutip_qip.operations import RY, RZ, CX
+        from qutip_qip.operations.gates import RY, RZ, CX
 
         qc = QubitCircuit(2)
-        qc.add_gate(RZ, targets=0, arg_value=np.pi)
-        qc.add_gate(RY, targets=1, arg_value=np.pi)
+        qc.add_gate(RZ(np.pi), targets=0)
+        qc.add_gate(RY(np.pi), targets=1)
         qc.add_gate(CX, targets=0, controls=1)
 
         processor = SCQubits(2)
@@ -69,7 +69,7 @@ class SCQubits(ModelProcessor):
             **params,
         )
         super().__init__(model=model)
-        self.native_gates = ["RX", "RY", "CNOT", "CX", "RZX"]
+        self.native_gates = ["RX", "RY", "CX", "RZX"]
         self._default_compiler = SCQubitsCompiler
         self.pulse_mode = "continuous"
 

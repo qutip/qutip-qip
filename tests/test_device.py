@@ -9,7 +9,8 @@ import pytest
 
 import qutip
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import (
+from qutip_qip.operations import gate_sequence_product
+from qutip_qip.operations.gates import (
     X,
     Y,
     Z,
@@ -22,7 +23,6 @@ from qutip_qip.operations import (
     ISWAP,
     SQRTISWAP,
     RZX,
-    gate_sequence_product,
 )
 from qutip_qip.device import (
     DispersiveCavityQED,
@@ -34,9 +34,9 @@ from qutip_qip.device import (
 _tol = 3.0e-2
 num_qubits = 2
 
-_rx = RX(arg_value=np.pi / 2, arg_label=r"\pi/2")
-_ry = RY(arg_value=np.pi / 2, arg_label=r"\pi/2")
-_rz = RZ(arg_value=np.pi / 2, arg_label=r"\pi/2")
+_rx = RX(np.pi / 2, arg_label=r"\pi/2")
+_ry = RY(np.pi / 2, arg_label=r"\pi/2")
+_rz = RZ(np.pi / 2, arg_label=r"\pi/2")
 
 
 single_gate_tests = [
@@ -127,7 +127,7 @@ def test_numerical_evolution(num_qubits, gates, targets, device_class, kwargs):
 
 
 # Test for RZX gate, only available on SCQubits.
-_rzx = RZX(arg_value=np.pi / 2)
+_rzx = RZX(np.pi / 2)
 
 
 @pytest.mark.parametrize(
@@ -155,21 +155,25 @@ def _test_numerical_evolution_helper(
     state = qutip.rand_ket(2**num_qubits)
     state.dims = [[2] * num_qubits, [1] * num_qubits]
     target = circuit.run(state)
+
     if isinstance(device, DispersiveCavityQED):
         num_ancilla = len(device.dims) - num_qubits
         ancilla_indices = slice(0, num_ancilla)
         extra = qutip.basis(device.dims[ancilla_indices], [0] * num_ancilla)
         init_state = qutip.tensor(extra, state)
+
     elif isinstance(device, SCQubits):
         # expand to 3-level represetnation
         init_state = _ket_expaned_dims(state, device.dims)
     else:
         init_state = state
+
     options = {"store_final_state": True, "nsteps": 50000}
     result = device.run_state(
         init_state=init_state, analytical=False, options=options
     )
     numerical_result = result.final_state
+
     if isinstance(device, DispersiveCavityQED):
         target = qutip.tensor(extra, target)
     elif isinstance(device, SCQubits):
@@ -184,7 +188,7 @@ circuit.add_gate(CX, targets=[0], controls=[1])
 circuit.add_gate(ISWAP, targets=[2, 1])
 circuit.add_gate(Y, targets=[2])
 circuit.add_gate(Z, targets=[0])
-circuit.add_gate(IDLE, targets=[1])
+circuit.add_gate(IDLE(0), targets=[1])
 circuit.add_gate(CX, targets=[0], controls=[2])
 circuit.add_gate(Z, targets=[1])
 circuit.add_gate(X, targets=[1])
@@ -230,10 +234,12 @@ def test_numerical_circuit(circuit, device_class, kwargs, schedule_mode):
         init_state = _ket_expaned_dims(state, device.dims)
     else:
         init_state = state
+
     options = {"store_final_state": True, "nsteps": 50000}
     result = device.run_state(
         init_state=init_state, analytical=False, options=options
     )
+
     if isinstance(device, DispersiveCavityQED):
         target = qutip.tensor(extra, target)
     elif isinstance(device, SCQubits):

@@ -1,14 +1,11 @@
+import unittest
 import numpy as np
 from numpy.testing import assert_, assert_equal
-import unittest
 from qutip import Qobj, sigmaz, tensor
-from qutip_qip.operations import (
-    ControlledGate,
-    controlled_gate_factory,
-    custom_gate_factory,
-)
 
 from qutip_qip.algorithms.qpe import qpe
+from qutip_qip.operations import get_controlled_gate, get_unitary_gate
+from qutip_qip.operations import gates as std
 
 
 class TestQPE(unittest.TestCase):
@@ -18,11 +15,11 @@ class TestQPE(unittest.TestCase):
 
     def test_custom_gate(self):
         """
-        Test if custom_gate_factory correctly stores and returns the quantum object
+        Test if get_unitary_gate correctly stores and returns the quantum object
         """
         U = Qobj([[0, 1], [1, 0]])
 
-        custom = custom_gate_factory(gate_name="custom", U=U)
+        custom = get_unitary_gate(gate_name="custom", U=U)
         qobj = custom.get_qobj()
         assert_((qobj - U).norm() < 1e-12)
 
@@ -32,14 +29,12 @@ class TestQPE(unittest.TestCase):
         """
         U = Qobj([[0, 1], [1, 0]])
 
-        controlled_u = controlled_gate_factory(
-            gate=custom_gate_factory(gate_name="CU", U=U),
-        )(control_value=1)
-
-        assert_equal(controlled_u.control_value, 1)
-        assert_(
-            (controlled_u.target_gate.get_qobj() - U).norm() < 1e-12
+        controlled_u = get_controlled_gate(
+            gate=get_unitary_gate(gate_name="CU", U=U),
         )
+
+        assert_equal(controlled_u.ctrl_value, 1)
+        assert_((controlled_u.target_gate.get_qobj() - U).norm() < 1e-12)
 
     def test_qpe_validation(self):
         """
@@ -72,7 +67,7 @@ class TestQPE(unittest.TestCase):
 
         for i in range(num_counting):
             circ_instruction = circuit.instructions[num_counting + i]
-            assert_(circ_instruction.operation.is_controlled_gate)
+            assert_(circ_instruction.operation.is_controlled)
             assert_equal(circ_instruction.controls, [i])
             assert_equal(circ_instruction.targets, [num_counting])
 
@@ -133,11 +128,9 @@ class TestQPE(unittest.TestCase):
         num_counting = 2
 
         circuit1 = qpe(U, num_counting_qubits=num_counting, to_cnot=False)
-
         circuit2 = qpe(U, num_counting_qubits=num_counting, to_cnot=True)
-
         has_cnot = any(
-            gate.operation.name == "CX" for gate in circuit2.instructions
+            gate.operation == std.CX for gate in circuit2.instructions
         )
         assert_(has_cnot)
         assert_(len(circuit2.instructions) > len(circuit1.instructions))

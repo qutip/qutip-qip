@@ -1,6 +1,7 @@
 """Backends for simulating qiskit circuits."""
 
 from abc import abstractmethod
+from collections.abc import Sequence
 import uuid
 
 from qiskit.circuit import QuantumCircuit
@@ -176,7 +177,7 @@ class QiskitSimulatorBase(BackendV2):
             Job object that stores results and execution data.
         """
 
-        if not isinstance(run_input, list):
+        if not isinstance(run_input, Sequence):
             run_input = [run_input]
 
         for circuit in run_input:

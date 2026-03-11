@@ -1,36 +1,45 @@
 """Conversion of circuits from qiskit to qutip_qip."""
 
+from collections.abc import Iterable
+from typing import Type
 from qiskit.circuit import QuantumCircuit
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import (
-    X, Y, Z, H, S, T, RX, RY, RZ, SWAP, QASMU, PHASE,
-    CX, CY, CZ, CPHASE, CRX, CRY, CRZ, Gate
-)
+from qutip_qip.operations import Gate
+import qutip_qip.operations.gates as gates
 
-# TODO Expand this dictionary for other gates like CS etc.
-_map_gates: dict[str, Gate] = {
-    "p": PHASE,
-    "x": X,
-    "y": Y,
-    "z": Z,
-    "h": H,
-    "s": S,
-    "t": T,
-    "rx": RX,
-    "ry": RY,
-    "rz": RZ,
-    "swap": SWAP,
-    "u": QASMU,
+# TODO Expand this dictionary for all the valid qiskit gates
+# https://quantum.cloud.ibm.com/docs/en/api/qiskit/circuit_library#standard-gates
+_map_gates: dict[str, Type[Gate]] = {
+    "x": gates.X,
+    "y": gates.Y,
+    "z": gates.Z,
+    "h": gates.H,
+    "s": gates.S,
+    "sdag": gates.Sdag,
+    "t": gates.T,
+    "tdag": gates.Tdag,
+    "sx": gates.SQRTX,
+    "sxdag": gates.SQRTXdag,
+    "rx": gates.RX,
+    "ry": gates.RY,
+    "rz": gates.RZ,
+    "p": gates.PHASE,
+    "u3": gates.QASMU,
+    "swap": gates.SWAP,
 }
 
-_map_controlled_gates: dict[str, Gate] = {
-    "cx": CX,
-    "cy": CY,
-    "cz": CZ,
-    "crx": CRX,
-    "cry": CRY,
-    "crz": CRZ,
-    "cp": CPHASE,
+_map_controlled_gates: dict[str, Type[Gate]] = {
+    "cx": gates.CX,
+    "cy": gates.CY,
+    "cz": gates.CZ,
+    "ch": gates.CH,
+    "cs": gates.CS,
+    "ct": gates.CT,
+    "crx": gates.CRX,
+    "cry": gates.CRY,
+    "crz": gates.CRZ,
+    "cp": gates.CPHASE,
+    "cu3": gates.CQASMU,
 }
 
 _ignore_gates: list[str] = ["id", "barrier"]
@@ -56,13 +65,13 @@ def get_qutip_index(bit_index: int | list, total_bits: int) -> int:
     Note
     ----
     When we convert a circuit from qiskit to qutip,
-    the 0st bit is mapped to the 0th bit and (n-1)th bit to (n-q)th bit
-    and so on. Essentially the bit order stays the same.
+    the 0st bit is mapped to the (n-1)th bit and 1st bit to (n-2)th bit
+    and so on. Essentially the bit order is reversed.
     """
-    if isinstance(bit_index, list):
+    if isinstance(bit_index, Iterable):
         return [get_qutip_index(bit, total_bits) for bit in bit_index]
     else:
-        return bit_index
+        return total_bits - 1 - bit_index
 
 
 def _get_mapped_bits(bits: list | tuple, bit_map: dict[int, int]) -> list:
@@ -120,8 +129,8 @@ def convert_qiskit_circuit_to_qutip(
         # add the corresponding gate in qutip_qip
         if qiskit_instruction.name in _map_gates.keys():
             gate = _map_gates[qiskit_instruction.name]
-            if gate.is_parametric_gate():
-                gate = gate(arg_value)
+            if gate.is_parametric():
+                gate = gate(*arg_value)
 
             qutip_circuit.add_gate(
                 gate,
@@ -129,8 +138,8 @@ def convert_qiskit_circuit_to_qutip(
             )
 
         elif qiskit_instruction.name in _map_controlled_gates.keys():
-            gate =  _map_controlled_gates[qiskit_instruction.name]
-            if gate.is_parametric_gate():
+            gate = _map_controlled_gates[qiskit_instruction.name]
+            if gate.is_parametric():
                 gate = gate(arg_value)
 
             # FIXME This doesn't work for multicontrolled gates

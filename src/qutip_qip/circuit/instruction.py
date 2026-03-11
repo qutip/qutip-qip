@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Type
 from dataclasses import dataclass, field
 from qutip_qip.operations import Gate, Measurement
 
@@ -8,18 +9,18 @@ def _validate_non_negative_int_tuple(T: any, txt: str = ""):
         raise TypeError(f"Must pass a tuple for {txt}, got {type(T)}")
 
     for q in T:
-        if not isinstance(q, int):
+        if type(q) is not int:
             raise ValueError(f"All {txt} indices must be an int, found {q}")
 
         if q < 0:
             raise ValueError(f"{txt} indices must be non-negative, found {q}")
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CircuitInstruction(ABC):
-    operation: Gate | Measurement
-    qubits: tuple[int] = tuple()
-    cbits: tuple[int] = tuple()
+    operation: Gate | Type[Gate] | Measurement
+    qubits: tuple[int, ...] = tuple()
+    cbits: tuple[int, ...] = tuple()
     style: dict = field(default_factory=dict)
 
     def __post_init__(self):
@@ -56,14 +57,21 @@ class CircuitInstruction(ABC):
         return str(self)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class GateInstruction(CircuitInstruction):
-    operation: Gate
+    operation: Gate | Type[Gate]
     cbits_ctrl_value: int | None = None
 
     def __post_init__(self) -> None:
-        super().__post_init__()
-        if not (isinstance(self.operation, Gate) or issubclass(self.operation, Gate)):
+        super(GateInstruction, self).__post_init__()
+        # Don't make it super(), it will throw an error because slots=True
+        # destroys __class__ reference to the original class until Python 3.13
+        # Check CPython Issue #90562, this has been resolved in Python 3.14
+
+        if not (
+            isinstance(self.operation, Gate)
+            or issubclass(self.operation, Gate)
+        ):
             raise TypeError(f"Operation must be a Gate, got {self.operation}")
 
         if len(self.qubits) != self.operation.num_qubits:
@@ -89,14 +97,14 @@ class GateInstruction(CircuitInstruction):
                 )
 
     @property
-    def controls(self) -> tuple[int]:
-        if self.operation.is_controlled_gate():
+    def controls(self) -> tuple[int, ...]:
+        if self.operation.is_controlled():
             return self.qubits[: self.operation.num_ctrl_qubits]
         return ()
 
     @property
-    def targets(self) -> tuple[int]:
-        if self.operation.is_controlled_gate():
+    def targets(self) -> tuple[int, ...]:
+        if self.operation.is_controlled():
             return self.qubits[self.operation.num_ctrl_qubits :]
         return self.qubits
 
@@ -106,7 +114,7 @@ class GateInstruction(CircuitInstruction):
     def to_qasm(self, qasm_out) -> None:
         gate = self.operation
         args = None
-        if gate.is_parametric_gate():
+        if gate.is_parametric():
             args = gate.arg_value
 
         qasm_gate = qasm_out.qasm_name(gate.name)
@@ -132,12 +140,12 @@ class GateInstruction(CircuitInstruction):
                 cbits({self.cbits}), style({self.style})"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class MeasurementInstruction(CircuitInstruction):
     operation: Measurement
 
     def __post_init__(self) -> None:
-        super().__post_init__()
+        super(MeasurementInstruction, self).__post_init__()
         if not isinstance(self.operation, Measurement):
             raise TypeError(
                 f"Operation must be a measurement, got {self.operation}"

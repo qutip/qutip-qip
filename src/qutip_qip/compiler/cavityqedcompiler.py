@@ -1,8 +1,8 @@
 import numpy as np
 
 from qutip_qip.circuit import GateInstruction
-from qutip_qip.operations import RZ
 from qutip_qip.compiler import GateCompiler, PulseInstruction
+from qutip_qip.operations.gates import RX, RZ, ISWAP, SQRTISWAP, GLOBALPHASE
 
 
 class CavityQEDCompiler(GateCompiler):
@@ -75,10 +75,10 @@ class CavityQEDCompiler(GateCompiler):
         super().__init__(num_qubits, params=params, pulse_dict=pulse_dict, N=N)
         self.gate_compiler.update(
             {
-                "ISWAP": self.iswap_compiler,
-                "SQRTISWAP": self.sqrtiswap_compiler,
-                "RZ": self.rz_compiler,
-                "RX": self.rx_compiler,
+                ISWAP: self.iswap_compiler,
+                SQRTISWAP: self.sqrtiswap_compiler,
+                RZ: self.rz_compiler,
+                RX: self.rx_compiler,
             }
         )
         self.wq = np.sqrt(self.params["eps"] ** 2 + self.params["delta"] ** 2)
@@ -116,7 +116,7 @@ class CavityQEDCompiler(GateCompiler):
             args["num_samples"],
             maximum=self.params[param_label][targets[0]],
             # The operator is Pauli Z/X/Y, without 1/2.
-            area=circuit_instruction.operation.arg_value[0] / 2.0 / np.pi * 0.5,
+            area=circuit_instruction.operation.arg_value[0] / (4.0 * np.pi),
         )
         pulse_info = [(op_label + str(targets[0]), coeff)]
         return [PulseInstruction(circuit_instruction, tlist, pulse_info)]
@@ -193,22 +193,18 @@ class CavityQEDCompiler(GateCompiler):
         ]
 
         # corrections
-        compiled_gate1 = self.gate_compiler["RZ"](
-            GateInstruction(
-                operation=RZ(arg_value=correction_angle), qubits=(q1,)
-            ),
+        compiled_gate1 = self.gate_compiler[RZ](
+            GateInstruction(operation=RZ(correction_angle), qubits=(q1,)),
             args,
         )
         instruction_list += compiled_gate1
 
-        compiled_gate2 = self.gate_compiler["RZ"](
-            GateInstruction(
-                operation=RZ(arg_value=correction_angle), qubits=(q2,)
-            ),
+        compiled_gate2 = self.gate_compiler[RZ](
+            GateInstruction(operation=RZ(correction_angle), qubits=(q2,)),
             args,
         )
         instruction_list += compiled_gate2
-        self.gate_compiler["GLOBALPHASE"](correction_angle)
+        self.gate_compiler[GLOBALPHASE](correction_angle)
         return instruction_list
 
     def sqrtiswap_compiler(self, circuit_instruction, args):

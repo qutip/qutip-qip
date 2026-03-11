@@ -1,6 +1,8 @@
-from numpy.testing import assert_, assert_equal, assert_string_equal
+from numpy.testing import assert_, assert_equal
+
 from qutip_qip.algorithms.qft import qft, qft_steps, qft_gate_sequence
 from qutip_qip.operations import gate_sequence_product
+from qutip_qip.operations.gates import CPHASE, H, SWAP
 
 
 class TestQFT:
@@ -29,13 +31,11 @@ class TestQFT:
             totsize = N * (N + 1) / 2
             assert_equal(len(circuit.instructions), totsize)
 
-            snots = sum(
-                g.operation.name == "H" for g in circuit.instructions
-            )
+            snots = sum(g.operation == H for g in circuit.instructions)
             assert_equal(snots, N)
 
             phases = sum(
-                g.operation.name == "CPHASE" for g in circuit.instructions
+                isinstance(g.operation, CPHASE) for g in circuit.instructions
             )
             assert_equal(phases, N * (N - 1) / 2)
 
@@ -52,9 +52,7 @@ class TestQFT:
             assert_equal(len(circuit.instructions), phases + swaps)
 
             for i in range(phases, phases + swaps):
-                assert_string_equal(
-                    circuit.instructions[i].operation.name, "SWAP"
-                )
+                assert circuit.instructions[i].operation == SWAP
 
     def testQFTGateSequenceWithCNOT(self):
         """
@@ -65,5 +63,5 @@ class TestQFT:
             circuit = qft_gate_sequence(N, swapping=False, to_cnot=True)
 
         assert not any(
-            [ins.operation.name == "CPHASE" for ins in circuit.instructions]
+            [isinstance(ins.operation, CPHASE) for ins in circuit.instructions]
         )

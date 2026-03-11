@@ -2,6 +2,7 @@
 Module for rendering a quantum circuit using matplotlib library.
 """
 
+from typing import Type
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
@@ -15,6 +16,7 @@ from matplotlib.patches import (
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.circuit.draw import BaseRenderer, StyleConfig
 from qutip_qip.operations import Gate
+from qutip_qip.operations import gates as std
 
 
 class MatRenderer(BaseRenderer):
@@ -520,7 +522,7 @@ class MatRenderer(BaseRenderer):
 
     def _draw_multiq_gate(
         self,
-        gate: Gate,
+        gate: Gate | Type[Gate],
         targets: list[int],
         controls: list[int],
         cbits: list[int],
@@ -543,7 +545,7 @@ class MatRenderer(BaseRenderer):
         )
         com_xskip = self._get_xskip(wire_list, layer)
 
-        if gate.name == "CNOT" or gate.name == "CX":
+        if gate == std.CX:
             self._draw_control_node(controls[0], com_xskip, self.color)
             self._draw_target_node(targets[0], com_xskip, self.color)
             self._draw_qbridge(targets[0], controls[0], com_xskip, self.color)
@@ -554,7 +556,7 @@ class MatRenderer(BaseRenderer):
                 com_xskip,
             )
 
-        elif gate.name == "SWAP":
+        elif gate == std.SWAP:
             self._draw_swap_mark(targets[0], com_xskip, self.color)
             self._draw_swap_mark(targets[1], com_xskip, self.color)
             self._draw_qbridge(targets[0], targets[1], com_xskip, self.color)
@@ -565,7 +567,7 @@ class MatRenderer(BaseRenderer):
                 com_xskip,
             )
 
-        elif gate.name == "TOFFOLI":
+        elif gate == std.TOFFOLI:
             self._draw_control_node(controls[0], com_xskip, self.color)
             self._draw_control_node(controls[1], com_xskip, self.color)
             self._draw_target_node(targets[0], com_xskip, self.color)
@@ -784,7 +786,7 @@ class MatRenderer(BaseRenderer):
                 style = style if style is not None else {}
                 self.text = gate.name
 
-                if gate.is_parametric_gate():
+                if gate.is_parametric():
                     self.text = (
                         gate.arg_label
                         if gate.arg_label is not None

@@ -4,6 +4,7 @@ from scipy import signal
 
 from qutip_qip.compiler import PulseInstruction, Scheduler
 from qutip_qip.circuit import QubitCircuit
+from qutip_qip.operations.gates import GLOBALPHASE, IDLE
 
 
 class GateCompiler:
@@ -61,8 +62,8 @@ class GateCompiler:
             self._num_qubits = num_qubits  # backward compatibility
         self.params = params if params is not None else {}
         self.gate_compiler = {
-            "GLOBALPHASE": self.globalphase_compiler,
-            "IDLE": self.idle_compiler,
+            GLOBALPHASE: self.globalphase_compiler,
+            IDLE: self.idle_compiler,
         }
         self.args = {  # Default configuration
             "shape": "rectangular",
@@ -81,7 +82,7 @@ class GateCompiler:
                 you can simply remove it.
                 """,
                 UserWarning,
-                stacklevel=2
+                stacklevel=2,
             )
 
     @property
@@ -117,7 +118,7 @@ class GateCompiler:
         """
         idle_time = None
         gate = circuit_instruction.operation
-        if gate.is_parametric_gate():
+        if gate.is_parametric():
             idle_time = gate.arg_value
         return [PulseInstruction(circuit_instruction, idle_time, [])]
 
@@ -168,10 +169,13 @@ class GateCompiler:
         # compile gates
         for circuit_instruction in instructions:
             gate = circuit_instruction.operation
-            if gate.name not in self.gate_compiler:
+            if gate.is_parametric():
+                gate = type(gate)
+
+            if gate not in self.gate_compiler:
                 raise ValueError(f"Unsupported gate {gate.name}")
 
-            instruction = self.gate_compiler[gate.name](
+            instruction = self.gate_compiler[gate](
                 circuit_instruction, self.args
             )
             if instruction is None:

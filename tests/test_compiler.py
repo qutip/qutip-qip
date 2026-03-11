@@ -15,7 +15,8 @@ from qutip_qip.compiler import (
     GateCompiler,
 )
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import ParametricGate, X, RX
+from qutip_qip.operations import AngleParametricGate
+from qutip_qip.operations.gates import X, RX
 from qutip import basis, fidelity
 
 
@@ -55,8 +56,8 @@ def test_compiling_gates_different_sampling_number():
     class MockCompiler(GateCompiler):
         def __init__(self, num_qubits, params=None):
             super().__init__(num_qubits, params=params)
-            self.gate_compiler["U1"] = self.single_qubit_gate_compiler
-            self.gate_compiler["U2"] = self.two_qubit_gate_compiler
+            self.gate_compiler[U1] = self.single_qubit_gate_compiler
+            self.gate_compiler[U2] = self.two_qubit_gate_compiler
             self.args.update({"params": params})
 
         def single_qubit_gate_compiler(self, circuit_instruction, args):
@@ -79,31 +80,25 @@ def test_compiling_gates_different_sampling_number():
                 )
             ]
 
-    class U1(ParametricGate):
+    class U1(AngleParametricGate):
         num_qubits = 1
         num_params = 1
         self_inverse = False
 
-        def get_qobj(self):
+        def compute_qobj(args, dtype):
             pass
 
-        def validate_params(self, arg_value):
-            pass
-
-    class U2(ParametricGate):
+    class U2(AngleParametricGate):
         num_qubits = 2
         num_params = 1
         self_inverse = False
 
-        def get_qobj(self):
-            pass
-
-        def validate_params(self, arg_value):
+        def compute_qobj(args, dtype):
             pass
 
     num_qubits = 2
     circuit = QubitCircuit(num_qubits)
-    circuit.add_gate(U1(arg_value=1.0), targets=0)
+    circuit.add_gate(U1(1.0), targets=0)
     circuit.add_gate(U2(1.0), targets=[0, 1])
     circuit.add_gate(U1(1.0), targets=0)
 
@@ -127,7 +122,7 @@ class MyCompiler(GateCompiler):  # compiler class
     def __init__(self, num_qubits, params):
         super().__init__(num_qubits, params=params)
         # pass our compiler function as a compiler for RX (rotation around X) gate.
-        self.gate_compiler["RX"] = self.rx_compiler
+        self.gate_compiler[RX] = self.rx_compiler
         self.args.update({"params": params})
 
     def rx_compiler(self, circuit_instruction, args):
@@ -137,7 +132,10 @@ class MyCompiler(GateCompiler):  # compiler class
             1000,
             maximum=args["params"]["sx"][targets[0]],
             # The operator is Pauli Z/X/Y, without 1/2.
-            area=circuit_instruction.operation.arg_value[0] / 2.0 / np.pi * 0.5,
+            area=circuit_instruction.operation.arg_value[0]
+            / 2.0
+            / np.pi
+            * 0.5,
         )
         pulse_info = [("sx" + str(targets[0]), coeff)]
         return [PulseInstruction(circuit_instruction, tlist, pulse_info)]
@@ -199,7 +197,7 @@ def test_compiler_without_pulse_dict():
     compiler = SpinChainCompiler(
         num_qubits, params=processor.params, setup="circular"
     )
-    compiler.gate_compiler["RX"] = rx_compiler_without_pulse_dict
+    compiler.gate_compiler[RX] = rx_compiler_without_pulse_dict
     compiler.args = {"params": processor.params}
     processor.load_circuit(circuit, compiler=compiler)
     result = processor.run_state(basis([2, 2], [0, 0]))
@@ -231,11 +229,11 @@ def test_compiler_result_format():
     assert_array_equal(processor.pulses[0].coeff, coeffs["sx0"])
     assert_array_equal(processor.pulses[0].tlist, tlist["sx0"])
 
-    compiler.gate_compiler["RX"] = rx_compiler_without_pulse_dict
+    compiler.gate_compiler[RX] = rx_compiler_without_pulse_dict
     tlist, coeffs = compiler.compile(circuit)
-    assert isinstance(tlist, dict)
+    assert type(tlist) is dict
     assert 0 in tlist
-    assert isinstance(coeffs, dict)
+    assert type(coeffs) is dict
     assert 0 in coeffs
     processor.coeffs = coeffs
     processor.set_all_tlist(tlist)

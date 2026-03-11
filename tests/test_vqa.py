@@ -1,7 +1,8 @@
 import pytest
 import numpy as np
 import qutip
-from qutip_qip.operations import expand_operator, H
+from qutip_qip.operations import expand_operator
+from qutip_qip.operations.gates import H
 from qutip_qip.vqa import (
     VQA,
     VQABlock,

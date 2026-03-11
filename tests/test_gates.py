@@ -1,12 +1,26 @@
 from copy import deepcopy
+from typing import Type
 import pytest
 import itertools
+
 import numpy as np
 import qutip
-from qutip_qip.operations import gates
-from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import Gate, expand_operator
-import qutip_qip.operations.std as std
+
+from qutip_qip.operations import (
+    AngleParametricGate,
+    ControlledGate,
+    Gate,
+    ParametricGate,
+    NameSpace,
+    get_controlled_gate,
+    expand_operator,
+    get_unitary_gate,
+    hadamard_transform,
+    qubit_clifford_group,
+)
+import qutip_qip.operations.gates as gates
+
+rng = np.random.default_rng(seed=101)
 
 
 def _permutation_id(permutation):
@@ -16,20 +30,6 @@ def _permutation_id(permutation):
 def _infidelity(a, b):
     """Infidelity between two kets."""
     return 1 - abs(a.overlap(b))
-
-
-def _make_random_three_qubit_gate():
-    """Create a random three-qubit gate."""
-    operation = qutip.rand_unitary([2] * 3)
-
-    def gate(N=None, controls=None, target=None):
-        if N is None:
-            return operation
-        return expand_operator(
-            operation, dims=[2] * N, targets=controls + [target]
-        )
-
-    return gate
 
 
 def _tensor_with_entanglement(all_qubits, entangled, entangled_locations):
@@ -93,7 +93,7 @@ class TestExplicitForm:
         states = [qutip.rand_ket(2) for _ in [None] * 2]
         start = qutip.tensor(states)
         swapped = qutip.tensor(states[::-1])
-        swap = std.SWAP.get_qobj()
+        swap = gates.SWAP.get_qobj()
         assert _infidelity(swapped, swap * start) < 1e-12
         assert _infidelity(start, swap * swap * start) < 1e-12
 
@@ -104,7 +104,7 @@ class TestExplicitForm:
     )
     def test_toffoli(self, permutation):
         test = expand_operator(
-            std.TOFFOLI.get_qobj(), dims=[2] * 3, targets=permutation
+            gates.TOFFOLI.get_qobj(), dims=[2] * 3, targets=permutation
         )
         base = qutip.tensor(
             1 - qutip.basis([2, 2], [1, 1]).proj(), qutip.qeye(2)
@@ -129,22 +129,22 @@ class TestExplicitForm:
     )
     def test_molmer_sorensen(self, angle, expected):
         np.testing.assert_allclose(
-            std.MS(angle).get_qobj().full(), expected.full(), atol=1e-15
+            gates.MS(*angle).get_qobj().full(), expected.full(), atol=1e-15
         )
 
     @pytest.mark.parametrize(
         ["gate", "n_angles"],
         [
-            pytest.param(std.RX, 1, id="Rx"),
-            pytest.param(std.RY, 1, id="Ry"),
-            pytest.param(std.RZ, 1, id="Rz"),
-            pytest.param(std.PHASE, 1, id="phase"),
-            pytest.param(std.R, 2, id="Rabi rotation"),
+            pytest.param(gates.RX, 1, id="Rx"),
+            pytest.param(gates.RY, 1, id="Ry"),
+            pytest.param(gates.RZ, 1, id="Rz"),
+            pytest.param(gates.PHASE, 1, id="phase"),
+            pytest.param(gates.R, 2, id="Rabi rotation"),
         ],
     )
     def test_zero_rotations_are_identity(self, gate, n_angles):
         np.testing.assert_allclose(
-            np.eye(2), gate([0] * n_angles).get_qobj().full(), atol=1e-15
+            np.eye(2), gate(*[0] * n_angles).get_qobj().full(), atol=1e-15
         )
 
 
@@ -154,7 +154,8 @@ class TestCliffordGroup:
     group for a single qubit.
     """
 
-    clifford = list(gates.qubit_clifford_group())
+    with pytest.warns(DeprecationWarning):
+        clifford = list(qubit_clifford_group())
     pauli = [qutip.qeye(2), qutip.sigmax(), qutip.sigmay(), qutip.sigmaz()]
 
     def test_single_qubit_group_dimension_is_24(self):
@@ -168,7 +169,7 @@ class TestCliffordGroup:
                 fid = qutip.average_gate_fidelity(gate, other)
                 assert not np.allclose(fid, 1.0, atol=1e-3)
 
-    @pytest.mark.parametrize("gate", gates.qubit_clifford_group())
+    @pytest.mark.parametrize("gate", clifford)
     def test_gate_normalises_pauli_group(self, gate):
         """
         Test the fundamental definition of the Clifford group, i.e. that it
@@ -201,29 +202,35 @@ class TestGateExpansion:
     @pytest.mark.parametrize(
         ["gate", "n_angles"],
         [
-            pytest.param(std.RX, 1, id="Rx"),
-            pytest.param(std.RY, 1, id="Ry"),
-            pytest.param(std.RZ, 1, id="Rz"),
-            pytest.param(std.X, 0, id="X"),
-            pytest.param(std.Y, 0, id="Y"),
-            pytest.param(std.Z, 0, id="Z"),
-            pytest.param(std.S, 0, id="S"),
-            pytest.param(std.T, 0, id="T"),
-            pytest.param(std.PHASE, 1, id="phase"),
-            pytest.param(std.R, 2, id="Rabi rotation"),
+            pytest.param(gates.RX, 1, id="Rx"),
+            pytest.param(gates.RY, 1, id="Ry"),
+            pytest.param(gates.RZ, 1, id="Rz"),
+            pytest.param(gates.X, 0, id="X"),
+            pytest.param(gates.Y, 0, id="Y"),
+            pytest.param(gates.Z, 0, id="Z"),
+            pytest.param(gates.S, 0, id="S"),
+            pytest.param(gates.T, 0, id="T"),
+            pytest.param(gates.PHASE, 1, id="phase"),
+            pytest.param(gates.R, 2, id="Rabi rotation"),
         ],
     )
-    def test_single_qubit_rotation(self, gate: Gate, n_angles: int):
+    def test_single_qubit_rotation(self, gate: Type[Gate], n_angles: int):
         base = qutip.rand_ket(2)
         if n_angles > 0:
-            gate = gate(2 * np.pi * np.random.rand(n_angles))
+            angles = 2 * np.pi * (np.random.rand(n_angles))
+            gate = gate(*angles)
 
         applied = gate.get_qobj() * base
         random = [qutip.rand_ket(2) for _ in [None] * (self.n_qubits - 1)]
 
         for target in range(self.n_qubits):
             start = qutip.tensor(random[:target] + [base] + random[target:])
-            test = expand_operator(gate.get_qobj(), self.n_qubits, target) * start
+            test = (
+                expand_operator(
+                    gate.get_qobj(), targets=target, dims=[2] * self.n_qubits
+                )
+                * start
+            )
             expected = qutip.tensor(
                 random[:target] + [applied] + random[target:]
             )
@@ -232,51 +239,43 @@ class TestGateExpansion:
     @pytest.mark.parametrize(
         ["gate", "n_controls"],
         [
-            pytest.param(std.CX, 1, id="CX"),
-            pytest.param(std.CY, 1, id="CY"),
-            pytest.param(std.CZ, 1, id="CZ"),
-            pytest.param(std.CS, 1, id="CS"),
-            pytest.param(std.CT, 1, id="CT"),
-            pytest.param(std.SWAP, 0, id="SWAP"),
-            pytest.param(std.ISWAP, 0, id="ISWAP"),
-            pytest.param(std.SQRTSWAP, 0, id="SQRTSWAP"),
-            pytest.param(std.MS([0.5 * np.pi, 0.0]), 0, id="Molmer-Sorensen"),
+            pytest.param(gates.CX, 1, id="CX"),
+            pytest.param(gates.CY, 1, id="CY"),
+            pytest.param(gates.CZ, 1, id="CZ"),
+            pytest.param(gates.CS, 1, id="CS"),
+            pytest.param(gates.CT, 1, id="CT"),
+            pytest.param(gates.SWAP, 0, id="SWAP"),
+            pytest.param(gates.ISWAP, 0, id="ISWAP"),
+            pytest.param(gates.SQRTSWAP, 0, id="SQRTSWAP"),
+            pytest.param(gates.MS(0.5 * np.pi, 0.0), 0, id="Molmer-Sorensen"),
         ],
     )
     def test_two_qubit(self, gate, n_controls):
-        targets = [ qutip.rand_ket(2) for _ in [None] * 2]
+        targets = [qutip.rand_ket(2) for _ in [None] * 2]
         others = [qutip.rand_ket(2) for _ in [None] * self.n_qubits]
         reference = gate.get_qobj() * qutip.tensor(*targets)
 
         for q1, q2 in itertools.permutations(range(self.n_qubits), 2):
             qubits = others.copy()
             qubits[q1], qubits[q2] = targets
-            test = (
-                expand_operator(gate.get_qobj(), dims=[2]*self.n_qubits, targets=[q1,q2])
-                 * qutip.tensor(*qubits)
-            )
+            test = expand_operator(
+                gate.get_qobj(), dims=[2] * self.n_qubits, targets=[q1, q2]
+            ) * qutip.tensor(*qubits)
             expected = _tensor_with_entanglement(qubits, reference, [q1, q2])
             assert _infidelity(test, expected) < 1e-12
 
-    # class RandomThreeQubitGate(ControlledGate):
-    #     num_qubits = 3
-    #     num_ctrl_qubits = 2
-    #     target_gate = None
-
-    #     def get_qobj(self):
-    #         if self._U is None:
-    #             self._U = _make_random_three_qubit_gate()
-    #         return self._U
+    random_gate = get_unitary_gate("random", qutip.rand_unitary([2] * 1))
+    RandomThreeQubitGate = get_controlled_gate(random_gate, 2)
 
     @pytest.mark.parametrize(
         ["gate", "n_controls"],
         [
-            pytest.param(std.FREDKIN, 1, id="Fredkin"),
-            pytest.param(std.TOFFOLI, 2, id="Toffoli"),
-            # pytest.param(RandomThreeQubitGate(), 2, id="random"),
+            pytest.param(gates.FREDKIN, 1, id="Fredkin"),
+            pytest.param(gates.TOFFOLI, 2, id="Toffoli"),
+            pytest.param(RandomThreeQubitGate, 2, id="random"),
         ],
     )
-    def test_three_qubit(self, gate: Gate, n_controls):
+    def test_three_qubit(self, gate: Type[Gate], n_controls):
         targets = [qutip.rand_ket(2) for _ in [None] * 3]
         others = [qutip.rand_ket(2) for _ in [None] * self.n_qubits]
         reference = gate.get_qobj() * qutip.tensor(targets)
@@ -284,7 +283,9 @@ class TestGateExpansion:
         for q1, q2, q3 in itertools.permutations(range(self.n_qubits), 3):
             qubits = others.copy()
             qubits[q1], qubits[q2], qubits[q3] = targets
-            test = expand_operator(gate.get_qobj(), self.n_qubits, [q1,q2,q3]) * qutip.tensor(*qubits)
+            test = expand_operator(
+                gate.get_qobj(), targets=[q1, q2, q3], dims=[2] * self.n_qubits
+            ) * qutip.tensor(*qubits)
             expected = _tensor_with_entanglement(
                 qubits, reference, [q1, q2, q3]
             )
@@ -308,7 +309,7 @@ class Test_expand_operator:
     )
     def test_permutation_without_expansion(self, permutation):
         base = qutip.tensor([qutip.rand_unitary(2) for _ in permutation])
-        test = gates.expand_operator(
+        test = expand_operator(
             base, dims=[2] * len(permutation), targets=permutation
         )
         expected = base.permute(_apply_permutation(permutation))
@@ -324,7 +325,7 @@ class Test_expand_operator:
             expected = _tensor_with_entanglement(
                 [qutip.qeye(2)] * n_qubits, operation, targets
             )
-            test = gates.expand_operator(
+            test = expand_operator(
                 operation, dims=[2] * n_qubits, targets=targets
             )
             np.testing.assert_allclose(
@@ -332,8 +333,8 @@ class Test_expand_operator:
             )
 
     def test_cnot_explicit(self):
-        test = gates.expand_operator(
-            std.CX.get_qobj(), dims=[2] * 3, targets=[2, 0]
+        test = expand_operator(
+            gates.CX.get_qobj(), dims=[2] * 3, targets=[2, 0]
         ).full()
         expected = np.array(
             [
@@ -350,7 +351,7 @@ class Test_expand_operator:
         np.testing.assert_allclose(test, expected, atol=1e-15)
 
     def test_hadamard_explicit(self):
-        test = gates.hadamard_transform(3).full()
+        test = hadamard_transform(3).full()
         expected = np.array(
             [
                 [1, 1, 1, 1, 1, 1, 1, 1],
@@ -387,82 +388,449 @@ class Test_expand_operator:
             ]
             expected = qutip.tensor(*operators)
             base_test = qutip.tensor(*[operators[x] for x in targets])
-            test = gates.expand_operator(
-                base_test, dims=dimensions, targets=targets
-            )
+            test = expand_operator(base_test, dims=dimensions, targets=targets)
             assert test.dims == expected.dims
             np.testing.assert_allclose(test.full(), expected.full())
 
     def test_dtype(self):
-        expanded_qobj = expand_operator(std.CX.get_qobj(), dims=[2, 2, 2]).data
+        expanded_qobj = expand_operator(
+            gates.CX.get_qobj(), dims=[2, 2, 2]
+        ).data
         assert isinstance(expanded_qobj, qutip.data.CSR)
         expanded_qobj = expand_operator(
-            std.CX.get_qobj(), dims=[2, 2, 2], dtype="dense"
+            gates.CX.get_qobj(), dims=[2, 2, 2], dtype="dense"
         ).data
         assert isinstance(expanded_qobj, qutip.data.Dense)
 
 
-def test_gates_class():
-    init_state = qutip.rand_ket([2, 2, 2])
+rand_U = qutip.rand_unitary(dimensions=[2], seed=rng)
 
-    circuit1 = QubitCircuit(3)
-    circuit1.add_gate(std.X, targets=1)
-    circuit1.add_gate(std.Y, targets=1)
-    circuit1.add_gate(std.Z, targets=2)
-    circuit1.add_gate(std.RX(np.pi / 4), targets=0)
-    circuit1.add_gate(std.RY(np.pi / 4), targets=0)
-    circuit1.add_gate(std.RZ(np.pi / 4), targets=1)
-    circuit1.add_gate(std.H, targets=0)
-    circuit1.add_gate(std.SQRTX, targets=0)
-    circuit1.add_gate(std.S, targets=2)
-    circuit1.add_gate(std.T, targets=1)
-    circuit1.add_gate(std.R(arg_value=(np.pi / 4, np.pi / 6)), targets=1)
-    circuit1.add_gate(
-        std.QASMU(arg_value=(np.pi / 4, np.pi / 4, np.pi / 4)), targets=0
+
+class U1(Gate):
+    num_qubits = 1
+
+    @staticmethod
+    def get_qobj(dtype: str = "dense"):
+        return rand_U.to(dtype)
+
+
+class U2(AngleParametricGate):
+    num_qubits = 1
+    num_params = 1
+
+    @staticmethod
+    def compute_qobj(args, dtype: str = "dense"):
+        theta = args[0]
+        return qutip.Qobj(
+            [
+                [np.exp(-1j * theta), 0],
+                [0, np.exp(1j * theta)],
+            ]
+        )
+
+    def inverse(self):
+        theta = self.arg_value[0]
+        return U2(-theta)
+
+
+GATES = [
+    gates.X,
+    gates.Y,
+    gates.Z,
+    gates.H,
+    gates.S,
+    gates.Sdag,
+    gates.T,
+    gates.Tdag,
+    gates.SWAP,
+    gates.ISWAP,
+    gates.ISWAPdag,
+    gates.SQRTSWAP,
+    gates.SQRTISWAPdag,
+    gates.SQRTISWAP,
+    gates.SQRTISWAPdag,
+    gates.BERKELEY,
+    gates.BERKELEYdag,
+    U1,
+]
+
+PARAMETRIC_GATE = [
+    gates.RX(0.5),
+    gates.RY(0.5),
+    gates.RZ(0.5),
+    gates.PHASE(0.5),
+    gates.R(0.5, 0.9),
+    gates.QASMU(0.1, 0.2, 0.3),
+    gates.SWAPALPHA(0.3),
+    gates.MS(0.47, 0.8),
+    gates.RZX(0.6),
+    U2(0.447),
+]
+
+CONTROLLED_GATE = [
+    gates.CX,
+    gates.CY,
+    gates.CZ,
+    gates.CH,
+    gates.CS,
+    gates.CT,
+    gates.CRX(0.7),
+    gates.CRY(0.88),
+    gates.CRZ(0.78),
+    gates.CPHASE(0.9),
+    gates.CQASMU(0.9, 0.22, 0.15),
+    gates.TOFFOLI,
+    gates.FREDKIN,
+    get_controlled_gate(U1, 1, 1),
+    get_controlled_gate(U2, 1, 1)(0.88),
+]
+
+
+@pytest.mark.parametrize("gate", GATES + PARAMETRIC_GATE + CONTROLLED_GATE)
+def test_gate_inverse(gate: Gate | Type[Gate]):
+    n = 2**gate.num_qubits
+    inverse = gate.inverse()
+    print(rand_U)
+    np.testing.assert_allclose(
+        (gate.get_qobj() * inverse.get_qobj()).full(),
+        np.eye(n),
+        atol=1e-12,
     )
-    circuit1.add_gate(std.CX, controls=0, targets=1)
-    circuit1.add_gate(std.CPHASE(np.pi / 4), controls=0, targets=1)
-    circuit1.add_gate(std.SWAP, targets=[0, 1])
-    circuit1.add_gate(std.ISWAP, targets=[2, 1])
-    circuit1.add_gate(std.CZ, controls=[0], targets=[2])
-    circuit1.add_gate(std.SQRTSWAP, [2, 0])
-    circuit1.add_gate(std.SQRTISWAP, [0, 1])
-    circuit1.add_gate(std.SWAPALPHA(np.pi / 4), [1, 2])
-    circuit1.add_gate(std.MS(arg_value=(np.pi / 4, np.pi / 7)), targets=[1, 0])
-    circuit1.add_gate(std.TOFFOLI, controls=[2, 0], targets=[1])
-    circuit1.add_gate(std.FREDKIN, controls=[0], targets=[1, 2])
-    circuit1.add_gate(std.BERKELEY, targets=[1, 0])
-    circuit1.add_gate(std.RZX(1.0), targets=[1, 0])
-    result1 = circuit1.run(init_state)
 
-    circuit2 = QubitCircuit(3)
-    circuit2.add_gate(std.X, targets=1)
-    circuit2.add_gate(std.Y, targets=1)
-    circuit2.add_gate(std.Z, targets=2)
-    circuit2.add_gate(std.RX(np.pi / 4), targets=0)
-    circuit2.add_gate(std.RY(np.pi / 4), targets=0)
-    circuit2.add_gate(std.RZ(np.pi / 4), targets=1)
-    circuit2.add_gate(std.H, targets=0)
-    circuit2.add_gate(std.SQRTX, targets=0)
-    circuit2.add_gate(std.S, targets=2)
-    circuit2.add_gate(std.T, targets=1)
-    circuit2.add_gate(std.R([np.pi / 4, np.pi / 6]), targets=1)
-    circuit2.add_gate(
-        std.QASMU(arg_value=(np.pi / 4, np.pi / 4, np.pi / 4)), targets=0,
-    )
-    circuit2.add_gate(std.CX, controls=0, targets=1)
-    circuit2.add_gate(std.CPHASE(np.pi / 4), controls=0, targets=1)
-    circuit2.add_gate(std.SWAP, targets=[0, 1])
-    circuit2.add_gate(std.ISWAP, targets=[2, 1])
-    circuit2.add_gate(std.CZ, controls=[0], targets=[2])
-    circuit2.add_gate(std.SQRTSWAP, targets=[2, 0])
-    circuit2.add_gate(std.SQRTISWAP, targets=[0, 1])
-    circuit2.add_gate(std.SWAPALPHA(np.pi / 4), targets=[1, 2])
-    circuit2.add_gate(std.MS(arg_value=(np.pi / 4, np.pi / 7)), targets=[1, 0])
-    circuit2.add_gate(std.TOFFOLI, controls=[2, 0], targets=[1])
-    circuit2.add_gate(std.FREDKIN, controls=[0, 1], targets=[2])
-    circuit2.add_gate(std.BERKELEY, targets=[1, 0])
-    circuit2.add_gate(std.RZX(arg_value=1.0), targets=[1, 0])
-    result2 = circuit2.run(init_state)
 
-    assert pytest.approx(qutip.fidelity(result1, result2), 1.0e-6) == 1
+def test_gate_equality():
+    assert gates.CX == gates.CX
+    assert gates.CX != gates.CY
+    assert gates.CX != gates.CRX(0.5)
+
+    assert gates.RX(0.5) == gates.RX(0.5)
+    assert gates.RX(0.5) != gates.RY(0.5)
+    assert gates.RX(0.5) != gates.RX(0.6)
+
+    assert gates.CRX(0.5) == gates.CRX(0.5)
+    assert gates.CRX(0.5) != gates.CRY(0.5)
+    assert gates.CRX(0.5) != gates.CRX(0.6)
+
+
+class TestGateErrors:
+    def test_namespace_errors(self):
+        with pytest.raises(ValueError):
+            NameSpace("bad.namespace")  # namespace cannot contain dots
+
+        ns1 = NameSpace("test_ns")
+        with pytest.raises(ValueError):
+            _ = NameSpace("test_ns")  # Existing namespace
+
+        class TmpGate(Gate):
+            num_qubits = 1
+
+        ns1.register("tmp_gate", TmpGate)
+        with pytest.raises(NameError, match="already exists in namespace"):
+            ns1.register("tmp_gate", TmpGate)
+
+        assert ns1.get("tmp") is None
+        assert ns1.get("tmp_gate") is TmpGate
+
+        ns1._remove("tmp_gate")
+        with pytest.raises(KeyError):
+            ns1._remove("tmp_gate")
+
+    def test_gateclass_errors(self):
+        with pytest.raises(TypeError):
+
+            class BadGate(Gate):
+                num_qubits = -1
+
+                def get_qobj(cls):
+                    pass
+
+        with pytest.raises(TypeError):
+
+            class BadGate2(Gate):
+                num_qubits = 1
+                is_clifford = 1  # attribute 'is_clifford' must be a bool
+
+                def get_qobj(cls):
+                    pass
+
+        with pytest.raises(TypeError):
+
+            class BadGate3(Gate):
+                num_qubits = 1
+                self_inverse = 1  # attribute 'self_inverse' must be a bool
+
+                def get_qobj(cls):
+                    pass
+
+        with pytest.raises(TypeError):
+
+            class BadGate4(Gate):
+                num_qubits = 1
+                self_inverse = True
+
+                def get_qobj(cls):
+                    pass
+
+                def inverse(cls):
+                    pass  # Can't define inverse method is self_inverse=True
+
+        class GoodGate(Gate):
+            num_qubits = 1
+
+            @staticmethod
+            def get_qobj():
+                pass
+
+        with pytest.raises(AttributeError):
+            # For a given gateclass, class attribute like num_qubit can't be modified
+            GoodGate.num_qubits = 2
+
+        U_rect = qutip.Qobj(np.eye(2, 3))
+        with pytest.raises(ValueError):
+            get_unitary_gate("U_rect", U_rect)  # U must be a square matrix
+
+        U_dim = qutip.Qobj(np.eye(3))
+        with pytest.raises(ValueError):
+            get_unitary_gate("U_dim", U_dim)  # 3 != 2^n
+
+        U_not_unitary = qutip.Qobj(np.zeros((2, 2)))
+        with pytest.raises(ValueError):
+            get_unitary_gate(
+                "U_not_unitary", U_not_unitary
+            )  # U must be unitaru
+
+        with pytest.raises(TypeError):
+
+            class NotGoodGate(GoodGate):
+                def is_controlled(args):
+                    return args  # is_controlled can't take arguments
+
+        with pytest.raises(TypeError):
+
+            class NotGoodGate2(GoodGate):
+                def is_controlled():
+                    return 1  # must return a bool
+
+        with pytest.raises(TypeError):
+
+            class NotGoodGate3(GoodGate):
+                def is_parametric(args):
+                    return args  # is_parametric can't take arguments
+
+        with pytest.raises(TypeError):
+
+            class NotGoodGate4(GoodGate):
+                def is_parametric():
+                    return 1  # must return a bool
+
+    def test_parametric_gate_errors(self):
+        with pytest.raises(TypeError):
+
+            class BadParamGate(ParametricGate):
+                num_params = -1
+
+                @staticmethod
+                def compute_qobj(args):
+                    pass
+
+                @staticmethod
+                def validate_params(args):
+                    pass
+
+        with pytest.raises(TypeError):
+
+            class BadParamGate2(ParametricGate):
+                num_params = 1.5
+
+                @staticmethod
+                def compute_qobj(args):
+                    pass
+
+                @staticmethod
+                def validate_params(args):
+                    pass
+
+        class GoodParamGate(AngleParametricGate):
+            num_qubits = 1
+            num_params = 2
+
+            @staticmethod
+            def compute_qobj(args, dtype):
+                return qutip.qeye(2)
+
+        with pytest.raises(ValueError, match="Requires 2 parameters, got 1"):
+            GoodParamGate(1.0)
+
+        with pytest.raises(TypeError):
+            GoodParamGate(
+                1.0, "wrong"
+            )  # second argument is a string instead of float
+
+        gate = GoodParamGate(1.0, 2.0)
+        with pytest.raises(NotImplementedError):
+            gate.inverse()
+
+        with pytest.raises(SyntaxError):
+
+            class NotGoodParamGate(GoodParamGate):
+                def validate_params(arg1, arg2):
+                    pass
+
+        with pytest.raises(SyntaxError):
+
+            class NotGoodParamGate2(GoodParamGate):
+                def compute_qobj(arg1, arg2, dtype):
+                    pass
+
+    def test_controlled_gate_errors(self):
+        with pytest.raises(TypeError):
+
+            class BadCtrlGate(ControlledGate):
+                target_gate = gates.RX(
+                    0
+                )  # target_gate must be a gate subclass not an instantiated onject
+                num_ctrl_qubits = 1
+                ctrl_value = 1
+                num_qubits = 2
+
+        with pytest.raises(TypeError):
+
+            class BadCtrlGate2(ControlledGate):
+                target_gate = gates.X
+                num_ctrl_qubits = -1  # Can't be negative
+                ctrl_value = 1
+                num_qubits = 2
+
+        with pytest.raises(ValueError):
+
+            class BadCtrlGate3(ControlledGate):
+                target_gate = gates.X
+                num_qubits = 2
+                num_ctrl_qubits = 2  # Must be less than num_qubit
+                ctrl_value = 1
+
+        with pytest.raises(AttributeError):
+
+            class BadCtrlGate4(ControlledGate):
+                target_gate = gates.X
+                num_ctrl_qubits = (
+                    1  # No of control qubits must be 2, since target gate is X
+                )
+                ctrl_value = 1
+                num_qubits = 3
+
+        with pytest.raises(TypeError):
+
+            class BadCtrlGate5(ControlledGate):
+                target_gate = gates.X
+                num_ctrl_qubits = 1
+                ctrl_value = 1.5  # Control value must be an int
+                num_qubits = 2
+
+        with pytest.raises(ValueError):
+
+            class BadCtrlGate6(ControlledGate):
+                target_gate = gates.X
+                num_ctrl_qubits = 1
+                ctrl_value = (
+                    2  # Control value can't be greater than 1 in this case
+                )
+                num_qubits = 2
+
+    def test_utils_errors(self):
+        from qutip_qip.operations.utils import (
+            _check_oper_dims,
+            _targets_to_list,
+            expand_operator,
+            gate_sequence_product,
+        )
+
+        with pytest.raises(ValueError):
+            _check_oper_dims(
+                qutip.basis(2, 0)
+            )  # The operator is not an Qobj with the same input and output dimensions.
+
+        op = qutip.qeye(2)
+        with pytest.raises(ValueError):
+            _check_oper_dims(
+                oper=op, dims=[3], targets=[0]
+            )  # The dims don't match
+
+        with pytest.raises(TypeError):
+            _targets_to_list(
+                1.5, op, 1
+            )  # targets should be an integer or a list of integer
+
+        with pytest.raises(ValueError):
+            expand_operator(op, 2, 0)  # dims needs to be an interable
+
+        with pytest.raises(ValueError):
+            gate_sequence_product([], left_to_right=True)  # empty U_list
+
+    def test_standard_gates_failures(self):
+        # Instantiation on non-parametric
+        with pytest.raises(TypeError):
+            gates.CX()
+
+        # Wrong no. of parameters
+        with pytest.raises(TypeError):
+            gates.CRX(0, 1, 2)
+
+        # Wrong no. of arguments on parametric
+        with pytest.raises(TypeError):
+            gates.CRX.get_qobj()
+
+        # Control_value > 2^n -1
+        with pytest.raises(ValueError):
+            get_controlled_gate(gates.X, n_ctrl_qubits=1, control_value=2)
+
+        with pytest.raises(TypeError):
+            get_controlled_gate(
+                gates.X, n_ctrl_qubits=0
+            )  # num_ctrl_qubits > 0
+
+    def test_class_attribute_modification(self):
+        with pytest.raises(AttributeError):
+            gates.CX.namespace = NameSpace("temp")
+
+        with pytest.raises(AttributeError):
+            gates.X.num_qubits = 0
+
+        with pytest.raises(AttributeError):
+            gates.X.is_clifford = False
+
+        with pytest.raises(AttributeError):
+            gates.X.self_inverse = False
+
+        with pytest.raises(AttributeError):
+            gates.CX.num_ctrl_qubits = 0
+
+        with pytest.raises(AttributeError):
+            gates.CX.ctrl_value = 0
+
+        with pytest.raises(AttributeError):
+            gates.CX.target_gate = gates.Y
+
+        with pytest.raises(AttributeError):
+            gates.RX.num_params = 2
+
+        with pytest.raises(AttributeError):
+            gates.RY.latex_str = "R_y"
+
+        class H(Gate):
+            num_qubits = 1
+
+            def get_qobj():
+                pass
+
+        assert H.name == "H"
+        assert H.latex_str == "H"
+
+        class H(Gate):
+            name = "Hadamard"
+            num_qubits = 1
+
+            def get_qobj():
+                pass
+
+        H.name = "Hadamard"

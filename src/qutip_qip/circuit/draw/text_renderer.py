@@ -3,10 +3,12 @@ Module for rendering a quantum circuit in text format.
 """
 
 from math import ceil
+from typing import Type
 
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.circuit.draw import BaseRenderer, StyleConfig
 from qutip_qip.operations import Gate
+from qutip_qip.operations import gates as std
 
 
 class TextRenderer(BaseRenderer):
@@ -116,7 +118,7 @@ class TextRenderer(BaseRenderer):
 
     def _draw_multiq_gate(
         self,
-        gate: Gate,
+        gate: Gate | Type[Gate],
         gate_text: str,
         targets: list[int],
         controls: list[int],
@@ -151,7 +153,7 @@ class TextRenderer(BaseRenderer):
 
         sorted_targets = sorted(targets)
         # Adjust top_frame or bottom if there is a control wire
-        if gate.is_controlled_gate():
+        if gate.is_controlled():
             sorted_controls = sorted(controls)
             top_frame = (
                 (top_frame[:mid_index] + "┴" + top_frame[mid_index + 1 :])
@@ -333,7 +335,7 @@ class TextRenderer(BaseRenderer):
 
     def _update_qbridge(
         self,
-        gate: Gate,
+        gate: Gate | Type[Gate],
         targets: list[int],
         controls: list[int],
         wire_list_control: list[int],
@@ -440,10 +442,10 @@ class TextRenderer(BaseRenderer):
                 targets = list(circ_instruction.targets)
                 controls = list(circ_instruction.controls)
 
-                if gate.is_parametric_gate() and gate.arg_label is not None:
+                if gate.is_parametric() and gate.arg_label is not None:
                     gate_text = gate.arg_label
 
-                if gate.name == "SWAP":
+                if gate == std.SWAP:
                     wire_list = list(range(min(targets), max(targets) + 1))
                     width = 4 * ceil(self.style.gate_pad) + 1
                 else:
@@ -483,7 +485,7 @@ class TextRenderer(BaseRenderer):
                 self._update_cbridge(qubits, cbits, wire_list, width)
 
             elif circ_instruction.is_gate_instruction():
-                if gate.name == "SWAP":
+                if gate == std.SWAP:
                     self._update_swap_gate(wire_list)
                 else:
                     self._update_target_multiq(
@@ -492,7 +494,7 @@ class TextRenderer(BaseRenderer):
                         parts,
                     )
 
-                    if gate.is_controlled_gate():
+                    if gate.is_controlled():
                         sorted_controls = sorted(controls)
 
                         # check if there is control wire above the gate top

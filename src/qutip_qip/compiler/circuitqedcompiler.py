@@ -1,8 +1,8 @@
 import numpy as np
 
 from qutip_qip.circuit import GateInstruction
-from qutip_qip.operations import RX, RY, RZX
 from qutip_qip.compiler import GateCompiler, PulseInstruction
+from qutip_qip.operations.gates import CX, RX, RY, RZX
 
 
 class SCQubitsCompiler(GateCompiler):
@@ -69,7 +69,7 @@ class SCQubitsCompiler(GateCompiler):
     >>> from qutip_qip.circuit import QubitCircuit
     >>> from qutip_qip.device import ModelProcessor, SCQubitsModel
     >>> from qutip_qip.compiler import SCQubitsCompiler
-    >>> from qutip_qip.operations import CX
+    >>> from qutip_qip.operations.gates import CX
     >>>
     >>> qc = QubitCircuit(2)
     >>> qc.add_gate(CX, targets=0, controls=1)
@@ -87,11 +87,10 @@ class SCQubitsCompiler(GateCompiler):
         super(SCQubitsCompiler, self).__init__(num_qubits, params=params)
         self.gate_compiler.update(
             {
-                "RY": self.ry_compiler,
-                "RX": self.rx_compiler,
-                "CX": self.cnot_compiler,
-                "CNOT": self.cnot_compiler,
-                "RZX": self.rzx_compiler,
+                RY: self.ry_compiler,
+                RX: self.rx_compiler,
+                CX: self.cnot_compiler,
+                RZX: self.rzx_compiler,
             }
         )
         self.args = {  # Default configuration
@@ -282,28 +281,28 @@ class SCQubitsCompiler(GateCompiler):
         q2 = circuit_instruction.targets[0]
 
         # += extends a list in Python
-        result += self.gate_compiler["RX"](
-            GateInstruction(operation=RX(arg_value=-PI / 2), qubits=(q2,)),
+        result += self.gate_compiler[RX](
+            GateInstruction(operation=RX(-PI / 2), qubits=(q2,)),
             args,
         )
 
-        result += self.gate_compiler["RZX"](
-            GateInstruction(operation=RZX(arg_value=PI / 2), qubits=(q1, q2)),
+        result += self.gate_compiler[RZX](
+            GateInstruction(operation=RZX(PI / 2), qubits=(q1, q2)),
             args,
         )
 
-        result += self.gate_compiler["RX"](
-            GateInstruction(operation=RX(arg_value=-PI / 2), qubits=(q1,)),
+        result += self.gate_compiler[RX](
+            GateInstruction(operation=RX(-PI / 2), qubits=(q1,)),
             args,
         )
 
-        result += self.gate_compiler["RY"](
-            GateInstruction(operation=RY(arg_value=-PI / 2), qubits=(q1,)),
+        result += self.gate_compiler[RY](
+            GateInstruction(operation=RY(-PI / 2), qubits=(q1,)),
             args,
         )
 
-        result += self.gate_compiler["RX"](
-            GateInstruction(operation=RX(arg_value=PI / 2), qubits=(q1,)),
+        result += self.gate_compiler[RX](
+            GateInstruction(operation=RX(PI / 2), qubits=(q1,)),
             args,
         )
 

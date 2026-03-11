@@ -70,7 +70,7 @@ class OptPulseProcessor(Processor):
 
         >>> from qutip_qip.circuit import QubitCircuit
         >>> from qutip_qip.device import OptPulseProcessor
-        >>> from qutip_qip.operations import H
+        >>> from qutip_qip.operations.gates import H
         >>> qc = QubitCircuit(1)
         >>> qc.add_gate(H, targets=0)
         >>> num_tslots = 10
@@ -85,7 +85,7 @@ class OptPulseProcessor(Processor):
 
         >>> from qutip_qip.circuit import QubitCircuit
         >>> from qutip_qip.device import OptPulseProcessor
-        >>> from qutip_qip.operations import H, SWAP, CX
+        >>> from qutip_qip.operations.gates import H, SWAP, CX
         >>> qc = QubitCircuit(2)
         >>> qc.add_gate(H, targets=0)
         >>> qc.add_gate(SWAP, targets=[0, 1])
@@ -201,9 +201,9 @@ class OptPulseProcessor(Processor):
 
             if result.fid_err > min_fid_err:
                 warnings.warn(
-                    "The fidelity error of gate {} is higher "
+                    f"The fidelity error of gate {prop_ind} is higher "
                     "than required limit. Use verbose=True to see"
-                    "the more detailed information.".format(prop_ind)
+                    "the more detailed information."
                 )
 
             time_record.append(result.time[1:] + last_time)
@@ -211,13 +211,11 @@ class OptPulseProcessor(Processor):
             coeff_record.append(result.final_amps.T)
 
             if verbose:
-                print("********** Gate {} **********".format(prop_ind))
-                print("Final fidelity error {}".format(result.fid_err))
-                print(
-                    "Final gradient normal {}".format(result.grad_norm_final)
-                )
-                print("Terminated due to {}".format(result.termination_reason))
-                print("Number of iterations {}".format(result.num_iter))
+                print(f"********** Gate {prop_ind} **********")
+                print(f"Final fidelity error {result.fid_err}")
+                print(f"Final gradient normal {result.grad_norm_final}")
+                print(f"Terminated due to {result.termination_reason}")
+                print(f"Number of iterations {result.num_iter}")
 
         tlist = np.hstack([[0.0]] + time_record)
         for i in range(len(self.pulses)):

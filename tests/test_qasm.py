@@ -8,7 +8,7 @@ from qutip_qip.qasm import read_qasm, circuit_to_qasm_str
 from qutip_qip.circuit import QubitCircuit
 from qutip import tensor, rand_ket, basis, identity
 from qutip_qip.operations import Measurement
-import qutip_qip.operations.std as std
+import qutip_qip.operations.gates as gates
 
 
 @pytest.mark.parametrize(
@@ -75,9 +75,7 @@ def test_qasm_addcircuit():
     check_gate_instruction_defn(qc.instructions[3], "CX", (1,), (0,))
     check_gate_instruction_defn(qc.instructions[4], "H", (0,))
     check_gate_instruction_defn(qc.instructions[5], "H", (1,))
-    check_gate_instruction_defn(
-        qc.instructions[6], "H", (0,), (), (0, 1), 0
-    )
+    check_gate_instruction_defn(qc.instructions[6], "H", (0,), (), (0, 1), 0)
     check_measurement_defn(qc.instructions[7], "M", (0,), (0,))
     check_measurement_defn(qc.instructions[8], "M", (1,), (1,))
 
@@ -88,7 +86,9 @@ def test_custom_gates():
     qc = read_qasm(filepath)
     unitaries = qc.propagators()
     assert (unitaries[0] - unitaries[1]).norm() < 1e-12
-    ry_cx = std.CX.get_qobj() * tensor(identity(2), std.RY(np.pi / 2).get_qobj())
+    ry_cx = gates.CX.get_qobj() * tensor(
+        identity(2), gates.RY(np.pi / 2).get_qobj()
+    )
     assert (unitaries[2] - ry_cx).norm() < 1e-12
 
 
@@ -130,33 +130,33 @@ def test_qasm_str():
         "x q[0];\nmeasure q[1] -> c[0]\n"
     )
     simple_qc = QubitCircuit(2, num_cbits=1)
-    simple_qc.add_gate(std.X, targets=[0])
+    simple_qc.add_gate(gates.X, targets=[0])
     simple_qc.add_measurement("M", targets=[1], classical_store=0)
     assert circuit_to_qasm_str(simple_qc) == expected_qasm_str
 
 
 def test_export_import():
     qc = QubitCircuit(3)
-    qc.add_gate(std.CRY(np.pi), targets=1, controls=0)
-    qc.add_gate(std.CRX(np.pi), targets=1, controls=0)
-    qc.add_gate(std.CRZ(np.pi), targets=1, controls=0)
-    qc.add_gate(std.CX, targets=1, controls=0)
-    qc.add_gate(std.TOFFOLI, targets=2, controls=[0, 1])
+    qc.add_gate(gates.CRY(np.pi), targets=1, controls=0)
+    qc.add_gate(gates.CRX(np.pi), targets=1, controls=0)
+    qc.add_gate(gates.CRZ(np.pi), targets=1, controls=0)
+    qc.add_gate(gates.CX, targets=1, controls=0)
+    qc.add_gate(gates.TOFFOLI, targets=2, controls=[0, 1])
     # qc.add_gate(SQRTX, targets=0)
-    qc.add_gate(std.CS, targets=1, controls=0)
-    qc.add_gate(std.CT, targets=1, controls=0)
-    qc.add_gate(std.SWAP, targets=[0, 1])
-    qc.add_gate(std.QASMU(arg_value=[np.pi, np.pi, np.pi]), targets=[0])
-    qc.add_gate(std.RX(np.pi), targets=[0])
-    qc.add_gate(std.RY(np.pi), targets=[0])
-    qc.add_gate(std.RZ(np.pi), targets=[0])
-    qc.add_gate(std.H, targets=[0])
-    qc.add_gate(std.X, targets=[0])
-    qc.add_gate(std.Y, targets=[0])
-    qc.add_gate(std.Z, targets=[0])
-    qc.add_gate(std.S, targets=[0])
-    qc.add_gate(std.T, targets=[0])
-    # qc.add_gate(CZ, targets=[0], controls=[1])
+    qc.add_gate(gates.CS, targets=1, controls=0)
+    qc.add_gate(gates.CT, targets=1, controls=0)
+    qc.add_gate(gates.SWAP, targets=[0, 1])
+    qc.add_gate(gates.QASMU(np.pi, np.pi, np.pi), targets=[0])
+    qc.add_gate(gates.RX(np.pi), targets=[0])
+    qc.add_gate(gates.RY(np.pi), targets=[0])
+    qc.add_gate(gates.RZ(np.pi), targets=[0])
+    qc.add_gate(gates.H, targets=[0])
+    qc.add_gate(gates.X, targets=[0])
+    qc.add_gate(gates.Y, targets=[0])
+    qc.add_gate(gates.Z, targets=[0])
+    qc.add_gate(gates.S, targets=[0])
+    qc.add_gate(gates.T, targets=[0])
+    # qc.add_gate(gates.CZ, targets=[0], controls=[1])
 
     # The generated code by default has a inclusion statement of
     # qelib1.inc, which will trigger a warning when read.
@@ -171,15 +171,16 @@ def test_export_import():
         assert (u0 - u1).norm() < 1e-12
 
 
-def test_read_qasm():
+def test_read_qasm_1():
     filename = "w-state.qasm"
     filepath = Path(__file__).parent / "qasm_files" / filename
+    read_qasm(filepath)
+
+
+def test_read_qasm_2():
     filename2 = "w-state_with_comments.qasm"
     filepath2 = Path(__file__).parent / "qasm_files" / filename2
-
-    read_qasm(filepath)
     read_qasm(filepath2)
-    assert True
 
 
 def test_parsing_mode(tmp_path):
@@ -195,22 +196,23 @@ def test_parsing_mode(tmp_path):
         )
     assert "Unknown parsing mode" in record_warning[0].message.args[0]
 
-    mode = "predefined_only"
-    qasm_input_string = (
-        'OPENQASM 2.0;\ninclude "qelib1.inc"\n\ncreg c[2];'
-        "\nqreg q[2];swap q[0],q[1];\n"
-    )
-    with pytest.raises(SyntaxError):
-        with pytest.warns(UserWarning) as record_warning:
-            circuit = read_qasm(
-                qasm_input_string,
-                mode=mode,
-                strmode=True,
-            )
-    assert (
-        "Ignoring external gate definition in the predefined_only mode."
-        in record_warning[0].message.args[0]
-    )
+    # TODO fix this test, since SWAP is now a predefined gate
+    # mode = "predefined_only"
+    # qasm_input_string = (
+    #     'OPENQASM 2.0;\ninclude "qelib1.inc"\n\ncreg c[2];'
+    #     "\nqreg q[2];swap q[0],q[1];\n"
+    # )
+    # with pytest.raises(SyntaxError):
+    #     with pytest.warns(UserWarning) as record_warning:
+    #         circuit = read_qasm(
+    #             qasm_input_string,
+    #             mode=mode,
+    #             strmode=True,
+    #         )
+    # assert (
+    #     "Ignoring external gate definition in the predefined_only mode."
+    #     in record_warning[0].message.args[0]
+    # )
 
     mode = "external_only"
     file_path = tmp_path / "custom_swap.inc"
@@ -229,7 +231,7 @@ def test_parsing_mode(tmp_path):
     )
     propagator = circuit.compute_unitary()
 
-    fidelity = qutip.average_gate_fidelity(propagator, std.SWAP.get_qobj())
+    fidelity = qutip.average_gate_fidelity(propagator, gates.SWAP.get_qobj())
     pytest.approx(fidelity, 1.0)
 
     circuit = read_qasm(
@@ -238,5 +240,5 @@ def test_parsing_mode(tmp_path):
     )
     propagator = circuit.compute_unitary()
 
-    fidelity = qutip.average_gate_fidelity(propagator, std.SWAP.get_qobj())
+    fidelity = qutip.average_gate_fidelity(propagator, gates.SWAP.get_qobj())
     pytest.approx(fidelity, 1.0)

@@ -3,9 +3,8 @@ from copy import deepcopy
 
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.compiler import PulseInstruction, Scheduler
-from qutip_qip.operations import (
+from qutip_qip.operations.gates import (
     GATE_CLASS_MAP,
-    ControlledGate,
     CX,
     X,
     Z,
@@ -121,7 +120,7 @@ def _instructions1():
 
     instruction_list = []
     for circuit_ins in circuit3.instructions:
-        if circuit_ins.operation.name == "H":
+        if circuit_ins.operation == H:
             instruction_list.append(PulseInstruction(circuit_ins, duration=1))
         else:
             instruction_list.append(PulseInstruction(circuit_ins, duration=2))
@@ -277,7 +276,7 @@ def test_scheduling_pulse(
     for instruction in instructions:
         gate_cls = GATE_CLASS_MAP[instruction.name]
 
-        if issubclass(gate_cls, ControlledGate):
+        if gate_cls.is_controlled():
             circuit.add_gate(
                 gate_cls,
                 targets=instruction.targets,

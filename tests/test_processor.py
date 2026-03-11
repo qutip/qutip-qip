@@ -5,7 +5,6 @@ import numpy as np
 import pytest
 
 import qutip
-from qutip_qip.device import Processor, LinearSpinChain
 from qutip import (
     basis,
     sigmaz,
@@ -18,10 +17,12 @@ from qutip import (
     fidelity,
 )
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import hadamard_transform, ISWAP, X
+from qutip_qip.device import Processor, LinearSpinChain
+from qutip_qip.operations import hadamard_transform
+from qutip_qip.operations.gates import ISWAP, X
 from qutip_qip.noise import DecoherenceNoise, RandomNoise, ControlAmpNoise
-from qutip_qip.qubits import qubit_states
 from qutip_qip.pulse import Pulse
+from qutip_qip.qubits import qubit_states
 
 
 class TestCircuitProcessor:
@@ -152,7 +153,7 @@ class TestCircuitProcessor:
             np.exp(-1.0 / t2 * end_time) * 0.5 + 0.5,
             rtol=1e-5,
             err_msg="Error in t1 & t2 simulation, "
-            "with t1={} and t2={}".format(t1, t2),
+            f"with t1={t1} and t2={t2}",
         )
 
     def test_plot(self):

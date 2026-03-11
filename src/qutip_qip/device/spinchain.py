@@ -124,11 +124,12 @@ class LinearSpinChain(SpinChain):
         import qutip
         from qutip_qip.circuit import QubitCircuit
         from qutip_qip.device import LinearSpinChain
+        from qutip_qip.operations.gates import RX, RY, ISWAP
 
         qc = QubitCircuit(2)
-        qc.add_gate("RX", targets=0, arg_value=np.pi)
-        qc.add_gate("RY", targets=1, arg_value=np.pi)
-        qc.add_gate("ISWAP", targets=[1, 0])
+        qc.add_gate(RX(np.pi), targets=0)
+        qc.add_gate(RY(np.pi), targets=1)
+        qc.add_gate(ISWAP, targets=[1, 0])
 
         processor = LinearSpinChain(2, g=0.1, t1=300)
         processor.load_circuit(qc)
@@ -208,11 +209,11 @@ class CircularSpinChain(SpinChain):
         import qutip
         from qutip_qip.circuit import QubitCircuit
         from qutip_qip.device import CircularSpinChain
-        from qutip_qip.operations import RX, RY, ISWAP
+        from qutip_qip.operations.gates import RX, RY, ISWAP
 
         qc = QubitCircuit(2)
-        qc.add_gate(RX(arg_value=np.pi), targets=0)
-        qc.add_gate(RY(arg_value=np.pi), targets=1)
+        qc.add_gate(RX(np.pi), targets=0)
+        qc.add_gate(RY(np.pi), targets=1)
         qc.add_gate(ISWAP, targets=[1, 0])
 
         processor = CircularSpinChain(2, g=0.1, t1=300)
@@ -406,13 +407,11 @@ class SpinChainModel(Model):
         num_qubits = self.num_qubits
         num_coupling = self._get_num_coupling()
         return [
-            {f"sx{m}": r"$\sigma_x^{}$".format(m) for m in range(num_qubits)},
-            {f"sz{m}": r"$\sigma_z^{}$".format(m) for m in range(num_qubits)},
+            {f"sx{m}": rf"$\sigma_x^{m}$" for m in range(num_qubits)},
+            {f"sz{m}": rf"$\sigma_z^{m}$" for m in range(num_qubits)},
             {
-                f"g{m}": r"$\sigma_x^{}\sigma_x^{} +"
-                r" \sigma_y^{}\sigma_y^{}$".format(
-                    m, (m + 1) % num_qubits, m, (m + 1) % num_qubits
-                )
+                f"g{m}": rf"$\sigma_x^{m}\sigma_x^{(m + 1) % num_qubits} +"
+                rf" \sigma_y^{m}\sigma_y^{(m + 1) % num_qubits}$"
                 for m in range(num_coupling)
             },
         ]

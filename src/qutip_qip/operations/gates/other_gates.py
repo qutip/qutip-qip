@@ -1,9 +1,13 @@
+from functools import cache
+from typing import Final, Type
+
 import scipy.sparse as sp
 import numpy as np
-
 from qutip import Qobj
-from qutip_qip.operations import ControlledGate, AngleParametricGate
-from qutip_qip.operations.std import X, SWAP
+
+from qutip_qip.operations import Gate, ControlledGate, AngleParametricGate
+from qutip_qip.operations.gates import X, SWAP
+from qutip_qip.operations.namespace import NS_GATE
 
 
 class GLOBALPHASE(AngleParametricGate):
@@ -12,29 +16,38 @@ class GLOBALPHASE(AngleParametricGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import GLOBALPHASE
+    >>> from qutip_qip.operations.gates import GLOBALPHASE
     """
 
-    num_qubits: int = 0
-    num_params: int = 1
-    self_inverse = False
-    latex_str = r"{\rm GLOBALPHASE}"
+    __slots__ = ()
+    namespace = NS_GATE
 
-    def __init__(self, arg_value: float = 0.0):
-        super().__init__(arg_value=arg_value)
+    num_qubits: Final[int] = 0
+    num_params: Final[int] = 1
+    self_inverse: Final[bool] = False
+    latex_str: Final[str] = r"{\rm GLOBALPHASE}"
+
+    def __init__(self, phase: float = 0.0):
+        super().__init__(phase)
 
     def __repr__(self):
-        return f"Gate({self.name}, phase {self.arg_value})"
+        return f"Gate({self.name}, phase {self.arg_value[0]}) -> Qobj:"
 
-    def get_qobj(self, num_qubits=None):
+    def compute_qobj(arg_value, dtype):
+        raise NotImplementedError
+
+    def get_qobj(self, num_qubits=None, dtype: str = "dense") -> Qobj:
+        phase = self.arg_value[0]
         if num_qubits is None:
-            return Qobj(self.arg_value)
+            return Qobj(phase, dtype=dtype)
 
         N = 2**num_qubits
         return Qobj(
-            np.exp(1.0j * self.arg_value[0]) * sp.eye(N, N, dtype=complex, format="csr"),
+            np.exp(1.0j * phase) * sp.eye(N, N, dtype=complex, format="csr"),
             dims=[[2] * num_qubits, [2] * num_qubits],
+            dtype=dtype,
         )
+
 
 class TOFFOLI(ControlledGate):
     """
@@ -42,8 +55,8 @@ class TOFFOLI(ControlledGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import TOFFOLI
-    >>> TOFFOLI([0, 1, 2]).get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> from qutip_qip.operations.gates import TOFFOLI
+    >>> TOFFOLI.get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2, 2], [2, 2, 2]], shape=(8, 8), type='oper', dtype=Dense, isherm=True
     Qobj data =
     [[1. 0. 0. 0. 0. 0. 0. 0.]
@@ -56,14 +69,20 @@ class TOFFOLI(ControlledGate):
      [0. 0. 0. 0. 0. 0. 1. 0.]]
     """
 
-    latex_str = r"{\rm TOFFOLI}"
-    target_gate = X
+    __slots__ = ()
+    namespace = NS_GATE
 
-    num_qubits: int = 3
-    num_ctrl_qubits: int = 2
+    num_qubits: Final[int] = 3
+    num_ctrl_qubits: Final[int] = 2
+    ctrl_value: Final[int] = 0b11
+
+    target_gate: Final[Type[Gate]] = X
+    self_inverse: Final[bool] = True
+    latex_str: Final[str] = r"{\rm TOFFOLI}"
 
     @staticmethod
-    def get_qobj() -> Qobj:
+    @cache
+    def get_qobj(dtype: str = "dense") -> Qobj:
         return Qobj(
             [
                 [1, 0, 0, 0, 0, 0, 0, 0],
@@ -76,6 +95,7 @@ class TOFFOLI(ControlledGate):
                 [0, 0, 0, 0, 0, 0, 1, 0],
             ],
             dims=[[2, 2, 2], [2, 2, 2]],
+            dtype=dtype,
         )
 
 
@@ -85,8 +105,8 @@ class FREDKIN(ControlledGate):
 
     Examples
     --------
-    >>> from qutip_qip.operations import FREDKIN
-    >>> FREDKIN([0, 1, 2]).get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> from qutip_qip.operations.gates import FREDKIN
+    >>> FREDKIN.get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2, 2], [2, 2, 2]], shape=(8, 8), type='oper', dtype=Dense, isherm=True
     Qobj data =
     [[1. 0. 0. 0. 0. 0. 0. 0.]
@@ -99,14 +119,20 @@ class FREDKIN(ControlledGate):
      [0. 0. 0. 0. 0. 0. 0. 1.]]
     """
 
-    latex_str = r"{\rm FREDKIN}"
-    target_gate = SWAP
+    __slots__ = ()
+    namespace = NS_GATE
 
-    num_qubits: int = 3
-    num_ctrl_qubits: int = 1
+    num_qubits: Final[int] = 3
+    num_ctrl_qubits: Final[int] = 1
+    ctrl_value: Final[int] = 1
+
+    target_gate: Final[Type[Gate]] = SWAP
+    self_inverse: Final[bool] = True
+    latex_str: Final[str] = r"{\rm FREDKIN}"
 
     @staticmethod
-    def get_qobj() -> Qobj:
+    @cache
+    def get_qobj(dtype: str = "dense") -> Qobj:
         return Qobj(
             [
                 [1, 0, 0, 0, 0, 0, 0, 0],
@@ -119,4 +145,5 @@ class FREDKIN(ControlledGate):
                 [0, 0, 0, 0, 0, 0, 0, 1],
             ],
             dims=[[2, 2, 2], [2, 2, 2]],
+            dtype=dtype,
         )
