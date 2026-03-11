@@ -218,6 +218,10 @@ class QasmProcessor:
 
             filename = command[1].strip('"')
 
+            # TODO this has been added later (check how qasm converter previously handled it)
+            if filename == "qelib1.inc":
+                continue
+
             if self.mode == "predefined_only":
                 warnings.warn(
                     "Ignoring external gate definition"
