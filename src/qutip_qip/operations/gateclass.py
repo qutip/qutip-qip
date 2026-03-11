@@ -280,7 +280,7 @@ class Gate(ABC, metaclass=_GateMetaClass):
         """
         if cls.self_inverse:
             return cls
-        raise NotImplementedError
+        return get_unitary_gate("Test", cls.get_qobj().dag())
 
     @staticmethod
     def is_controlled() -> bool:

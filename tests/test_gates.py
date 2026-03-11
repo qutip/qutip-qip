@@ -413,10 +413,6 @@ class U1(Gate):
     def get_qobj(dtype: str = "dense"):
         return rand_U.to(dtype)
 
-    @staticmethod
-    def inverse():
-        return get_unitary_gate("U1_dag", rand_U.dag())
-
 
 class U2(AngleParametricGate):
     num_qubits = 1
@@ -588,9 +584,6 @@ class TestGateErrors:
         with pytest.raises(AttributeError):
             # For a given gateclass, class attribute like num_qubit can't be modified
             GoodGate.num_qubits = 2
-
-        with pytest.raises(NotImplementedError):
-            GoodGate.inverse()
 
         U_rect = qutip.Qobj(np.eye(2, 3))
         with pytest.raises(ValueError):
