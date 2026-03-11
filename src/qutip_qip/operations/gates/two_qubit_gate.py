@@ -946,6 +946,10 @@ class CRX(_ControlledTwoQubitGate):
     def get_qobj(self, dtype: str = "dense") -> Qobj:
         return self.compute_qobj(self.arg_value, dtype=dtype)
 
+    def inverse(self) -> Gate:
+        theta = self.arg_value[0]
+        return CRX(-theta)
+
 
 class CRY(_ControlledTwoQubitGate):
     r"""
@@ -982,6 +986,10 @@ class CRY(_ControlledTwoQubitGate):
 
     def get_qobj(self, dtype: str = "dense") -> Qobj:
         return self.compute_qobj(self.arg_value, dtype)
+
+    def inverse(self) -> Gate:
+        theta = self.arg_value[0]
+        return CRY(-theta)
 
 
 class CRZ(_ControlledTwoQubitGate):
@@ -1036,6 +1044,10 @@ class CRZ(_ControlledTwoQubitGate):
     def get_qobj(self, dtype: str = "dense") -> Qobj:
         return self.compute_qobj(self.arg_value, dtype)
 
+    def inverse(self) -> Gate:
+        theta = self.arg_value[0]
+        return CRZ(-theta)
+
 
 class CPHASE(_ControlledTwoQubitGate):
     r"""
@@ -1088,6 +1100,10 @@ class CPHASE(_ControlledTwoQubitGate):
 
     def get_qobj(self, dtype: str = "dense") -> Qobj:
         return self.compute_qobj(self.arg_value, dtype)
+
+    def inverse(self) -> Gate:
+        theta = self.arg_value[0]
+        return CPHASE(-theta)
 
 
 class CQASMU(_ControlledTwoQubitGate):
@@ -1143,3 +1159,7 @@ class CQASMU(_ControlledTwoQubitGate):
 
     def get_qobj(self, dtype: str = "dense") -> Qobj:
         return self.compute_qobj(self.arg_value, dtype=dtype)
+
+    def inverse(self) -> Gate:
+        theta, phi, gamma = self.arg_value
+        return CQASMU(-theta, -gamma, -phi)
