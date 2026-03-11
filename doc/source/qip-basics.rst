@@ -160,7 +160,9 @@ Gate name                           Description
 "CZ"                  Controlled Z gate
 "CH"                  Controlled H gate
 "CS"                  Controlled S gate
+"CSdag"               Controlled Sdag gate
 "CT"                  Controlled T gate
+"CTdag"               Controlled Tdag gate
 "CRX"                 Controlled rotation around x axis
 "CRY"                 Controlled rotation around y axis
 "CRZ"                 Controlled rotation around z axis

@@ -43,7 +43,9 @@ qutip: dict[str, str] = {
     "CZ": "#9598F5",  # Light Slate Blue
     "CH": "#9598F5",  # Light Slate Blue
     "CS": "#9598F5",  # Light Slate Blue
+    "CSdag": "#9598F5",  # Light Slate Blue
     "CT": "#9598F5",  # Light Slate Blue
+    "CTdag": "#9598F5",  # Light Slate Blue
     "CRX": "#A66DDF",  # Medium Purple
     "CRY": "#A66DDF",  # Medium Purple
     "CRZ": "#A66DDF",  # Medium Purple
@@ -94,7 +96,9 @@ light: dict[str, str] = {
     "CZ": "#E0E2F7",  # Very Light Indigo
     "CH": "#E0E2F7",  # Very Light Indigo
     "CS": "#E0E2F7",  # Very Light Indigo
+    "CSdag": "#E0E2F7",  # Very Light Indigo
     "CT": "#E0E2F7",  # Very Light Indigo
+    "CTdag": "#E0E2F7",  # Very Light Indigo
     "CRX": "#D6C9E8",  # Light Muted Purple
     "CRY": "#D6C9E8",  # Light Muted Purple
     "CRZ": "#D6C9E8",  # Light Muted Purple
@@ -145,7 +149,9 @@ dark: dict[str, str] = {
     "CZ": "#4682B4",  # Steel Blue
     "CH": "#4682B4",  # Steel Blue
     "CS": "#4682B4",  # Steel Blue
+    "CSdag": "#4682B4",  # Steel Blue
     "CT": "#4682B4",  # Steel Blue
+    "CTdag": "#4682B4",  # Steel Blue
     "CRX": "#7B68EE",  # Medium Slate Blue
     "CRY": "#7B68EE",  # Medium Slate Blue
     "CRZ": "#7B68EE",  # Medium Slate Blue
@@ -197,7 +203,9 @@ modern: dict[str, str] = {
     "CZ": "#5D8AA8",  # Medium Slate Blue
     "CH": "#5D8AA8",  # Medium Slate Blue
     "CS": "#5D8AA8",  # Medium Slate Blue
+    "CSdag": "#5D8AA8",  # Medium Slate Blue
     "CT": "#5D8AA8",  # Medium Slate Blue
+    "CTdag": "#5D8AA8",  # Medium Slate Blue
     "CRX": "#6C5B7B",  # Dark Lavender
     "CRY": "#6C5B7B",  # Dark Lavender
     "CRZ": "#6C5B7B",  # Dark Lavender

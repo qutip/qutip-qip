@@ -11,7 +11,9 @@ from qutip_qip.operations.gates import (
     Z,
     H,
     S,
+    Sdag,
     T,
+    Tdag,
     RX,
     RY,
     RZ,
@@ -637,6 +639,7 @@ class CX(_ControlledTwoQubitGate):
     __slots__ = ()
 
     target_gate: Final[Type[Gate]] = X
+    self_inverse: Final[bool] = True
     is_clifford: Final[bool] = True
     latex_str: Final[str] = r"{\rm CNOT}"
 
@@ -671,8 +674,9 @@ class CY(_ControlledTwoQubitGate):
 
     __slots__ = ()
 
-    is_clifford: Final[bool] = True
     target_gate: Final[Type[Gate]] = Y
+    self_inverse: Final[bool] = True
+    is_clifford: Final[bool] = True
     latex_str: Final[str] = r"{\rm CY}"
 
     @staticmethod
@@ -704,6 +708,7 @@ class CZ(_ControlledTwoQubitGate):
     __slots__ = ()
 
     target_gate: Final[Type[Gate]] = Z
+    self_inverse: Final[bool] = True
     is_clifford: Final[bool] = True
     latex_str: Final[str] = r"{\rm CZ}"
 
@@ -741,6 +746,7 @@ class CH(_ControlledTwoQubitGate):
     __slots__ = ()
 
     target_gate: Final[Type[Gate]] = H
+    self_inverse: Final[bool] = True
     latex_str: Final[str] = r"{\rm CH}"
 
     @staticmethod
@@ -796,6 +802,52 @@ class CT(_ControlledTwoQubitGate):
             dtype=dtype,
         )
 
+    @staticmethod
+    def inverse() -> Type[Gate]:
+        return CTdag
+
+
+class CTdag(_ControlledTwoQubitGate):
+    r"""
+    CTdag gate.
+
+    .. math::
+
+        \begin{pmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & 1 & 0 & 0 \\
+        0 & 0 & 1 & 0 \\
+        0 & 0 & 0 & e^{i\theta} \\
+        \end{pmatrix}
+
+    Examples
+    --------
+    >>> from qutip_qip.operations.gates import CTdag
+    """
+
+    __slots__ = ()
+
+    target_gate: Final[Type[Gate]] = Tdag
+    latex_str: Final[str] = r"{\rm CT^\dagger}"
+
+    @staticmethod
+    @cache
+    def get_qobj(dtype: str = "dense") -> Qobj:
+        return Qobj(
+            [
+                [1, 0, 0, 0],
+                [0, 1, 0, 0],
+                [0, 0, 1, 0],
+                [0, 0, 0, (1 - 1j) / np.sqrt(2)],
+            ],
+            dims=[[2, 2], [2, 2]],
+            dtype=dtype,
+        )
+
+    @staticmethod
+    def inverse() -> Type[Gate]:
+        return CT
+
 
 class CS(_ControlledTwoQubitGate):
     r"""
@@ -830,6 +882,49 @@ class CS(_ControlledTwoQubitGate):
             dims=[[2, 2], [2, 2]],
             dtype=dtype,
         )
+
+    @staticmethod
+    def inverse() -> Type[Gate]:
+        return CSdag
+
+
+class CSdag(_ControlledTwoQubitGate):
+    r"""
+    CS gate.
+
+    .. math::
+
+        \begin{pmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & 1 & 0 & 0 \\
+        0 & 0 & 1 & 0 \\
+        0 & 0 & 0 & e^{i\theta} \\
+        \end{pmatrix}
+
+    Examples
+    --------
+    >>> from qutip_qip.operations.gates import CS
+    """
+
+    __slots__ = ()
+
+    target_gate: Final[Type[Gate]] = Sdag
+    latex_str: Final[str] = r"{\rm CS^\dagger}"
+
+    @staticmethod
+    @cache
+    def get_qobj(dtype: str = "dense") -> Qobj:
+        return Qobj(
+            np.array(
+                [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1j]]
+            ),
+            dims=[[2, 2], [2, 2]],
+            dtype=dtype,
+        )
+
+    @staticmethod
+    def inverse() -> Type[Gate]:
+        return CS
 
 
 class CRX(_ControlledTwoQubitGate):
