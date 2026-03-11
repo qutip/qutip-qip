@@ -148,7 +148,7 @@ class ParametricGate(Gate):
     def compute_qobj(args: tuple, dtype: str) -> Qobj:
         raise NotImplementedError
 
-    def inverse(self, expanded: bool = False) -> Gate:
+    def inverse(self) -> Gate:
         if self.self_inverse:
             return self
         raise NotImplementedError

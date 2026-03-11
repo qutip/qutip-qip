@@ -480,13 +480,8 @@ class SWAPALPHA(_TwoQubitParametricGate):
             dtype=dtype,
         )
 
-    def inverse(
-        self, expanded: bool = False
-    ) -> Gate | tuple[Type[Gate], tuple[float]]:
-
+    def inverse(self) -> Gate | tuple[Type[Gate], tuple[float]]:
         alpha = self.arg_value[0]
-        if expanded:
-            return SWAPALPHA, (-alpha,)
         return SWAPALPHA(-alpha)
 
 
@@ -548,16 +543,9 @@ class MS(_TwoQubitParametricGate):
             dtype=dtype,
         )
 
-    def inverse(
-        self, expanded: bool = False
-    ) -> Gate | tuple[Type[Gate], tuple[float, float]]:
-
+    def inverse(self) -> Gate | tuple[Type[Gate], tuple[float, float]]:
         theta, phi = self.arg_value
-        inverse_param = (-theta, phi)
-
-        if expanded:
-            return MS, inverse_param
-        return MS(*inverse_param)
+        return MS(-theta, phi)
 
 
 class RZX(_TwoQubitParametricGate):
@@ -610,13 +598,8 @@ class RZX(_TwoQubitParametricGate):
             dtype=dtype,
         )
 
-    def inverse(
-        self, expanded: bool = False
-    ) -> Gate | tuple[Type[Gate], tuple[float]]:
-
+    def inverse(self) -> Gate | tuple[Type[Gate], tuple[float]]:
         theta = self.arg_value[0]
-        if expanded:
-            return RZX, (-theta,)
         return RZX(-theta)
 
 

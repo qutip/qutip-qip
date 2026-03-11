@@ -211,15 +211,15 @@ class ControlledGate(Gate):
             )
 
         else:
-            inverse_gate_class, param = cls_or_self._target_inst.inverse(
-                expanded=True
-            )
+            target_inv_inst = cls_or_self._target_inst.inverse()
+            inverse_gate_class = type(target_inv_inst)
+            params = target_inv_inst.arg_value
 
             inverse_gate = get_controlled_gate(
                 inverse_gate_class,
                 cls_or_self.num_ctrl_qubits,
                 cls_or_self.ctrl_value,
-            )(*param)
+            )(*params)
 
         return inverse_gate
 
