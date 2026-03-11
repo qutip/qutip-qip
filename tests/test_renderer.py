@@ -166,7 +166,9 @@ def qc3():
 def qc4():
     i = get_controlled_gate(IDLE, n_ctrl_qubits=1, gate_name="i")
     ii = get_controlled_gate(IDLE, n_ctrl_qubits=2, gate_name="ii")
-    iii = get_controlled_gate(IDLE, n_ctrl_qubits=1, control_value=0, gate_name="iii")
+    iii = get_controlled_gate(
+        IDLE, n_ctrl_qubits=1, control_value=0, gate_name="iii"
+    )
 
     qc = QubitCircuit(5, num_cbits=2)
     qc.add_gate(

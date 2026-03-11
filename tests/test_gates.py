@@ -22,6 +22,7 @@ import qutip_qip.operations.gates as gates
 
 rng = np.random.default_rng(seed=101)
 
+
 def _permutation_id(permutation):
     return str(len(permutation)) + "-" + "".join(map(str, permutation))
 
@@ -404,6 +405,7 @@ class Test_expand_operator:
 
 rand_U = qutip.rand_unitary(dimensions=[2], seed=rng)
 
+
 class U1(Gate):
     num_qubits = 1
 
@@ -423,10 +425,12 @@ class U2(AngleParametricGate):
     @staticmethod
     def compute_qobj(args, dtype: str = "dense"):
         theta = args[0]
-        return qutip.Qobj([
-            [np.exp(-1j * theta), 0],
-            [0, np.exp(1j * theta)],
-        ])
+        return qutip.Qobj(
+            [
+                [np.exp(-1j * theta), 0],
+                [0, np.exp(1j * theta)],
+            ]
+        )
 
     def inverse(self):
         theta = self.arg_value[0]
@@ -788,7 +792,9 @@ class TestGateErrors:
             get_controlled_gate(gates.X, n_ctrl_qubits=1, control_value=2)
 
         with pytest.raises(TypeError):
-            get_controlled_gate(gates.X, n_ctrl_qubits=0)  # num_ctrl_qubits > 0
+            get_controlled_gate(
+                gates.X, n_ctrl_qubits=0
+            )  # num_ctrl_qubits > 0
 
     def test_class_attribute_modification(self):
         with pytest.raises(AttributeError):

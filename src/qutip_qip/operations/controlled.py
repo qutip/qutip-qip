@@ -120,7 +120,6 @@ class ControlledGate(Gate):
                 f"Class '{cls.name}' method 'is_parametric()' must return {cls.target_gate.is_parametric()}."
             )
 
-
     def __init__(self, *args, **kwargs) -> None:
         self._target_inst = self.target_gate(*args, **kwargs)
 
@@ -190,7 +189,7 @@ class ControlledGate(Gate):
             target_gate = cls_or_self.target_gate
         else:
             target_gate = cls_or_self._target_inst
-        
+
         return controlled_gate_unitary(
             U=target_gate.get_qobj(dtype),
             num_controls=cls_or_self.num_ctrl_qubits,

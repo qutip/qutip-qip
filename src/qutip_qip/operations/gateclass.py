@@ -49,26 +49,31 @@ class _GateMetaClass(ABCMeta):
         # Namespace being None corresponds to Temporary Gates
         # Only if Namespace is not None register the gate
         if (namespace := getattr(cls, "namespace", None)) is not None:
-            
+
             # We are checking beforehand because in case of Controlled Gate
             # two key's refer to the same controlled gate:
             # gate_name, (target_gate.name, num_ctrl_qubits, ctrl_value)
-            
+
             # If suppose (target_gate=X, num_ctrl_qubits=1, ctrl_value=0) existed
             # but we were redefining it with a different name, the cls.name insert
             # step would go through, but wrt. second key won't and will throw an error.
             # This will lead to leakage in the namespace i.e. classes which don't exist but are in the namespace.
-            if (namespace.get(cls.name) is not None):
-                raise ValueError(f"Existing {cls.name} in namespace {namespace}")
+            if namespace.get(cls.name) is not None:
+                raise ValueError(
+                    f"Existing {cls.name} in namespace {namespace}"
+                )
 
             # The basic principle is don't define a gate class if it already exists
             if cls.is_controlled():
                 cls.namespace.register(
-                    (cls.target_gate.name, cls.num_ctrl_qubits, cls.ctrl_value),
+                    (
+                        cls.target_gate.name,
+                        cls.num_ctrl_qubits,
+                        cls.ctrl_value,
+                    ),
                     cls,
                 )
             cls.namespace.register(cls.name, cls)
-
 
     def __setattr__(cls, name: str, value: any) -> None:
         """
@@ -236,7 +241,6 @@ class Gate(ABC, metaclass=_GateMetaClass):
             )
 
         return super().__init_subclass__(**kwargs)
-
 
     def __init__(self) -> None:
         """

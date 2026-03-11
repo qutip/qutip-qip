@@ -92,7 +92,6 @@ class ParametricGate(Gate):
                 f"Class '{cls.name}' method 'is_controlled()' must always return False."
             )
 
-
     def __init__(self, *args, arg_label: str | None = None):
         # This auto triggers a call to arg_value setter (where checks happen)
         self.arg_value = args

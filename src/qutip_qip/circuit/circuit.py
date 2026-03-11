@@ -641,7 +641,14 @@ class QubitCircuit:
                 measurements are added to the circuit")
 
         basis_1q_valid = ["RX", "RY", "RZ", "IDLE"]
-        basis_2q_valid = ["CX", "CSIGN", "CZ", "ISWAP", "SQRTSWAP", "SQRTISWAP"]
+        basis_2q_valid = [
+            "CX",
+            "CSIGN",
+            "CZ",
+            "ISWAP",
+            "SQRTSWAP",
+            "SQRTISWAP",
+        ]
         basis_1q = []
         basis_2q = []
 
