@@ -605,6 +605,7 @@ class QASMU(_SingleQubitParametricGate):
         theta, phi, gamma = self.arg_value
         return QASMU(-theta, -gamma, -phi)
 
+
 class IDLE(AngleParametricGate):
     """
     IDLE gate.
@@ -633,4 +634,4 @@ class IDLE(AngleParametricGate):
         # Practically not required as this gate is only useful in pulse level
         # simulation, and the pulse compiler implementation of it will be
         # independent of get_qobj()
-        return qeye(2, dtype=dtype) 
+        return qeye(2, dtype=dtype)
