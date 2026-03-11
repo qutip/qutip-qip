@@ -65,7 +65,6 @@ class ParametricGate(Gate):
             )
 
         # Validate params must take only one argument 'args'
-        # Inspect doesn't count self/cls as an argument
         validate_params_func = getattr(cls, "validate_params")
         if len(inspect.signature(validate_params_func).parameters) > 1:
             raise SyntaxError(

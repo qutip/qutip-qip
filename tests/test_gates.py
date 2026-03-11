@@ -20,6 +20,7 @@ from qutip_qip.operations import (
 )
 import qutip_qip.operations.gates as gates
 
+rng = np.random.default_rng(seed=101)
 
 def _permutation_id(permutation):
     return str(len(permutation)) + "-" + "".join(map(str, permutation))
@@ -401,6 +402,37 @@ class Test_expand_operator:
         assert isinstance(expanded_qobj, qutip.data.Dense)
 
 
+rand_U = qutip.rand_unitary(dimensions=[2], seed=rng)
+
+class U1(Gate):
+    num_qubits = 1
+
+    @staticmethod
+    def get_qobj(dtype: str = "dense"):
+        return rand_U.to(dtype)
+
+    @staticmethod
+    def inverse():
+        return get_unitary_gate("U1_dag", rand_U.dag())
+
+
+class U2(AngleParametricGate):
+    num_qubits = 1
+    num_params = 1
+
+    @staticmethod
+    def compute_qobj(args, dtype: str = "dense"):
+        theta = args[0]
+        return qutip.Qobj([
+            [np.exp(-1j * theta), 0],
+            [0, np.exp(1j * theta)],
+        ])
+
+    def inverse(self):
+        theta = self.arg_value[0]
+        return U2(-theta)
+
+
 GATES = [
     gates.X,
     gates.Y,
@@ -419,6 +451,7 @@ GATES = [
     gates.SQRTISWAPdag,
     gates.BERKELEY,
     gates.BERKELEYdag,
+    U1,
 ]
 
 PARAMETRIC_GATE = [
@@ -431,6 +464,7 @@ PARAMETRIC_GATE = [
     gates.SWAPALPHA(0.3),
     gates.MS(0.47, 0.8),
     gates.RZX(0.6),
+    U2(0.447),
 ]
 
 CONTROLLED_GATE = [
@@ -447,6 +481,8 @@ CONTROLLED_GATE = [
     gates.CQASMU(0.9, 0.22, 0.15),
     gates.TOFFOLI,
     gates.FREDKIN,
+    get_controlled_gate(U1, 1, 1),
+    get_controlled_gate(U2, 1, 1)(0.88),
 ]
 
 
@@ -454,6 +490,7 @@ CONTROLLED_GATE = [
 def test_gate_inverse(gate: Gate | Type[Gate]):
     n = 2**gate.num_qubits
     inverse = gate.inverse()
+    print(rand_U)
     np.testing.assert_allclose(
         (gate.get_qobj() * inverse.get_qobj()).full(),
         np.eye(n),
