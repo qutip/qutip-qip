@@ -640,7 +640,7 @@ class QubitCircuit:
             raise NotImplementedError("adjacent_gates must be called before \
                 measurements are added to the circuit")
 
-        basis_1q_valid = ["RX", "RY", "RZ", "IDLE"]
+        basis_1q_valid = ["RX", "RY", "RZ", "IDENTITY"]
         basis_2q_valid = [
             "CX",
             "CSIGN",

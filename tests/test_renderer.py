@@ -5,7 +5,7 @@ from qutip_qip.circuit import QubitCircuit
 from qutip_qip.circuit.draw import TextRenderer
 from qutip_qip.operations import get_controlled_gate
 from qutip_qip.operations.gates import (
-    IDLE,
+    IDENTITY,
     X,
     H,
     CX,
@@ -164,10 +164,10 @@ def qc3():
 
 @pytest.fixture
 def qc4():
-    i = get_controlled_gate(IDLE, n_ctrl_qubits=1, gate_name="i")
-    ii = get_controlled_gate(IDLE, n_ctrl_qubits=2, gate_name="ii")
+    i = get_controlled_gate(IDENTITY, n_ctrl_qubits=1, gate_name="i")
+    ii = get_controlled_gate(IDENTITY, n_ctrl_qubits=2, gate_name="ii")
     iii = get_controlled_gate(
-        IDLE, n_ctrl_qubits=1, control_value=0, gate_name="iii"
+        IDENTITY, n_ctrl_qubits=1, control_value=0, gate_name="iii"
     )
 
     qc = QubitCircuit(5, num_cbits=2)

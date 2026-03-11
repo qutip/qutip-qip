@@ -7,6 +7,7 @@ qutip: dict[str, str] = {
     "color": "#FFFFFF",  # White
     "wire_color": "#000000",  # Black
     "default_gate": "#000000",  # Black
+    "IDENTITY": "#FFFFFF",  # White
     "IDLE": "#FFFFFF",  # White
     "X": "#CB4BF9",  # Medium Orchid
     "Y": "#CB4BF9",  # Medium Orchid
@@ -60,6 +61,7 @@ light: dict[str, str] = {
     "color": "#000000",  # Black
     "wire_color": "#000000",  # Black
     "default_gate": "#D8CDAF",  # Bit Dark Beige
+    "IDENTITY": "#FFFFFF",  # White
     "IDLE": "#FFFFFF",  # White
     "X": "#F4A7B9",  # Light Pink
     "Y": "#F4A7B9",  # Light Pink
@@ -113,6 +115,7 @@ dark: dict[str, str] = {
     "color": "#000000",  # Black
     "wire_color": "#989898",  # Dark Gray
     "default_gate": "#D8BFD8",  # (Thistle)
+    "IDENTITY": "#FFFFFF",  # White
     "IDLE": "#FFFFFF",  # White
     "X": "#9370DB",  # Medium Purple
     "Y": "#9370DB",  # Medium Purple
@@ -167,6 +170,7 @@ modern: dict[str, str] = {
     "color": "#FFFFFF",  # White
     "wire_color": "#000000",  # Black
     "default_gate": "#ED9455",  # Slate Orange
+    "IDENTITY": "#FFFFFF",  # White
     "IDLE": "#FFFFFF",  # White
     "X": "#4A5D6D",  # Dark Slate Blue
     "Y": "#4A5D6D",  # Dark Slate Blue

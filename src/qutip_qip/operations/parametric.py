@@ -92,7 +92,7 @@ class ParametricGate(Gate):
                 f"Class '{cls.name}' method 'is_controlled()' must always return False."
             )
 
-    def __init__(self, *args, arg_label: str | None = None):
+    def __init__(self, *args, arg_label: str | None = None) -> None:
         # This auto triggers a call to arg_value setter (where checks happen)
         self.arg_value = args
         self.arg_label = arg_label
@@ -102,7 +102,7 @@ class ParametricGate(Gate):
         return self._arg_value
 
     @arg_value.setter
-    def arg_value(self, new_args: Sequence):
+    def arg_value(self, new_args: Sequence) -> None:
         if not isinstance(new_args, Sequence):
             new_args = [new_args]
 
@@ -152,10 +152,10 @@ class ParametricGate(Gate):
         raise NotImplementedError
 
     @staticmethod
-    def is_parametric():
+    def is_parametric() -> bool:
         return True
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"""
             Gate({self.name}, arg_value={self.arg_value},
             arg_label={self.arg_label}),
@@ -180,7 +180,7 @@ class AngleParametricGate(ParametricGate):
     __slots__ = ()
 
     @staticmethod
-    def validate_params(arg_value):
+    def validate_params(arg_value) -> None:
         for arg in arg_value:
             if not isinstance(arg, Real):
                 raise TypeError(f"Invalid arg {arg} in arg_value")

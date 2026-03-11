@@ -17,6 +17,7 @@ from .single_qubit_gate import (
     Tdag,
     R,
     QASMU,
+    IDENTITY,
     IDLE,
 )
 from .two_qubit_gate import (
@@ -56,6 +57,7 @@ from .other_gates import (
 
 GATE_CLASS_MAP = {
     "GLOBALPHASE": GLOBALPHASE,
+    "IDENTITY": IDENTITY,
     "IDLE": IDLE,
     "X": X,
     "Y": Y,
@@ -122,6 +124,7 @@ CONTROLLED_GATE_MAP = {
 
 __all__ = [
     "GATE_CLASS_MAP",
+    "IDENTITY",
     "IDLE",
     "X",
     "Y",

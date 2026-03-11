@@ -183,7 +183,7 @@ Gate name                           Description
 "TOFFOLI"             (CCX) Toffoli gate
 "FREDKIN"             Fredkin gate
 "GLOBALPHASE"         Global phase gate
-"IDLE"                Identity gate
+"IDENTITY"            Identity gate
 ====================  ========================================
 
 For some of the gates listed above, :class:`.QubitCircuit` also has a primitive :func:`.QubitCircuit.resolve_gates()` method that decomposes them into elementary gate sets such as CX or SWAP with single-qubit gates (RX, RY and RZ). However, this method is not fully optimized. It is very likely that the depth of the circuit can be further reduced by merging quantum gates. It is required that the gate resolution be carried out before the measurements to the circuit are added.

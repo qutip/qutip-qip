@@ -6,6 +6,7 @@ import numpy as np
 from qutip import Qobj, sigmax, sigmay, sigmaz, qeye
 from qutip_qip.operations import Gate, AngleParametricGate
 from qutip_qip.operations.namespace import NS_GATE, NameSpace
+from qutip_qip.typing import Real
 
 
 class _SingleQubitGate(Gate):
@@ -102,20 +103,20 @@ class Z(_SingleQubitGate):
         return sigmaz(dtype=dtype)
 
 
-class IDLE(_SingleQubitGate):
+class IDENTITY(_SingleQubitGate):
     """
-    IDLE gate.
+    IDENTITY gate.
 
     Examples
     --------
-    >>> from qutip_qip.operations.gates import IDLE
+    >>> from qutip_qip.operations.gates import IDENTITY
     """
 
     __slots__ = ()
 
     self_inverse: Final[bool] = True
     is_clifford: Final[bool] = True
-    latex_str: Final[str] = r"{\rm IDLE}"
+    latex_str: Final[str] = r"{\rm I}"
 
     @staticmethod
     @cache
@@ -603,3 +604,33 @@ class QASMU(_SingleQubitParametricGate):
     def inverse(self) -> Gate | tuple[Type[Gate], tuple[float, float, float]]:
         theta, phi, gamma = self.arg_value
         return QASMU(-theta, -gamma, -phi)
+
+class IDLE(AngleParametricGate):
+    """
+    IDLE gate.
+
+    Examples
+    --------
+    >>> from qutip_qip.operations.gates import IDLE
+    """
+
+    __slots__ = ()
+    num_qubits = 1
+    num_params = 1
+
+    def __init__(self, T: float, arg_label=None):
+        super().__init__(T, arg_label=arg_label)
+
+    @staticmethod
+    def validate_params(args):
+        if not isinstance(args[0], Real):
+            raise TypeError(f"{args[0]} must be a float")
+        if args[0] < 0:
+            raise ValueError(f"IDLE time must be non-negative, got {args[0]}")
+
+    @staticmethod
+    def compute_qobj(args, dtype: str = "dense") -> Qobj:
+        # Practically not required as this gate is only useful in pulse level
+        # simulation, and the pulse compiler implementation of it will be
+        # independent of get_qobj()
+        return qeye(2, dtype=dtype) 

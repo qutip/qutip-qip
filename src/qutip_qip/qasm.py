@@ -565,7 +565,7 @@ class QasmProcessor:
             )
         elif name == "id":
             qc.add_gate(
-                gates.IDLE,
+                gates.IDENTITY,
                 targets=regs[0],
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,

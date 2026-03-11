@@ -147,7 +147,7 @@ class Gate(ABC, metaclass=_GateMetaClass):
     is_clifford: bool = False
     latex_str: str
 
-    def __init_subclass__(cls, **kwargs):
+    def __init_subclass__(cls, **kwargs) -> None:
         """
         Automatically runs when a new subclass is defined via inheritance.
 
@@ -280,7 +280,7 @@ class Gate(ABC, metaclass=_GateMetaClass):
         """
         if cls.self_inverse:
             return cls
-        return get_unitary_gate("Test", cls.get_qobj().dag())
+        return get_unitary_gate(f"{cls.name}_inv", cls.get_qobj().dag())
 
     @staticmethod
     def is_controlled() -> bool:
