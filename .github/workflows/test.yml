@@ -101,6 +101,9 @@ jobs:
         make doctest
 
   pulse-paper-code:
+    runs-on: ubuntu-latest
+
+    steps:
     - uses: actions/checkout@v6
     - name: Set up Python
       uses: actions/setup-python@v6
