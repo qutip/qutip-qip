@@ -119,7 +119,7 @@ class GateCompiler:
         idle_time = None
         gate = circuit_instruction.operation
         if gate.is_parametric():
-            idle_time = gate.arg_value
+            idle_time = gate.arg_value[0]
         return [PulseInstruction(circuit_instruction, idle_time, [])]
 
     def compile(self, circuit, schedule_mode=None, args=None):

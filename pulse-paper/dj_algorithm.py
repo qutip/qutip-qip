@@ -1,44 +1,36 @@
-TEXTWIDTH = 5.93
-LINEWIDTH = 3.22
-import matplotlib as mpl
 import matplotlib.pyplot as plt
-
-try:
-    from quantum_plots import global_setup
-
-    global_setup(fontsize=10)
-except:
-    pass
-plt.rcParams.update({"text.usetex": False, "font.size": 10})
-
-
 import numpy as np
-import matplotlib.pyplot as plt
+
+from qutip import basis, hinton
+from qutip_qip.circuit import QubitCircuit
 from qutip_qip.device import (
     OptPulseProcessor,
     LinearSpinChain,
     SCQubits,
     SpinChainModel,
 )
-from qutip_qip.circuit import QubitCircuit
-from qutip import basis
+from qutip_qip.operations.gates import H, X, CX
+
+plt.rcParams.update({"text.usetex": False, "font.size": 10})
+TEXTWIDTH = 5.93
+LINEWIDTH = 3.22
 
 num_qubits = 3
 np.random.seed(2)
 
 # Deutsch-Josza algorithm
 dj_circuit = QubitCircuit(num_qubits)
-dj_circuit.add_gate("X", targets=2)
-dj_circuit.add_gate("SNOT", targets=0)
-dj_circuit.add_gate("SNOT", targets=1)
-dj_circuit.add_gate("SNOT", targets=2)
+dj_circuit.add_gate(X, targets=2)
+dj_circuit.add_gate(H, targets=0)
+dj_circuit.add_gate(H, targets=1)
+dj_circuit.add_gate(H, targets=2)
 
 # Oracle function f(x)
-dj_circuit.add_gate("CNOT", controls=0, targets=2)
-dj_circuit.add_gate("CNOT", controls=1, targets=2)
+dj_circuit.add_gate(CX, controls=0, targets=2)
+dj_circuit.add_gate(CX, controls=1, targets=2)
 
-dj_circuit.add_gate("SNOT", targets=0)
-dj_circuit.add_gate("SNOT", targets=1)
+dj_circuit.add_gate(H, targets=0)
+dj_circuit.add_gate(H, targets=1)
 
 # Spin chain model
 spinchain_processor = LinearSpinChain(num_qubits=num_qubits, t2=30)  # T2 = 30
@@ -55,9 +47,9 @@ result2 = scqubits_processor.run_state(initial_state)
 
 # Optimal control model
 setting_args = {
-    "SNOT": {"num_tslots": 6, "evo_time": 2},
+    "H": {"num_tslots": 6, "evo_time": 2},
     "X": {"num_tslots": 1, "evo_time": 0.5},
-    "CNOT": {"num_tslots": 12, "evo_time": 5},
+    "CX": {"num_tslots": 12, "evo_time": 5},
 }
 opt_processor = OptPulseProcessor(
     num_qubits=num_qubits, model=SpinChainModel(3, setup="linear")
@@ -185,7 +177,6 @@ fig3.show()
 
 plt.rcParams.update({"text.usetex": False, "font.size": 9})
 # Plot hinton
-from qutip import hinton
 
 fig4, ax4 = plt.subplots(figsize=(LINEWIDTH * 0.9, LINEWIDTH * 0.7), dpi=200)
 first_two_qubits = result1.states[-1].ptrace([0, 1])
