@@ -118,7 +118,8 @@ jobs:
     - name: Test code examples for the pulse paper
       run: |
         cd pulse-paper
-        for f in *.py; do python "$f"; done
+        for f in *.py; do python - W error "$f"; done
+        # '-W error' will throw an error in case any warning is raised 
 
   finalise:
     name: Finalise coverage reporting
