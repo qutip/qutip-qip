@@ -846,7 +846,7 @@ class QubitCircuit:
         # For Circuit's Global Phase
         qobj = Qobj([self.global_phase])
         if expand:
-            qobj = std.GLOBALPHASE(self.global_phase).get_qobj(
+            qobj = std.GLOBALPHASE(self.global_phase).get_expanded_qobj(
                 num_qubits=self.num_qubits
             )
 

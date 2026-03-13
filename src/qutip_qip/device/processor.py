@@ -1033,7 +1033,7 @@ class Processor:
         try:  # correct_global_phase are defined for ModelProcessor
             if self.correct_global_phase and self.global_phase != 0:
                 U_list.append(
-                    GLOBALPHASE(self.global_phase).get_qobj(self.num_qubits)
+                    GLOBALPHASE(self.global_phase).get_expanded_qobj(self.num_qubits)
                 )
         except AttributeError:
             pass

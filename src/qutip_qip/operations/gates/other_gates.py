@@ -33,15 +33,17 @@ class GLOBALPHASE(AngleParametricGate):
     def __repr__(self):
         return f"Gate({self.name}, phase {self.arg_value[0]}) -> Qobj:"
 
-    def get_qobj(self, num_qubits=None) -> Qobj:
+    def get_qobj(self, dtype: str = "dense") -> Qobj:
         phase = self.arg_value[0]
-        if num_qubits is None:
-            return Qobj(phase)
+        return Qobj(phase, dtype=dtype)
 
+    def get_expanded_qobj(self, num_qubits=None, dtype: str = "dense") -> Qobj:
+        phase = self.arg_value[0]
         N = 2**num_qubits
         return Qobj(
             np.exp(1.0j * phase) * sp.eye(N, N, dtype=complex, format="csr"),
             dims=[[2] * num_qubits, [2] * num_qubits],
+            dtype=dtype,
         )
 
 
