@@ -418,14 +418,14 @@ class U2(AngleParametricGate):
     num_qubits = 1
     num_params = 1
 
-    @staticmethod
-    def compute_qobj(args, dtype: str = "dense"):
-        theta = args[0]
+    def get_qobj(self, dtype: str = "dense"):
+        theta = self.arg_value[0]
         return qutip.Qobj(
             [
                 [np.exp(-1j * theta), 0],
                 [0, np.exp(1j * theta)],
-            ]
+            ],
+            dtype=dtype
         )
 
     def inverse(self):
@@ -629,8 +629,7 @@ class TestGateErrors:
             class BadParamGate(ParametricGate):
                 num_params = -1
 
-                @staticmethod
-                def compute_qobj(args):
+                def get_qobj(self, dtype):
                     pass
 
                 @staticmethod
@@ -642,8 +641,7 @@ class TestGateErrors:
             class BadParamGate2(ParametricGate):
                 num_params = 1.5
 
-                @staticmethod
-                def compute_qobj(args):
+                def get_qobj(self, dtype):
                     pass
 
                 @staticmethod
@@ -654,8 +652,7 @@ class TestGateErrors:
             num_qubits = 1
             num_params = 2
 
-            @staticmethod
-            def compute_qobj(args, dtype):
+            def get_qobj(self, dtype):
                 return qutip.qeye(2)
 
         with pytest.raises(ValueError, match="Requires 2 parameters, got 1"):
@@ -679,7 +676,7 @@ class TestGateErrors:
         with pytest.raises(SyntaxError):
 
             class NotGoodParamGate2(GoodParamGate):
-                def compute_qobj(arg1, arg2, dtype):
+                def get_qobj(self, arg2, dtype):
                     pass
 
     def test_controlled_gate_errors(self):

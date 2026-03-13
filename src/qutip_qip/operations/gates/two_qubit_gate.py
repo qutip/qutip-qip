@@ -1,5 +1,6 @@
-from typing import Final, Type
+from abc import abstractmethod
 from functools import cache, lru_cache
+from typing import Final, Type
 
 import numpy as np
 from qutip import Qobj
@@ -37,6 +38,14 @@ class _TwoQubitParametricGate(AngleParametricGate):
     __slots__ = ()
     namespace = NS_GATE
     num_qubits: Final[int] = 2
+
+    def get_qobj(self, dtype: str = "dense") -> Qobj:
+        return self.compute_qobj(self.arg_value, dtype)
+
+    @staticmethod
+    @abstractmethod
+    def compute_qobj(args: tuple[float], dtype: str) -> Qobj:
+        raise NotImplementedError
 
 
 class _ControlledTwoQubitGate(ControlledGate):

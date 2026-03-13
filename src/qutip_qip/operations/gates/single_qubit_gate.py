@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from functools import cache, lru_cache
 from typing import Final, Type
 import warnings
@@ -23,6 +24,14 @@ class _SingleQubitParametricGate(AngleParametricGate):
     __slots__ = ()
     namespace: NameSpace = NS_GATE
     num_qubits: Final[int] = 1
+
+    def get_qobj(self, dtype: str = "dense") -> Qobj:
+        return self.compute_qobj(self.arg_value, dtype)
+
+    @staticmethod
+    @abstractmethod
+    def compute_qobj(args: tuple[float], dtype: str) -> Qobj:
+        raise NotImplementedError
 
 
 class X(_SingleQubitGate):
@@ -629,8 +638,7 @@ class IDLE(AngleParametricGate):
         if args[0] < 0:
             raise ValueError(f"IDLE time must be non-negative, got {args[0]}")
 
-    @staticmethod
-    def compute_qobj(args, dtype: str = "dense") -> Qobj:
+    def get_qobj(cls, dtype: str = "dense") -> Qobj:
         # Practically not required as this gate is only useful in pulse level
         # simulation, and the pulse compiler implementation of it will be
         # independent of get_qobj()
