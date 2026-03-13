@@ -60,7 +60,7 @@ class ParametricGate(Gate):
         num_params = getattr(cls, "num_params", None)
         if (type(num_params) is not int) or (num_params < 1):
             raise TypeError(
-                f"Class '{cls.__name__}' attribute 'num_params' must be a postive integer, "
+                f"Class '{cls.__name__}' attribute 'num_params' must be a positive integer, "
                 f"got {type(num_params)} with value {num_params}."
             )
 

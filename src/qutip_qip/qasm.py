@@ -608,7 +608,7 @@ class QasmProcessor:
         elif name == "swap":
             qc.add_gate(
                 gates.SWAP,
-                controls=regs,
+                targets=regs,
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
             )

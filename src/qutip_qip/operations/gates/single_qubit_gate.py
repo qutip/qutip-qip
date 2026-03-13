@@ -638,7 +638,7 @@ class IDLE(AngleParametricGate):
         if args[0] < 0:
             raise ValueError(f"IDLE time must be non-negative, got {args[0]}")
 
-    def get_qobj(cls, dtype: str = "dense") -> Qobj:
+    def get_qobj(self, dtype: str = "dense") -> Qobj:
         # Practically not required as this gate is only useful in pulse level
         # simulation, and the pulse compiler implementation of it will be
         # independent of get_qobj()

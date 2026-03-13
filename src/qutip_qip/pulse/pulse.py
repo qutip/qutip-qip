@@ -339,7 +339,7 @@ class Pulse:
             print("Pulse label:", self.label)
         print(
             f"The pulse contains: {len(self.coherent_noise)} coherent noise "
-            f"elements and {len(self.lindblad_noise)} Lindblad noise element."
+            f"elements and {len(self.lindblad_noise)} Lindblad noise elements."
         )
         print()
         print("Ideal pulse:")
