@@ -98,10 +98,13 @@ class _GateMetaClass(ABCMeta):
         super().__setattr__(name, value)
 
     def __str__(cls) -> str:
-        return f"Gate({cls.name})"
+        gatename = getattr(cls, "name", cls.__name__)
+        return f"Gate({gatename})"
 
     def __repr__(cls) -> str:
-        return f"Gate({cls.name}, num_qubits={cls.num_qubits})"
+        gatename = getattr(cls, "name", cls.__name__)
+        num_qubits = getattr(cls, "num_qubits", None)
+        return f"Gate({gatename}, num_qubits={num_qubits})"
 
 
 class Gate(ABC, metaclass=_GateMetaClass):
@@ -247,7 +250,7 @@ class Gate(ABC, metaclass=_GateMetaClass):
         This method is overwritten in case of Parametrized and Controlled Gates.
         """
         raise TypeError(
-            f"Gate '{type(self).name}' can't be initialised. "
+            f"Gate '{self.name}' can't be initialised. "
             f"If your gate requires parameters, it must inherit from 'ParametricGate'. "
             f"Or if it must be controlled, it must inherit from 'ControlledGate'."
         )
