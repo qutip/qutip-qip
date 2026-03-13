@@ -446,7 +446,7 @@ class GateCompiler:
         .. doctest::
 
             >>> round(np.trapz(coeff, tlist), 2)
-            1.0
+            np.float64(1.0)
         """
         coeff, tlist = _normalized_window(shape, num_samples)
         sign = np.sign(area)

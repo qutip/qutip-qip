@@ -98,6 +98,8 @@ class _GateMetaClass(ABCMeta):
         super().__setattr__(name, value)
 
     def __str__(cls) -> str:
+        # Don't remove these getattr statement otherwise doctest will fail
+        # The reason is because how Sphinx builds and runs doctest even on abstract classes.
         gatename = getattr(cls, "name", cls.__name__)
         return f"Gate({gatename})"
 

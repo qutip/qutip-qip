@@ -28,7 +28,7 @@ We will work through this example and explain briefly the workflow and all the m
     from qutip import basis
     from qutip_qip.circuit import QubitCircuit
     from qutip_qip.device import LinearSpinChain
-    from qutip_qip.operations import H, X, CX
+    from qutip_qip.operations.gates import H, X, CX
 
     # Define a circuit
     qc = QubitCircuit(3)
@@ -155,7 +155,7 @@ In the following example we plot the compiled Deutsche Jozsa algorithm:
 
     # Deutsch-Jozsa algorithm
     from qutip_qip.circuit import QubitCircuit
-    from qutip_qip.operations import X, H, CX
+    from qutip_qip.operations.gates import X, H, CX
 
     qc = QubitCircuit(3)
     qc.add_gate(X, targets=2)

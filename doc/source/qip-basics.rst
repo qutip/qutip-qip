@@ -33,7 +33,7 @@ A circuit with the various gates and registers available is demonstrated below:
 .. testcode::
 
   from qutip_qip.circuit import QubitCircuit
-  from qutip_qip.operations import X, CX, SWAP
+  from qutip_qip.operations.gates import X, CX, SWAP
   from qutip import tensor, basis
 
   qc = QubitCircuit(2, num_cbits=1)
@@ -44,18 +44,18 @@ A circuit with the various gates and registers available is demonstrated below:
   qc.add_gate(X, targets=0, classical_controls=[0]) # classically controlled gate
   qc.add_gate(SWAP, targets=[0, 1])
 
-  print(qc.instruction)
+  print(qc.instructions) # doctest: +NORMALIZE_WHITESPACE
 
 **Output**:
 
 .. testoutput::
   :options: +NORMALIZE_WHITESPACE
 
-    [Gate(SWAP, targets=[0, 1], controls=None, classical controls=None, control_value=None, classical_control_value=None),
-    Measurement(M0, target=[1], classical_store=0),
-    Gate(CX, targets=[1], controls=[0], classical controls=None, control_value=1, classical_control_value=None),
-    Gate(X, targets=[0], controls=None, classical controls=[0], control_value=None, classical_control_value=1),
-    Gate(SWAP, targets=[0, 1], controls=None, classical controls=None, control_value=None, classical_control_value=None)]
+    [GateInstruction(operation=Gate(SWAP, num_qubits=2), qubits=(0, 1), cbits=(), style=None, cbits_ctrl_value=None),
+      MeasurementInstruction(operation= Measurement(M0), qubits=(1,), cbits=(0,), style={}),
+      GateInstruction(operation=Gate(CX, num_qubits=2), qubits=(0, 1), cbits=(), style=None, cbits_ctrl_value=None),
+      GateInstruction(operation=Gate(X, num_qubits=1), qubits=(0,), cbits=(0,), style=None, cbits_ctrl_value=1),
+      GateInstruction(operation=Gate(SWAP, num_qubits=2), qubits=(0, 1), cbits=(), style=None, cbits_ctrl_value=None)]
 
 Unitaries
 =========
@@ -68,18 +68,18 @@ full dimension of the circuit:
 .. testcode::
 
   U_list = qc.propagators(ignore_measurement=True)
-  print(U_list)
+  print(U_list[:-1])
 
 **Output**:
 
 .. testoutput::
 
-  [Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=CSR, isherm=True
+  [Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=True
   Qobj data =
   [[1. 0. 0. 0.]
    [0. 0. 1. 0.]
    [0. 1. 0. 0.]
-   [0. 0. 0. 1.]], Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=CSR, isherm=True
+   [0. 0. 0. 1.]], Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=True
   Qobj data =
   [[1. 0. 0. 0.]
    [0. 1. 0. 0.]
@@ -89,7 +89,7 @@ full dimension of the circuit:
   [[0. 0. 1. 0.]
    [0. 0. 0. 1.]
    [1. 0. 0. 0.]
-   [0. 1. 0. 0.]], Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=CSR, isherm=True
+   [0. 1. 0. 0.]], Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=True
   Qobj data =
   [[1. 0. 0. 0.]
    [0. 0. 1. 0.]
@@ -103,7 +103,7 @@ can be achieved with the argument ``expand=False`` specified to the
 .. testcode::
 
   U_list = qc.propagators(expand=False, ignore_measurement=True)
-  print(U_list)
+  print(U_list[:-1])
 
 **Output**:
 
@@ -235,7 +235,7 @@ gate function returning a :class:`qutip.Qobj` and save it in the attribute ``use
 .. testoutput::
   :options: +NORMALIZE_WHITESPACE
 
-  Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=CSR, isherm=False
+  Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
   Qobj data =
     [[1.     +0.j      0.     +0.j      0.     +0.j      0.     +0.j     ] 
      [0.     +0.j      1.     +0.j      0.     +0.j      0.     +0.j     ] 
@@ -252,7 +252,7 @@ gate function returning a :class:`qutip.Qobj` and save it in the attribute ``use
   :options: +NORMALIZE_WHITESPACE
 
 
-  Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=CSR, isherm=False
+  Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
   Qobj data =
   [[1.     +0.j      0.     +0.j      0.     +0.j      0.     +0.j     ]
    [0.     +0.j      0.70711+0.j      0.     +0.j      0.     -0.70711j]
@@ -289,7 +289,7 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
   :include-source:
 
   from qutip_qip.circuit import QubitCircuit
-  from qutip_qip.operations import H, CX, ISWAP
+  from qutip_qip.operations.gates import H, CX, ISWAP
 
   # create the quantum circuit
   qc = QubitCircuit(2, num_cbits=1)
@@ -306,7 +306,7 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
   :include-source:
 
   from qutip_qip.circuit import QubitCircuit
-  from qutip_qip.operations import H, CX, ISWAP
+  from qutip_qip.operations.gates import H, CX, ISWAP
 
   # create the quantum circuit
   qc = QubitCircuit(2, num_cbits=1)
@@ -371,7 +371,7 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
 .. testcode::
 
   from qutip_qip.circuit import QubitCircuit
-  from qutip_qip.operations import H, CX, ISWAP
+  from qutip_qip.operations.gates import H, CX, ISWAP
 
   # create the quantum circuit
   qc = QubitCircuit(2, num_cbits=1)
@@ -385,14 +385,14 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
 .. testoutput::
   :options: +NORMALIZE_WHITESPACE
   
-           ┌──────┐  ┌──────┐  ┌───────┐  ┌───┐   
-    q1 :───┤  CX  ├──┤  H   ├──┤       ├──┤ M ├───
-           └───┬──┘  └──────┘  │       │  └─╥─┘   
-               │               │       │    ║     
-    q0 :───────█───────────────┤ ISWAP ├────║─────
-                               └───────┘    ║     
-                                            ║     
-    c0 :════════════════════════════════════╩═════
+           ┌────┐  ┌───┐  ┌───────┐  ┌───┐      
+    q1 :───┤ CX ├──┤ H ├──┤       ├──┤ M ├───
+           └──┬─┘  └───┘  │       │  └─╥─┘   
+              │           │       │    ║     
+    q0 :──────█───────────┤ ISWAP ├────║─────
+                          └───────┘    ║     
+                                       ║     
+    c0 :═══════════════════════════════╩═════
 
 **Customization Parameters**
 
@@ -426,7 +426,7 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
     .. code-block::
 
       from qutip_qip.circuit import QubitCircuit
-      from qutip_qip.operations import H, CX, ISWAP
+      from qutip_qip.operations.gates import H, CX, ISWAP
 
       # create the quantum circuit
       qc = QubitCircuit(2, num_cbits=1)
