@@ -2,6 +2,7 @@ import numbers
 from collections.abc import Iterable
 from functools import partial
 from typing import Optional
+from copy import deepcopy
 
 import numpy as np
 import qutip
@@ -39,6 +40,19 @@ from qutip_qip.operations import (
     controlled_gate,
     globalphase,
     expand_operator,
+)
+
+from gateclass import (
+    Gate,
+    X,
+    Y,
+    Z,
+    H,
+    CNOT,
+    SWAP,
+    RX,
+    RY,
+    RZ
 )
 
 
@@ -358,6 +372,27 @@ class Gate:
             dims=dims,
             targets=all_targets,
         )
+    
+    def inverse(self):
+        """
+        Returns the inverse of the gate.
+        """
+        new_gate = deepcopy(self)
+
+        #Composite Gates:
+        if hasattr(self, "gates") and self.gates is not None:
+            new_gate.gates = [gate.inverse() for gate in reversed(self.gates)]
+            return new_gate
+
+        #Parameterized Gates:
+        if self.arg_value is not None:
+            if isinstance(self.arg_value, (int,float)):
+                new_gate.arg_value = -self.arg_value
+
+            if self.arg_label:
+                new_gate.arg_label = f"-{self.arg_label}"
+
+        return new_gate  
 
 
 class SingleQubitGate(Gate):
