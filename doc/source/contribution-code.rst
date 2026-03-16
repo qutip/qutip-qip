@@ -26,10 +26,28 @@ The docstring should follow
 
 Checking Code Style and Format
 ==============================
+To ensure the codebase follows the `PEP8 <https://www.python.org/dev/peps/pep-0008/>`_
+style guidelines, we use the ``pre-commit`` framework and the ``black`` formatter.
 
-In order to check if your code in ``some_file.py`` follows `PEP8 <https://www.python.org/dev/peps/pep-0008/>`_
-style guidelines, `Black <https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html>`_
-has to be installed.
+Automated Checking with pre-commit
+----------------------------------
+The easiest way to maintain compliance is to automate the checks. Install the
+development dependencies and the git hooks once:
+
+.. code-block:: bash
+
+  pip install -e ".[tests]"
+  pre-commit install
+
+These checks (including Black, whitespace fixes, and YAML validation) will now
+run automatically on every ``git commit``. To run all checks manually across the
+entire repository without committing, use:
+
+Alternatively with Black
+----------------------------------
+.. code-block:: bash
+
+  pre-commit run --all-files
 
 .. code-block::
 
