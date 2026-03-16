@@ -529,8 +529,6 @@ class QubitCircuit:
 
         Returns
         -------
-        result: CircuitResult
-            Return a CircuitResult object containing
             output states and and their probabilities.
         """
         if state.isket:
