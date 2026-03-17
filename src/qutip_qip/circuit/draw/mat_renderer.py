@@ -786,9 +786,21 @@ class MatRenderer(BaseRenderer):
 
             if isinstance(gate, Gate):
                 style = gate.style if gate.style is not None else {}
-                self.text = (
-                    gate.arg_label if gate.arg_label is not None else gate.name
-                )
+                self.showarg = style.get("showarg", False)
+                if self.showarg and gate.arg_value is not None:
+                    arg_str = str(gate.arg_value)
+                    base = (
+                        gate.arg_label
+                        if gate.arg_label is not None
+                        else gate.name
+                    )
+                    self.text = f"{base}({arg_str})"
+                else:
+                    self.text = (
+                        gate.arg_label
+                        if gate.arg_label is not None
+                        else gate.name
+                    )
                 self.color = style.get(
                     "color",
                     self.style.theme.get(
@@ -800,7 +812,6 @@ class MatRenderer(BaseRenderer):
                 self.fontweight = style.get("fontweight", "normal")
                 self.fontstyle = style.get("fontstyle", "normal")
                 self.fontfamily = style.get("fontfamily", "monospace")
-                self.showarg = style.get("showarg", False)
 
                 self.merged_wires = (
                     gate.targets.copy()
