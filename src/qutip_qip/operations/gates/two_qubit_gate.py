@@ -134,13 +134,13 @@ class ISWAPdag(_TwoQubitGate):
     Examples
     --------
     >>> from qutip_qip.operations.gates import ISWAPdag
-    >>> ISWAPdag.get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> ISWAPdag.get_qobj()
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
     Qobj data =
-    [[1.+0.j 0.+0.j 0.+0.j 0.+0.j]
-     [0.+0.j 0.+0.j 0.-1.j 0.+0.j]
-     [0.+0.j 0.-1.j 0.+0.j 0.+0.j]
-     [0.+0.j 0.+0.j 0.+0.j 1.+0.j]]
+    [[ 1.+0.j  0.+0.j  0.+0.j 0.+0.j]
+     [ 0.+0.j  0.+0.j -0.-1.j 0.+0.j]
+     [ 0.+0.j -0.-1.j  0.+0.j 0.+0.j]
+     [ 0.+0.j  0.+0.j  0.+0.j 1.+0.j]]
     """
 
     __slots__ = ()
@@ -254,13 +254,13 @@ class SQRTISWAP(_TwoQubitGate):
     Examples
     --------
     >>> from qutip_qip.operations.gates import SQRTISWAP
-    >>> SQRTISWAP.get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> SQRTISWAP.get_qobj()
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
     Qobj data =
-    [[1.     +0.j      0.     +0.j      0.     +0.j      0.     +0.j     ]
-     [0.     +0.j      0.70711+0.j      0.     +0.70711j 0.     +0.j     ]
-     [0.     +0.j      0.     +0.70711j 0.70711+0.j      0.     +0.j     ]
-     [0.     +0.j      0.     +0.j      0.     +0.j      1.     +0.j     ]]
+    [[1.     +0.j      0.        +0.j         0.        +0.j         0.     +0.j ]
+     [0.     +0.j      0.70710678+0.j         0.        +0.70710678j 0.     +0.j ]
+     [0.     +0.j      0.        +0.70710678j 0.70710678+0.j         0.     +0.j ]
+     [0.     +0.j      0.        +0.j         0.        +0.j         1.     +0.j ]]
     """
 
     __slots__ = ()
@@ -297,13 +297,13 @@ class SQRTISWAPdag(_TwoQubitGate):
     Examples
     --------
     >>> from qutip_qip.operations.gates import SQRTISWAPdag
-    >>> SQRTISWAPdag.get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> SQRTISWAPdag.get_qobj()
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
     Qobj data =
-    [[1.     +0.j      0.     +0.j      0.     +0.j      0.     +0.j     ]
-     [0.     +0.j      0.70711+0.j      0.     -0.70711j 0.     +0.j     ]
-     [0.     +0.j      0.     -0.70711j 0.70711+0.j      0.     +0.j     ]
-     [0.     +0.j      0.     +0.j      0.     +0.j      1.     +0.j     ]]
+    [[ 1.         +0.j           0.        +0.j           0.        +0.j         0.     +0.j     ]
+     [ 0.         +0.j           0.70710678+0.j          -0.        -0.70710678j 0.     +0.j     ]
+     [ 0.         +0.j          -0.        -0.70710678j   0.70710678+0.j         0.     +0.j     ]
+     [ 0.         +0.j           0.        +0.j           0.        +0.j         1.     +0.j     ]]
     """
 
     __slots__ = ()
@@ -349,13 +349,13 @@ class BERKELEY(_TwoQubitGate):
     Examples
     --------
     >>> from qutip_qip.operations.gates import BERKELEY
-    >>> BERKELEY.get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> BERKELEY.get_qobj()
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
     Qobj data =
-    [[0.92388+0.j      0.     +0.j      0.     +0.j      0.     +0.38268j]
-     [0.     +0.j      0.38268+0.j      0.     +0.92388j 0.     +0.j     ]
-     [0.     +0.j      0.     +0.92388j 0.38268+0.j      0.     +0.j     ]
-     [0.     +0.38268j 0.     +0.j      0.     +0.j      0.92388+0.j     ]]
+    [[0.92387953+0.j         0.        +0.j         0.        +0.j         0.        +0.38268343j]
+     [0.        +0.j         0.38268343+0.j         0.        +0.92387953j 0.        +0.j     ]
+     [0.        +0.j         0.        +0.92387953j 0.38268343+0.j         0.        +0.j     ]
+     [0.        +0.38268343j 0.        +0.j         0.        +0.j         0.92387953+0.j     ]]
     """
 
     __slots__ = ()
@@ -401,10 +401,10 @@ class BERKELEYdag(_TwoQubitGate):
     >>> BERKELEYdag.get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
     Qobj data =
-    [[0.92388+0.j      0.     +0.j      0.     +0.j      0.     -0.38268j]
-     [0.     +0.j      0.38268+0.j      0.     -0.92388j 0.     +0.j     ]
-     [0.     +0.j      0.     -0.92388j 0.38268+0.j      0.     +0.j     ]
-     [0.     -0.38268j 0.     +0.j      0.     +0.j      0.92388+0.j     ]]
+    [[0.92387953+0.j         0.        +0.j         0.        +0.j         0.        -0.38268343j]
+     [0.        +0.j         0.38268343+0.j         0.        -0.92387953j 0.        +0.j     ]
+     [0.        +0.j         0.        -0.92387953j 0.38268343+0.j         0.        +0.j     ]
+     [0.        -0.38268343j 0.        +0.j         0.        +0.j         0.92387953+0.j     ]]
     """
 
     __slots__ = ()
@@ -507,13 +507,13 @@ class MS(_TwoQubitParametricGate):
     Examples
     --------
     >>> from qutip_qip.operations.gates import MS
-    >>> MS((np.pi/2, 0)).get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> MS((np.pi/2, 0)).get_qobj()
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
     Qobj data =
-    [[0.70711+0.j      0.     +0.j      0.     +0.j      0.     -0.70711j]
-     [0.     +0.j      0.70711+0.j      0.     -0.70711j 0.     +0.j     ]
-     [0.     +0.j      0.     -0.70711j 0.70711+0.j      0.     +0.j     ]
-     [0.     -0.70711j 0.     +0.j      0.     +0.j      0.70711+0.j     ]]
+    [[0.70710678+0.j         0.        +0.j         0.        +0.j         0.        -0.70710678j]
+     [0.        +0.j         0.70710678+0.j         0.        -0.70710678j 0.        +0.j     ]
+     [0.        +0.j         0.        -0.70710678j 0.70710678+0.j         0.        +0.j     ]
+     [0.        -0.70710678j 0.        +0.j         0.        +0.j         0.70710678+0.j     ]]
     """
 
     __slots__ = ("theta", "phi")
@@ -646,13 +646,13 @@ class CY(_ControlledTwoQubitGate):
     Examples
     --------
     >>> from qutip_qip.operations.gates import CY
-    >>> CY.get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> CY.get_qobj()
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=True
     Qobj data =
-    [[ 1.+0j  0.+0j  0.+0j  0.+0j]
-     [ 0.+0j  1.+0j  0.+0j  0.+0j]
-     [ 0.+0j  0.+0j  0.+0j  0.-1j]
-     [ 0+0j.  0.+0j  0.+1j. 0.+0j]]
+    [[ 1.+0.j  0.+0.j  0.+0.j   0.+0.j]
+     [ 0.+0.j  1.+0.j  0.+0.j   0.+0.j]
+     [ 0.+0.j  0.+0.j  0.+0.j  -0.-1.j]
+     [ 0.+0.j  0.+0.j  0.+1.j   0.+0.j]]
     """
 
     __slots__ = ()

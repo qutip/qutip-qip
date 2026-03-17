@@ -143,8 +143,8 @@ class H(_SingleQubitGate):
     >>> H.get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=True
     Qobj data =
-    [[ 0.70711  0.70711]
-     [ 0.70711 -0.70711]]
+    [[ 0.70710678  0.70710678]
+     [ 0.70710678 -0.70710678]]
     """
 
     __slots__ = ()
@@ -280,8 +280,8 @@ class Sdag(_SingleQubitGate):
     >>> Sdag.get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
-    [[1.+0.j 0.+0.j]
-     [0.+0.j 0.-1.j]]
+    [[ 1.+0.j  0.+0.j]
+     [ 0.+0.j -0.-1.j]]
     """
 
     __slots__ = ()
@@ -311,7 +311,7 @@ class T(_SingleQubitGate):
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[1.     +0.j      0.     +0.j     ]
-     [0.     +0.j      0.70711+0.70711j]]
+     [0.     +0.j      0.70710678+0.70710678j]]
     """
 
     __slots__ = ()
@@ -340,7 +340,7 @@ class Tdag(_SingleQubitGate):
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[1.     +0.j      0.     +0.j     ]
-     [0.     +0.j      0.70711-0.70711j]]
+     [0.     +0.j      0.70710678-0.70710678j]]
     """
 
     __slots__ = ()
@@ -368,8 +368,8 @@ class RX(_SingleQubitParametricGate):
     >>> RX(3.14159/2).get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
-    [[0.70711+0.j      0.     -0.70711j]
-     [0.     -0.70711j 0.70711+0.j     ]]
+    [[0.70710725+0.j         0.        -0.70710631j]
+     [0.        -0.70710631j 0.70710725+0.j        ]]
     """
 
     __slots__ = ()
@@ -405,8 +405,8 @@ class RY(_SingleQubitParametricGate):
     >>> RY(3.14159/2).get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
-    [[ 0.70711 -0.70711]
-     [ 0.70711  0.70711]]
+    [[ 0.70710725 -0.70710631]
+     [ 0.70710631  0.70710725]]
     """
 
     __slots__ = ()
@@ -442,8 +442,8 @@ class RZ(_SingleQubitParametricGate):
     >>> RZ(3.14159/2).get_qobj() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
-    [[0.70711-0.70711j 0.     +0.j     ]
-     [0.     +0.j      0.70711+0.70711j]]
+    [[0.70710725-0.70710631j 0.        +0.j        ]
+     [0.        +0.j         0.70710725+0.70710631j]]
     """
 
     __slots__ = ()
@@ -512,8 +512,8 @@ class R(_SingleQubitParametricGate):
     >>> R(arg_value=[np.pi/2, np.pi/2]).get_qobj().tidyup() # doctest: +NORMALIZE_WHITESPACE
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
-    [[ 0.70711 -0.70711]
-     [ 0.70711  0.70711]]
+    [[ 0.70710678 -0.70710678]
+     [ 0.70710678  0.70710678]]
     """
 
     __slots__ = ()
