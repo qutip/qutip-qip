@@ -76,7 +76,7 @@ class GLOBALPHASE(AngleParametricGate):
         Returns
         -------
         qobj : qutip.Qobj
-            The expanded unitary matrix representing $e^{i \theta} I$ for the 
+            The expanded unitary matrix representing $e^{i \theta} I$ for the
             $N$-qubit system.
         """
         phase = self.arg_value[0]
@@ -90,12 +90,12 @@ class GLOBALPHASE(AngleParametricGate):
 
 class TOFFOLI(ControlledGate):
     """
-    TOFFOLI gate.
+    TOFFOLI gate (CCX).
 
     Examples
     --------
     >>> from qutip_qip.operations.gates import TOFFOLI
-    >>> TOFFOLI.get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> TOFFOLI.get_qobj()
     Quantum object: dims=[[2, 2, 2], [2, 2, 2]], shape=(8, 8), type='oper', dtype=Dense, isherm=True
     Qobj data =
     [[1. 0. 0. 0. 0. 0. 0. 0.]
@@ -140,12 +140,12 @@ class TOFFOLI(ControlledGate):
 
 class FREDKIN(ControlledGate):
     """
-    FREDKIN gate.
+    FREDKIN gate (C-SWAP).
 
     Examples
     --------
     >>> from qutip_qip.operations.gates import FREDKIN
-    >>> FREDKIN.get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> FREDKIN.get_qobj()
     Quantum object: dims=[[2, 2, 2], [2, 2, 2]], shape=(8, 8), type='oper', dtype=Dense, isherm=True
     Qobj data =
     [[1. 0. 0. 0. 0. 0. 0. 0.]

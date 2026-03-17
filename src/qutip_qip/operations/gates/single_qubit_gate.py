@@ -370,25 +370,18 @@ class RX(_SingleQubitParametricGate):
     
     Parameters
     ----------
-    arg_value : float
+    arg_value : float or tuple[float]
         The rotation angle (theta) in radians.
-
-    Attributes
-    ----------
-    num_params : int
-        The number of parameters required by the gate (always 1 for RX).
-    latex_str : str
-        The string representation of the gate used for LaTeX rendering in 
-        circuit diagrams.
 
     Examples
     --------
     >>> from qutip_qip.operations.gates import RX
-    >>> RX(3.14159/2).get_qobj()
+    >>> from math import pi
+    >>> RX(pi/2).get_qobj()
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
-    [[0.70710725+0.j         0.        -0.70710631j]
-     [0.        -0.70710631j 0.70710725+0.j        ]]
+    [[0.70710678+0.j         0.        -0.70710678j]
+     [0.        -0.70710678j 0.70710678+0.j        ]]
     """
 
     __slots__ = ()
@@ -432,17 +425,18 @@ class RY(_SingleQubitParametricGate):
 
     Parameters
     ----------
-    arg_value : float
+    arg_value : float or tuple[float]
         The rotation angle (theta) in radians.
 
     Examples
     --------
     >>> from qutip_qip.operations.gates import RY
-    >>> RY(3.14159/2).get_qobj()
+    >>> from math import pi
+    >>> RY(pi/2).get_qobj()
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
-    [[ 0.70710725 -0.70710631]
-     [ 0.70710631  0.70710725]]
+    [[ 0.70710678 -0.70710678]
+     [ 0.70710678  0.70710678]]
     """
 
     __slots__ = ()
@@ -475,11 +469,6 @@ class RZ(_SingleQubitParametricGate):
     This parametric gate performs a rotation of the quantum state around the 
     Z-axis of the Bloch sphere by a specified angle.
 
-    Parameters
-    ----------
-    arg_value : float
-        The rotation angle (theta) in radians.
-
     The matrix representation of this gate is:
 
     .. math::
@@ -489,14 +478,20 @@ class RZ(_SingleQubitParametricGate):
         0 & e^{i\frac{\theta}{2}}
         \end{pmatrix}
 
+    Parameters
+    ----------
+    arg_value : float or tuple[float]
+        The rotation angle (theta) in radians.
+
     Examples
     --------
     >>> from qutip_qip.operations.gates import RZ
-    >>> RZ(3.14159/2).get_qobj()
+    >>> from math import pi
+    >>> RZ(pi/2).get_qobj()
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
-    [[0.70710725-0.70710631j 0.        +0.j        ]
-     [0.        +0.j         0.70710725+0.70710631j]]
+    [[0.70710678-0.70710678j 0.        +0.j        ]
+     [0.        +0.j         0.70710678+0.70710678j]]
     """
 
     __slots__ = ()
@@ -537,7 +532,7 @@ class PHASE(_SingleQubitParametricGate):
 
     Parameters
     ----------
-    arg_value : float
+    arg_value : float or tuple[float]
         The phase shift angle (:math:`\phi`) in radians.
 
     Examples
@@ -595,8 +590,9 @@ class R(_SingleQubitParametricGate):
         
     Examples
     --------
+    >>> from math import pi
     >>> from qutip_qip.operations.gates import R
-    >>> R(arg_value=[np.pi/2, np.pi/2]).get_qobj().tidyup()
+    >>> R(arg_value=(pi/2, pi/2)).get_qobj().tidyup()
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[ 0.70710678 -0.70710678]
@@ -660,7 +656,8 @@ class QASMU(_SingleQubitParametricGate):
     Examples
     --------
     >>> from qutip_qip.operations.gates import QASMU
-    >>> QASMU(arg_value=(np.pi/2, np.pi, np.pi/2)).get_qobj()
+    >>> from math import pi
+    >>> QASMU(arg_value=(pi/2, pi, pi/2)).get_qobj()
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[-0.5-0.5j -0.5+0.5j]
