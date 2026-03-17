@@ -224,9 +224,9 @@ To let it find the optimal pulses, we need to give the parameters for :func:`~qu
     :context: close-figs
 
     from qutip_qip.device import OptPulseProcessor, SpinChainModel
-    setting_args = {H: {"num_tslots": 6, "evo_time": 2},
-                    X: {"num_tslots": 1, "evo_time": 0.5},
-                    CX: {"num_tslots": 12, "evo_time": 5}}
+    setting_args = {"H": {"num_tslots": 6, "evo_time": 2},
+                    "X": {"num_tslots": 1, "evo_time": 0.5},
+                    "CX": {"num_tslots": 12, "evo_time": 5}}
     opt_processor = OptPulseProcessor(
         num_qubits=3, model=SpinChainModel(3, setup="linear"))
     opt_processor.load_circuit(  # Provide parameters for the algorithm
