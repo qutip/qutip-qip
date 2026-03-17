@@ -58,10 +58,21 @@ class _GateMetaClass(ABCMeta):
             # but we were redefining it with a different name, the cls.name insert
             # step would go through, but wrt. second key won't and will throw an error.
             # This will lead to leakage in the namespace i.e. classes which don't exist but are in the namespace.
-            if namespace.get(cls.name) is not None:
-                raise ValueError(
-                    f"Existing {cls.name} in namespace {namespace}"
-                )
+
+            existing_gate = namespace.get(name)
+            if existing_gate is not None:
+                try:
+                    # Check if both classes originate from the exact same physical file.
+                    # If they do, this is a namespace alias/reload
+                    # This is needed because qutip.qip import support is still needed
+                    if inspect.getfile(existing_gate) == inspect.getfile(cls):
+                        return
+                    else:
+                        raise ValueError(
+                            f"Existing {cls.name} in namespace {namespace}"
+                        )
+                except TypeError:
+                    pass  # Fallback
 
             # The basic principle is don't define a gate class if it already exists
             if cls.is_controlled():
