@@ -146,7 +146,7 @@ def test_export_import():
     qc.add_gate(gates.CS, targets=1, controls=0)
     qc.add_gate(gates.CT, targets=1, controls=0)
     qc.add_gate(gates.SWAP, targets=[0, 1])
-    qc.add_gate(gates.QASMU(np.pi, np.pi, np.pi), targets=[0])
+    qc.add_gate(gates.QASMU((np.pi, np.pi, np.pi)), targets=[0])
     qc.add_gate(gates.RX(np.pi), targets=[0])
     qc.add_gate(gates.RY(np.pi), targets=[0])
     qc.add_gate(gates.RZ(np.pi), targets=[0])

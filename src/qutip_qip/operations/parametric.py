@@ -1,6 +1,6 @@
 import inspect
 from abc import abstractmethod
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 
 from qutip import Qobj
 from qutip_qip.operations import Gate
@@ -92,9 +92,9 @@ class ParametricGate(Gate):
                 f"Class '{cls.name}' method 'is_controlled()' must always return False."
             )
 
-    def __init__(self, *args, arg_label: str | None = None) -> None:
+    def __init__(self, arg_value, arg_label: str | None = None) -> None:
         # This auto triggers a call to arg_value setter (where checks happen)
-        self.arg_value = args
+        self.arg_value = arg_value
         self.arg_label = arg_label
 
     @property
@@ -103,7 +103,9 @@ class ParametricGate(Gate):
 
     @arg_value.setter
     def arg_value(self, new_args: Sequence) -> None:
-        if not isinstance(new_args, Sequence):
+        # FIXME numpy arrays are not counted as Sequence, so for now Iterable is being used
+        # we need to have a custom typing for Sequence
+        if not isinstance(new_args, Iterable):
             new_args = [new_args]
 
         if len(new_args) != self.num_params:

@@ -555,7 +555,7 @@ class QasmProcessor:
 
         if name == "u3":
             qc.add_gate(
-                gates.QASMU(*args),
+                gates.QASMU(args),
                 targets=regs[0],
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
@@ -638,7 +638,7 @@ class QasmProcessor:
             )
         elif name == "cu3":
             qc.add_gate(
-                gates.CQASMU(*args),
+                gates.CQASMU(args),
                 controls=regs[0],
                 targets=[regs[1]],
                 classical_controls=classical_controls,
@@ -724,7 +724,7 @@ class QasmProcessor:
             )
         elif name == "U":
             qc.add_gate(
-                gates.QASMU(*com_args),
+                gates.QASMU(com_args),
                 targets=int(com_regs[0]),
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,

@@ -27,9 +27,6 @@ class GLOBALPHASE(AngleParametricGate):
     self_inverse: Final[bool] = False
     latex_str: Final[str] = r"{\rm GLOBALPHASE}"
 
-    def __init__(self, phase: float = 0.0):
-        super().__init__(phase)
-
     def __repr__(self):
         return f"Gate({self.name}, phase {self.arg_value[0]}) -> Qobj:"
 

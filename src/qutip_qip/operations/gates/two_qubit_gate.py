@@ -461,9 +461,6 @@ class SWAPALPHA(_TwoQubitParametricGate):
     num_params: Final[int] = 1
     latex_str: Final[str] = r"{\rm SWAPALPHA}"
 
-    def __init__(self, alpha: float, arg_label: str | None = None):
-        super().__init__(alpha, arg_label=arg_label)
-
     @staticmethod
     @lru_cache(maxsize=128)
     def compute_qobj(arg_value: tuple[float], dtype: str) -> Qobj:
@@ -491,7 +488,7 @@ class SWAPALPHA(_TwoQubitParametricGate):
 
     def inverse(self) -> Gate | tuple[Type[Gate], tuple[float]]:
         alpha = self.arg_value[0]
-        return SWAPALPHA(-alpha)
+        return SWAPALPHA((-alpha))
 
 
 class MS(_TwoQubitParametricGate):
@@ -524,9 +521,6 @@ class MS(_TwoQubitParametricGate):
     num_params: Final[int] = 2
     latex_str: Final[str] = r"{\rm MS}"
 
-    def __init__(self, theta: float, phi: float, arg_label: str | None = None):
-        super().__init__(theta, phi, arg_label=arg_label)
-
     @staticmethod
     @lru_cache(maxsize=128)
     def compute_qobj(arg_value: tuple[float, float], dtype: str) -> Qobj:
@@ -554,7 +548,7 @@ class MS(_TwoQubitParametricGate):
 
     def inverse(self) -> Gate | tuple[Type[Gate], tuple[float, float]]:
         theta, phi = self.arg_value
-        return MS(-theta, phi)
+        return MS((-theta, phi))
 
 
 class RZX(_TwoQubitParametricGate):
@@ -587,9 +581,6 @@ class RZX(_TwoQubitParametricGate):
     num_params: Final[int] = 1
     latex_str: Final[str] = r"{\rm RZX}"
 
-    def __init__(self, theta: float, arg_label: str | None = None):
-        super().__init__(theta, arg_label=arg_label)
-
     @staticmethod
     @lru_cache(maxsize=128)
     def compute_qobj(arg_value: tuple[float], dtype: str) -> Qobj:
@@ -609,7 +600,7 @@ class RZX(_TwoQubitParametricGate):
 
     def inverse(self) -> Gate | tuple[Type[Gate], tuple[float]]:
         theta = self.arg_value[0]
-        return RZX(-theta)
+        return RZX((-theta))
 
 
 class CX(_ControlledTwoQubitGate):
@@ -934,9 +925,6 @@ class CRX(_ControlledTwoQubitGate):
     target_gate: Final[Type[Gate]] = RX
     latex_str: Final[str] = r"{\rm CRX}"
 
-    def __init__(self, theta: float, arg_label: str | None = None):
-        super().__init__(theta, arg_label=arg_label)
-
     @staticmethod
     @lru_cache(maxsize=128)
     def compute_qobj(arg_value: tuple[float], dtype: str) -> Qobj:
@@ -957,7 +945,7 @@ class CRX(_ControlledTwoQubitGate):
 
     def inverse(self) -> Gate:
         theta = self.arg_value[0]
-        return CRX(-theta)
+        return CRX((-theta,))
 
 
 class CRY(_ControlledTwoQubitGate):
@@ -974,9 +962,6 @@ class CRY(_ControlledTwoQubitGate):
     num_params: Final[int] = 1
     target_gate: Final[Type[Gate]] = RY
     latex_str: Final[str] = r"{\rm CRY}"
-
-    def __init__(self, theta: float, arg_label: str | None = None):
-        super().__init__(theta, arg_label=arg_label)
 
     @staticmethod
     @lru_cache(maxsize=128)
@@ -998,7 +983,7 @@ class CRY(_ControlledTwoQubitGate):
 
     def inverse(self) -> Gate:
         theta = self.arg_value[0]
-        return CRY(-theta)
+        return CRY((-theta,))
 
 
 class CRZ(_ControlledTwoQubitGate):
@@ -1032,9 +1017,6 @@ class CRZ(_ControlledTwoQubitGate):
     target_gate: Final[Type[Gate]] = RZ
     latex_str: Final[str] = r"{\rm CRZ}"
 
-    def __init__(self, theta: float, arg_label: str | None = None):
-        super().__init__(theta, arg_label=arg_label)
-
     @staticmethod
     @lru_cache(maxsize=128)
     def compute_qobj(arg_value: tuple[float], dtype: str) -> Qobj:
@@ -1055,7 +1037,7 @@ class CRZ(_ControlledTwoQubitGate):
 
     def inverse(self) -> Gate:
         theta = self.arg_value[0]
-        return CRZ(-theta)
+        return CRZ((-theta,))
 
 
 class CPHASE(_ControlledTwoQubitGate):
@@ -1089,9 +1071,6 @@ class CPHASE(_ControlledTwoQubitGate):
     target_gate: Final[Type[Gate]] = PHASE
     latex_str: Final[str] = r"{\rm CPHASE}"
 
-    def __init__(self, theta: float, arg_label: str | None = None):
-        super().__init__(theta, arg_label=arg_label)
-
     @staticmethod
     @lru_cache(maxsize=128)
     def compute_qobj(arg_value: tuple[float], dtype: str) -> Qobj:
@@ -1112,7 +1091,7 @@ class CPHASE(_ControlledTwoQubitGate):
 
     def inverse(self) -> Gate:
         theta = self.arg_value[0]
-        return CPHASE(-theta)
+        return CPHASE((-theta,))
 
 
 class CQASMU(_ControlledTwoQubitGate):
@@ -1129,15 +1108,6 @@ class CQASMU(_ControlledTwoQubitGate):
     num_params: Final[int] = 3
     target_gate: Final[Type[Gate]] = QASMU
     latex_str: Final[str] = r"{\rm CQASMU}"
-
-    def __init__(
-        self,
-        theta: float,
-        phi: float,
-        gamma: float,
-        arg_label: str | None = None,
-    ):
-        super().__init__(theta, phi, gamma, arg_label=arg_label)
 
     @staticmethod
     @lru_cache(maxsize=128)
@@ -1171,4 +1141,4 @@ class CQASMU(_ControlledTwoQubitGate):
 
     def inverse(self) -> Gate:
         theta, phi, gamma = self.arg_value
-        return CQASMU(-theta, -gamma, -phi)
+        return CQASMU((-theta, -gamma, -phi))

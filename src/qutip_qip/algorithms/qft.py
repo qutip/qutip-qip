@@ -67,7 +67,7 @@ def qft_steps(N=1, swapping=True):
             for j in range(i):
                 U_step_list.append(
                     expand_operator(
-                        CPHASE(theta=np.pi / (2 ** (i - j))).get_qobj(),
+                        CPHASE(np.pi / (2 ** (i - j))).get_qobj(),
                         dims=[2] * N,
                         targets=[i, j],
                     )
@@ -115,7 +115,7 @@ def qft_gate_sequence(N=1, swapping=True, to_cnot=False):
                 if not to_cnot:
                     qc.add_gate(
                         CPHASE(
-                            theta=np.pi / (2 ** (i - j)),
+                            arg_value=np.pi / (2 ** (i - j)),
                             arg_label=r"{\pi/2^{%d}}" % (i - j),
                         ),
                         targets=[j],

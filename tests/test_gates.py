@@ -129,7 +129,7 @@ class TestExplicitForm:
     )
     def test_molmer_sorensen(self, angle, expected):
         np.testing.assert_allclose(
-            gates.MS(*angle).get_qobj().full(), expected.full(), atol=1e-15
+            gates.MS(angle).get_qobj().full(), expected.full(), atol=1e-15
         )
 
     @pytest.mark.parametrize(
@@ -144,7 +144,7 @@ class TestExplicitForm:
     )
     def test_zero_rotations_are_identity(self, gate, n_angles):
         np.testing.assert_allclose(
-            np.eye(2), gate(*[0] * n_angles).get_qobj().full(), atol=1e-15
+            np.eye(2), gate([0] * n_angles).get_qobj().full(), atol=1e-15
         )
 
 
@@ -218,7 +218,7 @@ class TestGateExpansion:
         base = qutip.rand_ket(2)
         if n_angles > 0:
             angles = 2 * np.pi * (np.random.rand(n_angles))
-            gate = gate(*angles)
+            gate = gate(angles)
 
         applied = gate.get_qobj() * base
         random = [qutip.rand_ket(2) for _ in [None] * (self.n_qubits - 1)]
@@ -247,7 +247,9 @@ class TestGateExpansion:
             pytest.param(gates.SWAP, 0, id="SWAP"),
             pytest.param(gates.ISWAP, 0, id="ISWAP"),
             pytest.param(gates.SQRTSWAP, 0, id="SQRTSWAP"),
-            pytest.param(gates.MS(0.5 * np.pi, 0.0), 0, id="Molmer-Sorensen"),
+            pytest.param(
+                gates.MS(arg_value=(0.5 * np.pi, 0.0)), 0, id="Molmer-Sorensen"
+            ),
         ],
     )
     def test_two_qubit(self, gate, n_controls):
@@ -425,7 +427,7 @@ class U2(AngleParametricGate):
                 [np.exp(-1j * theta), 0],
                 [0, np.exp(1j * theta)],
             ],
-            dtype=dtype
+            dtype=dtype,
         )
 
     def inverse(self):
@@ -459,10 +461,10 @@ PARAMETRIC_GATE = [
     gates.RY(0.5),
     gates.RZ(0.5),
     gates.PHASE(0.5),
-    gates.R(0.5, 0.9),
-    gates.QASMU(0.1, 0.2, 0.3),
+    gates.R(arg_value=(0.5, 0.9)),
+    gates.QASMU(arg_value=(0.1, 0.2, 0.3)),
     gates.SWAPALPHA(0.3),
-    gates.MS(0.47, 0.8),
+    gates.MS((0.47, 0.8)),
     gates.RZX(0.6),
     U2(0.447),
 ]
@@ -478,7 +480,7 @@ CONTROLLED_GATE = [
     gates.CRY(0.88),
     gates.CRZ(0.78),
     gates.CPHASE(0.9),
-    gates.CQASMU(0.9, 0.22, 0.15),
+    gates.CQASMU(arg_value=(0.9, 0.22, 0.15)),
     gates.TOFFOLI,
     gates.FREDKIN,
     get_controlled_gate(U1, 1, 1),
@@ -659,11 +661,10 @@ class TestGateErrors:
             GoodParamGate(1.0)
 
         with pytest.raises(TypeError):
-            GoodParamGate(
-                1.0, "wrong"
-            )  # second argument is a string instead of float
+            # second argument is a string instead of float
+            GoodParamGate(arg_value=[1.0, "wrong"])
 
-        gate = GoodParamGate(1.0, 2.0)
+        gate = GoodParamGate(arg_value=[1.0, 2.0])
         with pytest.raises(NotImplementedError):
             gate.inverse()
 
