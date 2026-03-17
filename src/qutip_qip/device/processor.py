@@ -244,11 +244,10 @@ class Processor:
         >>> processor.get_control_labels()
         ['sx']
         >>> processor.get_control("sx")
-        (Quantum object: dims=[[2], [2]], shape=(2, 2),
-        type='oper', dtype=CSR, isherm=True
+        (Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=CSR, isherm=True
         Qobj data =
         [[0. 1.]
-        [1. 0.]], [0])
+         [1. 0.]], [0])
         """
         targets = self._unify_targets(qobj, targets)
         if label is None:
@@ -284,8 +283,8 @@ class Processor:
         >>> processor.get_control('sz0')
         (Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=CSR, isherm=True
         Qobj data =
-        [[ 6.28318531  0.        ]
-         [ 0.         -6.28318531]], 0)
+        [[ 6.28319  0.     ]
+         [ 0.      -6.28319]], 0)
         """
         return self.model.get_control(label)
 

@@ -1,8 +1,4 @@
-numpy==1.26.4
-scipy==1.14.1
-qutip==5.0.3.post1
-qutip-qtrl==0.1.3
-cython==3.0.11
+qutip-qtrl==0.1.5
 sphinx==7.4.7
 sphinx_rtd_theme==2.0.0
 readthedocs-sphinx-search==0.3.2
