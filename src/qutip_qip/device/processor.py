@@ -282,11 +282,10 @@ class Processor:
         >>> processor.get_control_labels()
         ['sx0', 'sz0']
         >>> processor.get_control('sz0')
-        (Quantum object: dims=[[2], [2]], shape=(2, 2),
-        type='oper', dtype=CSR, isherm=True
+        (Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=CSR, isherm=True
         Qobj data =
-        [[ 6.28319  0.     ]
-         [ 0.      -6.28319]], 0)
+        [[ 6.28318531  0.        ]
+         [ 0.         -6.28318531]], 0)
         """
         return self.model.get_control(label)
 

@@ -277,33 +277,6 @@ def _mult_sublists(tensor_list, overall_inds, U, inds):
 
     overall_inds_revised: list of list of int
         List of qubit indices corresponding to each gate in tensor_list_revised.
-
-    Examples
-    --------
-
-    First, we get some imports out of the way,
-
-    >>> from qutip_qip.operations.gates import _mult_sublists
-    >>> from qutip_qip.operations.gates import X, Y, Z
-
-    Suppose we have a unitary list of already processed gates,
-    X, Y, Z applied on qubit indices 0, 1, 2 respectively and
-    encounter a new TOFFOLI gate on qubit indices (0, 1, 3).
-
-    >>> tensor_list = [X.get_qobj(), Y.get_qobj(), Z.get_qobj()]
-    >>> overall_inds = [[0], [1], [2]]
-    >>> U = toffoli()
-    >>> U_inds = [0, 1, 3]
-
-    Then, we can use _mult_sublists to produce a new list of unitaries by
-    multiplying TOFFOLI (and expanding) only on the qubit indices involving
-    TOFFOLI gate (and any multiplied gates).
-
-    >>> U_list, overall_inds = _mult_sublists(tensor_list, overall_inds, U, U_inds)
-    >>> np.testing.assert_allclose(U_list[0]) == Z.get_qobj())
-    >>> toffoli_xy = toffoli() * tensor(X.get_qobj(), Y.get_qobj(), identity(2))
-    >>> np.testing.assert_allclose(U_list[1]), toffoli_xy)
-    >>> overall_inds = [[2], [0, 1, 3]]
     """
 
     tensor_sublist = []
@@ -387,26 +360,6 @@ def _gate_sequence_product(U_list, ind_list):
 
     overall_inds : list of int
         List of qubit indices on which U_overall applies.
-
-    Examples
-    --------
-
-    First, we get some imports out of the way,
-
-    >>> from qutip_qip.operations.gates import gate_sequence_product
-    >>> from qutip_qip.operations.gates import X, Y, Z, TOFFOLI
-
-    Suppose we have a circuit with gates X, Y, Z, TOFFOLI
-    applied on qubit indices 0, 1, 2 and [0, 1, 3] respectively.
-
-    >>> tensor_lst = [X.get_qobj(), Y.get_qobj(), Z.get_qobj(), TOFFOLI.get_qobj()]
-    >>> overall_inds = [[0], [1], [2], [0, 1, 3]]
-
-    Then, we can use gate_sequence_product to produce a single unitary
-    obtained by multiplying unitaries in the list using heuristic methods
-    to reduce the size of matrices being multiplied.
-
-    >>> U_list, overall_inds = gate_sequence_product(tensor_lst, overall_inds)
     """
     if not U_list:
         return None, []
