@@ -243,7 +243,7 @@ class Processor:
         >>> processor.add_control(qutip.sigmax(), 0, label="sx")
         >>> processor.get_control_labels()
         ['sx']
-        >>> processor.get_control("sx") # doctest: +NORMALIZE_WHITESPACE
+        >>> processor.get_control("sx")
         (Quantum object: dims=[[2], [2]], shape=(2, 2),
         type='oper', dtype=CSR, isherm=True
         Qobj data =
@@ -281,7 +281,7 @@ class Processor:
         >>> processor = LinearSpinChain(1)
         >>> processor.get_control_labels()
         ['sx0', 'sz0']
-        >>> processor.get_control('sz0') # doctest: +NORMALIZE_WHITESPACE
+        >>> processor.get_control('sz0')
         (Quantum object: dims=[[2], [2]], shape=(2, 2),
         type='oper', dtype=CSR, isherm=True
         Qobj data =
