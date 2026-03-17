@@ -11,6 +11,6 @@ qc.to_qasm("deutsch-jozsa-qutip.qasm")
 # Example of adding a gate with arguments
 pi = np.pi
 q = QubitCircuit(1)
-q.add_gate("RZ", targets=0, arg_values=pi / 2, style={"show_args": True})  # Changed 'showarg' to 'show_args'
+q.add_gate("RZ", targets=0, arg_values=pi / 2, style={"showarg": True})
 q.draw()
 ```

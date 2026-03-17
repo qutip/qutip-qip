@@ -3,7 +3,6 @@
 from qiskit.circuit import QuantumCircuit
 from qutip_qip.circuit import QubitCircuit
 
-
 _map_gates: dict[str, str] = {
     "p": "PHASEGATE",
     "x": "X",

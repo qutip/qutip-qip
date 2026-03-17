@@ -7,7 +7,6 @@ from .spinchaincompiler import SpinChainCompiler
 from .cavityqedcompiler import CavityQEDCompiler
 from .circuitqedcompiler import SCQubitsCompiler
 
-
 __all__ = [
     "Instruction",
     "Scheduler",

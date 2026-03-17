@@ -8,7 +8,6 @@ from qutip_qip.circuit import QubitCircuit
 from qutip import Qobj
 from qutip_qip.decompose import decompose_one_qubit_gate
 
-
 __all__ = ["qft", "qft_steps", "qft_gate_sequence"]
 
 
