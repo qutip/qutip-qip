@@ -1,4 +1,10 @@
 ```python
+q = QubitCircuit(1)
+q.add_gate("RZ", targets=0, arg_values=0.5 * pi, style={"showarg": True})
+q.draw()
+```
+
+```python
 # qutip-qip
 
 [![Tests](https://github.com/qutip/qutip-qip/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/qutip/qutip-qip/actions/workflows/test.yml)
@@ -107,14 +113,4 @@ License
 [![license](https://img.shields.io/badge/license-New%20BSD-blue.svg)](http://en.wikipedia.org/wiki/BSD_licenses#3-clause_license_.28.22Revised_BSD_License.22.2C_.22New_BSD_License.22.2C_or_.22Modified_BSD_License.22.29)
 
 You are free to use this software, with or without modification, provided that the conditions listed in the LICENSE.txt file are satisfied.
-```
-
-```python
-q = QubitCircuit(1)
-q.add_gate("RZ", targets=0, arg_values=pi / 2, style={"showarg": True, "arg_label": "φ"})
-q.draw()
-```
-```python
-# Note: The 'arg_label' parameter is used to specify the label for the gate argument.
-# This is a new parameter added to fix the issue with 'showarg' not working.
 ```

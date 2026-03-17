@@ -17,7 +17,6 @@ from .operations import (
     snot,
 )
 
-
 __all__ = ["read_qasm", "save_qasm", "print_qasm", "circuit_to_qasm_str"]
 
 
@@ -317,9 +316,7 @@ class QasmProcessor:
                             "QASM: opaque gate {} are  \
                                                    not allowed, please define \
                                                    or omit \
-                                                   them".format(
-                                curr_gate.name
-                            )
+                                                   them".format(curr_gate.name)
                         )
                     open_bracket_mode = False
                     self.gate_names.add(curr_gate.name)
@@ -498,10 +495,8 @@ class QasmProcessor:
                 if len(qubits) == len(cbits):
                     return zip(qubits, cbits)
                 else:
-                    raise ValueError(
-                        "QASM: qubit and cbit \
-                                     register sizes are different"
-                    )
+                    raise ValueError("QASM: qubit and cbit \
+                                     register sizes are different")
         else:
             # processes gate tokens to create sets of registers to
             # which the gates are applied.
@@ -918,10 +913,8 @@ def read_qasm(qasm_input, mode="default", version="2.0", strmode=False):
         qasm_lines[i] = qasm_line
 
     if version != "2.0":
-        raise NotImplementedError(
-            "QASM: Only OpenQASM 2.0 \
-                                  is currently supported."
-        )
+        raise NotImplementedError("QASM: Only OpenQASM 2.0 \
+                                  is currently supported.")
 
     if qasm_lines.pop(0) != "OPENQASM 2.0;":
         raise SyntaxError("QASM: File does not contain QASM 2.0 header")
@@ -1168,10 +1161,8 @@ class QasmOutput:
         if self.version == "2.0":
             self.output("OPENQASM 2.0;")
         else:
-            raise NotImplementedError(
-                "QASM: Only OpenQASM 2.0 \
-                                      is currently supported."
-            )
+            raise NotImplementedError("QASM: Only OpenQASM 2.0 \
+                                      is currently supported.")
 
         self.output('include "qelib1.inc";', 1)
 

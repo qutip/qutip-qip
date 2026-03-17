@@ -19,7 +19,6 @@ from qutip_qip.operations import (
 from qutip_qip.circuit import CircuitSimulator
 from qutip import Qobj, qeye
 
-
 try:
     from IPython.display import Image as DisplayImage, SVG as DisplaySVG
 except ImportError:
@@ -381,12 +380,8 @@ class QubitCircuit:
                     classical_store=circuit_op.classical_store,
                 )
             else:
-                raise TypeError(
-                    "The circuit to be added contains unknown \
-                    operator {}".format(
-                        circuit_op
-                    )
-                )
+                raise TypeError("The circuit to be added contains unknown \
+                    operator {}".format(circuit_op))
 
     def remove_gate_or_measurement(
         self, index=None, end=None, name=None, remove="first"
@@ -406,18 +401,14 @@ class QubitCircuit:
         """
         if index is not None:
             if index > len(self.gates):
-                raise ValueError(
-                    "Index exceeds number \
-                                    of gates + measurements."
-                )
+                raise ValueError("Index exceeds number \
+                                    of gates + measurements.")
             if end is not None and end <= len(self.gates):
                 for i in range(end - index):
                     self.gates.pop(index + i)
             elif end is not None and end > self.num_qubits:
-                raise ValueError(
-                    "End target exceeds number \
-                                    of gates + measurements."
-                )
+                raise ValueError("End target exceeds number \
+                                    of gates + measurements.")
             else:
                 self.gates.pop(index)
 
@@ -577,10 +568,8 @@ class QubitCircuit:
             list(filter(lambda x: isinstance(x, Measurement), self.gates))
         )
         if num_measurements > 0:
-            raise NotImplementedError(
-                "adjacent_gates must be called before \
-            measurements are added to the circuit"
-            )
+            raise NotImplementedError("adjacent_gates must be called before \
+            measurements are added to the circuit")
 
         if isinstance(basis, list):
             basis_1q = []
@@ -755,10 +744,8 @@ class QubitCircuit:
             list(filter(lambda x: isinstance(x, Measurement), self.gates))
         )
         if num_measurements > 0:
-            raise NotImplementedError(
-                "adjacent_gates must be called before \
-            measurements are added to the circuit"
-            )
+            raise NotImplementedError("adjacent_gates must be called before \
+            measurements are added to the circuit")
 
         for gate in self.gates:
             if gate.name == "CNOT" or gate.name == "CSIGN":

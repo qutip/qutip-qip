@@ -41,7 +41,6 @@ from qutip_qip.operations import (
     expand_operator,
 )
 
-
 """
 .. testsetup::
 

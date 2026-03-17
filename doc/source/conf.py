@@ -145,9 +145,7 @@ warnings.filterwarnings("ignore")
 import numpy as np
 np.set_printoptions(precision=5)
 os_nt = {}
-""".format(
-    os_nt
-)
+""".format(os_nt)
 
 # -- Options for plot directive ---------------------------------------
 

@@ -85,7 +85,7 @@ fig.show()
 circuit = QubitCircuit(1)
 circuit.add_gate("RX", 0, arg_value=pi / 2)
 circuit.add_gate("IDLE", 0, arg_value=15.0)
-circuit.add_gate("RX", 0, arg_values=[pi / 2])  # Changed arg_value to arg_values
+circuit.add_gate("RX", 0, arg_value=pi / 2, showarg=True)  # Added showarg=True
 proc.load_circuit(circuit)
 fig2, axis = proc.plot_pulses(
     figsize=(LINEWIDTH, LINEWIDTH * 0.15), use_control_latex=False, dpi=200
