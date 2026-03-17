@@ -99,6 +99,9 @@ jobs:
       run: |
         cd doc
         make doctest
+    - name: Test code examples in docstring
+      run: |
+        pytest --doctest-modules -W error src/qutip_qip
 
   pulse-paper-code:
     runs-on: ubuntu-latest
