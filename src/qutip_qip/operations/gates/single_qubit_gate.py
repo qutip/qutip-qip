@@ -1,6 +1,6 @@
+from abc import abstractmethod
 from functools import cache, lru_cache
 from typing import Final, Type
-import warnings
 import numpy as np
 
 from qutip import Qobj, sigmax, sigmay, sigmaz, qeye
@@ -24,15 +24,23 @@ class _SingleQubitParametricGate(AngleParametricGate):
     namespace: NameSpace = NS_GATE
     num_qubits: Final[int] = 1
 
+    def get_qobj(self, dtype: str = "dense") -> Qobj:
+        return self.compute_qobj(self.arg_value, dtype)
+
+    @staticmethod
+    @abstractmethod
+    def compute_qobj(args: tuple[float], dtype: str) -> Qobj:
+        raise NotImplementedError
+
 
 class X(_SingleQubitGate):
     """
-    Single-qubit X gate.
+    Pauli X gate.
 
     Examples
     --------
     >>> from qutip_qip.operations.gates import X
-    >>> X.get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> X.get_qobj()
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=True
     Qobj data =
     [[0. 1.]
@@ -53,12 +61,12 @@ class X(_SingleQubitGate):
 
 class Y(_SingleQubitGate):
     """
-    Single-qubit Y gate.
+    Pauli Y gate.
 
     Examples
     --------
     >>> from qutip_qip.operations.gates import Y
-    >>> Y.get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> Y.get_qobj()
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=True
     Qobj data =
     [[0.+0.j 0.-1.j]
@@ -79,12 +87,12 @@ class Y(_SingleQubitGate):
 
 class Z(_SingleQubitGate):
     """
-    Single-qubit Z gate.
+    Pauli Z gate.
 
     Examples
     --------
     >>> from qutip_qip.operations.gates import Z
-    >>> Z.get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> Z.get_qobj()
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=True
     Qobj data =
     [[ 1.  0.]
@@ -105,11 +113,16 @@ class Z(_SingleQubitGate):
 
 class IDENTITY(_SingleQubitGate):
     """
-    IDENTITY gate.
+    Single-Qubit IDENTITY gate.
 
     Examples
     --------
     >>> from qutip_qip.operations.gates import IDENTITY
+    >>> IDENTITY.get_qobj()
+    Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=True
+    Qobj data =
+    [[1. 0.]
+     [0. 1.]]
     """
 
     __slots__ = ()
@@ -131,11 +144,11 @@ class H(_SingleQubitGate):
     Examples
     --------
     >>> from qutip_qip.operations.gates import H
-    >>> H.get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> H.get_qobj()
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=True
     Qobj data =
-    [[ 0.70711  0.70711]
-     [ 0.70711 -0.70711]]
+    [[ 0.70710678  0.70710678]
+     [ 0.70710678 -0.70710678]]
     """
 
     __slots__ = ()
@@ -161,7 +174,7 @@ class SQRTX(_SingleQubitGate):
     Examples
     --------
     >>> from qutip_qip.operations.gates import SQRTX
-    >>> SQRTX.get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> SQRTX.get_qobj()
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[0.5+0.5j 0.5-0.5j]
@@ -193,7 +206,7 @@ class SQRTXdag(_SingleQubitGate):
     Examples
     --------
     >>> from qutip_qip.operations.gates import SQRTXdag
-    >>> SQRTXdag.get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> SQRTXdag.get_qobj()
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[0.5-0.5j 0.5+0.5j]
@@ -218,27 +231,17 @@ class SQRTXdag(_SingleQubitGate):
         return SQRTX
 
 
-class SQRTNOT(SQRTX):
-    __slots__ = ()
-
-    def __init__(self):
-        warnings.warn(
-            "SQRTNOT is deprecated and will be removed in future versions. "
-            "Use SQRTX instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        super().__init__()
+SQRTNOT = SQRTX
 
 
 class S(_SingleQubitGate):
     r"""
-    S gate or :math:`\sqrt{Z}` gate.
+    S gate i.e. :math:`\sqrt{Z}` gate.
 
     Examples
     --------
     >>> from qutip_qip.operations.gates import S
-    >>> S.get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> S.get_qobj()
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[1.+0.j 0.+0.j]
@@ -263,16 +266,16 @@ class S(_SingleQubitGate):
 
 class Sdag(_SingleQubitGate):
     r"""
-    S gate or :math:`\sqrt{Z}` gate.
+    Sdag gate i.e. :math:`(\sqrt{Z})^\dagger` gate.
 
     Examples
     --------
     >>> from qutip_qip.operations.gates import S
-    >>> Sdag.get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> Sdag.get_qobj()
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
-    [[1.+0.j 0.+0.j]
-     [0.+0.j 0.-1.j]]
+    [[ 1.+0.j  0.+0.j]
+     [ 0.+0.j -0.-1.j]]
     """
 
     __slots__ = ()
@@ -293,16 +296,16 @@ class Sdag(_SingleQubitGate):
 
 class T(_SingleQubitGate):
     r"""
-    T gate or :math:`\sqrt[4]{Z}` gate.
+    T gate i.e. :math:`\sqrt[4]{Z}` gate.
 
     Examples
     --------
     >>> from qutip_qip.operations.gates import T
-    >>> T.get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> T.get_qobj()
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[1.     +0.j      0.     +0.j     ]
-     [0.     +0.j      0.70711+0.70711j]]
+     [0.     +0.j      0.70710678+0.70710678j]]
     """
 
     __slots__ = ()
@@ -322,16 +325,16 @@ class T(_SingleQubitGate):
 
 class Tdag(_SingleQubitGate):
     r"""
-    Tdag gate or :math:`\sqrt[4]{Z}^\dagger` gate.
+    Tdag gate i.e. :math:`\sqrt[4]{Z}^\dagger` gate.
 
     Examples
     --------
     >>> from qutip_qip.operations.gates import Tdag
-    >>> Tdag.get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> Tdag.get_qobj()
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[1.     +0.j      0.     +0.j     ]
-     [0.     +0.j      0.70711-0.70711j]]
+     [0.     +0.j      0.70710678-0.70710678j]]
     """
 
     __slots__ = ()
@@ -350,26 +353,41 @@ class Tdag(_SingleQubitGate):
 
 
 class RX(_SingleQubitParametricGate):
-    """
-    Single-qubit rotation RX.
+    r"""
+    Single-qubit rotation gate about the X-axis.
+
+    This parametric gate performs a rotation of the quantum state around the 
+    X-axis of the Bloch sphere by a specified angle.
+
+    The matrix representation of this gate is:
+
+    .. math::
+
+        \begin{pmatrix}
+        \cos(\frac{\theta}{2}) & -i\sin(\frac{\theta}{2}) \\
+        -i\sin(\frac{\theta}{2}) & \cos(\frac{\theta}{2})
+        \end{pmatrix}
+    
+    Parameters
+    ----------
+    arg_value : float or tuple[float]
+        The rotation angle (theta) in radians.
 
     Examples
     --------
     >>> from qutip_qip.operations.gates import RX
-    >>> RX(3.14159/2).get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> from math import pi
+    >>> RX(pi/2).get_qobj()
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
-    [[0.70711+0.j      0.     -0.70711j]
-     [0.     -0.70711j 0.70711+0.j     ]]
+    [[0.70710678+0.j         0.        -0.70710678j]
+     [0.        -0.70710678j 0.70710678+0.j        ]]
     """
 
     __slots__ = ()
 
     num_params: Final[int] = 1
     latex_str: Final[str] = r"R_x"
-
-    def __init__(self, theta: float, arg_label=None):
-        super().__init__(theta, arg_label=arg_label)
 
     @staticmethod
     @lru_cache(maxsize=128)
@@ -386,30 +404,45 @@ class RX(_SingleQubitParametricGate):
 
     def inverse(self) -> Gate | tuple[Type[Gate], tuple[float]]:
         theta = self.arg_value[0]
-        return RX(-theta)
+        return RX((-theta,))
 
 
 class RY(_SingleQubitParametricGate):
-    """
-    Single-qubit rotation RY.
+    r"""
+    Single-qubit rotation gate about the Y-axis.
+
+    This parametric gate performs a rotation of the quantum state around the 
+    Y-axis of the Bloch sphere by a specified angle.
+
+    The matrix representation of this gate is:
+
+    .. math::
+
+        \begin{pmatrix}
+        \cos(\frac{\theta}{2}) & -\sin(\frac{\theta}{2}) \\
+        \sin(\frac{\theta}{2}) & \cos(\frac{\theta}{2})
+        \end{pmatrix}
+
+    Parameters
+    ----------
+    arg_value : float or tuple[float]
+        The rotation angle (theta) in radians.
 
     Examples
     --------
     >>> from qutip_qip.operations.gates import RY
-    >>> RY(3.14159/2).get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> from math import pi
+    >>> RY(pi/2).get_qobj()
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
-    [[ 0.70711 -0.70711]
-     [ 0.70711  0.70711]]
+    [[ 0.70710678 -0.70710678]
+     [ 0.70710678  0.70710678]]
     """
 
     __slots__ = ()
 
     num_params: Final[int] = 1
     latex_str: Final[str] = r"R_y"
-
-    def __init__(self, theta: float, arg_label: str | None = None):
-        super().__init__(theta, arg_label=arg_label)
 
     @staticmethod
     @lru_cache(maxsize=128)
@@ -426,30 +459,45 @@ class RY(_SingleQubitParametricGate):
 
     def inverse(self) -> Gate | tuple[Type[Gate], tuple[float]]:
         theta = self.arg_value[0]
-        return RY(-theta)
+        return RY((-theta,))
 
 
 class RZ(_SingleQubitParametricGate):
-    """
-    Single-qubit rotation RZ.
+    r"""
+    Single-qubit rotation gate about the Z-axis.
+
+    This parametric gate performs a rotation of the quantum state around the 
+    Z-axis of the Bloch sphere by a specified angle.
+
+    The matrix representation of this gate is:
+
+    .. math::
+
+        \begin{pmatrix}
+        e^{-i\frac{\theta}{2}} & 0 \\
+        0 & e^{i\frac{\theta}{2}}
+        \end{pmatrix}
+
+    Parameters
+    ----------
+    arg_value : float or tuple[float]
+        The rotation angle (theta) in radians.
 
     Examples
     --------
     >>> from qutip_qip.operations.gates import RZ
-    >>> RZ(3.14159/2).get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> from math import pi
+    >>> RZ(pi/2).get_qobj()
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
-    [[0.70711-0.70711j 0.     +0.j     ]
-     [0.     +0.j      0.70711+0.70711j]]
+    [[0.70710678-0.70710678j 0.        +0.j        ]
+     [0.        +0.j         0.70710678+0.70710678j]]
     """
 
     __slots__ = ()
 
     num_params: Final[int] = 1
     latex_str: Final[str] = r"R_z"
-
-    def __init__(self, theta: float, arg_label: str | None = None):
-        super().__init__(theta, arg_label=arg_label)
 
     @staticmethod
     @lru_cache(maxsize=128)
@@ -463,25 +511,45 @@ class RZ(_SingleQubitParametricGate):
 
     def inverse(self) -> Gate | tuple[Type[Gate], tuple[float]]:
         theta = self.arg_value[0]
-        return RZ(-theta)
+        return RZ((-theta,))
 
 
 class PHASE(_SingleQubitParametricGate):
-    """
-    PHASE Gate.
+    r"""
+    Single-qubit parametric phase shift gate.
+
+    This gate applies a phase shift of :math:`\phi` to the :math:`|1\rangle` state, 
+    leaving the :math:`|0\rangle` state unchanged.
+
+    The matrix representation of this gate is:
+
+    .. math::
+
+        \begin{pmatrix}
+        1 & 0 \\
+        0 & e^{i\phi}
+        \end{pmatrix}
+
+    Parameters
+    ----------
+    arg_value : float or tuple[float]
+        The phase shift angle (:math:`\phi`) in radians.
 
     Examples
     --------
     >>> from qutip_qip.operations.gates import PHASE
+    >>> from math import pi
+    >>> PHASE(pi/4).get_qobj()
+    Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
+    Qobj data =
+    [[1.        +0.j         0.        +0.j        ]
+     [0.        +0.j         0.70710678+0.70710678j]]
     """
 
     __slots__ = ()
 
     num_params: Final[int] = 1
     latex_str: Final[str] = r"PHASE"
-
-    def __init__(self, theta: float, arg_label: str | None = None):
-        super().__init__(theta, arg_label=arg_label)
 
     @staticmethod
     @lru_cache(maxsize=128)
@@ -495,12 +563,17 @@ class PHASE(_SingleQubitParametricGate):
 
     def inverse(self) -> Gate | tuple[Type[Gate], tuple[float]]:
         theta = self.arg_value[0]
-        return PHASE(-theta)
+        return PHASE((-theta,))
 
 
 class R(_SingleQubitParametricGate):
     r"""
-    Arbitrary single-qubit rotation
+    Arbitrary single-qubit rotation gate.
+
+    This gate performs a rotation by an angle :math:`\theta` about an axis in the 
+    equatorial plane of the Bloch sphere, specified by the azimuthal angle :math:`\phi`.
+
+    The matrix representation of this gate is:
 
     .. math::
 
@@ -509,23 +582,27 @@ class R(_SingleQubitParametricGate):
         -ie^{i\phi} \sin(\frac{\theta}{2}) & \cos(\frac{\theta}{2})
         \end{pmatrix}
 
+    Parameters
+    ----------
+    arg_value : tuple[float, float]
+        A tuple of two floats `(phi, theta)`, representing the phase angle 
+        :math:`\phi` and the rotation angle :math:`\theta` in radians.
+        
     Examples
     --------
+    >>> from math import pi
     >>> from qutip_qip.operations.gates import R
-    >>> R(np.pi/2, np.pi/2).get_qobj().tidyup() # doctest: +NORMALIZE_WHITESPACE
+    >>> R(arg_value=(pi/2, pi/2)).get_qobj().tidyup()
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
-    [[ 0.70711 -0.70711]
-     [ 0.70711  0.70711]]
+    [[ 0.70710678 -0.70710678]
+     [ 0.70710678  0.70710678]]
     """
 
     __slots__ = ()
 
     num_params: Final[int] = 2
     latex_str: Final[str] = r"{\rm R}"
-
-    def __init__(self, phi: float, theta: float, arg_label: str | None = None):
-        super().__init__(phi, theta, arg_label=arg_label)
 
     @staticmethod
     @lru_cache(maxsize=128)
@@ -548,20 +625,39 @@ class R(_SingleQubitParametricGate):
 
     def inverse(self) -> Gate | tuple[Type[Gate], tuple[float, float]]:
         phi, theta = self.arg_value
-        return R(phi, -theta)
+        return R((phi, -theta))
 
 
 class QASMU(_SingleQubitParametricGate):
     r"""
-    QASMU gate.
+    Universal single-qubit rotation gate (OpenQASM standard).
 
+    This gate implements the standard 3-parameter rotation defined in OpenQASM, 
+    decomposed as a sequence of Z, Y, and Z rotations:
+    
     .. math::
         U(\theta, \phi, \gamma) = RZ(\phi) RY(\theta) RZ(\gamma)
+
+    The exact matrix representation computed by this gate is:
+
+    .. math::
+
+        \begin{pmatrix}
+        e^{-i(\phi + \gamma)/2} \cos(\frac{\theta}{2}) & -e^{-i(\phi - \gamma)/2} \sin(\frac{\theta}{2}) \\
+        e^{i(\phi - \gamma)/2} \sin(\frac{\theta}{2}) & e^{i(\phi + \gamma)/2} \cos(\frac{\theta}{2})
+        \end{pmatrix}
+
+    Parameters
+    ----------
+    arg_value : tuple[float, float, float]
+        A tuple of three floats `(theta, phi, gamma)` representing the Euler 
+        angles in radians.
 
     Examples
     --------
     >>> from qutip_qip.operations.gates import QASMU
-    >>> QASMU(0, (np.pi/2, np.pi, np.pi/2)).get_qobj() # doctest: +NORMALIZE_WHITESPACE
+    >>> from math import pi
+    >>> QASMU(arg_value=(pi/2, pi, pi/2)).get_qobj()
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[-0.5-0.5j -0.5+0.5j]
@@ -572,15 +668,6 @@ class QASMU(_SingleQubitParametricGate):
 
     num_params: Final[int] = 3
     latex_str: Final[str] = r"{\rm QASMU}"
-
-    def __init__(
-        self,
-        theta: float,
-        phi: float,
-        gamma: float,
-        arg_label: str | None = None,
-    ):
-        super().__init__(theta, phi, gamma, arg_label=arg_label)
 
     @staticmethod
     @lru_cache(maxsize=128)
@@ -603,16 +690,42 @@ class QASMU(_SingleQubitParametricGate):
 
     def inverse(self) -> Gate | tuple[Type[Gate], tuple[float, float, float]]:
         theta, phi, gamma = self.arg_value
-        return QASMU(-theta, -gamma, -phi)
+        return QASMU((-theta, -gamma, -phi))
 
 
 class IDLE(AngleParametricGate):
-    """
-    IDLE gate.
+    r"""
+    Single-qubit idle operation (delay).
+
+    This gate logically acts as the identity operator. However, in the context 
+    of pulse-level simulation and compiler execution, it explicitly represents 
+    a waiting period or delay of a specific duration on the target qubit.
+
+    The matrix representation of this gate is the identity matrix:
+
+    .. math::
+
+        \begin{pmatrix}
+        1 & 0 \\
+        0 & 1
+        \end{pmatrix}
+
+    Parameters
+    ----------
+    T : float
+        The non-negative time duration for the idle gate.
+    arg_label : str, optional
+        An optional string label for the gate argument
 
     Examples
     --------
     >>> from qutip_qip.operations.gates import IDLE
+    >>> gate = IDLE(T=2.5)
+    >>> gate.get_qobj()
+    Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=True
+    Qobj data =
+    [[1. 0.]
+     [0. 1.]]
     """
 
     __slots__ = ()
@@ -629,8 +742,7 @@ class IDLE(AngleParametricGate):
         if args[0] < 0:
             raise ValueError(f"IDLE time must be non-negative, got {args[0]}")
 
-    @staticmethod
-    def compute_qobj(args, dtype: str = "dense") -> Qobj:
+    def get_qobj(self, dtype: str = "dense") -> Qobj:
         # Practically not required as this gate is only useful in pulse level
         # simulation, and the pulse compiler implementation of it will be
         # independent of get_qobj()

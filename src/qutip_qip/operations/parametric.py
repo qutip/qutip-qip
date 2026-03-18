@@ -1,6 +1,6 @@
 import inspect
 from abc import abstractmethod
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 
 from qutip import Qobj
 from qutip_qip.operations import Gate
@@ -60,7 +60,7 @@ class ParametricGate(Gate):
         num_params = getattr(cls, "num_params", None)
         if (type(num_params) is not int) or (num_params < 1):
             raise TypeError(
-                f"Class '{cls.__name__}' attribute 'num_params' must be a postive integer, "
+                f"Class '{cls.__name__}' attribute 'num_params' must be a positive integer, "
                 f"got {type(num_params)} with value {num_params}."
             )
 
@@ -73,13 +73,13 @@ class ParametricGate(Gate):
                 f" but it takes {len(inspect.signature(validate_params_func).parameters)}."
             )
 
-        # compute_qobj method must take only two arguments arg_value, dtype
-        compute_qobj_func = getattr(cls, "compute_qobj")
-        if len(inspect.signature(compute_qobj_func).parameters) != 2:
+        # get_qobj method must take only two parameters: arg_value, dtype
+        get_qobj_func = getattr(cls, "get_qobj")
+        if len(inspect.signature(get_qobj_func).parameters) != 2:
             raise SyntaxError(
-                f"Class '{cls.name}' method 'compute_qobj()' must take exactly 2 "
-                f"arguments (only the implicit 'arg_value, dtype'),"
-                f" but it takes {len(inspect.signature(compute_qobj_func).parameters)}."
+                f"Class '{cls.name}' method 'get_qobj()' must take exactly 2 "
+                f"arguments (only the implicit 'self, dtype'),"
+                f" but it takes {len(inspect.signature(get_qobj_func).parameters)}."
             )
 
         if not cls.is_parametric():
@@ -92,9 +92,9 @@ class ParametricGate(Gate):
                 f"Class '{cls.name}' method 'is_controlled()' must always return False."
             )
 
-    def __init__(self, *args, arg_label: str | None = None) -> None:
+    def __init__(self, arg_value, arg_label: str | None = None) -> None:
         # This auto triggers a call to arg_value setter (where checks happen)
-        self.arg_value = args
+        self.arg_value = arg_value
         self.arg_label = arg_label
 
     @property
@@ -103,7 +103,9 @@ class ParametricGate(Gate):
 
     @arg_value.setter
     def arg_value(self, new_args: Sequence) -> None:
-        if not isinstance(new_args, Sequence):
+        # FIXME numpy arrays are not counted as Sequence, so for now Iterable is being used
+        # we need to have a custom typing for Sequence
+        if not isinstance(new_args, Iterable):
             new_args = [new_args]
 
         if len(new_args) != self.num_params:
@@ -130,6 +132,7 @@ class ParametricGate(Gate):
         """
         raise NotImplementedError
 
+    @abstractmethod
     def get_qobj(self, dtype: str = "dense") -> Qobj:
         """
         Get the QuTiP quantum object representation using the current parameters.
@@ -139,11 +142,6 @@ class ParametricGate(Gate):
         qobj : qutip.Qobj
             The unitary matrix representing the gate with the specific `arg_value`.
         """
-        return self.compute_qobj(self.arg_value, dtype)
-
-    @staticmethod
-    @abstractmethod
-    def compute_qobj(args: tuple, dtype: str) -> Qobj:
         raise NotImplementedError
 
     def inverse(self) -> Gate:

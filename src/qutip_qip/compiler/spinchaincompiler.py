@@ -88,7 +88,7 @@ class SpinChainCompiler(GateCompiler):
     >>> processor = ModelProcessor(model=model)
     >>> compiler = SpinChainCompiler(2, params=model.params, setup="linear")
     >>> processor.load_circuit(
-    ...     qc, compiler=compiler) # doctest: +NORMALIZE_WHITESPACE
+    ...     qc, compiler=compiler)
     ({'sx0': array([0., 1.]), 'sz1': array([0.  , 0.25, 1.  ])},
     {'sx0': array([0.25]), 'sz1': array([1., 0.])})
 

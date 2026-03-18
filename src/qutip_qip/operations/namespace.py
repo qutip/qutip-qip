@@ -125,7 +125,8 @@ class NameSpace:
         NameError
             If an operation with the given name already exists in this namespace.
         """
-        if name in self._registry:
+        existing_gate = self.get(name)
+        if existing_gate is not None and existing_gate is not operation_cls:
             raise NameError(
                 f"'{operation_cls.__name__}' already exists in namespace '{self.name}'"
             )

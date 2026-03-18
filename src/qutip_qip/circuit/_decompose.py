@@ -14,7 +14,6 @@ from qutip_qip.operations.gates import (
     SQRTSWAP,
     SQRTISWAP,
     CZ,
-    CNOT,
     SWAP,
 )
 
@@ -91,9 +90,9 @@ def _gate_PHASEGATE(circ_instruction, temp_resolved):
     gate = circ_instruction.operation
     targets = circ_instruction.targets
 
-    temp_resolved.add_global_phase(phase=gate.arg_value / 2)
+    temp_resolved.add_global_phase(phase=gate.arg_value[0] / 2)
     temp_resolved.add_gate(
-        gate=RZ(gate.arg_value, arg_label=gate.arg_label),
+        gate=RZ(gate.arg_value[0], arg_label=gate.arg_label),
         targets=targets,
     )
 

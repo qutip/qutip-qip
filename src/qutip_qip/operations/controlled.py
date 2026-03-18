@@ -49,11 +49,9 @@ class ControlledGate(Gate):
         The decimal value of the control state required to execute the
         unitary operator on the target qubits.
 
-        Examples:
-        * If the gate should execute when the 0-th qubit is $|1\rangle$,
-            set ``ctrl_value=1``.
-        * If the gate should execute when two control qubits are $|10\rangle$
-            (binary 10), set ``ctrl_value=0b10``.
+        Example:
+        If the gate should execute when the 0-th qubit is $|1\rangle$ set ``ctrl_value=1``.
+        If the gate should execute when two control qubits are $|10\rangle$ (binary 10), set ``ctrl_value=0b10``.
     """
 
     __slots__ = ("_target_inst",)

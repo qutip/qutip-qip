@@ -243,12 +243,11 @@ class Processor:
         >>> processor.add_control(qutip.sigmax(), 0, label="sx")
         >>> processor.get_control_labels()
         ['sx']
-        >>> processor.get_control("sx") # doctest: +NORMALIZE_WHITESPACE
-        (Quantum object: dims=[[2], [2]], shape=(2, 2),
-        type='oper', dtype=CSR, isherm=True
+        >>> processor.get_control("sx")
+        (Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=CSR, isherm=True
         Qobj data =
         [[0. 1.]
-        [1. 0.]], [0])
+         [1. 0.]], [0])
         """
         targets = self._unify_targets(qobj, targets)
         if label is None:
@@ -281,9 +280,8 @@ class Processor:
         >>> processor = LinearSpinChain(1)
         >>> processor.get_control_labels()
         ['sx0', 'sz0']
-        >>> processor.get_control('sz0') # doctest: +NORMALIZE_WHITESPACE
-        (Quantum object: dims=[[2], [2]], shape=(2, 2),
-        type='oper', dtype=CSR, isherm=True
+        >>> processor.get_control('sz0')
+        (Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=CSR, isherm=True
         Qobj data =
         [[ 6.28319  0.     ]
          [ 0.      -6.28319]], 0)
@@ -1033,7 +1031,9 @@ class Processor:
         try:  # correct_global_phase are defined for ModelProcessor
             if self.correct_global_phase and self.global_phase != 0:
                 U_list.append(
-                    GLOBALPHASE(self.global_phase).get_qobj(self.num_qubits)
+                    GLOBALPHASE(self.global_phase).get_expanded_qobj(
+                        self.num_qubits
+                    )
                 )
         except AttributeError:
             pass
@@ -1126,10 +1126,12 @@ class Processor:
             init_state = states
         if analytical:
             if kwargs or self.noise:
-                raise warnings.warn(  # FIXME this should raise an Error Type
+                warnings.warn(  # FIXME this should raise an Error Type
                     "Analytical matrices exponentiation"
                     "does not process noise or"
-                    "any keyword arguments."
+                    "any keyword arguments.",
+                    UserWarning,
+                    stacklevel=2,
                 )
             return self.run_analytically(init_state=init_state)
 

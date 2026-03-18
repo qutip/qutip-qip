@@ -34,8 +34,8 @@ class ROT(AngleParametricGate):
     def __init__(self, arg_value):
         super().__init__(arg_value)
 
-    def compute_qobj(args, dtype) -> Qobj:
-        # This is not required, because Pules levele implementation
+    def get_qobj(self, dtype) -> Qobj:
+        # This is not required, because Pulse level implementation
         # of this gate is already provided.
         pass
 

@@ -58,10 +58,21 @@ class _GateMetaClass(ABCMeta):
             # but we were redefining it with a different name, the cls.name insert
             # step would go through, but wrt. second key won't and will throw an error.
             # This will lead to leakage in the namespace i.e. classes which don't exist but are in the namespace.
-            if namespace.get(cls.name) is not None:
-                raise ValueError(
-                    f"Existing {cls.name} in namespace {namespace}"
-                )
+
+            existing_gate = namespace.get(cls.name)
+            if existing_gate is not None:
+                try:
+                    # Check if both classes originate from the exact same physical file.
+                    # If they do, this is a namespace alias/reload
+                    # This is needed because qutip.qip import support is still needed
+                    if inspect.getfile(existing_gate) == inspect.getfile(cls):
+                        return
+                    else:
+                        raise ValueError(
+                            f"Existing {cls.name} in namespace {namespace}"
+                        )
+                except TypeError:
+                    pass  # Fallback
 
             # The basic principle is don't define a gate class if it already exists
             if cls.is_controlled():
@@ -98,10 +109,15 @@ class _GateMetaClass(ABCMeta):
         super().__setattr__(name, value)
 
     def __str__(cls) -> str:
-        return f"Gate({cls.name})"
+        # Don't remove these getattr statement otherwise doctest will fail
+        # The reason is because how Sphinx builds and runs doctest even on abstract classes.
+        gatename = getattr(cls, "name", cls.__name__)
+        return f"Gate({gatename})"
 
     def __repr__(cls) -> str:
-        return f"Gate({cls.name}, num_qubits={cls.num_qubits})"
+        gatename = getattr(cls, "name", cls.__name__)
+        num_qubits = getattr(cls, "num_qubits", None)
+        return f"Gate({gatename}, num_qubits={num_qubits})"
 
 
 class Gate(ABC, metaclass=_GateMetaClass):
@@ -247,7 +263,7 @@ class Gate(ABC, metaclass=_GateMetaClass):
         This method is overwritten in case of Parametrized and Controlled Gates.
         """
         raise TypeError(
-            f"Gate '{type(self).name}' can't be initialised. "
+            f"Gate '{self.name}' can't be initialised. "
             f"If your gate requires parameters, it must inherit from 'ParametricGate'. "
             f"Or if it must be controlled, it must inherit from 'ControlledGate'."
         )

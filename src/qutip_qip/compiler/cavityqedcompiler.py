@@ -45,17 +45,18 @@ class CavityQEDCompiler(GateCompiler):
     --------
     >>> import numpy as np
     >>> from qutip_qip.circuit import QubitCircuit
-    >>> from qutip_qip.device import ModelProcessor, CavityQEDModel
     >>> from qutip_qip.compiler import CavityQEDCompiler
+    >>> from qutip_qip.device import ModelProcessor, CavityQEDModel
+    >>> from qutip_qip.operations.gates import ISWAP
     >>>
     >>> qc = QubitCircuit(2)
-    >>> qc.add_gate("ISWAP", targets=[0, 1])
+    >>> qc.add_gate(ISWAP, targets=[0, 1])
     >>>
     >>> model = CavityQEDModel(2)
     >>> processor = ModelProcessor(model=model)
     >>> compiler = CavityQEDCompiler(2, params=model.params)
     >>> processor.load_circuit(
-    ...     qc, compiler=compiler)  # doctest: +NORMALIZE_WHITESPACE
+    ...     qc, compiler=compiler)
     ({'sz0': array([   0.        , 2500.        , 2500.01316]),
     'sz1': array([   0.        , 2500.        , 2500.01316]),
     'g0': array([   0.        , 2500.        , 2500.01316]),
