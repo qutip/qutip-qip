@@ -87,6 +87,10 @@ class GLOBALPHASE(AngleParametricGate):
             dtype=dtype,
         )
 
+    def inverse(self):
+        theta = self.arg_value[0]
+        return GLOBALPHASE((theta,))
+
 
 class TOFFOLI(ControlledGate):
     """

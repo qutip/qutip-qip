@@ -559,7 +559,7 @@ class SWAPALPHA(_TwoQubitParametricGate):
 
     def inverse(self) -> Gate | tuple[Type[Gate], tuple[float]]:
         alpha = self.arg_value[0]
-        return SWAPALPHA((-alpha))
+        return SWAPALPHA((-alpha,))
 
 
 class MS(_TwoQubitParametricGate):
@@ -701,7 +701,7 @@ class RZX(_TwoQubitParametricGate):
 
     def inverse(self) -> Gate | tuple[Type[Gate], tuple[float]]:
         theta = self.arg_value[0]
-        return RZX((-theta))
+        return RZX((-theta,))
 
 
 class CX(_ControlledTwoQubitGate):

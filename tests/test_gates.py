@@ -526,9 +526,13 @@ class TestGateErrors:
         class TmpGate(Gate):
             num_qubits = 1
 
+        class TmpGate2(Gate):
+            num_qubits = 1
+
+        ns1.register("tmp_gate", TmpGate)
         ns1.register("tmp_gate", TmpGate)
         with pytest.raises(NameError, match="already exists in namespace"):
-            ns1.register("tmp_gate", TmpGate)
+            ns1.register("tmp_gate", TmpGate2)
 
         assert ns1.get("tmp") is None
         assert ns1.get("tmp_gate") is TmpGate
