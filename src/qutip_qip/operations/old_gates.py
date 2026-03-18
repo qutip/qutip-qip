@@ -15,18 +15,7 @@ from qutip_qip.operations import expand_operator
 
 
 # Single Qubit Gates
-def _deprecation_warnings_gate_expansion():
-    warnings.warn(
-        "The expansion of output gate matrix is no longer included "
-        "in the gate functions. "
-        "To expand the output `Qobj` or permute the qubits, "
-        "please use expand_operator.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-
-
-def x_gate():
+def x_gate(*args, **kwargs):
     """Pauli-X gate or sigmax operator.
 
     Returns
@@ -43,7 +32,7 @@ def x_gate():
     return sigmax()
 
 
-def y_gate():
+def y_gate(*args, **kwargs):
     """Pauli-Y gate or sigmay operator.
 
     Returns
@@ -60,7 +49,7 @@ def y_gate():
     return sigmay()
 
 
-def z_gate():
+def z_gate(*args, **kwargs):
     """Pauli-Z gate or sigmaz operator.
 
     Returns
@@ -77,7 +66,7 @@ def z_gate():
     return sigmaz()
 
 
-def cy_gate():
+def cy_gate(*args, **kwargs):
     """Controlled Y gate.
 
     Returns
@@ -96,7 +85,7 @@ def cy_gate():
     )
 
 
-def cz_gate():
+def cz_gate(*args, **kwargs):
     """Controlled Z gate.
 
     Returns
@@ -115,7 +104,7 @@ def cz_gate():
     )
 
 
-def s_gate():
+def s_gate(*args, **kwargs):
     """Single-qubit rotation also called Phase gate or the Z90 gate.
 
     Returns
@@ -132,7 +121,7 @@ def s_gate():
     return Qobj([[1, 0], [0, 1j]])
 
 
-def cs_gate():
+def cs_gate(*args, **kwargs):
     """Controlled S gate.
 
     Returns
@@ -151,7 +140,7 @@ def cs_gate():
     )
 
 
-def t_gate():
+def t_gate(*args, **kwargs):
     """Single-qubit rotation related to the S gate by the relationship S=T*T.
 
     Returns
@@ -167,7 +156,7 @@ def t_gate():
     return Qobj([[1, 0], [0, np.exp(1j * np.pi / 4)]])
 
 
-def ct_gate():
+def ct_gate(*args, **kwargs):
     """Controlled T gate.
 
     Returns
@@ -191,7 +180,7 @@ def ct_gate():
     )
 
 
-def rx(phi):
+def rx(phi, *args, **kwargs):
     """Single-qubit rotation for operator sigmax with angle phi.
 
     Returns
@@ -212,7 +201,7 @@ def rx(phi):
     )
 
 
-def ry(phi):
+def ry(phi, *args, **kwargs):
     """Single-qubit rotation for operator sigmay with angle phi.
 
     Returns
@@ -233,7 +222,7 @@ def ry(phi):
     )
 
 
-def rz(phi):
+def rz(phi, *args, **kwargs):
     """Single-qubit rotation for operator sigmaz with angle phi.
 
     Returns
@@ -249,7 +238,7 @@ def rz(phi):
     return Qobj([[np.exp(-1j * phi / 2), 0], [0, np.exp(1j * phi / 2)]])
 
 
-def sqrtnot():
+def sqrtnot(*args, **kwargs):
     """Single-qubit square root NOT gate.
 
     Returns
@@ -265,7 +254,7 @@ def sqrtnot():
     return Qobj([[0.5 + 0.5j, 0.5 - 0.5j], [0.5 - 0.5j, 0.5 + 0.5j]])
 
 
-def snot():
+def snot(*args, **kwargs):
     """Quantum object representing the SNOT (Hadamard) gate.
 
     Returns
@@ -290,7 +279,7 @@ shape = [2, 2], type='oper', dtype=Dense, isherm=True
     return 1 / np.sqrt(2.0) * Qobj([[1, 1], [1, -1]])
 
 
-def phasegate(theta):
+def phasegate(theta, *args, **kwargs):
     """
     Returns quantum object representing the phase shift gate.
 
@@ -321,7 +310,7 @@ shape = [2, 2], type='oper', dtype=Dense, isherm=False
     return Qobj([[1, 0], [0, np.exp(1.0j * theta)]], dims=[[2], [2]])
 
 
-def qrot(theta, phi):
+def qrot(theta, phi, *args, **kwargs):
     """
     Single qubit rotation driving by Rabi oscillation with 0 detune.
 
@@ -362,7 +351,7 @@ def qrot(theta, phi):
     )
 
 
-def qasmu_gate(args):
+def qasmu_gate(args, **kwargs):
     """
     QASM U-gate as defined in the OpenQASM standard.
 
@@ -450,7 +439,7 @@ def cphase(theta, N=2, control=0, target=1):
     return U
 
 
-def cnot():
+def cnot(*args, **kwargs):
     """
     Quantum object representing the CNOT gate.
 
@@ -481,7 +470,7 @@ shape = [4, 4], type='oper', dtype=Dense, isherm=True
     )
 
 
-def csign():
+def csign(*args, **kwargs):
     """
     Quantum object representing the CSIGN gate.
 
@@ -512,7 +501,7 @@ shape = [4, 4], type='oper', dtype=Dense, isherm=True
     )
 
 
-def berkeley():
+def berkeley(*args, **kwargs):
     """
     Quantum object representing the Berkeley gate.
 
@@ -548,7 +537,7 @@ shape = [4, 4], type='oper', dtype=Dense, isherm=True
     )
 
 
-def swapalpha(alpha):
+def swapalpha(alpha, *args, **kwargs):
     """
     Quantum object representing the SWAPalpha gate.
 
@@ -596,7 +585,7 @@ shape = [4, 4], type='oper', dtype=Dense, isherm=True
     )
 
 
-def swap():
+def swap(*args, **kwargs):
     """Quantum object representing the SWAP gate.
 
     Returns
@@ -626,7 +615,7 @@ shape = [4, 4], type='oper', dtype=Dense, isherm=True
     )
 
 
-def iswap():
+def iswap(*args, **kwargs):
     """Quantum object representing the iSWAP gate.
 
     Returns
@@ -655,7 +644,7 @@ shape = [4, 4], type='oper', dtype=Dense, isherm=False
     )
 
 
-def sqrtswap():
+def sqrtswap(*args, **kwargs):
     """Quantum object representing the square root SWAP gate.
 
     Returns
@@ -681,7 +670,7 @@ def sqrtswap():
     )
 
 
-def sqrtiswap():
+def sqrtiswap(*args, **kwargs):
     """Quantum object representing the square root iSWAP gate.
 
     Returns
@@ -722,7 +711,7 @@ shape = [4, 4], type='oper', dtype=Dense, isherm=False
     )
 
 
-def molmer_sorensen(theta, phi=0.0):
+def molmer_sorensen(theta, phi=0.0, *args, **kwargs):
     """
     Quantum object of a Mølmer–Sørensen gate.
 
@@ -774,7 +763,7 @@ def molmer_sorensen(theta, phi=0.0):
 #
 
 
-def fredkin():
+def fredkin(*args, **kwargs):
     """Quantum object representing the Fredkin gate.
 
     Returns
@@ -816,7 +805,7 @@ def fredkin():
     )
 
 
-def toffoli():
+def toffoli(*args, **kwargs):
     """Quantum object representing the Toffoli gate.
 
     Returns
@@ -864,7 +853,7 @@ def toffoli():
 #
 
 
-def rotation(op, phi):
+def rotation(op, phi, *args, **kwargs):
     """Single-qubit rotation for operator op with angle phi.
 
     Returns
@@ -881,7 +870,7 @@ def rotation(op, phi):
     return (-1j * op * phi / 2).expm()
 
 
-def globalphase(theta, N=1):
+def globalphase(theta, N=1, *args, **kwargs):
     """
     Returns quantum object representing the global phase shift gate.
 
