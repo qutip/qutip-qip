@@ -55,10 +55,18 @@ class GLOBALPHASE(AngleParametricGate):
         return f"Gate({self.name}, phase {self.arg_value[0]}) -> Qobj:"
 
     def get_qobj(self, dtype: str = "dense") -> Qobj:
+        r"""
+        Return the scalar Qobj corresponding to the global phase factor
+        :math:`e^{i \theta}`.
+        Returns
+        -------
+        qobj : qutip.Qobj
+            A scalar quantum object with data equal to :math:`e^{i \theta}`.
+        """
         phase = self.arg_value[0]
-        return Qobj(phase, dtype=dtype)
+        return Qobj(np.exp(1.0j * phase), dtype=dtype)
 
-    def get_expanded_qobj(self, num_qubits=None, dtype: str = "dense") -> Qobj:
+    def get_expanded_qobj(self, num_qubits: int, dtype: str = "dense") -> Qobj:
         r"""
         Get the QuTiP quantum object representation expanded for a given number of qubits.
 
@@ -89,7 +97,7 @@ class GLOBALPHASE(AngleParametricGate):
 
     def inverse(self):
         theta = self.arg_value[0]
-        return GLOBALPHASE((theta,))
+        return GLOBALPHASE((-theta,))
 
 
 class TOFFOLI(ControlledGate):

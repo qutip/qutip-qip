@@ -59,7 +59,7 @@ class _GateMetaClass(ABCMeta):
             # step would go through, but wrt. second key won't and will throw an error.
             # This will lead to leakage in the namespace i.e. classes which don't exist but are in the namespace.
 
-            existing_gate = namespace.get(name)
+            existing_gate = namespace.get(cls.name)
             if existing_gate is not None:
                 try:
                     # Check if both classes originate from the exact same physical file.

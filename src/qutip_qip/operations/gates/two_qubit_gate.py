@@ -382,7 +382,7 @@ class SQRTISWAPdag(_TwoQubitGate):
 
 class BERKELEY(_TwoQubitGate):
     r"""
-    Two-qubit Berkeley (B) gate.
+    Two-qubit Berkeley gate.
 
     The Berkeley gate is a universal two-qubit entangling gate. 
     It is optimized for hardware architectures where the natural two-qubit 
@@ -440,7 +440,7 @@ class BERKELEY(_TwoQubitGate):
 
 class BERKELEYdag(_TwoQubitGate):
     r"""
-    Inverse (hermitian conjugate) of BERKLEY gate.
+    Inverse (hermitian conjugate) of BERKELEY gate.
 
     .. math::
 

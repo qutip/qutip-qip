@@ -297,10 +297,10 @@ class QubitCircuit:
 
         if control_value is not None:
             warnings.warn(
-                "'control_value' is no longer a valid argument and has been deprecated and will be removed in the future version. "
-                "from qutip_qip.operations import get_controlled_gate"
-                "from qutip_qip.operations.gates import X"
-                "Example: gate = get_controlled_gate(X, num_ctrl_qubits=1, control_value=0) instead",
+                "'control_value' is no longer a valid argument and has been deprecated and will be removed in the future version.\n"
+                "from qutip_qip.operations import get_controlled_gate\n"
+                "from qutip_qip.operations.gates import X\n"
+                "Example: gate = get_controlled_gate(X, num_ctrl_qubits=1, control_value=0)",
                 DeprecationWarning,
                 stacklevel=2,
             )
