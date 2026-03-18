@@ -213,7 +213,7 @@ class QubitCircuit:
             Positions to add the gate.
         """
         if index is not None:
-            raise ValueError("argument index is no longer supported")
+            raise AttributeError("argument index is no longer supported")
 
         if isinstance(measurement, Measurement):
             name = measurement.name
@@ -285,7 +285,7 @@ class QubitCircuit:
         """
         # Deprecation warnings
         if index is not None:
-            raise ValueError("argument index is no longer supported")
+            raise AttributeError("argument index is no longer supported")
 
         if arg_value is not None or arg_label is not None:
             warnings.warn(
@@ -293,7 +293,6 @@ class QubitCircuit:
                 ", 'arg_value', 'arg_label' arguments will be removed from 'add_gate' method in the future version.\n"
                 "Please refer to the tutorial for the recommended way to define them:\n"
                 "https://nbviewer.org/urls/qutip.org/qutip-tutorials/tutorials-v5/quantum-circuits/quantum-gates.ipynb",
-                DeprecationWarning,
                 DeprecationWarning,
                 stacklevel=2,
             )
