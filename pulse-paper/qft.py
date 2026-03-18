@@ -1,23 +1,17 @@
-TEXTWIDTH = 5.93
-LINEWIDTH = 3.22
+import time
 import matplotlib.pyplot as plt
-
-try:
-    from quantum_plots import global_setup
-
-    global_setup(fontsize=10)
-except:
-    pass
-plt.rcParams.update({"text.usetex": False, "font.size": 10})
-
-
 import numpy as np
+
 from qutip import basis, fidelity
 from qutip_qip.device import LinearSpinChain
 from qutip_qip.algorithms import qft_gate_sequence
 
-num_qubits = 10
+plt.rcParams.update({"text.usetex": False, "font.size": 10})
+TEXTWIDTH = 5.93
+LINEWIDTH = 3.22
+
 # The QFT circuit
+num_qubits = 10
 qc = qft_gate_sequence(num_qubits, swapping=False, to_cnot=True)
 # Gate-level simulation
 state1 = qc.run(basis([2] * num_qubits, [0] * num_qubits))
@@ -42,9 +36,9 @@ def get_control_latex(model):
     num_qubits = model.num_qubits
     num_coupling = model._get_num_coupling()
     return [
-        {f"sx{m}": r"$\sigma_x^{}$".format(m) for m in range(num_qubits)},
-        {f"sz{m}": r"$\sigma_z^{}$".format(m) for m in range(num_qubits)},
-        {f"g{m}": r"$g_{}$".format(m) for m in range(num_coupling)},
+        {f"sx{m}": rf"$\sigma_x^{m}$" for m in range(num_qubits)},
+        {f"sz{m}": rf"$\sigma_z^{m}$" for m in range(num_qubits)},
+        {f"g{m}": rf"$g_{m}$" for m in range(num_coupling)},
     ]
 
 
@@ -57,8 +51,6 @@ axes[-1].set_xlabel("$t$")
 fig.tight_layout()
 fig.savefig("qft_pulse.pdf")
 
-
-import time
 
 compiling_time = []
 simulation_time = []
@@ -115,14 +107,14 @@ ax.plot(
     compiling_time,
     "-s",
     markersize=4,
-    label=r"Compiler (\texttt{Processor.load\_circuit)}",
+    label=r"Compiler $\mathtt{Processor.load\_circuit}$",
 )
 ax.plot(
     range(1, 11),
     simulation_time,
     "-D",
     markersize=4,
-    label=r"Solver (\texttt{Processor.run\_state})",
+    label=r"Solver $\mathtt{Processor.run\_state}$",
 )
 ax.set_ylabel("Simulation time [s]")
 ax.set_xlabel("Number of qubits")

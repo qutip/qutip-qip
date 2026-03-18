@@ -41,9 +41,7 @@ class OptPulseProcessor(Processor):
     """
 
     def __init__(self, num_qubits=None, drift=None, dims=None, **params):
-        super(OptPulseProcessor, self).__init__(
-            num_qubits, dims=dims, **params
-        )
+        super().__init__(num_qubits, dims=dims, **params)
         if drift is not None:
             self.add_drift(drift, list(range(self.num_qubits)))
         self.spline_kind = "step_func"
@@ -70,10 +68,12 @@ class OptPulseProcessor(Processor):
         --------
         Same parameter for all the gates
 
+        >>> from qutip import sigmax, sigmay, sigmaz, tensor
         >>> from qutip_qip.circuit import QubitCircuit
         >>> from qutip_qip.device import OptPulseProcessor
+        >>> from qutip_qip.operations.gates import H, Z
         >>> qc = QubitCircuit(1)
-        >>> qc.add_gate("SNOT", 0)
+        >>> qc.add_gate(H, targets=0)
         >>> num_tslots = 10
         >>> evo_time = 10
         >>> processor = OptPulseProcessor(1, drift=sigmaz())
@@ -86,17 +86,18 @@ class OptPulseProcessor(Processor):
 
         >>> from qutip_qip.circuit import QubitCircuit
         >>> from qutip_qip.device import OptPulseProcessor
+        >>> from qutip_qip.operations.gates import H, SWAP, CX
         >>> qc = QubitCircuit(2)
-        >>> qc.add_gate("SNOT", 0)
-        >>> qc.add_gate("SWAP", targets=[0, 1])
-        >>> qc.add_gate('CNOT', controls=1, targets=[0])
+        >>> qc.add_gate(H, targets=0)
+        >>> qc.add_gate(SWAP, targets=[0, 1])
+        >>> qc.add_gate(CX, controls=1, targets=[0])
         >>> processor = OptPulseProcessor(2, drift=tensor([sigmaz()]*2))
         >>> processor.add_control(sigmax(), cyclic_permutation=True)
         >>> processor.add_control(sigmay(), cyclic_permutation=True)
         >>> processor.add_control(tensor([sigmay(), sigmay()]))
-        >>> setting_args = {"SNOT": {"num_tslots": 10, "evo_time": 1},\
+        >>> setting_args = {"H": {"num_tslots": 10, "evo_time": 1},\
                         "SWAP": {"num_tslots": 30, "evo_time": 3},\
-                        "CNOT": {"num_tslots": 30, "evo_time": 3}}
+                        "CX": {"num_tslots": 30, "evo_time": 3}}
         >>> tlist, coeffs = processor.load_circuit(\
                 qc, setting_args=setting_args, merge_gates=False)
 
@@ -145,9 +146,11 @@ class OptPulseProcessor(Processor):
         """
         if setting_args is None:
             setting_args = {}
+
         if isinstance(qc, QubitCircuit):
-            props = qc.propagators()
-            gates = [g.name for g in qc.gates]
+            props = qc.propagators()[:-1]  # Last element is the global phase
+            gates = [ins.operation.name for ins in qc.instructions]
+
         elif isinstance(qc, Iterable):
             props = qc
             gates = None  # using list of Qobj, no gates name
@@ -155,6 +158,7 @@ class OptPulseProcessor(Processor):
             raise ValueError(
                 "qc should be a " "QubitCircuit or a list of Qobj"
             )
+
         if merge_gates:  # merge all gates/Qobj into one Qobj
             props = [gate_sequence_product(props)]
             gates = None
@@ -198,9 +202,9 @@ class OptPulseProcessor(Processor):
 
             if result.fid_err > min_fid_err:
                 warnings.warn(
-                    "The fidelity error of gate {} is higher "
+                    f"The fidelity error of gate {prop_ind} is higher "
                     "than required limit. Use verbose=True to see"
-                    "the more detailed information.".format(prop_ind)
+                    "the more detailed information."
                 )
 
             time_record.append(result.time[1:] + last_time)
@@ -208,13 +212,11 @@ class OptPulseProcessor(Processor):
             coeff_record.append(result.final_amps.T)
 
             if verbose:
-                print("********** Gate {} **********".format(prop_ind))
-                print("Final fidelity error {}".format(result.fid_err))
-                print(
-                    "Final gradient normal {}".format(result.grad_norm_final)
-                )
-                print("Terminated due to {}".format(result.termination_reason))
-                print("Number of iterations {}".format(result.num_iter))
+                print(f"********** Gate {prop_ind} **********")
+                print(f"Final fidelity error {result.fid_err}")
+                print(f"Final gradient normal {result.grad_norm_final}")
+                print(f"Terminated due to {result.termination_reason}")
+                print(f"Number of iterations {result.num_iter}")
 
         tlist = np.hstack([[0.0]] + time_record)
         for i in range(len(self.pulses)):

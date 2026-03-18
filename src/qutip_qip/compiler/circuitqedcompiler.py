@@ -1,7 +1,8 @@
 import numpy as np
 
-from qutip_qip.operations import Gate
-from qutip_qip.compiler import GateCompiler, Instruction
+from qutip_qip.circuit import GateInstruction
+from qutip_qip.compiler import GateCompiler, PulseInstruction
+from qutip_qip.operations.gates import CX, RX, RY, RZX
 
 
 class SCQubitsCompiler(GateCompiler):
@@ -9,7 +10,7 @@ class SCQubitsCompiler(GateCompiler):
     Compiler for :class:`.SCQubits`.
     Compiled pulse strength is in the unit of GHz.
 
-    Supported native gates: "RX", "RY", "CNOT".
+    Supported native gates: "RX", "RY", "CX".
 
     Default configuration (see :obj:`.GateCompiler.args` and
     :obj:`.GateCompiler.compile`):
@@ -68,9 +69,10 @@ class SCQubitsCompiler(GateCompiler):
     >>> from qutip_qip.circuit import QubitCircuit
     >>> from qutip_qip.device import ModelProcessor, SCQubitsModel
     >>> from qutip_qip.compiler import SCQubitsCompiler
+    >>> from qutip_qip.operations.gates import CX
     >>>
     >>> qc = QubitCircuit(2)
-    >>> qc.add_gate("CNOT", targets=0, controls=1)
+    >>> qc.add_gate(CX, targets=0, controls=1)
     >>>
     >>> model = SCQubitsModel(2)
     >>> processor = ModelProcessor(model=model)
@@ -85,10 +87,10 @@ class SCQubitsCompiler(GateCompiler):
         super(SCQubitsCompiler, self).__init__(num_qubits, params=params)
         self.gate_compiler.update(
             {
-                "RY": self.ry_compiler,
-                "RX": self.rx_compiler,
-                "CNOT": self.cnot_compiler,
-                "RZX": self.rzx_compiler,
+                RY: self.ry_compiler,
+                RX: self.rx_compiler,
+                CX: self.cnot_compiler,
+                RZX: self.rzx_compiler,
             }
         )
         self.args = {  # Default configuration
@@ -98,7 +100,9 @@ class SCQubitsCompiler(GateCompiler):
             "DRAG": True,
         }
 
-    def _rotation_compiler(self, gate, op_label, param_label, args):
+    def _rotation_compiler(
+        self, circuit_instruction, op_label, param_label, args
+    ):
         """
         Single qubit rotation compiler.
 
@@ -118,33 +122,33 @@ class SCQubitsCompiler(GateCompiler):
 
         Returns
         -------
-        A list of :obj:`.Instruction`, including the compiled pulse
+        A list of :obj:`.PulseInstruction`, including the compiled pulse
         information for this gate.
         """
-        targets = gate.targets
+        target = circuit_instruction.targets[0]
         coeff, tlist = self.generate_pulse_shape(
             args["shape"],
             args["num_samples"],
-            maximum=self.params[param_label][targets[0]],
-            area=gate.arg_value / 2.0 / np.pi,
+            maximum=self.params[param_label][target],
+            area=circuit_instruction.operation.arg_value[0] / 2.0 / np.pi,
         )
-        f = 2 * np.pi * self.params["wq"][targets[0]]
+        f = 2 * np.pi * self.params["wq"][target]  # FIXME unused variable
         if args["DRAG"]:
-            pulse_info = self._drag_pulse(op_label, coeff, tlist, targets[0])
+            pulse_info = self._drag_pulse(op_label, coeff, tlist, target)
         elif op_label == "sx":
             pulse_info = [
-                ("sx" + str(targets[0]), coeff),
+                ("sx" + str(target), coeff),
                 # Add zero here just to make it easier to add the driving frequency later.
-                ("sy" + str(targets[0]), np.zeros(len(coeff))),
+                ("sy" + str(target), np.zeros(len(coeff))),
             ]
         elif op_label == "sy":
             pulse_info = [
-                ("sx" + str(targets[0]), np.zeros(len(coeff))),
-                ("sy" + str(targets[0]), coeff),
+                ("sx" + str(target), np.zeros(len(coeff))),
+                ("sy" + str(target), coeff),
             ]
         else:
             raise RuntimeError("Unknown label.")
-        return [Instruction(gate, tlist, pulse_info)]
+        return [PulseInstruction(circuit_instruction, tlist, pulse_info)]
 
     def _drag_pulse(self, op_label, coeff, tlist, target):
         dt_coeff = np.gradient(coeff, tlist[1] - tlist[0]) / 2 / np.pi
@@ -168,7 +172,7 @@ class SCQubitsCompiler(GateCompiler):
             pulse_info.append(("sx" + str(target), -y_drag))
         return pulse_info
 
-    def ry_compiler(self, gate, args):
+    def ry_compiler(self, circuit_instruction, args):
         """
         Compiler for the RZ gate
 
@@ -183,12 +187,14 @@ class SCQubitsCompiler(GateCompiler):
 
         Returns
         -------
-        A list of :obj:`.Instruction`, including the compiled pulse
+        A list of :obj:`.PulseInstruction`, including the compiled pulse
         information for this gate.
         """
-        return self._rotation_compiler(gate, "sy", "omega_single", args)
+        return self._rotation_compiler(
+            circuit_instruction, "sy", "omega_single", args
+        )
 
-    def rx_compiler(self, gate, args):
+    def rx_compiler(self, circuit_instruction, args):
         """
         Compiler for the RX gate
 
@@ -203,12 +209,14 @@ class SCQubitsCompiler(GateCompiler):
 
         Returns
         -------
-        A list of :obj:`.Instruction`, including the compiled pulse
+        A list of :obj:`.PulseInstruction`, including the compiled pulse
         information for this gate.
         """
-        return self._rotation_compiler(gate, "sx", "omega_single", args)
+        return self._rotation_compiler(
+            circuit_instruction, "sx", "omega_single", args
+        )
 
-    def rzx_compiler(self, gate, args):
+    def rzx_compiler(self, circuit_instruction, args):
         """
         Cross-Resonance RZX rotation, building block for the CNOT gate.
 
@@ -223,27 +231,30 @@ class SCQubitsCompiler(GateCompiler):
 
         Returns
         -------
-        A list of :obj:`.Instruction`, including the compiled pulse
+        A list of :obj:`.PulseInstruction`, including the compiled pulse
         information for this gate.
         """
         result = []
-        q1, q2 = gate.targets
+        q1, q2 = circuit_instruction.targets
+        arg_value = circuit_instruction.operation.arg_value
+
         if q1 < q2:
             zx_coeff = self.params["zx_coeff"][2 * q1]
         else:
             zx_coeff = self.params["zx_coeff"][2 * q1 - 1]
+
         area = 0.5
         coeff, tlist = self.generate_pulse_shape(
             args["shape"], args["num_samples"], maximum=zx_coeff, area=area
         )
-        area_rescale_factor = np.sqrt(np.abs(gate.arg_value) / (np.pi / 2))
+        area_rescale_factor = np.sqrt(np.abs(arg_value) / (np.pi / 2))
         tlist *= area_rescale_factor
         coeff *= area_rescale_factor
         pulse_info = [("zx" + str(q1) + str(q2), coeff)]
-        result += [Instruction(gate, tlist, pulse_info)]
+        result += [PulseInstruction(circuit_instruction, tlist, pulse_info)]
         return result
 
-    def cnot_compiler(self, gate, args):
+    def cnot_compiler(self, circuit_instruction, args):
         """
         Compiler for CNOT gate using the cross resonance iteraction.
         See
@@ -261,23 +272,38 @@ class SCQubitsCompiler(GateCompiler):
 
         Returns
         -------
-        A list of :obj:`.Instruction`, including the compiled pulse
+        A list of :obj:`.PulseInstruction`, including the compiled pulse
         information for this gate.
         """
+        PI = np.pi
         result = []
-        q1 = gate.controls[0]
-        q2 = gate.targets[0]
+        q1 = circuit_instruction.controls[0]
+        q2 = circuit_instruction.targets[0]
 
-        gate1 = Gate("RX", q2, arg_value=-np.pi / 2)
-        result += self.gate_compiler[gate1.name](gate1, args)
+        # += extends a list in Python
+        result += self.gate_compiler[RX](
+            GateInstruction(operation=RX(-PI / 2), qubits=(q2,)),
+            args,
+        )
 
-        gate2 = Gate("RZX", targets=[q1, q2], arg_value=np.pi / 2)
-        result += self.rzx_compiler(gate2, args)
+        result += self.gate_compiler[RZX](
+            GateInstruction(operation=RZX(PI / 2), qubits=(q1, q2)),
+            args,
+        )
 
-        gate3 = Gate("RX", q1, arg_value=-np.pi / 2)
-        result += self.gate_compiler[gate3.name](gate3, args)
-        gate4 = Gate("RY", q1, arg_value=-np.pi / 2)
-        result += self.gate_compiler[gate4.name](gate4, args)
-        gate5 = Gate("RX", q1, arg_value=np.pi / 2)
-        result += self.gate_compiler[gate5.name](gate5, args)
+        result += self.gate_compiler[RX](
+            GateInstruction(operation=RX(-PI / 2), qubits=(q1,)),
+            args,
+        )
+
+        result += self.gate_compiler[RY](
+            GateInstruction(operation=RY(-PI / 2), qubits=(q1,)),
+            args,
+        )
+
+        result += self.gate_compiler[RX](
+            GateInstruction(operation=RX(PI / 2), qubits=(q1,)),
+            args,
+        )
+
         return result

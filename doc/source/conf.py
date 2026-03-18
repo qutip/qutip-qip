@@ -13,6 +13,7 @@
 import os
 import pathlib
 import sys
+import doctest
 
 sys.path.insert(0, os.path.abspath("."))
 
@@ -145,9 +146,7 @@ warnings.filterwarnings("ignore")
 import numpy as np
 np.set_printoptions(precision=5)
 os_nt = {}
-""".format(
-    os_nt
-)
+""".format(os_nt)
 
 # -- Options for plot directive ---------------------------------------
 
@@ -188,3 +187,10 @@ bibtex_default_style = "unsrt"
 intersphinx_mapping = {
     "qutip": ("https://qutip.readthedocs.io/en/stable/", None),
 }
+
+# -- Doctest flags --------------------
+doctest_default_flags = (
+    doctest.NORMALIZE_WHITESPACE
+    | doctest.ELLIPSIS
+    | doctest.IGNORE_EXCEPTION_DETAIL
+)

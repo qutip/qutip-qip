@@ -55,9 +55,9 @@ class DispersiveCavityQED(ModelProcessor):
         from qutip_qip.device import DispersiveCavityQED
 
         qc = QubitCircuit(2)
-        qc.add_gate("RX", 0, arg_value=np.pi)
-        qc.add_gate("RY", 1, arg_value=np.pi)
-        qc.add_gate("ISWAP", [1, 0])
+        qc.add_gate(RX(np.pi), targets=0)
+        qc.add_gate(RY(np.pi), targets=1)
+        qc.add_gate(ISWAP, targets=[1, 0])
 
         processor = DispersiveCavityQED(2, g=0.1)
         processor.load_circuit(qc)
@@ -82,7 +82,7 @@ class DispersiveCavityQED(ModelProcessor):
         model = CavityQEDModel(
             num_qubits=num_qubits, num_levels=num_levels, **params
         )
-        super(DispersiveCavityQED, self).__init__(
+        super().__init__(
             model=model, correct_global_phase=correct_global_phase
         )
         self.correct_global_phase = correct_global_phase
@@ -149,7 +149,7 @@ class DispersiveCavityQED(ModelProcessor):
     def load_circuit(self, qc, schedule_mode="ASAP", compiler=None):
         if compiler is None:
             compiler = CavityQEDCompiler(
-                self.num_qubits, self.params, global_phase=0.0
+                self.num_qubits, self.params, global_phase=qc.global_phase
             )
         tlist, coeff = super().load_circuit(
             qc, schedule_mode=schedule_mode, compiler=compiler

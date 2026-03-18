@@ -338,10 +338,8 @@ class Pulse:
         if self.label is not None:
             print("Pulse label:", self.label)
         print(
-            "The pulse contains: {} coherent noise elements and {} "
-            "Lindblad noise elements.".format(
-                len(self.coherent_noise), len(self.lindblad_noise)
-            )
+            f"The pulse contains: {len(self.coherent_noise)} coherent noise "
+            f"elements and {len(self.lindblad_noise)} Lindblad noise elements."
         )
         print()
         print("Ideal pulse:")

@@ -17,7 +17,7 @@ def _add_repeats_if_marked(metafunc):
         metafunc.parametrize(
             "_repeat_count",
             range(count),
-            ids=["rep({})".format(x + 1) for x in range(count)],
+            ids=[f"rep({x + 1})" for x in range(count)],
         )
 
 
@@ -94,9 +94,7 @@ def _patched_build_err_msg(
         for i, a in enumerate(arrays):
             if isinstance(a, np.ndarray):
                 # precision argument is only needed if the objects are ndarrays
-                r_func = functools.partial(
-                    np.core.array_repr, precision=precision
-                )
+                r_func = functools.partial(np.array_repr, precision=precision)
             else:
                 r_func = repr
 
@@ -105,7 +103,7 @@ def _patched_build_err_msg(
                 with np.printoptions(threshold=np.inf):
                     r = r_func(a)
             except Exception as exc:
-                r = "[repr failed for <{}>: {}]".format(type(a).__name__, exc)
+                r = f"[repr failed for <{type(a).__name__}>: {exc}]"
             # [diff] The original truncates the output to 3 lines here.
             msg.append(" %s: %s" % (names[i], r))
     return "\n".join(msg)

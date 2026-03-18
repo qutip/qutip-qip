@@ -2,7 +2,7 @@ import warnings
 from qutip_qip.pulse import Pulse
 
 
-class Noise(object):
+class Noise:
     """
     The base class representing noise in a processor.
     The noise object can be added to :class:`.device.Processor` and
