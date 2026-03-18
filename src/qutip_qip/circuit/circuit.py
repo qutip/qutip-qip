@@ -153,6 +153,24 @@ class QubitCircuit:
     # fmt: on
 
     @property
+    def user_gates(self) -> list[CircuitInstruction]:
+        raise NameError(
+            "user_gates has been removed. "
+            "Please refer to the tutorial for the recommended way to define them:\n"
+            "https://nbviewer.org/urls/qutip.org/qutip-tutorials/tutorials-v5/quantum-circuits/quantum-gates.ipynb",
+        )
+
+    # fmt: off
+    user_gates.setter
+    def user_gates(self) -> None:
+        raise NameError(
+            "user_gates has been removed. "
+            "Please refer to the tutorial for the recommended way to define them:\n"
+            "https://nbviewer.org/urls/qutip.org/qutip-tutorials/tutorials-v5/quantum-circuits/quantum-gates.ipynb",
+        )
+    # fmt: on
+
+    @property
     def instructions(self) -> list[CircuitInstruction]:
         return self._instructions
 
