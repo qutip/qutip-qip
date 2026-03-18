@@ -290,7 +290,10 @@ class QubitCircuit:
         if arg_value is not None or arg_label is not None:
             warnings.warn(
                 "Define 'arg_value', 'arg_label' in your Gate object e.g. RX(np.pi)"
-                ", 'arg_value', 'arg_label' arguments will be removed from 'add_gate' method in the future version.",
+                ", 'arg_value', 'arg_label' arguments will be removed from 'add_gate' method in the future version.\n"
+                "Please refer to the tutorial for the recommended way to define them:\n"
+                "https://nbviewer.org/urls/qutip.org/qutip-tutorials/tutorials-v5/quantum-circuits/quantum-gates.ipynb",
+                DeprecationWarning,
                 DeprecationWarning,
                 stacklevel=2,
             )
@@ -300,7 +303,9 @@ class QubitCircuit:
                 "'control_value' is no longer a valid argument and has been deprecated and will be removed in the future version.\n"
                 "from qutip_qip.operations import get_controlled_gate\n"
                 "from qutip_qip.operations.gates import X\n"
-                "Example: gate = get_controlled_gate(X, num_ctrl_qubits=1, control_value=0)",
+                "Example: gate = get_controlled_gate(X, num_ctrl_qubits=1, control_value=0)\n"
+                "Please refer to the tutorial for the recommended way to define them:\n"
+                "https://nbviewer.org/urls/qutip.org/qutip-tutorials/tutorials-v5/quantum-circuits/quantum-gates.ipynb",
                 DeprecationWarning,
                 stacklevel=2,
             )
