@@ -1,7 +1,8 @@
 import numpy as np
 from typing import Sequence
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import Gate, Z, ControlledGate
+from qutip_qip.operations import Gate, get_controlled_gate
+from qutip_qip.operations.gates import H, X, Z, CZ
 
 __all__ = ["grover", "grover_oracle"]
 
@@ -46,11 +47,11 @@ def grover_oracle(
         # Flip 0 bits:
         for i, char in enumerate(binary_rep):
             if char == "0":
-                qc.add_gate("X", targets=search_qubits[i])
+                qc.add_gate(X, targets=search_qubits[i])
 
         # Change state by Multi Controlled Z Gate
         if n_qubits == 1:
-            qc.add_gate("Z", targets=search_qubits[0])
+            qc.add_gate(Z, targets=search_qubits[0])
         else:
             ctrls = search_qubits[:-1]
             tgt = search_qubits[-1]
@@ -58,21 +59,15 @@ def grover_oracle(
             ctrl_val = 2 ** len(ctrls) - 1
 
             if len(ctrls) == 1:
-                qc.add_gate("CSIGN", controls=ctrls, targets=tgt)
+                qc.add_gate(CZ, controls=ctrls, targets=tgt)
             else:
-                qc.add_gate(
-                    ControlledGate(
-                        controls=ctrls,
-                        targets=tgt,
-                        control_value=ctrl_val,
-                        target_gate=Z,
-                    )
-                )
+                mcz = get_controlled_gate(Z, len(ctrls), ctrl_val)
+                qc.add_gate(mcz, controls=ctrls, targets=tgt)
 
             # uncompute by X
             for i, char in enumerate(binary_rep):
                 if char == "0":
-                    qc.add_gate("X", targets=search_qubits[i])
+                    qc.add_gate(X, targets=search_qubits[i])
 
     return qc
 
@@ -171,7 +166,7 @@ def grover(
 
     # Superposition:
     for q in search_qubits:
-        qc.add_gate("SNOT", targets=q)
+        qc.add_gate(H, targets=q)
 
     # Calculate optimal Iterations if none provided:
     if num_iterations is not None and num_iterations < 0:
@@ -187,7 +182,13 @@ def grover(
     for _ in range(num_iterations):
         # Oracle
         if isinstance(oracle, QubitCircuit):
-            qc.gates.extend(oracle.gates)
+            for circ_inst in oracle.instructions:
+                qc.add_gate(
+                    circ_inst.operation,
+                    targets=circ_inst.targets,
+                    controls=circ_inst.controls,
+                )
+
         elif isinstance(oracle, Gate):
             if not set(oracle.targets).issubset(search_qubits):
                 raise ValueError(
@@ -197,35 +198,29 @@ def grover(
 
         # Diffusion (Inversion about the mean)
         for q in search_qubits:
-            qc.add_gate("SNOT", targets=q)
+            qc.add_gate(H, targets=q)
 
         for q in search_qubits:
-            qc.add_gate("X", targets=q)
+            qc.add_gate(X, targets=q)
 
         # Projection (Multi-Controlled Z)
         if n_qubits == 1:
-            qc.add_gate("Z", targets=search_qubits[0])
+            qc.add_gate(Z, targets=search_qubits[0])
         else:
             ctrls = search_qubits[:-1]
             tgt = search_qubits[-1]
             ctrl_val = 2 ** (len(ctrls)) - 1
 
             if len(ctrls) == 1:
-                qc.add_gate("CSIGN", controls=ctrls, targets=tgt)
+                qc.add_gate(CZ, controls=ctrls, targets=tgt)
             else:
-                qc.add_gate(
-                    ControlledGate(
-                        controls=ctrls,
-                        targets=tgt,
-                        control_value=ctrl_val,
-                        target_gate=Z,
-                    )
-                )
+                mcz = get_controlled_gate(Z, len(ctrls), ctrl_val)
+                qc.add_gate(mcz, controls=ctrls, targets=tgt)
 
         for q in search_qubits:
-            qc.add_gate("X", targets=q)
+            qc.add_gate(X, targets=q)
 
         for q in search_qubits:
-            qc.add_gate("SNOT", targets=q)
+            qc.add_gate(H, targets=q)
 
     return qc
