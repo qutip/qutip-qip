@@ -3,6 +3,7 @@ from .qpe import qpe
 from .bit_flip import BitFlipCode
 from .phase_flip import PhaseFlipCode
 from .shor_code import ShorCode
+from .grover import grover_oracle, grover
 
 __all__ = [
     "qft",
@@ -12,4 +13,6 @@ __all__ = [
     "BitFlipCode",
     "PhaseFlipCode",
     "ShorCode",
+    "grover_oracle",
+    "grover",
 ]
