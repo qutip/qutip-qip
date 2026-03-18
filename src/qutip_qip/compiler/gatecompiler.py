@@ -172,12 +172,17 @@ class GateCompiler:
             if gate.is_parametric():
                 gate = type(gate)
 
-            if gate not in self.gate_compiler:
+            if gate in self.gate_compiler:
+                instruction = self.gate_compiler[gate](
+                    circuit_instruction, self.args
+                )
+            elif gate.name in self.gate_compiler:
+                instruction = self.gate_compiler[gate.name](
+                    circuit_instruction, self.args
+                )
+            else:
                 raise ValueError(f"Unsupported gate {gate.name}")
 
-            instruction = self.gate_compiler[gate](
-                circuit_instruction, self.args
-            )
             if instruction is None:
                 continue  # neglecting global phase gate
             instruction_list += instruction
