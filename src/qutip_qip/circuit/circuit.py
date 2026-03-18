@@ -457,6 +457,12 @@ class QubitCircuit:
                 raise TypeError(f"The circuit to be added contains unknown \
                     operator {circuit_op[0]}")
 
+    def adjacent_gates(*args, **kwargs):
+        raise NameError(
+            "adjacent_gates method has been removed. "
+            "Use qutip_qip.transpiler.to_chain_structure method instead"
+        )
+
     def remove_gate_or_measurement(
         self, index=None, end=None, name=None, remove="first"
     ):
