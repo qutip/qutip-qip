@@ -26,6 +26,13 @@ def grover_oracle(
     """
     if isinstance(search_qubits, int):
         search_qubits = list(range(search_qubits))
+    else:
+        search_qubits = list(search_qubits)
+
+    if len(search_qubits) == 0:
+        raise ValueError(
+            "search_qubits must contain at least one qubit index."
+        )
 
     if isinstance(marked_states, int):
         marked_states = [marked_states]
@@ -69,10 +76,10 @@ def grover_oracle(
                     )
                 )
 
-            # uncompute by X
-            for i, char in enumerate(binary_rep):
-                if char == "0":
-                    qc.add_gate("X", targets=search_qubits[i])
+        # Uncompute the flipped zero bits for all qubit counts.
+        for i, char in enumerate(binary_rep):
+            if char == "0":
+                qc.add_gate("X", targets=search_qubits[i])
 
     return qc
 
@@ -141,6 +148,13 @@ def grover(
     """
     if isinstance(search_qubits, int):
         search_qubits = list(range(search_qubits))
+    else:
+        search_qubits = list(search_qubits)
+
+    if len(search_qubits) == 0:
+        raise ValueError(
+            "search_qubits must contain at least one qubit index."
+        )
 
     n_qubits = len(search_qubits)
     search_space_size = 2**n_qubits

@@ -32,6 +32,24 @@ class TestGrover:
         with pytest.raises(ValueError, match="out of bounds"):
             grover_oracle(2, [4])  # 2 qubits only go up to state 3
 
+    def test_grover_oracle_empty_search_qubits(self):
+        """Test that grover_oracle rejects empty search qubits."""
+        with pytest.raises(ValueError, match="at least one"):
+            grover_oracle(0, 0)
+
+        with pytest.raises(ValueError, match="at least one"):
+            grover_oracle([], 0)
+
+    def test_grover_oracle_1_qubit_marks_zero(self):
+        """
+        Test that 1-qubit oracle marking |0> is a pure phase flip.
+        """
+        qc_oracle = grover_oracle(1, 0)
+        U_sim = qc_oracle.compute_unitary()
+
+        U_expected = Qobj(np.diag([-1, 1]), dims=[[2], [2]])
+        assert np.allclose(U_sim.full(), U_expected.full())
+
     def test_grover_invalid_N(self):
         """Test that grover raises errors for invalid num_qubits values."""
         oracle = grover_oracle([1, 2], 3)
@@ -51,9 +69,19 @@ class TestGrover:
         ):
             grover(oracle, 2, 1, num_iterations=-3)
 
+    def test_grover_empty_search_qubits(self):
+        """Test that grover rejects empty search qubits."""
+        oracle = grover_oracle(1, 0)
+
+        with pytest.raises(ValueError, match="at least one"):
+            grover(oracle, 0, 1)
+
+        with pytest.raises(ValueError, match="at least one"):
+            grover(oracle, [], 1)
+
     def test_grover_1_qubit(self):
         """
-        Full algoritm test: 1 qubit(edge-case), searching for |0>.
+        Full algorithm test: 1 qubit(edge-case), searching for |0>.
         """
         n_qubits = 1
         target_state = 0  # |0>
@@ -111,8 +139,13 @@ class TestGrover:
         psi_final = U_grover * psi0
 
         # Check probability of measuring EITHER 3 or 5
-        prob_3 = abs(psi_final.overlap(basis(2**n_qubits, 3))) ** 2
-        prob_5 = abs(psi_final.overlap(basis(2**n_qubits, 5))) ** 2
+        dims = [[2] * n_qubits, [1] * n_qubits]
+        state_3 = basis(2**n_qubits, 3)
+        state_3.dims = dims
+        state_5 = basis(2**n_qubits, 5)
+        state_5.dims = dims
+        prob_3 = abs(psi_final.overlap(state_3)) ** 2
+        prob_5 = abs(psi_final.overlap(state_5)) ** 2
 
         total_success_prob = prob_3 + prob_5
         assert total_success_prob > 0.999999
