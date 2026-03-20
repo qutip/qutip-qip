@@ -177,7 +177,21 @@ class GateCompiler:
                     circuit_instruction, self.args
                 )
             elif gate.name in self.gate_compiler:
+                warnings.warn(
+                    "Use gateclass in place of gate name string in self.gate_compiler dict",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
                 instruction = self.gate_compiler[gate.name](
+                    circuit_instruction, self.args
+                )
+            elif gate.__name__ in self.gate_compiler:
+                warnings.warn(
+                    "Use gateclass in place of gate name string in self.gate_compiler dict",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
+                instruction = self.gate_compiler[gate.__name__](
                     circuit_instruction, self.args
                 )
             else:
