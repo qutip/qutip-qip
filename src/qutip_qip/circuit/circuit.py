@@ -24,8 +24,8 @@ from qutip_qip.operations import (
     expand_operator,
     get_unitary_gate,
 )
+from qutip_qip.operations import AngleParametricGate
 from qutip_qip.operations import gates as std
-from qutip_qip.operations.parametric import ParametricGate
 from qutip_qip.typing import Int, IntSequence
 from qutip_qip.utils import check_limit, convert_type_input_to_sequence
 
@@ -182,7 +182,7 @@ class QubitCircuit:
                 unitary = user_gate_callable()
                 gate_classes[gate_name] = get_unitary_gate(gate_name, unitary)
                 continue
-            
+
             # Parametric gate.
             # We don't know the dimension of the unitary, need a try-run.
             sample_arg_value = tuple(
@@ -197,8 +197,8 @@ class QubitCircuit:
             _num_qubits = int(np.log2(sample_unitary.shape[0]))
             _num_params = num_params
 
-            # Without it, if you write get_qobj directly in the loop and reference 
-            # user_gate_callable, all generated classes can end up using the last callable 
+            # Without it, if you write get_qobj directly in the loop and reference
+            # user_gate_callable, all generated classes can end up using the last callable
             # from the loop (late binding).
             def _make_get_qobj(_user_gate_callable):
                 def get_qobj(self, dtype="dense"):
@@ -206,16 +206,12 @@ class QubitCircuit:
 
                 return get_qobj
 
-            class _OldUserParametricGate(ParametricGate):
+            class _OldUserParametricGate(AngleParametricGate):
                 __slots__ = ()
                 namespace = None
                 name = gate_name
                 num_qubits = _num_qubits
                 num_params = _num_params
-
-                @staticmethod
-                def validate_params(arg_value):
-                    return None
 
                 get_qobj = _make_get_qobj(user_gate_callable)
 
@@ -399,7 +395,9 @@ class QubitCircuit:
                 elif gate in self.user_gates:
                     gate_class = self.user_gates[gate]
                 else:
-                    raise ValueError(f"Gate '{gate}' is not a recognized standard gate or user-defined gate.")
+                    raise ValueError(
+                        f"Gate '{gate}' is not a recognized standard gate or user-defined gate."
+                    )
 
             elif issubclass(gate, Gate):
                 gate_class = gate

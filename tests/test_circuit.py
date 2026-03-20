@@ -840,7 +840,7 @@ class TestAddGateError:
     def test_add_gate_errors(self):
         qc = QubitCircuit(3, num_cbits=1)
 
-        with pytest.raises(KeyError):
+        with pytest.raises(ValueError):
             qc.add_gate("123")  # Can only pass standard gate name as strings
 
         with pytest.raises(TypeError):
