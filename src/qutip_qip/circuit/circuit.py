@@ -18,7 +18,13 @@ from qutip_qip.circuit._decompose import (
     _resolve_to_universal,
     _resolve_2q_basis,
 )
-from qutip_qip.operations import Gate, Measurement, expand_operator
+from qutip_qip.operations import (
+    Gate,
+    Measurement,
+    expand_operator,
+    get_unitary_gate,
+)
+from qutip_qip.operations import AngleParametricGate
 from qutip_qip.operations import gates as std
 from qutip_qip.typing import Int, IntSequence
 from qutip_qip.utils import check_limit, convert_type_input_to_sequence
@@ -97,10 +103,7 @@ class QubitCircuit:
             ]
 
         if user_gates is not None:
-            raise ValueError(
-                "`user_gates` has been removed from qutip-qip from version 0.5.0"
-                "To define custom gates refer to this example in documentation <link>"
-            )
+            self.user_gates = user_gates
 
     @property
     def num_qubits(self) -> int:
@@ -143,7 +146,7 @@ class QubitCircuit:
         return self._instructions
 
     # fmt: off
-    gates.setter
+    @gates.setter
     def gates(self) -> None:
         warnings.warn(
             "QubitCircuit.gates has been replaced with QubitCircuit.instructions",
@@ -151,6 +154,70 @@ class QubitCircuit:
             stacklevel=2,
         )
     # fmt: on
+
+    @property
+    def user_gates(self) -> dict[str, Type[Gate]]:
+        return getattr(self, "_user_gates", {})
+
+    @user_gates.setter
+    def user_gates(self, value) -> None:
+        warnings.warn(
+            "Using circuit.user_gates with string gate names "
+            "is deprecated. Please define custom gates as "
+            "Gate classes instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self.__dict__["user_gates"] = value
+
+        gate_classes = {}
+        for gate_name, user_gate_callable in value.items():
+            parameters = tuple(
+                inspect.signature(user_gate_callable).parameters.values()
+            )
+            num_params = len(parameters)
+
+            if num_params == 0:
+                # Non parameteric gate
+                unitary = user_gate_callable()
+                gate_classes[gate_name] = get_unitary_gate(gate_name, unitary)
+                continue
+
+            # Parametric gate.
+            # We don't know the dimension of the unitary, need a try-run.
+            sample_arg_value = tuple(
+                (
+                    parameter.default
+                    if parameter.default is not inspect.Parameter.empty
+                    else 0
+                )
+                for parameter in parameters
+            )
+            sample_unitary = user_gate_callable(*sample_arg_value)
+            _num_qubits = int(np.log2(sample_unitary.shape[0]))
+            _num_params = num_params
+
+            # Without it, if you write get_qobj directly in the loop and reference
+            # user_gate_callable, all generated classes can end up using the last callable
+            # from the loop (late binding).
+            def _make_get_qobj(_user_gate_callable):
+                def get_qobj(self, dtype="dense"):
+                    return _user_gate_callable(*self.arg_value).to(dtype)
+
+                return get_qobj
+
+            class _OldUserParametricGate(AngleParametricGate):
+                __slots__ = ()
+                namespace = None
+                name = gate_name
+                num_qubits = _num_qubits
+                num_params = _num_params
+
+                get_qobj = _make_get_qobj(user_gate_callable)
+
+            gate_classes[gate_name] = _OldUserParametricGate
+
+        self._user_gates = gate_classes
 
     @property
     def instructions(self) -> list[CircuitInstruction]:
@@ -213,7 +280,7 @@ class QubitCircuit:
             Positions to add the gate.
         """
         if index is not None:
-            raise ValueError("argument index is no longer supported")
+            raise AttributeError("argument index is no longer supported")
 
         if isinstance(measurement, Measurement):
             name = measurement.name
@@ -285,12 +352,14 @@ class QubitCircuit:
         """
         # Deprecation warnings
         if index is not None:
-            raise ValueError("argument index is no longer supported")
+            raise AttributeError("argument index is no longer supported")
 
         if arg_value is not None or arg_label is not None:
             warnings.warn(
                 "Define 'arg_value', 'arg_label' in your Gate object e.g. RX(np.pi)"
-                ", 'arg_value', 'arg_label' arguments will be removed from 'add_gate' method in the future version.",
+                ", 'arg_value', 'arg_label' arguments will be removed from 'add_gate' method in the future version.\n"
+                "Please refer to the tutorial for the recommended way to define them:\n"
+                "https://nbviewer.org/urls/qutip.org/qutip-tutorials/tutorials-v5/quantum-circuits/quantum-gates.ipynb",
                 DeprecationWarning,
                 stacklevel=2,
             )
@@ -300,7 +369,9 @@ class QubitCircuit:
                 "'control_value' is no longer a valid argument and has been deprecated and will be removed in the future version.\n"
                 "from qutip_qip.operations import get_controlled_gate\n"
                 "from qutip_qip.operations.gates import X\n"
-                "Example: gate = get_controlled_gate(X, num_ctrl_qubits=1, control_value=0)",
+                "Example: gate = get_controlled_gate(X, num_ctrl_qubits=1, control_value=0)\n"
+                "Please refer to the tutorial for the recommended way to define them:\n"
+                "https://nbviewer.org/urls/qutip.org/qutip-tutorials/tutorials-v5/quantum-circuits/quantum-gates.ipynb",
                 DeprecationWarning,
                 stacklevel=2,
             )
@@ -321,10 +392,11 @@ class QubitCircuit:
                     )
                     gate_class = std.GATE_CLASS_MAP[gate]
 
+                elif gate in self.user_gates:
+                    gate_class = self.user_gates[gate]
                 else:
-                    raise KeyError(
-                        "Can only pass standard gate name as strings"
-                        "or Gate class or its object instantiation"
+                    raise ValueError(
+                        f"Gate '{gate}' is not a recognized standard gate or user-defined gate."
                     )
 
             elif issubclass(gate, Gate):
@@ -451,6 +523,12 @@ class QubitCircuit:
             else:
                 raise TypeError(f"The circuit to be added contains unknown \
                     operator {circuit_op[0]}")
+
+    def adjacent_gates(*args, **kwargs):
+        raise NameError(
+            "adjacent_gates method has been removed. "
+            "Use qutip_qip.transpiler.to_chain_structure method instead"
+        )
 
     def remove_gate_or_measurement(
         self, index=None, end=None, name=None, remove="first"

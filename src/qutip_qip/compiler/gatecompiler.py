@@ -172,12 +172,31 @@ class GateCompiler:
             if gate.is_parametric():
                 gate = type(gate)
 
-            if gate not in self.gate_compiler:
+            if gate in self.gate_compiler:
+                instruction = self.gate_compiler[gate](
+                    circuit_instruction, self.args
+                )
+            elif gate.name in self.gate_compiler:
+                warnings.warn(
+                    "Use gateclass in place of gate name string in self.gate_compiler dict",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
+                instruction = self.gate_compiler[gate.name](
+                    circuit_instruction, self.args
+                )
+            elif gate.__name__ in self.gate_compiler:
+                warnings.warn(
+                    "Use gateclass in place of gate name string in self.gate_compiler dict",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
+                instruction = self.gate_compiler[gate.__name__](
+                    circuit_instruction, self.args
+                )
+            else:
                 raise ValueError(f"Unsupported gate {gate.name}")
 
-            instruction = self.gate_compiler[gate](
-                circuit_instruction, self.args
-            )
             if instruction is None:
                 continue  # neglecting global phase gate
             instruction_list += instruction
