@@ -20,7 +20,7 @@ examples of circuit evolution. We take a circuit from
         # Controlled Hadamard
         return controlled_gate(
             hadamard_transform(1), controls=0, targets=1, control_value=1)
-    qc = QubitCircuit(3, num_cbits=3)
+    qc = QubitCircuit(num_qubits=3, num_cbits=3)
     qc.user_gates = {"cH": controlled_hadamard}
     qc.add_gate("QASMU", targets=[0], arg_value=[1.91063, 0, 0])
     qc.add_gate("cH", targets=[0,1])
@@ -131,13 +131,61 @@ outputs, we can use the :meth:`.QubitCircuit.run_statistics` function:
    [0.]]
   with probability 0.33333
 
-The function returns a :class:`~.Result` object which contains
-the output states.
-The method :meth:`~.Result.get_results` can be used to obtain the
-possible states and probabilities.
+The function returns a :class:`~.CircuitResult` object containing the output states and 
+probabilities, accessible via :meth:`~.CircuitResult.get_final_states` and 
+:meth:`~.CircuitResult.get_probabilities`.
 Since the state created by the circuit is the W-state, we observe the states
 :math:`\newcommand{\ket}[1]{\left|{#1}\right\rangle} \ket{001}`,  :math:`\newcommand{\ket}[1]{\left|{#1}\right\rangle} \ket{010}` and :math:`\newcommand{\ket}[1]{\left|{#1}\right\rangle} \ket{100}` with equal probability.
 
+We can also visualize the measurement outcome probabilities using
+:meth:`~.CircuitResult.plot_histogram`:
+
+.. testcode::
+
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots(figsize=(8, 4))
+    result.plot_histogram(fig=fig, ax=ax)
+
+.. plot::
+    :include-source: False
+
+    # setup (hidden)
+    from qutip_qip.circuit import QubitCircuit
+    from qutip_qip.operations import controlled_gate, hadamard_transform
+    from qutip import tensor, basis
+    import matplotlib.pyplot as plt
+
+    def controlled_hadamard():
+        return controlled_gate(
+            hadamard_transform(1), controls=0, targets=1, control_value=1)
+
+    qc = QubitCircuit(num_qubits=3, num_cbits=3)
+    qc.user_gates = {"cH": controlled_hadamard}
+    qc.add_gate("QASMU", targets=[0], arg_value=[1.91063, 0, 0])
+    qc.add_gate("cH", targets=[0,1])
+    qc.add_gate("TOFFOLI", targets=[2], controls=[0, 1])
+    qc.add_gate("X", targets=[0])
+    qc.add_gate("X", targets=[1])
+    qc.add_gate("CNOT", targets=[1], controls=0)
+
+    qc.add_measurement("M0", targets=[0], classical_store=0)
+    qc.add_measurement("M1", targets=[1], classical_store=1)
+    qc.add_measurement("M2", targets=[2], classical_store=2)
+
+    result = qc.run_statistics(state=tensor(basis(2,0), basis(2,0), basis(2,0)))
+
+    # visible effect (plot only)
+    fig, ax = plt.subplots(figsize=(8, 4))
+    result.plot_histogram(fig=fig, ax=ax)
+    plt.show()
+    plt.close(fig)
+
+The histogram displays the probability of each classical register state.
+Since the W-state has equal probability of collapsing to :math:`\newcommand{\ket}[1]{\left|{#1}\right\rangle} \ket{001}`,
+:math:`\newcommand{\ket}[1]{\left|{#1}\right\rangle} \ket{010}` and
+:math:`\newcommand{\ket}[1]{\left|{#1}\right\rangle} \ket{100}`,
+we observe each with probability :math:`1/3`.
 
 Circuit simulator
 =================
