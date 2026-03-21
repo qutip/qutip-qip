@@ -146,7 +146,7 @@ class QubitCircuit:
         return self._instructions
 
     # fmt: off
-    gates.setter
+    @gates.setter
     def gates(self) -> None:
         warnings.warn(
             "QubitCircuit.gates has been replaced with QubitCircuit.instructions",
