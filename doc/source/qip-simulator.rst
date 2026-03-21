@@ -147,7 +147,39 @@ We can also visualize the measurement outcome probabilities using
     fig, ax = plt.subplots(figsize=(8, 4))
     result.plot_histogram(fig=fig, ax=ax)
 
-.. image:: /figures/w_state_histogram.png
+.. plot::
+    :include-source: False
+
+    # setup (hidden)
+    from qutip_qip.circuit import QubitCircuit
+    from qutip_qip.operations import controlled_gate, hadamard_transform
+    from qutip import tensor, basis
+    import matplotlib.pyplot as plt
+
+    def controlled_hadamard():
+        return controlled_gate(
+            hadamard_transform(1), controls=0, targets=1, control_value=1)
+
+    qc = QubitCircuit(num_qubits=3, num_cbits=3)
+    qc.user_gates = {"cH": controlled_hadamard}
+    qc.add_gate("QASMU", targets=[0], arg_value=[1.91063, 0, 0])
+    qc.add_gate("cH", targets=[0,1])
+    qc.add_gate("TOFFOLI", targets=[2], controls=[0, 1])
+    qc.add_gate("X", targets=[0])
+    qc.add_gate("X", targets=[1])
+    qc.add_gate("CNOT", targets=[1], controls=0)
+
+    qc.add_measurement("M0", targets=[0], classical_store=0)
+    qc.add_measurement("M1", targets=[1], classical_store=1)
+    qc.add_measurement("M2", targets=[2], classical_store=2)
+
+    result = qc.run_statistics(state=tensor(basis(2,0), basis(2,0), basis(2,0)))
+
+    # visible effect (plot only)
+    fig, ax = plt.subplots(figsize=(8, 4))
+    result.plot_histogram(fig=fig, ax=ax)
+    plt.show()
+    plt.close(fig)
 
 The histogram displays the probability of each classical register state.
 Since the W-state has equal probability of collapsing to :math:`\newcommand{\ket}[1]{\left|{#1}\right\rangle} \ket{001}`,
