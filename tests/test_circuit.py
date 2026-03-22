@@ -972,6 +972,19 @@ class TestInstructionErrors:
                 operation=gates.X, qubits=(0,), cbits=(0,), cbits_ctrl_value=2
             )
 
+    def test_gate_instruction_attr_forwarding(self):
+        """
+        Temporarily test that GateInstruction forwards attributes of the underlying gate operation.
+        """
+        instr = GateInstruction(operation=gates.RX(np.pi / 3), qubits=(0,))
+
+        with pytest.warns(DeprecationWarning):
+            assert instr.name == "RX"
+        with pytest.warns(DeprecationWarning):
+            assert instr.num_qubits == 1
+        with pytest.warns(DeprecationWarning):
+            assert np.isclose(instr.arg_value, np.pi / 3)
+
     def test_measurement_instruction_errors(self):
         with pytest.raises(TypeError):
             # Operation must be of type Measurement

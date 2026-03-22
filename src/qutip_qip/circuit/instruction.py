@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Type
 from dataclasses import dataclass, field
+import warnings
 from qutip_qip.operations import Gate, Measurement
 
 
@@ -110,6 +111,27 @@ class GateInstruction(CircuitInstruction):
 
     def is_gate_instruction(self) -> bool:
         return True
+
+    def __getattr__(self, name):
+        """
+        Temporary backward compatibility layer to:
+        forward selected old Gate attributes to ``operation`` with a
+        deprecation warning.
+        """
+        if name in ("name", "num_qubits", "arg_value"):
+            warnings.warn(
+                f"Gate object in a circuit has been replaced by GateInstructions."
+                f"use GateInstruction.operation.{name} instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            value = getattr(self.operation, name)
+            if name == "arg_value" and isinstance(value, tuple) and len(value) == 1:
+                return value[0]
+            return value
+        raise AttributeError(
+            f"'{type(self).__name__}' object has no attribute '{name}'"
+        )
 
     def to_qasm(self, qasm_out) -> None:
         gate = self.operation
