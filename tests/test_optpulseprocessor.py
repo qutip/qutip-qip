@@ -119,3 +119,29 @@ class TestOptPulseProcessor:
             pytest.approx(qutip.fidelity(num_result, ideal_result), 1.0e-5)
             == 1.0
         )
+
+
+def test_optpulseprocessor_alias_bug():
+    # 2-qubit processor with simple controls
+    N = 2
+    H_d = tensor([sigmaz()] * N)
+    processor = OptPulseProcessor(N, H_d)
+    processor.add_control(sigmax(), targets=0)
+    processor.add_control(sigmax(), targets=1)
+
+    qc = QubitCircuit(N)
+    qc.add_gate("CNOT", controls=0, targets=1)
+
+    # Old per-gate settings key (old docs style)
+    setting_args = {
+        "CNOT": {"num_tslots": 10, "evo_time": 2},
+    }
+
+    # Fails without alias handling in OptPulseProcessor:
+    # CX gate won't find "CNOT" in setting_args.
+    processor.load_circuit(
+        qc,
+        merge_gates=False,
+        setting_args=setting_args,
+        verbose=True,
+    )

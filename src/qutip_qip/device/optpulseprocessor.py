@@ -149,7 +149,7 @@ class OptPulseProcessor(Processor):
 
         if isinstance(qc, QubitCircuit):
             props = qc.propagators()[:-1]  # Last element is the global phase
-            gates = [ins.operation.name for ins in qc.instructions]
+            gates = [ins.operation for ins in qc.instructions]
 
         elif isinstance(qc, Iterable):
             props = qc
@@ -173,7 +173,39 @@ class OptPulseProcessor(Processor):
             # we update the kwargs for each gate.
             # keyword arguments in setting_arg have priority
             if gates is not None and setting_args:
-                kwargs.update(setting_args[gates[prop_ind]])
+                # Support the gate name as setting_args key,
+                # and also support the gate object itself as key.
+                gate = gates[prop_ind]
+                gate_setting = None
+
+                if gate in setting_args:
+                    gate_setting = setting_args[gate]
+                elif gate.name in setting_args:
+                    gate_setting = setting_args[gate.name]
+                elif hasattr(gate, "__name__") and gate.__name__ in setting_args:
+                    gate_setting = setting_args[gate.__name__]
+                else:
+                    aliases = {
+                        "H": "SNOT",
+                        "SNOT": "H",
+                        "CX": "CNOT",
+                        "CNOT": "CX",
+                    }
+                    alt = aliases.get(gate.name)
+                    if alt is not None:
+                        gate_setting = setting_args.get(alt)
+
+                if gate_setting is not None and gate not in setting_args:
+                    # String key is used.
+                    warnings.warn(
+                        "Using string gate names as setting_args keys is deprecated. "
+                        "Use gate classes or gate objects as keys instead.",
+                        DeprecationWarning,
+                        stacklevel=2,
+                    )
+
+                if gate_setting:
+                    kwargs.update(gate_setting)
 
             control_labels = self.model.get_control_labels()
             full_ctrls_hams = []
