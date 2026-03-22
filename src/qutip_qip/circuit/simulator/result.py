@@ -95,3 +95,52 @@ class CircuitResult:
         if index is not None:
             return self.cbits[index]
         return self.cbits
+    def plot_histogram(self, fig=None, ax=None, color="#1f77b4"):
+        """
+        Plot a histogram of the measurement outcomes and their probabilities.
+
+        Parameters
+        ----------
+        fig : matplotlib.figure.Figure, optional
+            The figure object for the histogram plot. If not provided, a new figure will be created.
+
+        ax : matplotlib.axes.Axes, optional
+            The axes object for the histogram plot. If not provided, a new axes will be created.
+
+        color : str, optional
+            Bar color for the histogram. Default is '#1f77b4'.
+
+        Returns
+        -------
+        fig : matplotlib.figure.Figure
+            The figure object for the histogram plot.
+
+        ax : matplotlib.axes.Axes
+            The axes object for the histogram plot.
+        """
+        import matplotlib.pyplot as plt
+
+        num_cbits = len(self.cbits[0])
+        plot_dict = {f"{i:0{num_cbits}b}": 0.0 for i in range(1 << num_cbits)}
+
+        for cbits, prob in zip(self.cbits, self.probabilities):
+            binary = "".join(str(b) for b in cbits)
+            plot_dict[binary] += prob
+
+        if fig is None or ax is None:
+            fig, ax = plt.subplots()
+
+        ax.bar(
+            plot_dict.keys(),
+            plot_dict.values(),
+            color=color,
+            edgecolor="black",
+            zorder=3,
+        )
+        ax.set_xlabel("Classical Register State")
+        ax.set_ylabel("Probability")
+        ax.set_title("Measurement Histogram")
+        ax.set_ylim(0, 1)
+        ax.grid(axis="y", linestyle="--", alpha=0.7, zorder=0)
+
+        return fig, ax
