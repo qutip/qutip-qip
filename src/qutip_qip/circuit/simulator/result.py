@@ -95,6 +95,7 @@ class CircuitResult:
         if index is not None:
             return self.cbits[index]
         return self.cbits
+
     def plot_histogram(self, fig=None, ax=None, color="#1f77b4"):
         """
         Plot a histogram of the measurement outcomes and their probabilities.
