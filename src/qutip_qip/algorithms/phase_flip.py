@@ -40,9 +40,8 @@ class PhaseFlipCode:
         """
         Constructs the encoding circuit for the phase-flip code.
 
-        The logical qubit is encoded into an entangled state in the X-basis using Hadamard
-        (SNOT) gates followed by two CNOT gates. This creates redundancy to detect and correct
-        a single phase error.
+        The logical qubit is first encoded by two CNOT gates and then converted to the X-basis
+        using Hadamard (H). This creates redundancy to detect and correct a single phase error.
 
         Args:
             data_qubits (list[int]): Indices of 3 data qubits.
@@ -57,14 +56,14 @@ class PhaseFlipCode:
             raise ValueError("Expected 3 data qubits.")
         qc = QubitCircuit(max(data_qubits) + 1)
 
-        # Convert to X-basis
-        for q in data_qubits:
-            qc.add_gate("SNOT", targets=[q])
-
         # Bit-flip-style encoding
         control = data_qubits[0]
         for target in data_qubits[1:]:
             qc.add_gate("CNOT", controls=control, targets=target)
+
+        # Convert to X-basis
+        for q in data_qubits:
+            qc.add_gate("H", targets=[q])
 
         return qc
 
@@ -72,7 +71,8 @@ class PhaseFlipCode:
         """
         Builds the circuit for syndrome extraction and correction.
 
-        Parity is measured between data qubit pairs using ancillas and CNOT gates.
+        The data qubits are temporarily converted back to the Z-basis so parity
+        can be measured between pairs using ancillas and CNOT gates.
         Measurements are stored in classical bits, and Z corrections are applied
         conditionally based on the measured syndrome.
 
@@ -95,11 +95,19 @@ class PhaseFlipCode:
         dq = data_qubits
         sq = syndrome_qubits
 
+        # Convert back from X-basis
+        for q in data_qubits:
+            qc.add_gate("H", targets=[q])
+
         # Parity checks
         qc.add_gate("CNOT", controls=dq[0], targets=sq[0])
         qc.add_gate("CNOT", controls=dq[1], targets=sq[0])
         qc.add_gate("CNOT", controls=dq[1], targets=sq[1])
         qc.add_gate("CNOT", controls=dq[2], targets=sq[1])
+
+        # Convert to X-basis
+        for q in data_qubits:
+            qc.add_gate("H", targets=[q])
 
         # Measure syndrome qubits
         qc.add_measurement(sq[0], sq[0], classical_store=0)
@@ -131,8 +139,9 @@ class PhaseFlipCode:
         """
         Constructs the decoding circuit that reverses the encoding operation.
 
-        It first applies the inverse of the CNOT encoding, then converts the qubits
-        back from the X-basis to the Z-basis using Hadamard (SNOT) gates.
+        It first applies the Hadamard (H) gates to convert the qubits back from
+        the X-basis to the Z-basis, then applies the inverse of the CNOT encoding to
+        decode the qubits.
 
         Args:
             data_qubits (list[int]): Indices of 3 data qubits.
@@ -147,12 +156,12 @@ class PhaseFlipCode:
             raise ValueError("Expected 3 data qubits.")
         qc = QubitCircuit(max(data_qubits) + 1)
 
-        control = data_qubits[0]
-        for target in reversed(data_qubits[1:]):
-            qc.add_gate("CNOT", controls=control, targets=target)
-
         # Convert back from X-basis
         for q in data_qubits:
-            qc.add_gate("SNOT", targets=[q])
+            qc.add_gate("H", targets=[q])
+
+        control = data_qubits[0]
+        for target in data_qubits[:0:-1]:
+            qc.add_gate("CNOT", controls=control, targets=target)
 
         return qc
