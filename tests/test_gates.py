@@ -556,7 +556,7 @@ class TestGateErrors:
                 num_qubits = 1
                 is_clifford = 1  # attribute 'is_clifford' must be a bool
 
-                def get_qobj(cls):
+                def get_qobj(dtype):
                     pass
 
         with pytest.raises(TypeError):
@@ -565,7 +565,7 @@ class TestGateErrors:
                 num_qubits = 1
                 self_inverse = 1  # attribute 'self_inverse' must be a bool
 
-                def get_qobj(cls):
+                def get_qobj(dtype):
                     pass
 
         with pytest.raises(TypeError):
@@ -574,7 +574,7 @@ class TestGateErrors:
                 num_qubits = 1
                 self_inverse = True
 
-                def get_qobj(cls):
+                def get_qobj(dtype):
                     pass
 
                 def inverse(cls):
@@ -584,7 +584,7 @@ class TestGateErrors:
             num_qubits = 1
 
             @staticmethod
-            def get_qobj():
+            def get_qobj(dtype):
                 pass
 
         with pytest.raises(AttributeError):
@@ -681,7 +681,7 @@ class TestGateErrors:
         with pytest.raises(SyntaxError):
 
             class NotGoodParamGate2(GoodParamGate):
-                def get_qobj(self, arg2, dtype):
+                def get_qobj(self, arg2):
                     pass
 
     def test_controlled_gate_errors(self):
@@ -822,7 +822,7 @@ class TestGateErrors:
         class H(Gate):
             num_qubits = 1
 
-            def get_qobj():
+            def get_qobj(dtype):
                 pass
 
         assert H.name == "H"
@@ -832,7 +832,7 @@ class TestGateErrors:
             name = "Hadamard"
             num_qubits = 1
 
-            def get_qobj():
+            def get_qobj(dtype):
                 pass
 
         H.name = "Hadamard"

@@ -72,15 +72,6 @@ class ParametricGate(Gate):
                 f" but it takes {len(inspect.signature(validate_params_func).parameters)}."
             )
 
-        # get_qobj method must take only two parameters: arg_value, dtype
-        get_qobj_func = getattr(cls, "get_qobj")
-        if len(inspect.signature(get_qobj_func).parameters) != 2:
-            raise SyntaxError(
-                f"Class '{cls.name}' method 'get_qobj()' must take exactly 2 "
-                f"arguments (only the implicit 'self, dtype'),"
-                f" but it takes {len(inspect.signature(get_qobj_func).parameters)}."
-            )
-
         if not cls.is_parametric():
             raise ValueError(
                 f"Class '{cls.name}' method 'is_parametric()' must always return True."

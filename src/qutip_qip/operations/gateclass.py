@@ -204,6 +204,19 @@ class Gate(ABC, metaclass=_GateMetaClass):
                 f"got {type(num_qubits)} with value {num_qubits}."
             )
 
+        # get_qobj method must take the parameter - dtype
+        get_qobj_func = getattr(cls, "get_qobj")
+        if not callable(get_qobj_func):
+            raise TypeError(
+                f"Attribute 'get_qobj' in '{cls.name}' must be a callable method."
+            )
+
+        if "dtype" not in inspect.signature(get_qobj_func).parameters:
+            raise SyntaxError(
+                f"Class '{cls.name}' method 'get_qobj()' must always take the parameter dtype "
+                f" but got '{inspect.signature(get_qobj_func).parameters}'."
+            )
+
         # Check is_clifford is a bool
         if type(cls.is_clifford) is not bool:
             raise TypeError(

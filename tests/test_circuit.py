@@ -174,7 +174,7 @@ class TestQubitCircuit:
             def __init__(self, **kwargs):
                 super().__init__(**kwargs)
 
-            def get_qobj(self):
+            def get_qobj(self, dtype):
                 pass
 
         class DUMMY2(DUMMY1):
@@ -428,7 +428,7 @@ class TestQubitCircuit:
                 pass
 
             @staticmethod
-            def get_qobj():
+            def get_qobj(dtype="Dense"):
                 mat = np.array([[1.0, 0], [0.0, 1.0j]])
                 return Qobj(mat, dims=[[2], [2]])
 
@@ -514,7 +514,7 @@ class TestQubitCircuit:
                 pass
 
             @staticmethod
-            def get_qobj():
+            def get_qobj(dtype="Dense"):
                 """
                 A qubit control an operator acting on a 3 level system
                 """
