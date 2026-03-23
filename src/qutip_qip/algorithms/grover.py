@@ -1,14 +1,14 @@
 import numpy as np
-from typing import Sequence
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations import Gate, get_controlled_gate
 from qutip_qip.operations.gates import H, X, Z, CZ
+from qutip_qip.typing import IntSequence
 
 __all__ = ["grover", "grover_oracle"]
 
 
 def grover_oracle(
-    search_qubits: int | Sequence[int], marked_states: int | Sequence[int]
+    search_qubits: int | IntSequence, marked_states: int | IntSequence
 ) -> QubitCircuit:
     """
     Constructs a Phase Oracle circuit for Grover's algorithm.
@@ -74,7 +74,7 @@ def grover_oracle(
 
 def grover(
     oracle: QubitCircuit | Gate,
-    search_qubits: int | Sequence[int],
+    search_qubits: int | IntSequence,
     num_solutions: int,
     num_iterations: int | None = None,
     num_qubits: int | None = None,

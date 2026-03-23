@@ -5,7 +5,7 @@ import os
 import warnings
 from itertools import chain
 from copy import deepcopy
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable
 from math import pi  # Don't remove
 from typing import Type
 
@@ -14,6 +14,7 @@ import numpy as np
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations import Gate, get_unitary_gate
 import qutip_qip.operations.gates as gates
+from qutip_qip.typing import SequenceLike
 
 __all__ = ["read_qasm", "save_qasm", "print_qasm", "circuit_to_qasm_str"]
 
@@ -802,7 +803,7 @@ class QasmProcessor:
                     classical_control_value=classical_control_value,
                 )
             else:
-                if not isinstance(regs, Sequence):
+                if not isinstance(regs, SequenceLike):
                     regs = [regs]
 
                 if custom_gate_unitary is not None:

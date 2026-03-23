@@ -20,7 +20,7 @@ class GLOBALPHASE(AngleParametricGate):
 
     Parameters
     ----------
-    arg_value : float or Sequence
+    arg_value : float
         The phase angle $\theta$ to be applied. Passed down to the `ParametricGate`
         base class.
     arg_label : str, optional

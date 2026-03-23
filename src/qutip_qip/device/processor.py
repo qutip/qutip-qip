@@ -1,4 +1,3 @@
-from collections.abc import Sequence
 import warnings
 from copy import deepcopy
 import numpy as np
@@ -9,6 +8,7 @@ from qutip_qip.noise import Noise, process_noise
 from qutip_qip.device import Model
 from qutip_qip.device.utils import _pulse_interpolate
 from qutip_qip.pulse import Pulse, Drift, fill_coeff
+from qutip_qip.typing import SequenceLike
 
 
 class Processor:
@@ -176,7 +176,7 @@ class Processor:
     def _unify_targets(self, qobj, targets):
         if targets is None:
             targets = list(range(len(qobj.dims[0])))
-        if not isinstance(targets, Sequence):
+        if not isinstance(targets, SequenceLike):
             targets = [targets]
         return targets
 
@@ -627,7 +627,7 @@ class Processor:
             The label of the pulse
         """
         if indices is not None:
-            if not isinstance(indices, Sequence):
+            if not isinstance(indices, SequenceLike):
                 indices = [indices]
             indices.sort(reverse=True)
             for ind in indices:

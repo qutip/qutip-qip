@@ -2,7 +2,6 @@
 
 import types
 import random
-from collections.abc import Sequence
 
 import numpy as np
 from qutip import basis, tensor, Qobj, qeye, expect
@@ -11,6 +10,7 @@ from scipy.linalg import expm_frechet
 
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations import gate_sequence_product, get_unitary_gate
+from qutip_qip.typing import SequenceLike
 
 
 class VQA:
@@ -306,7 +306,7 @@ class VQA:
             else:
                 raise ValueError("Invalid initial condition string")
 
-        elif isinstance(initial, Sequence):
+        elif isinstance(initial, SequenceLike):
             if len(initial) != n_free_params:
                 raise ValueError(
                     f"Expected {n_free_params} initial parameters"

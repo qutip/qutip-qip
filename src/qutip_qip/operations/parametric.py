@@ -1,10 +1,9 @@
 import inspect
 from abc import abstractmethod
-from collections.abc import Iterable, Sequence
 
 from qutip import Qobj
 from qutip_qip.operations import Gate
-from qutip_qip.typing import Real
+from qutip_qip.typing import Real, SequenceLike
 
 
 class ParametricGate(Gate):
@@ -102,10 +101,8 @@ class ParametricGate(Gate):
         return self._arg_value
 
     @arg_value.setter
-    def arg_value(self, new_args: Sequence) -> None:
-        # FIXME numpy arrays are not counted as Sequence, so for now Iterable is being used
-        # we need to have a custom typing for Sequence
-        if not isinstance(new_args, Iterable):
+    def arg_value(self, new_args: SequenceLike) -> None:
+        if not isinstance(new_args, SequenceLike):
             new_args = [new_args]
 
         if len(new_args) != self.num_params:
