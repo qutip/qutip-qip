@@ -126,7 +126,11 @@ class GateInstruction(CircuitInstruction):
                 stacklevel=2,
             )
             value = getattr(self.operation, name)
-            if name == "arg_value" and isinstance(value, tuple) and len(value) == 1:
+            if (
+                name == "arg_value"
+                and isinstance(value, tuple)
+                and len(value) == 1
+            ):
                 return value[0]
             return value
         raise AttributeError(
