@@ -37,7 +37,7 @@ def grover_oracle(
 
     for state in marked_states:
         # Safety check
-        if state < 0 or state >= 2**n_qubits:
+        if state < 0 or state >= (1 << n_qubits):
             raise ValueError(
                 f"Marked state {state} is out of bounds for {n_qubits} qubits. Valid range is [0, {2**n_qubits-1}]."
             )
@@ -138,7 +138,7 @@ def grover(
         search_qubits = list(range(search_qubits))
 
     n_qubits = len(search_qubits)
-    search_space_size = 2**n_qubits
+    search_space_size = 1 << n_qubits
 
     # Validation check for N
     if num_qubits is not None:

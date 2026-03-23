@@ -901,7 +901,7 @@ shape = [2, 2], type='oper', dtype=Dense, isherm=False
         stacklevel=2,
     )
     data = np.exp(1.0j * theta) * sp.eye(
-        2**N, 2**N, dtype=complex, format="csr"
+        1 << N, 1 << N, dtype=complex, format="csr"
     )
     return Qobj(data, dims=[[2] * N, [2] * N])
 

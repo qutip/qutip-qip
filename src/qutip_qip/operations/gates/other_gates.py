@@ -88,7 +88,7 @@ class GLOBALPHASE(AngleParametricGate):
             $N$-qubit system.
         """
         phase = self.arg_value[0]
-        N = 2**num_qubits
+        N = 1 << num_qubits
         return Qobj(
             np.exp(1.0j * phase) * sp.eye(N, N, dtype=complex, format="csr"),
             dims=[[2] * num_qubits, [2] * num_qubits],

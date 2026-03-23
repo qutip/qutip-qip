@@ -167,7 +167,10 @@ class ControlledGate(Gate):
                 f"Control value must be an int, got {cls.ctrl_value}"
             )
 
-        if cls.ctrl_value < 0 or cls.ctrl_value > 2**cls.num_ctrl_qubits - 1:
+        if (
+            cls.ctrl_value < 0
+            or cls.ctrl_value > (1 << cls.num_ctrl_qubits) - 1
+        ):
             raise ValueError(
                 f"Control value can't be negative and can't be greater than "
                 f"2^num_ctrl_qubits - 1, got {cls.ctrl_value}"
@@ -261,7 +264,7 @@ def get_controlled_gate(
     """
 
     if control_value is None:
-        control_value = 2**n_ctrl_qubits - 1
+        control_value = (1 << n_ctrl_qubits) - 1
 
     if gate_name is None:
         gate_name = f"{'C' * n_ctrl_qubits}{gate.name}"

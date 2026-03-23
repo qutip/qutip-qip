@@ -490,7 +490,7 @@ CONTROLLED_GATE = [
 
 @pytest.mark.parametrize("gate", GATES + PARAMETRIC_GATE + CONTROLLED_GATE)
 def test_gate_inverse(gate: Gate | Type[Gate]):
-    n = 2**gate.num_qubits
+    n = 1 << gate.num_qubits
     inverse = gate.inverse()
     print(rand_U)
     np.testing.assert_allclose(

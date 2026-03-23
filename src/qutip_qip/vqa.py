@@ -204,7 +204,7 @@ class VQA:
         would return 0 and 1 with equal probability.
         """
         num_qubits = int(np.log2(state.shape[0]))
-        outcome_indices = list(range(2**num_qubits))
+        outcome_indices = list(range(1 << num_qubits))
         probs = [abs(i.item()) ** 2 for i in state]
         outcome_index = np.random.choice(outcome_indices, p=probs)
         return format(outcome_index, f"0{num_qubits}b")
@@ -789,7 +789,7 @@ class OptimizationResult:
         probs = [abs(i.item()) ** 2 for i in state]
         bitstrings = [
             "|" + format(i, f"0{num_qubits}b") + ">"
-            for i in range(2**num_qubits)
+            for i in range(1 << num_qubits)
         ]
         if top_ten and len(probs) > 10:
             threshold = sorted(probs)[-11]
