@@ -96,7 +96,12 @@ class CircuitResult:
             return self.cbits[index]
         return self.cbits
 
-    def plot_histogram(self, fig=None, ax=None, color="#1f77b4"):
+    def plot_histogram(
+        self,
+        fig: "matplotlib.figure.Figure | None" = None,
+        ax: "matplotlib.axes.Axes | None" = None,
+        color: str = "#1f77b4",
+    ) -> "tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]":
         """
         Plot a histogram of the measurement outcomes and their probabilities.
 
@@ -119,7 +124,6 @@ class CircuitResult:
         ax : matplotlib.axes.Axes
             The axes object for the histogram plot.
         """
-        import matplotlib.pyplot as plt
 
         num_cbits = len(self.cbits[0])
         plot_dict = {f"{i:0{num_cbits}b}": 0.0 for i in range(1 << num_cbits)}
