@@ -15,7 +15,7 @@ from qutip import (
     sigmay,
     identity,
 )
-from qutip_qip.operations.gates import X, CX, H, SWAP
+from qutip_qip.operations.gates import X, CX, H, SWAP, CNOT
 
 
 class TestOptPulseProcessor:
@@ -130,7 +130,7 @@ def test_optpulseprocessor_alias_bug():
     processor.add_control(sigmax(), targets=1)
 
     qc = QubitCircuit(N)
-    qc.add_gate("CNOT", controls=0, targets=1)
+    qc.add_gate(CNOT, controls=0, targets=1)
 
     # Old per-gate settings key (old docs style)
     setting_args = {

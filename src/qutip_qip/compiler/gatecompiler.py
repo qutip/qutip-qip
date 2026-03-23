@@ -172,30 +172,36 @@ class GateCompiler:
             if gate.is_parametric():
                 gate = type(gate)
 
+            compiler_key = None
+            # Support both class and string based keys.
             if gate in self.gate_compiler:
-                instruction = self.gate_compiler[gate](
-                    circuit_instruction, self.args
-                )
-            elif gate.name in self.gate_compiler:
-                warnings.warn(
-                    "Use gateclass in place of gate name string in self.gate_compiler dict",
-                    DeprecationWarning,
-                    stacklevel=2,
-                )
-                instruction = self.gate_compiler[gate.name](
-                    circuit_instruction, self.args
-                )
-            elif gate.__name__ in self.gate_compiler:
-                warnings.warn(
-                    "Use gateclass in place of gate name string in self.gate_compiler dict",
-                    DeprecationWarning,
-                    stacklevel=2,
-                )
-                instruction = self.gate_compiler[gate.__name__](
-                    circuit_instruction, self.args
-                )
+                compiler_key = gate
             else:
+                aliases = {
+                    "H": "SNOT",
+                    "CX": "CNOT",
+                }
+                candidate_keys = [gate.name, gate.__name__]
+                for key in candidate_keys:
+                    if key in self.gate_compiler:
+                        compiler_key = key
+                        break
+                    alias_key = aliases.get(key)
+                    if alias_key in self.gate_compiler:
+                        compiler_key = alias_key
+                        break
+
+            if compiler_key is None:
                 raise ValueError(f"Unsupported gate {gate.name}")
+            if isinstance(compiler_key, str):
+                warnings.warn(
+                    "Use gateclass in place of gate name string in self.gate_compiler dict",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
+            instruction = self.gate_compiler[compiler_key](
+                circuit_instruction, self.args
+            )
 
             if instruction is None:
                 continue  # neglecting global phase gate
