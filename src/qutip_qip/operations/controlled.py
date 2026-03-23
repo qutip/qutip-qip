@@ -2,7 +2,7 @@ import inspect
 import warnings
 from abc import abstractmethod
 from functools import partial
-from typing import Type
+from typing import Final, Type
 
 from qutip import Qobj
 from qutip_qip.operations import (
@@ -55,6 +55,7 @@ class ControlledGate(Gate):
     """
 
     __slots__ = ("_target_inst",)
+    is_controlled: Final[bool] = True
 
     num_ctrl_qubits: int
     ctrl_value: int
@@ -98,6 +99,8 @@ class ControlledGate(Gate):
             )
         cls._validate_control_value()
 
+        cls.is_parametric = cls.target_gate.is_parametric
+
         # Default self_inverse
         # Don't replace cls.__dict__ with hasattr() that does a MRO search
         if "self_inverse" not in cls.__dict__:
@@ -108,14 +111,14 @@ class ControlledGate(Gate):
         if "latex_str" not in cls.__dict__:
             cls.latex_str = cls.target_gate.latex_str
 
-        if not cls.is_controlled():
+        if not cls.is_controlled:
             raise ValueError(
-                f"Class '{cls.name}' method 'is_controlled()' must always return True."
+                f"Class '{cls.name}' method 'is_controlled' must always return True."
             )
 
-        if cls.is_parametric() != cls.target_gate.is_parametric():
+        if cls.is_parametric != cls.target_gate.is_parametric:
             raise ValueError(
-                f"Class '{cls.name}' method 'is_parametric()' must return {cls.target_gate.is_parametric()}."
+                f"Class '{cls.name}' method 'is_parametric' must return {cls.target_gate.is_parametric}."
             )
 
     def __init__(self, *args, **kwargs) -> None:
@@ -223,13 +226,9 @@ class ControlledGate(Gate):
 
         return inverse_gate
 
-    @staticmethod
-    def is_controlled() -> bool:
-        return True
-
     @classmethod
     def is_parametric(cls) -> bool:
-        return cls.target_gate.is_parametric()
+        return cls.target_gate.is_parametric
 
     @classmethod
     def __str__(cls) -> str:
@@ -241,13 +240,13 @@ class ControlledGate(Gate):
             return False
 
         # Returns false for CRX(0.5), CRX(0.6)
-        if self.is_parametric() and self._target_inst != other._target_inst:
+        if self.is_parametric and self._target_inst != other._target_inst:
             return False
 
         return True
 
     def __hash__(self) -> int:
-        if self.is_parametric():
+        if self.is_parametric:
             return hash((type(self), self._target_inst))
         return hash(type(self))
 

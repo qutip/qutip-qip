@@ -1,5 +1,6 @@
 import inspect
 from abc import abstractmethod
+from typing import Final
 
 from qutip import Qobj
 from qutip_qip.operations import Gate
@@ -44,6 +45,7 @@ class ParametricGate(Gate):
 
     __slots__ = ("_arg_value", "arg_label")
     num_params: int
+    is_parametric: Final[bool] = True
 
     def __init_subclass__(cls, **kwargs) -> None:
         """
@@ -72,14 +74,14 @@ class ParametricGate(Gate):
                 f" but it takes {len(inspect.signature(validate_params_func).parameters)}."
             )
 
-        if not cls.is_parametric():
+        if not cls.is_parametric:
             raise ValueError(
-                f"Class '{cls.name}' method 'is_parametric()' must always return True."
+                f"Class '{cls.name}' method 'is_parametric' must always return True."
             )
 
-        if cls.is_controlled():
+        if cls.is_controlled:
             raise ValueError(
-                f"Class '{cls.name}' method 'is_controlled()' must always return False."
+                f"Class '{cls.name}' method 'is_controlled' must always return False."
             )
 
     def __init__(self, arg_value, arg_label: str | None = None) -> None:
@@ -136,10 +138,6 @@ class ParametricGate(Gate):
         if self.self_inverse:
             return self
         raise NotImplementedError
-
-    @staticmethod
-    def is_parametric() -> bool:
-        return True
 
     def __str__(self) -> str:
         return f"""

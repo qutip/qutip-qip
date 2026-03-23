@@ -406,7 +406,7 @@ class QubitCircuit:
                     f"got {type(gate)} instead.",
                 )
 
-            if gate_class.is_parametric():
+            if gate_class.is_parametric:
                 gate = gate_class(arg_value, arg_label=arg_label)
             else:
                 gate = gate_class
@@ -416,11 +416,11 @@ class QubitCircuit:
             raise TypeError("gate must not be an abstract class")
         elif not (isinstance(gate, Gate) or issubclass(gate, Gate)):
             raise TypeError(f"gate must be of type Gate, got {gate}")
-        elif gate.is_parametric() and (not isinstance(gate, Gate)):
+        elif gate.is_parametric and (not isinstance(gate, Gate)):
             raise TypeError(
                 "You must pass an instantiated object for a Parametrized Gate"
             )
-        elif (not gate.is_parametric()) and (not issubclass(gate, Gate)):
+        elif (not gate.is_parametric) and (not issubclass(gate, Gate)):
             raise TypeError(
                 "You must pass a Gate type for a non-parametrized gate"
             )
@@ -440,7 +440,7 @@ class QubitCircuit:
         )
 
         # Check len(controls) == gate.num_ctrl_qubits
-        if gate.is_controlled() and len(controls) != gate.num_ctrl_qubits:
+        if gate.is_controlled and len(controls) != gate.num_ctrl_qubits:
             raise ValueError(
                 f"{gate.name} takes {gate.num_ctrl_qubits} qubits, but {len(controls)} were provided."
             )

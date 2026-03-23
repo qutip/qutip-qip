@@ -786,7 +786,7 @@ class MatRenderer(BaseRenderer):
                 style = style if style is not None else {}
                 self.text = gate.name
 
-                if gate.is_parametric():
+                if gate.is_parametric:
                     self.text = (
                         gate.arg_label
                         if gate.arg_label is not None

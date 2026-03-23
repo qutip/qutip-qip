@@ -614,8 +614,7 @@ class TestGateErrors:
         with pytest.raises(TypeError):
 
             class NotGoodGate2(GoodGate):
-                def is_controlled():
-                    return 1  # must return a bool
+                is_controlled = 1  # must return a bool
 
         with pytest.raises(TypeError):
 
@@ -626,8 +625,7 @@ class TestGateErrors:
         with pytest.raises(TypeError):
 
             class NotGoodGate4(GoodGate):
-                def is_parametric():
-                    return 1  # must return a bool
+                is_parametric = 1  # must return a bool
 
     def test_parametric_gate_errors(self):
         with pytest.raises(TypeError):

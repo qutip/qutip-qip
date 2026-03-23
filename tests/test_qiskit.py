@@ -38,11 +38,11 @@ class TestConverter:
     def _compare_args(self, req_gate, res_gate):
         """Compare parameters of two gates"""
         res_arg = []
-        if res_gate.operation.is_parametric():
+        if res_gate.operation.is_parametric:
             res_arg = res_gate.operation.arg_value
 
         req_arg = []
-        if req_gate.operation.is_parametric():
+        if req_gate.operation.is_parametric:
             req_arg = req_gate.operation.arg_value
 
         if len(req_arg) != len(res_arg):
@@ -74,13 +74,13 @@ class TestConverter:
         else:
             # TODO correct for float error in arg_value
             res_controls = None
-            if res_gate.operation.is_controlled():
+            if res_gate.operation.is_controlled:
                 res_controls = get_qutip_index(
                     list(res_gate.controls), result_circuit.num_qubits
                 )
 
             req_controls = None
-            if req_gate.operation.is_controlled():
+            if req_gate.operation.is_controlled:
                 req_controls = list(req_gate.controls)
 
             check_condition = (

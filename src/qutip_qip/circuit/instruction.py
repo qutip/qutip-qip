@@ -99,13 +99,13 @@ class GateInstruction(CircuitInstruction):
 
     @property
     def controls(self) -> tuple[int, ...]:
-        if self.operation.is_controlled():
+        if self.operation.is_controlled:
             return self.qubits[: self.operation.num_ctrl_qubits]
         return ()
 
     @property
     def targets(self) -> tuple[int, ...]:
-        if self.operation.is_controlled():
+        if self.operation.is_controlled:
             return self.qubits[self.operation.num_ctrl_qubits :]
         return self.qubits
 
@@ -140,7 +140,7 @@ class GateInstruction(CircuitInstruction):
     def to_qasm(self, qasm_out) -> None:
         gate = self.operation
         args = None
-        if gate.is_parametric():
+        if gate.is_parametric:
             args = gate.arg_value
 
         qasm_gate = qasm_out.qasm_name(gate.name)
