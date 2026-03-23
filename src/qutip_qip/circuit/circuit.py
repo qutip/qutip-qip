@@ -145,7 +145,6 @@ class QubitCircuit:
         )
         return self._instructions
 
-    # fmt: off
     @gates.setter
     def gates(self) -> None:
         warnings.warn(
@@ -153,7 +152,6 @@ class QubitCircuit:
             DeprecationWarning,
             stacklevel=2,
         )
-    # fmt: on
 
     @property
     def user_gates(self) -> dict[str, Type[Gate]]:
