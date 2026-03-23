@@ -99,6 +99,7 @@ class ControlledGate(Gate):
             )
         cls._validate_control_value()
 
+        # If the target gate is parametric e.g. RX, so is the overall controlled gate e.g. CRX
         cls.is_parametric = cls.target_gate.is_parametric
 
         # Default self_inverse
@@ -113,12 +114,7 @@ class ControlledGate(Gate):
 
         if not cls.is_controlled:
             raise ValueError(
-                f"Class '{cls.name}' method 'is_controlled' must always return True."
-            )
-
-        if cls.is_parametric != cls.target_gate.is_parametric:
-            raise ValueError(
-                f"Class '{cls.name}' method 'is_parametric' must return {cls.target_gate.is_parametric}."
+                f"Class '{cls.name}' method 'is_controlled' must be set to True."
             )
 
     def __init__(self, *args, **kwargs) -> None:
@@ -225,10 +221,6 @@ class ControlledGate(Gate):
             )(*params)
 
         return inverse_gate
-
-    @classmethod
-    def is_parametric(cls) -> bool:
-        return cls.target_gate.is_parametric
 
     @classmethod
     def __str__(cls) -> str:

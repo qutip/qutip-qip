@@ -76,12 +76,12 @@ class ParametricGate(Gate):
 
         if not cls.is_parametric:
             raise ValueError(
-                f"Class '{cls.name}' method 'is_parametric' must always return True."
+                f"Class '{cls.name}' method 'is_parametric' must be set True."
             )
 
         if cls.is_controlled:
             raise ValueError(
-                f"Class '{cls.name}' method 'is_controlled' must always return False."
+                f"Class '{cls.name}' method 'is_controlled' must be set to False."
             )
 
     def __init__(self, arg_value, arg_label: str | None = None) -> None:

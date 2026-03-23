@@ -235,6 +235,20 @@ class Gate(ABC, metaclass=_GateMetaClass):
                 f"got {type(cls.self_inverse)} with value {cls.self_inverse}."
             )
 
+        # Check is_parametric is a bool
+        if type(cls.is_parametric) is not bool:
+            raise TypeError(
+                f"Class '{cls.name}' attribute 'is_parametric' must be a bool, "
+                f"got {type(cls.is_parametric)} with value {cls.is_parametric}."
+            )
+
+        # Check is_controlled is a bool
+        if type(cls.is_controlled) is not bool:
+            raise TypeError(
+                f"Class '{cls.name}' attribute 'is_controlled' must be a bool, "
+                f"got {type(cls.is_controlled)} with value {cls.is_controlled}."
+            )
+
         # Can't define inverse() method if self_inverse is set True
         if cls.self_inverse and "inverse" in cls.__dict__:
             raise TypeError(
@@ -242,36 +256,6 @@ class Gate(ABC, metaclass=_GateMetaClass):
                 f"You are not allowed to override the 'inverse()' method. "
                 f"Remove the method; the base class handles it automatically."
             )
-
-        # try:
-        #     param_flag = cls.is_parametric
-        # except TypeError as e:
-        #     raise TypeError(
-        #         f"Class '{cls.name}' must define 'is_parametric' as a callable "
-        #         f"@staticmethod or @classmethod taking no instance arguments. "
-        #         f"Error: {e}"
-        #     )
-
-        # if type(param_flag) is not bool:
-        #     raise TypeError(
-        #         f"Class '{cls.name}' method 'is_controlled' must return a strict bool, "
-        #         f"got {type(param_flag)} with value {param_flag}."
-        #     )
-
-        # try:
-        #     control_flag = cls.is_controlled
-        # except TypeError as e:
-        #     raise TypeError(
-        #         f"Class '{cls.name}' must define 'is_parametric' as a callable "
-        #         f"@staticmethod or @classmethod taking no instance arguments. "
-        #         f"Error: {e}"
-        #     )
-
-        # if type(control_flag) is not bool:
-        #     raise TypeError(
-        #         f"Class '{cls.name}' method 'is_controlled' must return a strict bool, "
-        #         f"got {type(control_flag)} with value {control_flag}."
-        #     )
 
         return super().__init_subclass__(**kwargs)
 
