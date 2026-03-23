@@ -40,10 +40,12 @@ class CircuitInstruction(ABC):
         if len(self.cbits) != len(set(self.cbits)):
             raise ValueError("Found repeated cbits")
 
-    def is_gate_instruction(self) -> bool:
+    @staticmethod
+    def is_gate_instruction() -> bool:
         return False
 
-    def is_measurement_instruction(self) -> bool:
+    @staticmethod
+    def is_measurement_instruction() -> bool:
         return False
 
     @abstractmethod
@@ -109,7 +111,8 @@ class GateInstruction(CircuitInstruction):
             return self.qubits[self.operation.num_ctrl_qubits :]
         return self.qubits
 
-    def is_gate_instruction(self) -> bool:
+    @staticmethod
+    def is_gate_instruction() -> bool:
         return True
 
     def __getattr__(self, name):
@@ -182,7 +185,8 @@ class MeasurementInstruction(CircuitInstruction):
                 "Measurement requires equal number of qubits and cbits."
             )
 
-    def is_measurement_instruction(self) -> bool:
+    @staticmethod
+    def is_measurement_instruction() -> bool:
         return True
 
     def to_qasm(self, qasm_out) -> None:
