@@ -38,7 +38,7 @@ It corresponds to the following circuit:
     import matplotlib.pyplot as plt
 
     qc = QubitCircuit(num_qubits=3, num_cbits=3)
-    qc.add_gate(QASMU, targets=[0], arg_value=[1.91063, 0, 0])
+    qc.add_gate(QASMU(arg_value=[1.91063, 0, 0]), targets=[0])
     qc.add_gate(CH, controls=[0], targets=[1])
     qc.add_gate(TOFFOLI, targets=[2], controls=[0, 1])
     qc.add_gate(X, targets=[0])
