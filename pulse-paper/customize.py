@@ -175,7 +175,7 @@ class ClassicalCrossTalk(Noise):
     def __init__(self, ratio):
         self.ratio = ratio
 
-    def get_noisy_dynamics(
+    def get_noisy_pulses(
         self, dims=None, pulses=None, systematic_noise=None
     ):
         """Adds noise to the control pulses.
