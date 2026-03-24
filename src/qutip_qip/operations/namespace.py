@@ -128,7 +128,7 @@ class NameSpace:
         existing_gate = self.get(name)
         if existing_gate is not None and existing_gate is not operation_cls:
             raise NameError(
-                f"'{operation_cls.__name__}' already exists in namespace '{self.name}'"
+                f"'{operation_cls.name}' already exists in namespace '{self.name}'"
             )
         self._registry[name] = operation_cls
 

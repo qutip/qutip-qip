@@ -524,9 +524,11 @@ class TestGateErrors:
             _ = NameSpace("test_ns")  # Existing namespace
 
         class TmpGate(Gate):
+            name = "TmpGate"
             num_qubits = 1
 
         class TmpGate2(Gate):
+            name = "TmpGate2"
             num_qubits = 1
 
         ns1.register("tmp_gate", TmpGate)

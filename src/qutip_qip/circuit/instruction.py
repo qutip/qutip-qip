@@ -148,7 +148,7 @@ class GateInstruction(CircuitInstruction):
 
         qasm_gate = qasm_out.qasm_name(gate.name)
         if not qasm_gate:
-            error_str = f"{self.name} gate's qasm defn is not specified"
+            error_str = f"{gate.name} gate's qasm defn is not specified"
             raise NotImplementedError(error_str)
 
         if self.cbits:
@@ -190,7 +190,8 @@ class MeasurementInstruction(CircuitInstruction):
         return True
 
     def to_qasm(self, qasm_out) -> None:
-        qasm_out.output(f"measure q[{self.qubits[0]}] -> c[{self.cbits[0]}]")
+        for qubit, cbit in zip(self.qubits, self.cbits):
+            qasm_out.output(f"measure q[{qubit}] -> c[{cbit}];")
 
     def __str__(self) -> str:
         return f"Measure(q{self.qubits} -> c{self.cbits})"

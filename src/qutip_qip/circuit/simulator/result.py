@@ -25,6 +25,7 @@ class CircuitResult:
         if isinstance(final_states, Qobj) or final_states is None:
             self.final_states = [final_states]
             self.probabilities = [probabilities]
+            self.cbits = []
             if cbits:
                 self.cbits = [cbits]
         else:

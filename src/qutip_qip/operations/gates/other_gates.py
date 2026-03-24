@@ -35,7 +35,7 @@ class GLOBALPHASE(AngleParametricGate):
     >>> gate.get_qobj()
     Quantum object: dims=[[1], [1]], shape=(1, 1), type='scalar', dtype=Dense
     Qobj data =
-    [[3.14159265]]
+    [[-1.+0.j]]
     >>> gate.get_expanded_qobj(num_qubits=1)
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=True
     Qobj data =
