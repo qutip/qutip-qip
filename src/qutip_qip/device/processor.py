@@ -388,8 +388,8 @@ class Processor:
 
     def set_coeffs(self, coeffs):
         """
-        Clear all the existing pulses and
-        reset the coefficients for the control Hamiltonians.
+        Clear all the existing pulses and set the new coefficients
+        for the control Hamiltonians based on the input 'coeffs'.
 
         Parameters
         ----------
@@ -406,14 +406,14 @@ class Processor:
         """
         self.clear_pulses()
         iterator = self._generate_iterator_from_dict_or_list(coeffs)
-        for label, _ in iterator:
+        for label, coeff in iterator:
             label = label
             ham, targets = self.model.get_control(label)
             self.add_pulse(
                 Pulse(
                     ham,
                     targets,
-                    coeff=coeffs[label],
+                    coeff=coeff,
                     spline_kind=self.spline_kind,
                     label=label,
                 )
