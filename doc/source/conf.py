@@ -190,7 +190,5 @@ intersphinx_mapping = {
 
 # -- Doctest flags --------------------
 doctest_default_flags = (
-    doctest.NORMALIZE_WHITESPACE
-    | doctest.ELLIPSIS
-    | doctest.IGNORE_EXCEPTION_DETAIL
+    doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS | doctest.IGNORE_EXCEPTION_DETAIL
 )

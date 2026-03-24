@@ -57,11 +57,7 @@ def get_notebooks(path):
     """Gets a list of all notebooks in a directory"""
     # get list of files and their titles
     try:
-        files = [
-            os.path.join(path, f)
-            for f in os.listdir(path)
-            if f.endswith(".md")
-        ]
+        files = [os.path.join(path, f) for f in os.listdir(path) if f.endswith(".md")]
     except FileNotFoundError:
         return {}
     titles = [get_title(f) for f in files]
@@ -72,9 +68,7 @@ def get_notebooks(path):
     return notebooks
 
 
-def generate_index_html(
-    version_directory, tutorial_directories, title, version_note
-):
+def generate_index_html(version_directory, tutorial_directories, title, version_note):
     """Generates the index HTML file from the given data"""
     # get tutorials from the different directories
     tutorials = {}
@@ -83,17 +77,13 @@ def generate_index_html(
 
     # Load environment for Jinja and template
     env = Environment(
-        loader=FileSystemLoader(
-            os.path.join(os.path.dirname(__file__), "../")
-        ),
+        loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), "../")),
         autoescape=select_autoescape(),
     )
     template = env.get_template("tutorials-website/tutorials.html.jinja")
 
     # render template and return
-    html = template.render(
-        tutorials=tutorials, title=title, version_note=version_note
-    )
+    html = template.render(tutorials=tutorials, title=title, version_note=version_note)
     return html
 
 

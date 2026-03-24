@@ -67,9 +67,7 @@ def convert_type_input_to_sequence(
     if isinstance(input_value, input_type):
         return [input_value]
 
-    elif isinstance(input_value, Sequence) and not isinstance(
-        input_value, str
-    ):
+    elif isinstance(input_value, Sequence) and not isinstance(input_value, str):
         for i, val in enumerate(input_value):
             if not isinstance(val, input_type):
                 raise TypeError(
