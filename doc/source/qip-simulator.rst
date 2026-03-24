@@ -23,57 +23,89 @@ examples of circuit evolution. We take a circuit from
     qc.add_gate(X, targets=[0])
     qc.add_gate(X, targets=[1])
     qc.add_gate(CX, targets=[1], controls=0)
+    qc.draw()
 
 It corresponds to the following circuit:
 
-.. image:: /figures/quantum_circuit_w_state.png
+.. plot::
+    :include-source: False
+    :context: reset
+    
 
-We will add the measurement gates later. This circuit prepares the W-state :math:`\newcommand{\ket}[1]{\left|{#1}\right\rangle} (\ket{001} + \ket{010} + \ket{100})/\sqrt{3}`.
+    from qutip_qip.circuit import QubitCircuit
+    from qutip_qip.operations.gates import X, CX, CH, QASMU, TOFFOLI
+    from qutip import tensor, basis
+    import matplotlib.pyplot as plt
+
+    qc = QubitCircuit(num_qubits=3, num_cbits=3)
+    qc.add_gate(QASMU(arg_value=[1.91063, 0, 0]), targets=[0])
+    qc.add_gate(CH, controls=[0], targets=[1])
+    qc.add_gate(TOFFOLI, targets=[2], controls=[0, 1])
+    qc.add_gate(X, targets=[0])
+    qc.add_gate(X, targets=[1])
+    qc.add_gate(CX, targets=[1], controls=0)
+    qc.draw()
+
+
+    
+
+We will add the measurement gates later. This circuit prepares the W-state
+:math:`\newcommand{\ket}[1]{\left|{#1}\right\rangle} (\ket{001} + \ket{010} + \ket{100})/\sqrt{3}`.
 The simplest way to carry out state evolution through a quantum circuit is
-providing an input state to the :meth:`.QubitCircuit.run`
-method.
+providing an input state to the :meth:`.QubitCircuit.run` method.
 
 .. testcode::
 
-  from qutip import tensor, basis
-  zero_state = tensor(basis(2, 0), basis(2, 0), basis(2, 0))
-  result = qc.run(state=zero_state)
-  wstate = result
+    from qutip import tensor, basis
 
-  print(wstate)
+    zero_state = tensor(basis(2, 0), basis(2, 0), basis(2, 0))
+    result = qc.run(state=zero_state)
+    wstate = result
+
+    print(wstate)
 
 **Output**:
 
 .. testoutput::
-  :options: +NORMALIZE_WHITESPACE
+    :options: +NORMALIZE_WHITESPACE
 
-  Quantum object: dims=[[2, 2, 2], [1]], shape=(8, 1), type='ket', dtype=Dense
-  Qobj data =
-  [[0.     ]
-   [0.57735]
-   [0.57735]
-   [0.     ]
-   [0.57735]
-   [0.     ]
-   [0.     ]
-   [0.     ]]
-
+    Quantum object: dims=[[2, 2, 2], [1]], shape=(8, 1), type='ket', dtype=Dense
+    Qobj data =
+    [[0.     ]
+     [0.57735]
+     [0.57735]
+     [0.     ]
+     [0.57735]
+     [0.     ]
+     [0.     ]
+     [0.     ]]
 
 As expected, the state returned is indeed the required W-state.
 
-As soon as we introduce measurements into the circuit, it can lead to multiple outcomes
-with associated probabilities.  We can also carry out circuit evolution in a manner such that it returns all the possible state
-outputs along with their corresponding probabilities. Suppose, in the previous circuit,
-we measure each of the three qubits at the end.
+As soon as we introduce measurements into the circuit, it can lead to multiple
+outcomes with associated probabilities. We can also carry out circuit evolution
+in a manner such that it returns all the possible state outputs along with their
+corresponding probabilities. Suppose, in the previous circuit, we measure each
+of the three qubits at the end.
 
 .. testcode::
 
-  qc.add_measurement("M0", targets=[0], classical_store=0)
-  qc.add_measurement("M1", targets=[1], classical_store=1)
-  qc.add_measurement("M2", targets=[2], classical_store=2)
+    qc.add_measurement("M0", targets=[0], classical_store=0)
+    qc.add_measurement("M1", targets=[1], classical_store=1)
+    qc.add_measurement("M2", targets=[2], classical_store=2)
 
-To get all the possible output states along with the respective probability of observing the
-outputs, we can use the :meth:`.QubitCircuit.run_statistics` function:
+.. plot::
+    :context: close-figs
+    :include-source: False
+
+    qc.add_measurement("M0", targets=[0], classical_store=0)
+    qc.add_measurement("M1", targets=[1], classical_store=1)
+    qc.add_measurement("M2", targets=[2], classical_store=2)
+    qc.draw()
+
+To get all the possible output states along with the respective probability of
+observing the outputs, we can use the :meth:`.QubitCircuit.run_statistics`
+function:
 
 .. testcode::
 
@@ -87,52 +119,79 @@ outputs, we can use the :meth:`.QubitCircuit.run_statistics` function:
 **Output**:
 
 .. testoutput::
-  :options: +NORMALIZE_WHITESPACE
+    :options: +NORMALIZE_WHITESPACE
 
-  State:
-  Quantum object: dims=[[2, 2, 2], [1]], shape=(8, 1), type='ket', dtype=Dense
-  Qobj data =
-  [[0.]
-   [1.]
-   [0.]
-   [0.]
-   [0.]
-   [0.]
-   [0.]
-   [0.]]
-  with probability 0.33333
-  State:
-  Quantum object: dims=[[2, 2, 2], [1]], shape=(8, 1), type='ket', dtype=Dense
-  Qobj data =
-  [[0.]
-   [0.]
-   [1.]
-   [0.]
-   [0.]
-   [0.]
-   [0.]
-   [0.]]
-  with probability 0.33333
-  State:
-  Quantum object: dims=[[2, 2, 2], [1]], shape=(8, 1), type='ket', dtype=Dense
-  Qobj data =
-  [[0.]
-   [0.]
-   [0.]
-   [0.]
-   [1.]
-   [0.]
-   [0.]
-   [0.]]
-  with probability 0.33333
+    State:
+    Quantum object: dims=[[2, 2, 2], [1]], shape=(8, 1), type='ket', dtype=Dense
+    Qobj data =
+    [[0.]
+     [1.]
+     [0.]
+     [0.]
+     [0.]
+     [0.]
+     [0.]
+     [0.]]
+    with probability 0.33333
+    State:
+    Quantum object: dims=[[2, 2, 2], [1]], shape=(8, 1), type='ket', dtype=Dense
+    Qobj data =
+    [[0.]
+     [0.]
+     [1.]
+     [0.]
+     [0.]
+     [0.]
+     [0.]
+     [0.]]
+    with probability 0.33333
+    State:
+    Quantum object: dims=[[2, 2, 2], [1]], shape=(8, 1), type='ket', dtype=Dense
+    Qobj data =
+    [[0.]
+     [0.]
+     [0.]
+     [0.]
+     [1.]
+     [0.]
+     [0.]
+     [0.]]
+    with probability 0.33333
 
-The function returns a :class:`~.Result` object which contains
-the output states.
-The method :meth:`~.Result.get_results` can be used to obtain the
-possible states and probabilities.
-Since the state created by the circuit is the W-state, we observe the states
-:math:`\newcommand{\ket}[1]{\left|{#1}\right\rangle} \ket{001}`,  :math:`\newcommand{\ket}[1]{\left|{#1}\right\rangle} \ket{010}` and :math:`\newcommand{\ket}[1]{\left|{#1}\right\rangle} \ket{100}` with equal probability.
+The function returns a :class:`~.Result` object which contains the output states.
+The method :meth:`~.Result.get_results` can be used to obtain the possible states
+and probabilities. Since the state created by the circuit is the W-state, we
+observe the states
+:math:`\newcommand{\ket}[1]{\left|{#1}\right\rangle} \ket{001}`,
+:math:`\newcommand{\ket}[1]{\left|{#1}\right\rangle} \ket{010}` and
+:math:`\newcommand{\ket}[1]{\left|{#1}\right\rangle} \ket{100}`
+with equal probability.
 
+We can also visualize the measurement outcome probabilities using
+:meth:`~.CircuitResult.plot_histogram`:
+
+.. testcode::
+
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots(figsize=(8, 4))
+    result.plot_histogram(fig=fig, ax=ax)
+
+.. plot::
+    :context: close-figs
+    :include-source: False
+
+    result = qc.run_statistics(state=tensor(basis(2, 0), basis(2, 0), basis(2, 0)))
+
+    fig, ax = plt.subplots(figsize=(8, 4))
+    result.plot_histogram(fig=fig, ax=ax)
+    plt.show()
+    plt.close(fig)
+
+The histogram displays the probability of each classical register state.
+Since the W-state has equal probability of collapsing to :math:`\ket{001}`,
+:math:`\ket{010}` and :math:`\ket{100}`, we observe each with probability
+:math:`1/3`.
 
 Circuit simulator
 =================
@@ -140,19 +199,21 @@ Circuit simulator
 .. _simulator_class:
 
 The :meth:`.QubitCircuit.run` and :meth:`.QubitCircuit.run_statistics` functions
-make use of the :class:`.CircuitSimulator` which enables exact simulation with more
-granular options. The simulator object takes a quantum circuit as an argument. It can optionally
-be supplied with an initial state. There are two modes in which the exact simulator can function. The default mode is the
-"state_vector_simulator" mode. In this mode, the state evolution proceeds maintaining the ket state throughout the computation.
-For each measurement gate, one of the possible outcomes is chosen probabilistically
-and computation proceeds. To demonstrate, we continue with our previous circuit:
-
+make use of the :class:`.CircuitSimulator` which enables exact simulation with
+more granular options. The simulator object takes a quantum circuit as an argument.
+It can optionally be supplied with an initial state. There are two modes in which
+the exact simulator can function. The default mode is the
+``"state_vector_simulator"`` mode. In this mode, the state evolution proceeds
+maintaining the ket state throughout the computation. For each measurement gate,
+one of the possible outcomes is chosen probabilistically and computation proceeds.
+To demonstrate, we continue with our previous circuit:
 
 .. testcode::
 
-  from qutip_qip.circuit import CircuitSimulator
-  sim = CircuitSimulator(qc)
-  sim.initialize(zero_state)
+    from qutip_qip.circuit import CircuitSimulator
+
+    sim = CircuitSimulator(qc)
+    sim.initialize(zero_state)
 
 This initializes the simulator object and carries out any pre-computation
 required. There are two ways to carry out state evolution with the simulator.
@@ -164,44 +225,45 @@ The :class:`.CircuitSimulator` class also enables stepping through the circuit:
 
 .. testcode::
 
-  sim.step()
-  print(sim.state)
+    sim.step()
+    print(sim.state)
 
 **Output**:
 
 .. testoutput::
-  :options: +NORMALIZE_WHITESPACE
+    :options: +NORMALIZE_WHITESPACE
 
-  Quantum object: dims=[[2, 2, 2], [1]], shape=(8, 1), type='ket', dtype=Dense
-  Qobj data =
-  [[0.57735]
-   [0.     ]
-   [0.     ]
-   [0.     ]
-   [0.8165 ]
-   [0.     ]
-   [0.     ]
-   [0.     ]]
+    Quantum object: dims=[[2, 2, 2], [1]], shape=(8, 1), type='ket', dtype=Dense
+    Qobj data =
+    [[0.57735]
+     [0.     ]
+     [0.     ]
+     [0.     ]
+     [0.8165 ]
+     [0.     ]
+     [0.     ]
+     [0.     ]]
 
-This only executes one gate in the circuit and
-allows for a better understanding of how the state evolution takes place.
-The method steps through both the gates and the measurements.
+This only executes one gate in the circuit and allows for a better understanding
+of how the state evolution takes place. The method steps through both the gates
+and the measurements.
 
 
 Density Matrix Simulation
 =========================
 
-By default, the state evolution is carried out in the "state_vector_simulator" mode
-(specified by the **mode** argument) as described before.
-In the "density_matrix_simulator" mode, the input state can be either a ket or a density
-matrix. If it is a ket, it is converted into a density matrix before the evolution is
-carried out. Unlike the "state_vector_simulator" mode, upon measurement, the state
-does not collapse to one of the post-measurement states. Rather, the new state is now
-the density matrix representing the ensemble of post-measurement states.
-In this sense, we measure the qubits and forget all the results.
+By default, the state evolution is carried out in the
+``"state_vector_simulator"`` mode (specified by the **mode** argument) as
+described before. In the ``"density_matrix_simulator"`` mode, the input state
+can be either a ket or a density matrix. If it is a ket, it is converted into a
+density matrix before the evolution is carried out. Unlike the
+``"state_vector_simulator"`` mode, upon measurement, the state does not collapse
+to one of the post-measurement states. Rather, the new state is now the density
+matrix representing the ensemble of post-measurement states. In this sense, we
+measure the qubits and forget all the results.
 
-To demonstrate this consider the original W-state preparation circuit which is followed
-just by measurement on the first qubit:
+To demonstrate this consider the original W-state preparation circuit which is
+followed just by measurement on the first qubit:
 
 .. testcode::
 
@@ -219,7 +281,7 @@ just by measurement on the first qubit:
     print(sim.run(zero_state).get_final_states()[0])
 
 .. testoutput::
-  :options: +NORMALIZE_WHITESPACE
+    :options: +NORMALIZE_WHITESPACE
 
     Quantum object: dims=[[2, 2, 2], [2, 2, 2]], shape=(8, 8), type='oper', dtype=Dense, isherm=True
     Qobj data =
@@ -237,10 +299,13 @@ We are left with a mixed state.
 Import and export quantum circuits
 ==================================
 
-QuTiP supports importing and exporting quantum circuits in the `OpenQASM 2.0 <https://github.com/Qiskit/openqasm/tree/OpenQASM2.x>`_ format.
-To import from and export to OpenQASM 2.0, you can use the :func:`.read_qasm` and :func:`.save_qasm` functions, respectively.
-We demonstrate this functionality by loading a circuit for preparing the :math:`\left|W\right\rangle`-state from an OpenQASM 2.0 file.
-The following code is in OpenQASM format:
+QuTiP supports importing and exporting quantum circuits in the
+`OpenQASM 2.0 <https://github.com/Qiskit/openqasm/tree/OpenQASM2.x>`_ format.
+To import from and export to OpenQASM 2.0, you can use the :func:`.read_qasm`
+and :func:`.save_qasm` functions, respectively. We demonstrate this
+functionality by loading a circuit for preparing the
+:math:`\left|W\right\rangle`-state from an OpenQASM 2.0 file. The following
+code is in OpenQASM format:
 
 .. code-block::
 
@@ -248,7 +313,6 @@ The following code is in OpenQASM format:
 
     OPENQASM 2.0;
     include "qelib1.inc";
-
 
     qreg q[4];
     creg c[3];
@@ -281,5 +345,6 @@ One can save it in a ``.qasm`` file and import it using the following code:
 
 .. testcode::
 
-  from qutip_qip.qasm import read_qasm
-  qc = read_qasm("source/w-state.qasm")
+    from qutip_qip.qasm import read_qasm
+
+    qc = read_qasm("source/w-state.qasm")
