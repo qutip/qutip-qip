@@ -218,16 +218,12 @@ def single_crosstalk_simulation(num_gates):
         result (qutip.solver.Result): A qutip Result object obtained from any of the
                                       solver methods such as mesolve.
     """
-    num_qubits = (
-        2  # Qubit-0 is the target qubit. Qubit-1 suffers from crosstalk.
-    )
+    num_qubits = 2  # Qubit-0 is the target qubit. Qubit-1 suffers from crosstalk.
     myprocessor = ModelProcessor(model=MyModel(num_qubits))
     # Add qubit frequency detuning 1.852MHz for the second qubit.
     myprocessor.add_drift(2 * np.pi * (sigmaz() + 1) / 2 * 1.852, targets=1)
     myprocessor.native_gates = None  # Remove the native gates
-    mycompiler = MyCompiler(
-        num_qubits, {"pulse_amplitude": 0.02, "duration": 25}
-    )
+    mycompiler = MyCompiler(num_qubits, {"pulse_amplitude": 0.02, "duration": 25})
     myprocessor.add_noise(ClassicalCrossTalk(1.0))
 
     # Define a randome circuit.

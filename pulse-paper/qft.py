@@ -67,9 +67,9 @@ for num_qubits in range(1, 3):  # Test up to 3 qubits
         end = time.time()
         compiling_time_sample.append(end - start)
         start = time.time()
-        state2 = processor.run_state(
-            basis([2] * num_qubits, [0] * num_qubits)
-        ).states[-1]
+        state2 = processor.run_state(basis([2] * num_qubits, [0] * num_qubits)).states[
+            -1
+        ]
         end = time.time()
         simulation_time_sample.append(end - start)
     compiling_time.append(np.average(compiling_time_sample))
