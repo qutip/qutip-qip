@@ -47,9 +47,9 @@ result2 = scqubits_processor.run_state(initial_state)
 
 # Optimal control model
 setting_args = {
-    "H": {"num_tslots": 6, "evo_time": 2},
-    "X": {"num_tslots": 1, "evo_time": 0.5},
-    "CX": {"num_tslots": 12, "evo_time": 5},
+    H: {"num_tslots": 6, "evo_time": 2},
+    X: {"num_tslots": 1, "evo_time": 0.5},
+    CX: {"num_tslots": 12, "evo_time": 5},
 }
 opt_processor = OptPulseProcessor(
     num_qubits=num_qubits, model=SpinChainModel(3, setup="linear")
