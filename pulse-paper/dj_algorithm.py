@@ -105,7 +105,7 @@ fig.show()
 
 width = TEXTWIDTH / 3
 fig2, ax2 = spinchain_processor.plot_pulses(
-    figsize=(width, width * 3 / 2.9), dpi=200
+    figsize=(width, width * 1.5), dpi=200
 )
 fig2.tight_layout()
 ax2[0].set_ylabel(r"$\Omega^x_{0}$")
@@ -155,7 +155,7 @@ fig2.show()
 width = TEXTWIDTH / 3
 # fig3, ax3 = scqubits_processor.plot_pulses(figsize=(width, width*3/2.43), dpi=200);
 fig3, ax3 = scqubits_processor.plot_pulses(
-    figsize=(width, width * 3 / 2.4), dpi=200
+    figsize=(width, width * 1.5), dpi=200
 )
 ax3[0].set_ylabel(r"$\Omega^x_{0}$")
 ax3[1].set_ylabel(r"$\Omega^x_{1}$")
