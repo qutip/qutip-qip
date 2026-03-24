@@ -55,10 +55,7 @@ def process_noise(
         noise_list.append(RelaxationNoise(t1, t2))
 
     for noise in noise_list:
-        if (
-            isinstance(noise, (DecoherenceNoise, RelaxationNoise))
-            and not device_noise
-        ):
+        if isinstance(noise, (DecoherenceNoise, RelaxationNoise)) and not device_noise:
             pass
         else:
             noisy_pulses, systematic_noise = noise._apply_noise(
