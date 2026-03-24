@@ -53,7 +53,7 @@ class Noise:
             return self.get_noisy_dynamics(dims, pulses, systematic_noise)
 
         raise NotImplementedError(
-            "Subclass error needs a method" "`get_noisy_pulses` to process the noise."
+            "Subclass error needs a method `get_noisy_pulses` to process the noise."
         )
 
     def _apply_noise(

@@ -75,7 +75,7 @@ class QubitCircuit:
         self._num_qubits = num_qubits
         if N is not None:
             warnings.warn(
-                "The 'N' parameter is deprecated. Please use " "'num_qubits' instead.",
+                "The 'N' parameter is deprecated. Please use 'num_qubits' instead.",
                 DeprecationWarning,
                 stacklevel=2,
             )
@@ -113,7 +113,7 @@ class QubitCircuit:
         Number of qubits in the circuit.
         """
         warnings.warn(
-            "The 'N' parameter is deprecated. Please use " "'num_qubits' instead.",
+            "The 'N' parameter is deprecated. Please use 'num_qubits' instead.",
             DeprecationWarning,
             stacklevel=2,
         )

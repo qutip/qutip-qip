@@ -329,9 +329,7 @@ class Pulse:
         Print the information of the pulse, including the ideal dynamics,
         the coherent noise and the lindblad noise.
         """
-        print(
-            "-----------------------------------" "-----------------------------------"
-        )
+        print("----------------------------------------------------------------------")
         if self.label is not None:
             print("Pulse label:", self.label)
         print(
@@ -351,6 +349,4 @@ class Pulse:
             print("Lindblad noise:")
             for ele in self.lindblad_noise:
                 print(ele)
-        print(
-            "-----------------------------------" "-----------------------------------"
-        )
+        print("----------------------------------------------------------------------")

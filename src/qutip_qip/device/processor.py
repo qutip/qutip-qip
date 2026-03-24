@@ -497,7 +497,7 @@ class Processor:
 
             if not isinstance(pulse.coeff, (bool, np.ndarray)):
                 raise ValueError(
-                    "get_full_coeffs only works for " "NumPy array or bool coeff."
+                    "get_full_coeffs only works for NumPy array or bool coeff."
                 )
 
             if type(pulse.coeff) is bool:
@@ -644,11 +644,11 @@ class Processor:
                 continue
             if pulse.tlist is None:
                 raise ValueError(
-                    f"Pulse id={i} is invalid. " "Please define a tlist for the pulse."
+                    f"Pulse id={i} is invalid. Please define a tlist for the pulse."
                 )
             if pulse.tlist is not None and pulse.coeff is None:
                 raise ValueError(
-                    f"Pulse id={i} is invalid. " "Please define a coeff for the pulse."
+                    f"Pulse id={i} is invalid. Please define a coeff for the pulse."
                 )
             coeff_len = len(pulse.coeff)
             tlist_len = len(pulse.tlist)

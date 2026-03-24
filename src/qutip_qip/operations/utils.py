@@ -73,7 +73,7 @@ def _check_oper_dims(
     # If operator matches N
     if not isinstance(oper, Qobj) or oper.dims[0] != oper.dims[1]:
         raise ValueError(
-            "The operator is not an " "Qobj with the same input and output dimensions."
+            "The operator is not an Qobj with the same input and output dimensions."
         )
 
     # If operator dims matches the target dims

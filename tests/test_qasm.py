@@ -179,7 +179,7 @@ def test_read_qasm_2():
 
 def test_parsing_mode(tmp_path):
     mode = "qiskit"
-    qasm_input_string = "OPENQASM 2.0;\n\ncreg c[2];" "\nqreg q[2];cx q[0],q[1];\n"
+    qasm_input_string = "OPENQASM 2.0;\n\ncreg c[2];\nqreg q[2];cx q[0],q[1];\n"
     with pytest.warns(UserWarning) as record_warning:
         read_qasm(
             qasm_input_string,
@@ -212,7 +212,7 @@ def test_parsing_mode(tmp_path):
     mode = "external_only"
     file_path = tmp_path / "custom_swap.inc"
     file_path.write_text(
-        "gate cx c,t { CX c,t; }\n" "gate swap a,b { cx a,b; cx b,a; cx a,b; }\n"
+        "gate cx c,t { CX c,t; }\ngate swap a,b { cx a,b; cx b,a; cx a,b; }\n"
     )
     qasm_input_string = (
         'OPENQASM 2.0;\ninclude "' + str(file_path) + '"\ncreg c[2];'

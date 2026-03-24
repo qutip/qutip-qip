@@ -219,7 +219,7 @@ class QasmProcessor:
 
             if self.mode == "predefined_only":
                 warnings.warn(
-                    "Ignoring external gate definition" " in the predefined_only mode."
+                    "Ignoring external gate definition in the predefined_only mode."
                 )
                 continue
 
@@ -321,7 +321,7 @@ class QasmProcessor:
 
             elif command[0] == "reset":
                 raise NotImplementedError(
-                    ("QASM: reset functionality " "is not supported.")
+                    ("QASM: reset functionality is not supported.")
                 )
 
             elif command[0] in ["barrier", "include"]:

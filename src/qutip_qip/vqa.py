@@ -64,7 +64,7 @@ class VQA:
 
         if self.cost_method not in self._cost_methods:
             raise ValueError(
-                f"Cost method {self.cost_method} not one of " f"{self._cost_methods}"
+                f"Cost method {self.cost_method} not one of {self._cost_methods}"
             )
 
     def get_block_series(self):
@@ -503,7 +503,7 @@ class ParameterizedHamiltonian:
         self.num_parameters = len(parameterized_terms)
         if len(self.p_terms) == 0 and self.c_term is None:
             raise ValueError(
-                "Parameterized Hamiltonian " "initialised with no terms given"
+                "Parameterized Hamiltonian initialised with no terms given"
             )
 
     def get_hamiltonian(self, params):
@@ -673,7 +673,7 @@ class VQABlock:
 
         if len(angles) != 1:
             raise ValueError(
-                "Expected a single angle for non-" "ParameterizedHamiltonian instance."
+                "Expected a single angle for non-ParameterizedHamiltonian instance."
             )
         return self.get_unitary(angles) * -1j * self.operator
 
@@ -805,7 +805,7 @@ class OptimizationResult:
         ax.set_xlabel("Measurement outcome")
         ax.set_ylabel("Probability")
         ax.set_title(
-            "Measurement Outcomes after Optimisation. " f"Cost: {round(min_cost, 2)}"
+            f"Measurement Outcomes after Optimisation. Cost: {round(min_cost, 2)}"
         )
         fig.tight_layout()
         if display:
