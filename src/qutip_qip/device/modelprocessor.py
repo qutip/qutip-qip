@@ -47,9 +47,7 @@ class ModelProcessor(Processor):
         model=None,
         **params,
     ):
-        super().__init__(
-            num_qubits=num_qubits, dims=dims, model=model, **params
-        )
+        super().__init__(num_qubits=num_qubits, dims=dims, model=model, **params)
         self.correct_global_phase = correct_global_phase
         self.global_phase = 0.0
         self.native_gates = None
@@ -232,9 +230,7 @@ class ModelProcessor(Processor):
         self.set_tlist(tlist)
         return tlist, coeffs
 
-    def generate_init_processor_state(
-        self, init_circuit_state: Qobj = None
-    ) -> Qobj:
+    def generate_init_processor_state(self, init_circuit_state: Qobj = None) -> Qobj:
         """
         Generate the initial state with the dimensions of the processor.
 

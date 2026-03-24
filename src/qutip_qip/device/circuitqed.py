@@ -162,9 +162,7 @@ class SCQubitsModel(Model):
         self.dims = dims if dims is not None else [3] * num_qubits
         self.params = {
             "wq": np.array(
-                ((5.15, 5.09) * int(np.ceil(self.num_qubits / 2)))[
-                    : self.num_qubits
-                ]
+                ((5.15, 5.09) * int(np.ceil(self.num_qubits / 2)))[: self.num_qubits]
             ),
             "wr": 5.96,
             "alpha": -0.3,
@@ -185,9 +183,7 @@ class SCQubitsModel(Model):
         for m in range(self.num_qubits):
             destroy_op = destroy(self.dims[m])
             coeff = 2 * np.pi * self.params["alpha"][m] / 2.0
-            self._drift.append(
-                (coeff * destroy_op.dag() ** 2 * destroy_op**2, [m])
-            )
+            self._drift.append((coeff * destroy_op.dag() ** 2 * destroy_op**2, [m]))
 
     @property
     def _old_index_label_map(self):
@@ -230,12 +226,10 @@ class SCQubitsModel(Model):
             d2 = dims[m + 1]
             # projector to the 0 and 1 subspace
             projector1 = (
-                basis(d1, 0) * basis(d1, 0).dag()
-                + basis(d1, 1) * basis(d1, 1).dag()
+                basis(d1, 0) * basis(d1, 0).dag() + basis(d1, 1) * basis(d1, 1).dag()
             )
             projector2 = (
-                basis(d2, 0) * basis(d2, 0).dag()
-                + basis(d2, 1) * basis(d2, 1).dag()
+                basis(d2, 0) * basis(d2, 0).dag() + basis(d2, 1) * basis(d2, 1).dag()
             )
             destroy_op1 = destroy(d1)
             # Notice that this is actually 2πZX/4
@@ -319,19 +313,13 @@ class SCQubitsModel(Model):
             tmp = (
                 J[i]
                 * omega_cr[i]
-                * (
-                    1 / (wq[i] - wq[i + 1] + alpha[i])
-                    - 1 / (wq[i] - wq[i + 1])
-                )
+                * (1 / (wq[i] - wq[i + 1] + alpha[i]) - 1 / (wq[i] - wq[i + 1]))
             )
             zx_coeff.append(tmp)
             tmp = (
                 J[i]
                 * omega_cr[i + 1]
-                * (
-                    1 / (wq[i + 1] - wq[i] + alpha[i + 1])
-                    - 1 / (wq[i + 1] - wq[i])
-                )
+                * (1 / (wq[i + 1] - wq[i] + alpha[i + 1]) - 1 / (wq[i + 1] - wq[i]))
             )
             zx_coeff.append(tmp)
         # Times 2 because we use -2πZX/4 as operators

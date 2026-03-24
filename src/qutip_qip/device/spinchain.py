@@ -33,9 +33,7 @@ class SpinChain(ModelProcessor):
         Hardware parameters. See :obj:`.SpinChainModel`.
     """
 
-    def __init__(
-        self, num_qubits, correct_global_phase=True, model=None, **params
-    ):
+    def __init__(self, num_qubits, correct_global_phase=True, model=None, **params):
         super().__init__(
             num_qubits=num_qubits,
             correct_global_phase=correct_global_phase,
@@ -238,9 +236,7 @@ class CircularSpinChain(SpinChain):
                 "Circuit spin chain must have at least 2 qubits. "
                 "The number of qubits is increased to 2."
             )
-        model = SpinChainModel(
-            num_qubits=num_qubits, setup="circular", **params
-        )
+        model = SpinChainModel(num_qubits=num_qubits, setup="circular", **params)
         super().__init__(
             num_qubits,
             correct_global_phase=correct_global_phase,
