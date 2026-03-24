@@ -1,7 +1,8 @@
 import numpy as np
 
-from qutip_qip.operations import Gate
-from qutip_qip.compiler import GateCompiler, Instruction
+from qutip_qip.circuit import GateInstruction
+from qutip_qip.compiler import GateCompiler, PulseInstruction
+from qutip_qip.operations.gates import RX, RZ, ISWAP, SQRTISWAP, GLOBALPHASE
 
 
 class CavityQEDCompiler(GateCompiler):
@@ -9,8 +10,7 @@ class CavityQEDCompiler(GateCompiler):
     Compiler for :obj:`.DispersiveCavityQED`.
     Compiled pulse strength is in the unit of GHz.
 
-    Supported native gates: "RX", "RY", "RZ", "ISWAP", "SQRTISWAP",
-    "GLOBALPHASE".
+    Supported native gates: "RX", "RY", "RZ", "ISWAP", "SQRTISWAP".
 
     Default configuration (see :obj:`.GateCompiler.args` and
     :obj:`.GateCompiler.compile`):
@@ -45,17 +45,18 @@ class CavityQEDCompiler(GateCompiler):
     --------
     >>> import numpy as np
     >>> from qutip_qip.circuit import QubitCircuit
-    >>> from qutip_qip.device import ModelProcessor, CavityQEDModel
     >>> from qutip_qip.compiler import CavityQEDCompiler
+    >>> from qutip_qip.device import ModelProcessor, CavityQEDModel
+    >>> from qutip_qip.operations.gates import ISWAP
     >>>
     >>> qc = QubitCircuit(2)
-    >>> qc.add_gate("ISWAP", targets=[0, 1])
+    >>> qc.add_gate(ISWAP, targets=[0, 1])
     >>>
     >>> model = CavityQEDModel(2)
     >>> processor = ModelProcessor(model=model)
     >>> compiler = CavityQEDCompiler(2, params=model.params)
     >>> processor.load_circuit(
-    ...     qc, compiler=compiler)  # doctest: +NORMALIZE_WHITESPACE
+    ...     qc, compiler=compiler)
     ({'sz0': array([   0.        , 2500.        , 2500.01316]),
     'sz1': array([   0.        , 2500.        , 2500.01316]),
     'g0': array([   0.        , 2500.        , 2500.01316]),
@@ -72,23 +73,22 @@ class CavityQEDCompiler(GateCompiler):
     def __init__(
         self, num_qubits, params, global_phase=0.0, pulse_dict=None, N=None
     ):
-        super(CavityQEDCompiler, self).__init__(
-            num_qubits, params=params, pulse_dict=pulse_dict, N=N
-        )
+        super().__init__(num_qubits, params=params, pulse_dict=pulse_dict, N=N)
         self.gate_compiler.update(
             {
-                "ISWAP": self.iswap_compiler,
-                "SQRTISWAP": self.sqrtiswap_compiler,
-                "RZ": self.rz_compiler,
-                "RX": self.rx_compiler,
-                "GLOBALPHASE": self.globalphase_compiler,
+                ISWAP: self.iswap_compiler,
+                SQRTISWAP: self.sqrtiswap_compiler,
+                RZ: self.rz_compiler,
+                RX: self.rx_compiler,
             }
         )
         self.wq = np.sqrt(self.params["eps"] ** 2 + self.params["delta"] ** 2)
         self.Delta = self.wq - self.params["w0"]
         self.global_phase = global_phase
 
-    def _rotation_compiler(self, gate, op_label, param_label, args):
+    def _rotation_compiler(
+        self, circuit_instruction, op_label, param_label, args
+    ):
         """
         Single qubit rotation compiler.
 
@@ -108,21 +108,21 @@ class CavityQEDCompiler(GateCompiler):
 
         Returns
         -------
-        A list of :obj:`.Instruction`, including the compiled pulse
+        A list of :obj:`.PulseInstruction`, including the compiled pulse
         information for this gate.
         """
-        targets = gate.targets
+        targets = circuit_instruction.targets
         coeff, tlist = self.generate_pulse_shape(
             args["shape"],
             args["num_samples"],
             maximum=self.params[param_label][targets[0]],
             # The operator is Pauli Z/X/Y, without 1/2.
-            area=gate.arg_value / 2.0 / np.pi * 0.5,
+            area=circuit_instruction.operation.arg_value[0] / (4.0 * np.pi),
         )
         pulse_info = [(op_label + str(targets[0]), coeff)]
-        return [Instruction(gate, tlist, pulse_info)]
+        return [PulseInstruction(circuit_instruction, tlist, pulse_info)]
 
-    def rz_compiler(self, gate, args):
+    def rz_compiler(self, circuit_instruction, args):
         """
         Compiler for the RZ gate
 
@@ -137,12 +137,12 @@ class CavityQEDCompiler(GateCompiler):
 
         Returns
         -------
-        A list of :obj:`.Instruction`, including the compiled pulse
+        A list of :obj:`.PulseInstruction`, including the compiled pulse
         information for this gate.
         """
-        return self._rotation_compiler(gate, "sz", "sz", args)
+        return self._rotation_compiler(circuit_instruction, "sz", "sz", args)
 
-    def rx_compiler(self, gate, args):
+    def rx_compiler(self, circuit_instruction, args):
         """
         Compiler for the RX gate
 
@@ -157,13 +157,15 @@ class CavityQEDCompiler(GateCompiler):
 
         Returns
         -------
-        A list of :obj:`.Instruction`, including the compiled pulse
+        A list of :obj:`.PulseInstruction`, including the compiled pulse
         information for this gate.
         """
-        return self._rotation_compiler(gate, "sx", "sx", args)
+        return self._rotation_compiler(circuit_instruction, "sx", "sx", args)
 
-    def _swap_compiler(self, gate, area, correction_angle, args):
-        q1, q2 = gate.targets
+    def _swap_compiler(
+        self, circuit_instruction, area, correction_angle, args
+    ):
+        q1, q2 = circuit_instruction.targets
         pulse_info = []
         pulse_name = "sz" + str(q1)
         coeff = self.wq[q1] - self.params["w0"]
@@ -187,20 +189,26 @@ class CavityQEDCompiler(GateCompiler):
         coeff, tlist = self.generate_pulse_shape(
             args["shape"], args["num_samples"], maximum=J, area=area
         )
-        instruction_list = [Instruction(gate, tlist, pulse_info)]
+        instruction_list = [
+            PulseInstruction(circuit_instruction, tlist, pulse_info)
+        ]
 
         # corrections
-        gate1 = Gate("RZ", [q1], None, arg_value=correction_angle)
-        compiled_gate1 = self.gate_compiler["RZ"](gate1, args)
+        compiled_gate1 = self.gate_compiler[RZ](
+            GateInstruction(operation=RZ(correction_angle), qubits=(q1,)),
+            args,
+        )
         instruction_list += compiled_gate1
-        gate2 = Gate("RZ", [q2], None, arg_value=correction_angle)
-        compiled_gate2 = self.gate_compiler["RZ"](gate2, args)
+
+        compiled_gate2 = self.gate_compiler[RZ](
+            GateInstruction(operation=RZ(correction_angle), qubits=(q2,)),
+            args,
+        )
         instruction_list += compiled_gate2
-        gate3 = Gate("GLOBALPHASE", None, None, arg_value=correction_angle)
-        self.globalphase_compiler(gate3, args)
+        self.gate_compiler[GLOBALPHASE](correction_angle)
         return instruction_list
 
-    def sqrtiswap_compiler(self, gate, args):
+    def sqrtiswap_compiler(self, circuit_instruction, args):
         """
         Compiler for the SQRTISWAP gate.
 
@@ -215,7 +223,7 @@ class CavityQEDCompiler(GateCompiler):
 
         Returns
         -------
-        A list of :obj:`.Instruction`, including the compiled pulse
+        A list of :obj:`.PulseInstruction`, including the compiled pulse
         information for this gate.
 
         Notes
@@ -225,10 +233,13 @@ class CavityQEDCompiler(GateCompiler):
         """
         # FIXME This decomposition has poor behaviour.
         return self._swap_compiler(
-            gate, area=1 / 4, correction_angle=-np.pi / 4, args=args
+            circuit_instruction,
+            area=1 / 4,
+            correction_angle=-np.pi / 4,
+            args=args,
         )
 
-    def iswap_compiler(self, gate, args):
+    def iswap_compiler(self, circuit_instruction, args):
         """
         Compiler for the ISWAP gate.
 
@@ -243,15 +254,12 @@ class CavityQEDCompiler(GateCompiler):
 
         Returns
         -------
-        A list of :obj:`.Instruction`, including the compiled pulse
+        A list of :obj:`.PulseInstruction`, including the compiled pulse
         information for this gate.
         """
         return self._swap_compiler(
-            gate, area=1 / 2, correction_angle=-np.pi / 2, args=args
+            circuit_instruction,
+            area=1 / 2,
+            correction_angle=-np.pi / 2,
+            args=args,
         )
-
-    def globalphase_compiler(self, gate, args):
-        """
-        Compiler for the GLOBALPHASE gate
-        """
-        self.global_phase += gate.arg_value

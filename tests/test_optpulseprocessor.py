@@ -15,9 +15,7 @@ from qutip import (
     sigmay,
     identity,
 )
-from qutip_qip.operations import (
-    cnot,
-)
+from qutip_qip.operations.gates import X, CX, H, SWAP
 
 
 class TestOptPulseProcessor:
@@ -29,7 +27,7 @@ class TestOptPulseProcessor:
         H_d = sigmaz()
         H_c = sigmax()
         qc = QubitCircuit(N)
-        qc.add_gate("SNOT", 0)
+        qc.add_gate(H, targets=0)
 
         # test load_circuit, with verbose info
         num_tslots = 10
@@ -66,10 +64,14 @@ class TestOptPulseProcessor:
         test.add_control(sigmay(), cyclic_permutation=True)
 
         # test pulse genration for cnot gate, with kwargs
-        qc = [tensor([identity(2), cnot()])]
-        test.load_circuit(
-            qc, num_tslots=num_tslots, evo_time=evo_time, min_fid_err=1.0e-6
-        )
+        qc = [tensor([identity(2), CX.get_qobj()])]
+        with pytest.warns(DeprecationWarning):
+            test.load_circuit(
+                qc,
+                num_tslots=num_tslots,
+                evo_time=evo_time,
+                min_fid_err=1.0e-6,
+            )
         rho0 = qubit_states(3, [1, 1, 1])
         rho1 = qubit_states(3, [1, 1, 0])
         result = test.run_state(rho0, options={"store_states": True})
@@ -87,15 +89,16 @@ class TestOptPulseProcessor:
 
         # qubits circuit with 3 gates
         setting_args = {
-            "SNOT": {"num_tslots": 10, "evo_time": 1},
+            "H": {"num_tslots": 10, "evo_time": 1},
             "SWAP": {"num_tslots": 30, "evo_time": 3},
-            "CNOT": {"num_tslots": 30, "evo_time": 3},
+            "CX": {"num_tslots": 30, "evo_time": 3},
         }
         qc = QubitCircuit(N)
-        qc.add_gate("SNOT", 0)
-        qc.add_gate("SWAP", targets=[0, 1])
-        qc.add_gate("CNOT", controls=1, targets=[0])
-        test.load_circuit(qc, setting_args=setting_args, merge_gates=False)
+        qc.add_gate(H, targets=0)
+        qc.add_gate(SWAP, targets=[0, 1])
+        qc.add_gate(CX, controls=1, targets=[0])
+        with pytest.warns(DeprecationWarning):
+            test.load_circuit(qc, setting_args=setting_args, merge_gates=False)
 
         rho0 = rand_ket(4)  # use random generated ket state
         rho0.dims = [[2, 2], [1, 1]]
@@ -108,8 +111,8 @@ class TestOptPulseProcessor:
         model = SpinChainModel(3, setup="linear")
         processor = OptPulseProcessor(3, model=model)
         qc = QubitCircuit(3)
-        qc.add_gate("CNOT", 1, 0)
-        qc.add_gate("X", 2)
+        qc.add_gate(CX, targets=1, controls=0)
+        qc.add_gate(X, targets=2)
         processor.load_circuit(
             qc, merge_gates=True, num_tslots=10, evo_time=2.0
         )
@@ -120,4 +123,32 @@ class TestOptPulseProcessor:
         assert (
             pytest.approx(qutip.fidelity(num_result, ideal_result), 1.0e-5)
             == 1.0
+        )
+
+
+def test_optpulseprocessor_alias_bug():
+    # 2-qubit processor with simple controls
+    N = 2
+    H_d = tensor([sigmaz()] * N)
+    processor = OptPulseProcessor(N, H_d)
+    processor.add_control(sigmax(), targets=0)
+    processor.add_control(sigmax(), targets=1)
+
+    qc = QubitCircuit(N)
+    with pytest.warns(DeprecationWarning):
+        qc.add_gate("CNOT", controls=0, targets=1)
+
+    # Old per-gate settings key (old docs style)
+    setting_args = {
+        "CNOT": {"num_tslots": 10, "evo_time": 2},
+    }
+
+    # Fails without alias handling in OptPulseProcessor:
+    # CX gate won't find "CNOT" in setting_args.
+    with pytest.warns(DeprecationWarning):
+        processor.load_circuit(
+            qc,
+            merge_gates=False,
+            setting_args=setting_args,
+            verbose=True,
         )

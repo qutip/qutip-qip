@@ -11,6 +11,7 @@ from qiskit.transpiler.target import Target
 
 from qutip_qip.qiskit import Job
 from qutip_qip.qiskit.utils import QUTIP_TO_QISKIT_GATE_MAP
+from qutip_qip.typing import SequenceLike
 
 
 class QiskitSimulatorBase(BackendV2):
@@ -176,7 +177,7 @@ class QiskitSimulatorBase(BackendV2):
             Job object that stores results and execution data.
         """
 
-        if not isinstance(run_input, list):
+        if not isinstance(run_input, SequenceLike):
             run_input = [run_input]
 
         for circuit in run_input:

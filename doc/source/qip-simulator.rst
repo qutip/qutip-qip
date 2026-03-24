@@ -14,20 +14,15 @@ examples of circuit evolution. We take a circuit from
 .. testcode::
 
     from qutip_qip.circuit import QubitCircuit
-    from qutip_qip.operations import (
-        Gate, controlled_gate, hadamard_transform)
-    def controlled_hadamard():
-        # Controlled Hadamard
-        return controlled_gate(
-            hadamard_transform(1), controls=0, targets=1, control_value=1)
+    from qutip_qip.operations.gates import X, CX, CH, QASMU, TOFFOLI
+
     qc = QubitCircuit(3, num_cbits=3)
-    qc.user_gates = {"cH": controlled_hadamard}
-    qc.add_gate("QASMU", targets=[0], arg_value=[1.91063, 0, 0])
-    qc.add_gate("cH", targets=[0,1])
-    qc.add_gate("TOFFOLI", targets=[2], controls=[0, 1])
-    qc.add_gate("X", targets=[0])
-    qc.add_gate("X", targets=[1])
-    qc.add_gate("CNOT", targets=[1], controls=0)
+    qc.add_gate(QASMU, targets=[0], arg_value=[1.91063, 0, 0])
+    qc.add_gate(CH, controls=[0], targets=[1])
+    qc.add_gate(TOFFOLI, targets=[2], controls=[0, 1])
+    qc.add_gate(X, targets=[0])
+    qc.add_gate(X, targets=[1])
+    qc.add_gate(CX, targets=[1], controls=0)
 
 It corresponds to the following circuit:
 
@@ -52,7 +47,7 @@ method.
 .. testoutput::
   :options: +NORMALIZE_WHITESPACE
 
-  Quantum object: dims=[[2, 2, 2], [1, 1, 1]], shape=(8, 1), type='ket', dtype=Dense
+  Quantum object: dims=[[2, 2, 2], [1]], shape=(8, 1), type='ket', dtype=Dense
   Qobj data =
   [[0.     ]
    [0.57735]
@@ -95,7 +90,7 @@ outputs, we can use the :meth:`.QubitCircuit.run_statistics` function:
   :options: +NORMALIZE_WHITESPACE
 
   State:
-  Quantum object: dims=[[2, 2, 2], [1, 1, 1]], shape=(8, 1), type='ket', dtype=Dense
+  Quantum object: dims=[[2, 2, 2], [1]], shape=(8, 1), type='ket', dtype=Dense
   Qobj data =
   [[0.]
    [1.]
@@ -107,7 +102,7 @@ outputs, we can use the :meth:`.QubitCircuit.run_statistics` function:
    [0.]]
   with probability 0.33333
   State:
-  Quantum object: dims=[[2, 2, 2], [1, 1, 1]], shape=(8, 1), type='ket', dtype=Dense
+  Quantum object: dims=[[2, 2, 2], [1]], shape=(8, 1), type='ket', dtype=Dense
   Qobj data =
   [[0.]
    [0.]
@@ -119,7 +114,7 @@ outputs, we can use the :meth:`.QubitCircuit.run_statistics` function:
    [0.]]
   with probability 0.33333
   State:
-  Quantum object: dims=[[2, 2, 2], [1, 1, 1]], shape=(8, 1), type='ket', dtype=Dense
+  Quantum object: dims=[[2, 2, 2], [1]], shape=(8, 1), type='ket', dtype=Dense
   Qobj data =
   [[0.]
    [0.]
@@ -177,7 +172,7 @@ The :class:`.CircuitSimulator` class also enables stepping through the circuit:
 .. testoutput::
   :options: +NORMALIZE_WHITESPACE
 
-  Quantum object: dims=[[2, 2, 2], [1, 1, 1]], shape=(8, 1), type='ket', dtype=Dense
+  Quantum object: dims=[[2, 2, 2], [1]], shape=(8, 1), type='ket', dtype=Dense
   Qobj data =
   [[0.57735]
    [0.     ]
@@ -211,13 +206,12 @@ just by measurement on the first qubit:
 .. testcode::
 
     qc = QubitCircuit(3, num_cbits=3)
-    qc.user_gates = {"cH": controlled_hadamard}
-    qc.add_gate("QASMU", targets=[0], arg_value=[1.91063, 0, 0])
-    qc.add_gate("cH", targets=[0,1])
-    qc.add_gate("TOFFOLI", targets=[2], controls=[0, 1])
-    qc.add_gate("X", targets=[0])
-    qc.add_gate("X", targets=[1])
-    qc.add_gate("CNOT", targets=[1], controls=0)
+    qc.add_gate(QASMU, targets=[0], arg_value=[1.91063, 0, 0])
+    qc.add_gate(CH, controls=[0], targets=[1])
+    qc.add_gate(TOFFOLI, targets=[2], controls=[0, 1])
+    qc.add_gate(X, targets=[0])
+    qc.add_gate(X, targets=[1])
+    qc.add_gate(CX, targets=[1], controls=0)
     qc.add_measurement("M0", targets=[0], classical_store=0)
     qc.add_measurement("M0", targets=[1], classical_store=0)
     qc.add_measurement("M0", targets=[2], classical_store=0)

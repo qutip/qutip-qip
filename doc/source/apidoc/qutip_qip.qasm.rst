@@ -14,6 +14,5 @@ qutip\_qip.qasm
    
       circuit_to_qasm_str
       print_qasm
-      qasmu_gate
       read_qasm
       save_qasm
