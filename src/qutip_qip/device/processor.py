@@ -1,4 +1,3 @@
-from collections.abc import Sequence
 import warnings
 from copy import deepcopy
 import numpy as np
@@ -9,6 +8,7 @@ from qutip_qip.noise import Noise, process_noise
 from qutip_qip.device import Model
 from qutip_qip.device.utils import _pulse_interpolate
 from qutip_qip.pulse import Pulse, Drift, fill_coeff
+from qutip_qip.typing import SequenceLike
 
 
 class Processor:
@@ -176,7 +176,7 @@ class Processor:
     def _unify_targets(self, qobj, targets):
         if targets is None:
             targets = list(range(len(qobj.dims[0])))
-        if not isinstance(targets, Sequence):
+        if not isinstance(targets, SequenceLike):
             targets = [targets]
         return targets
 
@@ -388,8 +388,8 @@ class Processor:
 
     def set_coeffs(self, coeffs):
         """
-        Clear all the existing pulses and
-        reset the coefficients for the control Hamiltonians.
+        Clear all the existing pulses and set the new coefficients
+        for the control Hamiltonians based on the input 'coeffs'.
 
         Parameters
         ----------
@@ -406,14 +406,14 @@ class Processor:
         """
         self.clear_pulses()
         iterator = self._generate_iterator_from_dict_or_list(coeffs)
-        for label, _ in iterator:
+        for label, coeff in iterator:
             label = label
             ham, targets = self.model.get_control(label)
             self.add_pulse(
                 Pulse(
                     ham,
                     targets,
-                    coeff=coeffs[label],
+                    coeff=coeff,
                     spline_kind=self.spline_kind,
                     label=label,
                 )
@@ -627,7 +627,7 @@ class Processor:
             The label of the pulse
         """
         if indices is not None:
-            if not isinstance(indices, Sequence):
+            if not isinstance(indices, SequenceLike):
                 indices = [indices]
             indices.sort(reverse=True)
             for ind in indices:

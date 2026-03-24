@@ -108,7 +108,7 @@ def test_analytical_evolution(
     circuit = QubitCircuit(num_qubits)
     for gate in gates:
         circuit.add_gate(gate, targets=targets)
-    state = qutip.rand_ket(2**num_qubits)
+    state = qutip.rand_ket(1 << num_qubits)
     state.dims = [[2] * num_qubits, [1] * num_qubits]
     ideal = circuit.run(state)
     device = device_class(num_qubits)
@@ -152,7 +152,7 @@ def _test_numerical_evolution_helper(
     device = device_class(num_qubits, **kwargs)
     device.load_circuit(circuit)
 
-    state = qutip.rand_ket(2**num_qubits)
+    state = qutip.rand_ket(1 << num_qubits)
     state.dims = [[2] * num_qubits, [1] * num_qubits]
     target = circuit.run(state)
 
@@ -219,7 +219,7 @@ def test_numerical_circuit(circuit, device_class, kwargs, schedule_mode):
         device = device_class(circuit.num_qubits, **kwargs)
     device.load_circuit(circuit, schedule_mode=schedule_mode)
 
-    state = qutip.rand_ket(2**num_qubits)
+    state = qutip.rand_ket(1 << num_qubits)
     state.dims = [[2] * num_qubits, [1] * num_qubits]
     target = circuit.run(state)
 

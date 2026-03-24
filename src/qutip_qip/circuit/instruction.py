@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Type
 from dataclasses import dataclass, field
+import warnings
 from qutip_qip.operations import Gate, Measurement
 
 
@@ -39,10 +40,12 @@ class CircuitInstruction(ABC):
         if len(self.cbits) != len(set(self.cbits)):
             raise ValueError("Found repeated cbits")
 
-    def is_gate_instruction(self) -> bool:
+    @staticmethod
+    def is_gate_instruction() -> bool:
         return False
 
-    def is_measurement_instruction(self) -> bool:
+    @staticmethod
+    def is_measurement_instruction() -> bool:
         return False
 
     @abstractmethod
@@ -98,28 +101,54 @@ class GateInstruction(CircuitInstruction):
 
     @property
     def controls(self) -> tuple[int, ...]:
-        if self.operation.is_controlled():
+        if self.operation.is_controlled:
             return self.qubits[: self.operation.num_ctrl_qubits]
         return ()
 
     @property
     def targets(self) -> tuple[int, ...]:
-        if self.operation.is_controlled():
+        if self.operation.is_controlled:
             return self.qubits[self.operation.num_ctrl_qubits :]
         return self.qubits
 
-    def is_gate_instruction(self) -> bool:
+    @staticmethod
+    def is_gate_instruction() -> bool:
         return True
+
+    def __getattr__(self, name):
+        """
+        Temporary backward compatibility layer to:
+        forward selected old Gate attributes to ``operation`` with a
+        deprecation warning.
+        """
+        if name in ("name", "num_qubits", "arg_value"):
+            warnings.warn(
+                f"Gate object in a circuit has been replaced by GateInstructions."
+                f"use GateInstruction.operation.{name} instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            value = getattr(self.operation, name)
+            if (
+                name == "arg_value"
+                and isinstance(value, tuple)
+                and len(value) == 1
+            ):
+                return value[0]
+            return value
+        raise AttributeError(
+            f"'{type(self).__name__}' object has no attribute '{name}'"
+        )
 
     def to_qasm(self, qasm_out) -> None:
         gate = self.operation
         args = None
-        if gate.is_parametric():
+        if gate.is_parametric:
             args = gate.arg_value
 
         qasm_gate = qasm_out.qasm_name(gate.name)
         if not qasm_gate:
-            error_str = f"{self.name} gate's qasm defn is not specified"
+            error_str = f"{gate.name} gate's qasm defn is not specified"
             raise NotImplementedError(error_str)
 
         if self.cbits:
@@ -156,11 +185,13 @@ class MeasurementInstruction(CircuitInstruction):
                 "Measurement requires equal number of qubits and cbits."
             )
 
-    def is_measurement_instruction(self) -> bool:
+    @staticmethod
+    def is_measurement_instruction() -> bool:
         return True
 
     def to_qasm(self, qasm_out) -> None:
-        qasm_out.output(f"measure q[{self.qubits[0]}] -> c[{self.cbits[0]}]")
+        for qubit, cbit in zip(self.qubits, self.cbits):
+            qasm_out.output(f"measure q[{qubit}] -> c[{cbit}];")
 
     def __str__(self) -> str:
         return f"Measure(q{self.qubits} -> c{self.cbits})"

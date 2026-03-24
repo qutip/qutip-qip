@@ -1,10 +1,10 @@
 import inspect
 from abc import abstractmethod
-from collections.abc import Iterable, Sequence
+from typing import Final
 
 from qutip import Qobj
 from qutip_qip.operations import Gate
-from qutip_qip.typing import Real
+from qutip_qip.typing import Real, SequenceLike
 
 
 class ParametricGate(Gate):
@@ -45,6 +45,7 @@ class ParametricGate(Gate):
 
     __slots__ = ("_arg_value", "arg_label")
     num_params: int
+    is_parametric: Final[bool] = True
 
     def __init_subclass__(cls, **kwargs) -> None:
         """
@@ -73,23 +74,14 @@ class ParametricGate(Gate):
                 f" but it takes {len(inspect.signature(validate_params_func).parameters)}."
             )
 
-        # get_qobj method must take only two parameters: arg_value, dtype
-        get_qobj_func = getattr(cls, "get_qobj")
-        if len(inspect.signature(get_qobj_func).parameters) != 2:
-            raise SyntaxError(
-                f"Class '{cls.name}' method 'get_qobj()' must take exactly 2 "
-                f"arguments (only the implicit 'self, dtype'),"
-                f" but it takes {len(inspect.signature(get_qobj_func).parameters)}."
+        if not cls.is_parametric:
+            raise ValueError(
+                f"Class '{cls.name}' method 'is_parametric' must be set True."
             )
 
-        if not cls.is_parametric():
+        if cls.is_controlled:
             raise ValueError(
-                f"Class '{cls.name}' method 'is_parametric()' must always return True."
-            )
-
-        if cls.is_controlled():
-            raise ValueError(
-                f"Class '{cls.name}' method 'is_controlled()' must always return False."
+                f"Class '{cls.name}' method 'is_controlled' must be set to False."
             )
 
     def __init__(self, arg_value, arg_label: str | None = None) -> None:
@@ -102,10 +94,8 @@ class ParametricGate(Gate):
         return self._arg_value
 
     @arg_value.setter
-    def arg_value(self, new_args: Sequence) -> None:
-        # FIXME numpy arrays are not counted as Sequence, so for now Iterable is being used
-        # we need to have a custom typing for Sequence
-        if not isinstance(new_args, Iterable):
+    def arg_value(self, new_args: SequenceLike) -> None:
+        if not isinstance(new_args, SequenceLike):
             new_args = [new_args]
 
         if len(new_args) != self.num_params:
@@ -148,10 +138,6 @@ class ParametricGate(Gate):
         if self.self_inverse:
             return self
         raise NotImplementedError
-
-    @staticmethod
-    def is_parametric() -> bool:
-        return True
 
     def __str__(self) -> str:
         return f"""

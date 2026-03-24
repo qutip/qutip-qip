@@ -20,7 +20,7 @@ class GLOBALPHASE(AngleParametricGate):
 
     Parameters
     ----------
-    arg_value : float or Sequence
+    arg_value : float
         The phase angle $\theta$ to be applied. Passed down to the `ParametricGate`
         base class.
     arg_label : str, optional
@@ -35,7 +35,7 @@ class GLOBALPHASE(AngleParametricGate):
     >>> gate.get_qobj()
     Quantum object: dims=[[1], [1]], shape=(1, 1), type='scalar', dtype=Dense
     Qobj data =
-    [[3.14159265]]
+    [[-1.+0.j]]
     >>> gate.get_expanded_qobj(num_qubits=1)
     Quantum object: dims=[[2], [2]], shape=(2, 2), type='oper', dtype=Dense, isherm=True
     Qobj data =
@@ -88,7 +88,7 @@ class GLOBALPHASE(AngleParametricGate):
             $N$-qubit system.
         """
         phase = self.arg_value[0]
-        N = 2**num_qubits
+        N = 1 << num_qubits
         return Qobj(
             np.exp(1.0j * phase) * sp.eye(N, N, dtype=complex, format="csr"),
             dims=[[2] * num_qubits, [2] * num_qubits],

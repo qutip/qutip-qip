@@ -93,7 +93,7 @@ GATE_CLASS_MAP = {
     "CRX": CRX,
     "CRY": CRY,
     "CRZ": CRZ,
-    "CNOT": CX,
+    "CNOT": CNOT,
     "CX": CX,
     "CY": CY,
     "CZ": CZ,

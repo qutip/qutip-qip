@@ -490,7 +490,7 @@ CONTROLLED_GATE = [
 
 @pytest.mark.parametrize("gate", GATES + PARAMETRIC_GATE + CONTROLLED_GATE)
 def test_gate_inverse(gate: Gate | Type[Gate]):
-    n = 2**gate.num_qubits
+    n = 1 << gate.num_qubits
     inverse = gate.inverse()
     print(rand_U)
     np.testing.assert_allclose(
@@ -524,9 +524,11 @@ class TestGateErrors:
             _ = NameSpace("test_ns")  # Existing namespace
 
         class TmpGate(Gate):
+            name = "TmpGate"
             num_qubits = 1
 
         class TmpGate2(Gate):
+            name = "TmpGate2"
             num_qubits = 1
 
         ns1.register("tmp_gate", TmpGate)
@@ -556,7 +558,7 @@ class TestGateErrors:
                 num_qubits = 1
                 is_clifford = 1  # attribute 'is_clifford' must be a bool
 
-                def get_qobj(cls):
+                def get_qobj(dtype):
                     pass
 
         with pytest.raises(TypeError):
@@ -565,7 +567,7 @@ class TestGateErrors:
                 num_qubits = 1
                 self_inverse = 1  # attribute 'self_inverse' must be a bool
 
-                def get_qobj(cls):
+                def get_qobj(dtype):
                     pass
 
         with pytest.raises(TypeError):
@@ -574,7 +576,7 @@ class TestGateErrors:
                 num_qubits = 1
                 self_inverse = True
 
-                def get_qobj(cls):
+                def get_qobj(dtype):
                     pass
 
                 def inverse(cls):
@@ -584,7 +586,7 @@ class TestGateErrors:
             num_qubits = 1
 
             @staticmethod
-            def get_qobj():
+            def get_qobj(dtype):
                 pass
 
         with pytest.raises(AttributeError):
@@ -614,8 +616,7 @@ class TestGateErrors:
         with pytest.raises(TypeError):
 
             class NotGoodGate2(GoodGate):
-                def is_controlled():
-                    return 1  # must return a bool
+                is_controlled = 1  # must return a bool
 
         with pytest.raises(TypeError):
 
@@ -626,8 +627,7 @@ class TestGateErrors:
         with pytest.raises(TypeError):
 
             class NotGoodGate4(GoodGate):
-                def is_parametric():
-                    return 1  # must return a bool
+                is_parametric = 1  # must return a bool
 
     def test_parametric_gate_errors(self):
         with pytest.raises(TypeError):
@@ -681,7 +681,7 @@ class TestGateErrors:
         with pytest.raises(SyntaxError):
 
             class NotGoodParamGate2(GoodParamGate):
-                def get_qobj(self, arg2, dtype):
+                def get_qobj(self, arg2):
                     pass
 
     def test_controlled_gate_errors(self):
@@ -822,7 +822,7 @@ class TestGateErrors:
         class H(Gate):
             num_qubits = 1
 
-            def get_qobj():
+            def get_qobj(dtype):
                 pass
 
         assert H.name == "H"
@@ -832,7 +832,7 @@ class TestGateErrors:
             name = "Hadamard"
             num_qubits = 1
 
-            def get_qobj():
+            def get_qobj(dtype):
                 pass
 
         H.name = "Hadamard"

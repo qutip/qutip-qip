@@ -118,7 +118,7 @@ class GateCompiler:
         """
         idle_time = None
         gate = circuit_instruction.operation
-        if gate.is_parametric():
+        if gate.is_parametric:
             idle_time = gate.arg_value[0]
         return [PulseInstruction(circuit_instruction, idle_time, [])]
 
@@ -169,15 +169,40 @@ class GateCompiler:
         # compile gates
         for circuit_instruction in instructions:
             gate = circuit_instruction.operation
-            if gate.is_parametric():
+            if gate.is_parametric:
                 gate = type(gate)
 
-            if gate not in self.gate_compiler:
-                raise ValueError(f"Unsupported gate {gate.name}")
+            compiler_key = None
+            # Support both class and string based keys.
+            if gate in self.gate_compiler:
+                compiler_key = gate
+            else:
+                aliases = {
+                    "H": "SNOT",
+                    "CX": "CNOT",
+                }
+                candidate_keys = [gate.name, gate.__name__]
+                for key in candidate_keys:
+                    if key in self.gate_compiler:
+                        compiler_key = key
+                        break
+                    alias_key = aliases.get(key)
+                    if alias_key in self.gate_compiler:
+                        compiler_key = alias_key
+                        break
 
-            instruction = self.gate_compiler[gate](
+            if compiler_key is None:
+                raise ValueError(f"Unsupported gate {gate.name}")
+            if isinstance(compiler_key, str):
+                warnings.warn(
+                    "Use gateclass in place of gate name string in self.gate_compiler dict",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
+            instruction = self.gate_compiler[compiler_key](
                 circuit_instruction, self.args
             )
+
             if instruction is None:
                 continue  # neglecting global phase gate
             instruction_list += instruction

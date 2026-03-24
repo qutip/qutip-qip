@@ -19,7 +19,7 @@ class TestGrover:
         U_sim = qc_oracle.compute_unitary()
 
         dims = [[2] * n_qubits, [2] * n_qubits]
-        num_qubits = 2**n_qubits
+        num_qubits = 1 << n_qubits
         diag = np.ones(num_qubits)
         for s in marked_states:
             diag[s] = -1
@@ -111,8 +111,10 @@ class TestGrover:
         psi_final = U_grover * psi0
 
         # Check probability of measuring EITHER 3 or 5
-        prob_3 = abs(psi_final.overlap(basis(2**n_qubits, 3))) ** 2
-        prob_5 = abs(psi_final.overlap(basis(2**n_qubits, 5))) ** 2
+        prob_3 = (
+            abs(psi_final.overlap(basis(1 << n_qubits, 3))) ** 2
+        )  # 1 << N = 2**N
+        prob_5 = abs(psi_final.overlap(basis(1 << n_qubits, 5))) ** 2
 
         total_success_prob = prob_3 + prob_5
         assert total_success_prob > 0.999999

@@ -14,6 +14,8 @@ _read_only_set: set[str] = set(
         "num_qubits",
         "num_ctrl_qubits",
         "num_params",
+        "is_parametric",
+        "is_controlled",
         "ctrl_value",
         "self_inverse",
         "is_clifford",
@@ -75,7 +77,7 @@ class _GateMetaClass(ABCMeta):
                     pass  # Fallback
 
             # The basic principle is don't define a gate class if it already exists
-            if cls.is_controlled():
+            if cls.is_controlled:
                 cls.namespace.register(
                     (
                         cls.target_gate.name,
@@ -162,6 +164,8 @@ class Gate(ABC, metaclass=_GateMetaClass):
     self_inverse: bool = False
     is_clifford: bool = False
     latex_str: str
+    is_parametric: bool = False
+    is_controlled: bool = False
 
     def __init_subclass__(cls, **kwargs) -> None:
         """
@@ -204,6 +208,19 @@ class Gate(ABC, metaclass=_GateMetaClass):
                 f"got {type(num_qubits)} with value {num_qubits}."
             )
 
+        # get_qobj method must take the parameter - dtype
+        get_qobj_func = getattr(cls, "get_qobj")
+        if not callable(get_qobj_func):
+            raise TypeError(
+                f"Attribute 'get_qobj' in '{cls.name}' must be a callable method."
+            )
+
+        if "dtype" not in inspect.signature(get_qobj_func).parameters:
+            raise SyntaxError(
+                f"Class '{cls.name}' method 'get_qobj()' must always take the parameter dtype "
+                f" but got '{inspect.signature(get_qobj_func).parameters}'."
+            )
+
         # Check is_clifford is a bool
         if type(cls.is_clifford) is not bool:
             raise TypeError(
@@ -218,42 +235,26 @@ class Gate(ABC, metaclass=_GateMetaClass):
                 f"got {type(cls.self_inverse)} with value {cls.self_inverse}."
             )
 
+        # Check is_parametric is a bool
+        if type(cls.is_parametric) is not bool:
+            raise TypeError(
+                f"Class '{cls.name}' attribute 'is_parametric' must be a bool, "
+                f"got {type(cls.is_parametric)} with value {cls.is_parametric}."
+            )
+
+        # Check is_controlled is a bool
+        if type(cls.is_controlled) is not bool:
+            raise TypeError(
+                f"Class '{cls.name}' attribute 'is_controlled' must be a bool, "
+                f"got {type(cls.is_controlled)} with value {cls.is_controlled}."
+            )
+
         # Can't define inverse() method if self_inverse is set True
         if cls.self_inverse and "inverse" in cls.__dict__:
             raise TypeError(
                 f"Gate '{cls.name}' is marked as self_inverse=True. "
                 f"You are not allowed to override the 'inverse()' method. "
                 f"Remove the method; the base class handles it automatically."
-            )
-
-        try:
-            param_flag = cls.is_parametric()
-        except TypeError as e:
-            raise TypeError(
-                f"Class '{cls.name}' must define 'is_parametric()' as a callable "
-                f"@staticmethod or @classmethod taking no instance arguments. "
-                f"Error: {e}"
-            )
-
-        if type(param_flag) is not bool:
-            raise TypeError(
-                f"Class '{cls.name}' method 'is_controlled()' must return a strict bool, "
-                f"got {type(param_flag)} with value {param_flag}."
-            )
-
-        try:
-            control_flag = cls.is_controlled()
-        except TypeError as e:
-            raise TypeError(
-                f"Class '{cls.name}' must define 'is_parametric()' as a callable "
-                f"@staticmethod or @classmethod taking no instance arguments. "
-                f"Error: {e}"
-            )
-
-        if type(control_flag) is not bool:
-            raise TypeError(
-                f"Class '{cls.name}' method 'is_controlled()' must return a strict bool, "
-                f"got {type(control_flag)} with value {control_flag}."
             )
 
         return super().__init_subclass__(**kwargs)
@@ -297,29 +298,6 @@ class Gate(ABC, metaclass=_GateMetaClass):
         if cls.self_inverse:
             return cls
         return get_unitary_gate(f"{cls.name}_inv", cls.get_qobj().dag())
-
-    @staticmethod
-    def is_controlled() -> bool:
-        """
-        Check if the gate is a controlled gate.
-
-        Returns
-        -------
-        bool
-        """
-        return False
-
-    @staticmethod
-    def is_parametric() -> bool:
-        """
-        Check if the gate accepts variable parameters (e.g., rotation angles).
-
-        Returns
-        -------
-        bool
-            True if the gate is parametric (e.g., RX, RY, RZ), False otherwise.
-        """
-        return False
 
 
 def get_unitary_gate(

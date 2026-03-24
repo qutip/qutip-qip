@@ -2,7 +2,7 @@ import inspect
 import warnings
 from abc import abstractmethod
 from functools import partial
-from typing import Type
+from typing import Final, Type
 
 from qutip import Qobj
 from qutip_qip.operations import (
@@ -55,6 +55,7 @@ class ControlledGate(Gate):
     """
 
     __slots__ = ("_target_inst",)
+    is_controlled: Final[bool] = True
 
     num_ctrl_qubits: int
     ctrl_value: int
@@ -98,6 +99,9 @@ class ControlledGate(Gate):
             )
         cls._validate_control_value()
 
+        # If the target gate is parametric e.g. RX, so is the overall controlled gate e.g. CRX
+        cls.is_parametric = cls.target_gate.is_parametric
+
         # Default self_inverse
         # Don't replace cls.__dict__ with hasattr() that does a MRO search
         if "self_inverse" not in cls.__dict__:
@@ -108,14 +112,9 @@ class ControlledGate(Gate):
         if "latex_str" not in cls.__dict__:
             cls.latex_str = cls.target_gate.latex_str
 
-        if not cls.is_controlled():
+        if not cls.is_controlled:
             raise ValueError(
-                f"Class '{cls.name}' method 'is_controlled()' must always return True."
-            )
-
-        if cls.is_parametric() != cls.target_gate.is_parametric():
-            raise ValueError(
-                f"Class '{cls.name}' method 'is_parametric()' must return {cls.target_gate.is_parametric()}."
+                f"Class '{cls.name}' method 'is_controlled' must be set to True."
             )
 
     def __init__(self, *args, **kwargs) -> None:
@@ -167,7 +166,10 @@ class ControlledGate(Gate):
                 f"Control value must be an int, got {cls.ctrl_value}"
             )
 
-        if cls.ctrl_value < 0 or cls.ctrl_value > 2**cls.num_ctrl_qubits - 1:
+        if (
+            cls.ctrl_value < 0
+            or cls.ctrl_value > (1 << cls.num_ctrl_qubits) - 1
+        ):
             raise ValueError(
                 f"Control value can't be negative and can't be greater than "
                 f"2^num_ctrl_qubits - 1, got {cls.ctrl_value}"
@@ -220,14 +222,6 @@ class ControlledGate(Gate):
 
         return inverse_gate
 
-    @staticmethod
-    def is_controlled() -> bool:
-        return True
-
-    @classmethod
-    def is_parametric(cls) -> bool:
-        return cls.target_gate.is_parametric()
-
     @classmethod
     def __str__(cls) -> str:
         return f"Gate({cls.name}, target_gate={cls.target_gate}, num_ctrl_qubits={cls.num_ctrl_qubits}, control_value={cls.ctrl_value})"
@@ -238,13 +232,13 @@ class ControlledGate(Gate):
             return False
 
         # Returns false for CRX(0.5), CRX(0.6)
-        if self.is_parametric() and self._target_inst != other._target_inst:
+        if self.is_parametric and self._target_inst != other._target_inst:
             return False
 
         return True
 
     def __hash__(self) -> int:
-        if self.is_parametric():
+        if self.is_parametric:
             return hash((type(self), self._target_inst))
         return hash(type(self))
 
@@ -261,7 +255,7 @@ def get_controlled_gate(
     """
 
     if control_value is None:
-        control_value = 2**n_ctrl_qubits - 1
+        control_value = (1 << n_ctrl_qubits) - 1
 
     if gate_name is None:
         gate_name = f"{'C' * n_ctrl_qubits}{gate.name}"

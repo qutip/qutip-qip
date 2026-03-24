@@ -276,7 +276,7 @@ def test_scheduling_pulse(
     for instruction in instructions:
         gate_cls = GATE_CLASS_MAP[instruction.name]
 
-        if gate_cls.is_controlled():
+        if gate_cls.is_controlled:
             circuit.add_gate(
                 gate_cls,
                 targets=instruction.targets,

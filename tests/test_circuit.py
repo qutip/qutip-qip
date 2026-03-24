@@ -174,7 +174,7 @@ class TestQubitCircuit:
             def __init__(self, **kwargs):
                 super().__init__(**kwargs)
 
-            def get_qobj(self):
+            def get_qobj(self, dtype):
                 pass
 
         class DUMMY2(DUMMY1):
@@ -234,7 +234,7 @@ class TestQubitCircuit:
             if qc1.instructions[i].is_gate_instruction() and (
                 qc.instructions[i].is_gate_instruction()
             ):
-                if qc.instructions[i].operation.is_controlled():
+                if qc.instructions[i].operation.is_controlled:
                     assert (
                         qc1.instructions[i].controls
                         == qc.instructions[i].controls
@@ -265,7 +265,7 @@ class TestQubitCircuit:
                     qc2.instructions[i].targets[0]
                     == qc.instructions[i].targets[0] + 2
                 )
-                if qc.instructions[i].operation.is_controlled():
+                if qc.instructions[i].operation.is_controlled:
                     assert (
                         qc2.instructions[i].controls[0]
                         == qc.instructions[i].controls[0] + 2
@@ -428,7 +428,7 @@ class TestQubitCircuit:
                 pass
 
             @staticmethod
-            def get_qobj():
+            def get_qobj(dtype="Dense"):
                 mat = np.array([[1.0, 0], [0.0, 1.0j]])
                 return Qobj(mat, dims=[[2], [2]])
 
@@ -440,6 +440,65 @@ class TestQubitCircuit:
         np.testing.assert_allclose(props[0].full(), result1.full())
         result2 = tensor(identity(2), T1.get_qobj(), identity(2))
         np.testing.assert_allclose(props[1].full(), result2.full())
+
+    def test_old_user_gates_string_support(self):
+        """
+        Deprecated custom gates through ``qc.user_gates``.
+        """
+
+        def custom_h():
+            return gates.H.get_qobj()
+
+        def custom_rx(theta):
+            return gates.RX(theta).get_qobj()
+
+        def ctrl_rx(theta):
+            c = np.cos(theta / 2)
+            s = np.sin(theta / 2)
+            return Qobj(
+                [
+                    [1, 0, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 0, c, -1.0j * s],
+                    [0, 0, -1.0j * s, c],
+                ],
+                dims=[[2, 2], [2, 2]],
+            )
+
+        # 1) No-parameter custom gate.
+        qc_h = QubitCircuit(1)
+        with pytest.warns(DeprecationWarning):
+            qc_h.user_gates = {"CUSTOMH": custom_h}
+        qc_h.add_gate("CUSTOMH", targets=[0])
+        assert qc_h.instructions[0].operation.name == "CUSTOMH"
+        assert _op_dist(qc_h.compute_unitary(), gates.H.get_qobj()) < 1e-12
+
+        # 2) Single-parameter custom gate.
+        theta_rx = np.pi / 3
+        qc_rx = QubitCircuit(1)
+        with pytest.warns(DeprecationWarning):
+            qc_rx.user_gates = {"CUSTOMRX": custom_rx}
+        with pytest.warns(DeprecationWarning):
+            qc_rx.add_gate("CUSTOMRX", targets=[0], arg_value=theta_rx)
+        assert qc_rx.instructions[0].operation.name == "CUSTOMRX"
+        assert qc_rx.instructions[0].operation.arg_value == (theta_rx,)
+        assert (
+            _op_dist(qc_rx.compute_unitary(), gates.RX(theta_rx).get_qobj())
+            < 1e-12
+        )
+
+        # 3) Controlled custom gate (2-qubit matrix with explicit control).
+        theta_ctrl = np.pi / 5
+        qc_ctrl = QubitCircuit(2)
+        with pytest.warns(DeprecationWarning):
+            qc_ctrl.user_gates = {"CTRLRX": ctrl_rx}
+        with pytest.warns(DeprecationWarning):
+            qc_ctrl.add_gate(
+                "CTRLRX", controls=[0], targets=[1], arg_value=theta_ctrl
+            )
+        assert qc_ctrl.instructions[0].operation.name == "CTRLRX"
+        assert qc_ctrl.instructions[0].qubits == (0, 1)
+        assert _op_dist(qc_ctrl.compute_unitary(), ctrl_rx(theta_ctrl)) < 1e-12
 
     def test_N_level_system(self):
         """
@@ -455,7 +514,7 @@ class TestQubitCircuit:
                 pass
 
             @staticmethod
-            def get_qobj():
+            def get_qobj(dtype="Dense"):
                 """
                 A qubit control an operator acting on a 3 level system
                 """
@@ -781,7 +840,7 @@ class TestAddGateError:
     def test_add_gate_errors(self):
         qc = QubitCircuit(3, num_cbits=1)
 
-        with pytest.raises(KeyError):
+        with pytest.raises(ValueError):
             qc.add_gate("123")  # Can only pass standard gate name as strings
 
         with pytest.raises(TypeError):
@@ -912,6 +971,19 @@ class TestInstructionErrors:
             GateInstruction(
                 operation=gates.X, qubits=(0,), cbits=(0,), cbits_ctrl_value=2
             )
+
+    def test_gate_instruction_attr_forwarding(self):
+        """
+        Temporarily test that GateInstruction forwards attributes of the underlying gate operation.
+        """
+        instr = GateInstruction(operation=gates.RX(np.pi / 3), qubits=(0,))
+
+        with pytest.warns(DeprecationWarning):
+            assert instr.name == "RX"
+        with pytest.warns(DeprecationWarning):
+            assert instr.num_qubits == 1
+        with pytest.warns(DeprecationWarning):
+            assert np.isclose(instr.arg_value, np.pi / 3)
 
     def test_measurement_instruction_errors(self):
         with pytest.raises(TypeError):

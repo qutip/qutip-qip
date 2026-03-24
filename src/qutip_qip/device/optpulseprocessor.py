@@ -6,7 +6,8 @@ import numpy as np
 from qutip import Qobj, identity
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.device import Processor
-from qutip_qip.operations import gate_sequence_product, expand_operator
+from qutip_qip.operations import gate_sequence_product, expand_operator, Gate
+from qutip_qip.typing import Real
 
 
 class OptPulseProcessor(Processor):
@@ -40,7 +41,13 @@ class OptPulseProcessor(Processor):
             A list of size `num_qubits` or a float for all qubits.
     """
 
-    def __init__(self, num_qubits=None, drift=None, dims=None, **params):
+    def __init__(
+        self,
+        num_qubits: int | None = None,
+        drift: Qobj | None = None,
+        dims: list[int] | None = None,
+        **params,
+    ) -> None:
         super().__init__(num_qubits, dims=dims, **params)
         if drift is not None:
             self.add_drift(drift, list(range(self.num_qubits)))
@@ -48,11 +55,11 @@ class OptPulseProcessor(Processor):
 
     def load_circuit(
         self,
-        qc,
-        min_fid_err=np.inf,
-        merge_gates=True,
-        setting_args=None,
-        verbose=False,
+        qc: QubitCircuit,
+        min_fid_err: Real = np.inf,
+        merge_gates: bool = True,
+        setting_args: dict | None = None,
+        verbose: bool = False,
         **kwargs,
     ):
         """
@@ -149,15 +156,18 @@ class OptPulseProcessor(Processor):
 
         if isinstance(qc, QubitCircuit):
             props = qc.propagators()[:-1]  # Last element is the global phase
-            gates = [ins.operation.name for ins in qc.instructions]
+            gates = [ins.operation for ins in qc.instructions]
 
         elif isinstance(qc, Iterable):
             props = qc
             gates = None  # using list of Qobj, no gates name
-        else:
-            raise ValueError(
-                "qc should be a " "QubitCircuit or a list of Qobj"
+            warnings.warn(
+                "Using list of Qobj in OptPulseProcessor has been deprecated and will be removed in future versions",
+                DeprecationWarning,
+                stacklevel=2,
             )
+        else:
+            raise ValueError("qc should be a QubitCircuit or a list of Qobj")
 
         if merge_gates:  # merge all gates/Qobj into one Qobj
             props = [gate_sequence_product(props)]
@@ -173,7 +183,41 @@ class OptPulseProcessor(Processor):
             # we update the kwargs for each gate.
             # keyword arguments in setting_arg have priority
             if gates is not None and setting_args:
-                kwargs.update(setting_args[gates[prop_ind]])
+                gate = gates[prop_ind]
+                gate_setting = None
+                gateclass = gate
+                if isinstance(gate, Gate):
+                    gateclass = type(gate)
+
+                if gateclass in setting_args:
+                    gate_setting = setting_args[gateclass]
+                elif gateclass.name in setting_args:
+                    gate_setting = setting_args[gateclass.name]
+                elif gateclass.__name__ in setting_args:
+                    gate_setting = setting_args[gateclass.__name__]
+                else:
+                    aliases = {
+                        "H": "SNOT",
+                        "CX": "CNOT",
+                        "CNOT": "CX",
+                        "SQRTNOT": "SQRTX",
+                        "CSIGN": "CZ",
+                    }
+                    alt = aliases[gateclass.name]
+                    if alt is not None:
+                        gate_setting = setting_args.get(alt)
+
+                if gate_setting is not None and gate not in setting_args:
+                    # String key is used.
+                    warnings.warn(
+                        "Using string gate names as setting_args keys is deprecated. "
+                        "Use gate classes or gate objects as keys instead.",
+                        DeprecationWarning,
+                        stacklevel=2,
+                    )
+
+                if gate_setting:
+                    kwargs.update(gate_setting)
 
             control_labels = self.model.get_control_labels()
             full_ctrls_hams = []
@@ -194,7 +238,7 @@ class OptPulseProcessor(Processor):
                 ),
             )
 
-            import qutip.control.pulseoptim as cpo
+            import qutip_qtrl.pulseoptim as cpo
 
             result = cpo.optimize_pulse_unitary(
                 full_drift_ham, full_ctrls_hams, U_0, U_targ, **kwargs

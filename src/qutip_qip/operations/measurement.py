@@ -25,10 +25,12 @@ class Measurement:
         classical register of the circuit.
     """
 
-    def __init__(self, name, targets, classical_store=None):
+    def __init__(self, name, targets, index=None, classical_store=None):
         """
         Create a measurement with specified parameters.
         """
+        if index is not None:
+            raise AttributeError("argument index is no longer supported")
 
         self.name = name
         self.targets = None

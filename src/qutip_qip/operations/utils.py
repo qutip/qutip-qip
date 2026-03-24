@@ -42,7 +42,7 @@ def controlled_gate_unitary(
     # in the increasing order.
     # The control_value is the location of this unitary.
     target_dim = U.shape[0]
-    block_matrices = [np.eye(target_dim) for _ in range(2**num_controls)]
+    block_matrices = [np.eye(target_dim) for _ in range(1 << num_controls)]
     block_matrices[control_value] = U.full()
 
     result = block_diag(*block_matrices)
