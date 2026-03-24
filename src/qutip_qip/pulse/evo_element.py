@@ -73,9 +73,7 @@ class _EvoElement:
                 if self.tlist is None:
                     qu = QobjEvo(mat, tlist=self.tlist)
                 else:
-                    qu = QobjEvo(
-                        [mat, np.ones(len(self.tlist))], tlist=self.tlist
-                    )
+                    qu = QobjEvo([mat, np.ones(len(self.tlist))], tlist=self.tlist)
             else:
                 qu = QobjEvo(mat * 0.0, tlist=self.tlist)
 

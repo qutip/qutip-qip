@@ -288,13 +288,11 @@ class Pulse:
         """
         ideal_qu = self.get_ideal_qobjevo(dims)
         noise_qu_list = [
-            noise.get_qobjevo(self.spline_kind, dims)
-            for noise in self.coherent_noise
+            noise.get_qobjevo(self.spline_kind, dims) for noise in self.coherent_noise
         ]
         qu = sum(noise_qu_list, ideal_qu)
         c_ops = [
-            noise.get_qobjevo(self.spline_kind, dims)
-            for noise in self.lindblad_noise
+            noise.get_qobjevo(self.spline_kind, dims) for noise in self.lindblad_noise
         ]
         return qu, c_ops
 
@@ -332,8 +330,7 @@ class Pulse:
         the coherent noise and the lindblad noise.
         """
         print(
-            "-----------------------------------"
-            "-----------------------------------"
+            "-----------------------------------" "-----------------------------------"
         )
         if self.label is not None:
             print("Pulse label:", self.label)
@@ -355,6 +352,5 @@ class Pulse:
             for ele in self.lindblad_noise:
                 print(ele)
         print(
-            "-----------------------------------"
-            "-----------------------------------"
+            "-----------------------------------" "-----------------------------------"
         )
