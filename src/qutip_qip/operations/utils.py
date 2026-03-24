@@ -73,8 +73,7 @@ def _check_oper_dims(
     # If operator matches N
     if not isinstance(oper, Qobj) or oper.dims[0] != oper.dims[1]:
         raise ValueError(
-            "The operator is not an "
-            "Qobj with the same input and output dimensions."
+            "The operator is not an " "Qobj with the same input and output dimensions."
         )
 
     # If operator dims matches the target dims
@@ -305,9 +304,7 @@ def _mult_sublists(tensor_list, overall_inds, U, inds):
     U_sublist = expand_operator(
         U_sublist, dims=[2] * N, targets=[ind_map[ind] for ind in inds_sublist]
     )
-    U = expand_operator(
-        U, dims=[2] * N, targets=[ind_map[ind] for ind in inds]
-    )
+    U = expand_operator(U, dims=[2] * N, targets=[ind_map[ind] for ind in inds])
 
     U_sublist = U * U_sublist
     inds_sublist = revised_inds
@@ -378,16 +375,10 @@ def _gate_sequence_product(U_list, ind_list):
         # recursively on the rest of the U_list.
         if len(overall_inds) == 1 and len(overall_inds[0]) == num_qubits:
             # FIXME undefined variable tensor_list
-            U_overall, overall_inds = _expand_overall(
-                tensor_list, overall_inds
-            )
+            U_overall, overall_inds = _expand_overall(tensor_list, overall_inds)
             U_left, rem_inds = _gate_sequence_product(U_list[i:], ind_list[i:])
-            U_left = expand_operator(
-                U_left, dims=[2] * num_qubits, targets=rem_inds
-            )
-            return U_left * U_overall, [
-                sorted_inds[ind] for ind in overall_inds
-            ]
+            U_left = expand_operator(U_left, dims=[2] * num_qubits, targets=rem_inds)
+            return U_left * U_overall, [sorted_inds[ind] for ind in overall_inds]
 
         if U_overall is None:
             U_overall = U

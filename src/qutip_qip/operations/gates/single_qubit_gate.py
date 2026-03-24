@@ -190,9 +190,7 @@ class SQRTX(_SingleQubitGate):
     @staticmethod
     @cache
     def get_qobj(dtype: str = "dense") -> Qobj:
-        return Qobj(
-            [[0.5 + 0.5j, 0.5 - 0.5j], [0.5 - 0.5j, 0.5 + 0.5j]], dtype=dtype
-        )
+        return Qobj([[0.5 + 0.5j, 0.5 - 0.5j], [0.5 - 0.5j, 0.5 + 0.5j]], dtype=dtype)
 
     @staticmethod
     def inverse() -> Type[Gate]:
@@ -222,9 +220,7 @@ class SQRTXdag(_SingleQubitGate):
     @staticmethod
     @cache
     def get_qobj(dtype: str = "dense") -> Qobj:
-        return Qobj(
-            [[0.5 - 0.5j, 0.5 + 0.5j], [0.5 + 0.5j, 0.5 - 0.5j]], dtype=dtype
-        )
+        return Qobj([[0.5 - 0.5j, 0.5 + 0.5j], [0.5 + 0.5j, 0.5 - 0.5j]], dtype=dtype)
 
     @staticmethod
     def inverse() -> Type[Gate]:

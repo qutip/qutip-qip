@@ -988,9 +988,7 @@ class CS(_ControlledTwoQubitGate):
     @cache
     def get_qobj(dtype: str = "dense") -> Qobj:
         return Qobj(
-            np.array(
-                [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1j]]
-            ),
+            np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1j]]),
             dims=[[2, 2], [2, 2]],
             dtype=dtype,
         )
@@ -1034,9 +1032,7 @@ class CSdag(_ControlledTwoQubitGate):
     @cache
     def get_qobj(dtype: str = "dense") -> Qobj:
         return Qobj(
-            np.array(
-                [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1j]]
-            ),
+            np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1j]]),
             dims=[[2, 2], [2, 2]],
             dtype=dtype,
         )
@@ -1308,9 +1304,7 @@ class CQASMU(_ControlledTwoQubitGate):
 
     @staticmethod
     @lru_cache(maxsize=128)
-    def compute_qobj(
-        arg_value: tuple[float, float, float], dtype: str
-    ) -> Qobj:
+    def compute_qobj(arg_value: tuple[float, float, float], dtype: str) -> Qobj:
         theta, phi, gamma = arg_value
         return Qobj(
             [
