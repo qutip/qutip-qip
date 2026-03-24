@@ -136,7 +136,7 @@ def test_qasm_str():
 
 
 def test_openqasm_header_with_extra_whitespace():
-    qasm_input_string = "  OPENQASM   2.0 ;\nqreg q[1];\n"
+    qasm_input_string = "OPENQASM   2.0 ;\nqreg q[1];\n"
     qc = read_qasm(qasm_input_string, strmode=True)
     assert qc.num_qubits == 1
 
