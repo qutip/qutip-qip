@@ -135,6 +135,17 @@ def test_qasm_str():
     assert circuit_to_qasm_str(simple_qc) == expected_qasm_str
 
 
+def test_measurement_register_with_missing_index_raises_syntax_error():
+    qasm_input_string = (
+        "OPENQASM 2.0;\n"
+        "qreg q[1];\n"
+        "creg c[1];\n"
+        "measure q[] -> c[0];\n"
+    )
+    with pytest.raises(SyntaxError, match="QASM: incorrect bracket formatting"):
+        read_qasm(qasm_input_string, strmode=True)
+
+
 def test_export_import():
     qc = QubitCircuit(3)
     qc.add_gate(gates.CRY(np.pi), targets=1, controls=0)

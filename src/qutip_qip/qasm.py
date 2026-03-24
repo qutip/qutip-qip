@@ -428,11 +428,17 @@ class QasmProcessor:
             prev_token = ""
             new_regs = []
             open_bracket_mode = False
+            reg_num = None
             for token in regs:
                 if token == "[":
                     open_bracket_mode = True
+                    reg_num = None
                 elif open_bracket_mode:
                     if token == "]":
+                        if reg_num is None:
+                            raise SyntaxError(
+                                "QASM: incorrect bracket formatting"
+                            )
                         open_bracket_mode = False
                         reg_name = new_regs.pop()
                         new_regs.append(reg_name + "[" + reg_num + "]")
