@@ -143,9 +143,7 @@ def grover(
     # Validation check for N
     if num_qubits is not None:
         if num_qubits <= 0:
-            raise ValueError(
-                f"N must be a positive integer, got {num_qubits}."
-            )
+            raise ValueError(f"N must be a positive integer, got {num_qubits}.")
         min_required = max(search_qubits) + 1
         if num_qubits < min_required:
             raise ValueError(
@@ -157,9 +155,7 @@ def grover(
     if num_solutions <= 0:
         raise ValueError("num_solutions must be greater than 0.")
     if num_solutions >= search_space_size:
-        raise ValueError(
-            "Number of solutions is equal/greater to the search space."
-        )
+        raise ValueError("Number of solutions is equal/greater to the search space.")
 
     num_qubits = (max(search_qubits) + 1) if num_qubits is None else num_qubits
     qc = QubitCircuit(num_qubits)
