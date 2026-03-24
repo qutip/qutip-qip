@@ -48,9 +48,7 @@ single_gate_tests = [
     pytest.param(2, [_rx], [0], id="RX"),
     pytest.param(2, [_ry], [0], id="RY"),
     pytest.param(2, [ISWAP], [0, 1], id="ISWAP"),
-    pytest.param(
-        2, [SQRTISWAP], [0, 1], id="SQRTISWAP", marks=pytest.mark.skip
-    ),
+    pytest.param(2, [SQRTISWAP], [0, 1], id="SQRTISWAP", marks=pytest.mark.skip),
 ]
 
 # TODO This test needs to be added like single_gate_tests but requires controls
@@ -60,9 +58,7 @@ single_gate_tests = [
 def _ket_expaned_dims(qubit_state, expanded_dims):
     all_qubit_basis = list(product([0, 1], repeat=len(expanded_dims)))
     old_dims = qubit_state.dims[0]
-    expanded_qubit_state = np.zeros(
-        reduce(mul, expanded_dims, 1), dtype=np.complex128
-    )
+    expanded_qubit_state = np.zeros(reduce(mul, expanded_dims, 1), dtype=np.complex128)
     for basis_state in all_qubit_basis:
         old_ind = np.ravel_multi_index(basis_state, old_dims)
         new_ind = np.ravel_multi_index(basis_state, expanded_dims)
@@ -87,9 +83,7 @@ device_lists_numeric = device_lists_analytic + [
 
 @pytest.mark.parametrize(("num_qubits", "gates", "targets"), single_gate_tests)
 @pytest.mark.parametrize(("device_class", "kwargs"), device_lists_analytic)
-def test_device_against_gate_sequence(
-    num_qubits, gates, targets, device_class, kwargs
-):
+def test_device_against_gate_sequence(num_qubits, gates, targets, device_class, kwargs):
     circuit = QubitCircuit(num_qubits)
     for gate in gates:
         circuit.add_gate(gate, targets=targets)
@@ -102,9 +96,7 @@ def test_device_against_gate_sequence(
 
 @pytest.mark.parametrize(("num_qubits", "gates", "targets"), single_gate_tests)
 @pytest.mark.parametrize(("device_class", "kwargs"), device_lists_analytic)
-def test_analytical_evolution(
-    num_qubits, gates, targets, device_class, kwargs
-):
+def test_analytical_evolution(num_qubits, gates, targets, device_class, kwargs):
     circuit = QubitCircuit(num_qubits)
     for gate in gates:
         circuit.add_gate(gate, targets=targets)
@@ -121,9 +113,7 @@ def test_analytical_evolution(
 @pytest.mark.parametrize(("num_qubits", "gates", "targets"), single_gate_tests)
 @pytest.mark.parametrize(("device_class", "kwargs"), device_lists_numeric)
 def test_numerical_evolution(num_qubits, gates, targets, device_class, kwargs):
-    _test_numerical_evolution_helper(
-        num_qubits, gates, targets, device_class, kwargs
-    )
+    _test_numerical_evolution_helper(num_qubits, gates, targets, device_class, kwargs)
 
 
 # Test for RZX gate, only available on SCQubits.
@@ -134,17 +124,11 @@ _rzx = RZX(np.pi / 2)
     ("num_qubits", "gates", "targets", "device_class", "kwargs"),
     [pytest.param(2, [_rzx], [0, 1], SCQubits, {}, id="RZX-SCQubits")],
 )
-def test_numerical_evolution_zx(
-    num_qubits, gates, targets, device_class, kwargs
-):
-    _test_numerical_evolution_helper(
-        num_qubits, gates, targets, device_class, kwargs
-    )
+def test_numerical_evolution_zx(num_qubits, gates, targets, device_class, kwargs):
+    _test_numerical_evolution_helper(num_qubits, gates, targets, device_class, kwargs)
 
 
-def _test_numerical_evolution_helper(
-    num_qubits, gates, targets, device_class, kwargs
-):
+def _test_numerical_evolution_helper(num_qubits, gates, targets, device_class, kwargs):
     num_qubits = 2
     circuit = QubitCircuit(num_qubits)
     for gate in gates:
@@ -169,9 +153,7 @@ def _test_numerical_evolution_helper(
         init_state = state
 
     options = {"store_final_state": True, "nsteps": 50000}
-    result = device.run_state(
-        init_state=init_state, analytical=False, options=options
-    )
+    result = device.run_state(init_state=init_state, analytical=False, options=options)
     numerical_result = result.final_state
 
     if isinstance(device, DispersiveCavityQED):
@@ -207,9 +189,7 @@ circuit2.add_gate(SQRTISWAP, targets=[0, 2])  # supported only by SpinChain
         pytest.param(circuit2, LinearSpinChain, {}, id="LinearSpinChain"),
         pytest.param(circuit2, CircularSpinChain, {}, id="CircularSpinChain"),
         # The length of circuit is limited for SCQubits due to leakage
-        pytest.param(
-            circuit, SCQubits, {"omega_single": [0.02] * 3}, id="SCQubits"
-        ),
+        pytest.param(circuit, SCQubits, {"omega_single": [0.02] * 3}, id="SCQubits"),
     ],
 )
 @pytest.mark.parametrize(("schedule_mode"), ["ASAP", "ALAP", None])
@@ -236,9 +216,7 @@ def test_numerical_circuit(circuit, device_class, kwargs, schedule_mode):
         init_state = state
 
     options = {"store_final_state": True, "nsteps": 50000}
-    result = device.run_state(
-        init_state=init_state, analytical=False, options=options
-    )
+    result = device.run_state(init_state=init_state, analytical=False, options=options)
 
     if isinstance(device, DispersiveCavityQED):
         target = qutip.tensor(extra, target)
@@ -266,9 +244,7 @@ def test_pulse_plotting(processor_class):
 
 def _compute_propagator(processor, circuit):
     qevo, _ = processor.get_qobjevo(noisy=True)
-    result = qutip.propagator(
-        qevo, t=processor.get_full_tlist(), parallel=False
-    )[-1]
+    result = qutip.propagator(qevo, t=processor.get_full_tlist(), parallel=False)[-1]
     return result
 
 
@@ -279,9 +255,7 @@ def test_scqubits_single_qubit_gate():
     processor = SCQubits(1, omega_single=0.04)
     processor.load_circuit(circuit)
     U = _compute_propagator(processor, circuit)
-    fid = qutip.average_gate_fidelity(
-        qutip.Qobj(U.full()[:2, :2]), qutip.sigmax()
-    )
+    fid = qutip.average_gate_fidelity(qutip.Qobj(U.full()[:2, :2]), qutip.sigmax())
     assert pytest.approx(fid, rel=1.0e-6) == 1
 
 

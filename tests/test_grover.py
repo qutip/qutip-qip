@@ -46,9 +46,7 @@ class TestGrover:
         """Test that grover raises errors for invalid num_iterations."""
         oracle = grover_oracle(2, 3)
 
-        with pytest.raises(
-            ValueError, match="num_iterations must not be a negative"
-        ):
+        with pytest.raises(ValueError, match="num_iterations must not be a negative"):
             grover(oracle, 2, 1, num_iterations=-3)
 
     def test_grover_1_qubit(self):
@@ -111,9 +109,7 @@ class TestGrover:
         psi_final = U_grover * psi0
 
         # Check probability of measuring EITHER 3 or 5
-        prob_3 = (
-            abs(psi_final.overlap(basis(1 << n_qubits, 3))) ** 2
-        )  # 1 << N = 2**N
+        prob_3 = abs(psi_final.overlap(basis(1 << n_qubits, 3))) ** 2  # 1 << N = 2**N
         prob_5 = abs(psi_final.overlap(basis(1 << n_qubits, 5))) ** 2
 
         total_success_prob = prob_3 + prob_5
@@ -142,9 +138,7 @@ class TestGrover:
         psi_final = U_grover * psi0
 
         # Expected: |0> (idle) tensor |11> (grover result)
-        psi_expected = tensor(
-            basis(2, 0), basis(2, 1), basis(2, 1), basis(2, 0)
-        )
+        psi_expected = tensor(basis(2, 0), basis(2, 1), basis(2, 1), basis(2, 0))
 
         fidelity = abs(psi_final.overlap(psi_expected)) ** 2
         assert fidelity > 0.9999

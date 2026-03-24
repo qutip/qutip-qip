@@ -20,9 +20,7 @@ gate_list = [H, X, Y, Z, SQRTX, S, T]
 
 # Tests for private functions
 @pytest.mark.parametrize("gate", gate_list)
-@pytest.mark.parametrize(
-    "method", [_ZYZ_rotation, _ZXZ_rotation, _ZYZ_pauli_X]
-)
+@pytest.mark.parametrize("method", [_ZYZ_rotation, _ZXZ_rotation, _ZYZ_pauli_X])
 def test_single_qubit_to_rotations(gate, method):
     """Initial matrix and product of final decompositions are same within some
     phase."""
@@ -55,9 +53,7 @@ def test_check_single_qubit_to_decompose_to_rotations(gate, method):
 
 
 @pytest.mark.parametrize("gate", gate_list)
-@pytest.mark.parametrize(
-    "method", [_ZYZ_rotation, _ZXZ_rotation, _ZYZ_pauli_X]
-)
+@pytest.mark.parametrize("method", [_ZYZ_rotation, _ZXZ_rotation, _ZYZ_pauli_X])
 def test_output_is_tuple(gate, method):
     """Initial matrix and product of final decompositions are same within some
     phase."""

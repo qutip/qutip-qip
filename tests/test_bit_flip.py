@@ -50,9 +50,7 @@ def test_bitflip_correction(code, data_qubits, syndrome_qubits):
     state = qc_error.run(state)
 
     # Step 3: Syndrome + correction
-    qc_correct = code.syndrome_and_correction_circuit(
-        data_qubits, syndrome_qubits
-    )
+    qc_correct = code.syndrome_and_correction_circuit(data_qubits, syndrome_qubits)
     state = qc_correct.run(state)
 
     # Step 4: Decode

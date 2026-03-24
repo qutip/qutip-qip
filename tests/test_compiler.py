@@ -132,10 +132,7 @@ class MyCompiler(GateCompiler):  # compiler class
             1000,
             maximum=args["params"]["sx"][targets[0]],
             # The operator is Pauli Z/X/Y, without 1/2.
-            area=circuit_instruction.operation.arg_value[0]
-            / 2.0
-            / np.pi
-            * 0.5,
+            area=circuit_instruction.operation.arg_value[0] / 2.0 / np.pi * 0.5,
         )
         pulse_info = [("sx" + str(targets[0]), coeff)]
         return [PulseInstruction(circuit_instruction, tlist, pulse_info)]
@@ -194,16 +191,12 @@ def test_compiler_without_pulse_dict():
     circuit.add_gate(X, targets=[0])
     circuit.add_gate(X, targets=[1])
     processor = CircularSpinChain(num_qubits)
-    compiler = SpinChainCompiler(
-        num_qubits, params=processor.params, setup="circular"
-    )
+    compiler = SpinChainCompiler(num_qubits, params=processor.params, setup="circular")
     compiler.gate_compiler[RX] = rx_compiler_without_pulse_dict
     compiler.args = {"params": processor.params}
     processor.load_circuit(circuit, compiler=compiler)
     result = processor.run_state(basis([2, 2], [0, 0]))
-    assert (
-        abs(fidelity(result.states[-1], basis([2, 2], [1, 1])) - 1.0) < 1.0e-6
-    )
+    assert abs(fidelity(result.states[-1], basis([2, 2], [1, 1])) - 1.0) < 1.0e-6
 
 
 def test_compiler_result_format():
@@ -215,9 +208,7 @@ def test_compiler_result_format():
     circuit = QubitCircuit(num_qubits)
     circuit.add_gate(RX(np.pi / 2), targets=[0])
     processor = LinearSpinChain(num_qubits)
-    compiler = SpinChainCompiler(
-        num_qubits, params=processor.params, setup="circular"
-    )
+    compiler = SpinChainCompiler(num_qubits, params=processor.params, setup="circular")
 
     tlist, coeffs = compiler.compile(circuit)
     assert isinstance(tlist, dict)
@@ -244,9 +235,7 @@ def test_compiler_result_format():
 @pytest.mark.parametrize("shape", list(_default_window_t_max.keys()))
 def test_pulse_shape(shape):
     """Test different pulse shape functions"""
-    coeff, tlist = GateCompiler.generate_pulse_shape(
-        shape, 1001, maximum=1.0, area=1.0
-    )
+    coeff, tlist = GateCompiler.generate_pulse_shape(shape, 1001, maximum=1.0, area=1.0)
     assert pytest.approx(coeff[500], 1.0e-2) == 1  # max
     result = integrate.trapezoid(coeff, tlist)
     assert pytest.approx(result, rel=1.0e-2) == 1  # area

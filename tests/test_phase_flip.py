@@ -65,9 +65,7 @@ def test_phaseflip_correction_simulation(code, data_qubits, syndrome_qubits):
     state = qc_error.run(state)
 
     # Syndrome measurement and Z correction
-    qc_correct = code.syndrome_and_correction_circuit(
-        data_qubits, syndrome_qubits
-    )
+    qc_correct = code.syndrome_and_correction_circuit(data_qubits, syndrome_qubits)
     state = qc_correct.run(state)
 
     # Decode to return to original basis

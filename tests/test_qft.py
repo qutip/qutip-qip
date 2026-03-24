@@ -34,9 +34,7 @@ class TestQFT:
             snots = sum(g.operation == H for g in circuit.instructions)
             assert_equal(snots, N)
 
-            phases = sum(
-                isinstance(g.operation, CPHASE) for g in circuit.instructions
-            )
+            phases = sum(isinstance(g.operation, CPHASE) for g in circuit.instructions)
             assert_equal(phases, N * (N - 1) / 2)
 
     def testQFTGateSequenceWithSwapping(self):

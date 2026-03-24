@@ -23,25 +23,17 @@ class TestVQABlock:
     @pytest.mark.parametrize("angle", [1, 2, 3])
     def test_parameterization(self, angle):
         block = VQABlock(qutip.sigmax())
-        assert (
-            block.get_unitary([angle]) == (-1j * angle * qutip.sigmax()).expm()
-        )
+        assert block.get_unitary([angle]) == (-1j * angle * qutip.sigmax()).expm()
         assert block.get_free_parameters_num() == 1
         block = VQABlock(qutip.sigmaz())
-        assert (
-            block.get_unitary([angle]) == (-1j * angle * qutip.sigmaz()).expm()
-        )
+        assert block.get_unitary([angle]) == (-1j * angle * qutip.sigmaz()).expm()
         block = VQABlock(qutip.sigmay())
-        assert (
-            block.get_unitary([angle]) == (-1j * angle * qutip.sigmay()).expm()
-        )
+        assert block.get_unitary([angle]) == (-1j * angle * qutip.sigmay()).expm()
 
     @pytest.mark.parametrize("angle", [1, 2, 3])
     def test_unitary_function(self, angle):
         block = VQABlock(lambda t: (t * -1j * qutip.sigmax()).expm())
-        assert (
-            block.get_unitary([angle]) == (-1j * angle * qutip.sigmax()).expm()
-        )
+        assert block.get_unitary([angle]) == (-1j * angle * qutip.sigmax()).expm()
 
 
 class TestVQA:
@@ -158,9 +150,7 @@ class TestVQACircuit:
         apply parameters
         """
         # Hamiltonian that looks like (t_1*X  +  t_2*Z)
-        block = VQABlock(
-            ParameterizedHamiltonian([qutip.sigmax(), qutip.sigmaz()])
-        )
+        block = VQABlock(ParameterizedHamiltonian([qutip.sigmax(), qutip.sigmaz()]))
         vqa = VQA(num_qubits=1, num_layers=2)
         vqa.add_block(block)
         # Do (pi/2*X + 0*Z) and then (0*X + pi/2*Z)
@@ -191,9 +181,7 @@ class TestVQACircuit:
         vqa = VQA(num_qubits=4, num_layers=1, cost_method="STATE")
         for i in range(4):
             vqa.add_block(
-                VQABlock(
-                    expand_operator(qutip.sigmax(), dims=[2] * 4, targets=[i])
-                )
+                VQABlock(expand_operator(qutip.sigmax(), dims=[2] * 4, targets=[i]))
             )
         vqa.cost_func = lambda s: 0
         res = vqa.optimize_parameters([0.0, 0.0, 0.0, 0.0])
