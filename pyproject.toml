@@ -94,4 +94,4 @@ dev_template = "{tag}.dev{ccount}+git.{sha}"
 dirty_template = "{tag}.dev{ccount}+git.{sha}.dirty"
 
 [tool.black]
-line-length = 79
+line-length = 88
