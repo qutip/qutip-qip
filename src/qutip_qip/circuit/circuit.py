@@ -75,8 +75,7 @@ class QubitCircuit:
         self._num_qubits = num_qubits
         if N is not None:
             warnings.warn(
-                "The 'N' parameter is deprecated. Please use "
-                "'num_qubits' instead.",
+                "The 'N' parameter is deprecated. Please use " "'num_qubits' instead.",
                 DeprecationWarning,
                 stacklevel=2,
             )
@@ -91,16 +90,12 @@ class QubitCircuit:
         if input_states:
             self.input_states = input_states
         else:
-            self.input_states = [
-                None for i in range(self.num_qubits + num_cbits)
-            ]
+            self.input_states = [None for i in range(self.num_qubits + num_cbits)]
 
         if output_states:
             self.output_states = output_states
         else:
-            self.output_states = [
-                None for i in range(self.num_qubits + num_cbits)
-            ]
+            self.output_states = [None for i in range(self.num_qubits + num_cbits)]
 
         if user_gates is not None:
             self.user_gates = user_gates
@@ -118,8 +113,7 @@ class QubitCircuit:
         Number of qubits in the circuit.
         """
         warnings.warn(
-            "The 'N' parameter is deprecated. Please use "
-            "'num_qubits' instead.",
+            "The 'N' parameter is deprecated. Please use " "'num_qubits' instead.",
             DeprecationWarning,
             stacklevel=2,
         )
@@ -291,9 +285,7 @@ class QubitCircuit:
         else:
             name = measurement
 
-        meas = Measurement(
-            name, targets=targets, classical_store=classical_store
-        )
+        meas = Measurement(name, targets=targets, classical_store=classical_store)
 
         if type(targets) is int:
             targets = [targets]
@@ -430,9 +422,7 @@ class QubitCircuit:
                 "You must pass an instantiated object for a Parametrized Gate"
             )
         elif (not gate.is_parametric) and (not issubclass(gate, Gate)):
-            raise TypeError(
-                "You must pass a Gate type for a non-parametrized gate"
-            )
+            raise TypeError("You must pass a Gate type for a non-parametrized gate")
 
         # Handling case for integer input
         targets = convert_type_input_to_sequence(int, "targets", targets)
@@ -444,9 +434,7 @@ class QubitCircuit:
         # Checks each element within the limit
         check_limit("targets", targets, 0, self.num_qubits - 1)
         check_limit("controls", controls, 0, self.num_qubits - 1)
-        check_limit(
-            "classical_controls", classical_controls, 0, self.num_cbits - 1
-        )
+        check_limit("classical_controls", classical_controls, 0, self.num_cbits - 1)
 
         # Check len(controls) == gate.num_ctrl_qubits
         if gate.is_controlled and len(controls) != gate.num_ctrl_qubits:
@@ -493,9 +481,7 @@ class QubitCircuit:
             )
         )
 
-    def add_circuit(
-        self, qc, start=0
-    ):  # TODO Instead of start have a qubit mapping?
+    def add_circuit(self, qc, start=0):  # TODO Instead of start have a qubit mapping?
         """
         Adds a block of a qubit circuit to the main circuit.
 
@@ -714,11 +700,7 @@ class QubitCircuit:
         """
 
         num_measurements = len(
-            list(
-                filter(
-                    lambda x: x.is_measurement_instruction(), self.instructions
-                )
-            )
+            list(filter(lambda x: x.is_measurement_instruction(), self.instructions))
         )
         if num_measurements > 0:
             raise NotImplementedError("adjacent_gates must be called before \
@@ -753,9 +735,7 @@ class QubitCircuit:
             if basis in basis_2q_valid:
                 basis_2q = [basis]
             else:
-                raise ValueError(
-                    f"{basis} is not a valid two-qubit basis gate"
-                )
+                raise ValueError(f"{basis} is not a valid two-qubit basis gate")
 
         match = False
         qc_temp = QubitCircuit(
@@ -1051,9 +1031,8 @@ class QubitCircuit:
         qasm_out.output(n=1)
 
         for circ_instruction in self.instructions:
-            if (
-                circ_instruction.is_gate_instruction()
-                and not qasm_out.is_defined(circ_instruction.operation.name)
+            if circ_instruction.is_gate_instruction() and not qasm_out.is_defined(
+                circ_instruction.operation.name
             ):
                 qasm_out._qasm_defns(circ_instruction.operation)
 

@@ -71,10 +71,7 @@ class GateInstruction(CircuitInstruction):
         # destroys __class__ reference to the original class until Python 3.13
         # Check CPython Issue #90562, this has been resolved in Python 3.14
 
-        if not (
-            isinstance(self.operation, Gate)
-            or issubclass(self.operation, Gate)
-        ):
+        if not (isinstance(self.operation, Gate) or issubclass(self.operation, Gate)):
             raise TypeError(f"Operation must be a Gate, got {self.operation}")
 
         if len(self.qubits) != self.operation.num_qubits:
@@ -129,11 +126,7 @@ class GateInstruction(CircuitInstruction):
                 stacklevel=2,
             )
             value = getattr(self.operation, name)
-            if (
-                name == "arg_value"
-                and isinstance(value, tuple)
-                and len(value) == 1
-            ):
+            if name == "arg_value" and isinstance(value, tuple) and len(value) == 1:
                 return value[0]
             return value
         raise AttributeError(
@@ -176,14 +169,10 @@ class MeasurementInstruction(CircuitInstruction):
     def __post_init__(self) -> None:
         super(MeasurementInstruction, self).__post_init__()
         if not isinstance(self.operation, Measurement):
-            raise TypeError(
-                f"Operation must be a measurement, got {self.operation}"
-            )
+            raise TypeError(f"Operation must be a measurement, got {self.operation}")
 
         if len(self.qubits) != len(self.cbits):
-            raise ValueError(
-                "Measurement requires equal number of qubits and cbits."
-            )
+            raise ValueError("Measurement requires equal number of qubits and cbits.")
 
     @staticmethod
     def is_measurement_instruction() -> bool:

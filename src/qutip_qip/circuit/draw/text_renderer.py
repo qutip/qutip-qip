@@ -85,9 +85,7 @@ class TextRenderer(BaseRenderer):
 
             self._layer_list[i].append(update_len)
 
-    def _draw_singleq_gate(
-        self, gate_name: str
-    ) -> tuple[tuple[str, str, str], int]:
+    def _draw_singleq_gate(self, gate_name: str) -> tuple[tuple[str, str, str], int]:
         """
         Draw a single qubit gate
 
@@ -170,17 +168,9 @@ class TextRenderer(BaseRenderer):
         if len(cbits) != 0:
             for c in cbits:
                 if c + self._qwires > sorted_targets[0]:
-                    bot_frame = (
-                        bot_frame[:mid_index]
-                        + "╥"
-                        + bot_frame[mid_index + 1 :]
-                    )
+                    bot_frame = bot_frame[:mid_index] + "╥" + bot_frame[mid_index + 1 :]
                 else:
-                    top_frame = (
-                        top_frame[:mid_index]
-                        + "╨"
-                        + top_frame[mid_index + 1 :]
-                    )
+                    top_frame = top_frame[:mid_index] + "╨" + top_frame[mid_index + 1 :]
 
         # check for equal part lengths
         assert (
@@ -199,9 +189,7 @@ class TextRenderer(BaseRenderer):
             bot_frame,
         ), len(top_frame)
 
-    def _draw_measurement_gate(
-        self, qubits, cbits
-    ) -> tuple[tuple[str, str, str], int]:
+    def _draw_measurement_gate(self, qubits, cbits) -> tuple[tuple[str, str, str], int]:
         """
         Draw a measurement gate
         """
@@ -212,13 +200,9 @@ class TextRenderer(BaseRenderer):
         # adjust top_frame or bottom according the placement of the classical wire
         mid_index = len(bot_frame) // 2
         if cbits[0] + self._qwires > qubits[0]:
-            bot_frame = (
-                bot_frame[:mid_index] + "╥" + bot_frame[mid_index + 1 :]
-            )
+            bot_frame = bot_frame[:mid_index] + "╥" + bot_frame[mid_index + 1 :]
         else:
-            top_frame = (
-                top_frame[:mid_index] + "╨" + top_frame[mid_index + 1 :]
-            )
+            top_frame = top_frame[:mid_index] + "╨" + top_frame[mid_index + 1 :]
 
         return (top_frame, mid_frame, bot_frame), width
 
@@ -247,13 +231,9 @@ class TextRenderer(BaseRenderer):
 
         bar_conn = " " * (width // 2) + "║" + " " * (width // 2 - 1)
         mid_bar_conn = "─" * (width // 2) + "║" + "─" * (width // 2 - 1)
-        mid_bar_classical_conn = (
-            "═" * (width // 2) + "║" + "═" * (width // 2 - 1)
-        )
+        mid_bar_classical_conn = "═" * (width // 2) + "║" + "═" * (width // 2 - 1)
         classical_conn = (
-            "═" * (width // 2)
-            + ("╩" if is_arrow else "█")
-            + "═" * (width // 2 - 1)
+            "═" * (width // 2) + ("╩" if is_arrow else "█") + "═" * (width // 2 - 1)
         )
 
         classical_wire = list(map(lambda x: x + self._qwires, cbits))
@@ -276,9 +256,7 @@ class TextRenderer(BaseRenderer):
 
                 # check if the non-store wire is a classical wire or not
                 if wire > self._qwires:
-                    self._render_strs["mid_frame"][
-                        wire
-                    ] += mid_bar_classical_conn
+                    self._render_strs["mid_frame"][wire] += mid_bar_classical_conn
                 else:
                     self._render_strs["mid_frame"][wire] += mid_bar_conn
 
@@ -372,10 +350,7 @@ class TextRenderer(BaseRenderer):
                 if wire in controls:
                     # check if the control wire is the first or last control wire.
                     # used in cases of multiple control wires
-                    if (
-                        wire == wire_list_control[0]
-                        or wire == wire_list_control[-1]
-                    ):
+                    if wire == wire_list_control[0] or wire == wire_list_control[-1]:
                         self._render_strs["mid_frame"][wire] += node_conn
                         self._render_strs["top_frame"][wire] += (
                             bar_conn if not is_top else " " * len(bar_conn)
@@ -456,9 +431,7 @@ class TextRenderer(BaseRenderer):
                         c_control = sorted(cbits)
                         merged_wire += list(range(sorted_targets[0] + 1))
                         merged_wire.sort()
-                        wire_list = list(
-                            range(merged_wire[0], merged_wire[-1] + 1)
-                        )
+                        wire_list = list(range(merged_wire[0], merged_wire[-1] + 1))
                         wire_list += list(
                             range(
                                 c_control[0] + self._qwires,
@@ -467,9 +440,7 @@ class TextRenderer(BaseRenderer):
                         )
                     else:
                         merged_wire.sort()
-                        wire_list = list(
-                            range(merged_wire[0], merged_wire[-1] + 1)
-                        )
+                        wire_list = list(range(merged_wire[0], merged_wire[-1] + 1))
                     parts, width = self._draw_multiq_gate(
                         gate, gate_text, targets, controls, cbits
                     )
@@ -587,9 +558,7 @@ class TextRenderer(BaseRenderer):
                 file.write(self._render_strs["mid_frame"][i] + "\n")
                 file.write(self._render_strs["bot_frame"][i] + "\n")
 
-            for i in range(
-                self._qwires + self._cwires - 1, self._qwires - 1, -1
-            ):
+            for i in range(self._qwires + self._cwires - 1, self._qwires - 1, -1):
                 file.write(self._render_strs["top_frame"][i] + "\n")
                 file.write(self._render_strs["mid_frame"][i] + "\n")
                 file.write(self._render_strs["bot_frame"][i] + "\n")
