@@ -84,11 +84,7 @@ class InstructionsGraph:
             node.successors = set()
 
         num_qubits = (
-            max(
-                set().union(
-                    *[instruction.used_qubits for instruction in self.nodes]
-                )
-            )
+            max(set().union(*[instruction.used_qubits for instruction in self.nodes]))
             + 1
         )
         # Build the dependency graph with the constraint that
@@ -118,9 +114,7 @@ class InstructionsGraph:
                     qubits_cycle_current[qubit].add(gate_index)
 
         for qubit in range(num_qubits):
-            self._add_dependency(
-                qubits_cycle_last[qubit], qubits_cycle_current[qubit]
-            )
+            self._add_dependency(qubits_cycle_last[qubit], qubits_cycle_current[qubit])
 
         # Find start and end nodes of the graph
         start = []
@@ -478,12 +472,8 @@ class Scheduler:
         if self.allow_permutation:
             commutation_rules = self.commutation_rules
         else:
-            commutation_rules = (
-                lambda *args, **kwargs: False
-            )  # TODO check this line
-        instructions_graph.generate_dependency_graph(
-            commuting=commutation_rules
-        )
+            commutation_rules = lambda *args, **kwargs: False  # TODO check this line
+        instructions_graph.generate_dependency_graph(commuting=commutation_rules)
         if self.method == "ALAP":
             instructions_graph.reverse_graph()
 
@@ -567,9 +557,7 @@ class Scheduler:
             else:
                 commute = False
             return commute
-        if (instruction1.controls) and (
-            instruction1.controls == instruction2.controls
-        ):
+        if (instruction1.controls) and (instruction1.controls == instruction2.controls):
             commute = True
         elif instruction1.targets == instruction2.targets:
             commute = True

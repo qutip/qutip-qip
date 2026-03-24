@@ -54,8 +54,7 @@ class GateCompiler:
         self._num_qubits = num_qubits
         if N is not None:
             warnings.warn(
-                "The 'N' parameter is deprecated. Please use "
-                "'num_qubits' instead.",
+                "The 'N' parameter is deprecated. Please use " "'num_qubits' instead.",
                 DeprecationWarning,
                 stacklevel=2,
             )
@@ -98,8 +97,7 @@ class GateCompiler:
         Number of qubits in the circuit.
         """
         warnings.warn(
-            "The 'N' parameter is deprecated. Please use "
-            "'num_qubits' instead.",
+            "The 'N' parameter is deprecated. Please use " "'num_qubits' instead.",
             DeprecationWarning,
             stacklevel=2,
         )
@@ -224,9 +222,7 @@ class GateCompiler:
         pulse_ind_map = {}
         next_pulse_ind = 0
         pulse_instructions = []
-        for instruction, start_time in zip(
-            instruction_list, scheduled_start_time
-        ):
+        for instruction, start_time in zip(instruction_list, scheduled_start_time):
             for pulse_name, coeff in instruction.pulse_info:
                 if pulse_name not in pulse_ind_map:
                     pulse_instructions.append([])
@@ -302,9 +298,7 @@ class GateCompiler:
                         pulse_mode, start_time, last_pulse_time, step_size
                     )
                     compiled_tlist[pulse_ind].append(idling_tlist)
-                    compiled_coeffs[pulse_ind].append(
-                        np.zeros(len(idling_tlist))
-                    )
+                    compiled_coeffs[pulse_ind].append(np.zeros(len(idling_tlist)))
 
                 # Add the gate time and coeffs to the list.
                 execution_time = gate_tlist + start_time
@@ -359,9 +353,7 @@ class GateCompiler:
             raise ValueError("The shape of the compiled pulse is not correct.")
         return gate_tlist, coeff, step_size, pulse_mode
 
-    def _process_idling_tlist(
-        self, pulse_mode, start_time, last_pulse_time, step_size
-    ):
+    def _process_idling_tlist(self, pulse_mode, start_time, last_pulse_time, step_size):
         idling_tlist = []
         if pulse_mode == "continuous":
             # We add sufficient number of zeros at the beginning
@@ -372,15 +364,11 @@ class GateCompiler:
                     last_pulse_time + step_size,
                     10,
                 )
-                idling_tlist2 = np.linspace(
-                    start_time - step_size, start_time, 10
-                )
+                idling_tlist2 = np.linspace(start_time - step_size, start_time, 10)
                 idling_tlist.extend([idling_tlist1, idling_tlist2])
             else:
                 idling_tlist.append(
-                    np.arange(
-                        last_pulse_time + step_size, start_time, step_size
-                    )
+                    np.arange(last_pulse_time + step_size, start_time, step_size)
                 )
         elif pulse_mode == "discrete":
             # idling until the start time
