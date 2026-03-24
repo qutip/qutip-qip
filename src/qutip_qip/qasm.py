@@ -913,7 +913,8 @@ def read_qasm(qasm_input, mode="default", version="2.0", strmode=False):
         raise NotImplementedError("QASM: Only OpenQASM 2.0 \
                                   is currently supported.")
 
-    if qasm_lines.pop(0) != "OPENQASM 2.0;":
+    header_line = qasm_lines.pop(0)
+    if not re.fullmatch(r"OPENQASM\s+2\.0\s*;", header_line):
         raise SyntaxError("QASM: File does not contain QASM 2.0 header")
 
     qasm_obj = QasmProcessor(qasm_lines, mode=mode, version=version)
