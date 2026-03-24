@@ -146,11 +146,9 @@ class QubitCircuit:
         return self._instructions
 
     @gates.setter
-    def gates(self) -> None:
-        warnings.warn(
+    def gates(self, value: any) -> None:
+        raise AttributeError(
             "QubitCircuit.gates has been replaced with QubitCircuit.instructions",
-            DeprecationWarning,
-            stacklevel=2,
         )
 
     @property
@@ -278,7 +276,12 @@ class QubitCircuit:
             Positions to add the gate.
         """
         if index is not None:
-            raise AttributeError("argument index is no longer supported")
+            warnings.warn(
+                "The 'index' argument to 'add_measurement' is no longer supported and will "
+                "be ignored. Passing 'index' will be removed in a future version.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
 
         if isinstance(measurement, Measurement):
             name = measurement.name
@@ -350,7 +353,13 @@ class QubitCircuit:
         """
         # Deprecation warnings
         if index is not None:
-            raise AttributeError("argument index is no longer supported")
+            warnings.warn(
+                "The 'index' argument to 'add_measurement' is no longer supported and will "
+                "be ignored. Gates are appended to the end of the circuit. "
+                "Passing 'index' will be removed in a future version.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
 
         if arg_value is not None or arg_label is not None:
             warnings.warn(
@@ -523,7 +532,7 @@ class QubitCircuit:
                     operator {circuit_op[0]}")
 
     def adjacent_gates(*args, **kwargs):
-        raise NameError(
+        raise AttributeError(
             "adjacent_gates method has been removed. "
             "Use qutip_qip.transpiler.to_chain_structure method instead"
         )

@@ -6,7 +6,7 @@ import numpy as np
 from qutip import Qobj, identity
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.device import Processor
-from qutip_qip.operations import gate_sequence_product, expand_operator
+from qutip_qip.operations import gate_sequence_product, expand_operator, Gate
 from qutip_qip.typing import Real
 
 
@@ -184,12 +184,17 @@ class OptPulseProcessor(Processor):
             # keyword arguments in setting_arg have priority
             if gates is not None and setting_args:
                 gate = gates[prop_ind]
-                if gate in setting_args:
-                    gate_setting = setting_args[gate]
-                elif gate.name in setting_args:
-                    gate_setting = setting_args[gate.name]
-                elif gate.__name__ in setting_args:
-                    gate_setting = setting_args[gate.__name__]
+                gate_setting = None
+                gateclass = gate
+                if isinstance(gate, Gate):
+                    gateclass = type(gate)
+
+                if gateclass in setting_args:
+                    gate_setting = setting_args[gateclass]
+                elif gateclass.name in setting_args:
+                    gate_setting = setting_args[gateclass.name]
+                elif gateclass.__name__ in setting_args:
+                    gate_setting = setting_args[gateclass.__name__]
                 else:
                     aliases = {
                         "H": "SNOT",
@@ -198,7 +203,7 @@ class OptPulseProcessor(Processor):
                         "SQRTNOT": "SQRTX",
                         "CSIGN": "CZ",
                     }
-                    alt = aliases[gate.name]
+                    alt = aliases[gateclass.name]
                     if alt is not None:
                         gate_setting = setting_args.get(alt)
 
