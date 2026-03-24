@@ -24,9 +24,7 @@ class QasmGate:
     Class which stores the gate definitions as specified in the QASM file.
     """
 
-    def __init__(
-        self, name: str, gate_args: list[str], gate_regs: list[str]
-    ) -> None:
+    def __init__(self, name: str, gate_args: list[str], gate_regs: list[str]) -> None:
         self.name = name
         self.gate_args = gate_args
         self.gate_regs = gate_regs
@@ -154,9 +152,7 @@ class QasmProcessor:
         self.num_cbits = 0
         self.qasm_gates = {}  # Custom defined QASM gates
         if mode not in ["default", "external_only", "predefined_only"]:
-            warnings.warn(
-                "Unknown parsing mode, using the default mode instead."
-            )
+            warnings.warn("Unknown parsing mode, using the default mode instead.")
             mode = "default"
         self.mode = mode
         self.version = version
@@ -191,17 +187,13 @@ class QasmProcessor:
                     "swap",
                 ]
             )
-            self.predefined_gates = self.predefined_gates.union(
-                self.qiskitgates
-            )
+            self.predefined_gates = self.predefined_gates.union(self.qiskitgates)
 
         # A set of available gates, including both predefined gate and
         # custom defined gates from `qelib1.inc` (added later).
         self.gate_names = deepcopy(self.predefined_gates)
         for gate in self.predefined_gates:
-            self.qasm_gates[gate] = QasmGate(
-                "U", ["alpha", "beta", "gamma"], ["q"]
-            )
+            self.qasm_gates[gate] = QasmGate("U", ["alpha", "beta", "gamma"], ["q"])
         self.commands = commands
 
     def _process_includes(self):
@@ -227,16 +219,13 @@ class QasmProcessor:
 
             if self.mode == "predefined_only":
                 warnings.warn(
-                    "Ignoring external gate definition"
-                    " in the predefined_only mode."
+                    "Ignoring external gate definition" " in the predefined_only mode."
                 )
                 continue
 
             if os.path.exists(filename):
                 with open(filename, "r") as f:
-                    qasm_lines = [
-                        line.strip() for line in f.read().splitlines()
-                    ]
+                    qasm_lines = [line.strip() for line in f.read().splitlines()]
                     qasm_lines = list(
                         filter(lambda x: x[:2] != "//" and x != "", qasm_lines)
                     )
@@ -251,9 +240,7 @@ class QasmProcessor:
                 if self.mode == "default":
                     warnings.warn(command[1] + "not found, ignored.")
                 else:
-                    raise ValueError(
-                        command[1] + ": such a file does not exist"
-                    )
+                    raise ValueError(command[1] + ": such a file does not exist")
 
         # Insert the custom gate configurations to the list of commands
         expanded_commands += self.commands[prev_index:]
@@ -266,9 +253,7 @@ class QasmProcessor:
         """
 
         gate_defn_mode = False  # If in the middle of defining a custom gate
-        open_bracket_mode = (
-            False  # If in the middle of defining a decomposition
-        )
+        open_bracket_mode = False  # If in the middle of defining a decomposition
 
         unprocessed = []
 
@@ -383,13 +368,11 @@ class QasmProcessor:
 
             for arg, real_arg in args_map.items():
                 com_args = [
-                    command.replace(arg.strip(), str(real_arg))
-                    for command in com_args
+                    command.replace(arg.strip(), str(real_arg)) for command in com_args
                 ]
             for reg, real_reg in regs_map.items():
                 com_regs = [
-                    command.replace(reg.strip(), str(real_reg))
-                    for command in com_regs
+                    command.replace(reg.strip(), str(real_reg)) for command in com_regs
                 ]
             com_args = [eval(arg) for arg in com_args]
 
@@ -498,9 +481,7 @@ class QasmProcessor:
                 return zip(
                     *list(
                         map(
-                            lambda x: (
-                                x if isinstance(x, Iterable) else [x] * expand
-                            ),
+                            lambda x: (x if isinstance(x, Iterable) else [x] * expand),
                             new_regs,
                         )
                     )
@@ -784,9 +765,7 @@ class QasmProcessor:
         if command[0] not in self.predefined_gates:
             n = len(reg_set[0])
             qc_temp = QubitCircuit(n)
-            self._custom_gate(
-                qc_temp, [command[0], args, [str(i) for i in range(n)]]
-            )
+            self._custom_gate(qc_temp, [command[0], args, [str(i) for i in range(n)]])
             custom_gate_unitary = qc_temp.compute_unitary()
 
         # adds gate to the QubitCircuit
@@ -833,9 +812,7 @@ class QasmProcessor:
                 # adds measurement to the QubitCircuit
                 reg_set = self._regs_processor(command[1:], "measure")
                 for regs in reg_set:
-                    qc.add_measurement(
-                        "M", targets=[regs[0]], classical_store=regs[1]
-                    )
+                    qc.add_measurement("M", targets=[regs[0]], classical_store=regs[1])
             elif command[0] == "if":
                 warnings.warn(
                     (
