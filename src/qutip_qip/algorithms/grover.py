@@ -71,17 +71,10 @@ def grover_oracle(
                 mcz = get_controlled_gate(Z, len(ctrls), ctrl_val)
                 qc.add_gate(mcz, controls=ctrls, targets=tgt)
 
-<<<<<<< HEAD
         # Uncompute the flipped zero bits for all qubit counts.
         for i, char in enumerate(binary_rep):
             if char == "0":
-                qc.add_gate("X", targets=search_qubits[i])
-=======
-            # uncompute by X
-            for i, char in enumerate(binary_rep):
-                if char == "0":
-                    qc.add_gate(X, targets=search_qubits[i])
->>>>>>> de05b3afef71180c786417bde393671230c65b70
+                qc.add_gate(X, targets=search_qubits[i])
 
     return qc
 

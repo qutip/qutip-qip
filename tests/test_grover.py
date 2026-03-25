@@ -137,7 +137,6 @@ class TestGrover:
         psi_final = U_grover * psi0
 
         # Check probability of measuring EITHER 3 or 5
-<<<<<<< HEAD
         dims = [[2] * n_qubits, [1] * n_qubits]
         state_3 = basis(2**n_qubits, 3)
         state_3.dims = dims
@@ -145,10 +144,6 @@ class TestGrover:
         state_5.dims = dims
         prob_3 = abs(psi_final.overlap(state_3)) ** 2
         prob_5 = abs(psi_final.overlap(state_5)) ** 2
-=======
-        prob_3 = abs(psi_final.overlap(basis(1 << n_qubits, 3))) ** 2  # 1 << N = 2**N
-        prob_5 = abs(psi_final.overlap(basis(1 << n_qubits, 5))) ** 2
->>>>>>> de05b3afef71180c786417bde393671230c65b70
 
         total_success_prob = prob_3 + prob_5
         assert total_success_prob > 0.999999
