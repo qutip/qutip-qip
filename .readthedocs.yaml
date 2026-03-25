@@ -17,14 +17,11 @@ build:
       # Each command is executed in a new shell process
       - cd doc; python source/tutorials-website/create_tutorials_html.py
 
+    # This can be removed once RTD configuration schema supports PEP 735 (https://peps.python.org/pep-0735/)
+    install:
+      - python -m pip install --upgrade pip
+      - python -m pip install .[full] --group doc
+
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
   configuration: doc/source/conf.py
-
-# We recommend specifying your dependencies to enable reproducible builds:
-# https://docs.readthedocs.io/en/stable/guides/reproducible-builds.html
-python:
-  install:
-    - requirements: doc/requirements.txt
-    - method: pip
-      path: .
