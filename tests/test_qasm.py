@@ -136,14 +136,24 @@ def test_qasm_str():
 
 
 def test_measurement_register_with_missing_index_raises_syntax_error():
-    qasm_input_string = (
+    qasm_input_string1 = (
         "OPENQASM 2.0;\n"
         "qreg q[1];\n"
         "creg c[1];\n"
         "measure q[] -> c[0];\n"
     )
     with pytest.raises(SyntaxError, match="QASM: incorrect bracket formatting"):
-        read_qasm(qasm_input_string, strmode=True)
+        read_qasm(qasm_input_string1, strmode=True)
+
+    # Second case: missing index in classical register
+    qasm_input_string2 = (
+        "OPENQASM 2.0;\n"
+        "qreg q[1];\n"
+        "creg c[1];\n"
+        "measure q[0] -> c[];\n"
+    )
+    with pytest.raises(SyntaxError, match="QASM: incorrect bracket formatting"):
+        read_qasm(qasm_input_string2, strmode=True)
 
 
 def test_export_import():
