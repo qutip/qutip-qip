@@ -25,10 +25,8 @@ def x_gate(*args, **kwargs):
         a single-qubit rotation through pi radians around the x-axis.
 
     """
-    warnings.warn(
-        "x_gate has been deprecated and will be removed in future version. \
-        Use X.get_qobj() instead.", DeprecationWarning, stacklevel=2
-    )
+    warnings.warn("x_gate has been deprecated and will be removed in future version. \
+        Use X.get_qobj() instead.", DeprecationWarning, stacklevel=2)
     return sigmax()
 
 
@@ -42,10 +40,8 @@ def y_gate(*args, **kwargs):
         a single-qubit rotation through pi radians around the y-axis.
 
     """
-    warnings.warn(
-        "Y_gate has been deprecated and will be removed in future version. \
-        Use Y.get_qobj() instead.", DeprecationWarning, stacklevel=2
-    )
+    warnings.warn("Y_gate has been deprecated and will be removed in future version. \
+        Use Y.get_qobj() instead.", DeprecationWarning, stacklevel=2)
     return sigmay()
 
 
@@ -59,10 +55,8 @@ def z_gate(*args, **kwargs):
         a single-qubit rotation through pi radians around the z-axis.
 
     """
-    warnings.warn(
-        "z_gate has been deprecated and will be removed in future version. \
-        Use Z.get_qobj() instead.", DeprecationWarning, stacklevel=2
-    )
+    warnings.warn("z_gate has been deprecated and will be removed in future version. \
+        Use Z.get_qobj() instead.", DeprecationWarning, stacklevel=2)
     return sigmaz()
 
 
@@ -75,10 +69,8 @@ def cy_gate(*args, **kwargs):
         Quantum object for operator describing the rotation.
 
     """
-    warnings.warn(
-        "cy_gate has been deprecated and will be removed in future version. \
-        Use CY.get_qobj() instead.", DeprecationWarning, stacklevel=2
-    )
+    warnings.warn("cy_gate has been deprecated and will be removed in future version. \
+        Use CY.get_qobj() instead.", DeprecationWarning, stacklevel=2)
     return Qobj(
         [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, -1j], [0, 0, 1j, 0]],
         dims=[[2, 2], [2, 2]],
@@ -94,10 +86,8 @@ def cz_gate(*args, **kwargs):
         Quantum object for operator describing the rotation.
 
     """
-    warnings.warn(
-        "cz_gate has been deprecated and will be removed in future version. \
-        Use CZ.get_qobj() instead.", DeprecationWarning, stacklevel=2
-    )
+    warnings.warn("cz_gate has been deprecated and will be removed in future version. \
+        Use CZ.get_qobj() instead.", DeprecationWarning, stacklevel=2)
     return Qobj(
         [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]],
         dims=[[2, 2], [2, 2]],
@@ -114,10 +104,8 @@ def s_gate(*args, **kwargs):
         a 90 degree rotation around the z-axis.
 
     """
-    warnings.warn(
-        "s_gate has been deprecated and will be removed in future version. \
-        Use S.get_qobj() instead.", DeprecationWarning, stacklevel=2
-    )
+    warnings.warn("s_gate has been deprecated and will be removed in future version. \
+        Use S.get_qobj() instead.", DeprecationWarning, stacklevel=2)
     return Qobj([[1, 0], [0, 1j]])
 
 
@@ -130,10 +118,8 @@ def cs_gate(*args, **kwargs):
         Quantum object for operator describing the rotation.
 
     """
-    warnings.warn(
-        "cs_gate has been deprecated and will be removed in future version. \
-        Use CS.get_qobj() instead.", DeprecationWarning, stacklevel=2
-    )
+    warnings.warn("cs_gate has been deprecated and will be removed in future version. \
+        Use CS.get_qobj() instead.", DeprecationWarning, stacklevel=2)
     return Qobj(
         [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1j]],
         dims=[[2, 2], [2, 2]],
@@ -149,10 +135,8 @@ def t_gate(*args, **kwargs):
         Quantum object for operator describing a phase shift of pi/4.
 
     """
-    warnings.warn(
-        "t_gate has been deprecated and will be removed in future version. \
-        Use T.get_qobj() instead.", DeprecationWarning, stacklevel=2
-    )
+    warnings.warn("t_gate has been deprecated and will be removed in future version. \
+        Use T.get_qobj() instead.", DeprecationWarning, stacklevel=2)
     return Qobj([[1, 0], [0, np.exp(1j * np.pi / 4)]])
 
 
@@ -165,10 +149,8 @@ def ct_gate(*args, **kwargs):
         Quantum object for operator describing the rotation.
 
     """
-    warnings.warn(
-        "ct_gate has been deprecated and will be removed in future version. \
-        Use CT.get_qobj() instead.", DeprecationWarning, stacklevel=2
-    )
+    warnings.warn("ct_gate has been deprecated and will be removed in future version. \
+        Use CT.get_qobj() instead.", DeprecationWarning, stacklevel=2)
     return Qobj(
         [
             [1, 0, 0, 0],
@@ -189,10 +171,8 @@ def rx(phi, *args, **kwargs):
         Quantum object for operator describing the rotation.
 
     """
-    warnings.warn(
-        "rxRTNOT has been deprecated and will be removed in future version. \
-        Use RX(angle).get_qobj() instead.", DeprecationWarning, stacklevel=2
-    )
+    warnings.warn("rxRTNOT has been deprecated and will be removed in future version. \
+        Use RX(angle).get_qobj() instead.", DeprecationWarning, stacklevel=2)
     return Qobj(
         [
             [np.cos(phi / 2), -1j * np.sin(phi / 2)],
@@ -210,10 +190,8 @@ def ry(phi, *args, **kwargs):
         Quantum object for operator describing the rotation.
 
     """
-    warnings.warn(
-        "ryRTNOT has been deprecated and will be removed in future version. \
-        Use RY(angle).get_qobj() instead.", DeprecationWarning, stacklevel=2
-    )
+    warnings.warn("ryRTNOT has been deprecated and will be removed in future version. \
+        Use RY(angle).get_qobj() instead.", DeprecationWarning, stacklevel=2)
     return Qobj(
         [
             [np.cos(phi / 2), -np.sin(phi / 2)],
@@ -231,10 +209,8 @@ def rz(phi, *args, **kwargs):
         Quantum object for operator describing the rotation.
 
     """
-    warnings.warn(
-        "rzRTNOT has been deprecated and will be removed in future version. \
-        Use RZ(angle).get_qobj() instead.", DeprecationWarning, stacklevel=2
-    )
+    warnings.warn("rzRTNOT has been deprecated and will be removed in future version. \
+        Use RZ(angle).get_qobj() instead.", DeprecationWarning, stacklevel=2)
     return Qobj([[np.exp(-1j * phi / 2), 0], [0, np.exp(1j * phi / 2)]])
 
 
@@ -247,10 +223,8 @@ def sqrtnot(*args, **kwargs):
         Quantum object for operator describing the square root NOT gate.
 
     """
-    warnings.warn(
-        "sqrtnot has been deprecated and will be removed in future version. \
-        Use SQRTNOT.get_qobj() instead.", DeprecationWarning, stacklevel=2
-    )
+    warnings.warn("sqrtnot has been deprecated and will be removed in future version. \
+        Use SQRTNOT.get_qobj() instead.", DeprecationWarning, stacklevel=2)
     return Qobj([[0.5 + 0.5j, 0.5 - 0.5j], [0.5 - 0.5j, 0.5 + 0.5j]])
 
 
@@ -272,10 +246,8 @@ shape = [2, 2], type='oper', dtype=Dense, isherm=True
      [ 0.70710678+0.j -0.70710678+0.j]]
 
     """
-    warnings.warn(
-        "snot has been deprecated and will be removed in future version. \
-        Use H.get_qobj() instead.", DeprecationWarning, stacklevel=2
-    )
+    warnings.warn("snot has been deprecated and will be removed in future version. \
+        Use H.get_qobj() instead.", DeprecationWarning, stacklevel=2)
     return 1 / np.sqrt(2.0) * Qobj([[1, 1], [1, -1]])
 
 
@@ -303,10 +275,8 @@ shape = [2, 2], type='oper', dtype=Dense, isherm=False
      [ 0.00000000+0.j          0.70710678+0.70710678j]]
 
     """
-    warnings.warn(
-        "phase has been deprecated and will be removed in future version. \
-        Use PHASE(angle).get_qobj() instead.", DeprecationWarning, stacklevel=2
-    )
+    warnings.warn("phase has been deprecated and will be removed in future version. \
+        Use PHASE(angle).get_qobj() instead.", DeprecationWarning, stacklevel=2)
     return Qobj([[1, 0], [0, np.exp(1.0j * theta)]], dims=[[2], [2]])
 
 
@@ -460,10 +430,8 @@ shape = [4, 4], type='oper', dtype=Dense, isherm=True
          [ 0.+0.j  0.+0.j  1.+0.j  0.+0.j]]
 
     """
-    warnings.warn(
-        "cnot has been deprecated and will be removed in future version. \
-        Use CX.get_qobj() instead.", DeprecationWarning, stacklevel=2
-    )
+    warnings.warn("cnot has been deprecated and will be removed in future version. \
+        Use CX.get_qobj() instead.", DeprecationWarning, stacklevel=2)
     return Qobj(
         [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]],
         dims=[[2, 2], [2, 2]],
@@ -491,10 +459,8 @@ shape = [4, 4], type='oper', dtype=Dense, isherm=True
          [ 0.+0.j  0.+0.j  0.+0.j  -1.+0.j]]
 
     """
-    warnings.warn(
-        "csign has been deprecated and will be removed in future version. \
-        Use CZ.get_qobj() instead.", DeprecationWarning, stacklevel=2
-    )
+    warnings.warn("csign has been deprecated and will be removed in future version. \
+        Use CZ.get_qobj() instead.", DeprecationWarning, stacklevel=2)
     return Qobj(
         [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]],
         dims=[[2, 2], [2, 2]],
@@ -522,10 +488,8 @@ shape = [4, 4], type='oper', dtype=Dense, isherm=True
          [ 0.+sin(pi/8).j  0.+0.j           0.+0.j           cos(pi/8).+0.j]]
 
     """
-    warnings.warn(
-        "berkley has been deprecated and will be removed in future version. \
-        Use BERKELEY.get_qobj() instead.", DeprecationWarning, stacklevel=2
-    )
+    warnings.warn("berkley has been deprecated and will be removed in future version. \
+        Use BERKELEY.get_qobj() instead.", DeprecationWarning, stacklevel=2)
     return Qobj(
         [
             [np.cos(np.pi / 8), 0, 0, 1.0j * np.sin(np.pi / 8)],
@@ -605,10 +569,8 @@ shape = [4, 4], type='oper', dtype=Dense, isherm=True
      [ 0.+0.j  0.+0.j  0.+0.j  1.+0.j]]
 
     """
-    warnings.warn(
-        "SWAP has been deprecated and will be removed in future version. \
-        Use SWAP.get_qobj() instead.", DeprecationWarning, stacklevel=2
-    )
+    warnings.warn("SWAP has been deprecated and will be removed in future version. \
+        Use SWAP.get_qobj() instead.", DeprecationWarning, stacklevel=2)
     return Qobj(
         [[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]],
         dims=[[2, 2], [2, 2]],
@@ -634,10 +596,8 @@ shape = [4, 4], type='oper', dtype=Dense, isherm=False
      [ 0.+0.j  0.+1.j  0.+0.j  0.+0.j]
      [ 0.+0.j  0.+0.j  0.+0.j  1.+0.j]]
     """
-    warnings.warn(
-        "ISWAP has been deprecated and will be removed in future version. \
-        Use ISWAP.get_qobj() instead.", DeprecationWarning, stacklevel=2
-    )
+    warnings.warn("ISWAP has been deprecated and will be removed in future version. \
+        Use ISWAP.get_qobj() instead.", DeprecationWarning, stacklevel=2)
     return Qobj(
         [[1, 0, 0, 0], [0, 0, 1j, 0], [0, 1j, 0, 0], [0, 0, 0, 1]],
         dims=[[2, 2], [2, 2]],
@@ -653,10 +613,8 @@ def sqrtswap(*args, **kwargs):
         Quantum object representation of square root SWAP gate
 
     """
-    warnings.warn(
-        "SQRTSWAP has been deprecated and will be removed in future version. \
-        Use SQRTSWAP.get_qobj() instead.", DeprecationWarning, stacklevel=2
-    )
+    warnings.warn("SQRTSWAP has been deprecated and will be removed in future version. \
+        Use SQRTSWAP.get_qobj() instead.", DeprecationWarning, stacklevel=2)
     return Qobj(
         np.array(
             [
@@ -786,10 +744,8 @@ def fredkin(*args, **kwargs):
          [ 0.+0.j  0.+0.j  0.+0.j  0.+0.j  0.+0.j  0.+0.j  0.+0.j  1.+0.j]]
 
     """
-    warnings.warn(
-        "fredkin has been deprecated and will be removed in future version. \
-        Use FREDKIN.get_qobj() instead.", DeprecationWarning, stacklevel=2
-    )
+    warnings.warn("fredkin has been deprecated and will be removed in future version. \
+        Use FREDKIN.get_qobj() instead.", DeprecationWarning, stacklevel=2)
     return Qobj(
         [
             [1, 0, 0, 0, 0, 0, 0, 0],
@@ -829,10 +785,8 @@ def toffoli(*args, **kwargs):
 
 
     """
-    warnings.warn(
-        "toffoli has been deprecated and will be removed in future version. \
-        Use TOFFOLI.get_qobj() instead.", DeprecationWarning, stacklevel=2
-    )
+    warnings.warn("toffoli has been deprecated and will be removed in future version. \
+        Use TOFFOLI.get_qobj() instead.", DeprecationWarning, stacklevel=2)
     return Qobj(
         [
             [1, 0, 0, 0, 0, 0, 0, 0],
@@ -900,9 +854,7 @@ shape = [2, 2], type='oper', dtype=Dense, isherm=False
         DeprecationWarning,
         stacklevel=2,
     )
-    data = np.exp(1.0j * theta) * sp.eye(
-        1 << N, 1 << N, dtype=complex, format="csr"
-    )
+    data = np.exp(1.0j * theta) * sp.eye(1 << N, 1 << N, dtype=complex, format="csr")
     return Qobj(data, dims=[[2] * N, [2] * N])
 
 

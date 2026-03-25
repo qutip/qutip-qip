@@ -72,9 +72,7 @@ def qft_steps(N=1, swapping=True):
                         targets=[i, j],
                     )
                 )
-            U_step_list.append(
-                expand_operator(H.get_qobj(), dims=[2] * N, targets=i)
-            )
+            U_step_list.append(expand_operator(H.get_qobj(), dims=[2] * N, targets=i))
         if swapping:
             for i in range(N // 2):
                 U_step_list.append(
@@ -132,9 +130,7 @@ def qft_gate_sequence(N=1, swapping=True, to_cnot=False):
 
 def _cphase_to_cnot(targets, controls, arg_value, qc: QubitCircuit):
     rotation = Qobj([[1.0, 0.0], [0.0, np.exp(1.0j * arg_value)]])
-    decomposed_gates = list(
-        decompose_one_qubit_gate(rotation, method="ZYZ_PauliX")
-    )
+    decomposed_gates = list(decompose_one_qubit_gate(rotation, method="ZYZ_PauliX"))
     qc.add_gate(decomposed_gates[0], targets=targets)
     qc.add_gate(CX, targets=targets, controls=controls)
     qc.add_gate(decomposed_gates[4], targets=targets)

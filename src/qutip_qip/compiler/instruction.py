@@ -36,9 +36,7 @@ class PulseInstruction:
         Union of the control and target qubits.
     """
 
-    def __init__(
-        self, circuit_instruction, tlist=None, pulse_info=(), duration=1
-    ):
+    def __init__(self, circuit_instruction, tlist=None, pulse_info=(), duration=1):
         self.gate = deepcopy(circuit_instruction.operation)
         self._targets = list(circuit_instruction.targets)
         self._controls = list(circuit_instruction.controls)

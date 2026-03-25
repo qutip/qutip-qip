@@ -148,9 +148,7 @@ def convert_qiskit_circuit_to_qutip(
                 targets=_get_mapped_bits(qiskit_qregs[1:], bit_map=qubit_map),
                 # The 0th bit is the control bit in qiskit by
                 # convention, in case of a controlled operation
-                controls=_get_mapped_bits(
-                    [qiskit_qregs[0]], bit_map=qubit_map
-                ),
+                controls=_get_mapped_bits([qiskit_qregs[0]], bit_map=qubit_map),
             )
 
         elif qiskit_instruction.name == "measure":

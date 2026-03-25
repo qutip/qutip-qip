@@ -310,9 +310,7 @@ class MatRenderer(BaseRenderer):
         self._ax.add_line(vertical_line)
         self._ax.add_line(horizontal_line)
 
-    def _draw_qbridge(
-        self, pos1: int, pos2: int, xskip: float, color: str
-    ) -> None:
+    def _draw_qbridge(self, pos1: int, pos2: int, xskip: float, color: str) -> None:
         """
         Draw the bridge between the control and target nodes for the multi-qubit gate.
 
@@ -514,9 +512,7 @@ class MatRenderer(BaseRenderer):
             fraction_value = pi_value * denom
             if abs(fraction_value - round(fraction_value)) < tolerance:
                 num = round(fraction_value)
-                return (
-                    f"[{num}\\pi/{denom}]" if num != 1 else f"[\\pi/{denom}]"
-                )
+                return f"[{num}\\pi/{denom}]" if num != 1 else f"[\\pi/{denom}]"
 
         return f"[{round(value, 2)}]"
 
@@ -540,9 +536,7 @@ class MatRenderer(BaseRenderer):
             The layer the gate is acting on.
         """
 
-        wire_list = list(
-            range(self.merged_wires[0], self.merged_wires[-1] + 1)
-        )
+        wire_list = list(range(self.merged_wires[0], self.merged_wires[-1] + 1))
         com_xskip = self._get_xskip(wire_list, layer)
 
         if gate == std.CX:
@@ -589,9 +583,7 @@ class MatRenderer(BaseRenderer):
                 self.fontfamily,
                 self.fontstyle,
             )
-            gate_width = max(
-                text_width + self.style.gate_pad * 2, self._min_gate_width
-            )
+            gate_width = max(text_width + self.style.gate_pad * 2, self._min_gate_width)
             xskip = self._get_xskip(wire_list, layer)
 
             gate_text = plt.Text(
@@ -611,8 +603,7 @@ class MatRenderer(BaseRenderer):
             gate_patch = FancyBboxPatch(
                 (
                     xskip + self.style.gate_margin,
-                    adj_targets[0] * self.style.wire_sep
-                    - self._min_gate_height / 2,
+                    adj_targets[0] * self.style.wire_sep - self._min_gate_height / 2,
                 ),
                 gate_width,
                 self._min_gate_height
@@ -652,9 +643,7 @@ class MatRenderer(BaseRenderer):
 
             # add qbridge if control qubits are present
             for control in controls:
-                self._draw_control_node(
-                    control, xskip + text_width / 2, self.color
-                )
+                self._draw_control_node(control, xskip + text_width / 2, self.color)
                 self._draw_qbridge(
                     control,
                     targets[0],
@@ -692,9 +681,7 @@ class MatRenderer(BaseRenderer):
             The layer the gate is acting on.
         """
 
-        xskip = self._get_xskip(
-            list(range(0, self.merged_wires[-1] + 1)), layer
-        )
+        xskip = self._get_xskip(list(range(0, self.merged_wires[-1] + 1)), layer)
         measure_box = FancyBboxPatch(
             (
                 xskip + self.style.gate_margin,
@@ -727,8 +714,7 @@ class MatRenderer(BaseRenderer):
         )
         arrow = FancyArrow(
             xskip + self.style.gate_margin + self._min_gate_width / 2,
-            (q_pos + self._cwires) * self.style.wire_sep
-            - self._min_gate_height / 2,
+            (q_pos + self._cwires) * self.style.wire_sep - self._min_gate_height / 2,
             self._min_gate_width * 0.7,
             self._min_gate_height * 0.7,
             length_includes_head=True,
@@ -788,16 +774,12 @@ class MatRenderer(BaseRenderer):
 
                 if gate.is_parametric:
                     self.text = (
-                        gate.arg_label
-                        if gate.arg_label is not None
-                        else gate.name
+                        gate.arg_label if gate.arg_label is not None else gate.name
                     )
 
                 self.color = style.get(
                     "color",
-                    self.style.theme.get(
-                        gate.name, self.style.theme["default_gate"]
-                    ),
+                    self.style.theme.get(gate.name, self.style.theme["default_gate"]),
                 )
                 self.fontsize = style.get("fontsize", self.style.fontsize)
                 self.fontcolor = style.get("fontcolor", self.style.color)
@@ -811,18 +793,12 @@ class MatRenderer(BaseRenderer):
                 self.merged_wires.sort()
 
                 if len(cbits):
-                    self.merged_wires = list(
-                        range(0, self.merged_wires[-1] + 1)
-                    )
+                    self.merged_wires = list(range(0, self.merged_wires[-1] + 1))
                 find_layer = [
                     len(self._layer_list[i])
-                    for i in range(
-                        self.merged_wires[0], self.merged_wires[-1] + 1
-                    )
+                    for i in range(self.merged_wires[0], self.merged_wires[-1] + 1)
                 ]
-                self._draw_multiq_gate(
-                    gate, targets, controls, cbits, max(find_layer)
-                )
+                self._draw_multiq_gate(gate, targets, controls, cbits, max(find_layer))
 
         self._add_wire()
         self._fig_config()
@@ -862,9 +838,7 @@ class MatRenderer(BaseRenderer):
             max_dim = max(xlim[1] - xlim[0], ylim[1] - ylim[0])
             self.fig.set_size_inches(max_dim, max_dim, forward=True)
         except NameError:
-            self.fig.set_size_inches(
-                xlim[1] - xlim[0], ylim[1] - ylim[0], forward=True
-            )
+            self.fig.set_size_inches(xlim[1] - xlim[0], ylim[1] - ylim[0], forward=True)
         self._ax.set_aspect("equal", adjustable="box")
         self._ax.axis("off")
 

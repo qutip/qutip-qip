@@ -54,13 +54,9 @@ class TestConverter:
         self, req_gate, res_gate, result_circuit: QubitCircuit
     ):
         """Check whether two gates are equivalent"""
-        check_condition = (
-            req_gate.operation.name == res_gate.operation.name
-        ) and (
+        check_condition = (req_gate.operation.name == res_gate.operation.name) and (
             list(req_gate.qubits)
-            == get_qutip_index(
-                list(res_gate.qubits), result_circuit.num_qubits
-            )
+            == get_qutip_index(list(res_gate.qubits), result_circuit.num_qubits)
         )
         if not check_condition:
             return False
@@ -83,9 +79,9 @@ class TestConverter:
             if req_gate.operation.is_controlled:
                 req_controls = list(req_gate.controls)
 
-            check_condition = (
-                res_controls == req_controls
-            ) and self._compare_args(req_gate, res_gate)
+            check_condition = (res_controls == req_controls) and self._compare_args(
+                req_gate, res_gate
+            )
 
         return check_condition
 
@@ -103,9 +99,7 @@ class TestConverter:
         for i, res_ins in enumerate(result_circuit.instructions):
             req_ins = required_circuit.instructions[i]
 
-            if not self._compare_gate_instructions(
-                req_ins, res_ins, result_circuit
-            ):
+            if not self._compare_gate_instructions(req_ins, res_ins, result_circuit):
                 return False
 
         return True
@@ -263,9 +257,7 @@ class TestPulseSimulator:
         """
         circ, predefined_counts = self._init_pulse_test()
 
-        result = self._run_pulse_processor(
-            CircularSpinChain(num_qubits=2), circ
-        )
+        result = self._run_pulse_processor(CircularSpinChain(num_qubits=2), circ)
         assert result.get_counts() == predefined_counts
 
     def test_cavityqed_simulator(self):

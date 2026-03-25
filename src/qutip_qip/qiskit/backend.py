@@ -93,9 +93,7 @@ class QiskitSimulatorBase(BackendV2):
     def target(self) -> Target:
         return self._target
 
-    def _build_target(
-        self, basis_gates: list[str], num_qubits: int = 10
-    ) -> Target:
+    def _build_target(self, basis_gates: list[str], num_qubits: int = 10) -> Target:
         """
         Builds a :class:`qiskit.transpiler.Target` object for the backend.
 
@@ -119,9 +117,7 @@ class QiskitSimulatorBase(BackendV2):
         if basis_gates is not None:
             for gate in basis_gates:
                 if gate not in DEFAULT_BASIS_GATE_SET:
-                    raise ValueError(
-                        f"Invalid basis gate set, contains ${gate}"
-                    )
+                    raise ValueError(f"Invalid basis gate set, contains ${gate}")
 
         target = Target(num_qubits=num_qubits)
         if basis_gates is None:
@@ -130,9 +126,7 @@ class QiskitSimulatorBase(BackendV2):
         # Adding the basis gates
         # Passing properties=None means "This gate works on ALL qubits with NO error"
         for gate in basis_gates:
-            target.add_instruction(
-                QUTIP_TO_QISKIT_GATE_MAP[gate], properties=None
-            )
+            target.add_instruction(QUTIP_TO_QISKIT_GATE_MAP[gate], properties=None)
 
         # Essential primitives
         target.add_instruction(Measure(), properties=None)
@@ -188,10 +182,8 @@ class QiskitSimulatorBase(BackendV2):
                 )
 
         if len(run_input) > self.max_circuits:
-            raise ValueError(
-                f"Passed ${len(run_input)} circuits to the backend,\
-                while max_cicruits is defined as ${self.max_circuits}"
-            )
+            raise ValueError(f"Passed ${len(run_input)} circuits to the backend,\
+                while max_cicruits is defined as ${self.max_circuits}")
 
         # Set the no. of shots
         if "shots" in run_options:
@@ -211,9 +203,7 @@ class QiskitSimulatorBase(BackendV2):
         return job
 
     @abstractmethod
-    def _run_job(
-        self, job_id: str, qiskit_circuits: list[QuantumCircuit]
-    ) -> Result:
+    def _run_job(self, job_id: str, qiskit_circuits: list[QuantumCircuit]) -> Result:
         """
         Given the `job_id` and `qiskit_circuits` list implement the
         simulation logic and return :class:`qiskit.result.Result` object.

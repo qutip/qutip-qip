@@ -38,9 +38,7 @@ class TestPulse:
         assert_allclose(pulse1.targets, 3)
         pulse1.targets = 1
         qobjevo = pulse1.get_ideal_qobjevo(2)
-        expected = QobjEvo(
-            [tensor(identity(2), sigmaz()), coeff], tlist=tlist, order=0
-        )
+        expected = QobjEvo([tensor(identity(2), sigmaz()), coeff], tlist=tlist, order=0)
         _compare_qobjevo(qobjevo, expected, 0, 3)
 
     def test_coherent_noise(self):
@@ -60,9 +58,7 @@ class TestPulse:
         assert_(len(pulse1.coherent_noise) == 1)
         noise_qu, c_ops = pulse1.get_noisy_qobjevo(2)
         assert_allclose(c_ops, [])
-        assert_allclose(
-            pulse1.get_full_tlist(), np.array([0.0, 1.0, 2.0, 3.0])
-        )
+        assert_allclose(pulse1.get_full_tlist(), np.array([0.0, 1.0, 2.0, 3.0]))
 
     def test_noisy_pulse(self):
         """
@@ -80,9 +76,7 @@ class TestPulse:
         tlist_noise2 = np.array([0.0, 0.5, 2, 3.0])
         coeff_noise2 = np.array([0.0, 0.1, 0.2, 0.3])
         pulse1.add_lindblad_noise(sigmax(), 1, coeff=True)
-        pulse1.add_lindblad_noise(
-            sigmax(), 0, tlist=tlist_noise2, coeff=coeff_noise2
-        )
+        pulse1.add_lindblad_noise(sigmax(), 0, tlist=tlist_noise2, coeff=coeff_noise2)
 
         assert_allclose(
             pulse1.get_ideal_qobjevo(2)(0).full(),
@@ -116,9 +110,7 @@ class TestPulse:
             except AttributeError:
                 isconstant = len(c_op.ops) == 0
             if isconstant:
-                assert_allclose(
-                    c_op(0).full(), tensor(identity(2), sigmax()).full()
-                )
+                assert_allclose(c_op(0).full(), tensor(identity(2), sigmax()).full())
             else:
                 expected = QobjEvo(
                     [

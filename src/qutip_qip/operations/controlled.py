@@ -162,14 +162,9 @@ class ControlledGate(Gate):
         """
 
         if type(cls.ctrl_value) is not int:
-            raise TypeError(
-                f"Control value must be an int, got {cls.ctrl_value}"
-            )
+            raise TypeError(f"Control value must be an int, got {cls.ctrl_value}")
 
-        if (
-            cls.ctrl_value < 0
-            or cls.ctrl_value > (1 << cls.num_ctrl_qubits) - 1
-        ):
+        if cls.ctrl_value < 0 or cls.ctrl_value > (1 << cls.num_ctrl_qubits) - 1:
             raise ValueError(
                 f"Control value can't be negative and can't be greater than "
                 f"2^num_ctrl_qubits - 1, got {cls.ctrl_value}"
@@ -261,9 +256,7 @@ def get_controlled_gate(
         gate_name = f"{'C' * n_ctrl_qubits}{gate.name}"
 
     if gate_namespace is not None:
-        found_gate = gate_namespace.get(
-            (gate.name, n_ctrl_qubits, control_value)
-        )
+        found_gate = gate_namespace.get((gate.name, n_ctrl_qubits, control_value))
         if found_gate is not None:
             warnings.warn(
                 f"Found the same existing Controlled Gate {found_gate.name}",

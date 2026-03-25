@@ -25,9 +25,6 @@ SequenceLike: TypeAlias = Sequence | np.ndarray
 # In future, one way to overcome this is to to write a TypeGuard or use Pydantic
 IntSequence = list[Int] | tuple[Int, ...] | npt.NDArray[np.integer]
 RealSequence = (
-    list[Real]
-    | tuple[Real, ...]
-    | npt.NDArray[np.floating]
-    | npt.NDArray[np.integer]
+    list[Real] | tuple[Real, ...] | npt.NDArray[np.floating] | npt.NDArray[np.integer]
 )
 ScalarSequence = list[Number] | tuple[Number, ...] | npt.NDArray[np.number]

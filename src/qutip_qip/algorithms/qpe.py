@@ -36,9 +36,7 @@ def qpe(U, num_counting_qubits, target_qubits=None, to_cnot=False):
         dim = U.shape[0]
         num_target_qubits = int(np.log2(dim))
         if 1 << num_target_qubits != dim:
-            raise ValueError(
-                f"Unitary operator dimension {dim} is not a power of 2"
-            )
+            raise ValueError(f"Unitary operator dimension {dim} is not a power of 2")
         target_qubits = list(
             range(num_counting_qubits, num_counting_qubits + num_target_qubits)
         )

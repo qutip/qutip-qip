@@ -171,9 +171,7 @@ def qc4():
     )
 
     qc = QubitCircuit(5, num_cbits=2)
-    qc.add_gate(
-        X, targets=0, classical_controls=[0, 1], classical_control_value=0
-    )
+    qc.add_gate(X, targets=0, classical_controls=[0, 1], classical_control_value=0)
     qc.add_gate(i, targets=1, controls=2)
     qc.add_gate(
         ii,
@@ -266,12 +264,8 @@ def test_circuit_saving(request, qc_fixture, tmpdir):
     # test MatRenderer
     with patch("matplotlib.pyplot.show"):  # to avoid showing the plot
         qc.draw("matplotlib", save=True, file_path=str(tmpdir.join("test")))
-    assert tmpdir.join(
-        "test.png"
-    ).check(), "MatRenderer saved PNG file not found."
+    assert tmpdir.join("test.png").check(), "MatRenderer saved PNG file not found."
 
     # test TextRenderer
     qc.draw("text", save=True, file_path=str(tmpdir.join("test")))
-    assert tmpdir.join(
-        "test.txt"
-    ).check(), "TextRenderer saved TXT file not found."
+    assert tmpdir.join("test.txt").check(), "TextRenderer saved TXT file not found."

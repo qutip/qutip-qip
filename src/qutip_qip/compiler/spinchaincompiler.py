@@ -117,9 +117,7 @@ class SpinChainCompiler(GateCompiler):
         )
         self.global_phase = global_phase
 
-    def _rotation_compiler(
-        self, circuit_instruction, op_label, param_label, args
-    ):
+    def _rotation_compiler(self, circuit_instruction, op_label, param_label, args):
         """
         Single qubit rotation compiler.
 
@@ -148,10 +146,7 @@ class SpinChainCompiler(GateCompiler):
             args["num_samples"],
             maximum=self.params[param_label][targets[0]],
             # The operator is Pauli Z/X/Y, without 1/2.
-            area=circuit_instruction.operation.arg_value[0]
-            / 2.0
-            / np.pi
-            * 0.5,
+            area=circuit_instruction.operation.arg_value[0] / 2.0 / np.pi * 0.5,
         )
         pulse_info = [(op_label + str(targets[0]), coeff)]
         return [PulseInstruction(circuit_instruction, tlist, pulse_info)]
@@ -249,6 +244,4 @@ class SpinChainCompiler(GateCompiler):
         A list of :obj:`.PulseInstruction`, including the compiled pulse
         information for this gate.
         """
-        return self._swap_compiler(
-            circuit_instruction, area=-1 / 16, args=args
-        )
+        return self._swap_compiler(circuit_instruction, area=-1 / 16, args=args)

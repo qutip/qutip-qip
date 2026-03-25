@@ -113,17 +113,12 @@ class TestOptPulseProcessor:
         qc = QubitCircuit(3)
         qc.add_gate(CX, targets=1, controls=0)
         qc.add_gate(X, targets=2)
-        processor.load_circuit(
-            qc, merge_gates=True, num_tslots=10, evo_time=2.0
-        )
+        processor.load_circuit(qc, merge_gates=True, num_tslots=10, evo_time=2.0)
 
         init_state = qutip.rand_ket([2, 2, 2])
         num_result = processor.run_state(init_state=init_state).states[-1]
         ideal_result = qc.run(init_state)
-        assert (
-            pytest.approx(qutip.fidelity(num_result, ideal_result), 1.0e-5)
-            == 1.0
-        )
+        assert pytest.approx(qutip.fidelity(num_result, ideal_result), 1.0e-5) == 1.0
 
 
 def test_optpulseprocessor_alias_bug():

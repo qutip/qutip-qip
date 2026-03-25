@@ -46,9 +46,7 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
             start = min([targets[0], controls[0]])
             end = max([targets[0], controls[0]])
 
-            if setup == "linear" or (
-                setup == "circular" and (end - start) <= N // 2
-            ):
+            if setup == "linear" or (setup == "circular" and (end - start) <= N // 2):
                 i = start
                 while i < end:
                     if start + end - i - i == 1 and (end - start + 1) % 2 == 0:
@@ -60,22 +58,16 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
                         else:
                             qc_t.add_gate(gate, targets=[i + 1], controls=[i])
 
-                    elif (
-                        start + end - i - i == 2 and (end - start + 1) % 2 == 1
-                    ):
+                    elif start + end - i - i == 2 and (end - start + 1) % 2 == 1:
                         # Apply a swap between i and its adjacent gate,
                         # then the required gate if and then another swap
                         # if control and target have one qubit between
                         # them, provided |control-target| is odd.
                         qc_t.add_gate(std.SWAP, targets=[i, i + 1])
                         if end == controls[0]:
-                            qc_t.add_gate(
-                                gate, targets=[i + 1], controls=[i + 2]
-                            )
+                            qc_t.add_gate(gate, targets=[i + 1], controls=[i + 2])
                         else:
-                            qc_t.add_gate(
-                                gate, targets=[i + 2], controls=[i + 1]
-                            )
+                            qc_t.add_gate(gate, targets=[i + 2], controls=[i + 1])
                         qc_t.add_gate(std.SWAP, targets=[i, i + 1])
                         i += 1
 
@@ -99,28 +91,20 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
                 temp = QubitCircuit(N - end + start + 1)
                 i = 0
                 while i < (N - end + start):
-                    if (
-                        N + start - end - i - i == 1
-                        and (N - end + start + 1) % 2 == 0
-                    ):
+                    if N + start - end - i - i == 1 and (N - end + start + 1) % 2 == 0:
                         if end == controls[0]:
                             temp.add_gate(gate, targets=[i], controls=[i + 1])
                         else:
                             temp.add_gate(gate, targets=[i + 1], controls=[i])
 
                     elif (
-                        N + start - end - i - i == 2
-                        and (N - end + start + 1) % 2 == 1
+                        N + start - end - i - i == 2 and (N - end + start + 1) % 2 == 1
                     ):
                         temp.add_gate(std.SWAP, targets=[i, i + 1])
                         if end == controls[0]:
-                            temp.add_gate(
-                                gate, targets=[i + 2], controls=[i + 1]
-                            )
+                            temp.add_gate(gate, targets=[i + 2], controls=[i + 1])
                         else:
-                            temp.add_gate(
-                                gate, targets=[i + 1], controls=[i + 2]
-                            )
+                            temp.add_gate(gate, targets=[i + 1], controls=[i + 2])
                         temp.add_gate(std.SWAP, targets=[i, i + 1])
                         i += 1
 
@@ -196,17 +180,13 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
             start = min(targets)
             end = max(targets)
 
-            if setup == "linear" or (
-                setup == "circular" and (end - start) <= N // 2
-            ):
+            if setup == "linear" or (setup == "circular" and (end - start) <= N // 2):
                 i = start
                 while i < end:
                     if start + end - i - i == 1 and (end - start + 1) % 2 == 0:
                         qc_t.add_gate(gate, targets=[i, i + 1])
 
-                    elif (start + end - i - i) == 2 and (
-                        end - start + 1
-                    ) % 2 == 1:
+                    elif (start + end - i - i) == 2 and (end - start + 1) % 2 == 1:
                         qc_t.add_gate(std.SWAP, targets=[i, i + 1])
                         qc_t.add_gate(gate, targets=[i + 1, i + 2])
                         qc_t.add_gate(std.SWAP, targets=[i, i + 1])
@@ -224,15 +204,11 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
                 temp = QubitCircuit(N - end + start + 1)
                 i = 0
                 while i < (N - end + start):
-                    if (
-                        N + start - end - i - i == 1
-                        and (N - end + start + 1) % 2 == 0
-                    ):
+                    if N + start - end - i - i == 1 and (N - end + start + 1) % 2 == 0:
                         temp.add_gate(gate, targets=[i, i + 1])
 
                     elif (
-                        N + start - end - i - i == 2
-                        and (N - end + start + 1) % 2 == 1
+                        N + start - end - i - i == 2 and (N - end + start + 1) % 2 == 1
                     ):
                         temp.add_gate(std.SWAP, targets=[i, i + 1])
                         temp.add_gate(gate, targets=[i + 1, i + 2])

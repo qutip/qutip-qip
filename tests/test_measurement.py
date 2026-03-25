@@ -30,9 +30,7 @@ def test_measurement_comp_basis():
         np.testing.assert_allclose(probabilities_state, probabilities_dm)
         np.testing.assert_allclose(probabilities_state, probabilities_i)
         for j, final_state in enumerate(final_states):
-            np.testing.assert_allclose(
-                final_dms[j].full(), ket2dm(final_state).full()
-            )
+            np.testing.assert_allclose(final_dms[j].full(), ket2dm(final_state).full())
 
 
 @pytest.mark.parametrize("index", [0, 1])

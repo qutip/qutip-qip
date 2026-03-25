@@ -56,9 +56,7 @@ class TestQPE(unittest.TestCase):
         U = sigmaz()
 
         num_counting = 3
-        circuit = qpe(
-            U, num_counting_qubits=num_counting, target_qubits=num_counting
-        )
+        circuit = qpe(U, num_counting_qubits=num_counting, target_qubits=num_counting)
 
         assert_equal(circuit.num_qubits, num_counting + 1)
 
@@ -78,9 +76,7 @@ class TestQPE(unittest.TestCase):
         U = sigmaz()
         num_counting = 2
 
-        circuit1 = qpe(
-            U, num_counting_qubits=num_counting, target_qubits=num_counting
-        )
+        circuit1 = qpe(U, num_counting_qubits=num_counting, target_qubits=num_counting)
         assert_equal(circuit1.num_qubits, num_counting + 1)
 
         circuit2 = qpe(
@@ -107,9 +103,7 @@ class TestQPE(unittest.TestCase):
         U = Qobj([[1, 0], [0, np.exp(1j * np.pi * phase)]])
 
         num_counting = 3
-        circuit = qpe(
-            U, num_counting_qubits=num_counting, target_qubits=num_counting
-        )
+        circuit = qpe(U, num_counting_qubits=num_counting, target_qubits=num_counting)
 
         for i in range(num_counting):
             gate = circuit.instructions[num_counting + i].operation
@@ -129,8 +123,6 @@ class TestQPE(unittest.TestCase):
 
         circuit1 = qpe(U, num_counting_qubits=num_counting, to_cnot=False)
         circuit2 = qpe(U, num_counting_qubits=num_counting, to_cnot=True)
-        has_cnot = any(
-            gate.operation == std.CX for gate in circuit2.instructions
-        )
+        has_cnot = any(gate.operation == std.CX for gate in circuit2.instructions)
         assert_(has_cnot)
         assert_(len(circuit2.instructions) > len(circuit1.instructions))

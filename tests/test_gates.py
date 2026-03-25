@@ -65,9 +65,7 @@ def _tensor_with_entanglement(all_qubits, entangled, entangled_locations):
     permutation = list(range(n_separable))
     current_locations = range(n_separable, n_separable + n_entangled)
     # Sort to prevert later insertions changing previous locations.
-    insertions = sorted(
-        zip(entangled_locations, current_locations), key=lambda x: x[0]
-    )
+    insertions = sorted(zip(entangled_locations, current_locations), key=lambda x: x[0])
     for out_location, current_location in insertions:
         permutation.insert(out_location, current_location)
     return out.permute(permutation)
@@ -231,9 +229,7 @@ class TestGateExpansion:
                 )
                 * start
             )
-            expected = qutip.tensor(
-                random[:target] + [applied] + random[target:]
-            )
+            expected = qutip.tensor(random[:target] + [applied] + random[target:])
             assert _infidelity(test, expected) < 1e-12
 
     @pytest.mark.parametrize(
@@ -288,9 +284,7 @@ class TestGateExpansion:
             test = expand_operator(
                 gate.get_qobj(), targets=[q1, q2, q3], dims=[2] * self.n_qubits
             ) * qutip.tensor(*qubits)
-            expected = _tensor_with_entanglement(
-                qubits, reference, [q1, q2, q3]
-            )
+            expected = _tensor_with_entanglement(qubits, reference, [q1, q2, q3])
             assert _infidelity(test, expected) < 1e-12
 
 
@@ -302,18 +296,12 @@ class Test_expand_operator:
     # surrounding code, but the surrounding code wasn't updated.
     @pytest.mark.parametrize(
         "permutation",
-        tuple(
-            itertools.chain(
-                *[itertools.permutations(range(k)) for k in [2, 3, 4]]
-            )
-        ),
+        tuple(itertools.chain(*[itertools.permutations(range(k)) for k in [2, 3, 4]])),
         ids=_permutation_id,
     )
     def test_permutation_without_expansion(self, permutation):
         base = qutip.tensor([qutip.rand_unitary(2) for _ in permutation])
-        test = expand_operator(
-            base, dims=[2] * len(permutation), targets=permutation
-        )
+        test = expand_operator(base, dims=[2] * len(permutation), targets=permutation)
         expected = base.permute(_apply_permutation(permutation))
         np.testing.assert_allclose(test.full(), expected.full(), atol=1e-15)
 
@@ -327,17 +315,11 @@ class Test_expand_operator:
             expected = _tensor_with_entanglement(
                 [qutip.qeye(2)] * n_qubits, operation, targets
             )
-            test = expand_operator(
-                operation, dims=[2] * n_qubits, targets=targets
-            )
-            np.testing.assert_allclose(
-                test.full(), expected.full(), atol=1e-15
-            )
+            test = expand_operator(operation, dims=[2] * n_qubits, targets=targets)
+            np.testing.assert_allclose(test.full(), expected.full(), atol=1e-15)
 
     def test_cnot_explicit(self):
-        test = expand_operator(
-            gates.CX.get_qobj(), dims=[2] * 3, targets=[2, 0]
-        ).full()
+        test = expand_operator(gates.CX.get_qobj(), dims=[2] * 3, targets=[2, 0]).full()
         expected = np.array(
             [
                 [1, 0, 0, 0, 0, 0, 0, 0],
@@ -395,9 +377,7 @@ class Test_expand_operator:
             np.testing.assert_allclose(test.full(), expected.full())
 
     def test_dtype(self):
-        expanded_qobj = expand_operator(
-            gates.CX.get_qobj(), dims=[2, 2, 2]
-        ).data
+        expanded_qobj = expand_operator(gates.CX.get_qobj(), dims=[2, 2, 2]).data
         assert isinstance(expanded_qobj, qutip.data.CSR)
         expanded_qobj = expand_operator(
             gates.CX.get_qobj(), dims=[2, 2, 2], dtype="dense"
@@ -603,9 +583,7 @@ class TestGateErrors:
 
         U_not_unitary = qutip.Qobj(np.zeros((2, 2)))
         with pytest.raises(ValueError):
-            get_unitary_gate(
-                "U_not_unitary", U_not_unitary
-            )  # U must be unitaru
+            get_unitary_gate("U_not_unitary", U_not_unitary)  # U must be unitaru
 
         with pytest.raises(TypeError):
 
@@ -734,9 +712,7 @@ class TestGateErrors:
             class BadCtrlGate6(ControlledGate):
                 target_gate = gates.X
                 num_ctrl_qubits = 1
-                ctrl_value = (
-                    2  # Control value can't be greater than 1 in this case
-                )
+                ctrl_value = 2  # Control value can't be greater than 1 in this case
                 num_qubits = 2
 
     def test_utils_errors(self):
@@ -754,9 +730,7 @@ class TestGateErrors:
 
         op = qutip.qeye(2)
         with pytest.raises(ValueError):
-            _check_oper_dims(
-                oper=op, dims=[3], targets=[0]
-            )  # The dims don't match
+            _check_oper_dims(oper=op, dims=[3], targets=[0])  # The dims don't match
 
         with pytest.raises(TypeError):
             _targets_to_list(
@@ -787,9 +761,7 @@ class TestGateErrors:
             get_controlled_gate(gates.X, n_ctrl_qubits=1, control_value=2)
 
         with pytest.raises(TypeError):
-            get_controlled_gate(
-                gates.X, n_ctrl_qubits=0
-            )  # num_ctrl_qubits > 0
+            get_controlled_gate(gates.X, n_ctrl_qubits=0)  # num_ctrl_qubits > 0
 
     def test_class_attribute_modification(self):
         with pytest.raises(AttributeError):

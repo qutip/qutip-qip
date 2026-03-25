@@ -13,9 +13,7 @@ def _decimal_to_binary(decimal, length):
     return [0] * (length - len(binary)) + binary
 
 
-def _check_classical_control_value(
-    classical_controls, classical_control_value, cbits
-):
+def _check_classical_control_value(classical_controls, classical_control_value, cbits):
     """Check if the gate should be executed, depending on the current value of classical bits."""
     matched = np.empty(len(classical_controls), dtype=bool)
     cbits_conditions = _decimal_to_binary(
@@ -104,9 +102,7 @@ class CircuitSimulator:
         else:
             # Just computing the full unitary, no state
             self._state = None
-        self._state_dims = (
-            state.dims.copy()
-        )  # Record the dimension of the state.
+        self._state_dims = state.dims.copy()  # Record the dimension of the state.
         self._probability = 1
         self._op_index = 0
         self._measure_results = measure_results
@@ -115,9 +111,7 @@ class CircuitSimulator:
             self._tensor_dims = self._state_dims[0].copy()
             if state.type == "oper":
                 # apply the gate to a unitary, add an ancillary axis.
-                self._state_mat_shape = [
-                    reduce(mul, self._state_dims[0], 1)
-                ] * 2
+                self._state_mat_shape = [reduce(mul, self._state_dims[0], 1)] * 2
                 self._tensor_dims += [reduce(mul, self._state_dims[0], 1)]
             else:
                 self._state_mat_shape = [
@@ -230,9 +224,7 @@ class CircuitSimulator:
         current_state = self._state
 
         if self.qc.instructions[self._op_index].is_measurement_instruction():
-            state = self._apply_measurement(
-                circ_instruction.operation, current_state
-            )
+            state = self._apply_measurement(circ_instruction.operation, current_state)
 
         elif self.qc.instructions[self._op_index].is_gate_instruction():
             gate = circ_instruction.operation

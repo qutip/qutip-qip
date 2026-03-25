@@ -83,9 +83,7 @@ class TeXRenderer:
                                 col.append(rf" \qswap \qwx[{distance}] \qw")
                                 _swap_processing = True
 
-                            elif (
-                                self.reverse_states and n == max(targets)
-                            ) or (
+                            elif (self.reverse_states and n == max(targets)) or (
                                 not self.reverse_states and n == min(targets)
                             ):
                                 # Python automatically concatenates adjacent string literals
@@ -95,9 +93,7 @@ class TeXRenderer:
                                     rf"{{{self._gate_label(gate)}}} "
                                 )
                             else:
-                                col.append(
-                                    rf" \ghost{{{self._gate_label(gate)}}} "
-                                )
+                                col.append(rf" \ghost{{{self._gate_label(gate)}}} ")
 
                         elif gate == std.CX:
                             col.append(r" \targ ")
@@ -261,9 +257,7 @@ class TeXRenderer:
             return file.read()
 
     @classmethod
-    def _make_converter(
-        self, configuration: dict
-    ) -> Callable[[str, int], str | bytes]:
+    def _make_converter(self, configuration: dict) -> Callable[[str, int], str | bytes]:
         """
         Create the actual conversion function of signature
             file_stem: str -> 'T,
@@ -356,8 +350,7 @@ class TeXRenderer:
                         )
                         message += (
                             "The latex code is printed below. "
-                            "Please try to compile locally using pdflatex:\n"
-                            + code
+                            "Please try to compile locally using pdflatex:\n" + code
                         )
                         raise RuntimeError(message) from e
 
@@ -379,9 +372,7 @@ class TeXRenderer:
 
                     if file_type not in CONVERTERS:
                         raise ValueError(
-                            "".join(
-                                ["Unknown output format: '", file_type, "'."]
-                            )
+                            "".join(["Unknown output format: '", file_type, "'."])
                         )
                     out = CONVERTERS[file_type](filename, dpi)
 
@@ -411,9 +402,7 @@ _CONVERTER_CONFIGURATIONS = [
         arguments=("-density", "100"),
         binary=True,
     ),
-    _ConverterConfiguration(
-        "svg", "pdf2svg", ["pdf2svg"], arguments=(), binary=False
-    ),
+    _ConverterConfiguration("svg", "pdf2svg", ["pdf2svg"], arguments=(), binary=False),
 ]
 _SPECIAL_CASES = {
     "convert": TeXRenderer._test_convert_is_imagemagick,

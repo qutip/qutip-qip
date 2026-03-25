@@ -102,16 +102,12 @@ class Model:
 
     def _add_drift(self, qobj, targets):
         if not hasattr(self, "_drift"):
-            raise NotImplementedError(
-                "The model does not support adding drift."
-            )
+            raise NotImplementedError("The model does not support adding drift.")
         self._drift.append((qobj, targets))
 
     def _add_control(self, label, qobj, targets):
         if not hasattr(self, "_controls"):
-            raise NotImplementedError(
-                "The model does not support adding controls."
-            )
+            raise NotImplementedError("The model does not support adding controls.")
         self._controls[label] = (qobj, targets)
 
     def _add_noise(self, noise):

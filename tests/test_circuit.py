@@ -225,20 +225,14 @@ class TestQubitCircuit:
 
         for i in range(len(qc1.instructions)):
             assert (
-                qc1.instructions[i].operation.name
-                == qc.instructions[i].operation.name
+                qc1.instructions[i].operation.name == qc.instructions[i].operation.name
             )
-            assert (
-                qc1.instructions[i].qubits[0] == qc.instructions[i].qubits[0]
-            )
+            assert qc1.instructions[i].qubits[0] == qc.instructions[i].qubits[0]
             if qc1.instructions[i].is_gate_instruction() and (
                 qc.instructions[i].is_gate_instruction()
             ):
                 if qc.instructions[i].operation.is_controlled:
-                    assert (
-                        qc1.instructions[i].controls
-                        == qc.instructions[i].controls
-                    )
+                    assert qc1.instructions[i].controls == qc.instructions[i].controls
                 assert (
                     qc1.instructions[i].cbits_ctrl_value
                     == qc.instructions[i].cbits_ctrl_value
@@ -262,8 +256,7 @@ class TestQubitCircuit:
         for i in range(len(qc2.instructions)):
             if qc.instructions[i].is_gate_instruction():
                 assert (
-                    qc2.instructions[i].targets[0]
-                    == qc.instructions[i].targets[0] + 2
+                    qc2.instructions[i].targets[0] == qc.instructions[i].targets[0] + 2
                 )
                 if qc.instructions[i].operation.is_controlled:
                     assert (
@@ -331,9 +324,7 @@ class TestQubitCircuit:
         assert qc.instructions[2].operation == gates.TOFFOLI
         assert qc.instructions[4].cbits == (0, 1)
 
-    @pytest.mark.parametrize(
-        "gate", [gates.X, gates.Y, gates.Z, gates.S, gates.T]
-    )
+    @pytest.mark.parametrize("gate", [gates.X, gates.Y, gates.Z, gates.S, gates.T])
     def test_exceptions(self, gate):
         """
         Text exceptions are thrown correctly for inadequate inputs
@@ -482,10 +473,7 @@ class TestQubitCircuit:
             qc_rx.add_gate("CUSTOMRX", targets=[0], arg_value=theta_rx)
         assert qc_rx.instructions[0].operation.name == "CUSTOMRX"
         assert qc_rx.instructions[0].operation.arg_value == (theta_rx,)
-        assert (
-            _op_dist(qc_rx.compute_unitary(), gates.RX(theta_rx).get_qobj())
-            < 1e-12
-        )
+        assert _op_dist(qc_rx.compute_unitary(), gates.RX(theta_rx).get_qobj()) < 1e-12
 
         # 3) Controlled custom gate (2-qubit matrix with explicit control).
         theta_ctrl = np.pi / 5
@@ -493,9 +481,7 @@ class TestQubitCircuit:
         with pytest.warns(DeprecationWarning):
             qc_ctrl.user_gates = {"CTRLRX": ctrl_rx}
         with pytest.warns(DeprecationWarning):
-            qc_ctrl.add_gate(
-                "CTRLRX", controls=[0], targets=[1], arg_value=theta_ctrl
-            )
+            qc_ctrl.add_gate("CTRLRX", controls=[0], targets=[1], arg_value=theta_ctrl)
         assert qc_ctrl.instructions[0].operation.name == "CTRLRX"
         assert qc_ctrl.instructions[0].qubits == (0, 1)
         assert _op_dist(qc_ctrl.compute_unitary(), ctrl_rx(theta_ctrl)) < 1e-12
@@ -545,18 +531,14 @@ class TestQubitCircuit:
 
         state = tensor(rand_ket(2), basis(2, 0), basis(2, 0))
         initial_measurement = Measurement("start", targets=[0])
-        _, initial_probabilities = initial_measurement.measurement_comp_basis(
-            state
-        )
+        _, initial_probabilities = initial_measurement.measurement_comp_basis(state)
 
         teleportation_sim = CircuitSimulator(teleportation)
         teleportation_sim_results = teleportation_sim.run(state)
         state_final = teleportation_sim_results.get_final_states(0)
 
         final_measurement = Measurement("start", targets=[2])
-        _, final_probabilities = final_measurement.measurement_comp_basis(
-            state_final
-        )
+        _, final_probabilities = final_measurement.measurement_comp_basis(state_final)
 
         np.testing.assert_allclose(initial_probabilities, final_probabilities)
 
@@ -607,9 +589,7 @@ class TestQubitCircuit:
             _, final_probabilities = final_measurement.measurement_comp_basis(
                 state_final
             )
-            np.testing.assert_allclose(
-                initial_probabilities, final_probabilities
-            )
+            np.testing.assert_allclose(initial_probabilities, final_probabilities)
             assert prob == pytest.approx(0.25, abs=1e-7)
 
         mixed_state = sum(p * ket2dm(s) for p, s in zip(probabilities, states))
@@ -671,12 +651,8 @@ class TestQubitCircuit:
             else:
                 inds_list.append(circ_instruction.qubits)
 
-        U_1, _ = gate_sequence_product(
-            U_list, inds_list=inds_list, expand=True
-        )
-        U_2 = gate_sequence_product(
-            U_list_expanded, left_to_right=True, expand=False
-        )
+        U_1, _ = gate_sequence_product(U_list, inds_list=inds_list, expand=True)
+        U_2 = gate_sequence_product(U_list_expanded, left_to_right=True, expand=False)
 
         np.testing.assert_allclose(U_1.full(), U_2.full())
 
@@ -758,9 +734,7 @@ class TestQubitCircuit:
             ]
         )
 
-    H = Qobj(
-        [[1 / np.sqrt(2), 1 / np.sqrt(2)], [1 / np.sqrt(2), -1 / np.sqrt(2)]]
-    )
+    H = Qobj([[1 / np.sqrt(2), 1 / np.sqrt(2)], [1 / np.sqrt(2), -1 / np.sqrt(2)]])
     H_zyz_gates = _ZYZ_rotation(H)
     H_zyz_quantum_circuit = QubitCircuit(1)
     for g in H_zyz_gates:
@@ -785,9 +759,7 @@ class TestQubitCircuit:
     def test_latex_code(self):
         qc = QubitCircuit(1, num_cbits=1, reverse_states=True)
         qc.add_measurement("M0", targets=0, classical_store=0)
-        exp = (
-            " &  &  \\qw \\cwx[1]  & \\qw \\\\ \n &  &  \\meter & \\qw \\\\ \n"
-        )
+        exp = " &  &  \\qw \\cwx[1]  & \\qw \\\\ \n &  &  \\meter & \\qw \\\\ \n"
 
         renderer = TeXRenderer(qc)
         assert renderer.latex_code() == renderer._latex_template % exp
@@ -795,16 +767,11 @@ class TestQubitCircuit:
     def test_latex_code_non_reversed(self):
         qc = QubitCircuit(1, num_cbits=1, reverse_states=False)
         qc.add_measurement("M0", targets=0, classical_store=0)
-        exp = (
-            " &  &  \\meter & \\qw \\\\ \n &  "
-            + "&  \\qw \\cwx[-1]  & \\qw \\\\ \n"
-        )
+        exp = " &  &  \\meter & \\qw \\\\ \n &  " + "&  \\qw \\cwx[-1]  & \\qw \\\\ \n"
         renderer = TeXRenderer(qc)
         assert renderer.latex_code() == renderer._latex_template % exp
 
-    @pytest.mark.skipif(
-        shutil.which("pdflatex") is None, reason="requires pdflatex"
-    )
+    @pytest.mark.skipif(shutil.which("pdflatex") is None, reason="requires pdflatex")
     def test_export_image(self, in_temporary_directory):
         from qutip_qip.circuit.draw import CONVERTERS
 
@@ -851,9 +818,7 @@ class TestAddGateError:
 
         with pytest.raises(TypeError):
 
-            class AbstractGate(
-                Gate
-            ): ...  # Doesn't define num_qubits, get_qobj
+            class AbstractGate(Gate): ...  # Doesn't define num_qubits, get_qobj
 
             qc.add_gate(AbstractGate)
 
@@ -952,9 +917,7 @@ class TestInstructionErrors:
             GateInstruction(operation="not a gate", qubits=(0,))
 
         with pytest.raises(ValueError):
-            GateInstruction(
-                operation=gates.X, qubits=(0, 1)
-            )  # requires 1 qubits
+            GateInstruction(operation=gates.X, qubits=(0, 1))  # requires 1 qubits
 
         with pytest.raises(ValueError):
             GateInstruction(operation=gates.X, qubits=(0,), cbits=(0,))
@@ -1022,9 +985,7 @@ def test_gates_class():
     circuit1.add_gate(gates.SQRTSWAP, [2, 0])
     circuit1.add_gate(gates.SQRTISWAP, [0, 1])
     circuit1.add_gate(gates.SWAPALPHA(np.pi / 4), [1, 2])
-    circuit1.add_gate(
-        gates.MS(arg_value=(np.pi / 4, np.pi / 7)), targets=[1, 0]
-    )
+    circuit1.add_gate(gates.MS(arg_value=(np.pi / 4, np.pi / 7)), targets=[1, 0])
     circuit1.add_gate(gates.TOFFOLI, controls=[2, 0], targets=[1])
     circuit1.add_gate(gates.FREDKIN, controls=[0], targets=[1, 2])
     circuit1.add_gate(gates.BERKELEY, targets=[1, 0])
@@ -1054,9 +1015,7 @@ def test_gates_class():
     circuit2.add_gate(gates.SQRTSWAP, targets=[2, 0])
     circuit2.add_gate(gates.SQRTISWAP, targets=[0, 1])
     circuit2.add_gate(gates.SWAPALPHA(np.pi / 4), targets=[1, 2])
-    circuit2.add_gate(
-        gates.MS(arg_value=(np.pi / 4, np.pi / 7)), targets=[1, 0]
-    )
+    circuit2.add_gate(gates.MS(arg_value=(np.pi / 4, np.pi / 7)), targets=[1, 0])
     circuit2.add_gate(gates.TOFFOLI, controls=[2, 0], targets=[1])
     circuit2.add_gate(gates.FREDKIN, controls=[0], targets=[1, 2])
     circuit2.add_gate(gates.BERKELEY, targets=[1, 0])

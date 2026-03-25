@@ -49,9 +49,7 @@ rx_gate_time = 1 / 4 / amp  # pi/2
 total_time = 2 * rx_gate_time + idle_tlist[-1]
 
 tlist = np.linspace(0.0, total_time, num_samples)
-ax.plot(
-    idle_tlist[:], measurements[:], "-", label="Simulation", color="slategray"
-)
+ax.plot(idle_tlist[:], measurements[:], "-", label="Simulation", color="slategray")
 
 peak_ind = scipy.signal.find_peaks(measurements)[0]
 (t2_fit, f0_fit), _ = scipy.optimize.curve_fit(

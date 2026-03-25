@@ -89,12 +89,9 @@ class Measurement:
 
         measurement_tol = qutip.settings.core["atol"] ** 2
         states, probabilities = measurement_statistics(state, measurement_ops)
-        probabilities = [
-            p if p > measurement_tol else 0.0 for p in probabilities
-        ]
+        probabilities = [p if p > measurement_tol else 0.0 for p in probabilities]
         states = [
-            s if p > measurement_tol else None
-            for s, p in zip(states, probabilities)
+            s if p > measurement_tol else None for s, p in zip(states, probabilities)
         ]
         return states, probabilities
 

@@ -64,8 +64,7 @@ class VQA:
 
         if self.cost_method not in self._cost_methods:
             raise ValueError(
-                f"Cost method {self.cost_method} not one of "
-                f"{self._cost_methods}"
+                f"Cost method {self.cost_method} not one of {self._cost_methods}"
             )
 
     def get_block_series(self):
@@ -148,9 +147,7 @@ class VQA:
                         U=block.get_unitary(current_params),
                     )
 
-                    circ.add_gate(
-                        gate_instance, targets=list(range(self.num_qubits))
-                    )
+                    circ.add_gate(gate_instance, targets=list(range(self.num_qubits)))
                     i += n
         return circ
 
@@ -462,9 +459,7 @@ class VQA:
             n_params = block.get_free_parameters_num()
             if n_params > 0:
                 if i in indices_to_compute:
-                    dBlock = block.get_unitary_derivative(
-                        angles[i : i + n_params]
-                    )
+                    dBlock = block.get_unitary_derivative(angles[i : i + n_params])
                     dU = modify_unitary(k, dBlock)
                     jacobian.append(self.cost_derivative(U, dU))
                 i += n_params
@@ -508,7 +503,7 @@ class ParameterizedHamiltonian:
         self.num_parameters = len(parameterized_terms)
         if len(self.p_terms) == 0 and self.c_term is None:
             raise ValueError(
-                "Parameterized Hamiltonian " "initialised with no terms given"
+                "Parameterized Hamiltonian initialised with no terms given"
             )
 
     def get_hamiltonian(self, params):
@@ -638,9 +633,7 @@ class VQABlock:
 
         # If there's no other specification, treat operator as Hamiltonian
         if len(angles) != 1:
-            raise ValueError(
-                "Expected one angle for singly-parameterized Hamiltonian."
-            )
+            raise ValueError("Expected one angle for singly-parameterized Hamiltonian.")
 
         return (-1j * angles[0] * self.operator).expm()
 
@@ -680,8 +673,7 @@ class VQABlock:
 
         if len(angles) != 1:
             raise ValueError(
-                "Expected a single angle for non-"
-                "ParameterizedHamiltonian instance."
+                "Expected a single angle for non-ParameterizedHamiltonian instance."
             )
         return self.get_unitary(angles) * -1j * self.operator
 
@@ -788,8 +780,7 @@ class OptimizationResult:
         num_qubits = int(np.log2(state.shape[0]))
         probs = [abs(i.item()) ** 2 for i in state]
         bitstrings = [
-            "|" + format(i, f"0{num_qubits}b") + ">"
-            for i in range(1 << num_qubits)
+            "|" + format(i, f"0{num_qubits}b") + ">" for i in range(1 << num_qubits)
         ]
         if top_ten and len(probs) > 10:
             threshold = sorted(probs)[-11]
@@ -802,9 +793,7 @@ class OptimizationResult:
             bitstrings = top_bitstrings
             probs = top_probs
         if label_sets:
-            labels = [
-                self._label_to_sets(S, bitstring) for bitstring in bitstrings
-            ]
+            labels = [self._label_to_sets(S, bitstring) for bitstring in bitstrings]
         fig, ax = plt.subplots()
         ax.bar(
             list(range(len(bitstrings))),
@@ -816,8 +805,7 @@ class OptimizationResult:
         ax.set_xlabel("Measurement outcome")
         ax.set_ylabel("Probability")
         ax.set_title(
-            "Measurement Outcomes after Optimisation. "
-            f"Cost: {round(min_cost, 2)}"
+            f"Measurement Outcomes after Optimisation. Cost: {round(min_cost, 2)}"
         )
         fig.tight_layout()
         if display:

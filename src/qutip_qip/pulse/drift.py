@@ -60,14 +60,10 @@ class Drift:
         """
         if not self.drift_hamiltonians:
             self.drift_hamiltonians = [_EvoElement(None, None)]
-        qu_list = [
-            QobjEvo(evo.get_qobj(dims)) for evo in self.drift_hamiltonians
-        ]
+        qu_list = [QobjEvo(evo.get_qobj(dims)) for evo in self.drift_hamiltonians]
         return _merge_qobjevo(qu_list)
 
-    def get_noisy_qobjevo(
-        self, dims: int | list[int]
-    ) -> tuple[QobjEvo, list[QobjEvo]]:
+    def get_noisy_qobjevo(self, dims: int | list[int]) -> tuple[QobjEvo, list[QobjEvo]]:
         """
         Same as the `get_ideal_qobjevo` method. There is no additional noise
         for the drift evolution.

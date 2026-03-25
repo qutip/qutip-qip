@@ -86,9 +86,7 @@ def test_custom_gates():
     qc = read_qasm(filepath)
     unitaries = qc.propagators()
     assert (unitaries[0] - unitaries[1]).norm() < 1e-12
-    ry_cx = gates.CX.get_qobj() * tensor(
-        identity(2), gates.RY(np.pi / 2).get_qobj()
-    )
+    ry_cx = gates.CX.get_qobj() * tensor(identity(2), gates.RY(np.pi / 2).get_qobj())
     assert (unitaries[2] - ry_cx).norm() < 1e-12
 
 
@@ -104,9 +102,7 @@ def test_qasm_teleportation():
     initial_measurement = Measurement("start", targets=[0])
 
     state = tensor(rand_ket(2), basis(2, 0), basis(2, 0))
-    _, initial_probabilities = initial_measurement.measurement_comp_basis(
-        state
-    )
+    _, initial_probabilities = initial_measurement.measurement_comp_basis(state)
 
     teleportation_results = teleportation.run_statistics(state)
 
@@ -116,9 +112,7 @@ def test_qasm_teleportation():
     for i, state in enumerate(states):
         final = state
         prob = probabilities[i]
-        _, final_probabilities = final_measurement.measurement_comp_basis(
-            final
-        )
+        _, final_probabilities = final_measurement.measurement_comp_basis(final)
         np.testing.assert_allclose(initial_probabilities, final_probabilities)
         assert prob == pytest.approx(0.25, abs=1e-7)
 
@@ -185,9 +179,7 @@ def test_read_qasm_2():
 
 def test_parsing_mode(tmp_path):
     mode = "qiskit"
-    qasm_input_string = (
-        "OPENQASM 2.0;\n\ncreg c[2];" "\nqreg q[2];cx q[0],q[1];\n"
-    )
+    qasm_input_string = "OPENQASM 2.0;\n\ncreg c[2];\nqreg q[2];cx q[0],q[1];\n"
     with pytest.warns(UserWarning) as record_warning:
         read_qasm(
             qasm_input_string,
@@ -202,9 +194,7 @@ def test_parsing_mode(tmp_path):
         "gate custom_swap a,b { CX a,b; CX b,a; CX a,b; }\n"
     )
     qasm_input_string = (
-        'OPENQASM 2.0;\ninclude "'
-        + str(file_path_predefined_only)
-        + '"\ncreg c[2];'
+        'OPENQASM 2.0;\ninclude "' + str(file_path_predefined_only) + '"\ncreg c[2];'
         "\nqreg q[2];custom_swap q[0],q[1];\n"
     )
     with pytest.raises(SyntaxError):
@@ -222,8 +212,7 @@ def test_parsing_mode(tmp_path):
     mode = "external_only"
     file_path = tmp_path / "custom_swap.inc"
     file_path.write_text(
-        "gate cx c,t { CX c,t; }\n"
-        "gate swap a,b { cx a,b; cx b,a; cx a,b; }\n"
+        "gate cx c,t { CX c,t; }\ngate swap a,b { cx a,b; cx b,a; cx a,b; }\n"
     )
     qasm_input_string = (
         'OPENQASM 2.0;\ninclude "' + str(file_path) + '"\ncreg c[2];'

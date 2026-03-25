@@ -104,8 +104,6 @@ class RandomNoise(ControlAmpNoise):
         for i in indices:
             pulse = pulses[i]
             coeff = self.rand_gen(**self.kwargs, size=num_rand)
-            pulses[i].add_coherent_noise(
-                pulse.qobj, pulse.targets, tlist, coeff
-            )
+            pulses[i].add_coherent_noise(pulse.qobj, pulse.targets, tlist, coeff)
 
         return pulses, systematic_noise

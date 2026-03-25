@@ -70,9 +70,7 @@ class CavityQEDCompiler(GateCompiler):
     the :obj:`.DispersiveCavityQED`.
     """
 
-    def __init__(
-        self, num_qubits, params, global_phase=0.0, pulse_dict=None, N=None
-    ):
+    def __init__(self, num_qubits, params, global_phase=0.0, pulse_dict=None, N=None):
         super().__init__(num_qubits, params=params, pulse_dict=pulse_dict, N=N)
         self.gate_compiler.update(
             {
@@ -86,9 +84,7 @@ class CavityQEDCompiler(GateCompiler):
         self.Delta = self.wq - self.params["w0"]
         self.global_phase = global_phase
 
-    def _rotation_compiler(
-        self, circuit_instruction, op_label, param_label, args
-    ):
+    def _rotation_compiler(self, circuit_instruction, op_label, param_label, args):
         """
         Single qubit rotation compiler.
 
@@ -162,9 +158,7 @@ class CavityQEDCompiler(GateCompiler):
         """
         return self._rotation_compiler(circuit_instruction, "sx", "sx", args)
 
-    def _swap_compiler(
-        self, circuit_instruction, area, correction_angle, args
-    ):
+    def _swap_compiler(self, circuit_instruction, area, correction_angle, args):
         q1, q2 = circuit_instruction.targets
         pulse_info = []
         pulse_name = "sz" + str(q1)
@@ -189,9 +183,7 @@ class CavityQEDCompiler(GateCompiler):
         coeff, tlist = self.generate_pulse_shape(
             args["shape"], args["num_samples"], maximum=J, area=area
         )
-        instruction_list = [
-            PulseInstruction(circuit_instruction, tlist, pulse_info)
-        ]
+        instruction_list = [PulseInstruction(circuit_instruction, tlist, pulse_info)]
 
         # corrections
         compiled_gate1 = self.gate_compiler[RZ](

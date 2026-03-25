@@ -207,9 +207,7 @@ class Processor:
         else:
             self.model._add_drift(qobj, targets)
 
-    def add_control(
-        self, qobj, targets=None, cyclic_permutation=False, label=None
-    ):
+    def add_control(self, qobj, targets=None, cyclic_permutation=False, label=None):
         """
         Add a control Hamiltonian to the model. The new control Hamiltonian
         is saved in the :obj:`.Processor.model` attributes.
@@ -459,9 +457,7 @@ class Processor:
         full_tlist: array-like 1d
             The full time sequence for the ideal evolution.
         """
-        full_tlist = [
-            pulse.tlist for pulse in self.pulses if pulse.tlist is not None
-        ]
+        full_tlist = [pulse.tlist for pulse in self.pulses if pulse.tlist is not None]
         if not full_tlist:
             return None
         full_tlist = np.unique(np.sort(np.hstack(full_tlist)))
@@ -501,8 +497,7 @@ class Processor:
 
             if not isinstance(pulse.coeff, (bool, np.ndarray)):
                 raise ValueError(
-                    "get_full_coeffs only works for "
-                    "NumPy array or bool coeff."
+                    "get_full_coeffs only works for NumPy array or bool coeff."
                 )
 
             if type(pulse.coeff) is bool:
@@ -518,9 +513,7 @@ class Processor:
                     fill_coeff(pulse.coeff, pulse.tlist, full_tlist, arg)
                 )
             elif self.spline_kind == "cubic":
-                coeffs_list.append(
-                    fill_coeff(pulse.coeff, pulse.tlist, full_tlist)
-                )
+                coeffs_list.append(fill_coeff(pulse.coeff, pulse.tlist, full_tlist))
             else:
                 raise ValueError("Unknown spline kind.")
         return np.array(coeffs_list)
@@ -552,9 +545,7 @@ class Processor:
         else:
             data = coeffs.T
 
-        np.savetxt(
-            file_name, data, delimiter="\t", fmt="%1.16f", header=header
-        )
+        np.savetxt(file_name, data, delimiter="\t", fmt="%1.16f", header=header)
 
     def read_coeff(self, file_name, inctime=True):
         """
@@ -653,13 +644,11 @@ class Processor:
                 continue
             if pulse.tlist is None:
                 raise ValueError(
-                    f"Pulse id={i} is invalid. "
-                    "Please define a tlist for the pulse."
+                    f"Pulse id={i} is invalid. Please define a tlist for the pulse."
                 )
             if pulse.tlist is not None and pulse.coeff is None:
                 raise ValueError(
-                    f"Pulse id={i} is invalid. "
-                    "Please define a coeff for the pulse."
+                    f"Pulse id={i} is invalid. Please define a coeff for the pulse."
                 )
             coeff_len = len(pulse.coeff)
             tlist_len = len(pulse.tlist)
@@ -728,9 +717,7 @@ class Processor:
         elif mode == "continuous":
             spline_kind = "cubic"
         else:
-            raise ValueError(
-                "Pulse mode must be either discrete or continuous."
-            )
+            raise ValueError("Pulse mode must be either discrete or continuous.")
 
         self.spline_kind = spline_kind
         for pulse in self.pulses:
@@ -814,9 +801,7 @@ class Processor:
 
         # choose labels
         if pulse_labels is None:
-            if use_control_latex and not hasattr(
-                self.model, "get_control_latex"
-            ):
+            if use_control_latex and not hasattr(self.model, "get_control_latex"):
                 warnings.warn(
                     "No method get_control_latex defined in the model. "
                     "Switch to using the labels defined in each pulse."
@@ -826,16 +811,12 @@ class Processor:
                 control_labels = deepcopy(self.get_control_latex())
                 pulse_labels = control_labels
             else:
-                pulse_labels = [
-                    {pulse.label: pulse.label for pulse in self.pulses}
-                ]
+                pulse_labels = [{pulse.label: pulse.label for pulse in self.pulses}]
 
         # If it is a nested list instead of a list of dict, we assume that
         if isinstance(pulse_labels[0], list):
             for ind, pulse_group in enumerate(pulse_labels):
-                pulse_labels[ind] = {
-                    i: latex for i, latex in enumerate(pulse_group)
-                }
+                pulse_labels[ind] = {i: latex for i, latex in enumerate(pulse_group)}
 
         # create a axis for each pulse
         fig = plt.figure(figsize=figsize, dpi=dpi)
@@ -1031,9 +1012,7 @@ class Processor:
         try:  # correct_global_phase are defined for ModelProcessor
             if self.correct_global_phase and self.global_phase != 0:
                 U_list.append(
-                    GLOBALPHASE(self.global_phase).get_expanded_qobj(
-                        self.num_qubits
-                    )
+                    GLOBALPHASE(self.global_phase).get_expanded_qobj(self.num_qubits)
                 )
         except AttributeError:
             pass
@@ -1184,9 +1163,7 @@ class Processor:
                 H=noisy_qobjevo, rho0=init_state, tlist=tlist, **kwargs
             )
         elif solver == "mcsolve":
-            evo_result = mcsolve(
-                noisy_qobjevo, init_state, tlist=tlist, **kwargs
-            )
+            evo_result = mcsolve(noisy_qobjevo, init_state, tlist=tlist, **kwargs)
 
         return evo_result
 

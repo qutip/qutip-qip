@@ -105,9 +105,7 @@ class NameSpace:
             return f"{self.parent.name}.{self.local_name}"
         return self.local_name
 
-    def register(
-        self, name: str | tuple[str, int, int], operation_cls: any
-    ) -> None:
+    def register(self, name: str | tuple[str, int, int], operation_cls: any) -> None:
         """
         Safely adds an item to this specific namespace.
 
@@ -165,9 +163,7 @@ class NameSpace:
             If the specified name does not exist in the namespace.
         """
         if name not in self._registry:
-            raise KeyError(
-                f"{name} does not exists in namespace '{self.name} "
-            )
+            raise KeyError(f"{name} does not exists in namespace '{self.name} ")
         del self._registry[name]
 
     def __str__(self) -> str:
