@@ -79,6 +79,7 @@ lint = [
 test = [
     "pytest>=5.2",
     "pytest-repeat>=0.9",
+    "qiskit_aer>=0.17.0",  # Some tests in test_qiskit.py use Aer for verification
 ]
 doc = [
     "sphinx==7.4.7",
@@ -88,7 +89,7 @@ doc = [
     "numpydoc==1.8.0",
     "docutils==0.20.1",
 ]
-dev = [ {include-group = "test"}, {include-group = "lint"}, "qiskit_aer>=0.17.0"]
+dev = [ {include-group = "test"}, {include-group = "lint"}]
 
 [tool.setuptools]
 include-package-data = true
