@@ -7,10 +7,10 @@ Contributing to the source code
 Build up an development environment
 ===================================
 
-This page describes how to get a QuTiP development environment set up so that
+This page describes how to get the development environment set up so that
 you can begin contributing code, documentation or examples to QuTiP.  Please
 stop by to talk to us either in the `QuTiP Google group`_ or in the issues page
-on the `main QuTiP repository`_ if you have suggestions for new features, so we
+on the `qutip-qip repository`_ if you have suggestions for new features, so we
 can discuss the design and suitability with you.
 
 To contribute to QuTiP development, you will need to have a working knowledge of
@@ -20,36 +20,31 @@ introduction`_ or look at the official
 then goes into much more detail if you're interested.
 
 .. _QuTiP Google group: https://groups.google.com/forum/#!forum/qutip
-.. _main QuTiP repository: https://github.com/qutip/qutip
+.. _qutip-qip repository: https://github.com/qutip/qutip-qip/
 .. _GitHub's simple introduction: https://guides.github.com/introduction/git-handbook
 
 
 Requirements
 ============
 
-To build ``qutip`` from source and to run the tests, you will need recent
+To build ``qutip-qip`` from source and to run the tests, you will need recent
 versions of
 
-- ``python`` (at least version 3.6)
+- ``python`` (at least version 3.10)
 - ``setuptools``
+- ``qutip``
 - ``numpy``
 - ``scipy``
-- ``pytest``
-- ``Cython``
-
-You will also need a working C++ compiler.  On Linux or Mac, there should
-already be a suitable version of ``gcc`` or ``clang`` available, but on Windows
-you will likely need to use a recent version of the Visual Studio compiler.
+- ``pytests``
 
 You should set up a separate virtual environment to house your development
-version of QuTiP so it does not interfere with any other installation you might
-have.  This can be done with ::
+version of qutip-qip so it does not interfere with any other installation you might
+have. This can be done with ::
 
-   conda create -n qutip-dev python>=3.6 setuptools numpy scipy pytest Cython
+   conda create -n qutip-dev python>=3.10
 
 This will create the virtual environment ``qutip-dev``, which you can then
-switch to by using ``conda activate qutip-dev``.  Note that this does *not*
-install any version of ``qutip``, because we will be building that from source.
+switch to by using ``conda activate qutip-dev``.
 
 .. note::
    You do not need to use ``conda``---any suitable virtual environment manager
@@ -66,8 +61,8 @@ read and install QuTiP, but you will not be able to push any changes you make
 back to GitHub so you can share them with us.
 
 To create a fork, go to the relevant repository's page on GitHub (for example,
-the main QuTiP repository is
-`qutip/qutip on GitHub <https://github.com/qutip/qutip>`_), and click the fork
+the qutip-qip repository is
+`qutip/qutip on GitHub <https://github.com/qutip/qutip-qip>`_), and click the fork
 button in the top right.  This will create a linked version of the repository in
 your own GitHub account.  GitHub also has `its own documentation on forking
 <https://guides.github.com/activies/forking>`_.
@@ -75,57 +70,43 @@ your own GitHub account.  GitHub also has `its own documentation on forking
 You can now "clone" your fork onto your local computer.  The command will look
 something like ::
 
-   git clone https://github.com/<user>/qutip
+   git clone https://github.com/<user>/qutip-qip
 
 where ``<user>`` is your GitHub username (i.e. *not* ``qutip``).  This will
-create a folder in your current directory called ``qutip`` which contains the
+create a folder in your current directory called ``qutip-qip`` which contains the
 repository.  This is your *local copy*.
 
 .. note::
    You can put your local copy wherever you like, and call the top-level
    directory whatever you like, including moving and renaming it after the
-   ``clone`` operation.  As there is more than one QuTiP organisation
-   repository, you may find it convenient to have ``qutip``, ``docs`` and
-   ``notebooks`` all in a containing folder called ``qutip``.
+   ``clone`` operation.
 
 
 Building From Source
 ====================
 
 Make sure you have activated your QuTiP development virtual environment that you
-set up earlier.  You should not have any version of QuTiP installed here.  If
-you are in the root of the ``qutip`` repository (you should see the file
-``setup.py``), then the command to build is ::
+set up earlier. If you are in the root of the ``qutip-qip`` repository
+(you should see the file ``pyproject.toml``), then the command to install is ::
 
-   python setup.py develop
+   pip install -e .[full]
 
-If you need to test OpenMP support, add the flag ``--with-openmp`` to the end of
-the command.
+After you have done this, you should
+be able to ``import qutip-qip`` from anywhere as long as you have this development
+environment active. Also you should install the dev dependencies for testing, linting
+by running the command:
 
-The ``develop`` target for
-`setuptools <https://setuptools.readthedocs.io/en/latest/>`_ will compile and
-link all of the Cython extensions, package the resulting files into an egg, and
-add the package to the Python search path.  After you have done this, you should
-be able to ``import qutip`` from anywhere as long as you have this development
-environment active, and you will get your development environment.
+   pip install --group dev
 
 .. note::
-   In general, you do not need to re-run ``setup.py`` if you only make changes
-   to the Python files.  These changes should appear immediately when you
-   re-import ``qutip``, albeit with the standard Python proviso that you may
-   need to re-open the Python interpreter or use :func:`importlib.reload` to
-   clear the package cache.
-
-   If you make changes to any Cython files, you *must*
-   re-run ``setup.py develop`` in the same manner, or your extensions will not
-   be built.
+   You do not need to re-run above commands even when you make changes
+   to the Project's Python files. Since it is an editable
 
 You should now be able to run the tests.  From the root of the repository, or
-inside ``qutip`` or ``qutip/tests``, you can simply run ``pytest`` to run
-everything.  The full test suite will take about 20--30 minutes, depending on
+``qutip-qip/tests``, you can simply run ``pytest`` to run
+everything.  The full test suite will take around a minute, depending on
 your computer.  You can test specific files by passing them as arguments to
-``pytest``, or you can use the ``-m "not slow"`` argument to disable some of the
-slowest tests.
+``pytest``.
 
 
 Contributing Code
@@ -157,7 +138,7 @@ then pull down the changes into your ``master`` branch.
 To fetch changes from our copy, you will need to add our version (the repository
 that you clicked "Fork" on) as a Git remote.  The base command is ::
 
-   git remote add upstream https://github.com/qutip/qutip
+   git remote add upstream https://github.com/qutip/qutip-qip
 
 This will add a remote called ``upstream`` to your local copy.  You will not
 have write access to this, so you will not be able to push to it.  You will,
@@ -169,11 +150,12 @@ Unless you have made changes to your own version of ``master``, this will bring
 you up-to-speed with ours.  To create and swap to a new branch to work on, use
 ::
 
-   git checkout -b <branchname>
+   git branch <branchname>
+   git switch <branchname>
 
-You can then swap branches by using ``git checkout <branchname>`` without the
-``-b`` option.  To add commits to a branch, make the changes you want to make,
-then call ::
+``git branch <branchname>`` creates a new branch with the specified branchname, while
+``switch`` command switch to the specified branch. To add commits to a branch, make the
+changes you want to make, then call ::
 
    git add <file1> [<file2> ...]
 
@@ -186,7 +168,7 @@ your GitHub fork with ::
 
    git push -u origin
 
-and make the PR using the GitHub web interface in the main QuTiP repository.
+and make the PR using the GitHub web interface in the qutip-qip repository.
 
 
 .. _GitHub guide to Flow: https::guides.github.com/introduction/flow
@@ -223,11 +205,10 @@ can tell you if we think it's appropriate for the library, or point you to the
 repository of a more suitable plugin, and organise the design with you before
 you start coding.
 
-When you make the PR, our continuous integration server will run the full test
-suite on a variety of machines, and check the code style.  You should run the
-tests locally before you make the PR to check to save you time, because waiting
-for the CI to complete can take a while if the repository is active.  We will
-not accept any PR with failing tests, unless the failure was not caused by you.
+When you make the PR, our CI/CD will run the full test suite on a variety of machines,
+and check the code style.  You should run the tests locally before you make the PR to check
+to save you time, because waiting for the CI to complete can take a while if the repository
+is active.  We will not accept any PR with failing tests, unless the failure was not caused by you.
 
 
 Code Style
@@ -262,7 +243,7 @@ methods, and multiple tests on similar objects should make use of the
 `parametrisation routines`_.
 
 New features should be supported by an example `Jupyter notebook`_ in the
-separate ``qutip-notebooks`` repository (`qutip/qutip-notebooks on GitHub`_).
+separate ``qutip-tutorial`` repository (`qutip/qutip-tutorial on GitHub`_).
 This will require making a separate PR to that repository, and it's helpful if
 you add links between the two in the descriptions.
 
