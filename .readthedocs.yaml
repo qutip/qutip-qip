@@ -13,14 +13,14 @@ build:
   apt_packages:
     - pandoc
   jobs:
+    # This can be removed once RTD configuration schema supports PEP 735 (https://peps.python.org/pep-0735/)
+    pre_install:
+      - python -m pip install --upgrade pip
+      - python -m pip install .[full] --group doc
+
     pre_build:
       # Each command is executed in a new shell process
       - cd doc; python source/tutorials-website/create_tutorials_html.py
-
-    # This can be removed once RTD configuration schema supports PEP 735 (https://peps.python.org/pep-0735/)
-    install:
-      - python -m pip install --upgrade pip
-      - python -m pip install .[full] --group doc
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
