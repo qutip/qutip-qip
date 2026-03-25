@@ -31,9 +31,7 @@ def grover_oracle(
         search_qubits = list(search_qubits)
 
     if len(search_qubits) == 0:
-        raise ValueError(
-            "search_qubits must contain at least one qubit index."
-        )
+        raise ValueError("search_qubits must contain at least one qubit index.")
 
     if isinstance(marked_states, int):
         marked_states = [marked_states]
@@ -46,7 +44,7 @@ def grover_oracle(
         # Safety check
         if state < 0 or state >= (1 << n_qubits):
             raise ValueError(
-                f"Marked state {state} is out of bounds for {n_qubits} qubits. Valid range is [0, {2**n_qubits-1}]."
+                f"Marked state {state} is out of bounds for {n_qubits} qubits. Valid range is [0, {2**n_qubits - 1}]."
             )
 
         binary_rep = format(state, f"0{n_qubits}b")
@@ -147,9 +145,7 @@ def grover(
         search_qubits = list(search_qubits)
 
     if len(search_qubits) == 0:
-        raise ValueError(
-            "search_qubits must contain at least one qubit index."
-        )
+        raise ValueError("search_qubits must contain at least one qubit index.")
 
     n_qubits = len(search_qubits)
     search_space_size = 1 << n_qubits
