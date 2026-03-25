@@ -80,7 +80,7 @@ test = [
     "pytest>=5.2",
     "pytest-repeat>=0.9",
 ]
-docs = [
+doc = [
     "sphinx==7.4.7",
     "sphinx-rtd-theme==2.0.0",
     "sphinxcontrib-bibtex==2.6.2",

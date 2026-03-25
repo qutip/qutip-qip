@@ -27,7 +27,7 @@ jobs:
       - name: Install qutip-qip and documentation dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e .[full] --group docs
+          python -m pip install -e .[full] --group doc
           python -c 'import qutip_qip; print(f"QuTiP QIP Version: {qutip_qip.__version__})"'
           python -c 'import qutip; qutip.about()'
 
