@@ -18,22 +18,32 @@ jobs:
             qutip-version: '==5.*'
             python-version: '3.11'
 
+          - case-name: qutip@5
+            os: ubuntu-latest
+            qutip-version: '==5.*'
+            python-version: '3.12'
+
+          - case-name: qutip@5
+            os: ubuntu-latest
+            qutip-version: '==5.*'
+            python-version: '3.13'
+
           - case-name: qutip@master
             os: ubuntu-latest
             qutip-version: '@master'
-            python-version: '3.12'
+            python-version: '3.14'
 
-          - case-name: qiskit
+          - case-name: windows
             os: windows-latest
             qutip-version: ''
             python-version: '3.10'
 
-          - case-name: qiskit
+          - case-name: macOS
             os: macOS-latest
             qutip-version: ''
             python-version: '3.10'
 
-          - case-name: qiskit
+          - case-name: linux
             os: ubuntu-latest
             qutip-version: ''
             python-version: '3.10'
