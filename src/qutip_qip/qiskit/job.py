@@ -21,9 +21,7 @@ class Job(JobV1):
         The result of a simulation run.
     """
 
-    def __init__(
-        self, backend: Backend, job_id: str, circuit: list[QuantumCircuit]
-    ):
+    def __init__(self, backend: Backend, job_id: str, circuit: list[QuantumCircuit]):
         super().__init__(backend, job_id)
         self._run_input = circuit
         self._status = JobStatus.INITIALIZING

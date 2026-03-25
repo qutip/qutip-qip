@@ -55,9 +55,9 @@ class DispersiveCavityQED(ModelProcessor):
         from qutip_qip.device import DispersiveCavityQED
 
         qc = QubitCircuit(2)
-        qc.add_gate("RX", 0, arg_value=np.pi)
-        qc.add_gate("RY", 1, arg_value=np.pi)
-        qc.add_gate("ISWAP", [1, 0])
+        qc.add_gate(RX(np.pi), targets=0)
+        qc.add_gate(RY(np.pi), targets=1)
+        qc.add_gate(ISWAP, targets=[1, 0])
 
         processor = DispersiveCavityQED(2, g=0.1)
         processor.load_circuit(qc)
@@ -76,15 +76,9 @@ class DispersiveCavityQED(ModelProcessor):
 
     """
 
-    def __init__(
-        self, num_qubits, num_levels=10, correct_global_phase=True, **params
-    ):
-        model = CavityQEDModel(
-            num_qubits=num_qubits, num_levels=num_levels, **params
-        )
-        super(DispersiveCavityQED, self).__init__(
-            model=model, correct_global_phase=correct_global_phase
-        )
+    def __init__(self, num_qubits, num_levels=10, correct_global_phase=True, **params):
+        model = CavityQEDModel(num_qubits=num_qubits, num_levels=num_levels, **params)
+        super().__init__(model=model, correct_global_phase=correct_global_phase)
         self.correct_global_phase = correct_global_phase
         self.num_levels = num_levels
         self.native_gates = ["SQRTISWAP", "ISWAP", "RX", "RZ"]
@@ -134,8 +128,7 @@ class DispersiveCavityQED(ModelProcessor):
         Eliminate the auxillary modes like the cavity modes in cqed.
         """
         psi_proj = tensor(
-            [basis(self.num_levels, 0)]
-            + [identity(2) for n in range(self.num_qubits)]
+            [basis(self.num_levels, 0)] + [identity(2) for n in range(self.num_qubits)]
         )
         result = psi_proj.dag() * U * psi_proj
         # In qutip 5 multiplication of matrices
@@ -149,7 +142,7 @@ class DispersiveCavityQED(ModelProcessor):
     def load_circuit(self, qc, schedule_mode="ASAP", compiler=None):
         if compiler is None:
             compiler = CavityQEDCompiler(
-                self.num_qubits, self.params, global_phase=0.0
+                self.num_qubits, self.params, global_phase=qc.global_phase
             )
         tlist, coeff = super().load_circuit(
             qc, schedule_mode=schedule_mode, compiler=compiler
@@ -157,9 +150,7 @@ class DispersiveCavityQED(ModelProcessor):
         self.global_phase = compiler.global_phase
         return tlist, coeff
 
-    def generate_init_processor_state(
-        self, init_circuit_state: Qobj = None
-    ) -> Qobj:
+    def generate_init_processor_state(self, init_circuit_state: Qobj = None) -> Qobj:
         """
         Generate the initial state with the dimensions of the :class:`.DispersiveCavityQED` processor.
 
@@ -336,17 +327,12 @@ class CavityQEDModel(Model):
         for m in range(num_qubits):
             controls["sz" + str(m)] = (2 * np.pi * sigmaz(), [m + 1])
         # coupling terms
-        a = tensor(
-            [destroy(num_levels)] + [identity(2) for n in range(num_qubits)]
-        )
+        a = tensor([destroy(num_levels)] + [identity(2) for n in range(num_qubits)])
         for n in range(num_qubits):
             # FIXME expanded?
             sm = tensor(
                 [identity(num_levels)]
-                + [
-                    destroy(2) if m == n else identity(2)
-                    for m in range(num_qubits)
-                ]
+                + [destroy(2) if m == n else identity(2) for m in range(num_qubits)]
             )
             controls["g" + str(n)] = (
                 2 * np.pi * a.dag() * sm + 2 * np.pi * a * sm.dag(),
@@ -378,9 +364,7 @@ class CavityQEDModel(Model):
             warnings.warn("Not in the dispersive regime")
 
         if any((w0 - wq) / (w0 + wq) > 0.05):
-            warnings.warn(
-                "The rotating-wave approximation might not be valid."
-            )
+            warnings.warn("The rotating-wave approximation might not be valid.")
 
     def get_control_latex(self):
         """

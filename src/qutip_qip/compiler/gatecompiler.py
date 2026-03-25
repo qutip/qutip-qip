@@ -2,12 +2,12 @@ import warnings
 import numpy as np
 from scipy import signal
 
-from qutip_qip.compiler import Instruction
-from qutip_qip.compiler import Scheduler
+from qutip_qip.compiler import PulseInstruction, Scheduler
 from qutip_qip.circuit import QubitCircuit
+from qutip_qip.operations.gates import GLOBALPHASE, IDLE
 
 
-class GateCompiler(object):
+class GateCompiler:
     """
     Base class of compilers, including the :meth:`GateCompiler.compile` method.
     It compiles a :class:`.QubitCircuit` into
@@ -54,16 +54,15 @@ class GateCompiler(object):
         self._num_qubits = num_qubits
         if N is not None:
             warnings.warn(
-                "The 'N' parameter is deprecated. Please use "
-                "'num_qubits' instead.",
+                "The 'N' parameter is deprecated. Please use 'num_qubits' instead.",
                 DeprecationWarning,
                 stacklevel=2,
             )
             self._num_qubits = num_qubits  # backward compatibility
         self.params = params if params is not None else {}
         self.gate_compiler = {
-            "GLOBALPHASE": self.globalphase_compiler,
-            "IDLE": self.idle_compiler,
+            GLOBALPHASE: self.globalphase_compiler,
+            IDLE: self.idle_compiler,
         }
         self.args = {  # Default configuration
             "shape": "rectangular",
@@ -81,7 +80,8 @@ class GateCompiler(object):
                 The parameter pulse_dict has no effect now,
                 you can simply remove it.
                 """,
-                DeprecationWarning,
+                UserWarning,
+                stacklevel=2,
             )
 
     @property
@@ -97,25 +97,28 @@ class GateCompiler(object):
         Number of qubits in the circuit.
         """
         warnings.warn(
-            "The 'N' parameter is deprecated. Please use "
-            "'num_qubits' instead.",
+            "The 'N' parameter is deprecated. Please use 'num_qubits' instead.",
             DeprecationWarning,
             stacklevel=2,
         )
         return self._num_qubits
 
-    def globalphase_compiler(self, gate, args):
+    def globalphase_compiler(self, phase):
         """
         Compiler for the GLOBALPHASE gate
         """
-        pass
+        self.global_phase += phase
+        self.global_phase %= 2 * np.pi
 
-    def idle_compiler(self, gate, args):
+    def idle_compiler(self, circuit_instruction, args):
         """
-        Compiler for the GLOBALPHASE gate
+        Compiler for the IDLE gate
         """
-        idle_time = gate.arg_value
-        return [Instruction(gate, idle_time, [])]
+        idle_time = None
+        gate = circuit_instruction.operation
+        if gate.is_parametric:
+            idle_time = gate.arg_value[0]
+        return [PulseInstruction(circuit_instruction, idle_time, [])]
 
     def compile(self, circuit, schedule_mode=None, args=None):
         """
@@ -151,22 +154,57 @@ class GateCompiler(object):
             one Hamiltonian.
             if ``return_array`` is false
         """
-        if isinstance(circuit, QubitCircuit):
-            gates = circuit.gates
-        else:
-            gates = circuit
-        if args is not None:
-            self.args.update(args)
         instruction_list = []
 
+        if isinstance(circuit, QubitCircuit):
+            instructions = circuit.instructions
+            self.globalphase_compiler(circuit.global_phase)
+        else:
+            instructions = circuit
+        if args is not None:
+            self.args.update(args)
+
         # compile gates
-        for gate in gates:
-            if gate.name not in self.gate_compiler:
-                raise ValueError("Unsupported gate %s" % gate.name)
-            instruction = self.gate_compiler[gate.name](gate, self.args)
+        for circuit_instruction in instructions:
+            gate = circuit_instruction.operation
+            if gate.is_parametric:
+                gate = type(gate)
+
+            compiler_key = None
+            # Support both class and string based keys.
+            if gate in self.gate_compiler:
+                compiler_key = gate
+            else:
+                aliases = {
+                    "H": "SNOT",
+                    "CX": "CNOT",
+                }
+                candidate_keys = [gate.name, gate.__name__]
+                for key in candidate_keys:
+                    if key in self.gate_compiler:
+                        compiler_key = key
+                        break
+                    alias_key = aliases.get(key)
+                    if alias_key in self.gate_compiler:
+                        compiler_key = alias_key
+                        break
+
+            if compiler_key is None:
+                raise ValueError(f"Unsupported gate {gate.name}")
+            if isinstance(compiler_key, str):
+                warnings.warn(
+                    "Use gateclass in place of gate name string in self.gate_compiler dict",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
+            instruction = self.gate_compiler[compiler_key](
+                circuit_instruction, self.args
+            )
+
             if instruction is None:
                 continue  # neglecting global phase gate
             instruction_list += instruction
+
         if not instruction_list:
             return None, None
 
@@ -184,9 +222,7 @@ class GateCompiler(object):
         pulse_ind_map = {}
         next_pulse_ind = 0
         pulse_instructions = []
-        for instruction, start_time in zip(
-            instruction_list, scheduled_start_time
-        ):
+        for instruction, start_time in zip(instruction_list, scheduled_start_time):
             for pulse_name, coeff in instruction.pulse_info:
                 if pulse_name not in pulse_ind_map:
                     pulse_instructions.append([])
@@ -262,9 +298,7 @@ class GateCompiler(object):
                         pulse_mode, start_time, last_pulse_time, step_size
                     )
                     compiled_tlist[pulse_ind].append(idling_tlist)
-                    compiled_coeffs[pulse_ind].append(
-                        np.zeros(len(idling_tlist))
-                    )
+                    compiled_coeffs[pulse_ind].append(np.zeros(len(idling_tlist)))
 
                 # Add the gate time and coeffs to the list.
                 execution_time = gate_tlist + start_time
@@ -319,9 +353,7 @@ class GateCompiler(object):
             raise ValueError("The shape of the compiled pulse is not correct.")
         return gate_tlist, coeff, step_size, pulse_mode
 
-    def _process_idling_tlist(
-        self, pulse_mode, start_time, last_pulse_time, step_size
-    ):
+    def _process_idling_tlist(self, pulse_mode, start_time, last_pulse_time, step_size):
         idling_tlist = []
         if pulse_mode == "continuous":
             # We add sufficient number of zeros at the beginning
@@ -332,15 +364,11 @@ class GateCompiler(object):
                     last_pulse_time + step_size,
                     10,
                 )
-                idling_tlist2 = np.linspace(
-                    start_time - step_size, start_time, 10
-                )
+                idling_tlist2 = np.linspace(start_time - step_size, start_time, 10)
                 idling_tlist.extend([idling_tlist1, idling_tlist2])
             else:
                 idling_tlist.append(
-                    np.arange(
-                        last_pulse_time + step_size, start_time, step_size
-                    )
+                    np.arange(last_pulse_time + step_size, start_time, step_size)
                 )
         elif pulse_mode == "discrete":
             # idling until the start time
@@ -389,49 +417,28 @@ class GateCompiler(object):
 
         Examples
         --------
-        .. plot::
-            :context: reset
-
-            from qutip_qip.compiler import GateCompiler
-            import numpy as np
-            compiler = GateCompiler()
-            coeff, tlist= compiler.generate_pulse_shape(
-                "hann",  # Scipy Hann window
-                1000,  # 100 sampling point
-                maximum=3.,
-                # Notice that 2 pi is added to H by qutip solvers.
-                area= 1.,
-            )
+        >>> from qutip_qip.compiler import GateCompiler
+        >>> import numpy as np
+        >>> compiler = GateCompiler()
+        >>> coeff, tlist = compiler.generate_pulse_shape(
+        ...     "hann",  # Scipy Hann window
+        ...     1000,    # 1000 sampling points
+        ...     maximum=3.,
+        ...     area=1.
+        ...     # Notice that 2 pi is added to H by qutip solvers.
+        ... )
 
         We can plot the generated pulse shape:
 
-        .. plot::
-            :context: close-figs
-
-            import matplotlib.pyplot as plt
-            plt.plot(tlist, coeff)
-            plt.show()
+        >>> import matplotlib.pyplot as plt
+        >>> plt.plot(tlist, coeff) # doctest: +SKIP
+        >>> plt.show() # doctest: +SKIP
 
         The pulse is normalized to fit the area. Notice that due to
         the finite number of sampling points, it is not exactly 1.
 
-        .. testsetup::
-
-            from qutip_qip.compiler import GateCompiler
-            import numpy as np
-            compiler = GateCompiler()
-            coeff, tlist= compiler.generate_pulse_shape(
-                "hann",  # Scipy Hann window
-                1000,  # 100 sampling point
-                maximum=3.,
-                # Notice that 2 pi is added to H by qutip solvers.
-                area= 1.,
-            )
-
-        .. doctest::
-
-            >>> round(np.trapz(coeff, tlist), 2)
-            1.0
+        >>> round(float(np.trapezoid(coeff, tlist)), 2)
+        1.0
         """
         coeff, tlist = _normalized_window(shape, num_samples)
         sign = np.sign(area)

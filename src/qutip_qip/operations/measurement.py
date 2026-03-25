@@ -25,15 +25,16 @@ class Measurement:
         classical register of the circuit.
     """
 
-    def __init__(self, name, targets=None, index=None, classical_store=None):
+    def __init__(self, name, targets, index=None, classical_store=None):
         """
         Create a measurement with specified parameters.
         """
+        if index is not None:
+            raise AttributeError("argument index is no longer supported")
 
         self.name = name
         self.targets = None
         self.classical_store = classical_store
-        self.index = index
 
         if not isinstance(targets, Iterable) and targets is not None:
             self.targets = [targets]
@@ -88,41 +89,14 @@ class Measurement:
 
         measurement_tol = qutip.settings.core["atol"] ** 2
         states, probabilities = measurement_statistics(state, measurement_ops)
-        probabilities = [
-            p if p > measurement_tol else 0.0 for p in probabilities
-        ]
+        probabilities = [p if p > measurement_tol else 0.0 for p in probabilities]
         states = [
-            s if p > measurement_tol else None
-            for s, p in zip(states, probabilities)
+            s if p > measurement_tol else None for s, p in zip(states, probabilities)
         ]
         return states, probabilities
 
     def __str__(self):
-        str_name = ("Measurement(%s, target=%s, classical_store=%s)") % (
-            self.name,
-            self.targets,
-            self.classical_store,
-        )
-        return str_name
+        return f" Measurement({self.name})"
 
     def __repr__(self):
         return str(self)
-
-    def _repr_latex_(self):
-        return str(self)
-
-    def _to_qasm(self, qasm_out):
-        """
-        Pipe output of measurement to QasmOutput object.
-
-        Parameters
-        ----------
-        qasm_out: QasmOutput
-            object to store QASM output.
-        """
-
-        qasm_out.output(
-            "measure q[{}] -> c[{}]".format(
-                self.targets[0], self.classical_store
-            )
-        )

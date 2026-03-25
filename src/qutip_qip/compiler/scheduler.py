@@ -2,9 +2,8 @@ from copy import deepcopy
 from functools import cmp_to_key
 from random import shuffle
 
-from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import Gate
-from qutip_qip.compiler import Instruction
+from qutip_qip.circuit import GateInstruction, QubitCircuit
+from qutip_qip.compiler import PulseInstruction
 
 
 class InstructionsGraph:
@@ -17,7 +16,7 @@ class InstructionsGraph:
     and the computation of the distance in the weighted graph
     (circuit latency).
 
-    It uses the `Instruction` object as a representation of node
+    It uses the `PulseInstruction` object as a representation of node
     and adds the following attributes to it:
 
     predecessors, successors: dependency arrow of the DAG
@@ -40,10 +39,11 @@ class InstructionsGraph:
         instructions = deepcopy(instructions)
         self.nodes = []
         for instruction in instructions:
-            if isinstance(instruction, Gate):
-                self.nodes.append(Instruction(instruction))
+            if isinstance(instruction, GateInstruction):
+                self.nodes.append(PulseInstruction(instruction))
             else:
                 self.nodes.append(instruction)
+
         for node in self.nodes:
             if node.duration is None:
                 node.duration = 1
@@ -54,7 +54,7 @@ class InstructionsGraph:
         """
         Generate the instruction dependency graph.
         It modifies the class attribute `nodes`, where each element (node)
-        is an `Instruction`.
+        is an `PulseInstruction`.
         The graph is represented by attributes `predecessors` and
         `successors`, each a set of indices
         pointing to the position of the target node in the nodes list.
@@ -84,11 +84,7 @@ class InstructionsGraph:
             node.successors = set()
 
         num_qubits = (
-            max(
-                set().union(
-                    *[instruction.used_qubits for instruction in self.nodes]
-                )
-            )
+            max(set().union(*[instruction.used_qubits for instruction in self.nodes]))
             + 1
         )
         # Build the dependency graph with the constraint that
@@ -118,9 +114,7 @@ class InstructionsGraph:
                     qubits_cycle_current[qubit].add(gate_index)
 
         for qubit in range(num_qubits):
-            self._add_dependency(
-                qubits_cycle_last[qubit], qubits_cycle_current[qubit]
-            )
+            self._add_dependency(qubits_cycle_last[qubit], qubits_cycle_current[qubit])
 
         # Find start and end nodes of the graph
         start = []
@@ -358,8 +352,8 @@ class Scheduler:
     ):
         """
         Schedule a :obj:`.QubitCircuit`,
-        a list of :obj:`.Gates` or a list of :obj:`.Instruction`.
-        For pulse schedule, the execution time for each :obj:`.Instruction`
+        a list of :obj:`.CircuitInstruction` or a list of :obj:`.Instruction`.
+        For pulse schedule, the execution time for each :obj:`.PulseInstruction`
         is given in its ``duration`` attributes.
 
         The scheduler first generates a quantum gates dependency graph,
@@ -393,7 +387,7 @@ class Scheduler:
         circuit: QubitCircuit or list
             For gate schedule,
             it should be a QubitCircuit or a list of Gate objects.
-            For pulse schedule, it should be a list of Instruction objects,
+            For pulse schedule, it should be a list of PulseInstruction objects,
             each with an attribute `duration`
             that indicates the execution time of this instruction.
         gates_schedule: bool, optional
@@ -426,14 +420,15 @@ class Scheduler:
         --------
         >>> from qutip_qip.circuit import QubitCircuit
         >>> from qutip_qip.compiler import Scheduler
+        >>> from qutip_qip.operations.gates import H, CZ, SWAP
         >>> circuit = QubitCircuit(7)
-        >>> circuit.add_gate("SNOT", 3)  # gate0
-        >>> circuit.add_gate("CZ", 5, 3)  # gate1
-        >>> circuit.add_gate("CZ", 4, 3)  # gate2
-        >>> circuit.add_gate("CZ", 2, 3)  # gate3
-        >>> circuit.add_gate("CZ", 6, 5)  # gate4
-        >>> circuit.add_gate("CZ", 2, 6)  # gate5
-        >>> circuit.add_gate("SWAP", [0, 2])  # gate6
+        >>> circuit.add_gate(H, targets=3)  # gate0
+        >>> circuit.add_gate(CZ, targets=5, controls=3)  # gate1
+        >>> circuit.add_gate(CZ, targets=4, controls=3)  # gate2
+        >>> circuit.add_gate(CZ, targets=2, controls=3)  # gate3
+        >>> circuit.add_gate(CZ, targets=6, controls=5)  # gate4
+        >>> circuit.add_gate(CZ, targets=2, controls=6)  # gate5
+        >>> circuit.add_gate(SWAP, targets=[0, 2])  # gate6
         >>>
         >>> scheduler = Scheduler("ASAP")
         >>> scheduler.schedule(circuit, gates_schedule=True)
@@ -465,21 +460,20 @@ class Scheduler:
             return result
 
         if isinstance(circuit, QubitCircuit):
-            gates = circuit.gates
+            circuit_instruction = circuit.instructions
+            gates_schedule = True
         else:
-            gates = circuit
-        if not gates:
+            circuit_instruction = circuit
+        if not circuit_instruction:
             return []
 
         # Generate the quantum operations dependency graph.
-        instructions_graph = InstructionsGraph(gates)
+        instructions_graph = InstructionsGraph(circuit_instruction)
         if self.allow_permutation:
             commutation_rules = self.commutation_rules
         else:
-            commutation_rules = lambda *args, **kwargs: False
-        instructions_graph.generate_dependency_graph(
-            commuting=commutation_rules
-        )
+            commutation_rules = lambda *args, **kwargs: False  # TODO check this line
+        instructions_graph.generate_dependency_graph(commuting=commutation_rules)
         if self.method == "ALAP":
             instructions_graph.reverse_graph()
 
@@ -497,15 +491,12 @@ class Scheduler:
             random=random_shuffle,
         )
 
-        # If we only need gates schedule, we can output the result here.
-        if isinstance(gates[0], Gate):
-            gates_schedule = True
         if gates_schedule or return_cycles_list:
             if self.method == "ALAP":
                 cycles_list.reverse()
             if return_cycles_list:
                 return cycles_list
-            gate_cycles_indices = [0] * len(gates)
+            gate_cycles_indices = [0] * len(circuit_instruction)
             for cycle_ind, cycle in enumerate(cycles_list):
                 for instruction_ind in cycle:
                     gate_cycles_indices[instruction_ind] = cycle_ind
@@ -547,7 +538,7 @@ class Scheduler:
                 [instruction1, instruction2],
                 key=lambda instruction: instruction.name,
             )
-            if instruction1.name == "CNOT" and instruction2.name in (
+            if instruction1.name == "CX" and instruction2.name in (
                 "X",
                 "RX",
             ):
@@ -555,7 +546,7 @@ class Scheduler:
                     commute = True
                 else:
                     commute = False
-            elif instruction1.name == "CNOT" and instruction2.name in (
+            elif instruction1.name == "CX" and instruction2.name in (
                 "Z",
                 "RZ",
             ):
@@ -566,9 +557,7 @@ class Scheduler:
             else:
                 commute = False
             return commute
-        if (instruction1.controls) and (
-            instruction1.controls == instruction2.controls
-        ):
+        if (instruction1.controls) and (instruction1.controls == instruction2.controls):
             commute = True
         elif instruction1.targets == instruction2.targets:
             commute = True

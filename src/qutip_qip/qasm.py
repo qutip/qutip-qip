@@ -2,21 +2,19 @@
 
 import re
 import os
+import warnings
 from itertools import chain
 from copy import deepcopy
-import warnings
+from collections.abc import Iterable
+from math import pi  # Don't remove
+from typing import Type
 
 import numpy as np
-from math import pi  # Don't remove
 
-from .circuit import QubitCircuit
-from .operations import (
-    controlled_gate,
-    qasmu_gate,
-    rz,
-    snot,
-)
-
+from qutip_qip.circuit import QubitCircuit
+from qutip_qip.operations import Gate, get_unitary_gate
+import qutip_qip.operations.gates as gates
+from qutip_qip.typing import SequenceLike
 
 __all__ = ["read_qasm", "save_qasm", "print_qasm", "circuit_to_qasm_str"]
 
@@ -26,43 +24,14 @@ class QasmGate:
     Class which stores the gate definitions as specified in the QASM file.
     """
 
-    def __init__(self, name, gate_args, gate_regs):
+    def __init__(self, name: str, gate_args: list[str], gate_regs: list[str]) -> None:
         self.name = name
         self.gate_args = gate_args
         self.gate_regs = gate_regs
         self.gates_inside = []
 
 
-def _get_qiskit_gates():
-    """
-    Create and return a dictionary containing a few commonly used qiskit gates
-    that are not predefined in qutip-qip.
-
-    Returns a dictionary mapping gate names to QuTiP gates.
-    """
-
-    def u2(args):
-        return qasmu_gate([np.pi / 2, args[0], args[1]])
-
-    def id():
-        return qasmu_gate([0, 0, 0])
-
-    def sdg():
-        return rz(-1 * np.pi / 2)
-
-    def tdg():
-        return rz(-1 * np.pi / 4)
-
-    def cu3(args):
-        return controlled_gate(qasmu_gate(args))
-
-    def ch():
-        return controlled_gate(snot())
-
-    return {"ch": ch, "tdg": tdg, "id": id, "u2": u2, "sdg": sdg, "cu3": cu3}
-
-
-def _tokenize_line(command):
+def _tokenize_line(command: str) -> list[str]:
     """
     Tokenize (break into several parts a string of) a single line of QASM code.
 
@@ -88,9 +57,7 @@ def _tokenize_line(command):
         if groups:
             tokens = ["if", "(", groups.group(1), ")"]
             tokens_gate = _tokenize_line(
-                "{} ({}) {}".format(
-                    groups.group(2), groups.group(3), groups.group(4)
-                )
+                f"{groups.group(2)} ({groups.group(3)}) {groups.group(4)}"
             )
             tokens += tokens_gate
         # for classically controlled gates without arguments
@@ -115,7 +82,7 @@ def _tokenize_line(command):
     return tokens
 
 
-def _tokenize(token_cmds):
+def _tokenize(token_cmds: list[str]) -> list[list[str]]:
     """
     Tokenize QASM code for processing, i.e. break it into several parts.
 
@@ -148,7 +115,7 @@ def _tokenize(token_cmds):
     return list(filter(lambda x: x != [], processed_commands))
 
 
-def _gate_processor(command):
+def _gate_processor(command: list[str]) -> tuple[list[str], list[str]]:
     """
     Process tokens for a gate call statement separating them into args and regs.
     Processes tokens from a "gate call" (e.g. rx(pi) q[0]) and returns the
@@ -185,9 +152,7 @@ class QasmProcessor:
         self.num_cbits = 0
         self.qasm_gates = {}  # Custom defined QASM gates
         if mode not in ["default", "external_only", "predefined_only"]:
-            warnings.warn(
-                "Unknown parsing mode, using the default mode instead."
-            )
+            warnings.warn("Unknown parsing mode, using the default mode instead.")
             mode = "default"
         self.mode = mode
         self.version = version
@@ -219,19 +184,16 @@ class QasmProcessor:
                     "crz",
                     "cu1",
                     "cu3",
+                    "swap",
                 ]
             )
-            self.predefined_gates = self.predefined_gates.union(
-                self.qiskitgates
-            )
+            self.predefined_gates = self.predefined_gates.union(self.qiskitgates)
 
         # A set of available gates, including both predefined gate and
         # custom defined gates from `qelib1.inc` (added later).
         self.gate_names = deepcopy(self.predefined_gates)
         for gate in self.predefined_gates:
-            self.qasm_gates[gate] = QasmGate(
-                "U", ["alpha", "beta", "gamma"], ["q"]
-            )
+            self.qasm_gates[gate] = QasmGate("U", ["alpha", "beta", "gamma"], ["q"])
         self.commands = commands
 
     def _process_includes(self):
@@ -251,18 +213,19 @@ class QasmProcessor:
 
             filename = command[1].strip('"')
 
+            # TODO this has been added later (check how qasm converter previously handled it)
+            if filename == "qelib1.inc":
+                continue
+
             if self.mode == "predefined_only":
                 warnings.warn(
-                    "Ignoring external gate definition"
-                    " in the predefined_only mode."
+                    "Ignoring external gate definition in the predefined_only mode."
                 )
                 continue
 
             if os.path.exists(filename):
                 with open(filename, "r") as f:
-                    qasm_lines = [
-                        line.strip() for line in f.read().splitlines()
-                    ]
+                    qasm_lines = [line.strip() for line in f.read().splitlines()]
                     qasm_lines = list(
                         filter(lambda x: x[:2] != "//" and x != "", qasm_lines)
                     )
@@ -277,9 +240,7 @@ class QasmProcessor:
                 if self.mode == "default":
                     warnings.warn(command[1] + "not found, ignored.")
                 else:
-                    raise ValueError(
-                        command[1] + ": such a file does not exist"
-                    )
+                    raise ValueError(command[1] + ": such a file does not exist")
 
         # Insert the custom gate configurations to the list of commands
         expanded_commands += self.commands[prev_index:]
@@ -292,9 +253,7 @@ class QasmProcessor:
         """
 
         gate_defn_mode = False  # If in the middle of defining a custom gate
-        open_bracket_mode = (
-            False  # If in the middle of defining a decomposition
-        )
+        open_bracket_mode = False  # If in the middle of defining a decomposition
 
         unprocessed = []
 
@@ -307,6 +266,7 @@ class QasmProcessor:
                     continue
                 else:
                     raise SyntaxError("QASM: incorrect bracket formatting")
+
             elif open_bracket_mode:
                 # Define the decomposition of custom QASM gate
                 if command[0] == "{":
@@ -314,28 +274,27 @@ class QasmProcessor:
                 elif command[0] == "}":
                     if not curr_gate.gates_inside:
                         raise NotImplementedError(
-                            "QASM: opaque gate {} are  \
-                                                   not allowed, please define \
-                                                   or omit \
-                                                   them".format(
-                                curr_gate.name
-                            )
+                            f"QASM: opaque gate {curr_gate.name} are  \
+                            not allowed, please define or omit them"
                         )
                     open_bracket_mode = False
                     self.gate_names.add(curr_gate.name)
                     self.qasm_gates[curr_gate.name] = curr_gate
                     continue
+
                 elif command[0] in self.gate_names:
                     name = command[0]
                     gate_args, gate_regs = _gate_processor(command)
                     gate_added = self.qasm_gates[name]
                     curr_gate.gates_inside.append([name, gate_args, gate_regs])
+
             elif command[0] == "gate":
                 # Custom definition of gates.
                 gate_name = command[1]
                 gate_args, gate_regs = _gate_processor(command[1:])
                 curr_gate = QasmGate(gate_name, gate_args, gate_regs)
                 gate_defn_mode = True
+
             elif command[0] == "qreg":
                 groups = re.match(r"(.*)\[(.*)\]", "".join(command[1:]))
                 if groups:
@@ -359,10 +318,12 @@ class QasmProcessor:
                     self.num_cbits += num_regs
                 else:
                     raise SyntaxError("QASM: incorrect bracket formatting")
+
             elif command[0] == "reset":
                 raise NotImplementedError(
-                    ("QASM: reset functionality " "is not supported.")
+                    ("QASM: reset functionality is not supported.")
                 )
+
             elif command[0] in ["barrier", "include"]:
                 continue
             else:
@@ -399,6 +360,7 @@ class QasmProcessor:
             args_map[arg] = eval(str(args[i]))
         for i, reg in enumerate(gate.gate_regs):
             regs_map[reg] = regs[i]
+
         # process all the constituent gates with supplied arguments, registers
         for call in gate.gates_inside:
             # create function call for the constituent gate
@@ -406,18 +368,15 @@ class QasmProcessor:
 
             for arg, real_arg in args_map.items():
                 com_args = [
-                    command.replace(arg.strip(), str(real_arg))
-                    for command in com_args
+                    command.replace(arg.strip(), str(real_arg)) for command in com_args
                 ]
             for reg, real_reg in regs_map.items():
                 com_regs = [
-                    command.replace(reg.strip(), str(real_reg))
-                    for command in com_regs
+                    command.replace(reg.strip(), str(real_reg)) for command in com_regs
                 ]
             com_args = [eval(arg) for arg in com_args]
 
             if name in self.predefined_gates:
-                qc_temp.user_gates = _get_qiskit_gates()
                 com_regs = [int(reg) for reg in com_regs]
                 self._add_predefined_gates(qc_temp, name, com_regs, com_args)
             else:
@@ -498,10 +457,8 @@ class QasmProcessor:
                 if len(qubits) == len(cbits):
                     return zip(qubits, cbits)
                 else:
-                    raise ValueError(
-                        "QASM: qubit and cbit \
-                                     register sizes are different"
-                    )
+                    raise ValueError("QASM: qubit and cbit \
+                                     register sizes are different")
         else:
             # processes gate tokens to create sets of registers to
             # which the gates are applied.
@@ -524,9 +481,7 @@ class QasmProcessor:
                 return zip(
                     *list(
                         map(
-                            lambda x: (
-                                x if isinstance(x, list) else [x] * expand
-                            ),
+                            lambda x: (x if isinstance(x, Iterable) else [x] * expand),
                             new_regs,
                         )
                     )
@@ -540,7 +495,7 @@ class QasmProcessor:
         name,
         regs,
         args=None,
-        classical_controls=None,
+        classical_controls=(),
         classical_control_value=None,
     ):
         """
@@ -568,17 +523,14 @@ class QasmProcessor:
         """
 
         gate_name_map_1q = {
-            "x": "X",
-            "y": "Y",
-            "z": "Z",
-            "h": "SNOT",
-            "t": "T",
-            "s": "S",
-            "sdg": "sdg",
-            "tdg": "tdg",
-            "rx": "RX",
-            "ry": "RY",
-            "rz": "RZ",
+            "x": gates.X,
+            "y": gates.Y,
+            "z": gates.Z,
+            "h": gates.H,
+            "t": gates.T,
+            "s": gates.S,
+            "sdg": gates.Sdag,
+            "tdg": gates.Tdag,
         }
         if len(args) == 0:
             args = None
@@ -587,31 +539,35 @@ class QasmProcessor:
 
         if name == "u3":
             qc.add_gate(
-                "QASMU",
+                gates.QASMU(args),
                 targets=regs[0],
-                arg_value=args,
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
             )
         elif name == "u2":
             qc.add_gate(
-                "u2",
+                gates.QASMU(np.pi / 2, args[0], args[1]),
                 targets=regs[0],
-                arg_value=args,
+                classical_controls=classical_controls,
+                classical_control_value=classical_control_value,
+            )
+        elif name == "id":
+            qc.add_gate(
+                gates.IDENTITY,
+                targets=regs[0],
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
             )
         elif name == "u1":
             qc.add_gate(
-                "RZ",
+                gates.RZ(args),
                 targets=regs[0],
-                arg_value=args,
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
             )
         elif name == "cz":
             qc.add_gate(
-                "CZ",
+                gates.CZ,
                 targets=regs[1],
                 controls=regs[0],
                 classical_controls=classical_controls,
@@ -619,7 +575,7 @@ class QasmProcessor:
             )
         elif name == "cy":
             qc.add_gate(
-                "CY",
+                gates.CY,
                 targets=regs[1],
                 controls=regs[0],
                 classical_controls=classical_controls,
@@ -627,14 +583,22 @@ class QasmProcessor:
             )
         elif name == "ch":
             qc.add_gate(
-                "ch",
+                gates.CH,
+                targets=regs[1],
+                controls=regs[0],
+                classical_controls=classical_controls,
+                classical_control_value=classical_control_value,
+            )
+        elif name == "swap":
+            qc.add_gate(
+                gates.SWAP,
                 targets=regs,
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
             )
         elif name == "ccx":
             qc.add_gate(
-                "TOFFOLI",
+                gates.TOFFOLI,
                 targets=regs[2],
                 controls=regs[:2],
                 classical_controls=classical_controls,
@@ -642,45 +606,61 @@ class QasmProcessor:
             )
         elif name == "crz":
             qc.add_gate(
-                "CRZ",
+                gates.CRZ(args),
                 targets=regs[1],
                 controls=regs[0],
-                arg_value=args,
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
             )
         elif name == "cu1":
             qc.add_gate(
-                "CPHASE",
+                gates.CPHASE(args),
                 targets=regs[1],
                 controls=regs[0],
-                arg_value=args,
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
             )
         elif name == "cu3":
             qc.add_gate(
-                "cu3",
-                targets=[regs[0], regs[1]],
-                arg_value=args,
+                gates.CQASMU(args),
+                controls=regs[0],
+                targets=[regs[1]],
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
             )
         elif name == "cx":
             qc.add_gate(
-                "CNOT",
+                gates.CX,
                 targets=int(regs[1]),
                 controls=int(regs[0]),
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
             )
+        elif name == "rx":
+            qc.add_gate(
+                gates.RX(args),
+                targets=int(regs[0]),
+                classical_controls=classical_controls,
+                classical_control_value=classical_control_value,
+            )
+        elif name == "ry":
+            qc.add_gate(
+                gates.RY(args),
+                targets=int(regs[0]),
+                classical_controls=classical_controls,
+                classical_control_value=classical_control_value,
+            )
+        elif name == "rz":
+            qc.add_gate(
+                gates.RZ(args),
+                targets=int(regs[0]),
+                classical_controls=classical_controls,
+                classical_control_value=classical_control_value,
+            )
         elif name in gate_name_map_1q:
-            if args == []:
-                args = None
             qc.add_gate(
                 gate_name_map_1q[name],
-                targets=regs[0],
-                arg_value=args,
+                targets=int(regs[0]),
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
             )
@@ -691,7 +671,7 @@ class QasmProcessor:
         name,
         com_regs,
         com_args,
-        classical_controls=None,
+        classical_controls=(),
         classical_control_value=None,
     ):
         """
@@ -720,7 +700,7 @@ class QasmProcessor:
 
         if name == "CX":
             qc.add_gate(
-                "CNOT",
+                gates.CX,
                 targets=int(com_regs[1]),
                 controls=int(com_regs[0]),
                 classical_controls=classical_controls,
@@ -728,9 +708,8 @@ class QasmProcessor:
             )
         elif name == "U":
             qc.add_gate(
-                "QASMU",
+                gates.QASMU(com_args),
                 targets=int(com_regs[0]),
-                arg_value=[float(arg) for arg in com_args],
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
             )
@@ -748,8 +727,7 @@ class QasmProcessor:
         self,
         qc,
         command,
-        custom_gates,
-        classical_controls=None,
+        classical_controls=(),
         classical_control_value=None,
     ):
         """
@@ -778,24 +756,17 @@ class QasmProcessor:
         reg_set = self._regs_processor(regs, "gate")
 
         if args:
-            gate_name = "{}({})".format(command[0], ",".join(args))
+            gate_name = f"{command[0]}({','.join(args)})"
         else:
-            gate_name = "{}".format(command[0])
+            gate_name = f"{command[0]}"
 
         # creates custom-gate (if required) using gate defn and provided args
-        if (
-            command[0] not in self.predefined_gates
-            and command[0] not in custom_gates
-        ):
+        custom_gate_unitary = None
+        if command[0] not in self.predefined_gates:
             n = len(reg_set[0])
             qc_temp = QubitCircuit(n)
-            self._custom_gate(
-                qc_temp, [command[0], args, [str(i) for i in range(n)]]
-            )
-            unitary_mat = qc_temp.compute_unitary()
-            custom_gates[gate_name] = unitary_mat
-
-        qc.user_gates = custom_gates
+            self._custom_gate(qc_temp, [command[0], args, [str(i) for i in range(n)]])
+            custom_gate_unitary = qc_temp.compute_unitary()
 
         # adds gate to the QubitCircuit
         for regs in reg_set:
@@ -811,14 +782,21 @@ class QasmProcessor:
                     classical_control_value=classical_control_value,
                 )
             else:
-                if not isinstance(regs, list):
+                if not isinstance(regs, SequenceLike):
                     regs = [regs]
-                qc.add_gate(
-                    gate_name,
-                    targets=regs,
-                    classical_controls=classical_controls,
-                    classical_control_value=classical_control_value,
-                )
+
+                if custom_gate_unitary is not None:
+                    # Instantiate the wrapper gate
+                    gate_obj = get_unitary_gate(
+                        gate_name=gate_name,
+                        U=custom_gate_unitary,
+                    )
+                    qc.add_gate(
+                        gate_obj,
+                        targets=regs,
+                        classical_controls=classical_controls,
+                        classical_control_value=classical_control_value,
+                    )
 
     def _final_pass(self, qc):
         """
@@ -826,21 +804,15 @@ class QasmProcessor:
         by QASM.
         """
 
-        custom_gates = {}
-        if self.mode != "external_only":
-            custom_gates = _get_qiskit_gates()
-
         for command in self.commands:
             if command[0] in self.gate_names:
                 # adds gates to the QubitCircuit
-                self._gate_add(qc, command, custom_gates)
+                self._gate_add(qc, command)
             elif command[0] == "measure":
                 # adds measurement to the QubitCircuit
                 reg_set = self._regs_processor(command[1:], "measure")
                 for regs in reg_set:
-                    qc.add_measurement(
-                        "M", targets=[regs[0]], classical_store=regs[1]
-                    )
+                    qc.add_measurement("M", targets=[regs[0]], classical_store=regs[1])
             elif command[0] == "if":
                 warnings.warn(
                     (
@@ -855,14 +827,11 @@ class QasmProcessor:
                 self._gate_add(
                     qc,
                     command[4:],
-                    custom_gates,
                     cbit_inds,
                     classical_control_value,
                 )
             else:
-                err = "QASM: {} is not a valid QASM command.".format(
-                    command[0]
-                )
+                err = f"QASM: {command[0]} is not a valid QASM command."
                 raise SyntaxError(err)
 
 
@@ -918,10 +887,8 @@ def read_qasm(qasm_input, mode="default", version="2.0", strmode=False):
         qasm_lines[i] = qasm_line
 
     if version != "2.0":
-        raise NotImplementedError(
-            "QASM: Only OpenQASM 2.0 \
-                                  is currently supported."
-        )
+        raise NotImplementedError("QASM: Only OpenQASM 2.0 \
+                                  is currently supported.")
 
     if qasm_lines.pop(0) != "OPENQASM 2.0;":
         raise SyntaxError("QASM: File does not contain QASM 2.0 header")
@@ -935,7 +902,6 @@ def read_qasm(qasm_input, mode="default", version="2.0", strmode=False):
     qc = QubitCircuit(qasm_obj.num_qubits, num_cbits=qasm_obj.num_cbits)
 
     qasm_obj._final_pass(qc)
-
     return qc
 
 
@@ -945,13 +911,14 @@ _GATE_NAME_TO_QASM_NAME = {
     "RY": "ry",
     "RZ": "rz",
     "SNOT": "h",
+    "H": "h",
     "X": "x",
     "Y": "y",
     "Z": "z",
     "S": "s",
     "T": "t",
     "CRZ": "crz",
-    "CNOT": "cx",
+    "CX": "cx",
     "TOFFOLI": "ccx",
 }
 
@@ -995,7 +962,7 @@ class QasmOutput:
         self.lines = []
         self.gate_name_map = deepcopy(_GATE_NAME_TO_QASM_NAME)
 
-    def _qasm_str(self, q_name, q_controls, q_targets, q_args):
+    def _qasm_str(self, q_name, q_targets, q_controls=None, q_args=None):
         """
         Returns QASM string for gate definition or gate application given
         name, registers, arguments.
@@ -1005,96 +972,19 @@ class QasmOutput:
             q_controls = []
         q_regs = q_controls + q_targets
 
-        if isinstance(q_targets[0], int):
-            q_regs = ",".join(["q[{}]".format(reg) for reg in q_regs])
+        if type(q_targets[0]) is int:
+            q_regs = ",".join([f"q[{reg}]" for reg in q_regs])
         else:
             q_regs = ",".join(q_regs)
 
         if q_args:
-            if isinstance(q_args, list):
+            if isinstance(q_args, Iterable):
                 q_args = ",".join([str(arg) for arg in q_args])
-            return "{}({}) {};".format(q_name, q_args, q_regs)
+            return f"{q_name}({q_args}) {q_regs};"
         else:
-            return "{} {};".format(q_name, q_regs)
+            return f"{q_name} {q_regs};"
 
-    def _qasm_defn_from_resolved(self, curr_gate, gates_lst):
-        """
-        Resolve QASM definition of QuTiP gate in terms of component gates.
-
-        Parameters
-        ----------
-        curr_gate: :class:`~.operations.Gate`
-            QuTiP gate which needs to be resolved into component gates.
-        gates_lst: list of :class:`~.operations.Gate`
-            list of gate that constitute QASM definition of self.
-        """
-
-        forbidden_gates = ["GLOBALPHASE", "PHASEGATE"]
-        reg_map = ["a", "b", "c"]
-
-        q_controls = None
-        if curr_gate.controls:
-            q_controls = [reg_map[i] for i in curr_gate.controls]
-        q_targets = [reg_map[i] for i in curr_gate.targets]
-        arg_name = None
-        if curr_gate.arg_value:
-            arg_name = "theta"
-
-        self.output(
-            "gate {} {{".format(
-                self._qasm_str(
-                    curr_gate.name.lower(), q_controls, q_targets, arg_name
-                )[:-1]
-            )
-        )
-
-        for gate in gates_lst:
-            if gate.name in self.gate_name_map:
-                gate.targets = [reg_map[i] for i in gate.targets]
-                if gate.controls:
-                    gate.controls = [reg_map[i] for i in gate.controls]
-                self.output(
-                    self._qasm_str(
-                        self.gate_name_map[gate.name],
-                        gate.controls,
-                        gate.targets,
-                        gate.arg_value,
-                    )
-                )
-            elif gate.name in forbidden_gates:
-                continue
-            else:
-                raise ValueError(
-                    (
-                        "The given resolved gate {} cannot be defined"
-                        " in QASM format"
-                    ).format(curr_gate.name)
-                )
-        self.output("}")
-
-    def _qasm_defn_resolve(self, gate):
-        """
-        Resolve QASM definition of QuTiP gate if possible.
-
-        Parameters
-        ----------
-        gate: :class:`~.operations.Gate`
-            QuTiP gate which needs to be resolved into component gates.
-
-        """
-
-        qc = QubitCircuit(3)
-        gates_lst = []
-        if gate.name == "CSIGN":
-            qc._gate_CSIGN(gate, gates_lst)
-        else:
-            err_msg = "No definition specified for {} gate".format(gate.name)
-            raise NotImplementedError(err_msg)
-
-        self._qasm_defn_from_resolved(gate, gates_lst)
-        self.gate_name_map[gate.name] = gate.name.lower()
-
-    def _qasm_defns(self, gate):
+    def _qasm_defns(self, gate: Gate | Type[Gate]):
         """
         Define QASM gates for QuTiP gates that do not have QASM counterparts.
 
@@ -1104,23 +994,25 @@ class QasmOutput:
             QuTiP gate which needs to be defined in QASM format.
         """
 
-        if gate.name == "CRY":
+        if type(gate) is gates.CRY:
             gate_def = "gate cry(theta) a,b { cu3(theta,0,0) a,b; }"
-        elif gate.name == "CRX":
+        elif type(gate) is gates.CRX:
             gate_def = "gate crx(theta) a,b { cu3(theta,-pi/2,pi/2) a,b; }"
-        elif gate.name == "SQRTNOT":
+        elif gate == gates.SQRTX:
             gate_def = "gate sqrtnot a {h a; u1(-pi/2) a; h a; }"
-        elif gate.name == "CS":
+        elif gate == gates.CZ:
+            gate_def = "gate cz a,b { cu1(pi) a,b; }"
+        elif gate == gates.CS:
             gate_def = "gate cs a,b { cu1(pi/2) a,b; }"
-        elif gate.name == "CT":
+        elif gate == gates.CT:
             gate_def = "gate ct a,b { cu1(pi/4) a,b; }"
-        elif gate.name == "SWAP":
+        elif gate == gates.SWAP:
             gate_def = "gate swap a,b { cx a,b; cx b,a; cx a,b; }"
         else:
-            self._qasm_defn_resolve(gate)
-            return
+            err_msg = f"No definition specified for {gate.name} gate"
+            raise NotImplementedError(err_msg)
 
-        self.output("// QuTiP definition for gate {}".format(gate.name))
+        self.output(f"// QuTiP definition for gate {gate.name}")
         self.output(gate_def)
         self.gate_name_map[gate.name] = gate.name.lower()
 
@@ -1168,10 +1060,8 @@ class QasmOutput:
         if self.version == "2.0":
             self.output("OPENQASM 2.0;")
         else:
-            raise NotImplementedError(
-                "QASM: Only OpenQASM 2.0 \
-                                      is currently supported."
-            )
+            raise NotImplementedError("QASM: Only OpenQASM 2.0 \
+                                      is currently supported.")
 
         self.output('include "qelib1.inc";', 1)
 
@@ -1233,4 +1123,4 @@ def save_qasm(qc, file_loc):
     lines = qasm_out._qasm_output(qc)
     with open(file_loc, "w") as f:
         for line in lines:
-            f.write("{}\n".format(line))
+            f.write(f"{line}\n")
