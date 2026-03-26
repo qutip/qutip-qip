@@ -2,7 +2,7 @@ import numpy as np
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations import Gate, get_controlled_gate
 from qutip_qip.operations.gates import H, X, Z, CZ
-from qutip_qip.typing import IntSequence
+from qutip_qip.typing import IntSequence, SequenceLike
 
 __all__ = ["grover", "grover_oracle"]
 
@@ -27,6 +27,8 @@ def grover_oracle(
     """
     if isinstance(search_qubits, int):
         search_qubits = list(range(search_qubits))
+    elif not isinstance(search_qubits, SequenceLike):
+        raise TypeError("search_qubits must be an int or a Sequence of int")
     else:
         search_qubits = list(search_qubits)
 
@@ -141,6 +143,8 @@ def grover(
     """
     if isinstance(search_qubits, int):
         search_qubits = list(range(search_qubits))
+    elif not isinstance(search_qubits, SequenceLike):
+        raise TypeError("search_qubits must be an int or a Sequence of int")
     else:
         search_qubits = list(search_qubits)
 
