@@ -37,6 +37,7 @@ version of qutip-qip so it does not interfere with any other installation you mi
 have. This can be done with ::
 
 .. code-block::
+
    conda create -n qutip-dev python>=3.10
 
 This will create the virtual environment ``qutip-dev``, which you can then
@@ -67,6 +68,7 @@ You can now "clone" your fork onto your local computer.  The command will look
 something like ::
 
 .. code-block::
+
    git clone https://github.com/<user>/qutip-qip
 
 where ``<user>`` is your GitHub username (i.e. *not* ``qutip``).  This will
@@ -87,6 +89,7 @@ set up earlier. If you are in the root of the ``qutip-qip`` repository
 (you should see the file ``pyproject.toml``), then the command to install is ::
 
 .. code-block::
+
    pip install --upgrade pip
    pip install -e .[full]
 
@@ -96,6 +99,7 @@ environment active. Also you should install the dev dependencies for testing, li
 by running the command:
 
 .. code-block::
+
    pip install --group dev
 
 .. note::
@@ -139,7 +143,8 @@ then pull down the changes into your ``master`` branch.
 To fetch changes from our copy, you will need to add our version (the repository
 that you clicked "Fork" on) as a Git remote.  The base command is ::
 
-.. code-block:: sh
+.. code-block::
+
    git remote add upstream https://github.com/qutip/qutip-qip
 
 This will add a remote called ``upstream`` to your local copy.  You will not
@@ -147,6 +152,7 @@ have write access to this, so you will not be able to push to it.  You will,
 however, be able to fetch from it.  While on ``master``, do ::
 
 .. code-block::
+
    git pull upstream master
 
 Unless you have made changes to your own version of ``master``, this will bring
@@ -162,18 +168,21 @@ you up-to-speed with ours.  To create and swap to a new branch to work on, use
 the ``switch`` command switches to the specified branch. To add commits to a branch, make the
 changes you want to make, then call ::
 
-.. code-block:: sh
+.. code-block::
+
    git add <file1> [<file2> ...]
 
 on all the files you changed, and do ::
 
-.. code-block:: sh
+.. code-block::
+
    git commit -m "<your message>"
 
 to commit them.  Once you've made all the commits you want to make, push them to
 your GitHub fork with ::
 
-.. code-block:: sh
+.. code-block::
+
    git push -u origin
 
 and make the Pull Request (PR) using the GitHub web interface in the qutip-qip repository.
@@ -274,6 +283,7 @@ Optionally you can generate code coverage report locally. First make sure
 required packages have been installed.
 
 .. code-block::
+
   pip install pytest-cov
 
 A code coverage report in ``html`` format  can be generated locally for
@@ -283,10 +293,12 @@ in `other formats <https://pytest-cov.readthedocs.io/en/latest/reporting.html>`_
 besides ``html``.
 
 .. code-block::
+
   pytest --cov-report html --cov=qutip_qip tests/
 
 If you would prefer to check the code coverage of one specific file, specify
 the location of this file. Same as above the report can be accessed in ``htmlcov``.
 
 .. code-block::
+
   pytest --cov-report html --cov=qutip_qip tests/test_something.py
