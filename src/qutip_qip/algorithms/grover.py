@@ -2,7 +2,7 @@ import numpy as np
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations import Gate, get_controlled_gate
 from qutip_qip.operations.gates import H, X, Z, CZ
-from qutip_qip.typing import IntSequence
+from qutip_qip.typing import IntSequence, SequenceLike
 
 __all__ = ["grover", "grover_oracle"]
 
@@ -27,6 +27,11 @@ def grover_oracle(
     """
     if isinstance(search_qubits, int):
         search_qubits = list(range(search_qubits))
+    elif not isinstance(search_qubits, SequenceLike):
+        raise TypeError("search_qubits must be an int or a Sequence of int")
+
+    if len(search_qubits) == 0:
+        raise ValueError("search_qubits must contain at least one qubit index.")
 
     if isinstance(marked_states, int):
         marked_states = [marked_states]
@@ -39,7 +44,7 @@ def grover_oracle(
         # Safety check
         if state < 0 or state >= (1 << n_qubits):
             raise ValueError(
-                f"Marked state {state} is out of bounds for {n_qubits} qubits. Valid range is [0, {2**n_qubits-1}]."
+                f"Marked state {state} is out of bounds for {n_qubits} qubits. Valid range is [0, {2**n_qubits - 1}]."
             )
 
         binary_rep = format(state, f"0{n_qubits}b")
@@ -64,10 +69,10 @@ def grover_oracle(
                 mcz = get_controlled_gate(Z, len(ctrls), ctrl_val)
                 qc.add_gate(mcz, controls=ctrls, targets=tgt)
 
-            # uncompute by X
-            for i, char in enumerate(binary_rep):
-                if char == "0":
-                    qc.add_gate(X, targets=search_qubits[i])
+        # Uncompute the flipped zero bits for all qubit counts.
+        for i, char in enumerate(binary_rep):
+            if char == "0":
+                qc.add_gate(X, targets=search_qubits[i])
 
     return qc
 
@@ -136,6 +141,11 @@ def grover(
     """
     if isinstance(search_qubits, int):
         search_qubits = list(range(search_qubits))
+    elif not isinstance(search_qubits, SequenceLike):
+        raise TypeError("search_qubits must be an int or a Sequence of int")
+
+    if len(search_qubits) == 0:
+        raise ValueError("search_qubits must contain at least one qubit index.")
 
     n_qubits = len(search_qubits)
     search_space_size = 1 << n_qubits
