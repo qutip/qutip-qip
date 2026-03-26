@@ -29,8 +29,7 @@ def grover_oracle(
         search_qubits = list(range(search_qubits))
     elif not isinstance(search_qubits, SequenceLike):
         raise TypeError("search_qubits must be an int or a Sequence of int")
-    else:
-        search_qubits = list(search_qubits)
+    search_qubits = list(search_qubits)
 
     if len(search_qubits) == 0:
         raise ValueError("search_qubits must contain at least one qubit index.")
@@ -145,8 +144,7 @@ def grover(
         search_qubits = list(range(search_qubits))
     elif not isinstance(search_qubits, SequenceLike):
         raise TypeError("search_qubits must be an int or a Sequence of int")
-    else:
-        search_qubits = list(search_qubits)
+    search_qubits = list(search_qubits)
 
     if len(search_qubits) == 0:
         raise ValueError("search_qubits must contain at least one qubit index.")
