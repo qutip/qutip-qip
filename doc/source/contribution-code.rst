@@ -13,7 +13,7 @@ stop by to talk to us either in the `QuTiP Google group`_ or in the issues page
 on the `qutip-qip repository`_ if you have suggestions for new features, so we
 can discuss the design and suitability with you.
 
-To contribute to QuTiP development, you will need to have a working knowledge of
+To contribute to QuTiP-qip development, you will need to have a working knowledge of
 ``git``.  If you're not familiar with it, you can read `GitHub's simple introduction`_
 or look at the official `Git book <https://git-scm.com/book/en>`_ which also has the basics,
 but then goes into much more detail if you're interested.
@@ -60,7 +60,7 @@ To create a fork, go to the relevant repository's page on GitHub (for example,
 the `qutip-qip repository`_), and click the fork
 button in the top right.  This will create a linked version of the repository in
 your own GitHub account. For additional details you may refer to GitHub's documentation
-on `forking <https://guides.github.com/activies/forking>`_.
+on `forking <https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo>`_.
 
 You can now "clone" your fork onto your local computer.  The command will look
 something like
@@ -97,13 +97,13 @@ by running the command:
 
 .. code-block::
 
-    pip install --upgrade pip
+   pip install --upgrade pip
    pip install --group dev
 
 .. note::
    You do not need to re-run above commands even when you make changes
-   to the Project's Python files. `-e` flag automatically ensure you are
-   using latest local changes when you do ``import qutip_qip``
+   to the project's Python files. The ``-e`` flag automatically ensures that you are
+   using the latest local changes when you do ``import qutip_qip``
 
 You should now be able to run the tests.  From the root of the repository, or in
 ``qutip-qip/tests`` folder, you can simply run ``pytest`` to run
@@ -124,7 +124,7 @@ steps:
 #. Create a new branch for your changes
 #. Add commits with your changes to your new branch
 #. Push your branch to your fork on GitHub
-#. Make a pull request (PR) to the QuTiP repository
+#. Make a pull request (PR) to the qutip/qutip-qip repository
 
 You can read more documentation about this pattern in the
 `GitHub guide to Flow`_, and see
@@ -192,7 +192,7 @@ Pull Requests
 =============
 
 Please give the pull request a short, clear title that gives us an idea of what
-your proposed change does.  It's good if this not more ten words, and starts
+your proposed change does.  It's good if this is not more than ten words, and starts
 with an imperative verb.  Good examples of titles are:
 
 - `Add QROT and MS gate <https://github.com/qutip/qutip-qip/pull/193>`_

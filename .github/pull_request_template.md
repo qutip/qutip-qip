@@ -2,7 +2,7 @@
 Thank you for contributing to QuTiP-qip! Please make sure you have finished the following tasks before opening the PR.
 
 - [ ] Please read [Contributing to QuTiP-qip Development](https://qutip-qip.readthedocs.io/en/latest/contribution-code.html)
-- [ ] Contributions to qutip should follow the [pep8 style](https://www.python.org/dev/peps/pep-0008/).
+- [ ] Contributions to QuTiP-qip should follow the [PEP 8 style](https://www.python.org/dev/peps/pep-0008/).
 You can use [pycodestyle](http://pycodestyle.pycqa.org/en/latest/index.html) to check your code automatically
 - [ ] Please add tests to cover your changes if applicable.
 - [ ] If the behavior of the code has changed or new feature has been added, please also update the documentation in the `doc` folder, and the [notebook](https://github.com/qutip/qutip-tutorials). Feel free to ask if you are not sure.
