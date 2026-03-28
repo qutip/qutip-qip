@@ -4,13 +4,13 @@
 Contributing to the source code
 *******************************
 
-Build up an development environment
-===================================
+Build a development environment
+===============================
 
 This page describes how to get the development environment set up so that
-you can begin contributing code, documentation or examples to QuTiP.  Please
+you can begin contributing code, documentation or examples to QuTiP-qip.  Please
 stop by to talk to us either in the `QuTiP Google group`_ or in the issues page
-on the `Qutip-qip repository`_ if you have suggestions for new features, so we
+on the `qutip-qip repository`_ if you have suggestions for new features, so we
 can discuss the design and suitability with you.
 
 To contribute to QuTiP development, you will need to have a working knowledge of
@@ -26,22 +26,21 @@ but then goes into much more detail if you're interested.
 Requirements
 ============
 
-To build ``qutip-qip`` from source and to run the tests, you will need recent
-versions of
+To build ``qutip-qip`` from source, you will need recent versions of
 
 - ``python`` (at least version 3.10)
 - ``setuptools``
 
 You should set up a separate virtual environment to house your development
 version of qutip-qip so it does not interfere with any other installation you might
-have. This can be done with ::
+have. If you use conda, this can be done with the command
 
 .. code-block::
 
    conda create -n qutip-dev python>=3.10
 
 This will create the virtual environment ``qutip-dev``, which you can then
-switch to by using ``conda activate qutip-dev``.
+switch to by using the command ``conda activate qutip-dev``.
 
 .. note::
    You do not need to use ``conda``---any suitable virtual environment manager
@@ -54,18 +53,17 @@ Creating a Local Copy
 At some point you will (hopefully) want to share your changes with us, so you
 should fork the main repository on GitHub into your account, and then clone
 that forked copy.  If you do not create a fork on GitHub, you will be able to
-read and install QuTiP-qip, but you will not be able to push any changes you make
+install and modify QuTiP-qip, but you will not be able to push any changes you make
 back to GitHub so you can share them with us.
 
 To create a fork, go to the relevant repository's page on GitHub (for example,
-the qutip-qip repository is
-`qutip/qutip on GitHub <https://github.com/qutip/qutip-qip>`_), and click the fork
+the `qutip-qip repository`_), and click the fork
 button in the top right.  This will create a linked version of the repository in
-your own GitHub account.  GitHub also has `its own documentation on forking
-<https://guides.github.com/activies/forking>`_.
+your own GitHub account. For additional details you may refer to GitHub's documentation
+on `forking <https://guides.github.com/activies/forking>`_.
 
 You can now "clone" your fork onto your local computer.  The command will look
-something like ::
+something like
 
 .. code-block::
 
@@ -86,11 +84,10 @@ Building From Source
 
 Make sure you have activated your QuTiP development virtual environment that you
 set up earlier. If you are in the root of the ``qutip-qip`` repository
-(you should see the file ``pyproject.toml``), then the command to install is ::
+(you should see the file ``pyproject.toml``), then the command to install is
 
 .. code-block::
 
-   pip install --upgrade pip
    pip install -e .[full]
 
 After you have done this, you should
@@ -100,6 +97,7 @@ by running the command:
 
 .. code-block::
 
+    pip install --upgrade pip
    pip install --group dev
 
 .. note::
@@ -108,8 +106,8 @@ by running the command:
    using latest local changes when you do ``import qutip_qip``
 
 You should now be able to run the tests.  From the root of the repository, or in
-``qutip-qip/tests``, you can simply run ``pytest`` to run
-everything.  The full test suite will take around 1-2 minutes, depending on
+``qutip-qip/tests`` folder, you can simply run ``pytest`` to run
+all the tests.  The full test suite will take around 1-2 minutes, depending on
 your computer.  You can test specific files by passing them as arguments to
 ``pytest``.
 
@@ -141,7 +139,7 @@ have.  Always use topic branches, and do not merge them directly into
 then pull down the changes into your ``master`` branch.
 
 To fetch changes from our copy, you will need to add our version (the repository
-that you clicked "Fork" on) as a Git remote.  The base command is ::
+that you clicked "Fork" on) as a Git remote.  The base command is
 
 .. code-block::
 
@@ -149,7 +147,7 @@ that you clicked "Fork" on) as a Git remote.  The base command is ::
 
 This will add a remote called ``upstream`` to your local copy.  You will not
 have write access to this, so you will not be able to push to it.  You will,
-however, be able to fetch from it.  While on ``master``, do ::
+however, be able to fetch from it.  While on ``master``, do
 
 .. code-block::
 
@@ -157,7 +155,6 @@ however, be able to fetch from it.  While on ``master``, do ::
 
 Unless you have made changes to your own version of ``master``, this will bring
 you up-to-speed with ours.  To create and swap to a new branch to work on, use
-::
 
 .. code-block::
 
@@ -166,20 +163,20 @@ you up-to-speed with ours.  To create and swap to a new branch to work on, use
 
 ``git branch <branchname>`` will create a new branch with the specified branch-name, while
 the ``switch`` command switches to the specified branch. To add commits to a branch, make the
-changes you want to make, then call ::
+changes you want to make, then call
 
 .. code-block::
 
    git add <file1> [<file2> ...]
 
-on all the files you changed, and do ::
+on all the files you changed, and do
 
 .. code-block::
 
    git commit -m "<your message>"
 
 to commit them.  Once you've made all the commits you want to make, push them to
-your GitHub fork with ::
+your GitHub fork with
 
 .. code-block::
 
@@ -188,7 +185,7 @@ your GitHub fork with ::
 and make the Pull Request (PR) using the GitHub web interface in the qutip-qip repository.
 
 
-.. _GitHub guide to Flow: https::guides.github.com/introduction/flow
+.. _GitHub guide to Flow: https://guides.github.com/introduction/flow
 
 
 Pull Requests
@@ -245,7 +242,7 @@ into the ``tests`` folder, following the conventions in there.  Try to add
 them to the relevant file if it already exists.  We use ``pytest`` to run the
 tests, so write your tests in this style.
 
-New features should be supported by an example `Jupytext notebook`_ in the
+New features should be supported by an example `notebook`_ in the
 separate ``qutip-tutorial`` repository (`qutip/qutip-tutorials on GitHub`_).
 This will require making a separate PR to that repository, and it's helpful if
 you add links between the two in the descriptions.
@@ -263,7 +260,7 @@ may depend on the names staying the same.
 .. _Sphinx's autodoc extension: https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html
 .. _NumPy docstring format: https://numpydoc.readthedocs.io/en/latest/format.html
 .. _parametrisation routines: https://docs.pytest.org/en/stable/parametrize.html
-.. _Jupytext notebook: https://jupyter.org
+.. _notebook: https://jupyter.org
 .. _qutip/qutip-tutorials on GitHub: https://github.com/qutip/qutip-tutorials
 
 
