@@ -22,9 +22,9 @@ You can ask questions or answer other user's question on our [Discussion](https:
 
 
 ## Reporting Bugs/Issues
-If you find a bug or issue, it is best to search for existing [Issue](https://github.com/qutip/qutip-qip/issues) that might help you. If you didn't find a related issue, please ask report the bug/issue by opening a new issue.:
+If you find a bug or issue, it is best to first search in the existing [Issues](https://github.com/qutip/qutip-qip/issues) list. If you didn't find a related issue, please ask report the bug/issue by opening a new issue.:
 
-- Open an [Issue](/issues/new).
+- Open an [Issue](https://github.com/qutip/qutip-qip/issues/new).
 - Provide as much context as you can about what you're running into.
 - Provide the python and package versions by running `qutip.about()` command.
 
@@ -32,14 +32,18 @@ We will then take care of the issue as soon as possible.
 
 
 ## Contributing to Code
-If you want to contribute, please read the [Contributing to QuTiP-qip development](https://qutip-qip.readthedocs.io/en/latest/contribution-code.html) section of the documentation.
+If you want to contribute, please read the [Contributing to QuTiP-qip development](https://qutip-qip.readthedocs.io/en/latest/contribution-code.html) section of the documentation to set up the Python environment for development.
+
+### Choose an issue to work on
+Qutip-qip uses the following labels to help non-maintainers find issues best suited to their interests and experience level:
+
+- [good first issue](https://github.com/qutip/qutip-qip/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) - these issues are typically the simplest available to work on, ideal for newcomers. They should already be fully scoped, with a clear approach outlined in the descriptions.
+- [help wanted](https://github.com/qutip/qutip-qip/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22) - these issues are generally more complex than good first issues. They typically cover work that core maintainers don't currently have capacity to implement and may require more investigation/discussion. These are a great option for experienced contributors looking for something a bit more challenging.
 
 #### Assigning Issues
 In our workflow, we generally avoid formally assigning issues to contributors. This approach is intentional — it keeps the project open and flexible, allowing anyone from the community to explore and work on problems that interest them, without waiting for explicit assignment or approval.
 
 The only exception to this is a small subset of “core” issues. These are typically more complex, sensitive, or tightly coupled to ongoing development efforts, and are therefore handled directly by maintainers.
-
-For all other issues, contributors are encouraged to take initiative: browse the open issues, find something that aligns with their interests or expertise, and start working on it. The first pull request that effectively resolves an issue will be considered for merging, as long as it adheres to the project’s contribution guidelines and maintains the expected standards of code quality.
 
 
 #### AI Tool Usage Policy
