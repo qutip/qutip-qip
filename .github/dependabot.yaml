@@ -1,0 +1,21 @@
+version: 2
+updates:
+  # Enable version updates for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/.github/workflows/"
+    schedule:
+      interval: "monthly"
+
+  # Enable version update for dev dependencies
+  # Note: We cannot add any Python-based dependency here is because we require that dependency
+  # to support the minimum Python supported by us (e.g. 3.10). But it is quite likely that
+  # the depedency (e.g. numpy) would have upgraded their min Python version to say (e.g. 3.11)
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    allow:
+      - dependency-name: "black"
+    labels:
+      - "dependencies"
+      - "lint"
