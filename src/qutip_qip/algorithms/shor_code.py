@@ -31,6 +31,7 @@ class ShorCode:
 
         for block in phase_blocks:
             phase_code = PhaseFlipCode()
-            phase_code.encode_circuit(qc, block)
+            phase_qc = phase_code.encode_circuit(block)
+            qc.add_circuit(phase_qc)
 
         return qc
