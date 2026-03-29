@@ -102,8 +102,8 @@ where = ["src"]
 enabled = true
 version_file = "VERSION"
 count_commits_from_version_file = true
-dev_template = "{tag}.dev{ccount}+git.{sha}"
-dirty_template = "{tag}.dev{ccount}+git.{sha}.dirty"
+dev_template = "{tag}{ccount}+git.{sha}"
+dirty_template = "{tag}{ccount}+git.{sha}.dirty"
 
 [tool.black]
 line-length = 88
