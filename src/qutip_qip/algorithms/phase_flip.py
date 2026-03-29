@@ -1,5 +1,6 @@
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations.gates import CX, H
+from qutip_qip.operations.gates import CX, H, Z
+from qutip_qip.typing import IntSequence
 
 
 class PhaseFlipCode:
@@ -35,7 +36,7 @@ class PhaseFlipCode:
         """
         return self._n_syndrome
 
-    def encode_circuit(self, qc, data_qubits):
+    def encode_circuit(self, data_qubits: IntSequence):
         """
         Constructs the encoding circuit for the phase-flip code.
 
@@ -54,6 +55,8 @@ class PhaseFlipCode:
         if len(data_qubits) != 3:
             raise ValueError("Expected 3 data qubits.")
 
+        qc = QubitCircuit(max(data_qubits) + 1)
+
         # Bit-flip-style encoding
         control = data_qubits[0]
         for target in data_qubits[1:]:
@@ -65,7 +68,9 @@ class PhaseFlipCode:
 
         return qc
 
-    def syndrome_and_correction_circuit(self, data_qubits, syndrome_qubits):
+    def syndrome_and_correction_circuit(
+        self, data_qubits: IntSequence, syndrome_qubits: IntSequence
+    ):
         """
         Builds the circuit for syndrome extraction and correction.
 
@@ -82,7 +87,7 @@ class PhaseFlipCode:
             QubitCircuit: Circuit for syndrome measurement and Z correction.
 
         Raises:
-            ValueError: If the number of qubits is incorrect.
+            ValueError: If there are not exactly 3 data qubits and 2 syndrome qubits.
         """
         if len(data_qubits) != 3 or len(syndrome_qubits) != 2:
             raise ValueError("Expected 3 data qubits and 2 syndrome qubits.")
@@ -95,7 +100,7 @@ class PhaseFlipCode:
 
         # Convert back from X-basis
         for q in data_qubits:
-            qc.add_gate("H", targets=[q])
+            qc.add_gate(H, targets=[q])
 
         # Parity checks
         qc.add_gate(CX, controls=dq[0], targets=sq[0])
@@ -105,7 +110,7 @@ class PhaseFlipCode:
 
         # Convert to X-basis
         for q in data_qubits:
-            qc.add_gate("H", targets=[q])
+            qc.add_gate(H, targets=[q])
 
         # Measure syndrome qubits
         qc.add_measurement(sq[0], sq[0], classical_store=0)
@@ -113,19 +118,19 @@ class PhaseFlipCode:
 
         # Classically controlled Z corrections
         qc.add_gate(
-            "Z",
+            Z,
             targets=dq[0],
             classical_controls=[0, 1],
             classical_control_value=2,
         )
         qc.add_gate(
-            "Z",
+            Z,
             targets=dq[1],
             classical_controls=[0, 1],
             classical_control_value=3,
         )
         qc.add_gate(
-            "Z",
+            Z,
             targets=dq[2],
             classical_controls=[0, 1],
             classical_control_value=1,
@@ -133,7 +138,7 @@ class PhaseFlipCode:
 
         return qc
 
-    def decode_circuit(self, data_qubits):
+    def decode_circuit(self, data_qubits: IntSequence):
         """
         Constructs the decoding circuit that reverses the encoding operation.
 

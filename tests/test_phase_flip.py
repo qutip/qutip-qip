@@ -4,7 +4,7 @@ import numpy as np
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.algorithms import PhaseFlipCode
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations.gates import Z
+from qutip_qip.operations.gates import Z, CX, H
 
 
 @pytest.fixture
@@ -23,9 +23,11 @@ def syndrome_qubits():
 
 
 def test_encode_circuit_structure(code, data_qubits):
-    qc = QubitCircuit(max(data_qubits) + 1)
-    code.encode_circuit(qc, data_qubits)
-    gate_names = [ins.operation.name for ins in qc.instructions]
+    """
+    Verify the gate count and target/control topology of the encoding circuit.
+    """
+    qc = code.encode_circuit(data_qubits)
+    gate_names = [op.operation.name for op in qc.instructions]
     assert gate_names.count("H") == 3
     assert gate_names.count("CX") == 2
     assert qc.instructions[0].controls == (0,)
@@ -35,6 +37,9 @@ def test_encode_circuit_structure(code, data_qubits):
 
 
 def test_decode_circuit_structure(code, data_qubits):
+    """
+    Verify the gate count and target/control topology of the decoding circuit.
+    """
     qc = code.decode_circuit(data_qubits)
     gate_names = [op.operation.name for op in qc.instructions]
     assert gate_names.count("CX") == 2
@@ -69,13 +74,11 @@ def test_phaseflip_correction_simulation(
     # Inject error
     if error_qubit is not None:
         qc_error = QubitCircuit(num_qubits=5)
-        qc_error.add_gate("Z", targets=[error_qubit])
+        qc_error.add_gate(Z, targets=[error_qubit])
         state = qc_error.run(state)
 
     # Syndrome measurement and Z correction
-    qc_correct = code.syndrome_and_correction_circuit(
-        data_qubits, syndrome_qubits
-    )
+    qc_correct = code.syndrome_and_correction_circuit(data_qubits, syndrome_qubits)
     state = qc_correct.run(state)
 
     # Decode to return to original basis
