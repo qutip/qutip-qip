@@ -21,7 +21,6 @@ dependencies = [
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: BSD License",
     "Operating System :: MacOS",
     "Operating System :: POSIX:: Linux",
     "Operating System :: Microsoft :: Windows",
