@@ -10,7 +10,7 @@ This update includes improvements such as a new test for verifying that circuit 
 
 Improvements
 ------------
-- Add a test to verify that the Matplotlib, Text, and LaTeX renderers saves circuit files in PNG, TXT, and PDF formats. (`#260 <https://github.com/qutip/qutip-qip/pull/260>`_ by Rushiraj Gadhvi)
+- Add a test to verify that the Matplotlib, Text, and LaTeX renderers save circuit files in PNG, TXT, and PDF formats. (`#260 <https://github.com/qutip/qutip-qip/pull/260>`_ by Rushiraj Gadhvi)
 - Add family package entry point with about information. (`#261 <https://github.com/qutip/qutip-qip/pull/261>`_ by Simon Cross)
 
 Bug Fixes
