@@ -67,7 +67,7 @@ Changelog = "https://qutip-qip.readthedocs.io/en/stable/changelog.html"
 
 [project.optional-dependencies]
 graphics = ["matplotlib>=3.5.0"]
-control = ["qutip-qtrl>=0.1"]
+control = ["qutip-qtrl>=0.1.5"]
 qiskit = ["qiskit>=2.0.0"]
 full = [
     "qutip-qip[graphics,qiskit,control]",
