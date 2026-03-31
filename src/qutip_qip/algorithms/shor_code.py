@@ -24,7 +24,7 @@ class ShorCode:
 
         # Step 1: Bit-flip encode qubit 0 → [0, 1, 2]
         bit_code = BitFlipCode()
-        bit_code.encode_circuit(qc, [0, 1, 2])
+        bit_code.encode_circuit([0, 1, 2])
 
         # Step 2: Phase-flip encode each of [0,1,2] across 3 qubits each:
         phase_blocks = [[0, 3, 6], [1, 4, 7], [2, 5, 8]]
