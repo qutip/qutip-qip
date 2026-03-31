@@ -41,7 +41,7 @@ jobs:
           #   -T : display a full traceback if a Python exception occurs
 
       - name: Upload built files
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: qutip_qip_html_docs
           path: doc/_build/html/*
