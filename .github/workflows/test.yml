@@ -4,8 +4,8 @@ on:
   push:
     branches: [ master ]
     paths: &trigger_paths
-      - "src/**.py"
-      - "tests/**.py"
+      - "src/**/*.py"
+      - "tests/**/*.py"
       - ".github/workflows/test.yml" #Run when this exact pipeline file changes
       - "pyproject.toml" # Run when any dependency changes
   pull_request:
@@ -88,23 +88,10 @@ jobs:
         MPLBACKEND: Agg
       run: |
         pip install pytest-cov
-        pytest tests --strict-markers --cov=qutip_qip --cov-report= --color=yes
+        pytest tests --strict-markers --cov=qutip_qip --cov-report=lcov --color=yes
 
     - name: Upload to Coveralls
+      if: ${{ startsWith( matrix.qutip-version, '@') }}
       uses: coverallsapp/github-action@v2
       with:
-        # Each matrix has a unique name so that Coveralls doesn't overwrite them
-        flag-name: run-${{ matrix.os }}-py${{ matrix.python-version }}
-        parallel: true
-
-  finalise:
-    name: Finalise coverage reporting
-    needs: [cases]
-    runs-on: ubuntu-latest
-    if: ${{ success() }}
-    # Will only run if ALL 'cases' pass
-    steps:
-      - name: Coveralls Finished
-        uses: coverallsapp/github-action@v2
-        with:
-          parallel-finished: true
+        file: coverage.lcov
