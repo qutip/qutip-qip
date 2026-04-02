@@ -1,5 +1,5 @@
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations.gates import CX, H, Z
+from qutip_qip.operations.gates import CX, H, Z, TOFFOLI
 from qutip_qip.typing import IntSequence
 
 
@@ -36,7 +36,7 @@ class PhaseFlipCode:
         """
         return self._n_syndrome
 
-    def encode_circuit(self, data_qubits: IntSequence):
+    def encode_circuit(self, data_qubits: IntSequence) -> QubitCircuit:
         """
         Constructs the encoding circuit for the phase-flip code.
 
@@ -70,7 +70,7 @@ class PhaseFlipCode:
 
     def syndrome_and_correction_circuit(
         self, data_qubits: IntSequence, syndrome_qubits: IntSequence
-    ):
+    ) -> QubitCircuit:
         """
         Builds the circuit for syndrome extraction and correction.
 
@@ -113,38 +113,38 @@ class PhaseFlipCode:
             qc.add_gate(H, targets=[q])
 
         # Measure syndrome qubits
-        qc.add_measurement(sq[0], sq[0], classical_store=0)
-        qc.add_measurement(sq[1], sq[1], classical_store=1)
+        qc.add_measurement("M0", sq[0], classical_store=0)
+        qc.add_measurement("M1", sq[1], classical_store=1)
 
         # Classically controlled Z corrections
         qc.add_gate(
             Z,
             targets=dq[0],
             classical_controls=[0, 1],
-            classical_control_value=2,
+            classical_control_value=0b10,
         )
         qc.add_gate(
             Z,
             targets=dq[1],
             classical_controls=[0, 1],
-            classical_control_value=3,
+            classical_control_value=0b11,
         )
         qc.add_gate(
             Z,
             targets=dq[2],
             classical_controls=[0, 1],
-            classical_control_value=1,
+            classical_control_value=0b01,
         )
 
         return qc
 
-    def decode_circuit(self, data_qubits: IntSequence):
+    def decode_circuit(self, data_qubits: IntSequence) -> QubitCircuit:
         """
         Constructs the decoding circuit that reverses the encoding operation.
 
         It first applies the Hadamard (H) gates to convert the qubits back from
         the X-basis to the Z-basis, then applies the inverse of the CX encoding to
-        decode the qubits.
+        decode the qubits. A Toffoli gate is applied in the end to verify parity.
 
         Args:
             data_qubits (list[int]): Indices of 3 data qubits.
@@ -166,5 +166,7 @@ class PhaseFlipCode:
         control = data_qubits[0]
         for target in reversed(data_qubits[1:]):
             qc.add_gate(CX, controls=control, targets=target)
+
+        qc.add_gate(TOFFOLI, controls=data_qubits[1:], targets=control)
 
         return qc

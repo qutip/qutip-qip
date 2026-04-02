@@ -30,10 +30,10 @@ def test_encode_circuit_structure(code, data_qubits):
     gate_names = [op.operation.name for op in qc.instructions]
     assert gate_names.count("H") == 3
     assert gate_names.count("CX") == 2
-    assert qc.instructions[0].controls == (0,)
-    assert qc.instructions[0].targets == (1,)
-    assert qc.instructions[1].controls == (0,)
-    assert qc.instructions[1].targets == (2,)
+    assert qc.instructions[0].controls == (data_qubits[0],)
+    assert qc.instructions[0].targets == (data_qubits[1],)
+    assert qc.instructions[1].controls == (data_qubits[0],)
+    assert qc.instructions[1].targets == (data_qubits[2],)
 
 
 def test_decode_circuit_structure(code, data_qubits):
@@ -44,10 +44,10 @@ def test_decode_circuit_structure(code, data_qubits):
     gate_names = [op.operation.name for op in qc.instructions]
     assert gate_names.count("CX") == 2
     assert gate_names.count("H") == 3
-    assert qc.instructions[3].controls == (0,)
-    assert qc.instructions[3].targets == (2,)
-    assert qc.instructions[4].controls == (0,)
-    assert qc.instructions[4].targets == (1,)
+    assert qc.instructions[3].controls == (data_qubits[0],)
+    assert qc.instructions[3].targets == (data_qubits[2],)
+    assert qc.instructions[4].controls == (data_qubits[0],)
+    assert qc.instructions[4].targets == (data_qubits[1],)
 
 
 @pytest.mark.parametrize("seed", [42, 123, 777, 1337, 9999])
