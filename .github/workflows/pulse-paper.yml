@@ -1,20 +1,27 @@
-name: Pulse Paper Code
+name: Test Pulse Paper Code
 
 on:
   push:
     branches: [ master ]
+    paths: &trigger_paths
+      - "pulse-paper/**.py"
+      - "src/**.py"
+      - ".github/workflows/pulse-paper.yml" #Run when this exact pipeline file changes
   pull_request:
-    paths:
-        - pulse-paper/*
-        - src/*
-        - .github/workflows/pulse-paper.yml #Run when this exact pipeline file changes
+    paths: *trigger_paths
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
     test:
         runs-on: ubuntu-latest
 
         steps:
-        - uses: actions/checkout@v6
+        - name: Clone the repo
+          uses: actions/checkout@v4
+
         - name: Set up Python
           uses: actions/setup-python@v6
           with:
@@ -23,11 +30,11 @@ jobs:
         - name: Install dependencies
           run: |
             python -m pip install --upgrade pip
-            python -m pip install scipy==1.14.0
+            python -m pip install scipy==1.14.0  # Due to Issue #39 in qutip-qtrl
             pip install .[graphics,control]
 
         - name: Test code examples for the pulse paper
+          working-directory: pulse-paper
           run: |
-            cd pulse-paper
             for f in *.py; do python -W error "$f"; done
             # '-W error' will throw an error in case any warning is raised
