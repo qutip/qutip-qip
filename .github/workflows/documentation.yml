@@ -1,7 +1,17 @@
 name: Build HTML documentation
 
 on:
-  [push, pull_request]
+  push:
+    paths: &trigger_paths
+      - "doc/**"
+      - "src/**"
+      - ".github/workflows/documentation.yml" # Run when this exact pipeline file changes
+  pull_request:
+    paths: *trigger_paths
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -28,8 +38,12 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -e .[full] --group doc
-          python -c 'import qutip_qip; print(f"QuTiP QIP Version: {qutip_qip.__version__}")'
-          python -c 'import qutip; qutip.about()'
+
+      - name: Run qutip.about()
+        shell: python
+        run: |
+          import qutip
+          qutip.about()
 
       - name: Build documentation
         working-directory: doc

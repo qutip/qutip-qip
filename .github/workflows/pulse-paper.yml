@@ -7,6 +7,7 @@ on:
     paths:
         - pulse-paper/*
         - src/*
+        - .github/workflows/pulse-paper.yml #Run when this exact pipeline file changes
 
 jobs:
     test:
