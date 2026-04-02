@@ -4,8 +4,9 @@ on:
   push:
     paths: &trigger_paths
       - "doc/**"
-      - "src/**"
+      - "src/**.py"
       - ".github/workflows/documentation.yml" # Run when this exact pipeline file changes
+      - "pyproject.toml" # Run when any dependency changes
   pull_request:
     paths: *trigger_paths
 
@@ -19,10 +20,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - name: Clone the repo
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v6
-        name: Install Python
+      - name: Install Python
+        uses: actions/setup-python@v6
         with:
           python-version: '3.11'
           
