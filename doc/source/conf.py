@@ -54,6 +54,7 @@ extensions = [
     "sphinx.ext.autosummary",
     "numpydoc",
     "sphinx.ext.extlinks",
+    "sphinx.ext.intersphinx",
     "sphinx.ext.viewcode",
     "sphinx.ext.ifconfig",
     "sphinx.ext.napoleon",
@@ -77,6 +78,13 @@ templates_path = ["_templates"]
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
 
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3", None),
+    "numpy": ("https://numpy.org/doc/stable/", None),
+    "scipy": ("https://docs.scipy.org/doc/scipy/", None),
+    "qutip": ("https://qutip.readthedocs.io/en/stable/", None),
+    "qiskit": ("https://qutip.readthedocs.io/en/stable/", None),
+}
 
 # -- Options for HTML output -------------------------------------------------
 
