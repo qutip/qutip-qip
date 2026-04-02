@@ -3,7 +3,7 @@ name: Lint
 on:
   push:
     paths: &trigger_paths
-      - "**.py"
+      - "**/*.py"
       - ".github/workflows/lint.yml"
       - "pyproject.toml"
   pull_request:

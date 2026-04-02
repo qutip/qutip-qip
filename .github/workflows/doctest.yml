@@ -5,7 +5,7 @@ on:
     branches: [ master ]
     paths: &trigger_paths
       - "doc/**"
-      - "src/**.py"
+      - "src/**/*.py"
       - ".github/workflows/doctest.yml" # Run when this exact pipeline file changes
       - "pyproject.toml" # Run when any dependency changes
   pull_request:
