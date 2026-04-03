@@ -91,7 +91,17 @@ jobs:
         pytest tests --strict-markers --cov=qutip_qip --cov-report=lcov --color=yes
 
     - name: Upload to Coveralls
-      if: ${{ startsWith( matrix.qutip-version, '@') }}
       uses: coverallsapp/github-action@v2
       with:
-        file: coverage.lcov
+        flag-name: run-${{ matrix.os }}-py${{ matrix.python-version }}-${{ matrix.case-name }}
+        parallel: true
+
+  finalise:
+    name: Finalise coverage reporting
+    needs: [cases]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Finalise coverage reporting
+        uses: coverallsapp/github-action@v2
+        with:
+          parallel-finished: true
