@@ -15,7 +15,7 @@ body:
     attributes:
       label: Code to Reproduce the Bug
       description: Please provide a minimal working example. Paste your code directly (It will be automatically formatted, so there's no need for backticks)
-      placeholder: "from qutip import identity\nprint(identity(2))"
+      placeholder: "from qutip_qip.operations.gates import X\nprint(X.get_qobj())"
       render: shell
 
   - type: textarea
