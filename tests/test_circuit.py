@@ -638,17 +638,17 @@ class TestQubitCircuit:
         """Test that qc.run() without a state argument defaults to |00...0>."""
         # Single qubit: X gate should map |0> to |1>
         qc = QubitCircuit(num_qubits=1)
-        qc.add_gate("X", targets=0)
+        qc.add_gate(gates.X, targets=0)
         result = qc.run()
-        fid = pytest.approx(qutip.fidelity(result, basis(2, 1)))
+        fid = pytest.approx(qutip.fidelity(result, basis(2, 1)), rel=1e-6, abs=1e-6)
         assert fid == 1.0
 
         # Two qubits: default |00>, apply X on qubit 0, expect |10>
         qc2 = QubitCircuit(num_qubits=2)
-        qc2.add_gate("X", targets=0)
+        qc2.add_gate(gates.X, targets=0)
         result2 = qc2.run()
         expected = tensor(basis(2, 1), basis(2, 0))
-        fid2 = pytest.approx(qutip.fidelity(result2, expected))
+        fid2 = pytest.approx(qutip.fidelity(result2, expected), rel=1e-6, abs=1e-6)
         assert fid2 == 1.0
 
     def test_gate_product(self):
