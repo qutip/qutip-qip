@@ -4,7 +4,7 @@ import numpy as np
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.algorithms import PhaseFlipCode
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations.gates import Z, CX, H
+from qutip_qip.operations.gates import Z
 
 
 @pytest.fixture
