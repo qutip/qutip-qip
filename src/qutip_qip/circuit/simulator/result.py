@@ -125,6 +125,18 @@ class CircuitResult:
             The axes object for the histogram plot.
         """
 
+        import matplotlib.pyplot as plt
+
+        # Check if classical bits exist, are not empty, and are not just [None]
+        if (
+            not hasattr(self, "cbits")
+            or not self.cbits
+            or self.cbits[0] is None
+        ):
+            raise ValueError(
+                "Cannot plot histogram: No classical measurement results are available."
+            )
+
         num_cbits = len(self.cbits[0])
         plot_dict = {f"{i:0{num_cbits}b}": 0.0 for i in range(1 << num_cbits)}
 
