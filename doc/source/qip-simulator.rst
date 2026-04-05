@@ -158,10 +158,10 @@ function:
      [0.]]
     with probability 0.33333
 
-The function returns a :class:`~.Result` object which contains the output states.
-The method :meth:`~.Result.get_results` can be used to obtain the possible states
-and probabilities. Since the state created by the circuit is the W-state, we
-observe the states
+The function returns a :class:`~.CircuitResult` object which contains the output
+states and their probabilities. The methods :meth:`~.CircuitResult.get_final_states`
+and :meth:`~.CircuitResult.get_probabilities` can be used to obtain the possible
+states and probabilities. Since the state created by the circuit is the W-state, we
 :math:`\newcommand{\ket}[1]{\left|{#1}\right\rangle} \ket{001}`,
 :math:`\newcommand{\ket}[1]{\left|{#1}\right\rangle} \ket{010}` and
 :math:`\newcommand{\ket}[1]{\left|{#1}\right\rangle} \ket{100}`
