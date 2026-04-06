@@ -21,15 +21,32 @@ def syndrome_qubits():
 
 
 def test_encode_circuit_structure(code, data_qubits):
-    qc = QubitCircuit(max(data_qubits) + 1)
-    code.encode_circuit(qc, data_qubits)
-    assert len(qc.instructions) == 2
+    """
+    Verify the gate count and target/control topology of the encoding circuit.
+    """
+    qc = code.encode_circuit(data_qubits)
+    gate_names = [op.operation.name for op in qc.instructions]
+    assert gate_names.count("CX") == 2
 
-    assert qc.instructions[0].operation == CX
-    assert qc.instructions[0].controls == (0,)
-    assert qc.instructions[0].targets == (1,)
-    assert qc.instructions[1].controls == (0,)
-    assert qc.instructions[1].targets == (2,)
+    assert qc.instructions[0].controls == (data_qubits[0],)
+    assert qc.instructions[0].targets == (data_qubits[1],)
+    assert qc.instructions[1].controls == (data_qubits[0],)
+    assert qc.instructions[1].targets == (data_qubits[2],)
+
+
+def test_decode_circuit_structure(code, data_qubits):
+    """
+    Verify the gate count and target/control topology of the decoding circuit.
+    """
+    qc = code.decode_circuit(data_qubits)
+    gate_names = [op.operation.name for op in qc.instructions]
+    assert gate_names.count("CX") == 2
+    assert gate_names.count("TOFFOLI") == 1
+
+    assert qc.instructions[0].controls == (data_qubits[0],)
+    assert qc.instructions[0].targets == (data_qubits[2],)
+    assert qc.instructions[1].controls == (data_qubits[0],)
+    assert qc.instructions[1].targets == (data_qubits[1],)
 
 
 def test_bitflip_correction(code, data_qubits, syndrome_qubits):
@@ -40,8 +57,7 @@ def test_bitflip_correction(code, data_qubits, syndrome_qubits):
     state = qutip.tensor([psi] + [qutip.basis(2, 0)] * 4)
 
     # Step 1: Encode |ψ⟩ over qubits 0,1,2
-    qc_encode = QubitCircuit(max(data_qubits) + 1)
-    code.encode_circuit(qc_encode, data_qubits)
+    qc_encode = code.encode_circuit(data_qubits)
     state = qc_encode.run(state)
 
     # Step 2: Apply bit-flip error to qubit 0
