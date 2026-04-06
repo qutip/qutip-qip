@@ -1,4 +1,6 @@
 name: Test Pulse Paper Code
+permissions:
+  contents: read
 
 on:
   push:
