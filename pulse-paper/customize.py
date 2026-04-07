@@ -1,29 +1,48 @@
-TEXTWIDTH = 7.1398920714
-LINEWIDTH = 3.48692403487
+from concurrent.futures import ProcessPoolExecutor  # for parallel simulations
 
-import matplotlib as mpl
+import numpy as np
 import matplotlib.pyplot as plt
-
 from scipy.optimize import curve_fit
 
-try:
-    global_setup(fontsize=10)
-except:
-    pass
-plt.rcParams.update({"text.usetex": False, "font.size": 10})
-from joblib import Parallel, delayed  # for parallel simulations
-import numpy as np
 from qutip import (
-    fidelity, sigmax, sigmay, sigmaz, basis, qeye, tensor, Qobj, fock_dm)
+    fidelity,
+    sigmax,
+    sigmay,
+    sigmaz,
+    basis,
+    qeye,
+    tensor,
+    Qobj,
+    fock_dm,
+)
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import Gate
+from qutip_qip.operations import AngleParametricGate
+from qutip_qip.operations.gates import RX, RY, Z
 from qutip_qip.device import ModelProcessor, Model
-from qutip_qip.compiler import GateCompiler, Instruction
+from qutip_qip.compiler import GateCompiler, PulseInstruction
 from qutip_qip.noise import Noise
+
+plt.rcParams.update({"text.usetex": False, "font.size": 10})
+LINEWIDTH = 3.48692403487
+TEXTWIDTH = 7.1398920714
+
+
+class ROT(AngleParametricGate):
+    num_qubits = 1
+    num_params = 1
+
+    def __init__(self, arg_value):
+        super().__init__(arg_value)
+
+    def get_qobj(self, dtype) -> Qobj:
+        # This is not required, because Pulse level implementation
+        # of this gate is already provided.
+        pass
 
 
 class MyModel(Model):
     """A custom Hamiltonian model with sigmax and sigmay control."""
+
     def get_control(self, label):
         """
         Get an avaliable control Hamiltonian.
@@ -41,10 +60,11 @@ class MyModel(Model):
         elif label[:2] == "sy":
             return 2 * np.pi * sigmay() / 2, [targets]
         else:
-            raise NotImplementError("Unknown control.")
+            raise ValueError("Unknown control.")
+
 
 class MyCompiler(GateCompiler):
-    """Custom compiler for generating pulses from gates using the base class 
+    """Custom compiler for generating pulses from gates using the base class
     GateCompiler.
 
     Args:
@@ -57,87 +77,93 @@ class MyCompiler(GateCompiler):
         super().__init__(num_qubits, params=params)
         self.params = params
         self.gate_compiler = {
-            "ROT": self.rotation_with_phase_compiler,
-            "RX": self.single_qubit_gate_compiler,
-            "RY": self.single_qubit_gate_compiler,
+            ROT: self.rotation_with_phase_compiler,
+            RX: self.single_qubit_gate_compiler,
+            RY: self.single_qubit_gate_compiler,
         }
 
-    def generate_pulse(self, gate, tlist, coeff, phase=0.0):
+    def generate_pulse(self, circ_op, tlist, coeff, phase=0.0):
         """Generates the pulses.
 
         Args:
-            gate (qutip_qip.circuit.Gate): A qutip Gate object.
+            circ_op (qutip_qip.circuit.GateInstruction): A GateInstruction object.
             tlist (array): A list of times for the evolution.
             coeff (array): An array of coefficients for the gate pulses
             phase (float): The value of the phase for the gate.
 
         Returns:
-            Instruction (qutip_qip.compiler.instruction.Instruction): An instruction
-            to implement a gate containing the control pulses.                                               
+            PulseInstruction (qutip_qip.compiler.instruction.PulseInstruction):
+            A PulseInstruction to implement a gate containing the control pulses.
         """
+
         pulse_info = [
             # (control label, coeff)
-            ("sx" + str(gate.targets[0]), np.cos(phase) * coeff),
-            ("sy" + str(gate.targets[0]), np.sin(phase) * coeff),
+            ("sx" + str(circ_op.targets[0]), np.cos(phase) * coeff),
+            ("sy" + str(circ_op.targets[0]), np.sin(phase) * coeff),
         ]
-        return [Instruction(gate, tlist=tlist, pulse_info=pulse_info)]
+        return [PulseInstruction(circ_op, tlist=tlist, pulse_info=pulse_info)]
 
-    def single_qubit_gate_compiler(self, gate, args):
+    def single_qubit_gate_compiler(self, circ_op, args):
         """Compiles single qubit gates to pulses.
-        
+
         Args:
-            gate (qutip_qip.circuit.Gate): A qutip Gate object.
-        
+            circ_op (qutip_qip.circuit.GateInstruction)
+
         Returns:
-            Instruction (qutip_qip.compiler.instruction.Instruction): An instruction
-            to implement a gate containing the control pulses.
+            PulseInstruction (qutip_qip.compiler.instruction.PulseInstruction):
+            A pulse instruction to implement a gate containing the control pulses.
         """
         # gate.arg_value is the rotation angle
-        tlist = np.abs(gate.arg_value) / self.params["pulse_amplitude"]
-        coeff = self.params["pulse_amplitude"] * np.sign(gate.arg_value)
+        gate = circ_op.operation
+        theta = gate.arg_value[0]
+
+        tlist = np.abs(theta) / self.params["pulse_amplitude"]
+        coeff = self.params["pulse_amplitude"] * np.sign(theta)
         coeff /= 2 * np.pi
         if gate.name == "RX":
-            return self.generate_pulse(gate, tlist, coeff, phase=0.0)
+            return self.generate_pulse(circ_op, tlist, coeff, phase=0.0)
         elif gate.name == "RY":
-            return self.generate_pulse(gate, tlist, coeff, phase=np.pi / 2)
+            return self.generate_pulse(circ_op, tlist, coeff, phase=np.pi / 2)
 
-    def rotation_with_phase_compiler(self, gate, args):
+    def rotation_with_phase_compiler(self, circ_op, args):
         """Compiles gates with a phase term.
 
         Args:
-            gate (qutip_qip.circuit.Gate): A qutip Gate object.
-        
+            circ_op (qutip_qip.circuit.GateInstruction):
+
         Returns:
-            Instruction (qutip_qip.compiler.instruction.Instruction): An instruction
-            to implement a gate containing the control pulses.
+            PulseInstruction (qutip_qip.compiler.instruction.PulseInstruction):
+            A pulse instruction to implement a gate containing the control pulses.
         """
         # gate.arg_value is the pulse phase
+        phase = circ_op.operation.arg_value[0]
         tlist = self.params["duration"]
         coeff = self.params["pulse_amplitude"]
         coeff /= 2 * np.pi
-        return self.generate_pulse(gate, tlist, coeff, phase=gate.arg_value)
+        return self.generate_pulse(circ_op, tlist, coeff, phase=phase)
 
 
 # Define a circuit and run the simulation
 num_qubits = 1
 
 circuit = QubitCircuit(1)
-circuit.add_gate("RX", targets=0, arg_value=np.pi / 2)
-circuit.add_gate("Z", targets=0)
+circuit.add_gate(RX(np.pi / 2), targets=0)
+circuit.add_gate(Z, targets=0)
 result1 = circuit.run(basis(2, 0))
-
-myprocessor = ModelProcessor(model=MyModel(num_qubits))
-myprocessor.native_gates = ["RX", "RY"]
 
 mycompiler = MyCompiler(num_qubits, {"pulse_amplitude": 0.02})
 
+myprocessor = ModelProcessor(model=MyModel(num_qubits))
+myprocessor.native_gates = ["RX", "RY"]
 myprocessor.load_circuit(circuit, compiler=mycompiler)
+
 result2 = myprocessor.run_state(basis(2, 0)).states[-1]
-assert(abs(fidelity(result1, result2) - 1) < 1.e-5)
+assert abs(fidelity(result1, result2) - 1) < 1.0e-5
 
 fig, ax = myprocessor.plot_pulses(
-    figsize=(LINEWIDTH * 0.7, LINEWIDTH / 2 * 0.7), dpi=200,
-    use_control_latex=False
+    figsize=(LINEWIDTH * 0.7, LINEWIDTH / 2 * 0.7),
+    dpi=200,
+    use_control_latex=False,
 )
 ax[-1].set_xlabel("$t$")
 fig.tight_layout()
@@ -149,9 +175,9 @@ class ClassicalCrossTalk(Noise):
     def __init__(self, ratio):
         self.ratio = ratio
 
-    def get_noisy_dynamics(self, dims=None, pulses=None, systematic_noise=None):
+    def get_noisy_pulses(self, dims=None, pulses=None, systematic_noise=None):
         """Adds noise to the control pulses.
-        
+
         Args:
             dims: Dimension of the system, e.g., [2,2,2,...] for qubits.
             pulses: A list of Pulse objects, representing the compiled pulses.
@@ -159,7 +185,7 @@ class ClassicalCrossTalk(Noise):
             pulse-independent noise such as decoherence (not used in this example).
         Returns:
             pulses: The list of modified pulses according to the noise model.
-            systematic_noise: A Pulse object (not used in this example). 
+            systematic_noise: A Pulse object (not used in this example).
         """
         for i, pulse in enumerate(pulses):
             if "sx" not in pulse.label and "sy" not in pulse.label:
@@ -183,7 +209,7 @@ class ClassicalCrossTalk(Noise):
 
 
 def single_crosstalk_simulation(num_gates):
-    """ A single simulation, with num_gates representing the number of rotations.
+    """A single simulation, with num_gates representing the number of rotations.
 
     Args:
         num_gates (int): The number of random gates to add in the simulation.
@@ -199,16 +225,18 @@ def single_crosstalk_simulation(num_gates):
     myprocessor.native_gates = None  # Remove the native gates
     mycompiler = MyCompiler(num_qubits, {"pulse_amplitude": 0.02, "duration": 25})
     myprocessor.add_noise(ClassicalCrossTalk(1.0))
+
     # Define a randome circuit.
     gates_set = [
-        Gate("ROT", 0, arg_value=0),
-        Gate("ROT", 0, arg_value=np.pi / 2),
-        Gate("ROT", 0, arg_value=np.pi),
-        Gate("ROT", 0, arg_value=np.pi / 2 * 3),
+        ROT(arg_value=0),
+        ROT(np.pi / 2),
+        ROT(np.pi),
+        ROT(np.pi / 2 * 3),
     ]
     circuit = QubitCircuit(num_qubits)
     for ind in np.random.randint(0, 4, num_gates):
-        circuit.add_gate(gates_set[ind])
+        circuit.add_gate(gates_set[ind], targets=0)
+
     # Simulate the circuit.
     myprocessor.load_circuit(circuit, compiler=mycompiler)
     init_state = tensor(
@@ -218,66 +246,75 @@ def single_crosstalk_simulation(num_gates):
     e_ops = [tensor([qeye(2), fock_dm(2)])]  # observable
 
     # compute results of the run using a solver of choice with custom options
-    result = myprocessor.run_state(init_state, solver="mesolve",
-        options=options, e_ops=e_ops)
+    result = myprocessor.run_state(
+        init_state, solver="mesolve", options=options, e_ops=e_ops
+    )
     result = result.expect[0][-1]  # measured expectation value at the end
     return result
 
 
-num_sample = 2
-# num_sample = 1600
-fidelity = []
-fidelity_error = []
 init_fid = 0.975
-num_gates_list = [250]
-# num_gates_list = [250, 500, 750, 1000, 1250, 1500]
 
-# The full simulation may take several hours
-# so we just choose num_sample=2 and num_gates=250 as a test
-for num_gates in num_gates_list:
-    expect = Parallel(n_jobs=1)(delayed(single_crosstalk_simulation)(num_gates) for i in range(num_sample))
-    fidelity.append(np.mean(expect))
-    fidelity_error.append(np.std(expect)/np.sqrt(num_sample))
+if __name__ == "__main__":
+    num_sample = 2
+    # num_sample = 1600
+    fidelity = []
+    fidelity_error = []
+    num_gates_list = [250]
+    # num_gates_list = [250, 500, 750, 1000, 1250, 1500]
 
-# Recorded result
-num_gates_list = [250, 500, 750, 1000, 1250, 1500]
-data_y = [
-    0.9566768747558925,
-    0.9388905075892828,
-    0.9229470389282218,
-    0.9075513000339529,
-    0.8941659320508855,
-    0.8756519016627652
-]
+    # The full simulation may take several hours
+    # so we just choose num_sample=2 and num_gates=250 as a test
+    for num_gates in num_gates_list:
+        args = [num_gates] * num_sample
+        with ProcessPoolExecutor() as executor:
+            expect = list(executor.map(single_crosstalk_simulation, args))
 
-data_y_error = [
-    0.00042992029265330223,
-    0.0008339882813741004,
-    0.0012606632769758602,
-    0.0014643550337816722,
-    0.0017695604671714809,
-    0.0020964978542167617
-]
+        fidelity.append(np.mean(expect))
+        fidelity_error.append(np.std(expect) / np.sqrt(num_sample))
 
+    # Recorded result
+    num_gates_list = [250, 500, 750, 1000, 1250, 1500]
+    data_y = [
+        0.9566768747558925,
+        0.9388905075892828,
+        0.9229470389282218,
+        0.9075513000339529,
+        0.8941659320508855,
+        0.8756519016627652,
+    ]
 
-def rb_curve(x, a):
-    return (1 / 2 + np.exp(-2 * a * x) / 2) * 0.975
+    data_y_error = [
+        0.00042992029265330223,
+        0.0008339882813741004,
+        0.0012606632769758602,
+        0.0014643550337816722,
+        0.0017695604671714809,
+        0.0020964978542167617,
+    ]
 
+    def rb_curve(x, a):
+        return (1 / 2 + np.exp(-2 * a * x) / 2) * 0.975
 
-pos, cov = curve_fit(rb_curve, num_gates_list, data_y, p0=[0.001])
+    pos, cov = curve_fit(rb_curve, num_gates_list, data_y, p0=[0.001])
 
-xline = np.linspace(0, 1700, 200)
-yline = rb_curve(xline, *pos)
+    xline = np.linspace(0, 1700, 200)
+    yline = rb_curve(xline, *pos)
 
-fig, ax = plt.subplots(figsize=(LINEWIDTH, 0.65 * LINEWIDTH), dpi=200)
-ax.errorbar(
-    num_gates_list, data_y, yerr=data_y_error, fmt=".", capsize=2, color="slategrey"
-)
-ax.plot(xline, yline, color="slategrey")
-ax.set_ylabel("Average fidelity")
-ax.set_xlabel(r"Number of $\pi$ rotations")
-ax.set_xlim((0, 1700))
+    fig, ax = plt.subplots(figsize=(LINEWIDTH, 0.65 * LINEWIDTH), dpi=200)
+    ax.errorbar(
+        num_gates_list,
+        data_y,
+        yerr=data_y_error,
+        fmt=".",
+        capsize=2,
+        color="slategrey",
+    )
+    ax.plot(xline, yline, color="slategrey")
+    ax.set_ylabel("Average fidelity")
+    ax.set_xlabel(r"Number of $\pi$ rotations")
+    ax.set_xlim((0, 1700))
 
-fig.tight_layout()
-fig.savefig("fig4_cross_talk.pdf")
-fig.show()
+    fig.tight_layout()
+    fig.savefig("fig4_cross_talk.pdf")
+    fig.show()

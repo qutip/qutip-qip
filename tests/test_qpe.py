@@ -1,10 +1,11 @@
+import unittest
 import numpy as np
 from numpy.testing import assert_, assert_equal
-import unittest
 from qutip import Qobj, sigmaz, tensor
-from qutip_qip.operations import ControlledGate
 
-from qutip_qip.algorithms.qpe import qpe, CustomGate, create_controlled_unitary
+from qutip_qip.algorithms.qpe import qpe
+from qutip_qip.operations import get_controlled_gate, get_unitary_gate
+from qutip_qip.operations import gates as std
 
 
 class TestQPE(unittest.TestCase):
@@ -14,16 +15,13 @@ class TestQPE(unittest.TestCase):
 
     def test_custom_gate(self):
         """
-        Test if CustomGate correctly stores and returns the quantum object
+        Test if get_unitary_gate correctly stores and returns the quantum object
         """
         U = Qobj([[0, 1], [1, 0]])
 
-        custom = CustomGate(targets=[0], U=U)
-
-        qobj = custom.get_compact_qobj()
+        custom = get_unitary_gate(gate_name="custom", U=U)
+        qobj = custom.get_qobj()
         assert_((qobj - U).norm() < 1e-12)
-
-        assert_equal(custom.targets, [0])
 
     def test_controlled_unitary(self):
         """
@@ -31,18 +29,12 @@ class TestQPE(unittest.TestCase):
         """
         U = Qobj([[0, 1], [1, 0]])
 
-        controlled_u = create_controlled_unitary(
-            controls=[0], targets=[1], U=U
+        controlled_u = get_controlled_gate(
+            gate=get_unitary_gate(gate_name="CU", U=U),
         )
 
-        assert_equal(controlled_u.controls, [0])
-        assert_equal(controlled_u.targets, [1])
-        assert_equal(controlled_u.control_value, 1)
-
-        assert_(controlled_u.target_gate == CustomGate)
-
-        assert_("U" in controlled_u.kwargs)
-        assert_((controlled_u.kwargs["U"] - U).norm() < 1e-12)
+        assert_equal(controlled_u.ctrl_value, 1)
+        assert_((controlled_u.target_gate.get_qobj() - U).norm() < 1e-12)
 
     def test_qpe_validation(self):
         """
@@ -64,20 +56,18 @@ class TestQPE(unittest.TestCase):
         U = sigmaz()
 
         num_counting = 3
-        circuit = qpe(
-            U, num_counting_qubits=num_counting, target_qubits=num_counting
-        )
+        circuit = qpe(U, num_counting_qubits=num_counting, target_qubits=num_counting)
 
-        assert_equal(circuit.N, num_counting + 1)
+        assert_equal(circuit.num_qubits, num_counting + 1)
 
         for i in range(num_counting):
-            assert_equal(circuit.gates[i].targets, [i])
+            assert_equal(circuit.instructions[i].targets, [i])
 
         for i in range(num_counting):
-            gate = circuit.gates[num_counting + i]
-            assert_(isinstance(gate, ControlledGate))
-            assert_equal(gate.controls, [i])
-            assert_equal(gate.targets, [num_counting])
+            circ_instruction = circuit.instructions[num_counting + i]
+            assert_(circ_instruction.operation.is_controlled)
+            assert_equal(circ_instruction.controls, [i])
+            assert_equal(circ_instruction.targets, [num_counting])
 
     def test_qpe_different_target_specifications(self):
         """
@@ -86,18 +76,16 @@ class TestQPE(unittest.TestCase):
         U = sigmaz()
         num_counting = 2
 
-        circuit1 = qpe(
-            U, num_counting_qubits=num_counting, target_qubits=num_counting
-        )
-        assert_equal(circuit1.N, num_counting + 1)
+        circuit1 = qpe(U, num_counting_qubits=num_counting, target_qubits=num_counting)
+        assert_equal(circuit1.num_qubits, num_counting + 1)
 
         circuit2 = qpe(
             U, num_counting_qubits=num_counting, target_qubits=[num_counting]
         )
-        assert_equal(circuit2.N, num_counting + 1)
+        assert_equal(circuit2.num_qubits, num_counting + 1)
 
         circuit3 = qpe(U, num_counting_qubits=num_counting, target_qubits=None)
-        assert_equal(circuit3.N, num_counting + 1)
+        assert_equal(circuit3.num_qubits, num_counting + 1)
 
         U2 = tensor(sigmaz(), sigmaz())
         circuit4 = qpe(
@@ -105,7 +93,7 @@ class TestQPE(unittest.TestCase):
             num_counting_qubits=num_counting,
             target_qubits=[num_counting, num_counting + 1],
         )
-        assert_equal(circuit4.N, num_counting + 2)
+        assert_equal(circuit4.num_qubits, num_counting + 2)
 
     def test_qpe_controlled_gate_powers(self):
         """
@@ -115,15 +103,13 @@ class TestQPE(unittest.TestCase):
         U = Qobj([[1, 0], [0, np.exp(1j * np.pi * phase)]])
 
         num_counting = 3
-        circuit = qpe(
-            U, num_counting_qubits=num_counting, target_qubits=num_counting
-        )
+        circuit = qpe(U, num_counting_qubits=num_counting, target_qubits=num_counting)
 
         for i in range(num_counting):
-            gate = circuit.gates[num_counting + i]
+            gate = circuit.instructions[num_counting + i].operation
             power = 2 ** (num_counting - i - 1)
 
-            u_power = gate.kwargs["U"]
+            u_power = gate.target_gate.get_qobj()
             expected_u_power = U if power == 1 else U**power
 
             assert_((u_power - expected_u_power).norm() < 1e-12)
@@ -136,9 +122,7 @@ class TestQPE(unittest.TestCase):
         num_counting = 2
 
         circuit1 = qpe(U, num_counting_qubits=num_counting, to_cnot=False)
-
         circuit2 = qpe(U, num_counting_qubits=num_counting, to_cnot=True)
-
-        has_cnot = any(gate.name == "CNOT" for gate in circuit2.gates)
+        has_cnot = any(gate.operation == std.CX for gate in circuit2.instructions)
         assert_(has_cnot)
-        assert_(len(circuit2.gates) > len(circuit1.gates))
+        assert_(len(circuit2.instructions) > len(circuit1.instructions))

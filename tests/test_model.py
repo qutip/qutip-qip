@@ -30,11 +30,13 @@ def test_cavityqed_model():
 def test_spinchain_model(model_class):
     model = LinearSpinChain(3, sx=[1.1, 1, 0, 0.8], sz=7.0, t1=10.0)
     assert model.get_all_drift() == []
+
     model.get_control_labels()
     if isinstance(model, LinearSpinChain):
         assert len(model.get_control_labels()) == 3 * 3 - 1
     elif isinstance(model, CircularSpinChain):
         assert len(model.get_control_labels()) == 3 * 3
+
     model.get_control("g1")
     model.get_control("sx0")
     assert_array_equal(model.params["sz"], 7.0)
@@ -94,4 +96,4 @@ def test_define_model_in_processor():
 
 def test_change_parameters_in_processor():
     processor = LinearSpinChain(0, sx=0.1)
-    assert(all(processor.params["sx"] == [0.1]))
+    assert all(processor.params["sx"] == [0.1])

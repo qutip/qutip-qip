@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import List, Tuple, Hashable
+from typing import Hashable
 
 from qutip import Qobj
 from qutip_qip.noise import Noise
@@ -39,7 +39,8 @@ class Model:
         self._drift = []
         self._noise = []
 
-    def get_all_drift(self) -> List[Tuple[Qobj, List[int]]]:
+    # TODO make this a property
+    def get_all_drift(self) -> list[tuple[Qobj, list[int]]]:
         """
         Get all the drift Hamiltonians.
 
@@ -51,7 +52,7 @@ class Model:
         """
         return self._drift
 
-    def get_control(self, label: Hashable) -> Tuple[Qobj, List[int]]:
+    def get_control(self, label: Hashable) -> tuple[Qobj, list[int]]:
         """
         Get the control Hamiltonian corresponding to the label.
 
@@ -66,12 +67,11 @@ class Model:
             The control Hamiltonian in the form of ``(qobj, targets)``.
         """
         if hasattr(self, "_old_index_label_map"):
-            _old_index_label_map = self._old_index_label_map
-            if isinstance(label, int):
-                label = _old_index_label_map[label]
+            if type(label) is int:
+                label = self._old_index_label_map[label]
         return self._controls[label]
 
-    def get_control_labels(self) -> List[Hashable]:
+    def get_control_labels(self) -> list[Hashable]:
         """
         Get a list of all available control Hamiltonians.
         Optional, required only when plotting the pulses or
@@ -85,7 +85,7 @@ class Model:
         """
         return list(self._controls.keys())
 
-    def get_noise(self) -> List[Noise]:
+    def get_noise(self) -> list[Noise]:
         """
         Get a list of :obj:`.Noise` objects.
         Single qubit relaxation (T1, T2) are not included here.
@@ -102,16 +102,12 @@ class Model:
 
     def _add_drift(self, qobj, targets):
         if not hasattr(self, "_drift"):
-            raise NotImplementedError(
-                "The model does not support adding drift."
-            )
+            raise NotImplementedError("The model does not support adding drift.")
         self._drift.append((qobj, targets))
 
     def _add_control(self, label, qobj, targets):
         if not hasattr(self, "_controls"):
-            raise NotImplementedError(
-                "The model does not support adding controls."
-            )
+            raise NotImplementedError("The model does not support adding controls.")
         self._controls[label] = (qobj, targets)
 
     def _add_noise(self, noise):

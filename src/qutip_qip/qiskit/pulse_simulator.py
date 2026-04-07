@@ -85,9 +85,7 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
     def processor(self) -> Processor:
         return self._processor
 
-    def _run_job(
-        self, job_id: str, qiskit_circuit: list[QuantumCircuit]
-    ) -> Result:
+    def _run_job(self, job_id: str, qiskit_circuit: list[QuantumCircuit]) -> Result:
         """
         Run a :class:`.QubitCircuit` on the Pulse Simulator.
 
@@ -182,12 +180,8 @@ class QiskitPulseSimulator(QiskitSimulatorBase):
             )
 
             header = {
-                "name": (
-                    qutip_circuit.name
-                    if hasattr(qutip_circuit, "name")
-                    else ""
-                ),
-                "n_qubits": qutip_circuit.N,
+                "name": (qutip_circuit.name if hasattr(qutip_circuit, "name") else ""),
+                "n_qubits": qutip_circuit.num_qubits,
             }
 
             exp_res.append(

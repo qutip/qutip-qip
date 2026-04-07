@@ -2,6 +2,7 @@ import pytest
 import qutip
 from qutip_qip.algorithms import BitFlipCode
 from qutip_qip.circuit import QubitCircuit
+from qutip_qip.operations.gates import X, CX
 
 
 @pytest.fixture
@@ -20,13 +21,15 @@ def syndrome_qubits():
 
 
 def test_encode_circuit_structure(code, data_qubits):
-    qc = code.encode_circuit(data_qubits)
-    assert len(qc.gates) == 2
-    assert qc.gates[0].name == "CNOT"
-    assert qc.gates[0].controls == [0]
-    assert qc.gates[0].targets == [1]
-    assert qc.gates[1].controls == [0]
-    assert qc.gates[1].targets == [2]
+    qc = QubitCircuit(max(data_qubits) + 1)
+    code.encode_circuit(qc, data_qubits)
+    assert len(qc.instructions) == 2
+
+    assert qc.instructions[0].operation == CX
+    assert qc.instructions[0].controls == (0,)
+    assert qc.instructions[0].targets == (1,)
+    assert qc.instructions[1].controls == (0,)
+    assert qc.instructions[1].targets == (2,)
 
 
 def test_bitflip_correction(code, data_qubits, syndrome_qubits):
@@ -37,18 +40,17 @@ def test_bitflip_correction(code, data_qubits, syndrome_qubits):
     state = qutip.tensor([psi] + [qutip.basis(2, 0)] * 4)
 
     # Step 1: Encode |ψ⟩ over qubits 0,1,2
-    qc_encode = code.encode_circuit(data_qubits)
+    qc_encode = QubitCircuit(max(data_qubits) + 1)
+    code.encode_circuit(qc_encode, data_qubits)
     state = qc_encode.run(state)
 
     # Step 2: Apply bit-flip error to qubit 0
-    qc_error = QubitCircuit(N=5)
-    qc_error.add_gate("X", targets=[0])
+    qc_error = QubitCircuit(num_qubits=5)
+    qc_error.add_gate(X, targets=[0])
     state = qc_error.run(state)
 
     # Step 3: Syndrome + correction
-    qc_correct = code.syndrome_and_correction_circuit(
-        data_qubits, syndrome_qubits
-    )
+    qc_correct = code.syndrome_and_correction_circuit(data_qubits, syndrome_qubits)
     state = qc_correct.run(state)
 
     # Step 4: Decode

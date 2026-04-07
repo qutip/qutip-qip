@@ -2,6 +2,7 @@ import pytest
 import numpy as np
 import qutip
 from qutip_qip.operations import expand_operator
+from qutip_qip.operations.gates import H
 from qutip_qip.vqa import (
     VQA,
     VQABlock,
@@ -22,25 +23,17 @@ class TestVQABlock:
     @pytest.mark.parametrize("angle", [1, 2, 3])
     def test_parameterization(self, angle):
         block = VQABlock(qutip.sigmax())
-        assert (
-            block.get_unitary([angle]) == (-1j * angle * qutip.sigmax()).expm()
-        )
+        assert block.get_unitary([angle]) == (-1j * angle * qutip.sigmax()).expm()
         assert block.get_free_parameters_num() == 1
         block = VQABlock(qutip.sigmaz())
-        assert (
-            block.get_unitary([angle]) == (-1j * angle * qutip.sigmaz()).expm()
-        )
+        assert block.get_unitary([angle]) == (-1j * angle * qutip.sigmaz()).expm()
         block = VQABlock(qutip.sigmay())
-        assert (
-            block.get_unitary([angle]) == (-1j * angle * qutip.sigmay()).expm()
-        )
+        assert block.get_unitary([angle]) == (-1j * angle * qutip.sigmay()).expm()
 
     @pytest.mark.parametrize("angle", [1, 2, 3])
     def test_unitary_function(self, angle):
         block = VQABlock(lambda t: (t * -1j * qutip.sigmax()).expm())
-        assert (
-            block.get_unitary([angle]) == (-1j * angle * qutip.sigmax()).expm()
-        )
+        assert block.get_unitary([angle]) == (-1j * angle * qutip.sigmax()).expm()
 
 
 class TestVQA:
@@ -89,7 +82,7 @@ class TestVQACircuit:
         """
         vqa = VQA(num_qubits=1, num_layers=3)
         initial_block = VQABlock(qutip.sigmax(), initial=True)
-        h_block = VQABlock("SNOT", targets=[0])
+        h_block = VQABlock(H.get_qobj(), targets=[0])
         vqa.add_block(initial_block)
         vqa.add_block(h_block)
         # Expect [X, H, H, H] for the three layers
@@ -118,7 +111,7 @@ class TestVQACircuit:
         vqa.add_block(block)
         # try to reach the |1> state from the |0> state
         vqa.cost_func = lambda s: 1 - np.abs(s.overlap(qutip.basis(2, 1)))
-        res = vqa.optimize_parameters(initial=[np.pi / 3.])
+        res = vqa.optimize_parameters(initial=[np.pi / 3.0])
         assert res.get_top_bitstring() == "|1>"
 
     def test_layer_by_layer(self):
@@ -130,7 +123,7 @@ class TestVQACircuit:
         vqa.add_block(block)
         vqa.cost_func = lambda s: 1 - np.abs(s.overlap(qutip.basis(2, 1)))
         res = vqa.optimize_parameters(
-            initial=[np.pi / 3., 0, 0, 0], layer_by_layer=True
+            initial=[np.pi / 3.0, 0, 0, 0], layer_by_layer=True
         )
         assert res.get_top_bitstring() == "|1>"
 
@@ -157,9 +150,7 @@ class TestVQACircuit:
         apply parameters
         """
         # Hamiltonian that looks like (t_1*X  +  t_2*Z)
-        block = VQABlock(
-            ParameterizedHamiltonian([qutip.sigmax(), qutip.sigmaz()])
-        )
+        block = VQABlock(ParameterizedHamiltonian([qutip.sigmax(), qutip.sigmaz()]))
         vqa = VQA(num_qubits=1, num_layers=2)
         vqa.add_block(block)
         # Do (pi/2*X + 0*Z) and then (0*X + pi/2*Z)
@@ -189,12 +180,11 @@ class TestVQACircuit:
         # Only test on environments that have the matplotlib dependency
         vqa = VQA(num_qubits=4, num_layers=1, cost_method="STATE")
         for i in range(4):
-            vqa.add_block(VQABlock(
-                expand_operator(
-                    qutip.sigmax(), dims=[2]*4, targets=[i])
-                ))
+            vqa.add_block(
+                VQABlock(expand_operator(qutip.sigmax(), dims=[2] * 4, targets=[i]))
+            )
         vqa.cost_func = lambda s: 0
-        res = vqa.optimize_parameters([0., 0., 0., 0.])
+        res = vqa.optimize_parameters([0.0, 0.0, 0.0, 0.0])
         res.plot(top_ten=todo, display=False)
 
     def test_optimization_errors(self):
@@ -226,6 +216,7 @@ class TestOptimizationResult:
         e.g. [1, 2, 3] with the bitstring |010> should become
         '{1, 3} {2}'.
         """
+
         # Fake scipy res object
         class fakeRes:
             pass

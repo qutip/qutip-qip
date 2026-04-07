@@ -59,13 +59,11 @@ class ZZCrossTalk(Noise):
             destroy_op2 = destroy(d2)
 
             projector1 = (
-                basis(d1, 0) * basis(d1, 0).dag()
-                + basis(d1, 1) * basis(d1, 1).dag()
+                basis(d1, 0) * basis(d1, 0).dag() + basis(d1, 1) * basis(d1, 1).dag()
             )
 
             projector2 = (
-                basis(d2, 0) * basis(d2, 0).dag()
-                + basis(d2, 1) * basis(d2, 1).dag()
+                basis(d2, 0) * basis(d2, 0).dag() + basis(d2, 1) * basis(d2, 1).dag()
             )
 
             z1 = (

@@ -1,12 +1,13 @@
 from numpy.testing import assert_
 from qutip_qip.qubits import qubit_states
-from qutip import (tensor,  basis) 
+from qutip import tensor, basis
 
 
 class TestQubits:
     """
     A test class for the QuTiP functions for qubits.
     """
+
     def testQubitStates(self):
         """
         Tests the qubit_states function.

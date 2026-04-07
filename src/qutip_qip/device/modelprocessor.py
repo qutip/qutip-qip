@@ -1,6 +1,7 @@
 import numpy as np
 
 from qutip import Qobj, basis
+from qutip_qip.circuit import QubitCircuit
 from qutip_qip.device import Processor
 
 
@@ -46,9 +47,7 @@ class ModelProcessor(Processor):
         model=None,
         **params,
     ):
-        super(ModelProcessor, self).__init__(
-            num_qubits=num_qubits, dims=dims, model=model, **params
-        )
+        super().__init__(num_qubits=num_qubits, dims=dims, model=model, **params)
         self.correct_global_phase = correct_global_phase
         self.global_phase = 0.0
         self.native_gates = None
@@ -107,7 +106,7 @@ class ModelProcessor(Processor):
         """
         if qc is not None:
             self.load_circuit(qc)
-        return super(ModelProcessor, self).run_state(
+        return super().run_state(
             init_state=init_state,
             analytical=analytical,
             states=states,
@@ -162,13 +161,13 @@ class ModelProcessor(Processor):
 
         return t, u, self.get_operators_labels()
 
-    def topology_map(self, qc):
+    def topology_map(self, qc: QubitCircuit):
         """
         Map the circuit to the hardware topology.
         """
         raise NotImplementedError
 
-    def transpile(self, qc):
+    def transpile(self, qc: QubitCircuit):
         """
         Convert the circuit to one that can be executed on given hardware.
         If there is a method ``topology_map`` defined,
@@ -223,9 +222,7 @@ class ModelProcessor(Processor):
         if compiler is None and self._default_compiler is not None:
             compiler = self._default_compiler(self.num_qubits, self.params)
         if compiler is not None:
-            tlist, coeffs = compiler.compile(
-                qc.gates, schedule_mode=schedule_mode
-            )
+            tlist, coeffs = compiler.compile(qc, schedule_mode=schedule_mode)
         else:
             raise ValueError("No compiler defined.")
         # Save compiler pulses
@@ -233,9 +230,7 @@ class ModelProcessor(Processor):
         self.set_tlist(tlist)
         return tlist, coeffs
 
-    def generate_init_processor_state(
-        self, init_circuit_state: Qobj = None
-    ) -> Qobj:
+    def generate_init_processor_state(self, init_circuit_state: Qobj = None) -> Qobj:
         """
         Generate the initial state with the dimensions of the processor.
 

@@ -1,32 +1,45 @@
 """Conversion of circuits from qiskit to qutip_qip."""
 
+from collections.abc import Iterable
+from typing import Type
 from qiskit.circuit import QuantumCircuit
 from qutip_qip.circuit import QubitCircuit
+from qutip_qip.operations import Gate
+import qutip_qip.operations.gates as gates
 
-
-_map_gates: dict[str, str] = {
-    "p": "PHASEGATE",
-    "x": "X",
-    "y": "Y",
-    "z": "Z",
-    "h": "SNOT",
-    "s": "S",
-    "t": "T",
-    "rx": "RX",
-    "ry": "RY",
-    "rz": "RZ",
-    "swap": "SWAP",
-    "u": "QASMU",
+# TODO Expand this dictionary for all the valid qiskit gates
+# https://quantum.cloud.ibm.com/docs/en/api/qiskit/circuit_library#standard-gates
+_map_gates: dict[str, Type[Gate]] = {
+    "x": gates.X,
+    "y": gates.Y,
+    "z": gates.Z,
+    "h": gates.H,
+    "s": gates.S,
+    "sdag": gates.Sdag,
+    "t": gates.T,
+    "tdag": gates.Tdag,
+    "sx": gates.SQRTX,
+    "sxdag": gates.SQRTXdag,
+    "rx": gates.RX,
+    "ry": gates.RY,
+    "rz": gates.RZ,
+    "p": gates.PHASE,
+    "u3": gates.QASMU,
+    "swap": gates.SWAP,
 }
 
-_map_controlled_gates: dict[str, str] = {
-    "cx": "CX",
-    "cy": "CY",
-    "cz": "CZ",
-    "crx": "CRX",
-    "cry": "CRY",
-    "crz": "CRZ",
-    "cp": "CPHASE",
+_map_controlled_gates: dict[str, Type[Gate]] = {
+    "cx": gates.CX,
+    "cy": gates.CY,
+    "cz": gates.CZ,
+    "ch": gates.CH,
+    "cs": gates.CS,
+    "ct": gates.CT,
+    "crx": gates.CRX,
+    "cry": gates.CRY,
+    "crz": gates.CRZ,
+    "cp": gates.CPHASE,
+    "cu3": gates.CQASMU,
 }
 
 _ignore_gates: list[str] = ["id", "barrier"]
@@ -55,8 +68,7 @@ def get_qutip_index(bit_index: int | list, total_bits: int) -> int:
     the 0st bit is mapped to the (n-1)th bit and 1st bit to (n-2)th bit
     and so on. Essentially the bit order is reversed.
     """
-
-    if isinstance(bit_index, list):
+    if isinstance(bit_index, Iterable):
         return [get_qutip_index(bit, total_bits) for bit in bit_index]
     else:
         return total_bits - 1 - bit_index
@@ -98,11 +110,11 @@ def convert_qiskit_circuit_to_qutip(
         )
 
     qutip_circuit = QubitCircuit(
-        N=qiskit_circuit.num_qubits, num_cbits=qiskit_circuit.num_clbits
+        num_qubits=qiskit_circuit.num_qubits,
+        num_cbits=qiskit_circuit.num_clbits,
     )
 
     qutip_circuit.name = qiskit_circuit.name
-
     for circuit_instruction in qiskit_circuit.data:
         qiskit_instruction = circuit_instruction.operation
         qiskit_qregs = circuit_instruction.qubits
@@ -110,31 +122,33 @@ def convert_qiskit_circuit_to_qutip(
 
         # setting the gate argument values according
         # to the required qutip_qip format
-        if not qiskit_instruction.params:
-            arg_value = None
-        elif len(qiskit_instruction.params) == 1:
-            arg_value = qiskit_instruction.params[0]
-        else:
+        arg_value = None
+        if qiskit_instruction.params:
             arg_value = qiskit_instruction.params
 
         # add the corresponding gate in qutip_qip
         if qiskit_instruction.name in _map_gates.keys():
+            gate = _map_gates[qiskit_instruction.name]
+            if gate.is_parametric:
+                gate = gate(*arg_value)
+
             qutip_circuit.add_gate(
-                _map_gates[qiskit_instruction.name],
+                gate,
                 targets=_get_mapped_bits(qiskit_qregs, bit_map=qubit_map),
-                arg_value=arg_value,
             )
 
         elif qiskit_instruction.name in _map_controlled_gates.keys():
+            gate = _map_controlled_gates[qiskit_instruction.name]
+            if gate.is_parametric:
+                gate = gate(arg_value)
+
+            # FIXME This doesn't work for multicontrolled gates
             qutip_circuit.add_gate(
-                _map_controlled_gates[qiskit_instruction.name],
+                gate,
+                targets=_get_mapped_bits(qiskit_qregs[1:], bit_map=qubit_map),
                 # The 0th bit is the control bit in qiskit by
                 # convention, in case of a controlled operation
-                controls=_get_mapped_bits(
-                    [qiskit_qregs[0]], bit_map=qubit_map
-                ),
-                targets=_get_mapped_bits(qiskit_qregs[1:], bit_map=qubit_map),
-                arg_value=arg_value,
+                controls=_get_mapped_bits([qiskit_qregs[0]], bit_map=qubit_map),
             )
 
         elif qiskit_instruction.name == "measure":

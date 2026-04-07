@@ -2,12 +2,15 @@
 
 import types
 import random
+
 import numpy as np
 from qutip import basis, tensor, Qobj, qeye, expect
-from qutip_qip.circuit import QubitCircuit
 from scipy.optimize import minimize
 from scipy.linalg import expm_frechet
-from qutip_qip.operations import gate_sequence_product
+
+from qutip_qip.circuit import QubitCircuit
+from qutip_qip.operations import gate_sequence_product, get_unitary_gate
+from qutip_qip.typing import SequenceLike
 
 
 class VQA:
@@ -42,7 +45,6 @@ class VQA:
         self.num_qubits = num_qubits
         self.num_layers = num_layers
         self.blocks = []
-        self.user_gates = {}
         self._cost_methods = ["OBSERVABLE", "STATE"]
         self.cost_method = cost_method
         self.cost_func = None
@@ -50,16 +52,19 @@ class VQA:
 
         if self.num_qubits < 1:
             raise ValueError("Expected 1 or more qubits")
-        if not isinstance(self.num_qubits, int):
+
+        if type(self.num_qubits) is not int:
             raise TypeError("Expected an integer number of qubits")
+
         if self.num_layers < 1:
             raise ValueError("Expected 1 or more layer")
-        if not isinstance(self.num_layers, int):
+
+        if type(self.num_layers) is not int:
             raise TypeError("Expected an integer number of layers")
+
         if self.cost_method not in self._cost_methods:
             raise ValueError(
-                f"Cost method {self.cost_method} not one of "
-                f"{self._cost_methods}"
+                f"Cost method {self.cost_method} not one of {self._cost_methods}"
             )
 
     def get_block_series(self):
@@ -75,8 +80,7 @@ class VQA:
 
     def add_block(self, block):
         """
-        Append a :obj:`.VQABlock` instance to the circuit, and update the
-        user_gates dictionary if necessary.
+        Append a :obj:`.VQABlock` instance to the circuit.
 
         Parameters
         ----------
@@ -87,9 +91,6 @@ class VQA:
         if block.name in list(map(lambda b: b.name, self.blocks)):
             raise ValueError("Duplicate Block name in blocks dict")
         self.blocks.append(block)
-        self.user_gates[block.name] = lambda angles=None: block.get_unitary(
-            angles
-        )
 
     def get_free_parameters_num(self):
         """
@@ -130,7 +131,6 @@ class VQA:
         circ: :obj:`.QubitCircuit`
         """
         circ = QubitCircuit(self.num_qubits)
-        circ.user_gates = self.user_gates
         i = 0
         for layer_num in range(self.num_layers):
             for block in self.blocks:
@@ -140,11 +140,14 @@ class VQA:
                     circ.add_gate(block.operator, targets=block.targets)
                 else:
                     n = block.get_free_parameters_num()
-                    circ.add_gate(
-                        block.name,
-                        targets=list(range(self.num_qubits)),
-                        arg_value=angles[i : i + n] if n > 0 else None,
+
+                    current_params = angles[i : i + n] if n > 0 else []
+                    gate_instance = get_unitary_gate(
+                        gate_name=f"{block.name}{layer_num}",
+                        U=block.get_unitary(current_params),
                     )
+
+                    circ.add_gate(gate_instance, targets=list(range(self.num_qubits)))
                     i += n
         return circ
 
@@ -198,7 +201,7 @@ class VQA:
         would return 0 and 1 with equal probability.
         """
         num_qubits = int(np.log2(state.shape[0]))
-        outcome_indices = list(range(2**num_qubits))
+        outcome_indices = list(range(1 << num_qubits))
         probs = [abs(i.item()) ** 2 for i in state]
         outcome_index = np.random.choice(outcome_indices, p=probs)
         return format(outcome_index, f"0{num_qubits}b")
@@ -292,20 +295,22 @@ class VQA:
 
         n_free_params = self.get_free_parameters_num()
         # Set initial circuit parameters
-        if isinstance(initial, str):
+        if type(initial) is str:
             if initial == "random":
                 angles = [random.random() for i in range(n_free_params)]
             elif initial == "ones":
                 angles = [1 for i in range(n_free_params)]
             else:
                 raise ValueError("Invalid initial condition string")
-        elif isinstance(initial, list) or isinstance(initial, np.ndarray):
+
+        elif isinstance(initial, SequenceLike):
             if len(initial) != n_free_params:
                 raise ValueError(
                     f"Expected {n_free_params} initial parameters"
                     f"but got {len(initial)}."
                 )
             angles = initial
+
         else:
             raise ValueError(
                 "Initial conditions were neither a list of values"
@@ -454,9 +459,7 @@ class VQA:
             n_params = block.get_free_parameters_num()
             if n_params > 0:
                 if i in indices_to_compute:
-                    dBlock = block.get_unitary_derivative(
-                        angles[i : i + n_params]
-                    )
+                    dBlock = block.get_unitary_derivative(angles[i : i + n_params])
                     dU = modify_unitary(k, dBlock)
                     jacobian.append(self.cost_derivative(U, dU))
                 i += n_params
@@ -494,13 +497,13 @@ class ParameterizedHamiltonian:
         Hamiltonian term which does not require parameters.
     """
 
-    def __init__(self, parameterized_terms=[], constant_term=None):
+    def __init__(self, parameterized_terms=(), constant_term=None):
         self.p_terms = parameterized_terms
         self.c_term = constant_term
         self.num_parameters = len(parameterized_terms)
         if len(self.p_terms) == 0 and self.c_term is None:
             raise ValueError(
-                "Parameterized Hamiltonian " "initialised with no terms given"
+                "Parameterized Hamiltonian initialised with no terms given"
             )
 
     def get_hamiltonian(self, params):
@@ -536,8 +539,7 @@ class VQABlock:
         Specifies that the operator  was already in Unitary form,
         and does not need to be exponentiated, or take a parameter.
     name: str, optional
-        Name of the block. This will be used in the custom
-        ``user_gates`` dict of the circuit. If not provided,
+        Name of the block. If not provided,
         a name will be generated as "U"+str(len(VQA.blocks)).
     targets: list of int, optional
         The qubits targetted by the gate. By default, applied
@@ -567,14 +569,18 @@ class VQABlock:
         if isinstance(operator, Qobj):
             if not self.is_unitary:
                 self.num_parameters = 1
-        elif isinstance(operator, str):
+
+        elif type(operator) is str:
             self.is_native_gate = True
             if targets is None:
                 raise ValueError("Targets must be specified for native gates")
+
         elif isinstance(operator, ParameterizedHamiltonian):
             self.num_parameters = operator.num_parameters
+
         elif isinstance(operator, types.FunctionType):
             self.num_parameters = 1
+
         else:
             raise ValueError(
                 "operator should be either: Qobj | function which"
@@ -606,25 +612,28 @@ class VQABlock:
                 f" but got {len(angles)}."
             )
 
+        if self.is_unitary:
+            return self.operator
+
         # Case where the operator is a string referring to an existing gate.
         if self.is_native_gate:
             raise TypeError("Can't compute unitary of native gate")
+
         # Function returning Qobj unitary
         if isinstance(self.operator, types.FunctionType):
-            # In the future, this could be generalized to multiple angles
+            # TODO In the future, this could be generalized to multiple angles
             unitary = self.operator(angles[0])
             if not isinstance(unitary, Qobj):
                 raise TypeError("Provided function does not return Qobj")
             return unitary
+
         # ParameterizedHamiltonian instance
         if isinstance(self.operator, ParameterizedHamiltonian):
             return (-1j * self.operator.get_hamiltonian(angles)).expm()
 
         # If there's no other specification, treat operator as Hamiltonian
         if len(angles) != 1:
-            raise ValueError(
-                "Expected one angle for singly-parameterized Hamiltonian."
-            )
+            raise ValueError("Expected one angle for singly-parameterized Hamiltonian.")
 
         return (-1j * angles[0] * self.operator).expm()
 
@@ -653,6 +662,7 @@ class VQABlock:
                 "Can only take derivative of block specified "
                 "by Hamiltonians or ParameterizedHamiltonian instances."
             )
+
         if isinstance(self.operator, ParameterizedHamiltonian):
             arg = -1j * self.operator.get_hamiltonian(angles)
             direction = -1j * self.operator.p_terms[term_index]
@@ -660,10 +670,10 @@ class VQABlock:
                 expm_frechet(arg.full(), direction.full(), compute_expm=False),
                 dims=direction.dims,
             )
+
         if len(angles) != 1:
             raise ValueError(
-                "Expected a single angle for non-"
-                "ParameterizedHamiltonian instance."
+                "Expected a single angle for non-ParameterizedHamiltonian instance."
             )
         return self.get_unitary(angles) * -1j * self.operator
 
@@ -770,8 +780,7 @@ class OptimizationResult:
         num_qubits = int(np.log2(state.shape[0]))
         probs = [abs(i.item()) ** 2 for i in state]
         bitstrings = [
-            "|" + format(i, f"0{num_qubits}b") + ">"
-            for i in range(2**num_qubits)
+            "|" + format(i, f"0{num_qubits}b") + ">" for i in range(1 << num_qubits)
         ]
         if top_ten and len(probs) > 10:
             threshold = sorted(probs)[-11]
@@ -784,9 +793,7 @@ class OptimizationResult:
             bitstrings = top_bitstrings
             probs = top_probs
         if label_sets:
-            labels = [
-                self._label_to_sets(S, bitstring) for bitstring in bitstrings
-            ]
+            labels = [self._label_to_sets(S, bitstring) for bitstring in bitstrings]
         fig, ax = plt.subplots()
         ax.bar(
             list(range(len(bitstrings))),
@@ -798,8 +805,7 @@ class OptimizationResult:
         ax.set_xlabel("Measurement outcome")
         ax.set_ylabel("Probability")
         ax.set_title(
-            "Measurement Outcomes after Optimisation. "
-            f"Cost: {round(min_cost, 2)}"
+            f"Measurement Outcomes after Optimisation. Cost: {round(min_cost, 2)}"
         )
         fig.tight_layout()
         if display:

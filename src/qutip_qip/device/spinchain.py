@@ -33,10 +33,8 @@ class SpinChain(ModelProcessor):
         Hardware parameters. See :obj:`.SpinChainModel`.
     """
 
-    def __init__(
-        self, num_qubits, correct_global_phase=True, model=None, **params
-    ):
-        super(SpinChain, self).__init__(
+    def __init__(self, num_qubits, correct_global_phase=True, model=None, **params):
+        super().__init__(
             num_qubits=num_qubits,
             correct_global_phase=correct_global_phase,
             model=model,
@@ -85,7 +83,10 @@ class SpinChain(ModelProcessor):
     def load_circuit(self, qc, setup, schedule_mode="ASAP", compiler=None):
         if compiler is None:
             compiler = SpinChainCompiler(
-                self.num_qubits, self.params, setup=setup
+                self.num_qubits,
+                self.params,
+                setup=setup,
+                global_phase=qc.global_phase,
             )
         tlist, coeffs = super().load_circuit(
             qc, schedule_mode=schedule_mode, compiler=compiler
@@ -121,11 +122,12 @@ class LinearSpinChain(SpinChain):
         import qutip
         from qutip_qip.circuit import QubitCircuit
         from qutip_qip.device import LinearSpinChain
+        from qutip_qip.operations.gates import RX, RY, ISWAP
 
         qc = QubitCircuit(2)
-        qc.add_gate("RX", 0, arg_value=np.pi)
-        qc.add_gate("RY", 1, arg_value=np.pi)
-        qc.add_gate("ISWAP", [1, 0])
+        qc.add_gate(RX(np.pi), targets=0)
+        qc.add_gate(RY(np.pi), targets=1)
+        qc.add_gate(ISWAP, targets=[1, 0])
 
         processor = LinearSpinChain(2, g=0.1, t1=300)
         processor.load_circuit(qc)
@@ -146,7 +148,7 @@ class LinearSpinChain(SpinChain):
         **params,
     ):
         model = SpinChainModel(num_qubits=num_qubits, setup="linear", **params)
-        super(LinearSpinChain, self).__init__(
+        super().__init__(
             num_qubits,
             correct_global_phase=correct_global_phase,
             model=model,
@@ -169,7 +171,7 @@ class LinearSpinChain(SpinChain):
         return self.coeffs[2 * self.num_qubits : 3 * self.num_qubits - 1]
 
     def load_circuit(self, qc, schedule_mode="ASAP", compiler=None):
-        return super(LinearSpinChain, self).load_circuit(
+        return super().load_circuit(
             qc, "linear", schedule_mode=schedule_mode, compiler=compiler
         )
 
@@ -205,11 +207,12 @@ class CircularSpinChain(SpinChain):
         import qutip
         from qutip_qip.circuit import QubitCircuit
         from qutip_qip.device import CircularSpinChain
+        from qutip_qip.operations.gates import RX, RY, ISWAP
 
         qc = QubitCircuit(2)
-        qc.add_gate("RX", 0, arg_value=np.pi)
-        qc.add_gate("RY", 1, arg_value=np.pi)
-        qc.add_gate("ISWAP", [1, 0])
+        qc.add_gate(RX(np.pi), targets=0)
+        qc.add_gate(RY(np.pi), targets=1)
+        qc.add_gate(ISWAP, targets=[1, 0])
 
         processor = CircularSpinChain(2, g=0.1, t1=300)
         processor.load_circuit(qc)
@@ -233,10 +236,8 @@ class CircularSpinChain(SpinChain):
                 "Circuit spin chain must have at least 2 qubits. "
                 "The number of qubits is increased to 2."
             )
-        model = SpinChainModel(
-            num_qubits=num_qubits, setup="circular", **params
-        )
-        super(CircularSpinChain, self).__init__(
+        model = SpinChainModel(num_qubits=num_qubits, setup="circular", **params)
+        super().__init__(
             num_qubits,
             correct_global_phase=correct_global_phase,
             model=model,
@@ -259,7 +260,7 @@ class CircularSpinChain(SpinChain):
         return self.coeffs[2 * self.num_qubits : 3 * self.num_qubits]
 
     def load_circuit(self, qc, schedule_mode="ASAP", compiler=None):
-        return super(CircularSpinChain, self).load_circuit(
+        return super().load_circuit(
             qc, "circular", schedule_mode=schedule_mode, compiler=compiler
         )
 
@@ -402,13 +403,11 @@ class SpinChainModel(Model):
         num_qubits = self.num_qubits
         num_coupling = self._get_num_coupling()
         return [
-            {f"sx{m}": r"$\sigma_x^{}$".format(m) for m in range(num_qubits)},
-            {f"sz{m}": r"$\sigma_z^{}$".format(m) for m in range(num_qubits)},
+            {f"sx{m}": rf"$\sigma_x^{m}$" for m in range(num_qubits)},
+            {f"sz{m}": rf"$\sigma_z^{m}$" for m in range(num_qubits)},
             {
-                f"g{m}": r"$\sigma_x^{}\sigma_x^{} +"
-                r" \sigma_y^{}\sigma_y^{}$".format(
-                    m, (m + 1) % num_qubits, m, (m + 1) % num_qubits
-                )
+                f"g{m}": rf"$\sigma_x^{m}\sigma_x^{(m + 1) % num_qubits} +"
+                rf" \sigma_y^{m}\sigma_y^{(m + 1) % num_qubits}$"
                 for m in range(num_coupling)
             },
         ]

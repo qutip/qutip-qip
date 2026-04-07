@@ -7,74 +7,96 @@ import qutip
 from qutip_qip.qasm import read_qasm, circuit_to_qasm_str
 from qutip_qip.circuit import QubitCircuit
 from qutip import tensor, rand_ket, basis, identity
-from qutip_qip.operations import cnot, ry, Measurement, swap
+from qutip_qip.operations import Measurement
+import qutip_qip.operations.gates as gates
 
 
-@pytest.mark.parametrize(["filename", "error", "error_message"], [
-    pytest.param("command_error.qasm", SyntaxError,
-                 "QASM: post is not a valid QASM command."),
-    pytest.param("bracket_error.qasm", SyntaxError,
-                 "QASM: incorrect bracket formatting"),
-    pytest.param("qasm_error.qasm", SyntaxError,
-                 "QASM: File does not contain QASM 2.0 header")])
+@pytest.mark.parametrize(
+    ["filename", "error", "error_message"],
+    [
+        pytest.param(
+            "command_error.qasm",
+            SyntaxError,
+            "QASM: post is not a valid QASM command.",
+        ),
+        pytest.param(
+            "bracket_error.qasm",
+            SyntaxError,
+            "QASM: incorrect bracket formatting",
+        ),
+        pytest.param(
+            "qasm_error.qasm",
+            SyntaxError,
+            "QASM: File does not contain QASM 2.0 header",
+        ),
+    ],
+)
 def test_qasm_errors(filename, error, error_message):
-    filepath = Path(__file__).parent / 'qasm_files' / filename
+    filepath = Path(__file__).parent / "qasm_files" / filename
     with pytest.raises(error) as exc_info:
         read_qasm(filepath)
     assert error_message in str(exc_info.value)
 
 
-def check_gate_defn(gate, gate_name, targets, controls=None,
-                    classical_controls=None, classical_control_value=None):
-    assert gate.name == gate_name
-    assert gate.targets == targets
-    assert gate.controls == controls
-    assert gate.classical_controls == classical_controls
-    assert gate.classical_control_value == classical_control_value
+def check_gate_instruction_defn(
+    gate_instruction,
+    gate_name,
+    targets,
+    controls=(),
+    classical_controls=(),
+    classical_control_value=None,
+):
+    assert gate_instruction.operation.name == gate_name
+    assert gate_instruction.targets == targets
+    assert gate_instruction.cbits == classical_controls
+    assert gate_instruction.cbits_ctrl_value == classical_control_value
+    assert gate_instruction.controls == controls
 
 
-def check_measurement_defn(gate, gate_name, targets, classical_store):
-    assert gate.name == gate_name
-    assert gate.targets == targets
-    assert gate.classical_store == classical_store
+def check_measurement_defn(meas_instruction, gate_name, qubits, cbits):
+    assert meas_instruction.operation.name == gate_name
+    assert meas_instruction.qubits == qubits
+    assert meas_instruction.cbits == cbits
 
 
 @pytest.mark.filterwarnings(
-    "ignore:Information about individual registers"+
-    " is not preserved in QubitCircuit")
+    "ignore:Information about individual registers"
+    + " is not preserved in QubitCircuit"
+)
 def test_qasm_addcircuit():
     filename = "test_add.qasm"
-    filepath = Path(__file__).parent / 'qasm_files' / filename
+    filepath = Path(__file__).parent / "qasm_files" / filename
     qc = read_qasm(filepath)
-    assert qc.N == 2
+    assert qc.num_qubits == 2
     assert qc.num_cbits == 2
-    check_gate_defn(qc.gates[0], "X", [1])
-    check_gate_defn(qc.gates[1], "SNOT", [0])
-    check_gate_defn(qc.gates[2], "SNOT", [1])
-    check_gate_defn(qc.gates[3], "CNOT", [1], [0])
-    check_gate_defn(qc.gates[4], "SNOT", [0])
-    check_gate_defn(qc.gates[5], "SNOT", [1])
-    check_gate_defn(qc.gates[6], "SNOT", [0], None, [0, 1], 0)
-    check_measurement_defn(qc.gates[7], "M", [0], 0)
-    check_measurement_defn(qc.gates[8], "M", [1], 1)
+    check_gate_instruction_defn(qc.instructions[0], "X", (1,))
+    check_gate_instruction_defn(qc.instructions[1], "H", (0,))
+    check_gate_instruction_defn(qc.instructions[2], "H", (1,))
+    check_gate_instruction_defn(qc.instructions[3], "CX", (1,), (0,))
+    check_gate_instruction_defn(qc.instructions[4], "H", (0,))
+    check_gate_instruction_defn(qc.instructions[5], "H", (1,))
+    check_gate_instruction_defn(qc.instructions[6], "H", (0,), (), (0, 1), 0)
+    check_measurement_defn(qc.instructions[7], "M", (0,), (0,))
+    check_measurement_defn(qc.instructions[8], "M", (1,), (1,))
 
 
 def test_custom_gates():
     filename = "test_custom_gates.qasm"
-    filepath = Path(__file__).parent / 'qasm_files' / filename
+    filepath = Path(__file__).parent / "qasm_files" / filename
     qc = read_qasm(filepath)
     unitaries = qc.propagators()
     assert (unitaries[0] - unitaries[1]).norm() < 1e-12
-    ry_cx = cnot() * tensor(identity(2), ry(np.pi/2))
+    ry_cx = gates.CX.get_qobj() * tensor(identity(2), gates.RY(np.pi / 2).get_qobj())
     assert (unitaries[2] - ry_cx).norm() < 1e-12
 
 
 @pytest.mark.filterwarnings(
-    "ignore:Information about individual registers"+
-    " is not preserved in QubitCircuit")
+    "ignore:Information about individual registers"
+    + " is not preserved in QubitCircuit"
+)
 def test_qasm_teleportation():
     filename = "teleportation.qasm"
-    filepath = Path(__file__).parent / 'qasm_files' / filename
+    filepath = Path(__file__).parent / "qasm_files" / filename
     teleportation = read_qasm(filepath)
     final_measurement = Measurement("start", targets=[2])
     initial_measurement = Measurement("start", targets=[0])
@@ -91,43 +113,44 @@ def test_qasm_teleportation():
         final = state
         prob = probabilities[i]
         _, final_probabilities = final_measurement.measurement_comp_basis(final)
-        np.testing.assert_allclose(initial_probabilities,
-                                   final_probabilities)
+        np.testing.assert_allclose(initial_probabilities, final_probabilities)
         assert prob == pytest.approx(0.25, abs=1e-7)
 
 
 def test_qasm_str():
-    expected_qasm_str = ('// QASM 2.0 file generated by QuTiP\n\nOPENQASM 2.0;'
-                         '\ninclude "qelib1.inc";\n\nqreg q[2];\ncreg c[1];\n\n'
-                         'x q[0];\nmeasure q[1] -> c[0]\n')
+    expected_qasm_str = (
+        "// QASM 2.0 file generated by QuTiP\n\nOPENQASM 2.0;"
+        '\ninclude "qelib1.inc";\n\nqreg q[2];\ncreg c[1];\n\n'
+        "x q[0];\nmeasure q[1] -> c[0];\n"
+    )
     simple_qc = QubitCircuit(2, num_cbits=1)
-    simple_qc.add_gate("X", targets=[0])
+    simple_qc.add_gate(gates.X, targets=[0])
     simple_qc.add_measurement("M", targets=[1], classical_store=0)
     assert circuit_to_qasm_str(simple_qc) == expected_qasm_str
 
 
 def test_export_import():
     qc = QubitCircuit(3)
-    qc.add_gate("CRY", targets=1, controls=0, arg_value=np.pi)
-    qc.add_gate("CRX", targets=1, controls=0, arg_value=np.pi)
-    qc.add_gate("CRZ", targets=1, controls=0, arg_value=np.pi)
-    qc.add_gate("CNOT", targets=1, controls=0)
-    qc.add_gate("TOFFOLI", targets=2, controls=[0, 1])
-    # qc.add_gate("SQRTNOT", targets=0)
-    qc.add_gate("CS", targets=1, controls=0)
-    qc.add_gate("CT", targets=1, controls=0)
-    qc.add_gate("SWAP", targets=[0, 1])
-    qc.add_gate("QASMU", targets=[0], arg_value=[np.pi, np.pi, np.pi])
-    qc.add_gate("RX", targets=[0], arg_value=np.pi)
-    qc.add_gate("RY", targets=[0], arg_value=np.pi)
-    qc.add_gate("RZ", targets=[0], arg_value=np.pi)
-    qc.add_gate("SNOT", targets=[0])
-    qc.add_gate("X", targets=[0])
-    qc.add_gate("Y", targets=[0])
-    qc.add_gate("Z", targets=[0])
-    qc.add_gate("S", targets=[0])
-    qc.add_gate("T", targets=[0])
-    # qc.add_gate("CSIGN", targets=[0], controls=[1])
+    qc.add_gate(gates.CRY(np.pi), targets=1, controls=0)
+    qc.add_gate(gates.CRX(np.pi), targets=1, controls=0)
+    qc.add_gate(gates.CRZ(np.pi), targets=1, controls=0)
+    qc.add_gate(gates.CX, targets=1, controls=0)
+    qc.add_gate(gates.TOFFOLI, targets=2, controls=[0, 1])
+    # qc.add_gate(SQRTX, targets=0)
+    qc.add_gate(gates.CS, targets=1, controls=0)
+    qc.add_gate(gates.CT, targets=1, controls=0)
+    qc.add_gate(gates.SWAP, targets=[0, 1])
+    qc.add_gate(gates.QASMU((np.pi, np.pi, np.pi)), targets=[0])
+    qc.add_gate(gates.RX(np.pi), targets=[0])
+    qc.add_gate(gates.RY(np.pi), targets=[0])
+    qc.add_gate(gates.RZ(np.pi), targets=[0])
+    qc.add_gate(gates.H, targets=[0])
+    qc.add_gate(gates.X, targets=[0])
+    qc.add_gate(gates.Y, targets=[0])
+    qc.add_gate(gates.Z, targets=[0])
+    qc.add_gate(gates.S, targets=[0])
+    qc.add_gate(gates.T, targets=[0])
+    # qc.add_gate(gates.CZ, targets=[0], controls=[1])
 
     # The generated code by default has a inclusion statement of
     # qelib1.inc, which will trigger a warning when read.
@@ -142,23 +165,21 @@ def test_export_import():
         assert (u0 - u1).norm() < 1e-12
 
 
-def test_read_qasm():
+def test_read_qasm_1():
     filename = "w-state.qasm"
-    filepath = Path(__file__).parent / 'qasm_files' / filename
-    filename2 = "w-state_with_comments.qasm"
-    filepath2 = Path(__file__).parent / 'qasm_files' / filename2
+    filepath = Path(__file__).parent / "qasm_files" / filename
+    read_qasm(filepath)
 
-    qc = read_qasm(filepath)
-    qc2 = read_qasm(filepath2)
-    assert True
+
+def test_read_qasm_2():
+    filename2 = "w-state_with_comments.qasm"
+    filepath2 = Path(__file__).parent / "qasm_files" / filename2
+    read_qasm(filepath2)
 
 
 def test_parsing_mode(tmp_path):
     mode = "qiskit"
-    qasm_input_string = (
-        'OPENQASM 2.0;\n\ncreg c[2];'
-        '\nqreg q[2];cx q[0],q[1];\n'
-    )
+    qasm_input_string = "OPENQASM 2.0;\n\ncreg c[2];\nqreg q[2];cx q[0],q[1];\n"
     with pytest.warns(UserWarning) as record_warning:
         read_qasm(
             qasm_input_string,
@@ -168,13 +189,17 @@ def test_parsing_mode(tmp_path):
     assert "Unknown parsing mode" in record_warning[0].message.args[0]
 
     mode = "predefined_only"
+    file_path_predefined_only = tmp_path / "custom_gate_predefined_only.inc"
+    file_path_predefined_only.write_text(
+        "gate custom_swap a,b { CX a,b; CX b,a; CX a,b; }\n"
+    )
     qasm_input_string = (
-        'OPENQASM 2.0;\ninclude "qelib1.inc"\n\ncreg c[2];'
-        '\nqreg q[2];swap q[0],q[1];\n'
+        'OPENQASM 2.0;\ninclude "' + str(file_path_predefined_only) + '"\ncreg c[2];'
+        "\nqreg q[2];custom_swap q[0],q[1];\n"
     )
     with pytest.raises(SyntaxError):
         with pytest.warns(UserWarning) as record_warning:
-            circuit = read_qasm(
+            read_qasm(
                 qasm_input_string,
                 mode=mode,
                 strmode=True,
@@ -187,14 +212,11 @@ def test_parsing_mode(tmp_path):
     mode = "external_only"
     file_path = tmp_path / "custom_swap.inc"
     file_path.write_text(
-        "gate cx c,t { CX c,t; }\n"
-        "gate swap a,b { cx a,b; cx b,a; cx a,b; }\n"
-        )
+        "gate cx c,t { CX c,t; }\ngate swap a,b { cx a,b; cx b,a; cx a,b; }\n"
+    )
     qasm_input_string = (
-        'OPENQASM 2.0;\ninclude "'
-        + str(file_path)
-        + '"\ncreg c[2];'
-        '\nqreg q[2];swap q[0],q[1];\n'
+        'OPENQASM 2.0;\ninclude "' + str(file_path) + '"\ncreg c[2];'
+        "\nqreg q[2];swap q[0],q[1];\n"
     )
     circuit = read_qasm(
         qasm_input_string,
@@ -203,7 +225,7 @@ def test_parsing_mode(tmp_path):
     )
     propagator = circuit.compute_unitary()
 
-    fidelity = qutip.average_gate_fidelity(propagator, swap())
+    fidelity = qutip.average_gate_fidelity(propagator, gates.SWAP.get_qobj())
     pytest.approx(fidelity, 1.0)
 
     circuit = read_qasm(
@@ -212,5 +234,5 @@ def test_parsing_mode(tmp_path):
     )
     propagator = circuit.compute_unitary()
 
-    fidelity = qutip.average_gate_fidelity(propagator, swap())
+    fidelity = qutip.average_gate_fidelity(propagator, gates.SWAP.get_qobj())
     pytest.approx(fidelity, 1.0)

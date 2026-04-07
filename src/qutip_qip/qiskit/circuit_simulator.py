@@ -78,9 +78,7 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
         """Simulator allows measuring any qubit independently"""
         return self._meas_map
 
-    def _run_job(
-        self, job_id: str, qiskit_circuit: list[QuantumCircuit]
-    ) -> Result:
+    def _run_job(self, job_id: str, qiskit_circuit: list[QuantumCircuit]) -> Result:
         """
         Run a :class:`.QubitCircuit` on the :class:`.CircuitSimulator`.
 
@@ -104,7 +102,9 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
             qutip_circuit = convert_qiskit_circuit_to_qutip(transpiled_circuit)
             qutip_circuits.append(qutip_circuit)
 
-            zero_state = basis([2] * qutip_circuit.N, [0] * qutip_circuit.N)
+            zero_state = basis(
+                [2] * qutip_circuit.num_qubits, [0] * qutip_circuit.num_qubits
+            )
             statistics.append(qutip_circuit.run_statistics(state=zero_state))
 
         return self._parse_results(
@@ -156,9 +156,7 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
 
             if statistic.cbits[0] is not None:
                 for i, count in enumerate(statistic.cbits):
-                    count_probs[convert_to_hex(count)] = (
-                        statistic.probabilities[i]
-                    )
+                    count_probs[convert_to_hex(count)] = statistic.probabilities[i]
                 # sample the shots from obtained probabilities
                 counts = sample_shots(count_probs, self.options["shots"])
 
@@ -171,12 +169,8 @@ class QiskitCircuitSimulator(QiskitSimulatorBase):
             )
 
             header = {
-                "name": (
-                    qutip_circuit.name
-                    if hasattr(qutip_circuit, "name")
-                    else ""
-                ),
-                "n_qubits": qutip_circuit.N,
+                "name": (qutip_circuit.name if hasattr(qutip_circuit, "name") else ""),
+                "n_qubits": qutip_circuit.num_qubits,
             }
 
             exp_res.append(

@@ -65,8 +65,6 @@ class ControlAmpNoise(Noise):
             else:
                 tlist = self.tlist
 
-            pulses[i].add_coherent_noise(
-                pulse.qobj, pulse.targets, tlist, coeff
-            )
+            pulses[i].add_coherent_noise(pulse.qobj, pulse.targets, tlist, coeff)
 
         return pulses, systematic_noise

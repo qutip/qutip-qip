@@ -46,9 +46,9 @@ jobs:
       OVERRIDE_VERSION: ${{ github.event.inputs.override_version }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         name: Install Python
         with:
           # For the sdist we should be as conservative as possible with our
@@ -68,7 +68,7 @@ jobs:
           # dependencies are specified by our setup code.
           python -m build --sdist .
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: sdist
           path: dist/*.tar.gz
@@ -83,9 +83,9 @@ jobs:
       OVERRIDE_VERSION: ${{ github.event.inputs.override_version }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         name: Install Python
         with:
           # This is about the build environment, not the released wheel version.
@@ -105,7 +105,7 @@ jobs:
           # dependencies are specified by our setup code.
           python -m build --wheel --outdir wheelhouse .
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: wheels
           path: ./wheelhouse/*.whl
@@ -124,9 +124,9 @@ jobs:
 
     steps:
       - name: Download build artifacts to local runner
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         name: Install Python
         with:
           python-version: '3.11'

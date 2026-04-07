@@ -2,7 +2,7 @@ from copy import deepcopy
 import numpy as np
 
 
-class Instruction:
+class PulseInstruction:
     """
     Representation of pulses that implement a quantum gate.
     It contains the control pulse required to implement the gate
@@ -11,12 +11,16 @@ class Instruction:
     Parameters
     ----------
     gate: :class:`~.operations.Gate`
-        The quantum gate.
-    duration: list, optional
-        The execution time needed for the instruction.
+        The logical quantum gate (e.g., RX, CNOT) associated with this
+        instruction.
+    duration: float, optional
+        The total execution time for the instruction. If not provided,
+        it is derived from the last element of the tlist.
     tlist: array_like, optional
-        A list of time at which the time-dependent coefficients are
-        applied. See :class:`.Pulse` for detailed information`
+        A list of time points at which the time-dependent coefficients are
+        applied. For the default piecewise constant (PWC) pulses used by
+        most compilers, len(tlist) = len(coeffs) + 1.
+        See :class:`.Pulse` for spline-based alternatives.
     pulse_info: list, optional
         A list of tuples, each tuple corresponding to a pair of pulse label
         and pulse coefficient, in the format (str, array_like).
@@ -32,15 +36,20 @@ class Instruction:
         Union of the control and target qubits.
     """
 
-    def __init__(self, gate, tlist=None, pulse_info=(), duration=1):
-        self.gate = deepcopy(gate)
+    def __init__(self, circuit_instruction, tlist=None, pulse_info=(), duration=1):
+        self.gate = deepcopy(circuit_instruction.operation)
+        self._targets = list(circuit_instruction.targets)
+        self._controls = list(circuit_instruction.controls)
+
         self.used_qubits = set()
         if self.targets is not None:
             self.targets.sort()  # Used when comparing the instructions
             self.used_qubits |= set(self.targets)
+
         if self.controls is not None:
             self.controls.sort()
             self.used_qubits |= set(self.controls)
+
         self.tlist = tlist
         if self.tlist is not None:
             if np.isscalar(self.tlist):
@@ -49,8 +58,10 @@ class Instruction:
                 raise ValueError("Pulse time sequence must start from 0")
             else:
                 self.duration = self.tlist[-1]
+
         else:
             self.duration = duration
+
         self.pulse_info = pulse_info
 
     @property
@@ -67,7 +78,7 @@ class Instruction:
 
         :type: list
         """
-        return self.gate.targets
+        return self._targets
 
     @property
     def controls(self):
@@ -76,4 +87,6 @@ class Instruction:
 
         :type: list
         """
-        return self.gate.controls
+        if self.gate.is_controlled:
+            return self._controls
+        return None

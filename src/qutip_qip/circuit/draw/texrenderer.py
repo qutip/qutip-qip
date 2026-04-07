@@ -8,7 +8,7 @@ import collections
 from typing import Callable
 
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import Gate
+from qutip_qip.operations import gates as std
 
 
 # As a general note wherever you see {{}} in a python rf string that represents a {}
@@ -23,9 +23,9 @@ class TeXRenderer:
     def __init__(self, qc: QubitCircuit):
 
         self.qc = qc
-        self.N = qc.N
+        self.num_qubits = qc.num_qubits
         self.num_cbits = qc.num_cbits
-        self.gates = qc.gates
+        self.instructions = qc.instructions
         self.input_states = qc.input_states
         self.reverse_states = qc.reverse_states
 
@@ -43,7 +43,7 @@ class TeXRenderer:
 
     def _gate_label(self, gate) -> str:
         gate_label = gate.latex_str
-        if gate.arg_label is not None:
+        if gate.is_parametric and gate.arg_label is not None:
             return rf"{gate_label}({gate.arg_label})"
         return rf"{gate_label}"
 
@@ -59,100 +59,83 @@ class TeXRenderer:
 
         rows = []
         col = []
-        ops = self.gates
 
-        for op in ops:
-            if isinstance(op, Gate):
-                gate = op
+        for circ_instruction in self.instructions:
+            if circ_instruction.is_gate_instruction():
+                gate = circ_instruction.operation
+                targets = circ_instruction.targets
+                controls = circ_instruction.controls
+                cbits = circ_instruction.cbits
                 col = []
                 _swap_processing = False
 
-                for n in range(self.N + self.num_cbits):
-                    if gate.targets and n in gate.targets:
-                        if len(gate.targets) > 1:
-                            if gate.name == "SWAP":
+                for n in range(self.num_qubits + self.num_cbits):
+                    if targets and n in targets:
+                        if len(targets) > 1:
+                            if gate == std.SWAP:
                                 if _swap_processing:
                                     col.append(r" \qswap \qw")
                                     continue
-                                distance = abs(
-                                    gate.targets[1] - gate.targets[0]
-                                )
+                                distance = abs(targets[1] - targets[0])
 
                                 if self.reverse_states:
                                     distance = -distance
                                 col.append(rf" \qswap \qwx[{distance}] \qw")
                                 _swap_processing = True
 
-                            elif (
-                                self.reverse_states and n == max(gate.targets)
-                            ) or (
-                                not self.reverse_states
-                                and n == min(gate.targets)
+                            elif (self.reverse_states and n == max(targets)) or (
+                                not self.reverse_states and n == min(targets)
                             ):
                                 # Python automatically concatenates adjacent string literals
                                 # No new line is added in the process
                                 col.append(
-                                    rf" \multigate{{{len(gate.targets) - 1}}}"
+                                    rf" \multigate{{{len(targets) - 1}}}"
                                     rf"{{{self._gate_label(gate)}}} "
                                 )
                             else:
-                                col.append(
-                                    rf" \ghost{{{self._gate_label(gate)}}} "
-                                )
+                                col.append(rf" \ghost{{{self._gate_label(gate)}}} ")
 
-                        elif gate.name == "CNOT":
+                        elif gate == std.CX:
                             col.append(r" \targ ")
-                        elif gate.name == "CY":
+                        elif gate == std.CY:
                             col.append(r" \targ ")
-                        elif gate.name == "CZ":
+                        elif gate == std.CZ:
                             col.append(r" \targ ")
-                        elif gate.name == "CS":
+                        elif gate == std.CS:
                             col.append(r" \targ ")
-                        elif gate.name == "CT":
+                        elif gate == std.CT:
                             col.append(r" \targ ")
-                        elif gate.name == "TOFFOLI":
+                        elif gate == std.TOFFOLI:
                             col.append(r" \targ ")
                         else:
                             col.append(rf" \gate{{{self._gate_label(gate)}}} ")
 
-                    elif gate.controls and n in gate.controls:
+                    elif n in controls:
                         control_tag = (-1 if self.reverse_states else 1) * (
-                            gate.targets[0] - n
+                            targets[0] - n
                         )
                         col.append(rf" \ctrl{{{control_tag}}} ")
 
-                    elif (
-                        gate.classical_controls
-                        and (n - self.N) in gate.classical_controls
-                    ):
+                    elif len(cbits) and (n - self.num_qubits) in cbits:
                         control_tag = (-1 if self.reverse_states else 1) * (
-                            gate.targets[0] - n
+                            targets[0] - n
                         )
                         col.append(rf" \ctrl{{{control_tag}}} ")
 
-                    elif not gate.controls and not gate.targets:
-                        # global gate
-                        if (self.reverse_states and n == self.N - 1) or (
-                            not self.reverse_states and n == 0
-                        ):
-                            col.append(
-                                rf" \multigate{{{self.N - 1}}}"
-                                rf"{{{self._gate_label(gate)}}} "
-                            )
-                        else:
-                            col.append(rf" \ghost{self._gate_label(gate)} ")
                     else:
                         col.append(r" \qw ")
 
             else:
-                measurement = op
+                qubits = list(circ_instruction.qubits)
+                cbits = list(circ_instruction.cbits)
                 col = []
-                for n in range(self.N + self.num_cbits):
-                    if n in measurement.targets:
+
+                for n in range(self.num_qubits + self.num_cbits):
+                    if n in qubits:
                         col.append(r" \meter")
-                    elif (n - self.N) == measurement.classical_store:
+                    elif (n - self.num_qubits) == cbits[0]:
                         sgn = 1 if self.reverse_states else -1
-                        store_tag = sgn * (n - measurement.targets[0])
+                        store_tag = sgn * (n - qubits[0])
                         col.append(rf" \qw \cwx[{store_tag}] ")
                     else:
                         col.append(r" \qw ")
@@ -162,23 +145,23 @@ class TeXRenderer:
 
         input_states_quantum = [
             r"\lstick{\ket{" + x + "}}" if x is not None else ""
-            for x in self.input_states[: self.N]
+            for x in self.input_states[: self.num_qubits]
         ]
         input_states_classical = [
             r"\lstick{" + x + "}" if x is not None else ""
-            for x in self.input_states[self.N :]
+            for x in self.input_states[self.num_qubits :]
         ]
         input_states = input_states_quantum + input_states_classical
 
         code = ""
         n_iter = (
-            reversed(range(self.N + self.num_cbits))
+            reversed(range(self.num_qubits + self.num_cbits))
             if self.reverse_states
-            else range(self.N + self.num_cbits)
+            else range(self.num_qubits + self.num_cbits)
         )
         for n in n_iter:
             code += rf" & {input_states[n]}"
-            for m in range(len(ops)):
+            for m in range(len(self.instructions)):
                 code += rf" & {rows[m][n]}"
             code += r" & \qw \\ " + "\n"
 
@@ -274,9 +257,7 @@ class TeXRenderer:
             return file.read()
 
     @classmethod
-    def _make_converter(
-        self, configuration: dict
-    ) -> Callable[dict, str | bytes]:
+    def _make_converter(self, configuration: dict) -> Callable[[str, int], str | bytes]:
         """
         Create the actual conversion function of signature
             file_stem: str -> 'T,
@@ -369,8 +350,7 @@ class TeXRenderer:
                         )
                         message += (
                             "The latex code is printed below. "
-                            "Please try to compile locally using pdflatex:\n"
-                            + code
+                            "Please try to compile locally using pdflatex:\n" + code
                         )
                         raise RuntimeError(message) from e
 
@@ -392,9 +372,7 @@ class TeXRenderer:
 
                     if file_type not in CONVERTERS:
                         raise ValueError(
-                            "".join(
-                                ["Unknown output format: '", file_type, "'."]
-                            )
+                            "".join(["Unknown output format: '", file_type, "'."])
                         )
                     out = CONVERTERS[file_type](filename, dpi)
 
@@ -424,9 +402,7 @@ _CONVERTER_CONFIGURATIONS = [
         arguments=("-density", "100"),
         binary=True,
     ),
-    _ConverterConfiguration(
-        "svg", "pdf2svg", ["pdf2svg"], arguments=(), binary=False
-    ),
+    _ConverterConfiguration("svg", "pdf2svg", ["pdf2svg"], arguments=(), binary=False),
 ]
 _SPECIAL_CASES = {
     "convert": TeXRenderer._test_convert_is_imagemagick,
