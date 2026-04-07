@@ -627,7 +627,7 @@ class QubitCircuit:
         ----------
         state : ket or oper, optional
                 state vector or density matrix input. If not provided,
-                defaults to the all-zero ket state \|00...0> for the
+                defaults to the all-zero ket state \\|00...0> for the
                 number of qubits in the circuit.
         cbits : List of ints, optional
                 initialization of the classical bits.
