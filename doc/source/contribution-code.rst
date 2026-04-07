@@ -36,20 +36,20 @@ development dependencies and the git hooks once:
 
 .. code-block:: bash
 
-  pip install -e ".[tests]"
+  pip install pre-commit
   pre-commit install
 
-These checks (including Black, whitespace fixes, and YAML validation) will now
+These checks (including Black and whitespace fixes) will now
 run automatically on every ``git commit``. To run all checks manually across the
 entire repository without committing, use:
 
-Alternatively with Black
-----------------------------------
 .. code-block:: bash
 
   pre-commit run --all-files
 
-.. code-block::
+Alternatively with Black
+------------------------
+.. code-block:: bash
 
   pip install black
 

@@ -75,6 +75,7 @@ qutip_qip = "qutip_qip.family"
 [dependency-groups]
 lint = [
     "black==26.1.0",
+    "pre-commit",
 ]
 test = [
     "pytest>=5.2",
