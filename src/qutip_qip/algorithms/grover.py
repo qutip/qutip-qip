@@ -22,7 +22,7 @@ def grover_oracle(
 
     Returns
     -------
-    QubitCircuit
+    qc : :class:`.QubitCircuit`
         The oracle circuit.
     """
     if isinstance(search_qubits, int):
@@ -97,12 +97,12 @@ def grover(
         The number of expected solutions M.
     num_iterations : int, optional
         Number of iterations. Defaults to optimal for M solutions.
-    num_qubits: int,optional
+    num_qubits : int, optional
         Total number of qubits in the system.
 
     Returns
     -------
-    QubitCircuit
+    qc : :class:`.QubitCircuit`
         Quantum Circuit implementing Grover's search algorithm.
 
     Raises

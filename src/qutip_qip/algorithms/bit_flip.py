@@ -20,18 +20,20 @@ class BitFlipCode:
         self._n_syndrome = 2
 
     @property
-    def n_data(self):
+    def n_data(self) -> int:
         """
-        Returns:
-            int: Number of data qubits (always 3 for bit-flip code).
+        Returns
+        -------
+        int: Number of data qubits (always 3 for bit-flip code).
         """
         return self._n_data
 
     @property
-    def n_syndrome(self):
+    def n_syndrome(self) -> int:
         """
-        Returns:
-            int: Number of syndrome qubits used for error detection (2 for this code).
+        Returns
+        -------
+        int: Number of syndrome qubits used for error detection (2 for this code).
         """
         return self._n_syndrome
 
@@ -41,14 +43,19 @@ class BitFlipCode:
         and CNOT gates are applied from it to the other data qubits to encode logical states
         :math:`|0\\rangle` or :math:`|1\\rangle`.
 
-        Args:
-            data_qubits (list[int]): List of 3 integers representing data qubit indices.
+        Parameters
+        ----------
+        data_qubits : sequence of int
+            Indices of 3 data qubits.
 
-        Returns:
-            QubitCircuit: The encoding quantum circuit.
+        Returns
+        -------
+        qc : :class:`.QubitCircuit`
+            The encoding quantum circuit.
 
-        Raises:
-            ValueError: If the number of data qubits is not 3.
+        Raises
+        ------
+        ValueError: If the number of data qubits is not 3.
         """
 
         if len(data_qubits) != self.n_data:
@@ -68,15 +75,21 @@ class BitFlipCode:
         Constructs the circuit for syndrome extraction and classical error correction.
         The circuit measures parity between qubit pairs and applies X gates conditionally.
 
-        Args:
-            data_qubits (list[int]): List of 3 integers representing data qubit indices.
-            syndrome_qubits (list[int]): List of 2 integers representing syndrome qubit indices.
+        Parameters
+        ----------
+        data_qubits : sequence of int
+            Indices of 3 data qubits.
+        syndrome_qubits : sequence of int
+            Indices of 2 syndrome qubits.
 
-        Returns:
-            QubitCircuit: The quantum circuit for syndrome measurement and correction.
+        Returns
+        -------
+        qc : :class:`.QubitCircuit`
+            Circuit for syndrome measurement and Z correction.
 
-        Raises:
-            ValueError: If the number of data or syndrome qubits is incorrect.
+        Raises
+        ------
+        ValueError: If the number of data or syndrome qubits is incorrect.
         """
         if len(data_qubits) != self.n_data:
             raise ValueError(
@@ -132,14 +145,19 @@ class BitFlipCode:
         Constructs the decoding circuit which is the inverse of the encoding operation,
         used to recover the original logical qubit. TOFFOLI gate verifies parity.
 
-        Args:
-            data_qubits (list[int]): List of 3 integers representing data qubit indices.
+        Parameters
+        ----------
+        data_qubits : sequence of int
+            Indices of 3 data qubits.
 
-        Returns:
-            QubitCircuit: The decoding quantum circuit.
+        Returns
+        -------
+        qc : :class:`.QubitCircuit`
+            The decoding quantum circuit.
 
-        Raises:
-            ValueError: If the number of data qubits is not 3.
+        Raises
+        ------
+        ValueError: If the number of data qubits is not 3.
         """
         if len(data_qubits) != self.n_data:
             raise ValueError(

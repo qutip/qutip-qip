@@ -13,12 +13,14 @@ class ShorCode:
     def __init__(self):
         self.n_qubits = 9  # Total qubits in the Shor code
 
-    def encode_circuit(self):
+    def encode_circuit(self) -> QubitCircuit:
         """
         Construct the 9-qubit Shor code encoding circuit.
 
-        Returns:
-            QubitCircuit: Circuit that encodes one logical qubit into the Shor code.
+        Returns
+        -------
+        qc : :class:`.QubitCircuit`
+            Circuit that encodes one logical qubit into the Shor code.
         """
         qc = QubitCircuit(num_qubits=self.n_qubits)
 
