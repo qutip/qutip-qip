@@ -1,0 +1,22 @@
+name: Documentation
+description: Report an issue related to qutip-qip documentation
+
+body:
+- type: textarea
+  attributes:
+    label: 📚 The doc issue
+    description: >
+      A clear and concise description of what content in https://qutip-qip.readthedocs.io/en/stable/ is an issue. If this has to do with https://qutip.org/qutip-tutorials/, please file an issue at https://github.com/qutip/qutip-tutorials/
+  validations:
+    required: true
+
+- type: textarea
+  attributes:
+    label: Suggest a potential alternative/fix
+    description: >
+      Tell us how we could improve the documentation in this regard.
+
+- type: markdown
+  attributes:
+    value: >
+      Thanks for contributing 🎉!
