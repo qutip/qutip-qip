@@ -26,22 +26,22 @@ The docstring should follow
 
 Checking Code Style and Format
 ==============================
+
 To ensure the codebase follows the `PEP8 <https://www.python.org/dev/peps/pep-0008/>`_
 style guidelines, we use the ``pre-commit`` framework and the ``black`` formatter.
 
 Automated Checking with pre-commit
 ----------------------------------
-The easiest way to maintain compliance is to automate the checks. Install the
-development dependencies and the git hooks once:
+
+The easiest way to maintain compliance is to automate the checks. you only need to install
+the git hooks once:
 
 .. code-block:: bash
 
-  pip install pre-commit
-  pre-commit install
+   pre-commit install
 
-These checks (including Black and whitespace fixes) will now
-run automatically on every ``git commit``. To run all checks manually across the
-entire repository without committing, use:
+This ensures that linting checks run automatically every time you run git commit.
+To run all checks manually across the entire repository without committing, use:
 
 .. code-block:: bash
 
@@ -49,9 +49,6 @@ entire repository without committing, use:
 
 Alternatively with Black
 ------------------------
-.. code-block:: bash
-
-  pip install black
 
 In the directory that contains ``some_file.py``, use
 
