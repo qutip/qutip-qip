@@ -6,7 +6,7 @@ on:
   push:
     branches: [ master ]
     paths: &trigger_paths
-      - "pulse-paper/**/*.py"
+      - "pulse-paper/**"
       - "src/**/*.py"
       - ".github/workflows/pulse-paper.yml" #Run when this exact pipeline file changes
       - "pyproject.toml" # Run when any dependency changes
