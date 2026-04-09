@@ -54,8 +54,8 @@ def qft_steps(N: int = 1, swapping: bool = True) -> list[Qobj]:
 
     Returns
     -------
-    U_step_list: list of Qobj
-        Sequence of Hadamard and controlled rotation gates implementing QFT.
+    U_step_list : list of Qobj
+        List of Hadamard and controlled rotation gates implementing QFT.
 
     """
     if N < 1:

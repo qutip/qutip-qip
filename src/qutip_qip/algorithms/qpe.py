@@ -10,7 +10,7 @@ from qutip_qip.operations.gates import H
 def qpe(
     U: Qobj,
     num_counting_qubits: int,
-    target_qubits: int | IntSequence = None,
+    target_qubits: int | IntSequence | None = None,
     to_cnot: bool = False,
 ) -> QubitCircuit:
     """

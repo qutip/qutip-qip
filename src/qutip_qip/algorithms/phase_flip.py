@@ -25,7 +25,8 @@ class PhaseFlipCode:
         """
         Returns
         -------
-        int: Number of data qubits (3).
+        int
+            Number of data qubits (3).
         """
         return self._n_data
 
@@ -34,7 +35,8 @@ class PhaseFlipCode:
         """
         Returns
         -------
-        int: Number of syndrome qubits (2).
+        int
+            Number of syndrome qubits (2).
         """
         return self._n_syndrome
 

@@ -24,7 +24,8 @@ class BitFlipCode:
         """
         Returns
         -------
-        int: Number of data qubits (always 3 for bit-flip code).
+        int
+            Number of data qubits (always 3 for bit-flip code).
         """
         return self._n_data
 
@@ -33,7 +34,8 @@ class BitFlipCode:
         """
         Returns
         -------
-        int: Number of syndrome qubits used for error detection (2 for this code).
+        int
+            Number of syndrome qubits used for error detection (2 for this code).
         """
         return self._n_syndrome
 
@@ -85,7 +87,7 @@ class BitFlipCode:
         Returns
         -------
         qc : :class:`.QubitCircuit`
-            Circuit for syndrome measurement and Z correction.
+            Circuit for syndrome measurement and X correction.
 
         Raises
         ------
