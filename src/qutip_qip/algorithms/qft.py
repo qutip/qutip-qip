@@ -4,24 +4,25 @@ This module provides the circuit implementation for Quantum Fourier Transform.
 
 import numpy as np
 from qutip import Qobj
+from qutip_qip.typing import IntSequence
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.decompose import decompose_one_qubit_gate
 from qutip_qip.operations import expand_operator
 from qutip_qip.operations.gates import H, RZ, CX, CPHASE, SWAP
 
 
-def qft(N=1):
+def qft(N: int = 1) -> Qobj:
     """
     Quantum Fourier Transform operator on N qubits.
 
     Parameters
     ----------
     N : int
-        Number of qubits.
+        Number of qubits. (default = 1)
 
     Returns
     -------
-    QFT: qobj
+    QFT : Qobj
         Quantum Fourier transform operator.
 
     """
@@ -38,21 +39,22 @@ def qft(N=1):
     return Qobj(1.0 / np.sqrt(N2) * L, dims=dims)
 
 
-def qft_steps(N=1, swapping=True):
+def qft_steps(N: int = 1, swapping: bool = True) -> list[Qobj]:
     """
     Quantum Fourier Transform operator on N qubits returning the individual
     steps as unitary matrices operating from left to right.
 
     Parameters
     ----------
-    N: int
+    N : int
         Number of qubits.
-    swap: boolean
-        Flag indicating sequence of swap gates to be applied at the end or not.
+    swapping : bool, optional
+        Flag indicating sequence of swap gates to be applied at the end or
+        not.
 
     Returns
     -------
-    U_step_list: list of qobj
+    U_step_list : list of Qobj
         List of Hadamard and controlled rotation gates implementing QFT.
 
     """
@@ -83,20 +85,26 @@ def qft_steps(N=1, swapping=True):
     return U_step_list
 
 
-def qft_gate_sequence(N=1, swapping=True, to_cnot=False):
+def qft_gate_sequence(
+    N: int = 1, swapping: bool = True, to_cnot: bool = False
+) -> QubitCircuit:
     """
     Quantum Fourier Transform operator on N qubits returning the gate sequence.
 
     Parameters
     ----------
-    N: int
+    N : int
         Number of qubits.
-    swap: boolean
-        Flag indicating sequence of swap gates to be applied at the end or not.
+    swapping : bool, optional
+        Flag indicating sequence of swap gates to be applied at the end or
+        not (default: True).
+    to_cnot : bool, optional
+        Flag to decompose controlled phase gates to CNOT gates
+        (default: False).
 
     Returns
     -------
-    qc: instance of QubitCircuit
+    qc : :class:`.QubitCircuit`
         Gate sequence of Hadamard and controlled rotation gates implementing
         QFT.
     """
@@ -128,7 +136,12 @@ def qft_gate_sequence(N=1, swapping=True, to_cnot=False):
     return qc
 
 
-def _cphase_to_cnot(targets, controls, arg_value, qc: QubitCircuit):
+def _cphase_to_cnot(
+    targets: int | IntSequence,
+    controls: int | IntSequence,
+    arg_value: float,
+    qc: QubitCircuit,
+) -> None:
     rotation = Qobj([[1.0, 0.0], [0.0, np.exp(1.0j * arg_value)]])
     decomposed_gates = list(decompose_one_qubit_gate(rotation, method="ZYZ_PauliX"))
     qc.add_gate(decomposed_gates[0], targets=targets)

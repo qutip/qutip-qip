@@ -21,18 +21,22 @@ class PhaseFlipCode:
         self._n_syndrome = 2
 
     @property
-    def n_data(self):
+    def n_data(self) -> int:
         """
-        Returns:
-            int: Number of data qubits (3).
+        Returns
+        -------
+        int
+            Number of data qubits (3).
         """
         return self._n_data
 
     @property
-    def n_syndrome(self):
+    def n_syndrome(self) -> int:
         """
-        Returns:
-            int: Number of syndrome qubits (2).
+        Returns
+        -------
+        int
+            Number of syndrome qubits (2).
         """
         return self._n_syndrome
 
@@ -43,14 +47,19 @@ class PhaseFlipCode:
         The logical qubit is first encoded by two CX gates and then converted to the X-basis
         using Hadamard (H). This creates redundancy to detect and correct a single phase error.
 
-        Args:
-            data_qubits (list[int]): Indices of 3 data qubits.
+        Parameters
+        ----------
+        data_qubits : sequence of int
+            Indices of 3 data qubits.
 
-        Returns:
-            QubitCircuit: The encoding quantum circuit.
+        Returns
+        -------
+        qc : :class:`.QubitCircuit`
+            The encoding quantum circuit.
 
-        Raises:
-            ValueError: If the number of data qubits is not 3.
+        Raises
+        ------
+        ValueError: If the number of data qubits is not 3.
         """
         if len(data_qubits) != 3:
             raise ValueError("Expected 3 data qubits.")
@@ -79,15 +88,21 @@ class PhaseFlipCode:
         Measurements are stored in classical bits, and Z corrections are applied
         conditionally based on the measured syndrome.
 
-        Args:
-            data_qubits (list[int]): Indices of 3 data qubits.
-            syndrome_qubits (list[int]): Indices of 2 syndrome qubits.
+        Parameters
+        ----------
+        data_qubits : sequence of int
+            Indices of 3 data qubits.
+        syndrome_qubits : sequence of int
+            Indices of 2 syndrome qubits.
 
-        Returns:
-            QubitCircuit: Circuit for syndrome measurement and Z correction.
+        Returns
+        -------
+        qc : :class:`.QubitCircuit`
+            Circuit for syndrome measurement and Z correction.
 
-        Raises:
-            ValueError: If there are not exactly 3 data qubits and 2 syndrome qubits.
+        Raises
+        ------
+        ValueError: If there are not exactly 3 data qubits and 2 syndrome qubits.
         """
         if len(data_qubits) != 3 or len(syndrome_qubits) != 2:
             raise ValueError("Expected 3 data qubits and 2 syndrome qubits.")
@@ -146,14 +161,19 @@ class PhaseFlipCode:
         the X-basis to the Z-basis, then applies the inverse of the CX encoding to
         decode the qubits. A Toffoli gate is applied in the end to verify parity.
 
-        Args:
-            data_qubits (list[int]): Indices of 3 data qubits.
+        Parameters
+        ----------
+        data_qubits : sequence of int
+            Indices of 3 data qubits.
 
-        Returns:
-            QubitCircuit: The decoding circuit.
+        Returns
+        -------
+        qc : :class:`.QubitCircuit`
+            The decoding circuit.
 
-        Raises:
-            ValueError: If the number of data qubits is not 3.
+        Raises
+        ------
+        ValueError: If the number of data qubits is not 3.
         """
         if len(data_qubits) != 3:
             raise ValueError("Expected 3 data qubits.")
