@@ -634,6 +634,25 @@ class TestQubitCircuit:
         fid = pytest.approx(qutip.fidelity(final_state, basis(2, 1)))
         assert fid == 1.0
 
+    def test_run_default_zero_state(self):
+        """Test that qc.run() without a state argument defaults to |00...0>."""
+        # Single qubit: X gate should map |0> to |1>
+        qc = QubitCircuit(num_qubits=1)
+        qc.add_gate(gates.X, targets=0)
+        result = qc.run()
+        assert qutip.fidelity(result, basis(2, 1)) == pytest.approx(
+            1.0, rel=1e-6, abs=1e-6
+        )
+
+        # Two qubits: default |00>, apply X on qubit 0, expect |10>
+        qc2 = QubitCircuit(num_qubits=2)
+        qc2.add_gate(gates.X, targets=0)
+        result2 = qc2.run()
+        expected = tensor(basis(2, 1), basis(2, 0))
+        assert qutip.fidelity(result2, expected) == pytest.approx(
+            1.0, rel=1e-6, abs=1e-6
+        )
+
     def test_gate_product(self):
 
         filename = "qft.qasm"
