@@ -227,11 +227,45 @@ is active.  We will not accept any PR with failing tests, unless the failure was
 Code Style
 ==========
 
-All new Python code should follow the standard `PEP 8 style guide`_.  Our CI
-pipelines will test this when you make a PR. You can run ``black --check .`` to check
-whether the code is formatted as per ``PEP 8`` standards and stays within the
-88-character line-length requirement for readability. You can also auto format the
-code in accordance with the ``PEP 8 standards`` using the command ``black .``.
+To ensure the codebase follows the `PEP8 <https://www.python.org/dev/peps/pep-0008/>`_
+style guidelines, we use the ``pre-commit`` framework and the ``black`` formatter.
+
+Automated Checking with pre-commit
+----------------------------------
+
+The easiest way to maintain compliance is to automate the checks. you only need to install
+the git hooks once:
+
+.. code-block:: bash
+
+   pre-commit install
+
+This ensures that linting checks run automatically every time you run git commit.
+To run all checks manually across the entire repository without committing, use:
+
+.. code-block:: bash
+
+  pre-commit run --all-files
+
+Alternatively with Black
+------------------------
+
+In the directory that contains ``some_file.py``, use
+
+.. code-block::
+
+  black some_file.py --check
+  black some_file.py --diff --color
+  black some_file.py
+
+Using ``--check`` will show if any of the file will be reformatted or not.
+
+  * `Code 0 <https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html#the-basics>`_ means nothing will be reformatted.
+  * Code 1 means one or more files could be reformatted. More than one files could
+    be reformatted if ``black some_directory --check`` is used.
+
+Using ``--diff --color`` will show a `difference <https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html#diffs>`_ of
+the changes that will be made by ``Black``. If you would prefer these changes to be made, use the last line of above code block.
 
 All functions, classes and methods should have up-to-date docstrings.  We use
 `Sphinx's autodoc extension`_ to generate API documentation, so please ensure
@@ -273,55 +307,7 @@ The docstring should follow
 `NumPy Style Python Docstrings <https://www.sphinx-doc.org/en/master/usage/extensions/example_numpy.html>`_.
 
 
-To ensure the codebase follows the `PEP8 <https://www.python.org/dev/peps/pep-0008/>`_
-style guidelines, we use the ``pre-commit`` framework and the ``black`` formatter.
-
-Automated Checking with pre-commit
-----------------------------------
-
-The easiest way to maintain compliance is to automate the checks. you only need to install
-the git hooks once:
-
-.. code-block:: bash
-
-   pre-commit install
-
-This ensures that linting checks run automatically every time you run git commit.
-To run all checks manually across the entire repository without committing, use:
-
-.. code-block:: bash
-
-  pre-commit run --all-files
-
-Alternatively with Black
-------------------------
-
-In the directory that contains ``some_file.py``, use
-
-.. code-block::
-
-  black some_file.py --check
-  black some_file.py --diff --color
-  black some_file.py
-
-Using ``--check`` will show if any of the file will be reformatted or not.
-
-  * `Code 0 <https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html#the-basics>`_ means nothing will be reformatted.
-  * Code 1 means one or more files could be reformatted. More than one files could
-    be reformatted if ``black some_directory --check`` is used.
-
-Using ``--diff --color`` will show a `difference <https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html#diffs>`_ of
-the changes that will be made by ``Black``. If you would prefer these changes to be made, use the last line of above code block.
-
-.. note::
-  We are currently in the process of checking format of existing code in ``qutip-qip``.
-  Running ``black existing_file.py`` will attempt to format existing code. We
-  advise you to create a separate issue for ``existing_file.py`` or skip re-formatting
-  ``existing_file.py`` in the same PR as your new contribution.
-
-  It is advised to keep your new contribution ``PEP8`` compliant.
-
-Checking tests locally
+Checking tests coverage
 =======================
 
 Optionally you can generate code coverage report locally. First make sure
