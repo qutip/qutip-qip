@@ -1,11 +1,18 @@
 import numpy as np
+from qutip import Qobj
+from qutip_qip.typing import IntSequence
 from qutip_qip.algorithms import qft_gate_sequence
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations import get_unitary_gate, get_controlled_gate
 from qutip_qip.operations.gates import H
 
 
-def qpe(U, num_counting_qubits, target_qubits=None, to_cnot=False):
+def qpe(
+    U: Qobj,
+    num_counting_qubits: int,
+    target_qubits: int | IntSequence | None = None,
+    to_cnot: bool = False,
+) -> QubitCircuit:
     """
     Quantum Phase Estimation circuit implementation for QuTiP.
 
@@ -17,7 +24,7 @@ def qpe(U, num_counting_qubits, target_qubits=None, to_cnot=False):
     num_counting_qubits : int
         Number of counting qubits to use for the phase estimation.
         More qubits provide higher precision.
-    target_qubits : int or list, optional
+    target_qubits : int or sequence of int, optional
         Index or indices of the target qubit(s) where the eigenstate is prepared.
         If None, target_qubits is set automatically based on U's dimension.
     to_cnot : bool, optional
@@ -25,7 +32,7 @@ def qpe(U, num_counting_qubits, target_qubits=None, to_cnot=False):
 
     Returns
     -------
-    qc : instance of QubitCircuit
+    qc : :class:`.QubitCircuit`
         Gate sequence implementing Quantum Phase Estimation.
     """
     if num_counting_qubits < 1:

@@ -5,7 +5,7 @@ Quantum circuit representation and simulation.
 import warnings
 import inspect
 from typing import Iterable, Type
-from qutip import qeye, Qobj
+from qutip import qeye, Qobj, basis, tensor
 import numpy as np
 
 from qutip_qip.circuit import (
@@ -616,7 +616,7 @@ class QubitCircuit:
 
     def run(
         self,
-        state,
+        state=None,
         cbits=None,
         measure_results=None,
     ):
@@ -625,8 +625,10 @@ class QubitCircuit:
 
         Parameters
         ----------
-        state : ket or oper
-                state vector or density matrix input.
+        state : ket or oper, optional
+                state vector or density matrix input. If not provided,
+                defaults to the all-zero ket state \\|00...0> for the
+                number of qubits in the circuit.
         cbits : List of ints, optional
                 initialization of the classical bits.
         measure_results : tuple of ints, optional
@@ -640,6 +642,8 @@ class QubitCircuit:
         final_state : Qobj
                 output state of the circuit run.
         """
+        if state is None:
+            state = tensor([basis(d, 0) for d in self.dims])
         if state.isket:
             mode = "state_vector_simulator"
         elif state.isoper:
