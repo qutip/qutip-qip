@@ -233,14 +233,15 @@ style guidelines, we use the ``pre-commit`` framework and the ``black`` formatte
 Automated Checking with pre-commit
 ----------------------------------
 
-The easiest way to maintain compliance is to automate the checks. you only need to install
-the git hooks once:
+The easiest way to maintain compliance is to automate the checks. Once you 
+have installed the development dependencies, you only need to install the git 
+hooks once:
 
 .. code-block:: bash
 
    pre-commit install
 
-This ensures that linting checks run automatically every time you run git commit.
+This ensures that linting checks run automatically every time you run ``git commit``.
 To run all checks manually across the entire repository without committing, use:
 
 .. code-block:: bash
@@ -258,14 +259,9 @@ In the directory that contains ``some_file.py``, use
   black some_file.py --diff --color
   black some_file.py
 
-Using ``--check`` will show if any of the file will be reformatted or not.
-
-  * `Code 0 <https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html#the-basics>`_ means nothing will be reformatted.
-  * Code 1 means one or more files could be reformatted. More than one files could
-    be reformatted if ``black some_directory --check`` is used.
-
-Using ``--diff --color`` will show a `difference <https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html#diffs>`_ of
-the changes that will be made by ``Black``. If you would prefer these changes to be made, use the last line of above code block.
+Using ``--check`` will show whether any files would be reformatted. Using 
+``--diff --color`` will show the specific changes that ``Black`` would make. 
+If you want to apply these changes, run the last command in the block above.
 
 All functions, classes and methods should have up-to-date docstrings.  We use
 `Sphinx's autodoc extension`_ to generate API documentation, so please ensure

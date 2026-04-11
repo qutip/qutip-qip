@@ -13,4 +13,4 @@ repos:
         entry: black
         language: system
         types: [python]
-        files: ^(src/qutip_qip/|tests/)
+        files: ^(src/qutip_qip/|tests/|pulse-paper/)
