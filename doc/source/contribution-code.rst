@@ -233,8 +233,8 @@ style guidelines, we use the ``pre-commit`` framework and the ``black`` formatte
 Automated Checking with pre-commit
 ----------------------------------
 
-The easiest way to maintain compliance is to automate the checks. Once you 
-have installed the development dependencies, you only need to install the git 
+The easiest way to maintain compliance is to automate the checks. Once you
+have installed the development dependencies, you only need to install the git
 hooks once:
 
 .. code-block:: bash
@@ -259,8 +259,8 @@ In the directory that contains ``some_file.py``, use
   black some_file.py --diff --color
   black some_file.py
 
-Using ``--check`` will show whether any files would be reformatted. Using 
-``--diff --color`` will show the specific changes that ``Black`` would make. 
+Using ``--check`` will show whether any files would be reformatted. Using
+``--diff --color`` will show the specific changes that ``Black`` would make.
 If you want to apply these changes, run the last command in the block above.
 
 All functions, classes and methods should have up-to-date docstrings.  We use

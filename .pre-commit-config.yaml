@@ -2,6 +2,8 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:
+      - id: trailing-whitespace
+      - id: check-toml
       - id: check-yaml
       - id: check-added-large-files
         args: ['--maxkb=2000']
@@ -13,4 +15,4 @@ repos:
         entry: black
         language: system
         types: [python]
-        files: ^(src/qutip_qip/|tests/|pulse-paper/)
+        files: \.py$
