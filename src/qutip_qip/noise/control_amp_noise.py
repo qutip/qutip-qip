@@ -9,32 +9,32 @@ class ControlAmpNoise(Noise):
 
     Parameters
     ----------
-    coeff: list
+    coeff : array_like or int or float
         A list of the coefficients for the control Hamiltonians.
         For available choices, see :class:`qutip.QobjEvo`.
-    tlist: array_like, optional
+    tlist : array_like, optional
         A NumPy array specifies the time of each coefficient.
-    indices: list of int, optional
+    indices : list of int, optional
         The indices of target pulse in the list of pulses.
 
     Attributes
     ----------
-    coeff: list
+    coeff : array_like or int or float
         A list of the coefficients for the control Hamiltonians.
         For available choices, see :class:`qutip.QobjEvo`.
-    tlist: array_like
+    tlist : array_like or None
         A NumPy array specifies the time of each coefficient.
-    indices: list of int
+    indices : list of int or None
         The indices of target pulse in the list of pulses.
 
     """
 
     def __init__(
         self,
-        coeff: list[complex],
+        coeff: ArrayLike | int | float,
         tlist: ArrayLike | None = None,
         indices: list[int] | None = None,
-    ):
+    ) -> None:
         self.coeff = coeff
         self.tlist = tlist
         self.indices = indices
@@ -45,6 +45,27 @@ class ControlAmpNoise(Noise):
         pulses: list[Pulse] | None = None,
         systematic_noise: Pulse | None = None,
     ) -> tuple[list[Pulse], Pulse]:
+        """
+        Return the input pulses list with noise added and
+        the pulse independent noise in a dummy :class:`.Pulse` object.
+
+        Parameters
+        ----------
+        dims : list of int, optional
+            The dimension of the components system, the default value is
+            [2, 2, ..., 2] for qubits system.
+        pulses : list of :class:`.Pulse`, optional
+            The input pulses. The noise will be added to pulses in this list.
+        systematic_noise : :class:`.Pulse`, optional
+            The dummy pulse with no ideal control element.
+
+        Returns
+        -------
+        noisy_pulses : list of :class:`.Pulse`
+            Noisy pulses.
+        systematic_noise : :class:`.Pulse`
+            The dummy pulse representing pulse-independent noise.
+        """
         if pulses is None:
             pulses = []
 
