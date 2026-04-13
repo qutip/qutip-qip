@@ -227,11 +227,41 @@ is active.  We will not accept any PR with failing tests, unless the failure was
 Code Style
 ==========
 
-All new Python code should follow the standard `PEP 8 style guide`_.  Our CI
-pipelines will test this when you make a PR. You can run ``black --check .`` to check
-whether the code is formatted as per ``PEP 8`` standards and stays within the
-88-character line-length requirement for readability. You can also auto format the
-code in accordance with the ``PEP 8 standards`` using the command ``black .``.
+To ensure the codebase follows the `PEP8 <https://www.python.org/dev/peps/pep-0008/>`_
+style guidelines, we use the ``pre-commit`` framework and the ``black`` formatter.
+
+Automated Checking with pre-commit
+----------------------------------
+
+The easiest way to maintain compliance is to automate the checks. Once you
+have installed the development dependencies, you only need to install the git
+hooks once:
+
+.. code-block:: bash
+
+   pre-commit install
+
+This ensures that linting checks run automatically every time you run ``git commit``.
+To run all checks manually across the entire repository without committing, use:
+
+.. code-block:: bash
+
+  pre-commit run --all-files
+
+Alternatively with Black
+------------------------
+
+In the directory that contains ``some_file.py``, use
+
+.. code-block::
+
+  black some_file.py --check
+  black some_file.py --diff --color
+  black some_file.py
+
+Using ``--check`` will show whether any files would be reformatted. Using
+``--diff --color`` will show the specific changes that ``Black`` would make.
+If you want to apply these changes, run the last command in the block above.
 
 All functions, classes and methods should have up-to-date docstrings.  We use
 `Sphinx's autodoc extension`_ to generate API documentation, so please ensure
