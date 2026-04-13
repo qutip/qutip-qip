@@ -121,10 +121,21 @@ jobs:
     if: ${{ github.event.inputs.confirm_ref != '' }}
     needs: [deploy_test, build_sdist, build_wheels]
     runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
 
     steps:
       - name: Download build artifacts to local runner
         uses: actions/download-artifact@v8
+
+      - name: Collect build artifacts for publishing
+        shell: bash
+        run: |
+          mkdir -p dist
+          cp wheels/*.whl dist/
+          cp sdist/*.tar.gz dist/
 
       - uses: actions/setup-python@v6
         name: Install Python
@@ -138,11 +149,6 @@ jobs:
           python -c 'import qutip_qip; print(qutip_qip.__version__); assert "dev" not in qutip_qip.__version__; assert "+" not in qutip_qip.__version__'
 
       - name: Upload sdist and wheels to PyPI
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-          TWINE_NON_INTERACTIVE: 1
-          TWINE_REPOSITORY: pypi
-        run: |
-          python -m pip install "twine"
-          python -m twine upload --verbose wheels/*.whl sdist/*.tar.gz
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
