@@ -1,4 +1,5 @@
 name: Bug Report
+description: Report a bug in qutip-qip
 labels: ["bug"]
 body:
   - type: textarea
@@ -55,4 +56,4 @@ body:
   - type: markdown
     id: thank-you
     attributes:
-      value: Thanks for taking the time to fill out this bug report!
+      value: Thanks for reporting the bug!
