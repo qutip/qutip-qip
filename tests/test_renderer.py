@@ -3,87 +3,34 @@ import numpy as np
 from unittest.mock import patch
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.circuit.draw import TextRenderer
+from qutip_qip.operations import get_controlled_gate
+from qutip_qip.operations.gates import (
+    IDENTITY,
+    X,
+    H,
+    CX,
+    CRX,
+    CPHASE,
+    SWAP,
+    ISWAP,
+    TOFFOLI,
+    FREDKIN,
+    BERKELEY,
+)
 
 
 @pytest.fixture
 def qc1():
     qc = QubitCircuit(4)
-    qc.add_gate("ISWAP", targets=[2, 3])
-    qc.add_gate("CTRLRX", targets=[0, 1], controls=[2, 3], arg_value=np.pi / 2)
-    qc.add_gate("SWAP", targets=[0, 3])
-    qc.add_gate("BERKELEY", targets=[0, 3])
-    qc.add_gate("FREDKIN", controls=[3], targets=[1, 2])
-    qc.add_gate("TOFFOLI", controls=[0, 2], targets=[1])
-    qc.add_gate("CX", controls=[0], targets=[1])
-    qc.add_gate("CRX", controls=[2], targets=[3], arg_value=0.5)
-    qc.add_gate("SWAP", targets=[0, 3])
-    return qc
-
-
-@pytest.fixture
-def qc2():
-    qc = QubitCircuit(4, num_cbits=2)
-    qc.add_gate("H", targets=[0])
-    qc.add_gate("H", targets=[0])
-    qc.add_gate("CNOT", controls=[1], targets=[0])
-    qc.add_gate("X", targets=[2])
-    qc.add_gate("CNOT", controls=[0], targets=[1])
-    qc.add_gate("SWAP", targets=[0, 3])
-    qc.add_gate("BERKELEY", targets=[0, 3])
-    qc.add_gate("FREDKIN", controls=[3], targets=[1, 2])
-    qc.add_gate("CX", controls=[0], targets=[1])
-    qc.add_gate("CRX", controls=[0], targets=[1], arg_value=0.5)
-    qc.add_gate("SWAP", targets=[0, 3])
-    qc.add_gate("SWAP", targets=[0, 3])
-    qc.add_measurement("M", targets=[0], classical_store=0)
-    qc.add_measurement("M", targets=[1], classical_store=1)
-    return qc
-
-
-@pytest.fixture
-def qc3():
-    qc = QubitCircuit(4, num_cbits=2)
-    qc.add_gate("H", targets=[0])
-    qc.add_gate("CNOT", controls=[1], targets=[0])
-    qc.add_gate("X", targets=[2])
-    qc.add_gate("CNOT", controls=[0], targets=[1])
-    qc.add_gate("SWAP", targets=[0, 3])
-    qc.add_gate("BERKELEY", targets=[0, 3])
-    qc.add_gate("FREDKIN", controls=[3], targets=[1, 2])
-    qc.add_gate("CX", controls=[0], targets=[1])
-    qc.add_gate("CRX", controls=[0], targets=[1], arg_value=0.5)
-    qc.add_measurement("M", targets=[0], classical_store=0)
-    qc.add_gate("SWAP", targets=[0, 3])
-    qc.add_gate("TOFFOLI", controls=[0, 1], targets=[2])
-    qc.add_gate("CPHASE", controls=[2], targets=[3], arg_value=0.75)
-    qc.add_gate("ISWAP", targets=[1, 3])
-    qc.add_measurement("M", targets=[1], classical_store=1)
-    return qc
-
-
-@pytest.fixture
-def qc4():
-    qc = QubitCircuit(5, num_cbits=2)
-    qc.add_gate(
-        "X", targets=0, classical_controls=[0, 1], classical_control_value=0
-    )
-    qc.add_gate("i", targets=1, controls=2)
-    qc.add_gate(
-        "ii",
-        targets=1,
-        classical_controls=1,
-        controls=[3, 4],
-        classical_control_value=1,
-    )
-    qc.add_gate(
-        "iii",
-        targets=1,
-        classical_controls=1,
-        controls=4,
-        classical_control_value=1,
-    )
-    qc.add_gate("ii", targets=2, controls=[4, 3])
-    qc.add_gate("SWAP", targets=[0, 1])
+    qc.add_gate(ISWAP, targets=[2, 3])
+    qc.add_gate(CRX(np.pi / 2), targets=[0], controls=[1])
+    qc.add_gate(SWAP, targets=[0, 3])
+    qc.add_gate(BERKELEY, targets=[0, 3])
+    qc.add_gate(FREDKIN, controls=[3], targets=[1, 2])
+    qc.add_gate(TOFFOLI, controls=[0, 2], targets=[1])
+    qc.add_gate(CX, controls=[0], targets=[1])
+    qc.add_gate(CRX(0.5), controls=[2], targets=[3])
+    qc.add_gate(SWAP, targets=[0, 3])
     return qc
 
 
@@ -92,24 +39,44 @@ def test_layout_qc1(qc1):
     tr.layout()
     assert tr._render_strs == {
         "top_frame": [
-            "                   │        │   │   │          │                    │          │      │    ",
-            "                   ┌────┴───┐   │   │          │  │         │  ┌────┴────┐  ┌────┐    │    ",
-            "        │       │       │       │   │          │  ┌────┴────┐                  │      │    ",
-            "        ┌───────┐                   ┌──────────┐                            ┌─────┐        ",
+            "        ┌──┴──┐     │   │          │                    │          │      │    ",
+            "                    │   │          │  │         │  ┌────┴────┐  ┌────┐    │    ",
+            "        │       │   │   │          │  ┌────┴────┐                  │      │    ",
+            "        ┌───────┐       ┌──────────┐                            ┌─────┐        ",
         ],
         "mid_frame": [
-            " q0 :──────────────┤ CTRLRX ├───╳───┤ BERKELEY ├────────────────────█──────────█──────╳────",
-            " q1 :──────────────┤        ├───│── │          │ ─┤ FREDKIN ├──┤ TOFFOLI ├──┤ CX ├────│────",
-            " q2 :───┤ ISWAP ├───────█───────│── │          │ ─┤         ├───────█──────────█──────│────",
-            " q3 :───┤       ├───────█───────╳───┤          ├───────█────────────────────┤ CRX ├───╳────",
+            " q0 :───┤ CRX ├─────╳───┤ BERKELEY ├────────────────────█──────────█──────╳────",
+            " q1 :──────█────────│── │          │ ─┤ FREDKIN ├──┤ TOFFOLI ├──┤ CX ├────│────",
+            " q2 :───┤ ISWAP ├───│── │          │ ─┤         ├───────█──────────█──────│────",
+            " q3 :───┤       ├───╳───┤          ├───────█────────────────────┤ CRX ├───╳────",
         ],
         "bot_frame": [
-            "                   └────────┘       └──────────┘                                           ",
-            "                   │        │   │   │          │  └─────────┘  └────┬────┘  └──┬─┘    │    ",
-            "        └───────┘       │       │   │          │  │         │       │                 │    ",
-            "        │       │       │       │   │          │       │                    └──┬──┘   │    ",
+            "        └─────┘         └──────────┘                                           ",
+            "           │        │   │          │  └─────────┘  └────┬────┘  └──┬─┘    │    ",
+            "        └───────┘   │   │          │  │         │       │                 │    ",
+            "        │       │   │   │          │       │                    └──┬──┘   │    ",
         ],
     }
+
+
+@pytest.fixture
+def qc2():
+    qc = QubitCircuit(4, num_cbits=2)
+    qc.add_gate(H, targets=[0])
+    qc.add_gate(H, targets=[0])
+    qc.add_gate(CX, controls=[1], targets=[0])
+    qc.add_gate(X, targets=[2])
+    qc.add_gate(CX, controls=[0], targets=[1])
+    qc.add_gate(SWAP, targets=[0, 3])
+    qc.add_gate(BERKELEY, targets=[0, 3])
+    qc.add_gate(FREDKIN, controls=[3], targets=[1, 2])
+    qc.add_gate(CX, controls=[0], targets=[1])
+    qc.add_gate(CRX(0.5), controls=[0], targets=[1])
+    qc.add_gate(SWAP, targets=[0, 3])
+    qc.add_gate(SWAP, targets=[0, 3])
+    qc.add_measurement("M", targets=[0], classical_store=0)
+    qc.add_measurement("M", targets=[1], classical_store=1)
+    return qc
 
 
 def test_layout_qc2(qc2):
@@ -117,28 +84,28 @@ def test_layout_qc2(qc2):
     tr.layout()
     assert tr._render_strs == {
         "top_frame": [
-            "        ┌───┐  ┌───┐  ┌───┴──┐      │      │   │          │                  │       │      │    │   ┌───┐    ║     ",
-            "                                ┌──────┐   │   │          │  │         │  ┌────┐  ┌─────┐   │    │          ┌───┐   ",
-            "        ┌───┐                              │   │          │  ┌────┴────┐                    │    │                  ",
-            "                                               ┌──────────┐                                                         ",
-            "                                                                                                       ║            ",
-            "                                                                                                       ║      ║     ",
+            "        ┌───┐  ┌───┐  ┌──┴─┐     │     │   │          │                  │       │      │    │   ┌───┐    ║     ",
+            "                              ┌────┐   │   │          │  │         │  ┌────┐  ┌─────┐   │    │          ┌───┐   ",
+            "        ┌───┐                          │   │          │  ┌────┴────┐                    │    │                  ",
+            "                                           ┌──────────┐                                                         ",
+            "                                                                                                   ║            ",
+            "                                                                                                   ║      ║     ",
         ],
         "mid_frame": [
-            " q0 :───┤ H ├──┤ H ├──┤ CNOT ├──────█──────╳───┤ BERKELEY ├──────────────────█───────█──────╳────╳───┤ M ├────║─────",
-            " q1 :─────────────────────█─────┤ CNOT ├───│── │          │ ─┤ FREDKIN ├──┤ CX ├──┤ CRX ├───│────│──────────┤ M ├───",
-            " q2 :───┤ X ├──────────────────────────────│── │          │ ─┤         ├────────────────────│────│──────────────────",
-            " q3 :──────────────────────────────────────╳───┤          ├───────█─────────────────────────╳────╳──────────────────",
-            " c0 :══════════════════════════════════════════════════════════════════════════════════════════════════╩════════════",
-            " c1 :══════════════════════════════════════════════════════════════════════════════════════════════════║══════╩═════",
+            " q0 :───┤ H ├──┤ H ├──┤ CX ├─────█─────╳───┤ BERKELEY ├──────────────────█───────█──────╳────╳───┤ M ├────║─────",
+            " q1 :────────────────────█────┤ CX ├───│── │          │ ─┤ FREDKIN ├──┤ CX ├──┤ CRX ├───│────│──────────┤ M ├───",
+            " q2 :───┤ X ├──────────────────────────│── │          │ ─┤         ├────────────────────│────│──────────────────",
+            " q3 :──────────────────────────────────╳───┤          ├───────█─────────────────────────╳────╳──────────────────",
+            " c0 :══════════════════════════════════════════════════════════════════════════════════════════════╩════════════",
+            " c1 :══════════════════════════════════════════════════════════════════════════════════════════════║══════╩═════",
         ],
         "bot_frame": [
-            "        └───┘  └───┘  └──────┘                 └──────────┘                                          └─╥─┘    ║     ",
-            "                          │     └───┬──┘   │   │          │  └─────────┘  └──┬─┘  └──┬──┘   │    │          └─╥─┘   ",
-            "        └───┘                              │   │          │  │         │                    │    │                  ",
-            "                                           │   │          │       │                         │    │                  ",
-            "                                                                                                                    ",
-            "                                                                                                       ║            ",
+            "        └───┘  └───┘  └────┘               └──────────┘                                          └─╥─┘    ║     ",
+            "                         │    └──┬─┘   │   │          │  └─────────┘  └──┬─┘  └──┬──┘   │    │          └─╥─┘   ",
+            "        └───┘                          │   │          │  │         │                    │    │                  ",
+            "                                       │   │          │       │                         │    │                  ",
+            "                                                                                                                ",
+            "                                                                                                   ║            ",
         ],
     }
 
@@ -148,30 +115,81 @@ def test_layout_qc3(qc3):
     tr.layout()
     assert tr._render_strs == {
         "top_frame": [
-            "        ┌───┐  ┌───┴──┐      │      │   │          │                  │       │     ┌───┐   │        │                                ║     ",
-            "                         ┌──────┐   │   │          │  │         │  ┌────┐  ┌─────┐          │        │                   │       │  ┌───┐   ",
-            "        ┌───┐                       │   │          │  ┌────┴────┐                           │   ┌─────────┐       │      │       │          ",
-            "                                        ┌──────────┐                                                         ┌────────┐  ┌───────┐          ",
-            "                                                                                      ║                                                     ",
-            "                                                                                      ║                                               ║     ",
+            "        ┌───┐  ┌──┴─┐     │     │   │          │                  │       │     ┌───┐   │        │                                ║     ",
+            "                       ┌────┐   │   │          │  │         │  ┌────┐  ┌─────┐          │        │                   │       │  ┌───┐   ",
+            "        ┌───┐                   │   │          │  ┌────┴────┐                           │   ┌─────────┐       │      │       │          ",
+            "                                    ┌──────────┐                                                         ┌────────┐  ┌───────┐          ",
+            "                                                                                  ║                                                     ",
+            "                                                                                  ║                                               ║     ",
         ],
         "mid_frame": [
-            " q0 :───┤ H ├──┤ CNOT ├──────█──────╳───┤ BERKELEY ├──────────────────█───────█─────┤ M ├───╳────────█────────────────────────────────║─────",
-            " q1 :──────────────█─────┤ CNOT ├───│── │          │ ─┤ FREDKIN ├──┤ CX ├──┤ CRX ├──────────│────────█───────────────────┤ ISWAP ├──┤ M ├───",
-            " q2 :───┤ X ├───────────────────────│── │          │ ─┤         ├───────────────────────────│───┤ TOFFOLI ├───────█───── │       │ ─────────",
-            " q3 :───────────────────────────────╳───┤          ├───────█────────────────────────────────╳────────────────┤ CPHASE ├──┤       ├──────────",
-            " c0 :═════════════════════════════════════════════════════════════════════════════════╩═════════════════════════════════════════════════════",
-            " c1 :═════════════════════════════════════════════════════════════════════════════════║═══════════════════════════════════════════════╩═════",
+            " q0 :───┤ H ├──┤ CX ├─────█─────╳───┤ BERKELEY ├──────────────────█───────█─────┤ M ├───╳────────█────────────────────────────────║─────",
+            " q1 :─────────────█────┤ CX ├───│── │          │ ─┤ FREDKIN ├──┤ CX ├──┤ CRX ├──────────│────────█───────────────────┤ ISWAP ├──┤ M ├───",
+            " q2 :───┤ X ├───────────────────│── │          │ ─┤         ├───────────────────────────│───┤ TOFFOLI ├───────█───── │       │ ─────────",
+            " q3 :───────────────────────────╳───┤          ├───────█────────────────────────────────╳────────────────┤ CPHASE ├──┤       ├──────────",
+            " c0 :═════════════════════════════════════════════════════════════════════════════╩═════════════════════════════════════════════════════",
+            " c1 :═════════════════════════════════════════════════════════════════════════════║═══════════════════════════════════════════════╩═════",
         ],
         "bot_frame": [
-            "        └───┘  └──────┘                 └──────────┘                                └─╥─┘                                             ║     ",
-            "                   │     └───┬──┘   │   │          │  └─────────┘  └──┬─┘  └──┬──┘          │        │                   └───────┘  └─╥─┘   ",
-            "        └───┘                       │   │          │  │         │                           │   └────┬────┘              │       │          ",
-            "                                    │   │          │       │                                │                └────┬───┘  │       │          ",
-            "                                                                                                                                            ",
-            "                                                                                      ║                                                     ",
+            "        └───┘  └────┘               └──────────┘                                └─╥─┘                                             ║     ",
+            "                  │    └──┬─┘   │   │          │  └─────────┘  └──┬─┘  └──┬──┘          │        │                   └───────┘  └─╥─┘   ",
+            "        └───┘                   │   │          │  │         │                           │   └────┬────┘              │       │          ",
+            "                                │   │          │       │                                │                └────┬───┘  │       │          ",
+            "                                                                                                                                        ",
+            "                                                                                  ║                                                     ",
         ],
     }
+
+
+@pytest.fixture
+def qc3():
+    qc = QubitCircuit(4, num_cbits=2)
+    qc.add_gate(H, targets=[0])
+    qc.add_gate(CX, controls=[1], targets=[0])
+    qc.add_gate(X, targets=[2])
+    qc.add_gate(CX, controls=[0], targets=[1])
+    qc.add_gate(SWAP, targets=[0, 3])
+    qc.add_gate(BERKELEY, targets=[0, 3])
+    qc.add_gate(FREDKIN, controls=[3], targets=[1, 2])
+    qc.add_gate(CX, controls=[0], targets=[1])
+    qc.add_gate(CRX(0.5), controls=[0], targets=[1])
+    qc.add_measurement("M", targets=[0], classical_store=0)
+    qc.add_gate(SWAP, targets=[0, 3])
+    qc.add_gate(TOFFOLI, controls=[0, 1], targets=[2])
+    qc.add_gate(CPHASE(0.75), controls=[2], targets=[3])
+    qc.add_gate(ISWAP, targets=[1, 3])
+    qc.add_measurement("M", targets=[1], classical_store=1)
+    return qc
+
+
+@pytest.fixture
+def qc4():
+    i = get_controlled_gate(IDENTITY, n_ctrl_qubits=1, gate_name="i")
+    ii = get_controlled_gate(IDENTITY, n_ctrl_qubits=2, gate_name="ii")
+    iii = get_controlled_gate(
+        IDENTITY, n_ctrl_qubits=1, control_value=0, gate_name="iii"
+    )
+
+    qc = QubitCircuit(5, num_cbits=2)
+    qc.add_gate(X, targets=0, classical_controls=[0, 1], classical_control_value=0)
+    qc.add_gate(i, targets=1, controls=2)
+    qc.add_gate(
+        ii,
+        targets=1,
+        classical_controls=1,
+        controls=[3, 4],
+        classical_control_value=1,
+    )
+    qc.add_gate(
+        iii,
+        targets=1,
+        classical_controls=1,
+        controls=4,
+        classical_control_value=1,
+    )
+    qc.add_gate(ii, targets=2, controls=[4, 3])
+    qc.add_gate(SWAP, targets=[0, 1])
+    return qc
 
 
 def test_layout_qc4(qc4):
@@ -246,12 +264,8 @@ def test_circuit_saving(request, qc_fixture, tmpdir):
     # test MatRenderer
     with patch("matplotlib.pyplot.show"):  # to avoid showing the plot
         qc.draw("matplotlib", save=True, file_path=str(tmpdir.join("test")))
-    assert tmpdir.join(
-        "test.png"
-    ).check(), "MatRenderer saved PNG file not found."
+    assert tmpdir.join("test.png").check(), "MatRenderer saved PNG file not found."
 
     # test TextRenderer
     qc.draw("text", save=True, file_path=str(tmpdir.join("test")))
-    assert tmpdir.join(
-        "test.txt"
-    ).check(), "TextRenderer saved TXT file not found."
+    assert tmpdir.join("test.txt").check(), "TextRenderer saved TXT file not found."

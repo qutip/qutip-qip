@@ -1,0 +1,44 @@
+config_version = "0"
+
+exclude_patterns = [
+    "/doc/**",
+    "/pulse-paper/**",
+    "**/dist/**",
+    "**.md",
+    "**.yml",
+    "**.yaml",
+    "**.toml",
+    "**.ini",
+]
+test_patterns = ["test**.py"]
+
+[smells]
+mode = "comment"
+
+[smells.boolean_logic]
+threshold = 20
+
+[smells.file_complexity]
+enabled = false
+
+[smells.return_statements]
+threshold = 4
+
+[smells.nested_control_flow]
+threshold = 4
+
+[smells.function_parameters]
+threshold = 20
+
+[smells.function_complexity]
+threshold = 22
+
+[smells.identical_code]
+threshold = 64
+
+[smells.similar_code]
+threshold = 64
+
+[[source]]
+name = "default"
+default = true

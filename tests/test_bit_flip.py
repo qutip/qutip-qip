@@ -2,6 +2,7 @@ import pytest
 import qutip
 from qutip_qip.algorithms import BitFlipCode
 from qutip_qip.circuit import QubitCircuit
+from qutip_qip.operations.gates import X, CX
 
 
 @pytest.fixture
@@ -20,13 +21,32 @@ def syndrome_qubits():
 
 
 def test_encode_circuit_structure(code, data_qubits):
+    """
+    Verify the gate count and target/control topology of the encoding circuit.
+    """
     qc = code.encode_circuit(data_qubits)
-    assert len(qc.gates) == 2
-    assert qc.gates[0].name == "CNOT"
-    assert qc.gates[0].controls == [0]
-    assert qc.gates[0].targets == [1]
-    assert qc.gates[1].controls == [0]
-    assert qc.gates[1].targets == [2]
+    gate_names = [op.operation.name for op in qc.instructions]
+    assert gate_names.count("CX") == 2
+
+    assert qc.instructions[0].controls == (data_qubits[0],)
+    assert qc.instructions[0].targets == (data_qubits[1],)
+    assert qc.instructions[1].controls == (data_qubits[0],)
+    assert qc.instructions[1].targets == (data_qubits[2],)
+
+
+def test_decode_circuit_structure(code, data_qubits):
+    """
+    Verify the gate count and target/control topology of the decoding circuit.
+    """
+    qc = code.decode_circuit(data_qubits)
+    gate_names = [op.operation.name for op in qc.instructions]
+    assert gate_names.count("CX") == 2
+    assert gate_names.count("TOFFOLI") == 1
+
+    assert qc.instructions[0].controls == (data_qubits[0],)
+    assert qc.instructions[0].targets == (data_qubits[2],)
+    assert qc.instructions[1].controls == (data_qubits[0],)
+    assert qc.instructions[1].targets == (data_qubits[1],)
 
 
 def test_bitflip_correction(code, data_qubits, syndrome_qubits):
@@ -42,13 +62,11 @@ def test_bitflip_correction(code, data_qubits, syndrome_qubits):
 
     # Step 2: Apply bit-flip error to qubit 0
     qc_error = QubitCircuit(num_qubits=5)
-    qc_error.add_gate("X", targets=[0])
+    qc_error.add_gate(X, targets=[0])
     state = qc_error.run(state)
 
     # Step 3: Syndrome + correction
-    qc_correct = code.syndrome_and_correction_circuit(
-        data_qubits, syndrome_qubits
-    )
+    qc_correct = code.syndrome_and_correction_circuit(data_qubits, syndrome_qubits)
     state = qc_correct.run(state)
 
     # Step 4: Decode

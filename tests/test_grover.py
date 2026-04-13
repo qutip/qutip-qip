@@ -1,0 +1,174 @@
+import numpy as np
+import pytest
+from qutip import basis, tensor, Qobj
+from qutip_qip.circuit import QubitCircuit
+from qutip_qip.operations import Gate
+from qutip_qip.algorithms.grover import grover, grover_oracle
+
+
+class TestGrover:
+    def test_grover_oracle_unitary(self):
+        """
+        Test that grover_oracle produces the correct phase-flip unitary.
+        """
+        n_qubits = 3
+        marked_states = [1, 5]  # |001> and |101>
+
+        qc_oracle = grover_oracle(n_qubits, marked_states)
+
+        U_sim = qc_oracle.compute_unitary()
+
+        dims = [[2] * n_qubits, [2] * n_qubits]
+        num_qubits = 1 << n_qubits
+        diag = np.ones(num_qubits)
+        for s in marked_states:
+            diag[s] = -1
+        U_expected = Qobj(np.diag(diag), dims=dims)
+
+        assert np.allclose(U_sim.full(), U_expected.full())
+
+    def test_grover_oracle_bounds_error(self):
+        """Test that grover_oracle raises error for out-of-bounds states."""
+        with pytest.raises(ValueError, match="out of bounds"):
+            grover_oracle(2, [4])  # 2 qubits only go up to state 3
+
+    def test_grover_oracle_empty_search_qubits(self):
+        """Test that grover_oracle rejects empty search qubits."""
+        with pytest.raises(ValueError, match="at least one"):
+            grover_oracle(0, 0)
+
+        with pytest.raises(ValueError, match="at least one"):
+            grover_oracle([], 0)
+
+    def test_grover_oracle_1_qubit_marks_zero(self):
+        """
+        Test that 1-qubit oracle marking |0> is a pure phase flip.
+        """
+        qc_oracle = grover_oracle(1, 0)
+        U_sim = qc_oracle.compute_unitary()
+
+        U_expected = Qobj(np.diag([-1, 1]), dims=[[2], [2]])
+        assert np.allclose(U_sim.full(), U_expected.full())
+
+    def test_grover_invalid_N(self):
+        """Test that grover raises errors for invalid num_qubits values."""
+        oracle = grover_oracle([1, 2], 3)
+
+        with pytest.raises(ValueError, match="too small"):
+            grover(oracle, [1, 2], 1, num_qubits=2)  # needs at least 3
+
+        with pytest.raises(ValueError, match="positive integer"):
+            grover(oracle, [1, 2], 1, num_qubits=-1)
+
+    def test_grover_invalid_num_iterations(self):
+        """Test that grover raises errors for invalid num_iterations."""
+        oracle = grover_oracle(2, 3)
+
+        with pytest.raises(ValueError, match="num_iterations must not be a negative"):
+            grover(oracle, 2, 1, num_iterations=-3)
+
+    def test_grover_empty_search_qubits(self):
+        """Test that grover rejects empty search qubits."""
+        oracle = grover_oracle(1, 0)
+
+        with pytest.raises(ValueError, match="at least one"):
+            grover(oracle, 0, 1)
+
+        with pytest.raises(ValueError, match="at least one"):
+            grover(oracle, [], 1)
+
+    def test_grover_1_qubit(self):
+        """
+        Full algorithm test: 1 qubit(edge-case), searching for |0>.
+        """
+        n_qubits = 1
+        target_state = 0  # |0>
+
+        oracle = grover_oracle(n_qubits, target_state)
+        qc = grover(oracle, n_qubits, 1)
+
+        U_grover = qc.compute_unitary()
+        psi0 = basis(2, 0)  # Start at |0>
+        psi_final = U_grover * psi0
+
+        # Expected state: |0>
+        prob_target = abs(psi_final.overlap(basis(2, target_state))) ** 2
+
+        # For M = N/2, grover yields 50%
+        assert np.isclose(prob_target, 0.5)
+
+    def test_grover_2_qubit(self):
+        """
+        Full algorithm test: 2 qubits, searching for |11> (state 3).
+        Optimal iterations = 1.
+        """
+        n_qubits = 2
+        target_state = 3  # |11>
+
+        oracle = grover_oracle(n_qubits, target_state)
+        qc = grover(oracle, n_qubits, 1)
+
+        U_grover = qc.compute_unitary()
+        psi0 = tensor([basis(2, 0)] * n_qubits)  # Start at |00>
+        psi_final = U_grover * psi0
+
+        # Expected state: |11>
+        psi_expected = basis(2**n_qubits, target_state)
+        dims = [[2] * n_qubits, [1] * n_qubits]
+        psi_expected.dims = dims
+
+        fidelity = abs(psi_final.overlap(psi_expected)) ** 2
+        assert fidelity > 0.999999
+
+    def test_grover_3_qubit_multiple_targets(self):
+        """
+        Test 3 qubits with 2 marked states: |011> (3) and |101> (5).
+        """
+        n_qubits = 3
+        marked = [3, 5]
+
+        oracle = grover_oracle(n_qubits, marked)
+
+        # For N=8, M=2, theta = 30 deg. One iteration rotates to 90 deg (solution).
+        qc = grover(oracle, n_qubits, len(marked))
+
+        U_grover = qc.compute_unitary()
+        psi0 = tensor([basis(2, 0)] * n_qubits)
+        psi_final = U_grover * psi0
+
+        # Check probability of measuring EITHER 3 or 5
+        state_3 = basis(2**n_qubits, 3)
+        state_5 = basis(2**n_qubits, 5)
+        prob_3 = abs(psi_final.overlap(state_3)) ** 2
+        prob_5 = abs(psi_final.overlap(state_5)) ** 2
+
+        total_success_prob = prob_3 + prob_5
+        assert total_success_prob > 0.999999
+
+    def test_grover_custom_qubit_indices(self):
+        """
+        Integration check: Run Grover on qubits [1, 2] of a 4-qubit system [0, 1, 2, 3].
+        Qubits 0 and 3 should remain Identity.
+        """
+
+        sys_qubits = 4
+        search_qubits = [1, 2]
+        target_local_state = 3  # |11> on the 2 search qubits
+
+        oracle = grover_oracle(search_qubits, target_local_state)
+
+        # N=4, M=1. Optimal iterations = 1.
+        qc = grover(oracle, search_qubits, 1, num_qubits=sys_qubits)
+
+        assert qc.num_qubits == sys_qubits
+        U_grover = qc.compute_unitary()
+
+        # All 4 qubits start in |0>. q0 and q3 are idle, q1 and q2 are grover.
+        psi0 = tensor([basis(2, 0)] * sys_qubits)  # |0000>
+        psi_final = U_grover * psi0
+
+        # Expected: |0> (idle) tensor |11> (grover result)
+        psi_expected = tensor(basis(2, 0), basis(2, 1), basis(2, 1), basis(2, 0))
+
+        fidelity = abs(psi_final.overlap(psi_expected)) ** 2
+        assert fidelity > 0.9999

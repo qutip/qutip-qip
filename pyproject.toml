@@ -1,8 +1,7 @@
 [build-system]
 requires = [
-    "setuptools>=42",
+    "setuptools>=77.0.3",
     "setuptools-git-versioning",
-    "wheel",
 ]
 build-backend = "setuptools.build_meta"
 
@@ -11,24 +10,27 @@ name = "qutip-qip"
 dynamic = ["version"]
 description = "The QuTiP quantum information processing package"
 readme = "README.md"
-license = { file = "LICENSE" }
+license = "BSD-3-Clause"
+license-files = ["LICENSE"]
 requires-python = ">=3.10"
 dependencies = [
-    "numpy>=1.16.6",
-    "scipy>=1.0",
+    "numpy>=1.22.0",
+    "scipy>=1.9.0",
     "qutip>=5.0",
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: BSD License",
-    "Programming Language :: Python",
-    "Programming Language :: Python :: 3",
-    "Topic :: Scientific/Engineering",
     "Operating System :: MacOS",
-    "Operating System :: POSIX",
-    "Operating System :: Unix",
+    "Operating System :: POSIX :: Linux",
     "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering",
 ]
 keywords = [
     "quantum",
@@ -60,23 +62,38 @@ Homepage = "https://qutip.org"
 Documentation = "https://qutip-qip.readthedocs.io/en/stable/"
 Repository = "https://github.com/qutip/qutip-qip"
 Issues = "https://github.com/qutip/qutip-qip/issues"
+Changelog = "https://qutip-qip.readthedocs.io/en/stable/changelog.html"
 
 [project.optional-dependencies]
-graphics = ["matplotlib>=1.3.0"]
-tests = [
-    "pytest>=5.2",
-    "pytest-repeat",
-]
-qiskit = [
-    "qiskit>=2.0.0",
-    "qiskit_aer>=0.17.0",
-]
+graphics = ["matplotlib>=3.5.0"]
+control = ["qutip-qtrl>=0.1.5"]
+qiskit = ["qiskit>=2.0.0"]
 full = [
-    "qutip-qip[graphics,tests,qiskit]",
+    "qutip-qip[graphics,qiskit,control]",
 ]
 
 [project.entry-points."qutip.family"]
 qutip_qip = "qutip_qip.family"
+
+[dependency-groups]
+lint = [
+    "black==26.1.0",
+    "pre-commit>=3.5.0",
+]
+test = [
+    "pytest>=8.0",
+    "pytest-repeat>=0.9",
+    "qiskit_aer>=0.17.0",  # Some tests in test_qiskit.py use Aer for verification
+]
+doc = [
+    "docutils==0.21.1",
+    "numpydoc==1.10.0",
+    "sphinx==8.1.3",
+    "sphinx-rtd-theme==3.1.0",
+    "sphinxcontrib-bibtex==2.6.5",
+    "sphinx-copybutton==0.5.2",
+]
+dev = [ {include-group = "test"}, {include-group = "lint"}]
 
 [tool.setuptools]
 include-package-data = true
@@ -89,8 +106,8 @@ where = ["src"]
 enabled = true
 version_file = "VERSION"
 count_commits_from_version_file = true
-dev_template = "{tag}.dev{ccount}+git.{sha}"
-dirty_template = "{tag}.dev{ccount}+git.{sha}.dirty"
+dev_template = "{tag}{ccount}+git.{sha}"
+dirty_template = "{tag}{ccount}+git.{sha}.dirty"
 
 [tool.black]
-line-length = 79
+line-length = 88

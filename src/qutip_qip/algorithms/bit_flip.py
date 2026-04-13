@@ -1,6 +1,6 @@
 from qutip_qip.circuit import QubitCircuit
-
-__all__ = ["BitFlipCode"]
+from qutip_qip.operations.gates import CX, TOFFOLI, X
+from qutip_qip.typing import IntSequence
 
 
 class BitFlipCode:
@@ -20,35 +20,44 @@ class BitFlipCode:
         self._n_syndrome = 2
 
     @property
-    def n_data(self):
+    def n_data(self) -> int:
         """
-        Returns:
-            int: Number of data qubits (always 3 for bit-flip code).
+        Returns
+        -------
+        int
+            Number of data qubits (always 3 for bit-flip code).
         """
         return self._n_data
 
     @property
-    def n_syndrome(self):
+    def n_syndrome(self) -> int:
         """
-        Returns:
-            int: Number of syndrome qubits used for error detection (2 for this code).
+        Returns
+        -------
+        int
+            Number of syndrome qubits used for error detection (2 for this code).
         """
         return self._n_syndrome
 
-    def encode_circuit(self, data_qubits):
+    def encode_circuit(self, data_qubits: IntSequence) -> QubitCircuit:
         """
         Constructs the encoding circuit for the bit-flip code. The first qubit is the control,
         and CNOT gates are applied from it to the other data qubits to encode logical states
         :math:`|0\\rangle` or :math:`|1\\rangle`.
 
-        Args:
-            data_qubits (list[int]): List of 3 integers representing data qubit indices.
+        Parameters
+        ----------
+        data_qubits : sequence of int
+            Indices of 3 data qubits.
 
-        Returns:
-            QubitCircuit: The encoding quantum circuit.
+        Returns
+        -------
+        qc : :class:`.QubitCircuit`
+            The encoding quantum circuit.
 
-        Raises:
-            ValueError: If the number of data qubits is not 3.
+        Raises
+        ------
+        ValueError: If the number of data qubits is not 3.
         """
 
         if len(data_qubits) != self.n_data:
@@ -58,23 +67,31 @@ class BitFlipCode:
         qc = QubitCircuit(max(data_qubits) + 1)
         control = data_qubits[0]
         for target in data_qubits[1:]:
-            qc.add_gate("CNOT", controls=control, targets=target)
+            qc.add_gate(CX, controls=control, targets=target)
         return qc
 
-    def syndrome_and_correction_circuit(self, data_qubits, syndrome_qubits):
+    def syndrome_and_correction_circuit(
+        self, data_qubits: IntSequence, syndrome_qubits: IntSequence
+    ) -> QubitCircuit:
         """
         Constructs the circuit for syndrome extraction and classical error correction.
         The circuit measures parity between qubit pairs and applies X gates conditionally.
 
-        Args:
-            data_qubits (list[int]): List of 3 integers representing data qubit indices.
-            syndrome_qubits (list[int]): List of 2 integers representing syndrome qubit indices.
+        Parameters
+        ----------
+        data_qubits : sequence of int
+            Indices of 3 data qubits.
+        syndrome_qubits : sequence of int
+            Indices of 2 syndrome qubits.
 
-        Returns:
-            QubitCircuit: The quantum circuit for syndrome measurement and correction.
+        Returns
+        -------
+        qc : :class:`.QubitCircuit`
+            Circuit for syndrome measurement and X correction.
 
-        Raises:
-            ValueError: If the number of data or syndrome qubits is incorrect.
+        Raises
+        ------
+        ValueError: If the number of data or syndrome qubits is incorrect.
         """
         if len(data_qubits) != self.n_data:
             raise ValueError(
@@ -93,51 +110,56 @@ class BitFlipCode:
         sq = syndrome_qubits
 
         # Syndrome extraction: parity checks
-        qc.add_gate("CNOT", controls=dq[0], targets=sq[0])
-        qc.add_gate("CNOT", controls=dq[1], targets=sq[0])
-        qc.add_gate("CNOT", controls=dq[1], targets=sq[1])
-        qc.add_gate("CNOT", controls=dq[2], targets=sq[1])
+        qc.add_gate(CX, controls=dq[0], targets=sq[0])
+        qc.add_gate(CX, controls=dq[1], targets=sq[0])
+        qc.add_gate(CX, controls=dq[1], targets=sq[1])
+        qc.add_gate(CX, controls=dq[2], targets=sq[1])
 
         # Measurements into classical registers
-        qc.add_measurement(sq[0], sq[0], classical_store=0)
-        qc.add_measurement(sq[1], sq[1], classical_store=1)
+        qc.add_measurement("M0", sq[0], classical_store=0)
+        qc.add_measurement("M1", sq[1], classical_store=1)
 
         # Classical-controlled corrections based on measurement outcomes
         # 2 (10): X on qubit 0, 3 (11): X on qubit 1, 1 (01): X on qubit 2
         qc.add_gate(
-            "X",
+            X,
             targets=dq[0],
             classical_controls=[0, 1],
-            classical_control_value=2,
+            classical_control_value=0b10,
         )
         qc.add_gate(
-            "X",
+            X,
             targets=dq[1],
             classical_controls=[0, 1],
-            classical_control_value=3,
+            classical_control_value=0b11,
         )
         qc.add_gate(
-            "X",
+            X,
             targets=dq[2],
             classical_controls=[0, 1],
-            classical_control_value=1,
+            classical_control_value=0b01,
         )
 
         return qc
 
-    def decode_circuit(self, data_qubits):
+    def decode_circuit(self, data_qubits: IntSequence) -> QubitCircuit:
         """
         Constructs the decoding circuit which is the inverse of the encoding operation,
         used to recover the original logical qubit. TOFFOLI gate verifies parity.
 
-        Args:
-            data_qubits (list[int]): List of 3 integers representing data qubit indices.
+        Parameters
+        ----------
+        data_qubits : sequence of int
+            Indices of 3 data qubits.
 
-        Returns:
-            QubitCircuit: The decoding quantum circuit.
+        Returns
+        -------
+        qc : :class:`.QubitCircuit`
+            The decoding quantum circuit.
 
-        Raises:
-            ValueError: If the number of data qubits is not 3.
+        Raises
+        ------
+        ValueError: If the number of data qubits is not 3.
         """
         if len(data_qubits) != self.n_data:
             raise ValueError(
@@ -146,7 +168,7 @@ class BitFlipCode:
         qc = QubitCircuit(max(data_qubits) + 1)
         control = data_qubits[0]
         for target in reversed(data_qubits[1:]):
-            qc.add_gate("CNOT", controls=control, targets=target)
+            qc.add_gate(CX, controls=control, targets=target)
 
-        qc.add_gate("TOFFOLI", controls=data_qubits[1:], targets=control)
+        qc.add_gate(TOFFOLI, controls=data_qubits[1:], targets=control)
         return qc

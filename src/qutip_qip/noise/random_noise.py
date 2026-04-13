@@ -50,7 +50,7 @@ class RandomNoise(ControlAmpNoise):
         indices: list[int] | None = None,
         **kwargs: Any,
     ) -> None:
-        super(RandomNoise, self).__init__(coeff=None, tlist=None)
+        super().__init__(coeff=None, tlist=None)
         self.rand_gen = rand_gen
         self.kwargs = kwargs
         if "size" in kwargs:

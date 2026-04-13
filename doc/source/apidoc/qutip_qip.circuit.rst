@@ -15,3 +15,6 @@ qutip\_qip.circuit
       QubitCircuit
       CircuitResult
       CircuitSimulator
+      CircuitInstruction
+      GateInstruction
+      MeasurementInstruction

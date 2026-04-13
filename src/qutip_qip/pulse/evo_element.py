@@ -68,14 +68,12 @@ class _EvoElement:
         if self.tlist is None and self.coeff is None:
             qu = QobjEvo(mat) * 0.0
 
-        elif isinstance(self.coeff, bool):
+        elif type(self.coeff) is bool:
             if self.coeff:
                 if self.tlist is None:
                     qu = QobjEvo(mat, tlist=self.tlist)
                 else:
-                    qu = QobjEvo(
-                        [mat, np.ones(len(self.tlist))], tlist=self.tlist
-                    )
+                    qu = QobjEvo([mat, np.ones(len(self.tlist))], tlist=self.tlist)
             else:
                 qu = QobjEvo(mat * 0.0, tlist=self.tlist)
 
@@ -134,9 +132,7 @@ class _EvoElement:
         try:
             return self._get_qobjevo_helper(spline_kind, dims=dims)
         except Exception as err:
-            print(
-                "The Evolution element went wrong was\n {}".format(str(self))
-            )
+            print(f"The Evolution element went wrong was\n {str(self)}")
             raise (err)
 
     def __str__(self) -> str:

@@ -4,9 +4,6 @@
 `qutip-qip` as a Qiskit backend
 **********************************
 
-This submodule was implemented by `Shreyas Pradhan <shpradhan12@gmail.com>`_ as part of Google Summer of Code 2022.
-And later updated by `Mayank Goel <mayank.goel447@gmail.com>`_ for Qiskit v2.
-
 Overview
 ===============
 
