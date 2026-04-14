@@ -13,6 +13,8 @@ readme = "README.md"
 license = "BSD-3-Clause"
 license-files = ["LICENSE"]
 requires-python = ">=3.10"
+# When Python version is updated same change needs to be made in classifier tags in pyproject.toml,
+# release.yaml and in contributing to code, Installation guide. 
 dependencies = [
     "numpy>=1.22.0",
     "scipy>=1.9.0",
