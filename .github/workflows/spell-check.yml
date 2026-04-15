@@ -1,0 +1,16 @@
+name: Spelling check
+on: [pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  spelling:
+    name: Spell Check with Typos
+    runs-on: ubuntu-latest
+    steps:
+    - name: Clone the repo
+      uses: actions/checkout@v6
+
+    - name: Spell Check the repo
+      uses: crate-ci/typos@v1.45.1
