@@ -1,0 +1,5 @@
+[default.extend-words]
+ket = "ket"
+aer = "aer"  # qiskit circuit simulation lib
+Aer = "Aer"
+braket = "braket"  # qcircuit package

@@ -62,9 +62,10 @@ authors = [
 [project.urls]
 Homepage = "https://qutip.org"
 Documentation = "https://qutip-qip.readthedocs.io/en/stable/"
-Repository = "https://github.com/qutip/qutip-qip"
-Issues = "https://github.com/qutip/qutip-qip/issues"
 Changelog = "https://qutip-qip.readthedocs.io/en/stable/changelog.html"
+Issues = "https://github.com/qutip/qutip-qip/issues"
+Repository = "https://github.com/qutip/qutip-qip"
+Donate = "https://github.com/sponsors/qutip"
 
 [project.optional-dependencies]
 graphics = ["matplotlib>=3.5.0"]
