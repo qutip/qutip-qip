@@ -64,7 +64,7 @@ def _tensor_with_entanglement(all_qubits, entangled, entangled_locations):
     out = qutip.tensor(*separable, entangled)
     permutation = list(range(n_separable))
     current_locations = range(n_separable, n_separable + n_entangled)
-    # Sort to prevert later insertions changing previous locations.
+    # Sort to prevent later insertions changing previous locations.
     insertions = sorted(zip(entangled_locations, current_locations), key=lambda x: x[0])
     for out_location, current_location in insertions:
         permutation.insert(out_location, current_location)
@@ -668,7 +668,7 @@ class TestGateErrors:
             class BadCtrlGate(ControlledGate):
                 target_gate = gates.RX(
                     0
-                )  # target_gate must be a gate subclass not an instantiated onject
+                )  # target_gate must be a gate subclass not an instantiated object
                 num_ctrl_qubits = 1
                 ctrl_value = 1
                 num_qubits = 2
@@ -738,7 +738,7 @@ class TestGateErrors:
             )  # targets should be an integer or a list of integer
 
         with pytest.raises(ValueError):
-            expand_operator(op, 2, 0)  # dims needs to be an interable
+            expand_operator(op, 2, 0)  # dims needs to be an iterable
 
         with pytest.raises(ValueError):
             gate_sequence_product([], left_to_right=True)  # empty U_list

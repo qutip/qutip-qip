@@ -140,7 +140,7 @@ class MyCompiler(GateCompiler):  # compiler class
 
 spline_kind = [
     pytest.param("step_func", id="discrete"),
-    pytest.param("cubic", id="continuos"),
+    pytest.param("cubic", id="continuous"),
 ]
 schedule_mode = [
     pytest.param("ASAP", id="ASAP"),
@@ -151,7 +151,7 @@ schedule_mode = [
 
 @pytest.mark.parametrize("spline_kind", spline_kind)
 @pytest.mark.parametrize("schedule_mode", schedule_mode)
-def test_compiler_with_continous_pulse(spline_kind, schedule_mode):
+def test_compiler_with_continuous_pulse(spline_kind, schedule_mode):
     num_qubits = 2
     circuit = QubitCircuit(num_qubits)
     circuit.add_gate(X, targets=0)

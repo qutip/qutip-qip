@@ -45,8 +45,8 @@ class MyModel(Model):
 
     def get_control(self, label):
         """
-        Get an avaliable control Hamiltonian.
-        For instance, sigmax control on the zeroth qubits is labeld "sx0".
+        Get an available control Hamiltonian.
+        For instance, sigmax control on the zeroth qubits is labeled "sx0".
 
         Args:
             label (str): The label of the Hamiltonian
@@ -226,7 +226,7 @@ def single_crosstalk_simulation(num_gates):
     mycompiler = MyCompiler(num_qubits, {"pulse_amplitude": 0.02, "duration": 25})
     myprocessor.add_noise(ClassicalCrossTalk(1.0))
 
-    # Define a randome circuit.
+    # Define a random circuit.
     gates_set = [
         ROT(arg_value=0),
         ROT(np.pi / 2),

@@ -82,7 +82,7 @@ class ControlledGate(Gate):
         num_ctrl_qubits = getattr(cls, "num_ctrl_qubits", None)
         if (type(num_ctrl_qubits) is not int) or (num_ctrl_qubits < 1):
             raise TypeError(
-                f"Class '{cls.__name__}' attribute 'num_ctrl_qubits' must be a postive integer, "
+                f"Class '{cls.__name__}' attribute 'num_ctrl_qubits' must be a positive integer, "
                 f"got {type(num_ctrl_qubits)} with value {num_ctrl_qubits}."
             )
 

@@ -21,7 +21,7 @@ class Measurement:
     targets : list or int
         Gate targets.
     classical_store : int
-        Result of the measurment is stored in this
+        Result of the measurement is stored in this
         classical register of the circuit.
     """
 

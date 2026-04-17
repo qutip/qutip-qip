@@ -40,7 +40,7 @@ def sample_shots(count_probs: dict, shots: int) -> Counts:
         to different classical outputs.
 
     shots: int
-        Number of shots for emperical estimation.
+        Number of shots for empirical estimation.
 
     Returns
     -------
