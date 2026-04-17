@@ -1,0 +1,37 @@
+name: Lint
+permissions:
+  contents: read
+
+on:
+  push:
+    paths: &trigger_paths
+      - "**/*.py"
+      - ".github/workflows/lint.yaml"
+      - "pyproject.toml"
+  pull_request:
+    paths: *trigger_paths
+
+concurrency:
+  group: lint_${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone the repo
+        uses: actions/checkout@v6
+
+      - name: Install Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+            python -m pip install --upgrade pip
+            pip install .[full] --group lint
+
+      - name: Run Black
+        run: python -m black --check --diff .
