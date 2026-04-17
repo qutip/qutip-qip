@@ -202,9 +202,9 @@ class InstructionsGraph:
             if priority:
                 available_gates.sort(key=cmp_to_key(self._compare_priority))
             current_cycle = []
-            if apply_constraint is None:  # if no constraits
+            if apply_constraint is None:  # if no constraints
                 current_cycle = deepcopy(available_gates)
-            else:  # check if constraits allow the parallelization
+            else:  # check if constraints allow the parallelization
                 self._add_dependency_among_commuting_gates(
                     current_cycle, available_gates, apply_constraint
                 )
@@ -328,7 +328,7 @@ class Scheduler:
         "ALAP" for as late as possible.
     constraint_functions: list, optional
         A list of hardware constraint functions.
-        Default includes a function `qubit_contraint`,
+        Default includes a function `qubit_constraint`,
         i.e. one qubit cannot be used by two gates at the same time.
     """
 

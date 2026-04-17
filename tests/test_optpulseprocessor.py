@@ -63,7 +63,7 @@ class TestOptPulseProcessor:
         test.add_control(sigmax(), cyclic_permutation=True)
         test.add_control(sigmay(), cyclic_permutation=True)
 
-        # test pulse genration for cnot gate, with kwargs
+        # test pulse generation for cnot gate, with kwargs
         qc = [tensor([identity(2), CX.get_qobj()])]
         with pytest.warns(DeprecationWarning):
             test.load_circuit(

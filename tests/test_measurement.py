@@ -10,7 +10,7 @@ import qutip
 def test_measurement_comp_basis():
     """
     Test measurements to test probability calculation in
-    computational basis measurments on a 3 qubit state
+    computational basis measurements on a 3 qubit state
     """
 
     qubit_kets = [rand_ket(2), rand_ket(2), rand_ket(2)]
@@ -65,6 +65,6 @@ def test_measurement_collapse(index):
 def test_against_numerical_error():
     state = qutip.Qobj([[1], [1.0e-12]])
     measurement = Measurement("M", 0)
-    states, probabilites = measurement.measurement_comp_basis(state)
+    states, probabilities = measurement.measurement_comp_basis(state)
     assert states[1] is None
-    assert probabilites[1] == 0.0
+    assert probabilities[1] == 0.0
