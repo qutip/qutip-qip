@@ -6,7 +6,7 @@ on:
   push:
     paths: &trigger_paths
       - "**/*.py"
-      - ".github/workflows/lint.yml"
+      - ".github/workflows/lint.yaml"
       - "pyproject.toml"
   pull_request:
     paths: *trigger_paths

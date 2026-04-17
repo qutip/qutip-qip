@@ -8,7 +8,7 @@ on:
     paths: &trigger_paths
       - "src/**/*.py"
       - "tests/**"
-      - ".github/workflows/test.yml" #Run when this exact pipeline file changes
+      - ".github/workflows/test.yaml" #Run when this exact pipeline file changes
       - "pyproject.toml" # Run when any dependency changes
   pull_request:
     paths: *trigger_paths
