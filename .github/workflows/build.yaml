@@ -144,7 +144,7 @@ jobs:
           import qutip_qip
           print(qutip_qip.__version__)
           assert "dev" not in qutip_qip.__version__
-          assert "+" not in qutip_qip.__version__'
+          assert "+" not in qutip_qip.__version__
 
       - name: Upload sdist and wheels to PyPI
         env:
