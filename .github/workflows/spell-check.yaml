@@ -1,4 +1,4 @@
-# Add the false negatives in `.typos.toml` file.
+# Add the false positives in `.typos.toml` file.
 
 name: Spelling check
 on: [pull_request]

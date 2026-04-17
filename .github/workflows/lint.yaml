@@ -29,8 +29,9 @@ jobs:
           cache: "pip"
 
       - name: Install dependencies
-        # This installs the exact version specified in our pyproject.toml
-        run: python -m pip install --upgrade pip && python -m pip install --group lint
+        run: |
+            python -m pip install --upgrade pip
+            pip install .[full] --group lint
 
       - name: Run Black
         run: python -m black --check --diff .

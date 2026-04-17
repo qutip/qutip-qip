@@ -3,3 +3,4 @@ ket = "ket"
 aer = "aer"  # qiskit circuit simulation lib
 Aer = "Aer"
 braket = "braket"  # qcircuit package
+Lov = "Lov"  # from Lov Grover of Grover's algorithm
