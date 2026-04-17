@@ -123,9 +123,9 @@ class DispersiveCavityQED(ModelProcessor):
         """
         return self.coeffs[2 * self.num_qubits : 3 * self.num_qubits]
 
-    def eliminate_auxillary_modes(self, U):
+    def eliminate_auxiliary_modes(self, U):
         """
-        Eliminate the auxillary modes like the cavity modes in cqed.
+        Eliminate the auxiliary modes like the cavity modes in cqed.
         """
         psi_proj = tensor(
             [basis(self.num_levels, 0)] + [identity(2) for n in range(self.num_qubits)]

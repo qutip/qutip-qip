@@ -55,7 +55,7 @@ class _GlobalNameSpaceRegistry(metaclass=_SingletonMeta):
 
         # Default behaviour for user defining his own gates is that namespace is None,
         # Thus those gates are considered temporary by default, we use the same logic in
-        # QPE for Controlled Unitary gates, VQA untils Ops are implemented.
+        # QPE for Controlled Unitary gates, VQA until Ops are implemented.
 
 
 _GlobalRegistry = _GlobalNameSpaceRegistry()

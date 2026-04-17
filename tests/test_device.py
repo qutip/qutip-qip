@@ -55,7 +55,7 @@ single_gate_tests = [
 # pytest.param(2, CNOT, targets=[0], controls=[1], id="CNOT"),
 
 
-def _ket_expaned_dims(qubit_state, expanded_dims):
+def _ket_expanded_dims(qubit_state, expanded_dims):
     all_qubit_basis = list(product([0, 1], repeat=len(expanded_dims)))
     old_dims = qubit_state.dims[0]
     expanded_qubit_state = np.zeros(reduce(mul, expanded_dims, 1), dtype=np.complex128)
@@ -147,8 +147,8 @@ def _test_numerical_evolution_helper(num_qubits, gates, targets, device_class, k
         init_state = qutip.tensor(extra, state)
 
     elif isinstance(device, SCQubits):
-        # expand to 3-level represetnation
-        init_state = _ket_expaned_dims(state, device.dims)
+        # expand to 3-level representation
+        init_state = _ket_expanded_dims(state, device.dims)
     else:
         init_state = state
 
@@ -159,7 +159,7 @@ def _test_numerical_evolution_helper(num_qubits, gates, targets, device_class, k
     if isinstance(device, DispersiveCavityQED):
         target = qutip.tensor(extra, target)
     elif isinstance(device, SCQubits):
-        target = _ket_expaned_dims(target, device.dims)
+        target = _ket_expanded_dims(target, device.dims)
     assert _tol > abs(1 - qutip.metrics.fidelity(numerical_result, target))
 
 
@@ -210,8 +210,8 @@ def test_numerical_circuit(circuit, device_class, kwargs, schedule_mode):
         init_state = qutip.tensor(extra, state)
 
     elif isinstance(device, SCQubits):
-        # expand to 3-level represetnation
-        init_state = _ket_expaned_dims(state, device.dims)
+        # expand to 3-level representation
+        init_state = _ket_expanded_dims(state, device.dims)
     else:
         init_state = state
 
@@ -221,7 +221,7 @@ def test_numerical_circuit(circuit, device_class, kwargs, schedule_mode):
     if isinstance(device, DispersiveCavityQED):
         target = qutip.tensor(extra, target)
     elif isinstance(device, SCQubits):
-        target = _ket_expaned_dims(target, device.dims)
+        target = _ket_expanded_dims(target, device.dims)
 
     assert _tol > abs(1 - qutip.metrics.fidelity(result.final_state, target))
 

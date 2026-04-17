@@ -201,7 +201,7 @@ def expand_operator(
     oper = oper.to(dtype)
 
     if not isinstance(dims, Iterable):
-        raise ValueError(f"dims needs to be an interable {not type(dims)}.")
+        raise ValueError(f"dims needs to be an iterable {not type(dims)}.")
 
     N = len(dims)
     targets = _targets_to_list(targets, oper=oper, N=N)

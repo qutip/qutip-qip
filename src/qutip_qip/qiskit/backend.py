@@ -183,7 +183,7 @@ class QiskitSimulatorBase(BackendV2):
 
         if len(run_input) > self.max_circuits:
             raise ValueError(f"Passed ${len(run_input)} circuits to the backend,\
-                while max_cicruits is defined as ${self.max_circuits}")
+                while max_circuits is defined as ${self.max_circuits}")
 
         # Set the no. of shots
         if "shots" in run_options:

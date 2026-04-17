@@ -43,7 +43,7 @@ class TestPulse:
 
     def test_coherent_noise(self):
         """
-        Test for pulse genration with coherent noise.
+        Test for pulse generation with coherent noise.
         """
         coeff = np.array([0.1, 0.2, 0.3, 0.4])
         tlist = np.array([0.0, 1.0, 2.0, 3.0])

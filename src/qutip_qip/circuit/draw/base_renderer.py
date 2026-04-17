@@ -61,7 +61,7 @@ class StyleConfig:
 
     color : Optional[str], optional
         Controls color of acsent elements (eg. cross sign in the target node)
-        and set as deafult color of gate-label. Can be overwritten by gate specific color.
+        and set as default color of gate-label. Can be overwritten by gate specific color.
         The default is None.
 
     wire_label : Optional[List], optional
