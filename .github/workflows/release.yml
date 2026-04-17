@@ -133,11 +133,18 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Verify this is not a dev version
+      - name: Install wheels 
         shell: bash
         run: |
           python -m pip install wheels/*.whl
-          python -c 'import qutip_qip; print(qutip_qip.__version__); assert "dev" not in qutip_qip.__version__; assert "+" not in qutip_qip.__version__'
+
+      - name: Verify this is not a dev version
+        shell: python
+        run: |
+          import qutip_qip
+          print(qutip_qip.__version__)
+          assert "dev" not in qutip_qip.__version__
+          assert "+" not in qutip_qip.__version__'
 
       - name: Upload sdist and wheels to PyPI
         env:
