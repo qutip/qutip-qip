@@ -1006,7 +1006,7 @@ class Processor:
             )
             dt = tlist[n + 1] - tlist[n]
             U = (-1j * H * dt).expm()
-            U = self.eliminate_auxillary_modes(U)
+            U = self.eliminate_auxiliary_modes(U)
             U_list.append(U)
 
         try:  # correct_global_phase are defined for ModelProcessor
@@ -1185,9 +1185,9 @@ class Processor:
         """
         raise NotImplementedError("Use the function in the sub-class")
 
-    def eliminate_auxillary_modes(self, U):
+    def eliminate_auxiliary_modes(self, U):
         """
-        Eliminate the auxillary modes like the cavity modes in cqed.
+        Eliminate the auxiliary modes like the cavity modes in cqed.
         (Defined in subclasses)
         """
         return U
