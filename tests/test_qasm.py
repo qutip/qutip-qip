@@ -98,11 +98,13 @@ def test_qasm_teleportation():
     filename = "teleportation.qasm"
     filepath = Path(__file__).parent / "qasm_files" / filename
     teleportation = read_qasm(filepath)
-    final_measurement = Measurement("start", targets=[2])
-    initial_measurement = Measurement("start", targets=[0])
+    final_measurement = Measurement("start")
+    initial_measurement = Measurement("start")
 
     state = tensor(rand_ket(2), basis(2, 0), basis(2, 0))
-    _, initial_probabilities = initial_measurement.measurement_comp_basis(state)
+    _, initial_probabilities = initial_measurement.measurement_comp_basis(
+        state, targets=[0]
+    )
 
     teleportation_results = teleportation.run_statistics(state)
 
@@ -112,7 +114,9 @@ def test_qasm_teleportation():
     for i, state in enumerate(states):
         final = state
         prob = probabilities[i]
-        _, final_probabilities = final_measurement.measurement_comp_basis(final)
+        _, final_probabilities = final_measurement.measurement_comp_basis(
+            final, targets=[2]
+        )
         np.testing.assert_allclose(initial_probabilities, final_probabilities)
         assert prob == pytest.approx(0.25, abs=1e-7)
 

@@ -224,7 +224,11 @@ class CircuitSimulator:
         current_state = self._state
 
         if self.qc.instructions[self._op_index].is_measurement_instruction():
-            state = self._apply_measurement(circ_instruction.operation, current_state)
+            targets = circ_instruction.qubits
+            classical_store = circ_instruction.cbits
+            state = self._apply_measurement(
+                circ_instruction.operation, targets, classical_store, current_state
+            )
 
         elif self.qc.instructions[self._op_index].is_gate_instruction():
             gate = circ_instruction.operation
@@ -308,7 +312,7 @@ class CircuitSimulator:
         )
         return state
 
-    def _apply_measurement(self, operation, state):
+    def _apply_measurement(self, operation, targets, classical_store, state):
         """
         Applies measurement gate specified by operation to current state.
 
@@ -316,8 +320,20 @@ class CircuitSimulator:
         ----------
         operation: :class:`.Measurement`
             Measurement gate in a circuit object.
+        targets : tuple of int
+            The indices of the qubits to be measured.
+        classical_store : tuple of int
+            The indices of the classical registers where the measurement
+            results will be stored.
+        state : qutip.Qobj
+            The current state of the quantum circuit (ket or density matrix).
+
+        Returns
+        -------
+        state : qutip.Qobj
+            The collapsed state after the measurement.
         """
-        states, probabilities = operation.measurement_comp_basis(self.state)
+        states, probabilities = operation.measurement_comp_basis(self.state, targets)
 
         if self.mode == "state_vector_simulator":
             if self._measure_results:
@@ -328,8 +344,9 @@ class CircuitSimulator:
                 i = np.random.choice([0, 1], p=probabilities)
             self._probability *= probabilities[i]
             state = states[i]
-            if operation.classical_store is not None:
-                self.cbits[operation.classical_store] = i
+            if classical_store:
+                cbit_index = classical_store[0]
+                self.cbits[cbit_index] = i
 
         elif self.mode == "density_matrix_simulator":
             states = list(filter(lambda x: x is not None, states))

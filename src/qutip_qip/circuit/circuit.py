@@ -262,7 +262,7 @@ class QubitCircuit:
         measurement: string
             Measurement name. If name is an instance of `Measurement`,
             parameters are unpacked and added.
-        targets: list
+        targets: int or Sequence of int
             Gate targets
         classical_store : int
             Classical register where result of measurement is stored.
@@ -278,20 +278,18 @@ class QubitCircuit:
             )
 
         if isinstance(measurement, Measurement):
-            name = measurement.name
-            targets = measurement.targets
-            classical_store = measurement.classical_store
-
+            meas = measurement
         else:
-            name = measurement
-
-        meas = Measurement(name, targets=targets, classical_store=classical_store)
+            meas = Measurement(measurement)
 
         if type(targets) is int:
             targets = [targets]
 
         if type(classical_store) is int:
             classical_store = [classical_store]
+
+        if targets is None or classical_store is None:
+            raise ValueError("'targets' and 'classical_store' must not be None")
 
         self._instructions.append(
             MeasurementInstruction(
