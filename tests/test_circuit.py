@@ -530,15 +530,19 @@ class TestQubitCircuit:
         teleportation = _teleportation_circuit()
 
         state = tensor(rand_ket(2), basis(2, 0), basis(2, 0))
-        initial_measurement = Measurement("start", targets=[0])
-        _, initial_probabilities = initial_measurement.measurement_comp_basis(state)
+        initial_measurement = Measurement("start")
+        _, initial_probabilities = initial_measurement.measurement_comp_basis(
+            state, targets=[0]
+        )
 
         teleportation_sim = CircuitSimulator(teleportation)
         teleportation_sim_results = teleportation_sim.run(state)
         state_final = teleportation_sim_results.get_final_states(0)
 
-        final_measurement = Measurement("start", targets=[2])
-        _, final_probabilities = final_measurement.measurement_comp_basis(state_final)
+        final_measurement = Measurement("start")
+        _, final_probabilities = final_measurement.measurement_comp_basis(
+            state_final, targets=[2]
+        )
 
         np.testing.assert_allclose(initial_probabilities, final_probabilities)
 
@@ -571,12 +575,12 @@ class TestQubitCircuit:
         """
 
         teleportation = _teleportation_circuit()
-        final_measurement = Measurement("start", targets=[2])
-        initial_measurement = Measurement("start", targets=[0])
+        final_measurement = Measurement("start")
+        initial_measurement = Measurement("start")
 
         original_state = tensor(rand_ket(2), basis(2, 0), basis(2, 0))
         _, initial_probabilities = initial_measurement.measurement_comp_basis(
-            original_state
+            original_state, targets=[0]
         )
 
         teleportation_results = teleportation.run_statistics(original_state)
@@ -587,7 +591,7 @@ class TestQubitCircuit:
             state_final = state
             prob = probabilities[i]
             _, final_probabilities = final_measurement.measurement_comp_basis(
-                state_final
+                state_final, targets=[2]
             )
             np.testing.assert_allclose(initial_probabilities, final_probabilities)
             assert prob == pytest.approx(0.25, abs=1e-7)
@@ -598,8 +602,8 @@ class TestQubitCircuit:
         teleportation2 = _teleportation_circuit2()
 
         final_state = teleportation2.run(dm_state)
-        _, probs1 = final_measurement.measurement_comp_basis(final_state)
-        _, probs2 = final_measurement.measurement_comp_basis(mixed_state)
+        _, probs1 = final_measurement.measurement_comp_basis(final_state, targets=[2])
+        _, probs2 = final_measurement.measurement_comp_basis(mixed_state, targets=[2])
 
         np.testing.assert_allclose(probs1, probs2)
 
@@ -684,9 +688,9 @@ class TestQubitCircuit:
         rand_state = rand_ket(2)
         state = tensor(basis(2, 0), basis(2, 0), basis(2, 0), rand_state)
 
-        fourth = Measurement("test_rand", targets=[3])
+        fourth = Measurement("test_rand")
 
-        _, probs_initial = fourth.measurement_comp_basis(state)
+        _, probs_initial = fourth.measurement_comp_basis(state, targets=[3])
 
         simulator = CircuitSimulator(qc)
 
@@ -695,7 +699,7 @@ class TestQubitCircuit:
         result_cbits = result.get_cbits()
 
         for i, final_state in enumerate(final_states):
-            _, probs_final = fourth.measurement_comp_basis(final_state)
+            _, probs_final = fourth.measurement_comp_basis(final_state, targets=[3])
             np.testing.assert_allclose(probs_initial, probs_final)
             assert sum(result_cbits[i]) == 1
 
@@ -972,7 +976,7 @@ class TestInstructionErrors:
             # Operation must be of type Measurement
             MeasurementInstruction(operation="M0", qubits=(0,), cbits=(0,))
 
-        meas = Measurement("M0", targets=[0], classical_store=0)
+        meas = Measurement("M0")
         with pytest.raises(ValueError):
             # Measurement requires equal number of qubits and cbits
             MeasurementInstruction(operation=meas, qubits=(0, 1), cbits=(0,))
