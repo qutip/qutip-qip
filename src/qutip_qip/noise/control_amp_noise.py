@@ -1,6 +1,7 @@
 from numpy.typing import ArrayLike
 from qutip_qip.noise import Noise
 from qutip_qip.pulse import Pulse
+from qutip_qip.typing import IntSequence, Real, RealSequence
 
 
 class ControlAmpNoise(Noise):
@@ -9,7 +10,7 @@ class ControlAmpNoise(Noise):
 
     Parameters
     ----------
-    coeff : array_like or int or float
+    coeff : Real | RealSequence
         A list of the coefficients for the control Hamiltonians.
         For available choices, see :class:`qutip.QobjEvo`.
     tlist : array_like, optional
@@ -19,7 +20,7 @@ class ControlAmpNoise(Noise):
 
     Attributes
     ----------
-    coeff : array_like or int or float
+    coeff : Real | RealSequence
         A list of the coefficients for the control Hamiltonians.
         For available choices, see :class:`qutip.QobjEvo`.
     tlist : array_like or None
@@ -31,9 +32,9 @@ class ControlAmpNoise(Noise):
 
     def __init__(
         self,
-        coeff: ArrayLike | int | float,
+        coeff: Real | RealSequence,
         tlist: ArrayLike | None = None,
-        indices: list[int] | None = None,
+        indices: IntSequence | None = None,
     ) -> None:
         self.coeff = coeff
         self.tlist = tlist
@@ -45,27 +46,6 @@ class ControlAmpNoise(Noise):
         pulses: list[Pulse] | None = None,
         systematic_noise: Pulse | None = None,
     ) -> tuple[list[Pulse], Pulse]:
-        """
-        Return the input pulses list with noise added and
-        the pulse independent noise in a dummy :class:`.Pulse` object.
-
-        Parameters
-        ----------
-        dims : list of int, optional
-            The dimension of the components system, the default value is
-            [2, 2, ..., 2] for qubits system.
-        pulses : list of :class:`.Pulse`, optional
-            The input pulses. The noise will be added to pulses in this list.
-        systematic_noise : :class:`.Pulse`, optional
-            The dummy pulse with no ideal control element.
-
-        Returns
-        -------
-        noisy_pulses : list of :class:`.Pulse`
-            Noisy pulses.
-        systematic_noise : :class:`.Pulse`
-            The dummy pulse representing pulse-independent noise.
-        """
         if pulses is None:
             pulses = []
 

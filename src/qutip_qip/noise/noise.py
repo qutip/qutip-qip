@@ -63,23 +63,6 @@ class Noise:
         """
         For backward compatibility, in case the method has no return value
         or only return the pulse.
-
-        Parameters
-        ----------
-        dims : list of int, optional
-            The dimension of the components system, the default value is
-            [2, 2, ..., 2] for qubits system.
-        pulses : list of :class:`.Pulse`, optional
-            The input pulses. The noise will be added to pulses in this list.
-        systematic_noise : :class:`.Pulse`, optional
-            The dummy pulse with no ideal control element.
-
-        Returns
-        -------
-        pulses : list of :class:`.Pulse`
-            Noisy pulses.
-        systematic_noise : :class:`.Pulse`
-            The dummy pulse representing pulse-independent noise.
         """
         result = self.get_noisy_pulses(
             pulses=pulses, systematic_noise=systematic_noise, dims=dims

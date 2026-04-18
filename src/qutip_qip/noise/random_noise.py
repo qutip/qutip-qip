@@ -1,9 +1,7 @@
 import numpy as np
-from collections.abc import Callable
-from typing import Any
-
 from qutip_qip.noise import ControlAmpNoise
 from qutip_qip.pulse import Pulse
+from numpy.random import Generator
 
 
 class RandomNoise(ControlAmpNoise):
@@ -16,12 +14,11 @@ class RandomNoise(ControlAmpNoise):
     dt : float
         The time interval between two random amplitude. The coefficients
         of the noise are the same within this time range.
-    rand_gen : callable
-        A random generator in :mod:`numpy.random`, it has to take a ``size``
-        parameter as the size of random numbers in the output array.
+    rand_gen : :class:`numpy.random.Generator`
+        A random generator in :mod:`numpy.random`.
     indices : list of int, optional
         The indices of target pulse in the list of pulses.
-    **kwargs : dict
+    **kwargs
         Key word arguments for the random number generator.
 
     Attributes
@@ -46,9 +43,9 @@ class RandomNoise(ControlAmpNoise):
     def __init__(
         self,
         dt: float,
-        rand_gen: Callable[..., np.ndarray],
+        rand_gen: Generator,
         indices: list[int] | None = None,
-        **kwargs: Any,
+        **kwargs: any,
     ) -> None:
         super().__init__(coeff=None, tlist=None)
         self.rand_gen = rand_gen

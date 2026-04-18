@@ -1,5 +1,3 @@
-from typing import Any
-
 from qutip import basis, destroy, qeye, tensor
 from qutip_qip.noise import Noise
 from qutip_qip.pulse import Pulse
@@ -25,7 +23,7 @@ class ZZCrossTalk(Noise):
         The device parameters used to compute ZZ coupling coefficients.
     """
 
-    def __init__(self, params: dict[str, Any]) -> None:
+    def __init__(self, params: dict[str, any]) -> None:
         self.params = params
 
     def get_noisy_pulses(
