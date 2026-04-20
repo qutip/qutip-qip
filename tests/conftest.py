@@ -161,7 +161,7 @@ def in_temporary_directory():
     with tempfile.TemporaryDirectory() as temporary_dir:
         os.chdir(temporary_dir)
         yield
-        # pytest should catch exceptions occuring in functions using the
+        # pytest should catch exceptions occurring in functions using the
         # fixture, so this should always be called.  We want it here rather
         # than outside to prevent the case of the directory failing to be
         # removed because it is 'busy'.

@@ -57,7 +57,7 @@ class TestNoise:
         assert_(tensor([qeye(2), sigmax()]) in c_ops)
         assert_(tensor([sigmax(), qeye(2)]) in c_ops)
 
-        # Time-denpendent and all qubits
+        # Time-dependent and all qubits
         decnoise = DecoherenceNoise(
             sigmax(), all_qubits=True, coeff=coeff * 2, tlist=tlist
         )
@@ -200,7 +200,7 @@ class TestNoise:
 
 
 class DriftNoise1(Noise):
-    """Standard defintion."""
+    """Standard definition."""
 
     def __init__(self, op):
         self.qobj = op

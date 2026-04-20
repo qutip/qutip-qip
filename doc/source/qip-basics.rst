@@ -416,7 +416,7 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
 - **LaTeX**:
 
     A quantum circuit (described above) can directly be plotted using the QCircuit library (https://github.com/CQuIC/qcircuit).
-    QCiruit is a quantum circuit drawing application and is implemented directly into QuTiP.
+    QCircuit is a quantum circuit drawing application and is implemented directly into QuTiP.
 
     More information related to installing these packages is also available in the
     installation guide (:ref:`circuit_plot_packages`).

@@ -287,7 +287,7 @@ def qrot(theta, phi, *args, **kwargs):
     Parameters
     ----------
     phi : float
-        The inital phase of the rabi pulse.
+        The initial phase of the rabi pulse.
     theta : float
         The duration of the rabi pulse.
     N : int
@@ -488,7 +488,7 @@ shape = [4, 4], type='oper', dtype=Dense, isherm=True
          [ 0.+sin(pi/8).j  0.+0.j           0.+0.j           cos(pi/8).+0.j]]
 
     """
-    warnings.warn("berkley has been deprecated and will be removed in future version. \
+    warnings.warn("berkeley has been deprecated and will be removed in future version. \
         Use BERKELEY.get_qobj() instead.", DeprecationWarning, stacklevel=2)
     return Qobj(
         [

@@ -27,7 +27,7 @@ class VQA:
     num_qubits: int
         number of qubits used by the algorithm
     num_layers: int, optional
-        number of layers used by the algorihtm
+        number of layers used by the algorithm
     cost_method: str
         method used to compute the cost of an instance of the circuit
         constructed by fixing its free parameters. Can be one of `OBSERVABLE` or `STATE`.
@@ -432,7 +432,7 @@ class VQA:
         ----------
         angles: list of float
             Circuit free parameters
-        indicies_to_compute: list of int, optional
+        indices_to_compute: list of int, optional
             Block indices for which to use in computing the jacobian.
             By default, this is every index (every block).
 
@@ -542,7 +542,7 @@ class VQABlock:
         Name of the block. If not provided,
         a name will be generated as "U"+str(len(VQA.blocks)).
     targets: list of int, optional
-        The qubits targetted by the gate. By default, applied
+        The qubits targeted by the gate. By default, applied
         to all qubits.
     initial: bool, optional
         Whether or not to repeat this block in layers. For example,
@@ -600,7 +600,7 @@ class VQABlock:
         angles: list of float, optional
             Block free parameters. Required if the block has free parameters.
         """
-        # Qobj unitary or zero-parmeters function returning Qobj unitary
+        # Qobj unitary or zero-parameters function returning Qobj unitary
         if angles is None:
             if self.is_unitary:
                 return self.operator

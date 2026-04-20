@@ -752,7 +752,7 @@ class Processor:
             If the axis are shown.
 
         rescale_pulse_coeffs: bool, optional
-            Rescale the hight of each pulses.
+            Rescale the height of each pulses.
 
         num_steps: int, optional
             Number of time steps in the plot.
@@ -967,7 +967,7 @@ class Processor:
         Simulate the state evolution under the given `qutip.QubitCircuit`
         with matrice exponentiation. It will calculate the propagator
         with matrix exponentiation and return a list of :class:`qutip.Qobj`.
-        This method won't include noise or collpase.
+        This method won't include noise or collapse.
 
         Parameters
         ----------
@@ -1006,7 +1006,7 @@ class Processor:
             )
             dt = tlist[n + 1] - tlist[n]
             U = (-1j * H * dt).expm()
-            U = self.eliminate_auxillary_modes(U)
+            U = self.eliminate_auxiliary_modes(U)
             U_list.append(U)
 
         try:  # correct_global_phase are defined for ModelProcessor
@@ -1022,7 +1022,7 @@ class Processor:
     def run(self, qc=None):
         """
         Calculate the propagator of the evolution by matrix exponentiation.
-        This method won't include noise or collpase.
+        This method won't include noise or collapse.
 
         Parameters
         ----------
@@ -1129,7 +1129,7 @@ class Processor:
         else:
             noisy_qobjevo, sys_c_ops = self.get_qobjevo(noisy=noisy)
 
-        # add collpase operators into kwargs
+        # add collapse operators into kwargs
         if "c_ops" in kwargs:
             if isinstance(kwargs["c_ops"], (Qobj, QobjEvo)):
                 kwargs["c_ops"] += [kwargs["c_ops"]] + sys_c_ops
@@ -1185,9 +1185,9 @@ class Processor:
         """
         raise NotImplementedError("Use the function in the sub-class")
 
-    def eliminate_auxillary_modes(self, U):
+    def eliminate_auxiliary_modes(self, U):
         """
-        Eliminate the auxillary modes like the cavity modes in cqed.
+        Eliminate the auxiliary modes like the cavity modes in cqed.
         (Defined in subclasses)
         """
         return U

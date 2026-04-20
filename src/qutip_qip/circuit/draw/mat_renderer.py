@@ -56,7 +56,7 @@ class MatRenderer(BaseRenderer):
         self._min_gate_height = 0.2
         self._min_gate_width = 0.2
         self._default_layers = 2
-        self._arrow_lenght = 0.06
+        self._arrow_length = 0.06
         self._connector_r = 0.01
         self._target_node_r = 0.12
         self._control_node_r = 0.05
@@ -378,7 +378,7 @@ class MatRenderer(BaseRenderer):
                 xskip - self._cwire_sep,
             ),
             (
-                c_pos * self.style.wire_sep + self._arrow_lenght,
+                c_pos * self.style.wire_sep + self._arrow_length,
                 q_pos * self.style.wire_sep,
             ),
             color=color,
@@ -390,7 +390,7 @@ class MatRenderer(BaseRenderer):
                 xskip + self._cwire_sep,
             ),
             (
-                c_pos * self.style.wire_sep + self._arrow_lenght,
+                c_pos * self.style.wire_sep + self._arrow_length,
                 q_pos * self.style.wire_sep,
             ),
             color=color,
@@ -402,7 +402,7 @@ class MatRenderer(BaseRenderer):
         if is_arrow:
             end_arrow = FancyArrow(
                 xskip,
-                c_pos * self.style.wire_sep + self._arrow_lenght,
+                c_pos * self.style.wire_sep + self._arrow_length,
                 0,
                 -self._cwire_sep * 3,
                 width=0,

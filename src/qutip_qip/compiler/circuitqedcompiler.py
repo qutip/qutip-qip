@@ -248,7 +248,7 @@ class SCQubitsCompiler(GateCompiler):
 
     def cnot_compiler(self, circuit_instruction, args):
         """
-        Compiler for CNOT gate using the cross resonance iteraction.
+        Compiler for CNOT gate using the cross resonance interaction.
         See
         https://journals.aps.org/prb/abstract/10.1103/PhysRevB.81.134507
         for reference.
