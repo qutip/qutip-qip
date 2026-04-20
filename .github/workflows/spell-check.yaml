@@ -3,7 +3,7 @@
 name: Spelling check
 on:
   push:
-    branches: [ master ]
+    branches: [ master, 'qutip-qip-*' ]
   pull_request:
 
 permissions:
