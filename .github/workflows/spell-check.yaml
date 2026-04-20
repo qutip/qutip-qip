@@ -1,0 +1,25 @@
+# Add the false positives in `.typos.toml` file.
+
+name: Spelling check
+on:
+  push:
+    branches: [ master, 'qutip-qip-*' ]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
+
+jobs:
+  spelling:
+    name: Spell Check with Typos
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone the repo
+        uses: actions/checkout@v6
+
+      - name: Spell Check the repo
+        uses: crate-ci/typos@v1.45.1

@@ -1,6 +1,6 @@
 # qutip-qip
 
-[![Tests](https://github.com/qutip/qutip-qip/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/qutip/qutip-qip/actions/workflows/test.yml)
+[![Tests](https://github.com/qutip/qutip-qip/actions/workflows/test.yaml/badge.svg?branch=master)](https://github.com/qutip/qutip-qip/actions/workflows/test.yaml)
 [![Documentation Status](https://readthedocs.org/projects/qutip-qip/badge/?version=stable)](https://qutip-qip.readthedocs.io/en/stable/)
 [![PyPI version](https://badge.fury.io/py/qutip-qip.svg)](https://badge.fury.io/py/qutip-qip)
 [![arXiv paper](https://img.shields.io/badge/arXiv-2105.09902-<COLOR>.svg)](https://arxiv.org/abs/2105.09902)

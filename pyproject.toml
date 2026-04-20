@@ -13,6 +13,8 @@ readme = "README.md"
 license = "BSD-3-Clause"
 license-files = ["LICENSE"]
 requires-python = ">=3.10"
+# When Python version is updated same change needs to be made in classifier tags in pyproject.toml,
+# release.yaml and in contributing to code, Installation guide. 
 dependencies = [
     "numpy>=1.22.0",
     "scipy>=1.9.0",
@@ -60,9 +62,10 @@ authors = [
 [project.urls]
 Homepage = "https://qutip.org"
 Documentation = "https://qutip-qip.readthedocs.io/en/stable/"
-Repository = "https://github.com/qutip/qutip-qip"
-Issues = "https://github.com/qutip/qutip-qip/issues"
 Changelog = "https://qutip-qip.readthedocs.io/en/stable/changelog.html"
+Issues = "https://github.com/qutip/qutip-qip/issues"
+Repository = "https://github.com/qutip/qutip-qip"
+Donate = "https://github.com/sponsors/qutip"
 
 [project.optional-dependencies]
 graphics = ["matplotlib>=3.5.0"]
