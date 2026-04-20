@@ -15,7 +15,7 @@ class RandomNoise(ControlAmpNoise):
         The time interval between two random amplitude. The coefficients
         of the noise are the same within this time range.
     rand_gen : :class:`numpy.random.Generator`
-        A random generator in :mod:`numpy.random`.
+        A numpy random generator, reference :mod:`numpy.random`.
     indices : list of int, optional
         The indices of target pulse in the list of pulses.
     **kwargs
@@ -27,7 +27,7 @@ class RandomNoise(ControlAmpNoise):
         The time interval between two random amplitude. The coefficients
         of the noise are the same within this time range.
     rand_gen : callable
-        A random generator in :mod:`numpy.random`.
+        A numpy random generator, reference :mod:`numpy.random`.
     indices : list of int or None
         The indices of target pulse in the list of pulses.
     kwargs : dict
