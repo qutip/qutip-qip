@@ -4,12 +4,12 @@ permissions:
 
 on:
   push:
-    paths: &trigger_paths
+    branches: [ master ]
+  pull_request:
+    paths:
       - "**/*.py"
       - ".github/workflows/lint.yaml"
       - "pyproject.toml"
-  pull_request:
-    paths: *trigger_paths
 
 concurrency:
   group: lint_${{ github.ref }}

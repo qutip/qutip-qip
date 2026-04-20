@@ -1,7 +1,10 @@
 # Add the false positives in `.typos.toml` file.
 
 name: Spelling check
-on: [pull_request]
+on:
+  push:
+    branches: [ master ]
+  pull_request:
 
 permissions:
   contents: read
