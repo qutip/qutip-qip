@@ -23,17 +23,19 @@ class Noise:
 
         Parameters
         ----------
-        dims : list of int, optional
+        dims: list, optional
             The dimension of the components system, the default value is
-            [2, 2, ..., 2] for qubits system.
-        pulses : list of :class:`.Pulse`, optional
+            [2,2...,2] for qubits system.
+
+        pulses : list of :class:`.Pulse`
             The input pulses. The noise will be added to pulses in this list.
-        systematic_noise : :class:`.Pulse`, optional
+
+        systematic_noise : :class:`.Pulse`
             The dummy pulse with no ideal control element.
 
         Returns
         -------
-        noisy_pulses : list of :class:`.Pulse`
+        noisy_pulses: list of :class:`.Pulse`
             Noisy pulses.
 
         systematic_noise : :class:`.Pulse`

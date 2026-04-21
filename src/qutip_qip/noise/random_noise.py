@@ -1,7 +1,6 @@
 import numpy as np
 from qutip_qip.noise import ControlAmpNoise
 from qutip_qip.pulse import Pulse
-from numpy.random import Generator
 
 
 class RandomNoise(ControlAmpNoise):
@@ -11,26 +10,28 @@ class RandomNoise(ControlAmpNoise):
 
     Parameters
     ----------
-    dt : float
+    dt: float, optional
         The time interval between two random amplitude. The coefficients
         of the noise are the same within this time range.
-    rand_gen : :class:`numpy.random.Generator`
-        A numpy random generator, reference :mod:`numpy.random`.
-    indices : list of int, optional
+    rand_gen: numpy.random, optional
+        A random generator in numpy.random, it has to take a ``size``
+        parameter as the size of random numbers in the output array.
+    indices: list of int, optional
         The indices of target pulse in the list of pulses.
-    **kwargs
+    **kwargs:
         Key word arguments for the random number generator.
 
     Attributes
     ----------
-    dt : float
+    dt: float
         The time interval between two random amplitude. The coefficients
         of the noise are the same within this time range.
-    rand_gen : callable
-        A numpy random generator, reference :mod:`numpy.random`.
-    indices : list of int or None
+    rand_gen: numpy.random, optional
+        A random generator in numpy.random, it has to take a ``size``
+        parameter.
+    indices: list of int
         The indices of target pulse in the list of pulses.
-    kwargs : dict
+    **kwargs:
         Key word arguments for the random number generator.
 
     Examples
@@ -43,10 +44,10 @@ class RandomNoise(ControlAmpNoise):
     def __init__(
         self,
         dt: float,
-        rand_gen: Generator,
+        rand_gen,  # FIXME add the typing for it (Use Generator instead)
         indices: list[int] | None = None,
-        **kwargs: any,
-    ) -> None:
+        **kwargs,
+    ):
         super().__init__(coeff=None, tlist=None)
         self.rand_gen = rand_gen
         self.kwargs = kwargs
@@ -67,17 +68,17 @@ class RandomNoise(ControlAmpNoise):
 
         Parameters
         ----------
-        dims : list of int, optional
+        dims: list, optional
             The dimension of the components system, the default value is
-            [2, 2, ..., 2] for qubits system.
-        pulses : list of :class:`.Pulse`, optional
+            [2,2...,2] for qubits system.
+        pulses : list of :class:`.Pulse`
             The input pulses. The noise will be added to pulses in this list.
-        systematic_noise : :class:`.Pulse`, optional
+        systematic_noise : :class:`.Pulse`
             The dummy pulse with no ideal control element.
 
         Returns
         -------
-        noisy_pulses : list of :class:`.Pulse`
+        noisy_pulses: list of :class:`.Pulse`
             Noisy pulses.
         systematic_noise : :class:`.Pulse`
             The dummy pulse representing pulse-independent noise.
