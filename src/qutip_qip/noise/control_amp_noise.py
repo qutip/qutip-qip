@@ -1,6 +1,8 @@
 from numpy.typing import ArrayLike
+
 from qutip_qip.noise import Noise
 from qutip_qip.pulse import Pulse
+from qutip_qip.typing import IntSequence, Real, RealSequence
 
 
 class ControlAmpNoise(Noise):
@@ -9,32 +11,32 @@ class ControlAmpNoise(Noise):
 
     Parameters
     ----------
-    coeff: list
+    coeff : Real | RealSequence
         A list of the coefficients for the control Hamiltonians.
         For available choices, see :class:`qutip.QobjEvo`.
-    tlist: array_like, optional
+    tlist : array_like, optional
         A NumPy array specifies the time of each coefficient.
-    indices: list of int, optional
+    indices : IntSequence, optional
         The indices of target pulse in the list of pulses.
 
     Attributes
     ----------
-    coeff: list
+    coeff : Real | RealSequence
         A list of the coefficients for the control Hamiltonians.
         For available choices, see :class:`qutip.QobjEvo`.
-    tlist: array_like
+    tlist : array_like or None
         A NumPy array specifies the time of each coefficient.
-    indices: list of int
+    indices : IntSequence or None
         The indices of target pulse in the list of pulses.
 
     """
 
     def __init__(
         self,
-        coeff: list[complex],
+        coeff: Real | RealSequence,
         tlist: ArrayLike | None = None,
-        indices: list[int] | None = None,
-    ):
+        indices: IntSequence | None = None,
+    ) -> None:
         self.coeff = coeff
         self.tlist = tlist
         self.indices = indices
@@ -45,6 +47,27 @@ class ControlAmpNoise(Noise):
         pulses: list[Pulse] | None = None,
         systematic_noise: Pulse | None = None,
     ) -> tuple[list[Pulse], Pulse]:
+        """
+        Return the input pulses list with noise added and
+        the pulse independent noise in a dummy :class:`.Pulse` object.
+
+        Parameters
+        ----------
+        dims : list of int, optional
+            The dimension of the components system, the default value is
+            [2, 2, ..., 2] for qubits system.
+        pulses : list of :class:`.Pulse`, optional
+            The input pulses. The noise will be added to pulses in this list.
+        systematic_noise : :class:`.Pulse`, optional
+            The dummy pulse with no ideal control element.
+
+        Returns
+        -------
+        noisy_pulses : list of :class:`.Pulse`
+            Noisy pulses.
+        systematic_noise : :class:`.Pulse`
+            The dummy pulse representing pulse-independent noise.
+        """
         if pulses is None:
             pulses = []
 
@@ -65,6 +88,8 @@ class ControlAmpNoise(Noise):
             else:
                 tlist = self.tlist
 
-            pulses[i].add_coherent_noise(pulse.qobj, pulse.targets, tlist, coeff)
+            pulses[i].add_coherent_noise(
+                pulse.qobj, pulse.targets, tlist, coeff
+            )
 
         return pulses, systematic_noise
