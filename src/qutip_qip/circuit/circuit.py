@@ -249,7 +249,7 @@ class QubitCircuit:
 
     def add_measurement(
         self,
-        measurement: str | Measurement,
+        measurement: Measurement,
         targets: int | IntSequence,
         classical_store: int,
         index: None = None,
@@ -259,10 +259,9 @@ class QubitCircuit:
 
         Parameters
         ----------
-        measurement: string
-            Measurement name. If name is an instance of `Measurement`,
-            parameters are unpacked and added.
-        targets: int or Sequence of int
+        measurement : :class:`.Measurement`
+            `Measurement` object
+        targets : int or Sequence of int
             Gate targets
         classical_store : int
             Classical register where result of measurement is stored.
@@ -277,10 +276,14 @@ class QubitCircuit:
                 stacklevel=2,
             )
 
-        if isinstance(measurement, Measurement):
-            meas = measurement
-        else:
-            meas = Measurement(measurement)
+        if isinstance(measurement, str):
+            warnings.warn(
+                "Passing a string name to add_measurement is deprecated. "
+                "Please pass an instantiated Measurement object instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            measurement = Measurement(name=measurement)
 
         if type(targets) is int:
             targets = [targets]
@@ -293,7 +296,7 @@ class QubitCircuit:
 
         self._instructions.append(
             MeasurementInstruction(
-                operation=meas,
+                operation=measurement,
                 qubits=tuple(targets),
                 cbits=tuple(classical_store),
             )
@@ -506,7 +509,7 @@ class QubitCircuit:
 
             elif circuit_op.is_measurement_instruction():
                 self.add_measurement(
-                    circuit_op.operation.name,
+                    circuit_op.operation,
                     targets=[target + start for target in circuit_op.qubits],
                     classical_store=list(circuit_op.cbits),
                 )

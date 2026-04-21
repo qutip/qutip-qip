@@ -4,7 +4,7 @@ from collections.abc import Iterable
 from typing import Type
 from qiskit.circuit import QuantumCircuit
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import Gate
+from qutip_qip.operations import Gate, Measurement
 import qutip_qip.operations.gates as gates
 
 # TODO Expand this dictionary for all the valid qiskit gates
@@ -153,7 +153,7 @@ def convert_qiskit_circuit_to_qutip(
 
         elif qiskit_instruction.name == "measure":
             qutip_circuit.add_measurement(
-                "measure",
+                Measurement(),
                 targets=_get_mapped_bits(qiskit_qregs, bit_map=qubit_map),
                 classical_store=clbit_map[qiskit_cregs[0]],
             )

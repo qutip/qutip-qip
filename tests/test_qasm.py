@@ -98,8 +98,8 @@ def test_qasm_teleportation():
     filename = "teleportation.qasm"
     filepath = Path(__file__).parent / "qasm_files" / filename
     teleportation = read_qasm(filepath)
-    final_measurement = Measurement("start")
-    initial_measurement = Measurement("start")
+    final_measurement = Measurement()
+    initial_measurement = Measurement()
 
     state = tensor(rand_ket(2), basis(2, 0), basis(2, 0))
     _, initial_probabilities = initial_measurement.measurement_comp_basis(
@@ -129,7 +129,7 @@ def test_qasm_str():
     )
     simple_qc = QubitCircuit(2, num_cbits=1)
     simple_qc.add_gate(gates.X, targets=[0])
-    simple_qc.add_measurement("M", targets=[1], classical_store=0)
+    simple_qc.add_measurement(Measurement(), targets=[1], classical_store=0)
     assert circuit_to_qasm_str(simple_qc) == expected_qasm_str
 
 

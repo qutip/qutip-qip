@@ -12,7 +12,7 @@ from typing import Type
 import numpy as np
 
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import Gate, get_unitary_gate
+from qutip_qip.operations import Gate, get_unitary_gate, Measurement
 import qutip_qip.operations.gates as gates
 from qutip_qip.typing import SequenceLike
 
@@ -812,7 +812,9 @@ class QasmProcessor:
                 # adds measurement to the QubitCircuit
                 reg_set = self._regs_processor(command[1:], "measure")
                 for regs in reg_set:
-                    qc.add_measurement("M", targets=[regs[0]], classical_store=regs[1])
+                    qc.add_measurement(
+                        Measurement(), targets=[regs[0]], classical_store=regs[1]
+                    )
             elif command[0] == "if":
                 warnings.warn(
                     (

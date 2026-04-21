@@ -1,5 +1,6 @@
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations.gates import CX, H, Z, TOFFOLI
+from qutip_qip.operations.measurement import Measurement
 from qutip_qip.typing import IntSequence
 
 
@@ -128,8 +129,8 @@ class PhaseFlipCode:
             qc.add_gate(H, targets=[q])
 
         # Measure syndrome qubits
-        qc.add_measurement("M0", sq[0], classical_store=0)
-        qc.add_measurement("M1", sq[1], classical_store=1)
+        qc.add_measurement(Measurement(), sq[0], classical_store=0)
+        qc.add_measurement(Measurement(), sq[1], classical_store=1)
 
         # Classically controlled Z corrections
         qc.add_gate(

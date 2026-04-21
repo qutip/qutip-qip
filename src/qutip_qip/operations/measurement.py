@@ -13,22 +13,21 @@ class Measurement:
     """
     Representation of a quantum measurement, with its required parameters,
     and target qubits.
-
-    Parameters
-    ----------
-    name : string
-        Measurement name.
-    targets : list or int
-        (Deprecated) Gate targets.
-    classical_store : int
-        (Deprecated) Result of the measurment is stored in this
-        classical register of the circuit.
     """
 
-    def __init__(self, name, targets=None, index=None, classical_store=None):
+    name = "M"
+
+    def __init__(self, name=None, targets=None, index=None, classical_store=None):
         """
         Create a measurement with specified parameters.
         """
+        if name is not None:
+            warnings.warn(
+                "'name' argument in Measurement has been deprecated.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
         if index is not None:
             raise AttributeError("argument index is no longer supported")
 
@@ -39,8 +38,6 @@ class Measurement:
                 DeprecationWarning,
                 stacklevel=2,
             )
-
-        self.name = name
 
     def measurement_comp_basis(self, state, targets):
         """
@@ -90,7 +87,9 @@ class Measurement:
         return states, probabilities
 
     def __str__(self):
-        return f" Measurement({self.name})"
+        if self.name:
+            return f" Measurement({self.name})"
+        return "Measurement"
 
     def __repr__(self):
         return str(self)

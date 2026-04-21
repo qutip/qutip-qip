@@ -46,8 +46,8 @@ def _teleportation_circuit():
     teleportation.add_gate(gates.CX, targets=[2], controls=[1])
     teleportation.add_gate(gates.CX, targets=[1], controls=[0])
     teleportation.add_gate(gates.H, targets=[0])
-    teleportation.add_measurement("M0", targets=[0], classical_store=1)
-    teleportation.add_measurement("M1", targets=[1], classical_store=0)
+    teleportation.add_measurement(Measurement(), targets=[0], classical_store=1)
+    teleportation.add_measurement(Measurement(), targets=[1], classical_store=0)
     teleportation.add_gate(gates.X, targets=[2], classical_controls=[0])
     teleportation.add_gate(gates.Z, targets=[2], classical_controls=[1])
 
@@ -72,8 +72,8 @@ def _teleportation_circuit2():
 def _measurement_circuit():
     qc = QubitCircuit(2, num_cbits=2)
 
-    qc.add_measurement("M0", targets=[0], classical_store=0)
-    qc.add_measurement("M1", targets=[1], classical_store=1)
+    qc.add_measurement(Measurement(), targets=[0], classical_store=0)
+    qc.add_measurement(Measurement(), targets=[1], classical_store=1)
 
     return qc
 
@@ -212,7 +212,7 @@ class TestQubitCircuit:
         qc.add_gate(gates.TOFFOLI, controls=[0, 1], targets=[2])
         qc.add_gate(gates.H, targets=[3])
         qc.add_gate(gates.SWAP, targets=[1, 4])
-        qc.add_measurement("M0", targets=[0], classical_store=[1])
+        qc.add_measurement(Measurement(), targets=[0], classical_store=[1])
         qc.add_gate(gates.RY(1.570796), targets=4)
         qc.add_gate(gates.RY(1.570796), targets=5)
         qc.add_gate(gates.CRX(np.pi / 2), controls=[1], targets=[2])
@@ -307,17 +307,17 @@ class TestQubitCircuit:
 
         qc = QubitCircuit(3, num_cbits=3)
 
-        qc.add_measurement("M0", targets=[0], classical_store=0)
+        qc.add_measurement(Measurement(), targets=[0], classical_store=0)
         qc.add_gate(gates.CX, targets=[1], controls=[0])
         qc.add_gate(gates.TOFFOLI, controls=[0, 1], targets=[2])
-        qc.add_measurement("M1", targets=[2], classical_store=1)
+        qc.add_measurement(Measurement(), targets=[2], classical_store=1)
         qc.add_gate(gates.H, targets=[1], classical_controls=[0, 1])
-        qc.add_measurement("M2", targets=[1], classical_store=2)
+        qc.add_measurement(Measurement(), targets=[1], classical_store=2)
 
         # checking correct addition of measurements
         assert qc.instructions[0].qubits[0] == 0
         assert qc.instructions[0].cbits[0] == 0
-        assert qc.instructions[3].operation.name == "M1"
+        assert isinstance(qc.instructions[3].operation, Measurement)
         assert qc.instructions[5].cbits[0] == 2
 
         # checking if gates are added correctly with measurements
@@ -381,7 +381,7 @@ class TestQubitCircuit:
 
         qc.add_gate(gates.RX(3.141, arg_label=r"\pi/2"), targets=[0])
         qc.add_gate(gates.CX, targets=[1], controls=[0])
-        qc.add_measurement("M1", targets=[1], classical_store=0)
+        qc.add_measurement(Measurement(), targets=[1], classical_store=0)
         qc.add_gate(gates.H, targets=[2])
         # Keep input output same
 
@@ -392,7 +392,7 @@ class TestQubitCircuit:
         qc_rev = qc.reverse_circuit()
 
         assert qc_rev.instructions[0].operation == gates.H
-        assert qc_rev.instructions[1].operation.name == "M1"
+        assert isinstance(qc_rev.instructions[1].operation, Measurement)
         assert qc_rev.instructions[2].operation == gates.CX
         assert isinstance(qc_rev.instructions[3].operation, gates.RX)
 
@@ -530,7 +530,7 @@ class TestQubitCircuit:
         teleportation = _teleportation_circuit()
 
         state = tensor(rand_ket(2), basis(2, 0), basis(2, 0))
-        initial_measurement = Measurement("start")
+        initial_measurement = Measurement()
         _, initial_probabilities = initial_measurement.measurement_comp_basis(
             state, targets=[0]
         )
@@ -539,7 +539,7 @@ class TestQubitCircuit:
         teleportation_sim_results = teleportation_sim.run(state)
         state_final = teleportation_sim_results.get_final_states(0)
 
-        final_measurement = Measurement("start")
+        final_measurement = Measurement()
         _, final_probabilities = final_measurement.measurement_comp_basis(
             state_final, targets=[2]
         )
@@ -575,8 +575,8 @@ class TestQubitCircuit:
         """
 
         teleportation = _teleportation_circuit()
-        final_measurement = Measurement("start")
-        initial_measurement = Measurement("start")
+        final_measurement = Measurement()
+        initial_measurement = Measurement()
 
         original_state = tensor(rand_ket(2), basis(2, 0), basis(2, 0))
         _, initial_probabilities = initial_measurement.measurement_comp_basis(
@@ -624,7 +624,7 @@ class TestQubitCircuit:
     def test_circuit_with_selected_measurement_result(self):
         qc = QubitCircuit(num_qubits=1, num_cbits=1)
         qc.add_gate(gates.H, targets=0)
-        qc.add_measurement("M0", targets=0, classical_store=0)
+        qc.add_measurement(Measurement(), targets=0, classical_store=0)
 
         # We reset the random seed so that
         # if we don's select the measurement result,
@@ -688,7 +688,7 @@ class TestQubitCircuit:
         rand_state = rand_ket(2)
         state = tensor(basis(2, 0), basis(2, 0), basis(2, 0), rand_state)
 
-        fourth = Measurement("test_rand")
+        fourth = Measurement()
 
         _, probs_initial = fourth.measurement_comp_basis(state, targets=[3])
 
@@ -781,7 +781,7 @@ class TestQubitCircuit:
 
     def test_latex_code(self):
         qc = QubitCircuit(1, num_cbits=1, reverse_states=True)
-        qc.add_measurement("M0", targets=0, classical_store=0)
+        qc.add_measurement(Measurement(), targets=0, classical_store=0)
         exp = " &  &  \\qw \\cwx[1]  & \\qw \\\\ \n &  &  \\meter & \\qw \\\\ \n"
 
         renderer = TeXRenderer(qc)
@@ -789,7 +789,7 @@ class TestQubitCircuit:
 
     def test_latex_code_non_reversed(self):
         qc = QubitCircuit(1, num_cbits=1, reverse_states=False)
-        qc.add_measurement("M0", targets=0, classical_store=0)
+        qc.add_measurement(Measurement(), targets=0, classical_store=0)
         exp = " &  &  \\meter & \\qw \\\\ \n &  " + "&  \\qw \\cwx[-1]  & \\qw \\\\ \n"
         renderer = TeXRenderer(qc)
         assert renderer.latex_code() == renderer._latex_template % exp
@@ -976,7 +976,7 @@ class TestInstructionErrors:
             # Operation must be of type Measurement
             MeasurementInstruction(operation="M0", qubits=(0,), cbits=(0,))
 
-        meas = Measurement("M0")
+        meas = Measurement()
         with pytest.raises(ValueError):
             # Measurement requires equal number of qubits and cbits
             MeasurementInstruction(operation=meas, qubits=(0, 1), cbits=(0,))
