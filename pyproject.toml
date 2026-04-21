@@ -12,9 +12,9 @@ description = "The QuTiP quantum information processing package"
 readme = "README.md"
 license = "BSD-3-Clause"
 license-files = ["LICENSE"]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 # When Python version is updated same change needs to be made in classifier tags in pyproject.toml,
-# release.yaml and in contributing to code, Installation guide. 
+# build.yaml and in contributing to code, Installation guide. 
 dependencies = [
     "numpy>=1.22.0",
     "scipy>=1.9.0",
@@ -27,7 +27,6 @@ classifiers = [
     "Operating System :: POSIX :: Linux",
     "Operating System :: Microsoft :: Windows",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
