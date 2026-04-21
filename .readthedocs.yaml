@@ -8,8 +8,6 @@ build:
   os: ubuntu-24.04
   tools:
     python: "3.12"
-  apt_packages:
-    - pandoc
   jobs:
     # This can be removed once RTD configuration schema supports PEP 735 (https://peps.python.org/pep-0735/)
     pre_install:
