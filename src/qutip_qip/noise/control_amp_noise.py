@@ -1,7 +1,6 @@
 from numpy.typing import ArrayLike
 from qutip_qip.noise import Noise
 from qutip_qip.pulse import Pulse
-from qutip_qip.typing import IntSequence, Real, RealSequence
 
 
 class ControlAmpNoise(Noise):
@@ -10,32 +9,32 @@ class ControlAmpNoise(Noise):
 
     Parameters
     ----------
-    coeff : Real | RealSequence
+    coeff: list
         A list of the coefficients for the control Hamiltonians.
         For available choices, see :class:`qutip.QobjEvo`.
-    tlist : array_like, optional
+    tlist: array_like, optional
         A NumPy array specifies the time of each coefficient.
-    indices : list of int, optional
+    indices: list of int, optional
         The indices of target pulse in the list of pulses.
 
     Attributes
     ----------
-    coeff : Real | RealSequence
+    coeff: list
         A list of the coefficients for the control Hamiltonians.
         For available choices, see :class:`qutip.QobjEvo`.
-    tlist : array_like or None
+    tlist: array_like
         A NumPy array specifies the time of each coefficient.
-    indices : list of int or None
+    indices: list of int
         The indices of target pulse in the list of pulses.
 
     """
 
     def __init__(
         self,
-        coeff: Real | RealSequence,
+        coeff: list[complex],
         tlist: ArrayLike | None = None,
-        indices: IntSequence | None = None,
-    ) -> None:
+        indices: list[int] | None = None,
+    ):
         self.coeff = coeff
         self.tlist = tlist
         self.indices = indices

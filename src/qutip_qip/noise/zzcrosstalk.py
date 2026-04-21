@@ -13,17 +13,11 @@ class ZZCrossTalk(Noise):
 
     Parameters
     ----------
-    params : dict
+    params:
         Parameters computed from a :class:`.SCQubits`.
-        Expected keys: ``"J"``, ``"wq_dressed_cavity"``, ``"alpha"``.
-
-    Attributes
-    ----------
-    params : dict
-        The device parameters used to compute ZZ coupling coefficients.
     """
 
-    def __init__(self, params: dict[str, any]) -> None:
+    def __init__(self, params):
         self.params = params
 
     def get_noisy_pulses(
@@ -38,17 +32,17 @@ class ZZCrossTalk(Noise):
 
         Parameters
         ----------
-        dims : list of int, optional
+        dims: list, optional
             The dimension of the components system, the default value is
-            [2, 2, ..., 2] for qubits system.
-        pulses : list of :class:`.Pulse`, optional
+            [2,2...,2] for qubits system.
+        pulses : list of :class:`.Pulse`
             The input pulses. The noise will be added to pulses in this list.
-        systematic_noise : :class:`.Pulse`, optional
+        systematic_noise : :class:`.Pulse`
             The dummy pulse with no ideal control element.
 
         Returns
         -------
-        noisy_pulses : list of :class:`.Pulse`
+        noisy_pulses: list of :class:`.Pulse`
             Noisy pulses.
         systematic_noise : :class:`.Pulse`
             The dummy pulse representing pulse-independent noise.
