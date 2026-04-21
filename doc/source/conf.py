@@ -85,7 +85,7 @@ intersphinx_mapping = {
     "qutip": ("https://qutip.readthedocs.io/en/stable/", None),
     "qiskit": ("https://qutip.readthedocs.io/en/stable/", None),
 }
-intersphinx_resolve_self = 'qutip-qip'
+intersphinx_resolve_self = "qutip-qip"
 
 # -- Options for HTML output -------------------------------------------------
 

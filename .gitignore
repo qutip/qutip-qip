@@ -7,6 +7,9 @@ __pycache__/
 *.html
 *.htm
 
+# Tutorials rst (scrapped from qutip-tutorials while building tutorials)
+/doc/source/tutorials-website/tutorials_v5.rst
+
 # Pdf files (from plots in /pulse-paper)
 *.pdf
 /pulse-paper/deutsch-jozsa-qutip.qasm

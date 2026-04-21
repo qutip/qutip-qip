@@ -68,9 +68,8 @@ def get_notebooks(path):
     return notebooks
 
 
-def generate_index_html(version_directory, tutorial_directories, title, version_note):
-    """Generates the index HTML file from the given data"""
-    # get tutorials from the different directories
+def generate_index_rst(version_directory, tutorial_directories, title):
+    """Generates the index RST file natively from the given data"""
     tutorials = {}
     for dir in tutorial_directories:
         tutorials[dir] = get_notebooks(os.path.join(version_directory, dir))
@@ -80,11 +79,14 @@ def generate_index_html(version_directory, tutorial_directories, title, version_
         loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), "../")),
         autoescape=select_autoescape(),
     )
-    template = env.get_template("tutorials-website/tutorials.html.jinja")
+
+    template = env.get_template("tutorials-website/tutorials.rst.jinja")
 
     # render template and return
-    html = template.render(tutorials=tutorials, title=title, version_note=version_note)
-    return html
+    rst_content = template.render(
+        tutorials=tutorials, title=title
+    )  # Removed version_note
+    return rst_content
 
 
 # Clone the qutip-tutorials repository
@@ -101,25 +103,13 @@ tutorial_directories = [
 
 # Version 5 index file
 title = "Tutorials for QuTiP Version 5"
-version_note = 'These are the tutorials for QuTiP Version 5. You can find the tutorials for QuTiP Version 4 <a href="./index.html">here</a>.'
-html = generate_index_html(
+rst_content = generate_index_rst(
     os.path.join(cloned_repo_dir, "tutorials-v5/"),
     tutorial_directories,
     title,
-    version_note,
 )
-with open("source/tutorials-website/qutip-qip-v5.html", "w+") as f:
-    f.write(html)
+with open("source/tutorials-website/tutorials_v5.rst", "w+") as f:
+    f.write(rst_content)
 
 # Wipe off the cloned repository
 shutil.rmtree(cloned_repo_dir)
-
-
-def convert_html_to_rst(html_file_path, rst_file_path):
-    # Use the subprocess module to call the pandoc command-line tool
-    subprocess.run(["pandoc", html_file_path, "-o", rst_file_path])
-
-
-html_file_path_v5 = "source/tutorials-website/qutip-qip-v5.html"
-rst_file_path_v5 = "source/tutorials_v5.rst"
-convert_html_to_rst(html_file_path_v5, rst_file_path_v5)
