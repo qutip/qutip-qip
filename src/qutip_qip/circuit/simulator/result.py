@@ -129,11 +129,7 @@ class CircuitResult:
         import matplotlib.pyplot as plt
 
         # Check if classical bits exist, are not empty, and are not just [None]
-        if (
-            not hasattr(self, "cbits")
-            or not self.cbits
-            or self.cbits[0] is None
-        ):
+        if not hasattr(self, "cbits") or not self.cbits or self.cbits[0] is None:
             raise ValueError(
                 "Cannot plot histogram: No classical measurement results are available."
             )
