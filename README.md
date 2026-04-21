@@ -7,7 +7,7 @@
 [![Maintainability](https://qlty.sh/gh/qutip/projects/qutip-qip/maintainability.svg)](https://qlty.sh/gh/qutip/projects/qutip-qip)
 [![Coverage Status](https://coveralls.io/repos/github/qutip/qutip-qip/badge.svg)](https://coveralls.io/github/qutip/qutip-qip)
 
-The qutip-qip package used to be a module ``qutip.qip`` under [QuTiP (Quantum Toolbox in Python)](http://qutip.org/index.html).
+The qutip-qip package used to be a module ``qutip.qip`` under [QuTiP (Quantum Toolbox in Python)](https://qutip.readthedocs.io/en/stable/).
 From QuTiP 5.0, the community has decided to decrease the size of the core QuTiP package by reducing the external dependencies, in order to simplify maintenance.
 Hence a few modules are separated from the core QuTiP and will become QuTiP family packages.
 They are still maintained by the QuTiP team but hosted under different repositories in the [QuTiP organization](https://github.com/qutip).
@@ -27,7 +27,7 @@ pip install qutip-qip
 
 Migrating from ``qutip.qip``
 --------------------------
-As the introduction suggested, this package is based on a module in the [QuTiP](http://qutip.org/docs/latest/) package `qutip.qip`.
+As the introduction suggested, this package is based on a module in the [QuTiP](https://qutip.readthedocs.io/en/stable/) package `qutip.qip`.
 If you were using the `qutip` package and now want to try out the new features included in this package, you can simply install this package and replace all the `qutip.qip` in your import statement with `qutip_qip`. Everything should work smoothly as usual.
 
 Documentation and tutorials
