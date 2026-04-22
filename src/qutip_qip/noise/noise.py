@@ -77,8 +77,6 @@ class Noise(object):
         elif isinstance(result, list) and len(result) == len(pulses):
             pulses = result
         else:
-            raise TypeError(
-                "Returned value of get_noisy_pulses not understood."
-            )
+            raise TypeError("Returned value of get_noisy_pulses not understood.")
 
         return pulses, systematic_noise
