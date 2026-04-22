@@ -9,7 +9,7 @@ on:
     paths:
       - "src/**"
       - "tests/**"
-      - "pytest.ini"
+      - ".pytest.toml"
       - ".github/workflows/test.yaml" #Run when this exact pipeline file changes
       - "pyproject.toml" # Run when any dependency changes
 
@@ -28,19 +28,14 @@ jobs:
           - case-name: windows
             os: windows-latest
             qutip-version: ''
-            python-version: '3.10'
+            python-version: '3.11'
 
           - case-name: macOS
             os: macOS-latest
             qutip-version: ''
-            python-version: '3.10'
+            python-version: '3.11'
 
           - case-name: linux
-            os: ubuntu-latest
-            qutip-version: ''
-            python-version: '3.10'
-
-          - case-name: qutip@5
             os: ubuntu-latest
             qutip-version: ''
             python-version: '3.11'
