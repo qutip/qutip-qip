@@ -11,6 +11,7 @@ All types of contributions are encouraged and valued. Please make sure to [read 
 - [Reporting Bugs](#reporting-bugsissues)
 - [Contributing to Code](#contributing-to-code)
 - [Improving the Documentation](#improving-the-documentation)
+- [AI Tools Usage Policy](#ai-tools-usage-policy)
 
 
 ## Code of Conduct
@@ -46,15 +47,47 @@ In our workflow, we generally avoid formally assigning issues to contributors. T
 The only exception to this is a small subset of “core” issues. These are typically more complex, sensitive, or tightly coupled to ongoing development efforts, and are therefore handled directly by maintainers.
 
 
-### AI Tool Usage Policy
-We have no objections to the use of AI tools to improve efficiency and enhance quality of work. We ask only that contributors are honest about any such usage and that all outputs can be considered their own work, in that they fully understand, endorse and can explain anything that is submitted.
-
-AI use is strongly discouraged where it leads to overly verbose content. In communications, whether via e-mail, GitHub or other channels, we expect to communicate directly with other humans and not with automated systems. Use of translation tools is completely welcome.
-
-
 ## Improving The Documentation
 Documentation is a crucial part of any project, and we welcome contributions to improve it. If you find any errors, inconsistencies, or areas that could be clarified, please feel free to submit a pull request with your suggested changes. You can also open an issue to discuss potential improvements before making changes.
 
 Please read the [Contributing to the documentation](https://qutip-qip.readthedocs.io/en/latest/contribution-docs.html) for more details on how to contribute to the documentation.
 
 Also you can add new tutorials in the [Tutorials](http://github.com/qutip/qutip-tutorials/) repository. If you have an idea for a tutorial example that you think would be helpful to others, please feel free to submit a pull request with your suggested tutorial.
+
+
+## AI Tools Usage Policy
+We acknowledge the use of AI tools to improve efficiency and enhance quality of work. We only require that the contributors follow the below guidelines:
+
+### 1. Accountability
+
+The human contributor is solely responsible for their contribution i.e. all the AI-generated outputs can be considered their own work. If you're submitting a Pull Request that includes AI-generated code, documentation:
+
+- You are responsible for ensuring that code you submit meets the qutip-qip project's standards.
+- You must fully understand every line of code in the submission.
+- You must be able to explain the "why" behind the implementation during the review process.
+
+### 2. Transparency
+
+All Pull Requests must fill the "AI Tools Usage Disclosure" section in the Pull Request template. This disclosure is mandatory and must reflect the actual use of AI tools.
+
+### 3. Copyright & Legal
+
+By submitting a contribution to qutip-qip, you agree to
+
+1. Submit your contribution under the project's license.
+
+2. The contribution does not violate any third-party rights or the terms of service of the AI provider. And does not include "regurgitated" code from libraries with incompatible licenses (e.g., GPL-licensed code) being suggested into our BSD-3-licensed project.
+
+3. AI agents must not sign commits or be added to commit message trailer `Co-authored-by:` since copyright is fundamentally tied to the concept of human authorship as per the Copyright law. You can instead use `Assisted-by: AI Model/Tool` as commit message trailer e.g. `Assisted-by: Cursor with Opus 4.6`.
+
+### 4. Prohibited Use
+
+The following use cases are strictly prohibited:
+
+- **Ban on Bots/Agents:** Fully autonomous or unsupervised AI agents (e.g. OpenClaw, SWE-agent) are not allowed to submit Pull Requests.
+- **Communication:** In project communications (GitHub Issues, Discussion, PR descriptions and review comments), we expect to communicate directly with other humans not with automated systems. Use of translation tools is completely welcome.
+- **Good First Issues Misuse:** The main purpose of a “good first issue” is not getting the low-priority bug fixed, it is to allow human contributors to get familiar with `qutip-qip`, with the GitHub workflow and to engage with the community. AI can be used as a learning aid to understand the codebase, but the final implementation must be your own.
+
+### 5. Enforcement
+
+Maintainers reserve the right to close any Pull Request that violates this Policy.
