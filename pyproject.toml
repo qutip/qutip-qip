@@ -16,8 +16,8 @@ requires-python = ">=3.11"
 # When Python version is updated same change needs to be made in classifier tags in pyproject.toml,
 # build.yaml and in contributing to code, Installation guide. 
 dependencies = [
-    "numpy>=1.22.0",
-    "scipy>=1.9.0",
+    "numpy>=1.24",
+    "scipy>=1.9.2",
     "qutip>=5.0",
 ]
 classifiers = [
@@ -67,9 +67,9 @@ Repository = "https://github.com/qutip/qutip-qip"
 Donate = "https://github.com/sponsors/qutip"
 
 [project.optional-dependencies]
-graphics = ["matplotlib>=3.5.0"]
+graphics = ["matplotlib>=3.6"]
 control = ["qutip-qtrl>=0.1.5"]
-qiskit = ["qiskit>=2.0.0"]
+qiskit = ["qiskit>=2.0"]
 full = [
     "qutip-qip[graphics,qiskit,control]",
 ]
@@ -80,22 +80,25 @@ qutip_qip = "qutip_qip.family"
 [dependency-groups]
 lint = [
     "black==26.1.0",
-    "pre-commit>=3.5.0",
+    "pre-commit>=4.5.0",
 ]
 test = [
     "pytest>=8.0",
     "pytest-repeat>=0.9",
-    "qiskit_aer>=0.17.0",  # Some tests in test_qiskit.py use Aer for verification
+    "qiskit_aer>=0.17",  # Some tests in test_qiskit.py use Aer for verification
 ]
 doc = [
-    "docutils==0.21.1",
+    "docutils==0.22.4",
     "numpydoc==1.10.0",
-    "sphinx==8.1.3",
+    "sphinx==9.0.4",
     "sphinx-rtd-theme==3.1.0",
     "sphinxcontrib-bibtex==2.6.5",
     "sphinx-copybutton==0.5.2",
 ]
-dev = [ {include-group = "test"}, {include-group = "lint"}]
+dev = [
+    {include-group = "test"},
+    {include-group = "lint"}
+]
 
 [tool.setuptools]
 include-package-data = true
