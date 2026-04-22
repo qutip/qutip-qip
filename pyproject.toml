@@ -1,7 +1,7 @@
 [build-system]
 requires = [
     "setuptools>=77.0.3",
-    "setuptools-git-versioning",
+    "setuptools-git-versioning>=3.0.1",
 ]
 build-backend = "setuptools.build_meta"
 
@@ -83,7 +83,7 @@ lint = [
     "pre-commit>=4.5.0",
 ]
 test = [
-    "pytest>=8.0",
+    "pytest>=9.0",
     "pytest-repeat>=0.9",
     "qiskit_aer>=0.17",  # Some tests in test_qiskit.py use Aer for verification
 ]
