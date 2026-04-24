@@ -33,6 +33,7 @@ Examples of unacceptable behavior include:
 * Public or private harassment
 * Publishing others' private information, such as a physical or email
   address, without their explicit permission
+* Spamming, including the submission of unsupervised AI-generated pull requests and issues.
 * Other conduct which could reasonably be considered inappropriate in a
   professional setting
 
