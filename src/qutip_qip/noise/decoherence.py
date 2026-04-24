@@ -1,4 +1,5 @@
 from numpy.typing import ArrayLike
+from qutip_qip.typing import IntSequence, RealSequence
 from qutip import Qobj
 
 from qutip_qip.noise import Noise
@@ -30,7 +31,7 @@ class DecoherenceNoise(Noise):
         The collapse operators representing the dynamics of the noise.
     targets : int or list of int or None
         The indices of qubits that are acted on.
-    coeff : list of float or bool or None
+    coeff : RealSequence or None
         A list of the coefficients for the control Hamiltonians.
     tlist : array_like or None
         A NumPy array specifies the time of each coefficient.
@@ -41,8 +42,8 @@ class DecoherenceNoise(Noise):
     def __init__(
         self,
         c_ops: Qobj | list[Qobj],
-        targets: int | list[int] | None = None,
-        coeff: list[float] | bool | None = None,
+        targets: int | IntSequence | None = None,
+        coeff: RealSequence | None = None,
         tlist: ArrayLike | None = None,
         all_qubits: bool = False,
     ) -> None:
