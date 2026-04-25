@@ -23,3 +23,22 @@ jobs:
 
       - name: Spell Check the repo
         uses: crate-ci/typos@v1.45.1
+
+  hyperlink:
+    name: Check all hyperlinks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone the repo 
+        uses: actions/checkout@v6
+
+      - name: Restore lychee cache
+        uses: actions/cache@v5
+        with:
+          path: .lycheecache
+          key: cache-lychee-${{ github.sha }}
+          restore-keys: cache-lychee-  # Just for fallback
+
+      - name: Check all the hyperlinks
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: --cache --max-cache-age 1d --extensions bib,md,rst,py,yaml,toml .
