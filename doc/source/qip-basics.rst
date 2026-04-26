@@ -34,12 +34,13 @@ A circuit with the various gates and registers available is demonstrated below:
 
   from qutip_qip.circuit import QubitCircuit
   from qutip_qip.operations.gates import X, CX, SWAP
+  from qutip_qip.operations.measurement import Mz
   from qutip import tensor, basis
 
   qc = QubitCircuit(2, num_cbits=1)
 
   qc.add_gate(SWAP, targets=[0, 1])
-  qc.add_measurement("M0", targets=[1], classical_store=0) # measurement gate
+  qc.add_measurement(Mz, targets=[1], classical_store=0) # measurement gate
   qc.add_gate(CX, controls=0, targets=1)
   qc.add_gate(X, targets=0, classical_controls=[0]) # classically controlled gate
   qc.add_gate(SWAP, targets=[0, 1])
@@ -52,7 +53,7 @@ A circuit with the various gates and registers available is demonstrated below:
   :options: +NORMALIZE_WHITESPACE
 
     [GateInstruction(operation=Gate(SWAP, num_qubits=2), qubits=(0, 1), cbits=(), style=None, cbits_ctrl_value=None),
-      MeasurementInstruction(operation= Measurement(M0), qubits=(1,), cbits=(0,), style={}),
+      MeasurementInstruction(operation= Measurement(M), qubits=(1,), cbits=(0,), style={}),
       GateInstruction(operation=Gate(CX, num_qubits=2), qubits=(0, 1), cbits=(), style=None, cbits_ctrl_value=None),
       GateInstruction(operation=Gate(X, num_qubits=1), qubits=(0,), cbits=(0,), style=None, cbits_ctrl_value=1),
       GateInstruction(operation=Gate(SWAP, num_qubits=2), qubits=(0, 1), cbits=(), style=None, cbits_ctrl_value=None)]
@@ -237,9 +238,9 @@ gate function returning a :class:`qutip.Qobj` and save it in the attribute ``use
 
   Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
   Qobj data =
-    [[1.     +0.j      0.     +0.j      0.     +0.j      0.     +0.j     ] 
-     [0.     +0.j      1.     +0.j      0.     +0.j      0.     +0.j     ] 
-     [0.     +0.j      0.     +0.j      0.70711+0.j      0.     -0.70711j] 
+    [[1.     +0.j      0.     +0.j      0.     +0.j      0.     +0.j     ]
+     [0.     +0.j      1.     +0.j      0.     +0.j      0.     +0.j     ]
+     [0.     +0.j      0.     +0.j      0.70711+0.j      0.     -0.70711j]
      [0.     +0.j      0.     +0.j      0.     -0.70711j 0.70711+0.j     ]]
 
 .. testcode::
@@ -307,22 +308,23 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
 
   from qutip_qip.circuit import QubitCircuit
   from qutip_qip.operations.gates import H, CX, ISWAP
+  from qutip_qip.operations.measurement import Mz
 
   # create the quantum circuit
   qc = QubitCircuit(2, num_cbits=1)
   qc.add_gate(CX, controls=0, targets=1)
   qc.add_gate(H, targets=1)
   qc.add_gate(ISWAP, targets=[0,1])
-  qc.add_measurement("M0", targets=1, classical_store=0)
+  qc.add_measurement(Mz, targets=1, classical_store=0)
 
   qc.draw("matplotlib", bulge=False, theme='dark', title="Plotting Quantum Circuit", dpi=300)
 
-.. 
+..
   _To further explore the customization examples, refer to `tutorial notebook <link to tutorial notebook>`.
 
 **Customization Parameters**
 
-  .. list-table:: 
+  .. list-table::
     :header-rows: 1
     :widths: 20 80
 
@@ -331,7 +333,7 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
     * - ``dpi : int = 150``
       - DPI of the figure.
     * - ``fontsize : int = 10``
-      - Fontsize control at the circuit level, including tile 
+      - Fontsize control at the circuit level, including tile
         and wire labels.
     * - ``end_wire_ext : int = 2``
       - Extension of the wire at the end of the circuit.
@@ -358,8 +360,8 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
     * - ``bgcolor : Optional[str] = None``
       - Background color of the circuit.
     * - ``color : Optional[str] = None``
-      - Controls color of accent elements (e.g., cross sign in the target node) 
-        and sets as default color of gate-label. Can be overwritten 
+      - Controls color of accent elements (e.g., cross sign in the target node)
+        and sets as default color of gate-label. Can be overwritten
         by gate-specific color.
     * - ``wire_label : Optional[List] = None``
       - Labels of the wires.
@@ -372,31 +374,32 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
 
   from qutip_qip.circuit import QubitCircuit
   from qutip_qip.operations.gates import H, CX, ISWAP
+  from qutip_qip.operations.measurement import Mz
 
   # create the quantum circuit
   qc = QubitCircuit(2, num_cbits=1)
   qc.add_gate(CX, controls=0, targets=1)
   qc.add_gate(H, targets=1)
   qc.add_gate(ISWAP, targets=[0,1])
-  qc.add_measurement("M0", targets=1, classical_store=0)
+  qc.add_measurement(Mz, targets=1, classical_store=0)
 
   qc.draw("text")
 
 .. testoutput::
   :options: +NORMALIZE_WHITESPACE
-  
-           ┌────┐  ┌───┐  ┌───────┐  ┌───┐      
+
+           ┌────┐  ┌───┐  ┌───────┐  ┌───┐
     q1 :───┤ CX ├──┤ H ├──┤       ├──┤ M ├───
-           └──┬─┘  └───┘  │       │  └─╥─┘   
-              │           │       │    ║     
+           └──┬─┘  └───┘  │       │  └─╥─┘
+              │           │       │    ║
     q0 :──────█───────────┤ ISWAP ├────║─────
-                          └───────┘    ║     
-                                       ║     
+                          └───────┘    ║
+                                       ║
     c0 :═══════════════════════════════╩═════
 
 **Customization Parameters**
 
-  .. list-table:: 
+  .. list-table::
     :header-rows: 1
     :widths: 20 80
 
@@ -416,7 +419,7 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
 - **LaTeX**:
 
     A quantum circuit (described above) can directly be plotted using the QCircuit library (https://github.com/CQuIC/qcircuit).
-    QCiruit is a quantum circuit drawing application and is implemented directly into QuTiP.
+    QCircuit is a quantum circuit drawing application and is implemented directly into QuTiP.
 
     More information related to installing these packages is also available in the
     installation guide (:ref:`circuit_plot_packages`).
@@ -427,13 +430,14 @@ QuTiP-QIP offers three distinct methods for visualizing quantum circuits. Below 
 
       from qutip_qip.circuit import QubitCircuit
       from qutip_qip.operations.gates import H, CX, ISWAP
+      from qutip_qip.operations.measurement import Mz
 
       # create the quantum circuit
       qc = QubitCircuit(2, num_cbits=1)
       qc.add_gate(CX, controls=0, targets=1)
       qc.add_gate(H, targets=1)
       qc.add_gate(ISWAP, targets=[0,1])
-      qc.add_measurement("M0", targets=1, classical_store=0)
+      qc.add_measurement(Mz, targets=1, classical_store=0)
 
       qc.draw("latex")
 

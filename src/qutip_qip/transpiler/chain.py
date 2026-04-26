@@ -24,7 +24,7 @@ def to_chain_structure(qc: QubitCircuit, setup="linear"):
     """
     # FIXME This huge block has been here for a long time.
     # It could be moved to the new compiler section and carefully
-    # splitted into smaller peaces.
+    # split into smaller pieces.
     N = qc.num_qubits
     qc_t = QubitCircuit(N)
     qc_t.add_global_phase(qc.global_phase)

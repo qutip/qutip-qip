@@ -15,5 +15,6 @@ Describe here the proposed change.
 **Related issues or PRs**
 Please mention the related issues or PRs here. If the PR fixes an issue, use the keyword fix/fixes/fixed followed by the issue id, e.g. fix #249
 
-**AI Usage Disclosure**
-If AI tools were used, please describe how they were used.
+**AI Tools Usage Disclosure**
+If AI tools were used, please mention
+`Model/Tool Name: Describe how they were used`.

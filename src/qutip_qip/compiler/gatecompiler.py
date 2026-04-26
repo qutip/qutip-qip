@@ -332,7 +332,7 @@ class GateCompiler:
         # according to different pulse mode
         if np.isscalar(tlist):
             pulse_mode = "discrete"
-            # a single constant rectanglar pulse, where
+            # a single constant rectangular pulse, where
             # tlist and coeff are just float numbers
             step_size = tlist
             coeff = np.array([coeff])
@@ -344,7 +344,7 @@ class GateCompiler:
             coeff = np.asarray(coeff)
             gate_tlist = np.asarray(tlist)[1:]  # first t always 0 by def
         elif len(tlist) == len(coeff):
-            # continuos pulse
+            # continuous pulse
             pulse_mode = "continuous"
             step_size = tlist[1] - tlist[0]
             coeff = np.asarray(coeff)[1:]

@@ -168,7 +168,7 @@ class QubitCircuit:
             num_params = len(parameters)
 
             if num_params == 0:
-                # Non parameteric gate
+                # Non parametric gate
                 unitary = user_gate_callable()
                 gate_classes[gate_name] = get_unitary_gate(gate_name, unitary)
                 continue
@@ -404,7 +404,7 @@ class QubitCircuit:
 
             else:
                 raise TypeError(
-                    "gate must be of Gate type or oject or a string ",
+                    "gate must be of Gate type or object or a string ",
                     f"got {type(gate)} instead.",
                 )
 

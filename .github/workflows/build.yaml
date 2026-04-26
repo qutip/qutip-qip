@@ -1,4 +1,6 @@
 name: Build wheels, optionally deploy to PyPI
+permissions:
+  contents: read
 
 on:
   workflow_dispatch:
@@ -46,10 +48,11 @@ jobs:
       OVERRIDE_VERSION: ${{ github.event.inputs.override_version }}
 
     steps:
-      - uses: actions/checkout@v6
+      - name: Clone the repo
+        uses: actions/checkout@v6
 
-      - uses: actions/setup-python@v6
-        name: Install Python
+      - name: Install Python
+        uses: actions/setup-python@v6
         with:
           # For the sdist we should be as conservative as possible with our
           # Python version.  This should be the lowest supported version.  This
@@ -58,7 +61,7 @@ jobs:
 
       - name: Install pip build
         run: |
-          python -m pip install 'build'
+          python -m pip install build
 
       - name: Build sdist tarball
         shell: bash
@@ -68,7 +71,8 @@ jobs:
           # dependencies are specified by our setup code.
           python -m build --sdist .
 
-      - uses: actions/upload-artifact@v7
+      - name: Save the generated sdist as artifact
+        uses: actions/upload-artifact@v7
         with:
           name: sdist
           path: dist/*.tar.gz
@@ -83,17 +87,18 @@ jobs:
       OVERRIDE_VERSION: ${{ github.event.inputs.override_version }}
 
     steps:
-      - uses: actions/checkout@v6
+      - name: Clone the repo
+        uses: actions/checkout@v6
 
-      - uses: actions/setup-python@v6
-        name: Install Python
+      - name: Install Python
+        uses: actions/setup-python@v6
         with:
           # This is about the build environment, not the released wheel version.
           python-version: '3.11'
 
       - name: Install pip build
         run: |
-          python -m pip install 'build'
+          python -m pip install build
 
       - name: Build wheels
         shell: bash
@@ -105,7 +110,8 @@ jobs:
           # dependencies are specified by our setup code.
           python -m build --wheel --outdir wheelhouse .
 
-      - uses: actions/upload-artifact@v7
+      - name: Save the generated wheels as artifacts
+        uses: actions/upload-artifact@v7
         with:
           name: wheels
           path: ./wheelhouse/*.whl
@@ -126,16 +132,23 @@ jobs:
       - name: Download build artifacts to local runner
         uses: actions/download-artifact@v8
 
-      - uses: actions/setup-python@v6
-        name: Install Python
+      - name: Install Python
+        uses: actions/setup-python@v6
         with:
           python-version: '3.11'
 
-      - name: Verify this is not a dev version
+      - name: Install wheels 
         shell: bash
         run: |
           python -m pip install wheels/*.whl
-          python -c 'import qutip_qip; print(qutip_qip.__version__); assert "dev" not in qutip_qip.__version__; assert "+" not in qutip_qip.__version__'
+
+      - name: Verify this is not a dev version
+        shell: python
+        run: |
+          import qutip_qip
+          print(qutip_qip.__version__)
+          assert "dev" not in qutip_qip.__version__
+          assert "+" not in qutip_qip.__version__
 
       - name: Upload sdist and wheels to PyPI
         env:

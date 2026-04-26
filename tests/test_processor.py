@@ -363,13 +363,13 @@ class TestCircuitProcessor:
         proc.add_control(sigmax(), targets=1, label="sx")
         proc.set_all_coeffs({"sx": np.array([1.0] * len(tlist))})
         proc.set_all_tlist(tlist)
-        observerable = tensor([qutip.qeye(2), qutip.sigmax()])
+        observable = tensor([qutip.qeye(2), qutip.sigmax()])
         result1 = proc.run_state(
-            init_state=init_state, solver="mcsolve", e_ops=observerable
+            init_state=init_state, solver="mcsolve", e_ops=observable
         )
         assert result1.solver == "mcsolve"
 
-    def test_no_saving_intermidiate_state(self):
+    def test_no_saving_intermediate_state(self):
         processor = Processor(1)
         processor.add_pulse(
             pulse=Pulse(

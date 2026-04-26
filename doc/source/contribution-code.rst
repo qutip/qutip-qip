@@ -28,7 +28,7 @@ Requirements
 
 To build ``qutip-qip`` from source, you will need recent versions of
 
-- ``python`` (at least version 3.10)
+- ``python`` (at least version 3.11)
 - ``setuptools``
 
 You should set up a separate virtual environment to house your development
@@ -37,7 +37,7 @@ have. If you use conda, this can be done with the command
 
 .. code-block::
 
-   conda create -n qutip-dev python>=3.10
+   conda create -n qutip-dev python>=3.11
 
 This will create the virtual environment ``qutip-dev``, which you can then
 switch to by using the command ``conda activate qutip-dev``.

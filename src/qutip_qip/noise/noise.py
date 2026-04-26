@@ -1,4 +1,5 @@
 import warnings
+
 from qutip_qip.pulse import Pulse
 
 
@@ -23,21 +24,18 @@ class Noise:
 
         Parameters
         ----------
-        dims: list, optional
+        dims : list of int, optional
             The dimension of the components system, the default value is
-            [2,2...,2] for qubits system.
-
-        pulses : list of :class:`.Pulse`
+            [2, 2, ..., 2] for qubits system.
+        pulses : list of :class:`.Pulse`, optional
             The input pulses. The noise will be added to pulses in this list.
-
-        systematic_noise : :class:`.Pulse`
+        systematic_noise : :class:`.Pulse`, optional
             The dummy pulse with no ideal control element.
 
         Returns
         -------
-        noisy_pulses: list of :class:`.Pulse`
+        noisy_pulses : list of :class:`.Pulse`
             Noisy pulses.
-
         systematic_noise : :class:`.Pulse`
             The dummy pulse representing pulse-independent noise.
         """
