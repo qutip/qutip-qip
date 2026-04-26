@@ -4,8 +4,9 @@ from collections.abc import Iterable
 from typing import Type
 from qiskit.circuit import QuantumCircuit
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import Gate, Measurement
+from qutip_qip.operations import Gate
 import qutip_qip.operations.gates as gates
+from qutip_qip.operations.measurement import Mz
 
 # TODO Expand this dictionary for all the valid qiskit gates
 # https://quantum.cloud.ibm.com/docs/en/api/qiskit/circuit_library#standard-gates
@@ -153,7 +154,7 @@ def convert_qiskit_circuit_to_qutip(
 
         elif qiskit_instruction.name == "measure":
             qutip_circuit.add_measurement(
-                Measurement(),
+                Mz,
                 targets=_get_mapped_bits(qiskit_qregs, bit_map=qubit_map),
                 classical_store=clbit_map[qiskit_cregs[0]],
             )

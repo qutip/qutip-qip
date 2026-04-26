@@ -1,12 +1,11 @@
-from collections.abc import Iterable
-import numbers
-
 import numpy as np
 import warnings
 import qutip
 from qutip import basis
 from qutip.measurement import measurement_statistics
 from qutip_qip.operations import expand_operator
+
+__all__ = ["Measurement", "Mz"]
 
 
 class Measurement:
@@ -93,3 +92,6 @@ class Measurement:
 
     def __repr__(self):
         return str(self)
+
+
+Mz = Measurement()
