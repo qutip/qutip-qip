@@ -14,14 +14,14 @@ To install the package ``qutip-qip`` from PyPI, use
 
 Migrating from ``qutip.qip``
 ============================
-As the :ref:`introduction` suggested, this package is based on a module in the `QuTiP <http://qutip.org/docs/latest/>`_ package ``qutip.qip``.
+As the :ref:`introduction` suggested, this package is based on a module in the `QuTiP <https://qutip.readthedocs.io/en/stable/>`_ package ``qutip.qip``.
 If you were using the ``qutip`` package and now want to try out the new features included in this package, you can simply install this package and replace all the ``qutip.qip`` in your import statement with ``qutip_qip``. Everything should work smoothly as usual.
 
 .. _prerequisites:
 
 Prerequisites
 =============
-This package is built upon QuTiP, of which the installation guide can be found at on `QuTiP Installation <http://qutip.org/docs/latest/installation.html>`_.
+This package is built upon QuTiP, of which the installation guide can be found at on `QuTiP Installation <https://qutip.readthedocs.io/en/stable/installation.html>`_.
 The only difference is that C++ compilers are not required here
 since there is no run-time compiling for qutip-qip.
 The minimal Python version supported is Python 3.9.
@@ -78,7 +78,7 @@ In addition, you also need to install perl for ``pdfcrop``.
 ImageMagick and Ghostscript
 ---------------------------
 In order to display the circuit in Jupyter notebook, we need to convert it to png
-format. To do that, you will need to install `Ghostscript <https://www.ghostscript.com/doc/current/Make.htm>`_
+format. To do that, you will need to install `Ghostscript <https://ghostscript.com/>`_
 and `ImageMagick <https://imagemagick.org/script/install-source.php>`_.
 The first is responsible for reading the pdf file while the second will convert it to png.
 
@@ -102,7 +102,7 @@ you will only be able to access the location of this image in your device's memo
 pdf2svg
 -------
 To convert the circuit into svg format, you will need to install ``pdf2svg``.
-Please visit `their website <https://github.com/dawbarton/pdf2sv>`_ for installation guide.
+Please visit `their website <https://github.com/dawbarton/pdf2svg>`_ for installation guide.
 
 .. note::
     If you want to check whether all dependencies are installed,

@@ -1,0 +1,33 @@
+{{ title }}
+{{ "=" * title|length }}
+
+Quantum information processing
+------------------------------
+
+This section contains tutorials for QuTiP Version 5. You can find the tutorials for QuTiP Version 4 `here <https://qutip.org/qutip-tutorials/index-v4>`_. To check the version of QuTiP, you can use the ``qutip.about()`` command.
+
+Quantum circuits and algorithms
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{% for item in tutorials['quantum-circuits'] %}
+* `{{ item.title }} <{{ item.url }}>`_
+{% endfor %}
+
+Pulse-level circuit simulation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{% for item in tutorials['pulse-level-circuit-simulation'] %}
+* `{{ item.title }} <{{ item.url }}>`_
+{% endfor %}
+
+Contributing
+------------
+
+If you would like to contribute a notebook or report a bug, you may open
+an issue or pull request in the
+`qutip-tutorials <https://github.com/qutip/qutip-tutorials>`_
+GitHub repository.
+
+A few of the notebooks are still maintained in the repository
+`qutip-notebooks <https://github.com/qutip/qutip-notebooks>`_ and
+a complete archive of older versions of the tutorials is maintained there.
