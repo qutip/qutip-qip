@@ -1,6 +1,5 @@
 name: Documentation
 description: Report an issue related to qutip-qip documentation
-type: ["Task"]
 labels: ["documentation"]
 
 body:
