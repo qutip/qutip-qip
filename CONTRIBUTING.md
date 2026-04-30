@@ -1,59 +1,69 @@
-# Contributing to QuTiP-qip Development
+# Contributing to qutip-qip
 
 First off, thanks for taking the time to contribute! ❤️
 
-All types of contributions are encouraged and valued. Please make sure to [read the relevant section](#table-of-contents) before making your contribution.
+All types of contributions are encouraged and valued. Please make sure to read the relevant sections before making your contribution.
 
 ## Table of Contents
 
-- [Code of Conduct](#code-of-conduct)
-- [I Have a Question](#i-have-a-question)
-- [Reporting Bugs](#reporting-bugsissues)
 - [Contributing to Code](#contributing-to-code)
-- [Improving the Documentation](#improving-the-documentation)
+    - [Before you start](#before-you-start)
+    - [Choose an issue to work on](#choose-an-issue-to-work-on)
+    - [Assigning Issues](#assigning-issues)
+    - [Development Workflow](#development-workflow)
+    - [Code Review](#code-review)
+- [Contributing to Documentation](#contributing-to-documentation)
+    - [Getting started](#getting-started)
+    - [How to Contribute](#how-to-contribute)
+    - [Tutorials](#tutorials)
 - [AI Tools Usage Policy](#ai-tools-usage-policy)
 
-
-## Code of Conduct
-This project and everyone participating in it are governed by the [Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code.
-
-
-## I Have a Question
-You can ask questions or answer other users' questions on our [Discussion](https://github.com/qutip/qutip-qip/discussions) forum on GitHub or in the [QuTiP Google discussion group](https://groups.google.com/forum/#!forum/qutip). You may also suggest new features or improvements you would like to see in the project. We encourage you to engage with the community and share your ideas and knowledge.
-
-
-## Reporting Bugs/Issues
-If you find a bug or issue, it is best to first search in the existing [Issues](https://github.com/qutip/qutip-qip/issues) list. If you didn't find a related issue, please report the bug by opening a new issue:
-
-- Create a new [Issue](https://github.com/qutip/qutip-qip/issues/new) on GitHub.
-- Provide as much context as you can about what you're running into.
-- Provide the python and package versions by running `qutip.about()` command.
-
-We will then take care of the issue as soon as possible.
-
+<br>
 
 ## Contributing to Code
-If you want to contribute, please read the [Contributing to QuTiP-qip development](https://qutip-qip.readthedocs.io/en/latest/contribution-code.html) section of the documentation to set up the Python environment for development.
+
+### Before you start
+It is best to familiarize yourself with the project. You can start by reading the [documentation](https://qutip-qip.readthedocs.io/en/latest/) and trying out the examples provided in the [tutorials](https://qutip-qip.readthedocs.io/en/latest/tutorials_v5.html).
 
 ### Choose an issue to work on
-QuTiP-qip uses the following labels to help non-maintainers find issues best suited to their interests and experience level:
+QuTiP-QIP uses the following labels to help non-maintainers find issues best suited to their interests and experience level:
 
-- [good first issue](https://github.com/qutip/qutip-qip/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) - these issues are typically the simplest available to work on, ideal for newcomers. They should already be fully scoped, with a clear approach outlined in the descriptions.
+- [good first issue](https://github.com/qutip/qutip-qip/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) - these issues are typically the simplest available to work on, ideal for newcomers. They should typically be fully scoped, with a clear approach outlined in the descriptions.
 - [help wanted](https://github.com/qutip/qutip-qip/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22) - these issues are generally more complex than good first issues. They typically cover work that core maintainers don't currently have capacity to implement and may require more investigation/discussion. These are a great option for experienced contributors looking for something a bit more challenging.
 
 ### Assigning Issues
 In our workflow, we generally avoid formally assigning issues to contributors. This approach is intentional — it keeps the project open and flexible, allowing anyone from the community to explore and work on problems that interest them, without waiting for explicit assignment or approval.
 
-The only exception to this is a small subset of “core” issues. These are typically more complex, sensitive, or tightly coupled to ongoing development efforts, and are therefore handled directly by maintainers.
+The only exception to this is a small subset of “core” issues. These are typically more complex, sensitive, or tightly coupled to ongoing development efforts, and are therefore handled directly by maintainers or core contributors.
 
+### Development Workflow
+Please refer to the [Contributing to Code](https://qutip-qip.readthedocs.io/en/latest/contribution-code.html) section of the documentation for details on our development workflow, including how to set up the Python environment, style code, run tests and submit Pull Requests (PR).
 
-## Improving The Documentation
-Documentation is a crucial part of any project, and we welcome contributions to improve it. If you find any errors, inconsistencies, or areas that could be clarified, please feel free to submit a pull request with your suggested changes. You can also open an issue to discuss potential improvements before making changes.
+You may also open a draft PR with changes in order to discuss and receive feedback on the best approach if you are not sure what the best way forward is.
 
-Please read the [Contributing to the documentation](https://qutip-qip.readthedocs.io/en/latest/contribution-docs.html) for more details on how to contribute to the documentation.
+### Code Review
+Code review is conducted openly and is accessible to everyone. While only maintainers have access to merge commits, community feedback on Pull Requests is extremely valuable. It is also a good mechanism to learn about the code base both for contributors and reviewers.
 
-Also you can add new tutorials in the [Tutorials](http://github.com/qutip/qutip-tutorials/) repository. If you have an idea for a tutorial example that you think would be helpful to others, please feel free to submit a pull request with your suggested tutorial.
+Response times may vary for your PR due to other commitments the maintainers have. If you have been waiting over a week for a review on your PR, feel free to tag a maintainer in a comment to gently remind them to review your work.
 
+<br>
+
+## Contributing to Documentation
+Accurate and well-structured documentation is essential for making QuTiP-QIP accessible and easy to use. We welcome contributions of all sizes — from small typo fixes to entirely new sections or tutorials.
+
+### Getting started
+Before contributing, please read the [documentation guide](https://qutip-qip.readthedocs.io/en/latest/contribution-docs.html). It explains how to build the docs locally and outlines formatting and style conventions.
+
+### How to Contribute
+
+- **Minor fixes:** For small changes such as typos, broken links, or minor corrections, you can open a Pull Request directly.
+
+- **Larger improvements or additions:** If your contribution involves significant changes — such as rewriting sections, adding new content, or restructuring existing material. Please open an issue first to outline the changes, once discussed you can submit a Pull Request. 
+
+### Tutorials
+Tutorials are maintained in a separate repository: [qutip-tutorials](http://github.com/qutip/qutip-tutorials/). If you wish to add a new tutorial or update an existing one, open a Pull Request directly in the qutip-tutorials repository. If you're unsure about the changes, you may open a draft PR in order to discuss and receive feedback.
+
+<br>
 
 ## AI Tools Usage Policy
 We acknowledge the use of AI tools to improve efficiency and enhance quality of work. Contributors may use such tools, provided they adhere to the following guidelines:
@@ -62,7 +72,7 @@ We acknowledge the use of AI tools to improve efficiency and enhance quality of 
 
 The human contributor is solely responsible for their contribution i.e. all the AI-generated outputs can be considered their own work. If you're submitting a Pull Request that includes AI-generated code or documentation:
 
-- You are responsible for ensuring that code you submit meets the [project's standards](https://qutip-qip.readthedocs.io/en/latest/contribution-code.html#code-style).
+- You are responsible for ensuring that code you submit meets the project's standards.
 - You must fully understand every line of code in the submission.
 - You must be able to explain the "why" behind the implementation during the review process.
 

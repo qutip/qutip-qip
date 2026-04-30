@@ -1,14 +1,3 @@
-**Checklist**
-Thank you for contributing to QuTiP-qip! Please make sure you have finished the following tasks before opening the PR.
-
-- [ ] Please read [Contributing to QuTiP-qip Development](https://qutip-qip.readthedocs.io/en/latest/contribution-code.html)
-- [ ] Contributions to QuTiP-qip should follow the [PEP 8 style](https://www.python.org/dev/peps/pep-0008/).
-You can use [pycodestyle](http://pycodestyle.pycqa.org/en/latest/index.html) to check your code automatically
-- [ ] Please add tests to cover your changes if applicable.
-- [ ] If the behavior of the code has changed or new feature has been added, please also update the documentation in the `doc` folder, and the [notebook](https://github.com/qutip/qutip-tutorials). Feel free to ask if you are not sure.
-
-Delete this checklist after you have completed all the tasks. If you have not finished them all, you can also open a [Draft Pull Request](https://github.blog/2019-02-14-introducing-draft-pull-requests/) to let the others know this on-going work and keep this checklist in the PR description.
-
 **Description**
 Describe here the proposed change.
 
@@ -18,3 +7,12 @@ Please mention the related issues or PRs here. If the PR fixes an issue, use the
 **AI Tools Usage Disclosure**
 If AI tools were used, please mention
 `Model/Tool Name: Describe how they were used`.
+
+**Checklist**
+Thank you for contributing to QuTiP-QIP! Please make sure you have finished the following tasks before opening the PR.
+
+- [ ] Please read guidelines in [CONTRIBUTING.md](https://github.com/qutip/qutip-qip/blob/master/CONTRIBUTING.md)
+- [ ] Please add tests to cover your changes if applicable.
+- [ ] If the behavior of the code has changed or new feature has been added, please also update the documentation in the `doc` folder, and the [tutorial notebook](https://github.com/qutip/qutip-tutorials). Feel free to ask if you are not sure.
+
+Delete this checklist after you have completed all the tasks. If you have not finished them all, you can also open a [Draft Pull Request](https://github.blog/2019-02-14-introducing-draft-pull-requests/) to let the others know this on-going work and keep this checklist in the PR description.
