@@ -5,7 +5,7 @@ from qutip import basis
 from qutip.measurement import measurement_statistics
 from qutip_qip.operations import expand_operator
 
-__all__ = ["Measurement", "Mz"]
+__all__ = ["Mz"]
 
 
 class Measurement:
@@ -38,7 +38,8 @@ class Measurement:
                 stacklevel=2,
             )
 
-    def measurement_comp_basis(self, state, targets):
+    @classmethod
+    def measurement_comp_basis(cls, state, targets):
         """
         Measures a particular qubit (determined by the target)
         whose ket vector/ density matrix is specified in the

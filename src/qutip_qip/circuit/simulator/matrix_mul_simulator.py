@@ -312,7 +312,7 @@ class CircuitSimulator:
         )
         return state
 
-    def _apply_measurement(self, operation, targets, classical_store, state):
+    def _apply_measurement(self, operation, qubits, cbits, state):
         """
         Applies measurement gate specified by operation to current state.
 
@@ -320,9 +320,9 @@ class CircuitSimulator:
         ----------
         operation: :class:`.Measurement`
             Measurement gate in a circuit object.
-        targets : tuple of int
+        qubits : tuple of int
             The indices of the qubits to be measured.
-        classical_store : tuple of int
+        cbits : tuple of int
             The indices of the classical registers where the measurement
             results will be stored.
         state : qutip.Qobj
@@ -333,7 +333,7 @@ class CircuitSimulator:
         state : qutip.Qobj
             The collapsed state after the measurement.
         """
-        states, probabilities = operation.measurement_comp_basis(self.state, targets)
+        states, probabilities = operation.measurement_comp_basis(self.state, qubits)
 
         if self.mode == "state_vector_simulator":
             if self._measure_results:
@@ -344,8 +344,8 @@ class CircuitSimulator:
                 i = np.random.choice([0, 1], p=probabilities)
             self._probability *= probabilities[i]
             state = states[i]
-            if classical_store:
-                cbit_index = classical_store[0]
+            if cbits:
+                cbit_index = cbits[0]
                 self.cbits[cbit_index] = i
 
         elif self.mode == "density_matrix_simulator":

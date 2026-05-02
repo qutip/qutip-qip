@@ -21,6 +21,7 @@ from qutip_qip.circuit._decompose import (
 from qutip_qip.operations import (
     Gate,
     Measurement,
+    Mz,
     expand_operator,
     get_unitary_gate,
 )
@@ -260,7 +261,7 @@ class QubitCircuit:
         Parameters
         ----------
         measurement : :class:`.Measurement`
-            `Measurement` object
+            `Measurement` subclasses
         targets : int or Sequence of int
             Gate targets
         classical_store : int
@@ -278,21 +279,23 @@ class QubitCircuit:
 
         if isinstance(measurement, str):
             warnings.warn(
-                "Passing a string name to add_measurement is deprecated. "
-                "Please pass an instantiated Measurement object instead.",
+                "Passing a string name to add_measurement has been removed. "
+                "Defaulting to measurement in the Z- basis.",
                 DeprecationWarning,
                 stacklevel=2,
             )
-            measurement = Measurement(name=measurement)
-
-        if type(targets) is int:
-            targets = [targets]
-
-        if type(classical_store) is int:
-            classical_store = [classical_store]
+            measurement = Mz
 
         if targets is None or classical_store is None:
             raise ValueError("'targets' and 'classical_store' must not be None")
+
+        targets = convert_type_input_to_sequence(int, "targets", targets)
+        classical_store = convert_type_input_to_sequence(
+            int, "classical_store", classical_store
+        )
+
+        check_limit("targets", targets, 0, self.num_qubits - 1)
+        check_limit("classical_store", classical_store, 0, self.num_cbits - 1)
 
         self._instructions.append(
             MeasurementInstruction(

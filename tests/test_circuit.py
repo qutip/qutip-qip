@@ -207,7 +207,7 @@ class TestQubitCircuit:
         Addition of a circuit to a `QubitCircuit`
         """
 
-        qc = QubitCircuit(6)
+        qc = QubitCircuit(6, num_cbits=2)
         qc.add_gate(gates.CX, targets=[1], controls=[0])
         qc.add_gate(gates.SWAP, targets=[1, 4])
         qc.add_gate(gates.TOFFOLI, controls=[0, 1], targets=[2])
@@ -218,7 +218,7 @@ class TestQubitCircuit:
         qc.add_gate(gates.RY(1.570796), targets=5)
         qc.add_gate(gates.CRX(np.pi / 2), controls=[1], targets=[2])
 
-        qc1 = QubitCircuit(6)
+        qc1 = QubitCircuit(6, num_cbits=2)
         qc1.add_circuit(qc)
 
         # Test if all gates and measurements are added
@@ -247,7 +247,7 @@ class TestQubitCircuit:
         # Test exception when qubit out of range
         pytest.raises(NotImplementedError, qc1.add_circuit, qc, start=4)
 
-        qc2 = QubitCircuit(8)
+        qc2 = QubitCircuit(8, num_cbits=2)
         qc2.add_circuit(qc, start=2)
 
         # Test if all gates are added
@@ -531,19 +531,13 @@ class TestQubitCircuit:
         teleportation = _teleportation_circuit()
 
         state = tensor(rand_ket(2), basis(2, 0), basis(2, 0))
-        initial_measurement = Mz
-        _, initial_probabilities = initial_measurement.measurement_comp_basis(
-            state, targets=[0]
-        )
+        _, initial_probabilities = Mz.measurement_comp_basis(state, targets=[0])
 
         teleportation_sim = CircuitSimulator(teleportation)
         teleportation_sim_results = teleportation_sim.run(state)
         state_final = teleportation_sim_results.get_final_states(0)
 
-        final_measurement = Mz
-        _, final_probabilities = final_measurement.measurement_comp_basis(
-            state_final, targets=[2]
-        )
+        _, final_probabilities = Mz.measurement_comp_basis(state_final, targets=[2])
 
         np.testing.assert_allclose(initial_probabilities, final_probabilities)
 
@@ -576,11 +570,9 @@ class TestQubitCircuit:
         """
 
         teleportation = _teleportation_circuit()
-        final_measurement = Mz
-        initial_measurement = Mz
 
         original_state = tensor(rand_ket(2), basis(2, 0), basis(2, 0))
-        _, initial_probabilities = initial_measurement.measurement_comp_basis(
+        _, initial_probabilities = Mz.measurement_comp_basis(
             original_state, targets=[0]
         )
 
@@ -591,9 +583,7 @@ class TestQubitCircuit:
         for i, state in enumerate(states):
             state_final = state
             prob = probabilities[i]
-            _, final_probabilities = final_measurement.measurement_comp_basis(
-                state_final, targets=[2]
-            )
+            _, final_probabilities = Mz.measurement_comp_basis(state_final, targets=[2])
             np.testing.assert_allclose(initial_probabilities, final_probabilities)
             assert prob == pytest.approx(0.25, abs=1e-7)
 
@@ -603,8 +593,8 @@ class TestQubitCircuit:
         teleportation2 = _teleportation_circuit2()
 
         final_state = teleportation2.run(dm_state)
-        _, probs1 = final_measurement.measurement_comp_basis(final_state, targets=[2])
-        _, probs2 = final_measurement.measurement_comp_basis(mixed_state, targets=[2])
+        _, probs1 = Mz.measurement_comp_basis(final_state, targets=[2])
+        _, probs2 = Mz.measurement_comp_basis(mixed_state, targets=[2])
 
         np.testing.assert_allclose(probs1, probs2)
 
@@ -689,9 +679,7 @@ class TestQubitCircuit:
         rand_state = rand_ket(2)
         state = tensor(basis(2, 0), basis(2, 0), basis(2, 0), rand_state)
 
-        fourth = Mz
-
-        _, probs_initial = fourth.measurement_comp_basis(state, targets=[3])
+        _, probs_initial = Mz.measurement_comp_basis(state, targets=[3])
 
         simulator = CircuitSimulator(qc)
 
@@ -700,7 +688,7 @@ class TestQubitCircuit:
         result_cbits = result.get_cbits()
 
         for i, final_state in enumerate(final_states):
-            _, probs_final = fourth.measurement_comp_basis(final_state, targets=[3])
+            _, probs_final = Mz.measurement_comp_basis(final_state, targets=[3])
             np.testing.assert_allclose(probs_initial, probs_final)
             assert sum(result_cbits[i]) == 1
 
@@ -977,10 +965,9 @@ class TestInstructionErrors:
             # Operation must be of type Measurement
             MeasurementInstruction(operation="M0", qubits=(0,), cbits=(0,))
 
-        meas = Mz
         with pytest.raises(ValueError):
             # Measurement requires equal number of qubits and cbits
-            MeasurementInstruction(operation=meas, qubits=(0, 1), cbits=(0,))
+            MeasurementInstruction(operation=Mz, qubits=(0, 1), cbits=(0,))
 
 
 def test_gates_class():
