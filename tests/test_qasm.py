@@ -7,7 +7,7 @@ import qutip
 from qutip_qip.qasm import read_qasm, circuit_to_qasm_str
 from qutip_qip.circuit import QubitCircuit
 from qutip import tensor, rand_ket, basis, identity
-from qutip_qip.operations import Measurement
+from qutip_qip.operations.measurement import Mz
 import qutip_qip.operations.gates as gates
 
 
@@ -98,11 +98,13 @@ def test_qasm_teleportation():
     filename = "teleportation.qasm"
     filepath = Path(__file__).parent / "qasm_files" / filename
     teleportation = read_qasm(filepath)
-    final_measurement = Measurement("start", targets=[2])
-    initial_measurement = Measurement("start", targets=[0])
+    final_measurement = Mz
+    initial_measurement = Mz
 
     state = tensor(rand_ket(2), basis(2, 0), basis(2, 0))
-    _, initial_probabilities = initial_measurement.measurement_comp_basis(state)
+    _, initial_probabilities = initial_measurement.measurement_comp_basis(
+        state, targets=[0]
+    )
 
     teleportation_results = teleportation.run_statistics(state)
 
@@ -112,7 +114,9 @@ def test_qasm_teleportation():
     for i, state in enumerate(states):
         final = state
         prob = probabilities[i]
-        _, final_probabilities = final_measurement.measurement_comp_basis(final)
+        _, final_probabilities = final_measurement.measurement_comp_basis(
+            final, targets=[2]
+        )
         np.testing.assert_allclose(initial_probabilities, final_probabilities)
         assert prob == pytest.approx(0.25, abs=1e-7)
 
@@ -125,7 +129,7 @@ def test_qasm_str():
     )
     simple_qc = QubitCircuit(2, num_cbits=1)
     simple_qc.add_gate(gates.X, targets=[0])
-    simple_qc.add_measurement("M", targets=[1], classical_store=0)
+    simple_qc.add_measurement(Mz, targets=[1], classical_store=0)
     assert circuit_to_qasm_str(simple_qc) == expected_qasm_str
 
 

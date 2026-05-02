@@ -17,6 +17,7 @@ from qutip_qip.operations.gates import (
     FREDKIN,
     BERKELEY,
 )
+from qutip_qip.operations.measurement import Mz
 
 
 @pytest.fixture
@@ -74,8 +75,8 @@ def qc2():
     qc.add_gate(CRX(0.5), controls=[0], targets=[1])
     qc.add_gate(SWAP, targets=[0, 3])
     qc.add_gate(SWAP, targets=[0, 3])
-    qc.add_measurement("M", targets=[0], classical_store=0)
-    qc.add_measurement("M", targets=[1], classical_store=1)
+    qc.add_measurement(Mz, targets=[0], classical_store=0)
+    qc.add_measurement(Mz, targets=[1], classical_store=1)
     return qc
 
 
@@ -153,12 +154,12 @@ def qc3():
     qc.add_gate(FREDKIN, controls=[3], targets=[1, 2])
     qc.add_gate(CX, controls=[0], targets=[1])
     qc.add_gate(CRX(0.5), controls=[0], targets=[1])
-    qc.add_measurement("M", targets=[0], classical_store=0)
+    qc.add_measurement(Mz, targets=[0], classical_store=0)
     qc.add_gate(SWAP, targets=[0, 3])
     qc.add_gate(TOFFOLI, controls=[0, 1], targets=[2])
     qc.add_gate(CPHASE(0.75), controls=[2], targets=[3])
     qc.add_gate(ISWAP, targets=[1, 3])
-    qc.add_measurement("M", targets=[1], classical_store=1)
+    qc.add_measurement(Mz, targets=[1], classical_store=1)
     return qc
 
 

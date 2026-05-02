@@ -21,6 +21,7 @@ from qutip_qip.circuit._decompose import (
 from qutip_qip.operations import (
     Gate,
     Measurement,
+    Mz,
     expand_operator,
     get_unitary_gate,
 )
@@ -249,7 +250,7 @@ class QubitCircuit:
 
     def add_measurement(
         self,
-        measurement: str | Measurement,
+        measurement: Measurement,
         targets: int | IntSequence,
         classical_store: int,
         index: None = None,
@@ -259,10 +260,9 @@ class QubitCircuit:
 
         Parameters
         ----------
-        measurement: string
-            Measurement name. If name is an instance of `Measurement`,
-            parameters are unpacked and added.
-        targets: list
+        measurement : :class:`.Measurement`
+            `Measurement` subclasses
+        targets : int or Sequence of int
             Gate targets
         classical_store : int
             Classical register where result of measurement is stored.
@@ -277,25 +277,29 @@ class QubitCircuit:
                 stacklevel=2,
             )
 
-        if isinstance(measurement, Measurement):
-            name = measurement.name
-            targets = measurement.targets
-            classical_store = measurement.classical_store
+        if isinstance(measurement, str):
+            warnings.warn(
+                "Passing a string name to add_measurement has been removed. "
+                "Defaulting to measurement in the Z- basis.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            measurement = Mz
 
-        else:
-            name = measurement
+        if targets is None or classical_store is None:
+            raise ValueError("'targets' and 'classical_store' must not be None")
 
-        meas = Measurement(name, targets=targets, classical_store=classical_store)
+        targets = convert_type_input_to_sequence(int, "targets", targets)
+        classical_store = convert_type_input_to_sequence(
+            int, "classical_store", classical_store
+        )
 
-        if type(targets) is int:
-            targets = [targets]
-
-        if type(classical_store) is int:
-            classical_store = [classical_store]
+        check_limit("targets", targets, 0, self.num_qubits - 1)
+        check_limit("classical_store", classical_store, 0, self.num_cbits - 1)
 
         self._instructions.append(
             MeasurementInstruction(
-                operation=meas,
+                operation=measurement,
                 qubits=tuple(targets),
                 cbits=tuple(classical_store),
             )
@@ -508,7 +512,7 @@ class QubitCircuit:
 
             elif circuit_op.is_measurement_instruction():
                 self.add_measurement(
-                    circuit_op.operation.name,
+                    circuit_op.operation,
                     targets=[target + start for target in circuit_op.qubits],
                     classical_store=list(circuit_op.cbits),
                 )

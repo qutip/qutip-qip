@@ -1,55 +1,45 @@
-from collections.abc import Iterable
-import numbers
-
 import numpy as np
-
+import warnings
 import qutip
 from qutip import basis
 from qutip.measurement import measurement_statistics
 from qutip_qip.operations import expand_operator
+
+__all__ = ["Mz"]
 
 
 class Measurement:
     """
     Representation of a quantum measurement, with its required parameters,
     and target qubits.
-
-    Parameters
-    ----------
-    name : string
-        Measurement name.
-    targets : list or int
-        Gate targets.
-    classical_store : int
-        Result of the measurement is stored in this
-        classical register of the circuit.
     """
 
-    def __init__(self, name, targets, index=None, classical_store=None):
+    name = "M"
+
+    def __init__(self, name=None, targets=None, index=None, classical_store=None):
         """
         Create a measurement with specified parameters.
         """
+        if name is not None:
+            warnings.warn(
+                "'name' argument in Measurement has been deprecated.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
         if index is not None:
             raise AttributeError("argument index is no longer supported")
 
-        self.name = name
-        self.targets = None
-        self.classical_store = classical_store
+        if targets is not None or classical_store is not None:
+            warnings.warn(
+                "'targets' and 'classical_store' arguments in Measurement are deprecated. "
+                "Please pass these directly to QubitCircuit.add_measurement() method.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
 
-        if not isinstance(targets, Iterable) and targets is not None:
-            self.targets = [targets]
-        else:
-            self.targets = targets
-
-        for ind_list in [self.targets]:
-            if isinstance(ind_list, Iterable):
-                all_integer = all(
-                    [isinstance(ind, numbers.Integral) for ind in ind_list]
-                )
-                if not all_integer:
-                    raise ValueError("Index of a qubit must be an integer")
-
-    def measurement_comp_basis(self, state):
+    @classmethod
+    def measurement_comp_basis(cls, state, targets):
         """
         Measures a particular qubit (determined by the target)
         whose ket vector/ density matrix is specified in the
@@ -61,6 +51,8 @@ class Measurement:
         state : ket or oper
                 state to be measured on specified by
                 ket vector or density matrix
+        targets : list or tuple of int
+                The indices of the qubits to be measured.
 
         Returns
         -------
@@ -74,7 +66,7 @@ class Measurement:
         """
 
         n = int(np.log2(state.shape[0]))
-        target = self.targets[0]
+        target = targets[0]
         if target < n:
             op0 = basis(2, 0) * basis(2, 0).dag()
             op1 = basis(2, 1) * basis(2, 1).dag()
@@ -83,8 +75,7 @@ class Measurement:
             raise ValueError("target is not valid")
 
         measurement_ops = [
-            expand_operator(op, dims=[2] * n, targets=self.targets)
-            for op in measurement_ops
+            expand_operator(op, dims=[2] * n, targets=targets) for op in measurement_ops
         ]
 
         measurement_tol = qutip.settings.core["atol"] ** 2
@@ -96,7 +87,12 @@ class Measurement:
         return states, probabilities
 
     def __str__(self):
-        return f" Measurement({self.name})"
+        if self.name:
+            return f" Measurement({self.name})"
+        return "Measurement"
 
     def __repr__(self):
         return str(self)
+
+
+Mz = Measurement()

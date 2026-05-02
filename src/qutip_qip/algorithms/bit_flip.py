@@ -1,5 +1,6 @@
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations.gates import CX, TOFFOLI, X
+from qutip_qip.operations.measurement import Mz
 from qutip_qip.typing import IntSequence
 
 
@@ -116,8 +117,8 @@ class BitFlipCode:
         qc.add_gate(CX, controls=dq[2], targets=sq[1])
 
         # Measurements into classical registers
-        qc.add_measurement("M0", sq[0], classical_store=0)
-        qc.add_measurement("M1", sq[1], classical_store=1)
+        qc.add_measurement(Mz, sq[0], classical_store=0)
+        qc.add_measurement(Mz, sq[1], classical_store=1)
 
         # Classical-controlled corrections based on measurement outcomes
         # 2 (10): X on qubit 0, 3 (11): X on qubit 1, 1 (01): X on qubit 2

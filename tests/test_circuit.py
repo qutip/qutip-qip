@@ -29,6 +29,7 @@ from qutip_qip.circuit.draw import TeXRenderer
 from qutip_qip.decompose.decompose_single_qubit_gate import _ZYZ_rotation
 from qutip_qip.operations import Gate, Measurement, gate_sequence_product
 import qutip_qip.operations.gates as gates
+from qutip_qip.operations.measurement import Mz
 from qutip_qip.transpiler import to_chain_structure
 from qutip_qip.qasm import read_qasm
 
@@ -46,8 +47,8 @@ def _teleportation_circuit():
     teleportation.add_gate(gates.CX, targets=[2], controls=[1])
     teleportation.add_gate(gates.CX, targets=[1], controls=[0])
     teleportation.add_gate(gates.H, targets=[0])
-    teleportation.add_measurement("M0", targets=[0], classical_store=1)
-    teleportation.add_measurement("M1", targets=[1], classical_store=0)
+    teleportation.add_measurement(Mz, targets=[0], classical_store=1)
+    teleportation.add_measurement(Mz, targets=[1], classical_store=0)
     teleportation.add_gate(gates.X, targets=[2], classical_controls=[0])
     teleportation.add_gate(gates.Z, targets=[2], classical_controls=[1])
 
@@ -72,8 +73,8 @@ def _teleportation_circuit2():
 def _measurement_circuit():
     qc = QubitCircuit(2, num_cbits=2)
 
-    qc.add_measurement("M0", targets=[0], classical_store=0)
-    qc.add_measurement("M1", targets=[1], classical_store=1)
+    qc.add_measurement(Mz, targets=[0], classical_store=0)
+    qc.add_measurement(Mz, targets=[1], classical_store=1)
 
     return qc
 
@@ -206,18 +207,18 @@ class TestQubitCircuit:
         Addition of a circuit to a `QubitCircuit`
         """
 
-        qc = QubitCircuit(6)
+        qc = QubitCircuit(6, num_cbits=2)
         qc.add_gate(gates.CX, targets=[1], controls=[0])
         qc.add_gate(gates.SWAP, targets=[1, 4])
         qc.add_gate(gates.TOFFOLI, controls=[0, 1], targets=[2])
         qc.add_gate(gates.H, targets=[3])
         qc.add_gate(gates.SWAP, targets=[1, 4])
-        qc.add_measurement("M0", targets=[0], classical_store=[1])
+        qc.add_measurement(Mz, targets=[0], classical_store=[1])
         qc.add_gate(gates.RY(1.570796), targets=4)
         qc.add_gate(gates.RY(1.570796), targets=5)
         qc.add_gate(gates.CRX(np.pi / 2), controls=[1], targets=[2])
 
-        qc1 = QubitCircuit(6)
+        qc1 = QubitCircuit(6, num_cbits=2)
         qc1.add_circuit(qc)
 
         # Test if all gates and measurements are added
@@ -246,7 +247,7 @@ class TestQubitCircuit:
         # Test exception when qubit out of range
         pytest.raises(NotImplementedError, qc1.add_circuit, qc, start=4)
 
-        qc2 = QubitCircuit(8)
+        qc2 = QubitCircuit(8, num_cbits=2)
         qc2.add_circuit(qc, start=2)
 
         # Test if all gates are added
@@ -307,17 +308,17 @@ class TestQubitCircuit:
 
         qc = QubitCircuit(3, num_cbits=3)
 
-        qc.add_measurement("M0", targets=[0], classical_store=0)
+        qc.add_measurement(Mz, targets=[0], classical_store=0)
         qc.add_gate(gates.CX, targets=[1], controls=[0])
         qc.add_gate(gates.TOFFOLI, controls=[0, 1], targets=[2])
-        qc.add_measurement("M1", targets=[2], classical_store=1)
+        qc.add_measurement(Mz, targets=[2], classical_store=1)
         qc.add_gate(gates.H, targets=[1], classical_controls=[0, 1])
-        qc.add_measurement("M2", targets=[1], classical_store=2)
+        qc.add_measurement(Mz, targets=[1], classical_store=2)
 
         # checking correct addition of measurements
         assert qc.instructions[0].qubits[0] == 0
         assert qc.instructions[0].cbits[0] == 0
-        assert qc.instructions[3].operation.name == "M1"
+        assert isinstance(qc.instructions[3].operation, Measurement)
         assert qc.instructions[5].cbits[0] == 2
 
         # checking if gates are added correctly with measurements
@@ -381,7 +382,7 @@ class TestQubitCircuit:
 
         qc.add_gate(gates.RX(3.141, arg_label=r"\pi/2"), targets=[0])
         qc.add_gate(gates.CX, targets=[1], controls=[0])
-        qc.add_measurement("M1", targets=[1], classical_store=0)
+        qc.add_measurement(Mz, targets=[1], classical_store=0)
         qc.add_gate(gates.H, targets=[2])
         # Keep input output same
 
@@ -392,7 +393,7 @@ class TestQubitCircuit:
         qc_rev = qc.reverse_circuit()
 
         assert qc_rev.instructions[0].operation == gates.H
-        assert qc_rev.instructions[1].operation.name == "M1"
+        assert isinstance(qc_rev.instructions[1].operation, Measurement)
         assert qc_rev.instructions[2].operation == gates.CX
         assert isinstance(qc_rev.instructions[3].operation, gates.RX)
 
@@ -530,15 +531,13 @@ class TestQubitCircuit:
         teleportation = _teleportation_circuit()
 
         state = tensor(rand_ket(2), basis(2, 0), basis(2, 0))
-        initial_measurement = Measurement("start", targets=[0])
-        _, initial_probabilities = initial_measurement.measurement_comp_basis(state)
+        _, initial_probabilities = Mz.measurement_comp_basis(state, targets=[0])
 
         teleportation_sim = CircuitSimulator(teleportation)
         teleportation_sim_results = teleportation_sim.run(state)
         state_final = teleportation_sim_results.get_final_states(0)
 
-        final_measurement = Measurement("start", targets=[2])
-        _, final_probabilities = final_measurement.measurement_comp_basis(state_final)
+        _, final_probabilities = Mz.measurement_comp_basis(state_final, targets=[2])
 
         np.testing.assert_allclose(initial_probabilities, final_probabilities)
 
@@ -571,12 +570,10 @@ class TestQubitCircuit:
         """
 
         teleportation = _teleportation_circuit()
-        final_measurement = Measurement("start", targets=[2])
-        initial_measurement = Measurement("start", targets=[0])
 
         original_state = tensor(rand_ket(2), basis(2, 0), basis(2, 0))
-        _, initial_probabilities = initial_measurement.measurement_comp_basis(
-            original_state
+        _, initial_probabilities = Mz.measurement_comp_basis(
+            original_state, targets=[0]
         )
 
         teleportation_results = teleportation.run_statistics(original_state)
@@ -586,9 +583,7 @@ class TestQubitCircuit:
         for i, state in enumerate(states):
             state_final = state
             prob = probabilities[i]
-            _, final_probabilities = final_measurement.measurement_comp_basis(
-                state_final
-            )
+            _, final_probabilities = Mz.measurement_comp_basis(state_final, targets=[2])
             np.testing.assert_allclose(initial_probabilities, final_probabilities)
             assert prob == pytest.approx(0.25, abs=1e-7)
 
@@ -598,8 +593,8 @@ class TestQubitCircuit:
         teleportation2 = _teleportation_circuit2()
 
         final_state = teleportation2.run(dm_state)
-        _, probs1 = final_measurement.measurement_comp_basis(final_state)
-        _, probs2 = final_measurement.measurement_comp_basis(mixed_state)
+        _, probs1 = Mz.measurement_comp_basis(final_state, targets=[2])
+        _, probs2 = Mz.measurement_comp_basis(mixed_state, targets=[2])
 
         np.testing.assert_allclose(probs1, probs2)
 
@@ -620,7 +615,7 @@ class TestQubitCircuit:
     def test_circuit_with_selected_measurement_result(self):
         qc = QubitCircuit(num_qubits=1, num_cbits=1)
         qc.add_gate(gates.H, targets=0)
-        qc.add_measurement("M0", targets=0, classical_store=0)
+        qc.add_measurement(Mz, targets=0, classical_store=0)
 
         # We reset the random seed so that
         # if we don's select the measurement result,
@@ -684,9 +679,7 @@ class TestQubitCircuit:
         rand_state = rand_ket(2)
         state = tensor(basis(2, 0), basis(2, 0), basis(2, 0), rand_state)
 
-        fourth = Measurement("test_rand", targets=[3])
-
-        _, probs_initial = fourth.measurement_comp_basis(state)
+        _, probs_initial = Mz.measurement_comp_basis(state, targets=[3])
 
         simulator = CircuitSimulator(qc)
 
@@ -695,7 +688,7 @@ class TestQubitCircuit:
         result_cbits = result.get_cbits()
 
         for i, final_state in enumerate(final_states):
-            _, probs_final = fourth.measurement_comp_basis(final_state)
+            _, probs_final = Mz.measurement_comp_basis(final_state, targets=[3])
             np.testing.assert_allclose(probs_initial, probs_final)
             assert sum(result_cbits[i]) == 1
 
@@ -777,7 +770,7 @@ class TestQubitCircuit:
 
     def test_latex_code(self):
         qc = QubitCircuit(1, num_cbits=1, reverse_states=True)
-        qc.add_measurement("M0", targets=0, classical_store=0)
+        qc.add_measurement(Mz, targets=0, classical_store=0)
         exp = " &  &  \\qw \\cwx[1]  & \\qw \\\\ \n &  &  \\meter & \\qw \\\\ \n"
 
         renderer = TeXRenderer(qc)
@@ -785,7 +778,7 @@ class TestQubitCircuit:
 
     def test_latex_code_non_reversed(self):
         qc = QubitCircuit(1, num_cbits=1, reverse_states=False)
-        qc.add_measurement("M0", targets=0, classical_store=0)
+        qc.add_measurement(Mz, targets=0, classical_store=0)
         exp = " &  &  \\meter & \\qw \\\\ \n &  " + "&  \\qw \\cwx[-1]  & \\qw \\\\ \n"
         renderer = TeXRenderer(qc)
         assert renderer.latex_code() == renderer._latex_template % exp
@@ -972,10 +965,9 @@ class TestInstructionErrors:
             # Operation must be of type Measurement
             MeasurementInstruction(operation="M0", qubits=(0,), cbits=(0,))
 
-        meas = Measurement("M0", targets=[0], classical_store=0)
         with pytest.raises(ValueError):
             # Measurement requires equal number of qubits and cbits
-            MeasurementInstruction(operation=meas, qubits=(0, 1), cbits=(0,))
+            MeasurementInstruction(operation=Mz, qubits=(0, 1), cbits=(0,))
 
 
 def test_gates_class():
