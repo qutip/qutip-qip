@@ -3,9 +3,6 @@ import functools
 import os
 import tempfile
 import numpy as np
-import matplotlib
-
-matplotlib.use("Agg")
 
 
 def _add_repeats_if_marked(metafunc):

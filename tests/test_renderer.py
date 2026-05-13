@@ -280,13 +280,10 @@ def test_control_value_rendering():
     """
     pytest.importorskip("matplotlib")
     from matplotlib.patches import Circle
-    from unittest.mock import patch
-    from qutip_qip.operations import get_controlled_gate
 
-    # control_value=1 — standard controlled gate, filled circle
-    cx_standard = get_controlled_gate(X, n_ctrl_qubits=1, control_value=1)
+    # control_value=1 — standard CX gate, filled circle
     qc_standard = QubitCircuit(2)
-    qc_standard.add_gate(cx_standard, controls=[0], targets=[1])
+    qc_standard.add_gate(CX, controls=[0], targets=[1])
 
     # control_value=0 — anti-controlled gate, hollow circle
     cx_anti = get_controlled_gate(X, n_ctrl_qubits=1, control_value=0)
