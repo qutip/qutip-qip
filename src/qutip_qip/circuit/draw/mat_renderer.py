@@ -220,7 +220,9 @@ class MatRenderer(BaseRenderer):
             )
             self._ax.add_artist(wire_label)
 
-    def _draw_control_node(self, pos: int, xskip: float, color: str, control_value: int = 1) -> None:
+    def _draw_control_node(
+    self, pos: int, xskip: float, color: str, control_value: int = 1
+) -> None:
         """
         Draw the control node for the multi-qubit gate.
 
@@ -661,7 +663,9 @@ class MatRenderer(BaseRenderer):
             # add qbridge if control qubits are present
             for i, control in enumerate(controls):
                 ctrl_val = (gate.ctrl_value >> i) & 1
-                self._draw_control_node(control, xskip + text_width / 2, self.color, ctrl_val)
+                self._draw_control_node(
+                    control, xskip + text_width / 2, self.color, ctrl_val
+                )
                 self._draw_qbridge(
                     control,
                     targets[0],

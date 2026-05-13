@@ -271,6 +271,7 @@ def test_circuit_saving(request, qc_fixture, tmpdir):
     qc.draw("text", save=True, file_path=str(tmpdir.join("test")))
     assert tmpdir.join("test.txt").check(), "TextRenderer saved TXT file not found."
 
+
 def test_control_value_rendering():
     """
     Test that control nodes render as filled circles for control_value=1
@@ -299,8 +300,7 @@ def test_control_value_rendering():
         renderer_standard = MatRenderer(qc_standard)
         renderer_standard.canvas_plot()
         circles = [
-            a for a in renderer_standard._ax.get_children()
-            if isinstance(a, Circle)
+            a for a in renderer_standard._ax.get_children() if isinstance(a, Circle)
         ]
         filled = [c for c in circles if c.get_facecolor()[3] > 0]
         assert len(filled) > 0, "control_value=1 should render a filled circle"
@@ -309,8 +309,7 @@ def test_control_value_rendering():
         renderer_anti = MatRenderer(qc_anti)
         renderer_anti.canvas_plot()
         circles = [
-            a for a in renderer_anti._ax.get_children()
-            if isinstance(a, Circle)
+            a for a in renderer_anti._ax.get_children() if isinstance(a, Circle)
         ]
         hollow = [c for c in circles if c.get_facecolor()[3] == 0]
         assert len(hollow) > 0, "control_value=0 should render a hollow circle"
