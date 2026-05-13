@@ -270,3 +270,47 @@ def test_circuit_saving(request, qc_fixture, tmpdir):
     # test TextRenderer
     qc.draw("text", save=True, file_path=str(tmpdir.join("test")))
     assert tmpdir.join("test.txt").check(), "TextRenderer saved TXT file not found."
+
+def test_control_value_rendering():
+    """
+    Test that control nodes render as filled circles for control_value=1
+    and hollow circles for control_value=0.
+    Regression test for issue #367.
+    """
+    pytest.importorskip("matplotlib")
+    from matplotlib.patches import Circle
+    from unittest.mock import patch
+    from qutip_qip.operations import get_controlled_gate
+
+    # control_value=1 — standard controlled gate, filled circle
+    cx_standard = get_controlled_gate(X, n_ctrl_qubits=1, control_value=1)
+    qc_standard = QubitCircuit(2)
+    qc_standard.add_gate(cx_standard, controls=[0], targets=[1])
+
+    # control_value=0 — anti-controlled gate, hollow circle
+    cx_anti = get_controlled_gate(X, n_ctrl_qubits=1, control_value=0)
+    qc_anti = QubitCircuit(2)
+    qc_anti.add_gate(cx_anti, controls=[0], targets=[1])
+
+    with patch("matplotlib.pyplot.show"):
+        from qutip_qip.circuit.draw.mat_renderer import MatRenderer
+
+        # Test control_value=1 — circle must be filled
+        renderer_standard = MatRenderer(qc_standard)
+        renderer_standard.canvas_plot()
+        circles = [
+            a for a in renderer_standard._ax.get_children()
+            if isinstance(a, Circle)
+        ]
+        filled = [c for c in circles if c.get_facecolor()[3] > 0]
+        assert len(filled) > 0, "control_value=1 should render a filled circle"
+
+        # Test control_value=0 — circle must be hollow
+        renderer_anti = MatRenderer(qc_anti)
+        renderer_anti.canvas_plot()
+        circles = [
+            a for a in renderer_anti._ax.get_children()
+            if isinstance(a, Circle)
+        ]
+        hollow = [c for c in circles if c.get_facecolor()[3] == 0]
+        assert len(hollow) > 0, "control_value=0 should render a hollow circle"

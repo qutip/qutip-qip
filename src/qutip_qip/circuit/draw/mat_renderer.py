@@ -220,7 +220,7 @@ class MatRenderer(BaseRenderer):
             )
             self._ax.add_artist(wire_label)
 
-    def _draw_control_node(self, pos: int, xskip: float, color: str) -> None:
+    def _draw_control_node(self, pos: int, xskip: float, color: str, control_value: int = 1) -> None:
         """
         Draw the control node for the multi-qubit gate.
 
@@ -234,19 +234,36 @@ class MatRenderer(BaseRenderer):
 
         color : str
             The color of the control node. HEX code or color name supported by matplotlib are valid.
+
+        control_value : int, optional
+            The value of the control qubit. 1 draws a filled circle (default),
+            0 draws a hollow circle, following the Qiskit convention.
         """
 
         pos = pos + self._cwires
 
-        control_node = Circle(
-            (
-                xskip + self.style.gate_margin + self.style.gate_pad,
-                pos * self.style.wire_sep,
-            ),
-            self._control_node_r,
-            color=color,
-            zorder=self._zorder["node"],
-        )
+        if control_value == 1:
+            control_node = Circle(
+                (
+                    xskip + self.style.gate_margin + self.style.gate_pad,
+                    pos * self.style.wire_sep,
+                ),
+                self._control_node_r,
+                color=color,
+                zorder=self._zorder["node"],
+            )
+        else:
+            control_node = Circle(
+                (
+                    xskip + self.style.gate_margin + self.style.gate_pad,
+                    pos * self.style.wire_sep,
+                ),
+                self._control_node_r,
+                facecolor="none",
+                edgecolor=color,
+                linewidth=1.5,
+                zorder=self._zorder["node"],
+            )
         self._ax.add_artist(control_node)
 
     def _draw_target_node(self, pos: int, xskip: float, color: str) -> None:
@@ -642,8 +659,9 @@ class MatRenderer(BaseRenderer):
                     self._ax.add_artist(connector_r)
 
             # add qbridge if control qubits are present
-            for control in controls:
-                self._draw_control_node(control, xskip + text_width / 2, self.color)
+            for i, control in enumerate(controls):
+                ctrl_val = (gate.ctrl_value >> i) & 1
+                self._draw_control_node(control, xskip + text_width / 2, self.color, ctrl_val)
                 self._draw_qbridge(
                     control,
                     targets[0],
