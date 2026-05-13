@@ -308,8 +308,6 @@ def test_control_value_rendering():
         # Test control_value=0 — circle must be hollow
         renderer_anti = MatRenderer(qc_anti)
         renderer_anti.canvas_plot()
-        circles = [
-            a for a in renderer_anti._ax.get_children() if isinstance(a, Circle)
-        ]
+        circles = [a for a in renderer_anti._ax.get_children() if isinstance(a, Circle)]
         hollow = [c for c in circles if c.get_facecolor()[3] == 0]
         assert len(hollow) > 0, "control_value=0 should render a hollow circle"

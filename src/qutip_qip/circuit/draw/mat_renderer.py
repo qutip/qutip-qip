@@ -221,8 +221,8 @@ class MatRenderer(BaseRenderer):
             self._ax.add_artist(wire_label)
 
     def _draw_control_node(
-    self, pos: int, xskip: float, color: str, control_value: int = 1
-) -> None:
+        self, pos: int, xskip: float, color: str, control_value: int = 1
+    ) -> None:
         """
         Draw the control node for the multi-qubit gate.
 
