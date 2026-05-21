@@ -155,20 +155,18 @@ class CircuitResult:
                 else:
                     plot_dict[binary] += prob
 
-        entries = len(plot_dict)
-
-        ## No Measured values
-        if entries == 0:
-            warnings.warn(
-                "No entries qualified to be plotted! Plotting empty Histogram..."
-            )
-
         plot_dict = dict(
             sorted(plot_dict.items(), key=lambda item: item[1], reverse=True)
         )
 
-        if top_m != None and top_m < entries:
+        if top_m != None and top_m < len(plot_dict):
             plot_dict = dict(list(plot_dict.items())[:top_m])
+
+        ## No Measured values
+        if len(plot_dict) == 0:
+            warnings.warn(
+                "No entries qualified to be plotted! Plotting empty Histogram..."
+            )
 
         if fig is None or ax is None:
             fig, ax = plt.subplots()
