@@ -121,7 +121,7 @@ class CircuitResult:
             Bar color for the histogram. Default is '#1f77b4'.
 
         top_m : int, optional
-            the number of top greatest measurements to be plotted in the histogram. In case ignored, all the measurements having measurements more than the mentioned tolerance will be plotted.
+            The number of top m highest probability measurements to be plotted in the histogram. If not specified, defaults to all the measurements above the mentioned tolerance.
 
         threshold : float, optional
             the percentage above which the measurements are desired to be seen in the histogram. excludive, default being 0.
