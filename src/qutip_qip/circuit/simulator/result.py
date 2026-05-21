@@ -150,10 +150,7 @@ class CircuitResult:
         for cbits, prob in zip(self.cbits, self.probabilities):
             if prob > threshold:
                 binary = "".join(str(b) for b in cbits)
-                if binary not in plot_dict:
-                    plot_dict[binary] = prob
-                else:
-                    plot_dict[binary] += prob
+                plot_dict[binary] = prob
 
         plot_dict = dict(
             sorted(plot_dict.items(), key=lambda item: item[1], reverse=True)
