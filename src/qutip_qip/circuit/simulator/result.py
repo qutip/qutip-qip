@@ -124,7 +124,7 @@ class CircuitResult:
             The number of top m highest probability measurements to be plotted in the histogram. If not specified, defaults to all the measurements above the mentioned tolerance.
 
         threshold : float, optional
-            the percentage above which the measurements are desired to be seen in the histogram. excludive, default being 0.
+            The probability e.g. 1e-7 above which the measurements are plotted in the histogram. If not specified, defaults to 1e-10.
 
         Returns
         -------
