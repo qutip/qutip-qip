@@ -103,7 +103,7 @@ class CircuitResult:
         fig: "matplotlib.figure.Figure | None" = None,
         ax: "matplotlib.axes.Axes | None" = None,
         color: str = "#1f77b4",
-        top_m: int = None,
+        top_m: int | None = None,
         threshold: float = 0.0,
     ) -> "tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]":
         """
