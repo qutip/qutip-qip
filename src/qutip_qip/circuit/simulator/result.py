@@ -1,4 +1,5 @@
 from qutip import Qobj
+import warnings
 
 
 class CircuitResult:
@@ -102,6 +103,8 @@ class CircuitResult:
         fig: "matplotlib.figure.Figure | None" = None,
         ax: "matplotlib.axes.Axes | None" = None,
         color: str = "#1f77b4",
+        top_m: int | None = None,
+        threshold: float = 1e-10,
     ) -> "tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]":
         """
         Plot a histogram of the measurement outcomes and their probabilities.
@@ -116,6 +119,12 @@ class CircuitResult:
 
         color : str, optional
             Bar color for the histogram. Default is '#1f77b4'.
+
+        top_m : int, optional
+            The number of top m highest probability measurements to be plotted in the histogram. If not specified, defaults to all the measurements above the mentioned tolerance.
+
+        threshold : float, optional
+            The probability e.g. 1e-7 above which the measurements are plotted in the histogram. If not specified, defaults to 1e-10.
 
         Returns
         -------
@@ -135,11 +144,26 @@ class CircuitResult:
             )
 
         num_cbits = len(self.cbits[0])
-        plot_dict = {f"{i:0{num_cbits}b}": 0.0 for i in range(1 << num_cbits)}
+
+        plot_dict = {}
 
         for cbits, prob in zip(self.cbits, self.probabilities):
-            binary = "".join(str(b) for b in cbits)
-            plot_dict[binary] += prob
+            if prob > threshold:
+                binary = "".join(str(b) for b in cbits)
+                plot_dict[binary] = prob
+
+        plot_dict = dict(
+            sorted(plot_dict.items(), key=lambda item: item[1], reverse=True)
+        )
+
+        if top_m != None and top_m < len(plot_dict):
+            plot_dict = dict(list(plot_dict.items())[:top_m])
+
+        ## No Measured values
+        if len(plot_dict) == 0:
+            warnings.warn(
+                "No entries qualified to be plotted! Plotting empty Histogram..."
+            )
 
         if fig is None or ax is None:
             fig, ax = plt.subplots()
