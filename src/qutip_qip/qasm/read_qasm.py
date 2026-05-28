@@ -43,13 +43,17 @@ def read_qasm(
     if strmode:
         qasm_lines = qasm_input.splitlines()
     else:
-        f = open(qasm_input, "r")
-        qasm_lines = f.read().splitlines()
-        f.close()
+        with open(qasm_input, "r") as f:
+            qasm_lines = f.read().splitlines()
 
-    # split input into lines and ignore comments
-    qasm_lines = [line.strip() for line in qasm_lines]
-    qasm_lines = list(filter(lambda x: x[:2] != "//" and x != "", qasm_lines))
+    # Remove lines with comments
+    # Note: lstrip is required for cases like "  // This is a comment"
+    # [:] used here is to do this operation in place (saves memory)
+    qasm_lines[:] = [line for line in qasm_lines if not line.lstrip().startswith("//")]
+
+    # Remove empty lines
+    qasm_lines[:] = [line for line in qasm_lines if line.strip()]
+
     # QASMBench Benchmark Suite has lines that have comments after instructions.
     # Not sure if QASM standard allows this.
     for i in range(len(qasm_lines)):

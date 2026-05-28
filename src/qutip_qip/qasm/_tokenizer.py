@@ -21,6 +21,7 @@ def _tokenize_line(command: str) -> list[str]:
     if "(" not in command:
         tokens = list(chain(*[a.split() for a in command.split(",")]))
         tokens = [token.strip() for token in tokens]
+
     # for classically controlled gates
     elif re.match(r"\s*if\s*\(", command):
         groups = re.match(r"\s*if\s*\((.*)\)\s*(.*)\s+\((.*)\)(.*)", command)
