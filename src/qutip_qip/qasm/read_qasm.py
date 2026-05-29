@@ -51,32 +51,30 @@ def read_qasm(
     # [:] used here is to do this operation in place (saves memory)
     qasm_lines[:] = [line for line in qasm_lines if not line.lstrip().startswith("//")]
 
+    # Lines that have comments after instructions (remove those comments)
+    for i in range(len(qasm_lines)):
+        loc_comment = qasm_lines[i].find("//")
+        if loc_comment >= 0:
+            qasm_lines[i] = qasm_lines[i][:loc_comment]
+
     # Remove empty lines
     qasm_lines[:] = [line for line in qasm_lines if line.strip()]
 
-    # QASMBench Benchmark Suite has lines that have comments after instructions.
-    # Not sure if QASM standard allows this.
-    for i in range(len(qasm_lines)):
-        qasm_line = qasm_lines[i]
-        loc_comment = qasm_line.find("//")
-        if loc_comment >= 0:
-            qasm_line = qasm_line[0:loc_comment]
-        qasm_lines[i] = qasm_line
+    # Strip extra whitespace, tabspace
+    qasm_lines[:] = [" ".join(line.split()) for line in qasm_lines]
 
+    # TODO Update this when QASM 3 is added
     if version != "2.0":
-        raise NotImplementedError("QASM: Only OpenQASM 2.0 \
-                                  is currently supported.")
+        raise NotImplementedError("QASM: Only OpenQASM 2.0 is currently supported.")
 
     if qasm_lines.pop(0) != "OPENQASM 2.0;":
         raise SyntaxError("QASM: File does not contain QASM 2.0 header")
 
     qasm_obj = QasmProcessor(qasm_lines, mode=mode, version=version)
     qasm_obj.commands = _tokenize(qasm_obj.commands)
-
     qasm_obj._process_includes()
-
     qasm_obj._initialize_pass()
-    qc = QubitCircuit(qasm_obj.num_qubits, num_cbits=qasm_obj.num_cbits)
 
+    qc = QubitCircuit(qasm_obj.num_qubits, num_cbits=qasm_obj.num_cbits)
     qasm_obj._final_pass(qc)
     return qc
