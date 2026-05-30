@@ -63,7 +63,13 @@ class Measurement:
                         the probability of measuring a state in a the state
                         specified by the index.
         """
-
+        warnings.warn(
+            "'measurement_comp_basis' has been deprecated and will be removed "
+            "in future versions. Please use 'get_measurement_ops()' combined "
+            "with simulator logic, or the upcoming 'apply()' method.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         n = int(np.log2(state.shape[0]))
         target = qubits[0]
         if target < n:
