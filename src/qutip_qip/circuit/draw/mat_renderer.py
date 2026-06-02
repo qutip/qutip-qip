@@ -516,6 +516,25 @@ class MatRenderer(BaseRenderer):
 
         return f"[{round(value, 2)}]"
 
+    def _gate_label(self, gate: Gate | Type[Gate], showarg: bool = False) -> str:
+        """
+        Return the matplotlib label for a gate.
+        """
+        label = gate.name
+
+        if not gate.is_parametric:
+            return label
+
+        if gate.arg_label is not None:
+            return f"{label}({gate.arg_label})"
+
+        if showarg:
+            return label + "".join(
+                self.to_pi_fraction(value) for value in gate.arg_value
+            )
+
+        return label
+
     def _draw_multiq_gate(
         self,
         gate: Gate | Type[Gate],
@@ -770,12 +789,6 @@ class MatRenderer(BaseRenderer):
                 targets = instruction.targets
                 controls = instruction.controls
                 style = style if style is not None else {}
-                self.text = gate.name
-
-                if gate.is_parametric:
-                    self.text = (
-                        gate.arg_label if gate.arg_label is not None else gate.name
-                    )
 
                 self.color = style.get(
                     "color",
@@ -787,6 +800,7 @@ class MatRenderer(BaseRenderer):
                 self.fontstyle = style.get("fontstyle", "normal")
                 self.fontfamily = style.get("fontfamily", "monospace")
                 self.showarg = style.get("showarg", False)
+                self.text = self._gate_label(gate, showarg=self.showarg)
 
                 self.merged_wires = list(targets)
                 self.merged_wires.extend(controls)

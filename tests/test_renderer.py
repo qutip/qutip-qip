@@ -16,6 +16,7 @@ from qutip_qip.operations.gates import (
     TOFFOLI,
     FREDKIN,
     BERKELEY,
+    RZ,
 )
 from qutip_qip.operations.measurement import Mz
 
@@ -252,6 +253,38 @@ def test_matrenderer(request, qc_fixture):
 
     with patch("matplotlib.pyplot.show"):  # to avoid showing the plot
         qc.draw("matplotlib")
+
+
+def test_matrenderer_parametric_gate_showarg():
+    """
+    Check if Matplotlib renderer shows parametric gate arguments.
+    """
+    plt = pytest.importorskip("matplotlib.pyplot")
+    plt.close("all")
+    qc = QubitCircuit(1)
+    qc.add_gate(RZ(np.pi / 2), targets=0, style={"showarg": True})
+
+    with patch("matplotlib.pyplot.show"):  # to avoid showing the plot
+        qc.draw("matplotlib")
+
+    labels = [text.get_text() for text in plt.gca().texts]
+    assert r"RZ[\pi/2]" in labels
+
+
+def test_matrenderer_parametric_gate_arg_label():
+    """
+    Check if Matplotlib renderer keeps gate names with argument labels.
+    """
+    plt = pytest.importorskip("matplotlib.pyplot")
+    plt.close("all")
+    qc = QubitCircuit(1)
+    qc.add_gate(RZ(np.pi, arg_label=r"\pi"), targets=0)
+
+    with patch("matplotlib.pyplot.show"):  # to avoid showing the plot
+        qc.draw("matplotlib")
+
+    labels = [text.get_text() for text in plt.gca().texts]
+    assert r"RZ(\pi)" in labels
 
 
 @pytest.mark.parametrize("qc_fixture", ["qc1", "qc2", "qc3"])
