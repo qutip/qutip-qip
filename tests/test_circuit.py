@@ -857,7 +857,6 @@ class TestEinsumBackend:
             qc = QubitCircuit(1)
             qc.add_gate(gates.X, targets=0)
 
-            # 2. This will now successfully convert because the context exists
             state = basis(2, 0).to(dtype)
 
             sim = CircuitSimulator(qc, mode="state_vector_simulator")
@@ -868,7 +867,6 @@ class TestEinsumBackend:
             assert type(final_state.data) == type(state.data)
 
         finally:
-            # 3. Clean up the context so it doesn't interfere with other tests
             if dtype == "CuState":
                 qutip_cuquantum.set_as_default(reverse=True)
 
