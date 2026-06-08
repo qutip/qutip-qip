@@ -262,6 +262,9 @@ class CircuitSimulator:
         self._op_index += 1
 
     def _generate_einsum_eq(self, targets, num_qubits):
+        """
+        Generates the einsum string for tensor contraction.
+        """
         l_chars = string.ascii_lowercase
         u_chars = string.ascii_uppercase
 
