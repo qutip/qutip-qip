@@ -33,6 +33,20 @@ from qutip_qip.operations.measurement import Mz
 from qutip_qip.transpiler import to_chain_structure
 from qutip_qip.qasm import read_qasm
 
+try:
+    import qutip_jax
+
+    HAS_JAX = True
+except ImportError:
+    HAS_JAX = False
+
+try:
+    import qutip_cuquantum
+
+    HAS_CUQANTUM = True
+except ImportError:
+    HAS_CUQANTUM = False
+
 
 def _op_dist(A, B):
     return (A - B).norm()
@@ -811,6 +825,52 @@ class TestQubitCircuit:
 
         assert qc2.reverse_states is True
         assert qc2.input_states == [None] * 3
+
+
+class TestEinsumBackend:
+    """
+    Test suite for the einsum execution path and backend data types.
+    """
+
+    AVAILABLE_DTYPES = ["Dense"]
+    if HAS_JAX:
+        AVAILABLE_DTYPES.append("jax")
+    if HAS_CUQANTUM:
+        AVAILABLE_DTYPES.append("CuState")
+
+    @pytest.mark.filterwarnings(
+        "ignore:ExternalStream is deprecated:DeprecationWarning"
+    )
+    @pytest.mark.parametrize("dtype", AVAILABLE_DTYPES)
+    def test_dtype_preservation(self, dtype):
+        """
+        Validate that the dtype of the input state is preserved.
+        """
+        if dtype == "CuState":
+            import qutip_cuquantum
+            from cuquantum.densitymat import WorkStream
+
+            # Set the WorkStream as the default context for the backend
+            qutip_cuquantum.set_as_default(WorkStream())
+
+        try:
+            qc = QubitCircuit(1)
+            qc.add_gate(gates.X, targets=0)
+
+            # 2. This will now successfully convert because the context exists
+            state = basis(2, 0).to(dtype)
+
+            sim = CircuitSimulator(qc, mode="state_vector_simulator")
+            result = sim.run(state)
+
+            final_state = result.get_final_states()[0]
+
+            assert type(final_state.data) == type(state.data)
+
+        finally:
+            # 3. Clean up the context so it doesn't interfere with other tests
+            if dtype == "CuState":
+                qutip_cuquantum.set_as_default(reverse=True)
 
 
 class TestAddGateError:

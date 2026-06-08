@@ -14,7 +14,7 @@ license = "BSD-3-Clause"
 license-files = ["LICENSE"]
 requires-python = ">=3.11"
 # When Python version is updated same change needs to be made in classifier tags in pyproject.toml,
-# build.yaml and in contributing to code, Installation guide. 
+# build.yaml and in contributing to code, Installation guide.
 dependencies = [
     "numpy>=1.24",
     "scipy>=1.9.2",
@@ -70,6 +70,8 @@ Donate = "https://github.com/sponsors/qutip"
 graphics = ["matplotlib>=3.6"]
 control = ["qutip-qtrl>=0.1.5"]
 qiskit = ["qiskit>=2.0"]
+jax = ["qutip-jax", "jax", "jaxlib"]
+cuquantum = ["qutip-cuquantum", "cuquantum", "cupy"]
 full = [
     "qutip-qip[graphics,qiskit,control]",
 ]

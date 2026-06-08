@@ -2,8 +2,10 @@ from itertools import product
 from operator import mul
 from functools import reduce
 import numpy as np
+import string
 
 from qutip import ket2dm, Qobj
+from qutip.core import data as _data
 from qutip_qip.circuit.simulator import CircuitResult
 from qutip_qip.operations import expand_operator
 
@@ -259,6 +261,25 @@ class CircuitSimulator:
         self._state = state
         self._op_index += 1
 
+    def _generate_einsum_eq(self, targets, num_qubits):
+        l_chars = string.ascii_lowercase
+        u_chars = string.ascii_uppercase
+
+        state_in = list(l_chars[:num_qubits])
+        gate_out = list(u_chars[: len(targets)])
+
+        gate_in = [state_in[t] for t in targets]
+
+        state_out = state_in.copy()
+        for i, t in enumerate(targets):
+            state_out[t] = gate_out[i]
+
+        gate_str = "".join(gate_out + gate_in)
+        state_in_str = "".join(state_in)
+        state_out_str = "".join(state_out)
+
+        return f"{gate_str}, {state_in_str}... -> {state_out_str}..."
+
     def _evolve_state(self, operation, targets_indices, state):
         """
         Applies unitary to state.
@@ -283,33 +304,62 @@ class CircuitSimulator:
         return state
 
     def _evolve_state_einsum(self, gate, targets_indices, state):
-        # Prepare the state tensor.
-        if isinstance(state, Qobj):
-            # If it is a Qobj, transform it to the array representation.
-            state = state.full()
-            # Transform the gate and state array to the corresponding
-            # tensor form.
-            state = state.reshape(self._tensor_dims)
+        gate_qobj = gate.get_qobj()
 
-        # Prepare the gate tensor.
-        gate = gate.get_qobj()
-        gate_array = gate.full().reshape(gate.dims[0] + gate.dims[1])
+        orignal_dims = state.dims
+        orignal_shape = state.shape
 
-        # Compute the tensor indices and call einsum.
-        num_site = len(state.shape)
-        ancillary_indices = range(num_site, num_site + len(targets_indices))
-        index_list = range(num_site)
-        new_index_list = list(index_list)
-        for j, k in enumerate(targets_indices):
-            new_index_list[k] = j + num_site
+        # Generate equation
+        num_dims = len(self._tensor_dims)
+        eq = self._generate_einsum_eq(targets_indices, num_dims)
 
-        state = np.einsum(
-            gate_array,
-            list(ancillary_indices) + list(targets_indices),
-            state,
-            index_list,
-            new_index_list,
-        )
+        data_type = type(state.data).__name__
+        print(data_type)
+
+        if data_type == "JaxArray":
+            import jax.numpy as jnp
+            from qutip_jax.jaxarray import JaxArray
+
+            gate_qobj = gate_qobj.to("jax")
+
+            raw_state = state.data._jxa
+            raw_gate = gate_qobj.data._jxa
+
+            state_tensor = raw_state.reshape(self._tensor_dims)
+            gate_tensor = raw_gate.reshape(gate_qobj.dims[0] + gate_qobj.dims[1])
+
+            new_state_tensor = jnp.einsum(eq, gate_tensor, state_tensor)
+
+            reshaped_data = JaxArray(new_state_tensor.reshape(orignal_shape))
+            state = Qobj(reshaped_data, dims=orignal_dims)
+
+        elif data_type == "CuState":
+            import cupy as cp
+            from cuquantum.tensornet import contract
+            from qutip_cuquantum import CuState
+
+            gate_qobj = gate_qobj.to("CuOperator")
+
+            raw_state = state.data.to_cupy()
+            raw_gate = cp.array(gate_qobj.full())
+
+            state_tensor = raw_state.reshape(self._tensor_dims)
+            gate_tensor = raw_gate.reshape(gate_qobj.dims[0] + gate_qobj.dims[1])
+
+            new_state_tensor = contract(eq, gate_tensor, state_tensor)
+
+            reshaped_data = CuState(new_state_tensor.reshape(orignal_shape))
+            state = Qobj(reshaped_data, dims=orignal_dims)
+
+        else:
+            from qutip.core.dimensions import einsum
+
+            malformed_state = einsum(eq, gate_qobj, state)
+            reshaped_data = _data.reshape(
+                malformed_state.data, orignal_shape[0], orignal_shape[1]
+            )
+            state = Qobj(reshaped_data, dims=orignal_dims)
+
         return state
 
     def _apply_measurement(self, operation, qubits, cbits):
