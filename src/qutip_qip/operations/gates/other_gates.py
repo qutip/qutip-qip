@@ -203,25 +203,23 @@ class FREDKIN(ControlledGate):
 
 def get_oracle_gate(num_qubits, logic_func, num_target_qubits=1, name="ORACLE"):
     """
-    Function that returns a gate object that performs the operation
-    |x>|y>-->|x>|y⊕logic_func(x)>.
+    Function that returns a gate class that performs the operation
+    ``|x>|y> --> |x>|y ⊕ logic_func(x)>``.
 
-    Attributes
+    Parameters
     ----------
-
     num_qubits : int
-        The total number of qubits the Oracle Gate Acts upon.
-
+        The total number of qubits the Oracle Gate acts upon.
     logic_func : function
         The logic function involved in mapping of the control to target qubits.
-
-    num_target_qubits : int
-        The number of qubits the y value of the function is stored in. The value is defaulted to 1, the most common usecase.
+    num_target_qubits : int, optional
+        The number of qubits the y value of the function is stored in.
+        The value is defaulted to 1, the most common use case.
 
     Returns
     -------
-
-    A gate Class Representing the Oracle.
+    type
+        A gate class representing the Oracle.
     """
 
     try:
