@@ -1,13 +1,15 @@
 import numpy as np
 from qutip import basis, qeye
-from qutip_qip.operations.gates import OracleGate, CNOT
+from qutip_qip.operations.gates import get_oracle_gate, CNOT
 from qutip_qip.circuit import QubitCircuit
 
 
 def test_oracle_identity():
     qc = QubitCircuit(num_qubits=3)
     logic_func = lambda x: 0
-    my_oracle = OracleGate(num_qubits=3, logic_func=logic_func, num_target_qubits=1)
+    my_oracle = get_oracle_gate(
+        num_qubits=3, logic_func=logic_func, num_target_qubits=1
+    )
     qc.add_gate(my_oracle, targets=[0, 1, 2])
     U = qc.compute_unitary()
 
@@ -20,7 +22,9 @@ def test_oracle_identity():
 def test_oracle_not():
     qc = QubitCircuit(num_qubits=2)
     logic_func = lambda x: x
-    my_oracle = OracleGate(num_qubits=2, logic_func=logic_func, num_target_qubits=1)
+    my_oracle = get_oracle_gate(
+        num_qubits=2, logic_func=logic_func, num_target_qubits=1
+    )
     qc.add_gate(my_oracle, targets=[0, 1])
     U = qc.compute_unitary()
 
@@ -33,7 +37,9 @@ def test_oracle_not():
 def test_oracle_multi_target():
     qc = QubitCircuit(num_qubits=3)
     logic_func = lambda x: 3
-    my_oracle = OracleGate(num_qubits=3, logic_func=logic_func, num_target_qubits=2)
+    my_oracle = get_oracle_gate(
+        num_qubits=3, logic_func=logic_func, num_target_qubits=2
+    )
     qc.add_gate(my_oracle, targets=[0, 1, 2])
     U = qc.compute_unitary()
     print(U.full())
@@ -42,7 +48,7 @@ def test_oracle_multi_target():
 def test_unitarity():
     qc = QubitCircuit(5)
     func = lambda x: (x * 3 + 1) % 2  # random
-    oracle_class = OracleGate(num_qubits=5, logic_func=func, num_target_qubits=1)
+    oracle_class = get_oracle_gate(num_qubits=5, logic_func=func, num_target_qubits=1)
     qc.add_gate(oracle_class, targets=range(5))
     U = qc.compute_unitary()
 
@@ -60,7 +66,7 @@ def my_logic(x):
 
 
 def test_named_function():
-    oracle_class = OracleGate(num_qubits=2, logic_func=my_logic)
+    oracle_class = get_oracle_gate(num_qubits=2, logic_func=my_logic)
     # Check serialization
     print(f"Captured Source:\n{oracle_class._source}")
     assert "def my_logic" in oracle_class._source
@@ -68,7 +74,7 @@ def test_named_function():
 
 
 def test_serialization():
-    gate_class = OracleGate(num_qubits=2, logic_func=lambda x: x)
+    gate_class = get_oracle_gate(num_qubits=2, logic_func=lambda x: x)
     assert gate_class._source is not None
     print("Serialization Metadata: PASSED")
 
@@ -78,7 +84,7 @@ def test_grover_oracle():
         return 1 if x == 3 else 0
 
     qc = QubitCircuit(num_qubits=3)
-    my_oracle = OracleGate(num_qubits=3, logic_func=mark_3, num_target_qubits=1)
+    my_oracle = get_oracle_gate(num_qubits=3, logic_func=mark_3, num_target_qubits=1)
     qc.add_gate(my_oracle, targets=[0, 1, 2])
     U = qc.compute_unitary()
 
