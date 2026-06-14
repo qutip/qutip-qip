@@ -19,7 +19,7 @@ def _validate_non_negative_int_tuple(T: any, txt: str = ""):
 
 @dataclass(frozen=True, slots=True)
 class CircuitInstruction(ABC):
-    operation: Gate | Type[Gate] | Measurement | Type[Measurement]
+    operation: Gate | Type[Gate] | Type[Measurement]
     qubits: tuple[int, ...] = tuple()
     cbits: tuple[int, ...] = tuple()
     style: dict = field(default_factory=dict)

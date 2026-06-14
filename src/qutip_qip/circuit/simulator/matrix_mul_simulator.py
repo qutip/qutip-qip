@@ -316,7 +316,7 @@ class CircuitSimulator:
 
     def _apply_measurement(
         self,
-        operation: Measurement | Type[Measurement],
+        operation: Type[Measurement],
         qubits: tuple[int, ...],
         cbits: tuple[int, ...],
     ) -> Qobj:
@@ -339,8 +339,8 @@ class CircuitSimulator:
             The collapsed state after the measurement.
         """
         current_state = self.state
-        n = int(np.log2(current_state.shape[0]))
-        if isinstance(operation, type) and issubclass(operation, Measurement):
+        n = self.qc.num_qubits
+        if issubclass(operation, Measurement):
             operation = operation()
         raw_ops = operation.get_measurement_ops()
         measurement_ops = [

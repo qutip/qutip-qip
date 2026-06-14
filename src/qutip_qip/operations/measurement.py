@@ -1,6 +1,7 @@
 import numpy as np
 import warnings
 import qutip
+from abc import ABC, abstractmethod
 from qutip import basis, Qobj
 from qutip.measurement import measurement_statistics
 from qutip_qip.operations import expand_operator
@@ -8,7 +9,7 @@ from qutip_qip.operations import expand_operator
 __all__ = ["Mz", "Mx", "My"]
 
 
-class Measurement:
+class Measurement(ABC):
     """
     Base class for quantum measurements.
     """
@@ -20,20 +21,18 @@ class Measurement:
         if type(self) is Measurement:
             warnings.warn(
                 "Direct instantiation of Measurement() is deprecated and will "
-                "be removed in future verisions. Please use a specific subclass "
+                "be removed in future versions. Please use a specific subclass "
                 "like 'Mz()' instead.",
                 DeprecationWarning,
                 stacklevel=2,
             )
 
+    @abstractmethod
     def get_measurement_ops(self) -> list[Qobj]:
         """
         Returns a list of Kraus operators representing the measurement.
-        (Defaults to Z-basis for backward compatibility)
         """
-        op0 = basis(2, 0) * basis(2, 0).dag()
-        op1 = basis(2, 1) * basis(2, 1).dag()
-        return [op0, op1]
+        pass
 
     @classmethod
     def measurement_comp_basis(cls, state, qubits):
