@@ -4,7 +4,7 @@ Quantum circuit representation and simulation.
 
 import warnings
 import inspect
-from typing import Iterable, Type
+from typing import Iterable, Type, Self
 from qutip import qeye, Qobj, basis, tensor
 import numpy as np
 
@@ -19,8 +19,10 @@ from qutip_qip.circuit._decompose import (
     _resolve_2q_basis,
 )
 from qutip_qip.operations import (
+    Bloq,
     Gate,
     Measurement,
+    Op,
     expand_operator,
     get_unitary_gate,
 )
@@ -247,6 +249,14 @@ class QubitCircuit:
         if state_type == "output":
             for i in targets:
                 self.output_states[i] = state
+
+    def add_op(
+        self: Self,
+        op: Op,
+        qubits: int | IntSequence,
+        cbits: int | IntSequence,
+    ):
+        pass
 
     def add_measurement(
         self,
