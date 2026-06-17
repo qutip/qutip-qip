@@ -2,11 +2,11 @@
 For the compatibility between qutip-v5 and v4.
 """
 
-from itertools import chain
-from functools import reduce
 from packaging.version import parse as parse_version
-import numpy as np
 import qutip
+
+
+is_qutip5 = parse_version(qutip.__version__) >= parse_version("5.dev")
 
 
 def to_scalar(qobj_or_scalar):
@@ -14,3 +14,9 @@ def to_scalar(qobj_or_scalar):
         if qobj_or_scalar.dims == [[1], [1]]:
             return qobj_or_scalar[0, 0]
     return qobj_or_scalar
+
+
+def solver_options(**kwargs):
+    if is_qutip5:
+        return kwargs
+    return qutip.Options(**kwargs)

@@ -13,7 +13,12 @@ from qutip_qip.device import (DispersiveCavityQED, LinearSpinChain,
                                 CircularSpinChain, SCQubits)
 
 from packaging.version import parse as parse_version
-from qutip import Options
+
+if parse_version(qutip.__version__) < parse_version("5.dev"):
+    from qutip import Options as SolverOptions
+else:
+    def SolverOptions(**kwargs):
+        return kwargs
 
 _tol = 3.e-2
 
@@ -136,7 +141,7 @@ def _test_numerical_evolution_helper(num_qubits, gates, device_class, kwargs):
         init_state = _ket_expaned_dims(state, device.dims)
     else:
         init_state = state
-    options = Options(store_final_state=True, nsteps=50_000)
+    options = SolverOptions(store_final_state=True, nsteps=50_000)
     result = device.run_state(init_state=init_state,
                               analytical=False,
                               options=options)
@@ -193,7 +198,7 @@ def test_numerical_circuit(circuit, device_class, kwargs, schedule_mode):
         init_state = _ket_expaned_dims(state, device.dims)
     else:
         init_state = state
-    options = Options(store_final_state=True, nsteps=50_000)
+    options = SolverOptions(store_final_state=True, nsteps=50_000)
     result = device.run_state(init_state=init_state,
                               analytical=False,
                               options=options)

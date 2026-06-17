@@ -1005,7 +1005,7 @@ class Processor(object):
             final_qu.args.update(args)
 
         # bring all c_ops to the same tlist, won't need it in QuTiP 5
-        if not parse_version(qutip.__version__) >= parse_version("5.dev"):
+        if not is_qutip5:
             temp = []
             for c_op in c_ops:
                 temp.append(_merge_qobjevo([c_op], final_qu.tlist))
@@ -1202,7 +1202,7 @@ class Processor(object):
         # is however, much harder to implement at this stage, see also
         # https://github.com/qutip/qutip-qip/issues/184.
         if is_qutip5:
-            options = kwargs.get("options", qutip.Options())
+            options = kwargs.get("options", {})
             if options.get("max_step", 0.0) == 0.0:
                 options["max_step"] = self._get_max_step()
             options["progress_bar"] = False

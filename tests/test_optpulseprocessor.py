@@ -3,6 +3,7 @@ import os
 from numpy.testing import assert_, assert_allclose, assert_equal
 import numpy as np
 import pytest
+from packaging.version import parse as parse_version
 
 pytest.importorskip("qutip_qtrl")
 from qutip_qip.device import OptPulseProcessor, SpinChainModel
@@ -21,13 +22,15 @@ from qutip import (
 from qutip_qip.operations import (
     cnot,
 )
-import qutip
-from packaging.version import parse as parse_version
 
 if parse_version(qutip.__version__) < parse_version("5.dev"):
     from qutip import Options as SolverOptions
+    is_qutip5 = False
 else:
-    from qutip import SolverOptions
+    is_qutip5 = True
+
+    def SolverOptions(**kwargs):
+        return kwargs
 
 
 class TestOptPulseProcessor:
@@ -127,10 +130,10 @@ class TestOptPulseProcessor:
             qc, merge_gates=True, num_tslots=10, evo_time=2.0
         )
 
-        if parse_version(qutip.__version__) < parse_version("5.dev"):
-            init_state = qutip.rand_ket(8, dims=[[2, 2, 2], [1, 1, 1]])
-        else:
+        if is_qutip5:
             init_state = qutip.rand_ket([2, 2, 2])
+        else:
+            init_state = qutip.rand_ket(8, dims=[[2, 2, 2], [1, 1, 1]])
 
         num_result = processor.run_state(init_state=init_state).states[-1]
         ideal_result = qc.run(init_state)
