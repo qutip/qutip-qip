@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Type
 from dataclasses import dataclass, field
 import warnings
-from qutip_qip.operations import Gate, Measurement
+from qutip_qip.operations import Gate, Measurement, Op
 
 
 def _validate_non_negative_int_tuple(T: any, txt: str = ""):
@@ -58,6 +58,16 @@ class CircuitInstruction(ABC):
 
     def __repr__(self) -> str:
         return str(self)
+
+
+@dataclass(frozen=True, slots=True)
+class OpInstruction:
+    op: Op
+    qubits: tuple[int, ...] = tuple()
+    cbits: tuple[int, ...] = tuple()
+
+    def __post_init__(self):
+        pass
 
 
 @dataclass(frozen=True, slots=True)

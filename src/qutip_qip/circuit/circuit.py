@@ -13,6 +13,7 @@ from qutip_qip.circuit import (
     CircuitInstruction,
     GateInstruction,
     MeasurementInstruction,
+    OpInstruction,
 )
 from qutip_qip.circuit._decompose import (
     _resolve_to_universal,
@@ -87,6 +88,7 @@ class QubitCircuit:
         self.reverse_states = reverse_states
         self.num_cbits: int = num_cbits
         self._global_phase: float = 0.0
+        self._ops: list[Op] = []
         self._instructions: list[CircuitInstruction] = []
         self.dims = dims if dims is not None else [2] * self.num_qubits
 
@@ -256,6 +258,13 @@ class QubitCircuit:
         qubits: int | IntSequence,
         cbits: int | IntSequence,
     ):
+        # TODO validate the inputs
+        self.ops.append(OpInstruction(op=op, qubits=qubits, cbits=cbits))
+
+    def build(self: Self):
+        """
+        Converts _ops list to a frozen _instructions tuple.
+        """
         pass
 
     def add_measurement(

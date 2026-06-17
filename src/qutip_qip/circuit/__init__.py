@@ -4,6 +4,7 @@ from .instruction import (
     CircuitInstruction,
     GateInstruction,
     MeasurementInstruction,
+    OpInstruction,
 )
 from .simulator import CircuitResult, CircuitSimulator
 from .circuit import QubitCircuit
@@ -15,4 +16,5 @@ __all__ = [
     "CircuitInstruction",
     "GateInstruction",
     "MeasurementInstruction",
+    "OpInstruction",
 ]
