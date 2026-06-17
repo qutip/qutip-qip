@@ -259,13 +259,30 @@ class QubitCircuit:
         cbits: int | IntSequence,
     ):
         # TODO validate the inputs
-        self.ops.append(OpInstruction(op=op, qubits=qubits, cbits=cbits))
+        self._ops.append(OpInstruction(op=op, qubits=qubits, cbits=cbits))
 
     def build(self: Self):
         """
         Converts _ops list to a frozen _instructions tuple.
         """
-        pass
+        self._instructions = []
+
+        for op_instruction in self._ops:
+            if isinstance(op_instruction.op, Gate) or issubclass(
+                op_instruction.op, Gate
+            ):
+                self._instructions.append(
+                    GateInstruction(
+                        operation=op_instruction.op,
+                        qubits=op_instruction.qubits,
+                        cbits=op_instruction.cbits,
+                    )
+                )
+
+            # TODO handle measurement op
+            # TODO handle non-gate/non-measurement op
+
+        self._instructions = tuple(self._instructions)
 
     def add_measurement(
         self,
