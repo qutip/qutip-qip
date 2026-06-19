@@ -339,15 +339,16 @@ class TestQubitCircuit:
         """
         qc = QubitCircuit(3)
 
-        qc.add_gate(gates.X, targets=[0])
-        qc.add_gate(gates.CY, targets=[1], controls=[0])
-        qc.add_gate(gates.Y, targets=[2])
-        qc.add_gate(gates.CS, targets=[0], controls=[1])
-        qc.add_gate(gates.Z, targets=[1])
-        qc.add_gate(gates.CT, targets=[1], controls=[2])
-        qc.add_gate(gates.CZ, targets=[0], controls=[1])
-        qc.add_gate(gates.S, targets=[1])
-        qc.add_gate(gates.T, targets=[2])
+        qc.add_op(gates.X, qubits=0)
+        qc.add_op(gates.CY, qubits=(0, 1))
+        qc.add_op(gates.Y, qubits=2)
+        qc.add_op(gates.CS, qubits=(1, 0))
+        qc.add_op(gates.Z, qubits=1)
+        qc.add_op(gates.CT, qubits=(2, 1))
+        qc.add_op(gates.CZ, qubits=(1, 0))
+        qc.add_op(gates.S, 1)
+        qc.add_op(gates.T, 2)
+        qc.build()
 
         assert qc.instructions[8].operation == gates.T
         assert qc.instructions[7].operation == gates.S

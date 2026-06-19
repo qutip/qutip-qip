@@ -256,10 +256,16 @@ class QubitCircuit:
         self: Self,
         op: Op,
         qubits: int | IntSequence,
-        cbits: int | IntSequence,
+        cbits: int | IntSequence = (),
     ):
+        if type(qubits) is int:
+            qubits = [qubits]
+
+        if type(cbits) is int:
+            cbits = [cbits]
+
         # TODO validate the inputs
-        self._ops.append(OpInstruction(op=op, qubits=qubits, cbits=cbits))
+        self._ops.append(OpInstruction(op=op, qubits=tuple(qubits), cbits=tuple(cbits)))
 
     def build(self: Self):
         """
