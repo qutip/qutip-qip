@@ -16,7 +16,7 @@ def to_scalar(qobj_or_scalar):
     return qobj_or_scalar
 
 
-def solver_options(**kwargs):
+def back_compatible_solver_options(**kwargs):
     if is_qutip5:
         return kwargs
     return qutip.Options(**kwargs)

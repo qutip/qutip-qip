@@ -7,6 +7,7 @@ import numpy as np
 import pytest
 
 import qutip
+from qutip_qip.compat import back_compatible_solver_options
 from qutip_qip.device import Processor, LinearSpinChain
 from qutip import (
     basis, sigmaz, sigmax, sigmay, identity, destroy, tensor,
@@ -17,13 +18,6 @@ from qutip_qip.noise import (
 from qutip_qip.qubits import qubit_states
 from qutip_qip.pulse import Pulse
 from qutip_qip.circuit import QubitCircuit
-
-
-if parse_version(qutip.__version__) < parse_version("5.dev"):
-    from qutip import Options as SolverOptions
-else:
-    def SolverOptions(**kwargs):
-        return kwargs
 
 
 class TestCircuitProcessor:
@@ -95,7 +89,9 @@ class TestCircuitProcessor:
         tlist = [0., 1., 2.]
         proc.add_pulse(Pulse(identity(2), 0, tlist, False))
         result = proc.run_state(
-            init_state, options=SolverOptions(store_final_state=True))
+            init_state, options=back_compatible_solver_options(
+                store_final_state=True
+            ))
         global_phase = init_state[0, 0]/result.final_state[0, 0]
         assert_allclose(
             global_phase*result.final_state.full(), init_state.full())
@@ -404,7 +400,9 @@ class TestCircuitProcessor:
         # No max_step
         final_state = processor.run_state(
             init_state,
-            options=SolverOptions(max_step=10000)  # too large max_step
+            options=back_compatible_solver_options(
+                max_step=10000
+            )  # too large max_step
         ).states[-1]
         expected_state = tensor([basis(2, 0), basis(2, 1)])
         assert pytest.approx(fidelity(final_state, expected_state), 0.001) == 0

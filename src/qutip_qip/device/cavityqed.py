@@ -13,7 +13,6 @@ from qutip import (
     Qobj,
     QobjEvo,
 )
-from ..compat import solver_options
 from ..circuit import QubitCircuit
 from ..operations import Gate
 from .processor import Processor, Model
