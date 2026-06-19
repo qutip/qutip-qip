@@ -1202,7 +1202,9 @@ class Processor(object):
         # is however, much harder to implement at this stage, see also
         # https://github.com/qutip/qutip-qip/issues/184.
         if is_qutip5:
-            options = kwargs.get("options", {})
+            options = kwargs.get("options")
+            if options is None:
+                options = {}
             if options.get("max_step", 0.0) == 0.0:
                 options["max_step"] = self._get_max_step()
             options["progress_bar"] = False
