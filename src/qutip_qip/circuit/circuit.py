@@ -255,17 +255,17 @@ class QubitCircuit:
     def add_op(
         self: Self,
         op: Op,
-        qubits: int | IntSequence,
-        cbits: int | IntSequence = (),
+        qreg: int | IntSequence,
+        creg: int | IntSequence = (),
     ):
-        if type(qubits) is int:
-            qubits = [qubits]
+        if type(qreg) is int:
+            qreg = [qreg]
 
-        if type(cbits) is int:
-            cbits = [cbits]
+        if type(creg) is int:
+            creg = [creg]
 
         # TODO validate the inputs
-        self._ops.append(OpInstruction(op=op, qubits=tuple(qubits), cbits=tuple(cbits)))
+        self._ops.append(OpInstruction(op=op, qreg=tuple(qreg), creg=tuple(creg)))
 
     def build(self: Self):
         """
@@ -280,8 +280,8 @@ class QubitCircuit:
                 self._instructions.append(
                     GateInstruction(
                         operation=op_instruction.op,
-                        qubits=op_instruction.qubits,
-                        cbits=op_instruction.cbits,
+                        qubits=op_instruction.qreg,
+                        cbits=op_instruction.creg,
                     )
                 )
 

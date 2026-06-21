@@ -63,8 +63,8 @@ class CircuitInstruction(ABC):
 @dataclass(frozen=True, slots=True)
 class OpInstruction:
     op: Op
-    qubits: tuple[int, ...] = tuple()
-    cbits: tuple[int, ...] = tuple()
+    qreg: tuple[int, ...] = tuple()
+    creg: tuple[int, ...] = tuple()
 
     def __post_init__(self):
         pass
