@@ -3,6 +3,17 @@ Changelog
 *********
 
 
+Version 0.4.2 (June 23, 2026)
++++++++++++++++++++++++++++++
+
+This micro release fixes compatibility issues in the VQA module and improves solver option handling for newer QuTiP versions.
+
+Bug Fixes
+---------
+- Fix several issues in the :obj:`qutip_qip.vqa` module, including plotting imports, state-based VQA tests, and compatibility with ``qutip==4.7``. The unsupported ``BITSTRING`` cost method is also removed. (`#280 <https://github.com/qutip/qutip-qip/pull/280>`_ by Boxi Li)
+- Restore solver-options compatibility with QuTiP 5, where ``qutip.Options`` was removed, by switching to backward-compatible option handling in processor simulations and related tests. (`#407 <https://github.com/qutip/qutip-qip/pull/407>`_ by Boxi Li)
+
+
 Version 0.4.1 (April 7, 2025)
 +++++++++++++++++++++++++++++
 
