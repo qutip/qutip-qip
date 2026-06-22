@@ -3,8 +3,10 @@ import os
 from numpy.testing import assert_, assert_allclose, assert_equal
 import numpy as np
 import pytest
+from packaging.version import parse as parse_version
 
 pytest.importorskip("qutip_qtrl")
+from qutip_qip.compat import back_compatible_solver_options
 from qutip_qip.device import OptPulseProcessor, SpinChainModel
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.qubits import qubit_states
@@ -21,13 +23,8 @@ from qutip import (
 from qutip_qip.operations import (
     cnot,
 )
-import qutip
-from packaging.version import parse as parse_version
 
-if parse_version(qutip.__version__) < parse_version("5.dev"):
-    from qutip import Options as SolverOptions
-else:
-    from qutip import SolverOptions
+is_qutip5 = parse_version(qutip.__version__) >= parse_version("5.dev")
 
 
 class TestOptPulseProcessor:
@@ -84,7 +81,9 @@ class TestOptPulseProcessor:
         )
         rho0 = qubit_states(3, [1, 1, 1])
         rho1 = qubit_states(3, [1, 1, 0])
-        result = test.run_state(rho0, options=SolverOptions(store_states=True))
+        result = test.run_state(
+            rho0, options=back_compatible_solver_options(store_states=True)
+        )
         assert_(fidelity(result.states[-1], rho1) > 1 - 1.0e-6)
 
     def test_multi_gates(self):
@@ -127,10 +126,10 @@ class TestOptPulseProcessor:
             qc, merge_gates=True, num_tslots=10, evo_time=2.0
         )
 
-        if parse_version(qutip.__version__) < parse_version("5.dev"):
-            init_state = qutip.rand_ket(8, dims=[[2, 2, 2], [1, 1, 1]])
-        else:
+        if is_qutip5:
             init_state = qutip.rand_ket([2, 2, 2])
+        else:
+            init_state = qutip.rand_ket(8, dims=[[2, 2, 2], [1, 1, 1]])
 
         num_result = processor.run_state(init_state=init_state).states[-1]
         ideal_result = qc.run(init_state)

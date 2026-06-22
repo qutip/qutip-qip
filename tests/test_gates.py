@@ -157,7 +157,7 @@ class TestCliffordGroup:
                 fid = qutip.average_gate_fidelity(gate, other)
                 assert not np.allclose(fid, 1., atol=1e-3)
 
-    @pytest.mark.parametrize("gate", gates.qubit_clifford_group())
+    @pytest.mark.parametrize("gate", tuple(gates.qubit_clifford_group()))
     def test_gate_normalises_pauli_group(self, gate):
         """
         Test the fundamental definition of the Clifford group, i.e. that it
