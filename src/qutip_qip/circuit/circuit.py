@@ -255,7 +255,7 @@ class QubitCircuit:
     def add_op(
         self: Self,
         op: Op,
-        qreg: int | IntSequence,
+        qreg: int | IntSequence = (),
         creg: int | IntSequence = (),
     ):
         if type(qreg) is int:
