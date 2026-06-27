@@ -6,6 +6,7 @@ import string
 
 from qutip import ket2dm, Qobj
 from qutip.core import data as _data
+from qutip.core.dimensions import einsum
 from qutip_qip.circuit.simulator import CircuitResult
 from qutip_qip.operations import expand_operator
 
@@ -263,13 +264,25 @@ class CircuitSimulator:
 
     def _generate_einsum_eq(self, targets, num_qubits):
         """
-        Generates the einsum string for tensor contraction.
-        """
-        l_chars = string.ascii_lowercase
-        u_chars = string.ascii_uppercase
+        Generates the einsum string for tensor contraction supporting up to 52 qubits.
+        Uses standard ASCII letters (a-z, A-Z) to map input and output indices.
 
-        state_in = list(l_chars[:num_qubits])
-        gate_out = list(u_chars[: len(targets)])
+        Parameters
+        ----------
+        targets : list of int
+            The target qubits the gate acts on.
+        num_qubits : int
+            The total number of qubits (tensor dimensions) in the state.
+
+        Returns
+        -------
+        eq : str
+            The einsum equation string (e.g., "ab,cde->cde").
+        """
+        chars = string.ascii_letters
+
+        state_in = list(chars[:num_qubits])
+        gate_out = list(chars[num_qubits : num_qubits + len(targets)])
 
         gate_in = [state_in[t] for t in targets]
 
@@ -307,60 +320,40 @@ class CircuitSimulator:
         return state
 
     def _evolve_state_einsum(self, gate, targets_indices, state):
+        """
+        Applies a gate to the state using tensor contraction (einsum).
+        Delegates all data routing to QuTiP's internal dispatcher, allowing
+        seamless integration with numpy, scipy, and qutip-jax backends.
+
+        Parameters
+        ----------
+        gate: :class:`.Gate`
+            The quantum gate to be applied.
+        targets_indices: list of int
+            The indices of the target qubits.
+        state: :class:`qutip.Qobj`
+            The current quantum state vector.
+
+        Returns
+        -------
+        state : :class:`qutip.Qobj`
+            The updated quantum state, maintaining its original data type.
+        """
         gate_qobj = gate.get_qobj()
 
         original_dims = state.dims
         original_shape = state.shape
+        data_type = type(state.data).__name__
 
         # Generate equation
         num_dims = len(self._tensor_dims)
         eq = self._generate_einsum_eq(targets_indices, num_dims)
 
-        data_type = type(state.data).__name__
-
-        if data_type == "JaxArray":
-            import jax.numpy as jnp
-            from qutip_jax.jaxarray import JaxArray
-
-            gate_qobj = gate_qobj.to("jax")
-
-            raw_state = state.data._jxa
-            raw_gate = gate_qobj.data._jxa
-
-            state_tensor = raw_state.reshape(self._tensor_dims)
-            gate_tensor = raw_gate.reshape(gate_qobj.dims[0] + gate_qobj.dims[1])
-
-            new_state_tensor = jnp.einsum(eq, gate_tensor, state_tensor)
-
-            reshaped_data = JaxArray(new_state_tensor.reshape(original_shape))
-            state = Qobj(reshaped_data, dims=original_dims)
-
-        elif data_type == "CuState":
-            import cupy as cp
-            from cuquantum.tensornet import contract
-            from qutip_cuquantum import CuState
-
-            gate_qobj = gate_qobj.to("CuOperator")
-
-            raw_state = state.data.to_cupy()
-            raw_gate = cp.array(gate_qobj.full())
-
-            state_tensor = raw_state.reshape(self._tensor_dims)
-            gate_tensor = raw_gate.reshape(gate_qobj.dims[0] + gate_qobj.dims[1])
-
-            new_state_tensor = contract(eq, gate_tensor, state_tensor)
-
-            reshaped_data = CuState(new_state_tensor.reshape(original_shape))
-            state = Qobj(reshaped_data, dims=original_dims)
-
-        else:
-            from qutip.core.dimensions import einsum
-
-            malformed_state = einsum(eq, gate_qobj, state)
-            reshaped_data = _data.reshape(
-                malformed_state.data, original_shape[0], original_shape[1]
-            )
-            state = Qobj(reshaped_data, dims=original_dims)
+        malformed_state = einsum(eq, gate_qobj, state)
+        reshaped_data = _data.reshape(
+            malformed_state.data, original_shape[0], original_shape[1]
+        )
+        state = Qobj(reshaped_data, dims=original_dims).to(data_type)
 
         return state
 
