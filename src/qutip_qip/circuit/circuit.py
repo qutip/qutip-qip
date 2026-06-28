@@ -4,7 +4,7 @@ Quantum circuit representation and simulation.
 
 import warnings
 import inspect
-from typing import Iterable, Type
+from typing import Iterable, Type, Self
 from qutip import qeye, Qobj, basis, tensor
 import numpy as np
 
@@ -13,14 +13,17 @@ from qutip_qip.circuit import (
     CircuitInstruction,
     GateInstruction,
     MeasurementInstruction,
+    OpInstruction,
 )
 from qutip_qip.circuit._decompose import (
     _resolve_to_universal,
     _resolve_2q_basis,
 )
 from qutip_qip.operations import (
+    Bloq,
     Gate,
     Measurement,
+    Op,
     expand_operator,
     get_unitary_gate,
 )
@@ -85,6 +88,7 @@ class QubitCircuit:
         self.reverse_states = reverse_states
         self.num_cbits: int = num_cbits
         self._global_phase: float = 0.0
+        self._ops: list[Op] = []
         self._instructions: list[CircuitInstruction] = []
         self.dims = dims if dims is not None else [2] * self.num_qubits
 
@@ -247,6 +251,44 @@ class QubitCircuit:
         if state_type == "output":
             for i in targets:
                 self.output_states[i] = state
+
+    def add_op(
+        self: Self,
+        op: Op,
+        qreg: int | IntSequence = (),
+        creg: int | IntSequence = (),
+    ):
+        if type(qreg) is int:
+            qreg = [qreg]
+
+        if type(creg) is int:
+            creg = [creg]
+
+        # TODO validate the inputs
+        self._ops.append(OpInstruction(op=op, qreg=tuple(qreg), creg=tuple(creg)))
+
+    def build(self: Self):
+        """
+        Converts _ops list to a frozen _instructions tuple.
+        """
+        self._instructions = []
+
+        for op_instruction in self._ops:
+            if isinstance(op_instruction.op, Gate) or issubclass(
+                op_instruction.op, Gate
+            ):
+                self._instructions.append(
+                    GateInstruction(
+                        operation=op_instruction.op,
+                        qubits=op_instruction.qreg,
+                        cbits=op_instruction.creg,
+                    )
+                )
+
+            # TODO handle measurement op
+            # TODO handle non-gate/non-measurement op
+
+        self._instructions = tuple(self._instructions)
 
     def add_measurement(
         self,

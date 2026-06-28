@@ -43,36 +43,38 @@ def read_qasm(
     if strmode:
         qasm_lines = qasm_input.splitlines()
     else:
-        f = open(qasm_input, "r")
-        qasm_lines = f.read().splitlines()
-        f.close()
+        with open(qasm_input, "r") as f:
+            qasm_lines = f.read().splitlines()
 
-    # split input into lines and ignore comments
-    qasm_lines = [line.strip() for line in qasm_lines]
-    qasm_lines = list(filter(lambda x: x[:2] != "//" and x != "", qasm_lines))
-    # QASMBench Benchmark Suite has lines that have comments after instructions.
-    # Not sure if QASM standard allows this.
+    # Remove lines with comments
+    # Note: lstrip is required for cases like "  // This is a comment"
+    # [:] used here is to do this operation in place (saves memory)
+    qasm_lines[:] = [line for line in qasm_lines if not line.lstrip().startswith("//")]
+
+    # Lines that have comments after instructions (remove those comments)
     for i in range(len(qasm_lines)):
-        qasm_line = qasm_lines[i]
-        loc_comment = qasm_line.find("//")
+        loc_comment = qasm_lines[i].find("//")
         if loc_comment >= 0:
-            qasm_line = qasm_line[0:loc_comment]
-        qasm_lines[i] = qasm_line
+            qasm_lines[i] = qasm_lines[i][:loc_comment]
 
+    # Remove empty lines
+    qasm_lines[:] = [line for line in qasm_lines if line.strip()]
+
+    # Strip extra whitespace, tabspace
+    qasm_lines[:] = [" ".join(line.split()) for line in qasm_lines]
+
+    # TODO Update this when QASM 3 is added
     if version != "2.0":
-        raise NotImplementedError("QASM: Only OpenQASM 2.0 \
-                                  is currently supported.")
+        raise NotImplementedError("QASM: Only OpenQASM 2.0 is currently supported.")
 
     if qasm_lines.pop(0) != "OPENQASM 2.0;":
         raise SyntaxError("QASM: File does not contain QASM 2.0 header")
 
     qasm_obj = QasmProcessor(qasm_lines, mode=mode, version=version)
     qasm_obj.commands = _tokenize(qasm_obj.commands)
-
     qasm_obj._process_includes()
-
     qasm_obj._initialize_pass()
-    qc = QubitCircuit(qasm_obj.num_qubits, num_cbits=qasm_obj.num_cbits)
 
+    qc = QubitCircuit(qasm_obj.num_qubits, num_cbits=qasm_obj.num_cbits)
     qasm_obj._final_pass(qc)
     return qc
