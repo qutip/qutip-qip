@@ -305,7 +305,10 @@ class CircuitSimulator:
         U: Qobj
             unitary to be applied.
         """
-        U = operation.get_qobj()
+        data_type = type(state.data).__name__
+        gate_dtype = "CuOperator" if data_type == "CuState" else "Dense"
+
+        U = operation.get_qobj().to(gate_dtype)
         U = expand_operator(
             U,
             dims=self.dims,
