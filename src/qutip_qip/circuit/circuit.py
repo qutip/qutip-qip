@@ -5,6 +5,7 @@ Quantum circuit representation and simulation.
 import warnings
 import inspect
 from contextlib import contextmanager
+from enum import StrEnum
 from typing import Iterable, Type, Self
 from qutip import qeye, Qobj, basis, tensor
 import numpy as np
@@ -44,6 +45,13 @@ except ImportError:
 
     def DisplaySVG(data, *args, **kwargs):
         return data
+
+
+class ClassicalControlCheck(StrEnum):
+    EQ = "EQ"
+    NEQ = "NEQ"
+    GT = "GT"
+    LT = "LT"
 
 
 class QubitCircuit:
@@ -255,15 +263,25 @@ class QubitCircuit:
                 self.output_states[i] = state
 
     @contextmanager
-    def if_eq(self: Self, cbits: int | IntSequence, value: int):
-        previous_condition = self._active_condition
-        self._active_condition = {"type": "if_eq", "bits": cbits, "value": value}
+    def if_eq(
+        self: Self,
+        cbits: int | IntSequence,
+        value: int,
+        check: ClassicalControlCheck = "EQ",
+    ):
+        # TODO check the arguments
 
-        try:
-            # Yields the control back to the code inside the `with` block
-            yield
-        finally:
-            self._active_condition = previous_condition
+        previous_condition = self._active_condition
+        self._active_condition = {"bits": cbits, "value": value, "check": check}
+
+        # TODO Add the conditional branch and label logic
+        self.add_op()
+
+        # Yields the control back to the code inside the `with` block
+        yield
+
+        self.add_op()
+        self._active_condition = previous_condition
 
     def add_op(
         self: Self,
@@ -276,10 +294,6 @@ class QubitCircuit:
 
         if type(creg) is int:
             creg = [creg]
-
-        if self._active_condition:
-            # Add the conditional branch and label logic
-            pass
 
         # TODO validate the inputs
         self._ops.append(OpInstruction(op=op, qreg=tuple(qreg), creg=tuple(creg)))
