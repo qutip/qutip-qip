@@ -8,7 +8,8 @@ from qutip import ket2dm, Qobj
 from qutip.core import data as _data
 from qutip.core.dimensions import einsum
 from qutip_qip.circuit.simulator import CircuitResult
-from qutip_qip.operations import expand_operator
+from qutip_qip.operations import expand_operator, Gate
+from qutip_qip.typing import IntSequence
 
 
 def _decimal_to_binary(decimal, length):
@@ -296,17 +297,28 @@ class CircuitSimulator:
 
         return f"{gate_str}, {state_in_str}... -> {state_out_str}..."
 
-    def _evolve_state(self, operation, targets_indices, state):
+    def _evolve_state(
+        self, operation: Gate, targets_indices: int | IntSequence, state: Qobj
+    ) -> Qobj:
         """
-        Applies unitary to state.
+         Applies a unitary gate to the quantum state using operator expansion.
 
-        Parameters
-        ----------
-        U: Qobj
-            unitary to be applied.
+         Parameters
+         ----------
+        operation : :class:`.Gate`
+             The quantum gate to be applied.
+         targets_indices : int or sequence of int
+             The indices of the target qubits.
+         state : :class:`qutip.Qobj`
+             The current quantum state (ket or density matrix).
+
+         Returns
+         -------
+         state : :class:`qutip.Qobj`
+             The updated quantum state.
         """
-        data_type = type(state.data).__name__
-        gate_dtype = "CuOperator" if data_type == "CuState" else "Dense"
+        state_dtype = type(state.data).__name__
+        gate_dtype = "CuOperator" if state_dtype == "CuState" else state_dtype
 
         U = operation.get_qobj().to(gate_dtype)
         U = expand_operator(
@@ -322,27 +334,25 @@ class CircuitSimulator:
             raise NotImplementedError(f"mode {self.mode} is not available.")
         return state
 
-    def _evolve_state_einsum(self, gate, targets_indices, state):
+    def _evolve_state_einsum(self, operation, targets_indices, state):
         """
         Applies a gate to the state using tensor contraction (einsum).
-        Delegates all data routing to QuTiP's internal dispatcher, allowing
-        seamless integration with numpy, scipy, and qutip-jax backends.
 
         Parameters
         ----------
-        gate: :class:`.Gate`
+        operation : :class:`.Gate`
             The quantum gate to be applied.
-        targets_indices: list of int
+        targets_indices : int or sequence of int
             The indices of the target qubits.
-        state: :class:`qutip.Qobj`
+        state : :class:`qutip.Qobj`
             The current quantum state vector.
 
         Returns
         -------
         state : :class:`qutip.Qobj`
-            The updated quantum state, maintaining its original data type.
+            The updated quantum state.
         """
-        gate_qobj = gate.get_qobj()
+        gate_qobj = operation.get_qobj()
 
         original_dims = state.dims
         original_shape = state.shape
