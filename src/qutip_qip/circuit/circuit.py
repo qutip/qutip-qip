@@ -4,6 +4,7 @@ Quantum circuit representation and simulation.
 
 import warnings
 import inspect
+from contextlib import contextmanager
 from typing import Iterable, Type, Self
 from qutip import qeye, Qobj, basis, tensor
 import numpy as np
@@ -91,6 +92,7 @@ class QubitCircuit:
         self._ops: list[Op] = []
         self._instructions: list[CircuitInstruction] = []
         self.dims = dims if dims is not None else [2] * self.num_qubits
+        self._active_condition = None  # To track if we are inside an if_eq block
 
         if input_states:
             self.input_states = input_states
@@ -252,6 +254,17 @@ class QubitCircuit:
             for i in targets:
                 self.output_states[i] = state
 
+    @contextmanager
+    def if_eq(self: Self, cbits: int | IntSequence, value: int):
+        previous_condition = self._active_condition
+        self._active_condition = {"type": "if_eq", "bits": cbits, "value": value}
+
+        try:
+            # Yields the control back to the code inside the `with` block
+            yield
+        finally:
+            self._active_condition = previous_condition
+
     def add_op(
         self: Self,
         op: Op,
@@ -263,6 +276,10 @@ class QubitCircuit:
 
         if type(creg) is int:
             creg = [creg]
+
+        if self._active_condition:
+            # Add the conditional branch and label logic
+            pass
 
         # TODO validate the inputs
         self._ops.append(OpInstruction(op=op, qreg=tuple(qreg), creg=tuple(creg)))
