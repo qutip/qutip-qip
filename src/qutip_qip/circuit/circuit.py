@@ -21,8 +21,8 @@ from qutip_qip.circuit._decompose import (
     _resolve_to_universal,
     _resolve_2q_basis,
 )
+from qutip_qip.circuit.conditional import Cbnz, Cbz, Label
 from qutip_qip.operations import (
-    Bloq,
     Gate,
     Measurement,
     Op,
@@ -228,6 +228,8 @@ class QubitCircuit:
     def instructions(self) -> list[CircuitInstruction]:
         return self._instructions
 
+    # TODO: Add method to add auxilary qubits
+
     def add_state(
         self,
         state: str,
@@ -263,7 +265,7 @@ class QubitCircuit:
                 self.output_states[i] = state
 
     @contextmanager
-    def if_eq(
+    def test_if(
         self: Self,
         cbits: int | IntSequence,
         value: int,
@@ -271,17 +273,20 @@ class QubitCircuit:
     ):
         # TODO check the arguments
 
-        previous_condition = self._active_condition
-        self._active_condition = {"bits": cbits, "value": value, "check": check}
+        label_name = f"label_{self._label_counter}"
+        self._label_counter += 1
 
-        # TODO Add the conditional branch and label logic
-        self.add_op()
+        for index, cbit in enumerate(cbits):
+            if (value >> index) & 1 == 0:
+                self.add_op(Cbnz(label=label_name), creg=cbit)
+            else:
+                self.add_op(Cbz(label=label_name), creg=cbit)
 
         # Yields the control back to the code inside the `with` block
-        yield
-
-        self.add_op()
-        self._active_condition = previous_condition
+        try:
+            yield
+        finally:
+            self.add_op(Label(label_name))
 
     def add_op(
         self: Self,
