@@ -310,7 +310,15 @@ class QubitCircuit:
         self._instructions = []
 
         for op_instruction in self._ops:
-            if isinstance(op_instruction.op, Gate) or issubclass(
+            if isinstance(op_instruction.op, Label):
+                self._instructions.append()
+
+            elif isinstance(op_instruction.op, Cbz) or isinstance(
+                op_instruction.op, Cbnz
+            ):
+                self._instructions.append()
+
+            elif isinstance(op_instruction.op, Gate) or issubclass(
                 op_instruction.op, Gate
             ):
                 self._instructions.append(
