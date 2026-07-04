@@ -23,6 +23,8 @@ class OpInstruction:
     op: Op
     qreg: tuple[int, ...] = tuple()
     creg: tuple[int, ...] = tuple()
+    # TODO add a style here instead of circuit instruction
+    # TODO move the circuit draw functionality based on Op then CircuitInstructions
 
     def __post_init__(self):
         pass
@@ -37,11 +39,6 @@ class CircuitInstruction(ABC):
 
     def __post_init__(self):
         """Basic validation for all instructions."""
-        if not len(self.qubits) and not len(self.cbits):
-            raise ValueError(
-                "Circuit Instruction must operate on at least one qubit or cbit."
-            )
-
         _validate_non_negative_int_tuple(self.qubits, "qubit")
         _validate_non_negative_int_tuple(self.cbits, "cbit")
 
@@ -189,6 +186,9 @@ class MeasurementInstruction(CircuitInstruction):
         if not isinstance(self.operation, Measurement):
             raise TypeError(f"Operation must be a measurement, got {self.operation}")
 
+        if (not len(self.qubits)) or (not len(self.cbits)):
+            raise ValueError("qubits or cbits arguments can't be empty")
+
         if len(self.qubits) != len(self.cbits):
             raise ValueError("Measurement requires equal number of qubits and cbits.")
 
@@ -214,8 +214,10 @@ class ConditionalBranchInstruction(CircuitInstruction):
                 f"Operation must be conditional branch, got {type(self.operation)}"
             )
 
-        if (type(self.cbits) is not int) or (self.cbits < 0):
-            raise ValueError("Cbit must be a non-negative integer.")
+        if len(self.cbits) != 1:
+            raise ValueError(
+                "Conditional Branch instruction must be on a single qubit."
+            )
 
     @staticmethod
     def is_conditional_instruction() -> bool:
