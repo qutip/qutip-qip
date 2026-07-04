@@ -10,18 +10,19 @@ from typing import Iterable, Type, Self
 from qutip import qeye, Qobj, basis, tensor
 import numpy as np
 
-from qutip_qip.circuit import (
-    CircuitSimulator,
-    CircuitInstruction,
-    GateInstruction,
-    MeasurementInstruction,
-    OpInstruction,
-)
+from qutip_qip.circuit import CircuitSimulator, OpInstruction
 from qutip_qip.circuit._decompose import (
     _resolve_to_universal,
     _resolve_2q_basis,
 )
-from qutip_qip.circuit.conditional import Cbnz, Cbz, Label
+from qutip_qip.circuit.instruction import (
+    CircuitInstruction,
+    ConditionalBranchInstruction,
+    GateInstruction,
+    LabelInstruction,
+    MeasurementInstruction,
+)
+from qutip_qip.circuit.conditional import Cbnz, Cbz, Conditional, Label
 from qutip_qip.operations import (
     Gate,
     Measurement,
@@ -310,17 +311,16 @@ class QubitCircuit:
         self._instructions = []
 
         for op_instruction in self._ops:
-            if isinstance(op_instruction.op, Label):
-                self._instructions.append()
+            op = op_instruction.op
+            if isinstance(op, Label):
+                self._instructions.append(LabelInstruction(op_instruction.op))
 
-            elif isinstance(op_instruction.op, Cbz) or isinstance(
-                op_instruction.op, Cbnz
-            ):
-                self._instructions.append()
+            elif isinstance(op, Conditional):
+                self._instructions.append(
+                    ConditionalBranchInstruction(operation=op, cbits=op.creg)
+                )
 
-            elif isinstance(op_instruction.op, Gate) or issubclass(
-                op_instruction.op, Gate
-            ):
+            elif isinstance(op, Gate) or issubclass(op, Gate):
                 self._instructions.append(
                     GateInstruction(
                         operation=op_instruction.op,
