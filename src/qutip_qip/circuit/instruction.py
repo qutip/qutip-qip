@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Type
 from dataclasses import dataclass, field
 import warnings
+from qutip_qip.circuit.conditional import Conditional, Label, Cbnz, Cbz
 from qutip_qip.operations import Gate, Measurement, Op
 
 
@@ -18,8 +19,18 @@ def _validate_non_negative_int_tuple(T: any, txt: str = ""):
 
 
 @dataclass(frozen=True, slots=True)
+class OpInstruction:
+    op: Op
+    qreg: tuple[int, ...] = tuple()
+    creg: tuple[int, ...] = tuple()
+
+    def __post_init__(self):
+        pass
+
+
+@dataclass(frozen=True, slots=True)
 class CircuitInstruction(ABC):
-    operation: Gate | Type[Gate] | Measurement
+    operation: Gate | Type[Gate] | Measurement | Conditional | Label
     qubits: tuple[int, ...] = tuple()
     cbits: tuple[int, ...] = tuple()
     style: dict = field(default_factory=dict)
@@ -48,7 +59,14 @@ class CircuitInstruction(ABC):
     def is_measurement_instruction() -> bool:
         return False
 
-    @abstractmethod
+    @staticmethod
+    def is_conditional_instruction() -> bool:
+        return False
+
+    @staticmethod
+    def is_label_instrcution() -> bool:
+        return False
+
     def to_qasm(self, qasm_out) -> None:
         raise NotImplementedError
 
@@ -58,16 +76,6 @@ class CircuitInstruction(ABC):
 
     def __repr__(self) -> str:
         return str(self)
-
-
-@dataclass(frozen=True, slots=True)
-class OpInstruction:
-    op: Op
-    qreg: tuple[int, ...] = tuple()
-    creg: tuple[int, ...] = tuple()
-
-    def __post_init__(self):
-        pass
 
 
 @dataclass(frozen=True, slots=True)
@@ -194,3 +202,40 @@ class MeasurementInstruction(CircuitInstruction):
 
     def __str__(self) -> str:
         return f"Measure(q{self.qubits} -> c{self.cbits})"
+
+
+class ConditionalBranchInstruction(CircuitInstruction):
+    operation: Conditional
+
+    def __post_init__(self) -> None:
+        super(ConditionalBranchInstruction, self).__post_init__()
+        if not isinstance(self.operation, Cbz) or not isinstance(self.operation, Cbnz):
+            raise TypeError(
+                f"Operation must be conditional branch, got {type(self.operation)}"
+            )
+
+        if (type(self.cbits) is not int) or (self.cbits < 0):
+            raise ValueError("Cbit must be a non-negative integer.")
+
+    @staticmethod
+    def is_conditional_instruction() -> bool:
+        return True
+
+    def __str__(self) -> str:
+        return f"{self.operation}(cbit={self.cbits})"
+
+
+class LabelInstruction(CircuitInstruction):
+    operation: Label
+
+    def __post_init__(self) -> None:
+        super(LabelInstruction, self).__post_init__()
+        if not isinstance(self.operation, Label):
+            raise TypeError(f"Operation must be label, got {type(self.operation)}")
+
+    @staticmethod
+    def is_label_instruction() -> bool:
+        return True
+
+    def __str__(self) -> str:
+        return str(self.operation)

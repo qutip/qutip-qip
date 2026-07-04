@@ -8,15 +8,16 @@ class Label(Op):
         self.name = name
 
 
-class Cbz(Op):
-    "Conditional branch on zero"
+class Conditional(Op):
+    """Classical conditional control flow statements"""
 
     def __init__(self, label):
         self.label = label
+
+
+class Cbz(Op):
+    "Conditional branch on zero"
 
 
 class Cbnz(Op):
     "Conditional branch on non-zero i.e. 1."
-
-    def __init__(self, label):
-        self.label = label
