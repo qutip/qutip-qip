@@ -229,7 +229,7 @@ class QubitCircuit:
     def instructions(self) -> list[CircuitInstruction]:
         return self._instructions
 
-    # TODO: Add method to add auxilary qubits
+    # TODO: Add method to add auxiliary qubits
 
     def add_state(
         self,

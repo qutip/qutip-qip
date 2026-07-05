@@ -61,9 +61,9 @@ class CircuitSimulator:
         self.dims = qc.dims
         self.mode = mode
         self._label_map = {
-            circ_instrcution.operation.name: index
-            for index, circ_instrcution in enumerate(qc.instructions)
-            if circ_instrcution.is_label_instruction()
+            circ_instruction.operation.name: index
+            for index, circ_instruction in enumerate(qc.instructions)
+            if circ_instruction.is_label_instruction()
         }
 
     @property
