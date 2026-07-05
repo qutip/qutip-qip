@@ -204,6 +204,7 @@ class MeasurementInstruction(CircuitInstruction):
         return f"Measure(q{self.qubits} -> c{self.cbits})"
 
 
+@dataclass(frozen=True, slots=True)
 class ConditionalBranchInstruction(CircuitInstruction):
     operation: Conditional
 
@@ -225,6 +226,7 @@ class ConditionalBranchInstruction(CircuitInstruction):
         return f"{self.operation}(cbit={self.cbits})"
 
 
+@dataclass(frozen=True, slots=True)
 class LabelInstruction(CircuitInstruction):
     operation: Label
 
