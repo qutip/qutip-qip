@@ -329,7 +329,15 @@ class QubitCircuit:
                     )
                 )
 
-            # TODO handle measurement op
+            elif isinstance(op, Measurement) or issubclass(op, Measurement):
+                self._instructions.append(
+                    MeasurementInstruction(
+                        operation=op_instruction.op,
+                        qubits=op_instruction.qreg,
+                        cbits=op_instruction.creg,
+                    )
+                )
+
             # TODO handle non-gate/non-measurement op
 
         self._instructions = tuple(self._instructions)
