@@ -1,9 +1,11 @@
+from functools import reduce
 from itertools import product
 from operator import mul
-from functools import reduce
+from typing import Self
 import numpy as np
 
 from qutip import ket2dm, Qobj
+from qutip_qip.circuit.conditional import Cbz, Cbnz, Label
 from qutip_qip.circuit.simulator import CircuitResult
 from qutip_qip.operations import expand_operator
 
@@ -58,6 +60,11 @@ class CircuitSimulator:
         self._qc = qc
         self.dims = qc.dims
         self.mode = mode
+        self._label_map = {
+            op.name: index
+            for index, op in enumerate(qc.instructions)
+            if isinstance(op, Label)
+        }
 
     @property
     def qc(self):
@@ -209,32 +216,39 @@ class CircuitSimulator:
 
         return CircuitResult(states, probabilities, cbits_results)
 
-    def step(self):
+    def step(self: Self) -> None:
         """
         Return state after one step of circuit evolution
         (gate or measurement).
-
-        Returns
-        -------
-        state : ket or oper
-            state after one evolution step.
         """
 
-        circ_instruction = self.qc.instructions[self._op_index]
-        current_state = self._state
+        current_instruction = self.qc.instructions[self._op_index]
+        if current_instruction.is_label_instruction():
+            pass
 
-        if self.qc.instructions[self._op_index].is_measurement_instruction():
-            targets = circ_instruction.qubits
-            classical_store = circ_instruction.cbits
-            state = self._apply_measurement(
-                circ_instruction.operation, targets, classical_store
+        elif current_instruction.is_conditional_instruction():
+            op = current_instruction.operation
+            label_name = op.label.name
+
+            if (
+                isinstance(op, Cbz) and self.cbits[current_instruction.cbits[0]] == 0
+            ) or (
+                isinstance(op, Cbnz) and self.cbits[current_instruction.cbits[0]] == 1
+            ):
+                self._op_index = self._label_map[label_name]
+
+        elif current_instruction.is_measurement_instruction():
+            targets = current_instruction.qubits
+            classical_store = current_instruction.cbits
+            self._state = self._apply_measurement(
+                current_instruction.operation, targets, classical_store
             )
 
-        elif self.qc.instructions[self._op_index].is_gate_instruction():
-            gate = circ_instruction.operation
-            qubits = circ_instruction.qubits
-            classical_controls = circ_instruction.cbits
-            classical_control_value = circ_instruction.cbits_ctrl_value
+        elif current_instruction.is_gate_instruction():
+            gate = current_instruction.operation
+            qubits = current_instruction.qubits
+            classical_controls = current_instruction.cbits
+            classical_control_value = current_instruction.cbits_ctrl_value
 
             if len(classical_controls) > 0:
                 apply_gate = _check_classical_control_value(
@@ -247,16 +261,13 @@ class CircuitSimulator:
                 self._op_index += 1
                 return
             if self.mode == "state_vector_simulator":
-                state = self._evolve_state_einsum(gate, qubits, current_state)
+                self._state = self._evolve_state_einsum(gate, qubits, self._state)
             else:
-                state = self._evolve_state(gate, qubits, current_state)
+                self._state = self._evolve_state(gate, qubits, self._state)
 
         else:
-            raise ValueError(
-                f"Invalid operation {self.qc.instructions[self._op_index]}"
-            )
+            raise ValueError(f"Invalid operation {current_instruction}")
 
-        self._state = state
         self._op_index += 1
 
     def _evolve_state(self, operation, targets_indices, state):
