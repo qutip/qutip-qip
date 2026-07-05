@@ -15,9 +15,9 @@ class Conditional(Op):
         self.label = label
 
 
-class Cbz(Op):
+class Cbz(Conditional):
     "Conditional branch on zero"
 
 
-class Cbnz(Op):
+class Cbnz(Conditional):
     "Conditional branch on non-zero i.e. 1."

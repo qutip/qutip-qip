@@ -61,7 +61,7 @@ class CircuitInstruction(ABC):
         return False
 
     @staticmethod
-    def is_label_instrcution() -> bool:
+    def is_label_instruction() -> bool:
         return False
 
     def to_qasm(self, qasm_out) -> None:
@@ -209,7 +209,7 @@ class ConditionalBranchInstruction(CircuitInstruction):
 
     def __post_init__(self) -> None:
         super(ConditionalBranchInstruction, self).__post_init__()
-        if not isinstance(self.operation, Cbz) or not isinstance(self.operation, Cbnz):
+        if not (isinstance(self.operation, Cbz) or isinstance(self.operation, Cbnz)):
             raise TypeError(
                 f"Operation must be conditional branch, got {type(self.operation)}"
             )

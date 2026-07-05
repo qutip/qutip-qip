@@ -61,9 +61,9 @@ class CircuitSimulator:
         self.dims = qc.dims
         self.mode = mode
         self._label_map = {
-            op.name: index
-            for index, op in enumerate(qc.instructions)
-            if isinstance(op, Label)
+            circ_instrcution.operation.name: index
+            for index, circ_instrcution in enumerate(qc.instructions)
+            if circ_instrcution.is_label_instruction()
         }
 
     @property
@@ -166,7 +166,8 @@ class CircuitSimulator:
         """
         self.initialize(state, cbits, measure_results)
 
-        for _ in range(len(self._qc.instructions)):
+        num_instructions = len(self.qc.instructions)
+        while self._op_index < num_instructions:
             self.step()
             if self._state is None:
                 # TODO This only happens if there is predefined post-selection on the measurement results and the measurement results is exactly 0. This needs to be improved.

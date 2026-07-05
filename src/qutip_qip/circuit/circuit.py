@@ -100,8 +100,8 @@ class QubitCircuit:
         self._global_phase: float = 0.0
         self._ops: list[Op] = []
         self._instructions: list[CircuitInstruction] = []
+        self._label_counter = 0
         self.dims = dims if dims is not None else [2] * self.num_qubits
-        self._active_condition = None  # To track if we are inside an if_eq block
 
         if input_states:
             self.input_states = input_states
@@ -273,21 +273,23 @@ class QubitCircuit:
         check: ClassicalControlCheck = "EQ",
     ):
         # TODO check the arguments
+        if type(cbits) is int:
+            cbits = [cbits]
 
-        label_name = f"label_{self._label_counter}"
+        label = Label(f"label_{self._label_counter}")
         self._label_counter += 1
 
         for index, cbit in enumerate(cbits):
             if (value >> index) & 1 == 0:
-                self.add_op(Cbnz(label=label_name), creg=cbit)
+                self.add_op(Cbnz(label=label), creg=cbit)
             else:
-                self.add_op(Cbz(label=label_name), creg=cbit)
+                self.add_op(Cbz(label=label), creg=cbit)
 
         # Yields the control back to the code inside the `with` block
         try:
             yield
         finally:
-            self.add_op(Label(label_name))
+            self.add_op(label)
 
     def add_op(
         self: Self,
@@ -313,26 +315,28 @@ class QubitCircuit:
         for op_instruction in self._ops:
             op = op_instruction.op
             if isinstance(op, Label):
-                self._instructions.append(LabelInstruction(op_instruction.op))
+                self._instructions.append(LabelInstruction(operation=op))
 
             elif isinstance(op, Conditional):
                 self._instructions.append(
-                    ConditionalBranchInstruction(operation=op, cbits=op.creg)
-                )
-
-            elif isinstance(op, Gate) or issubclass(op, Gate):
-                self._instructions.append(
-                    GateInstruction(
-                        operation=op_instruction.op,
-                        qubits=op_instruction.qreg,
-                        cbits=op_instruction.creg,
+                    ConditionalBranchInstruction(
+                        operation=op, cbits=op_instruction.creg
                     )
                 )
 
             elif isinstance(op, Measurement) or issubclass(op, Measurement):
                 self._instructions.append(
                     MeasurementInstruction(
-                        operation=op_instruction.op,
+                        operation=op,
+                        qubits=op_instruction.qreg,
+                        cbits=op_instruction.creg,
+                    )
+                )
+
+            elif isinstance(op, Gate) or issubclass(op, Gate):
+                self._instructions.append(
+                    GateInstruction(
+                        operation=op,
                         qubits=op_instruction.qreg,
                         cbits=op_instruction.creg,
                     )
