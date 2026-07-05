@@ -215,9 +215,7 @@ class ConditionalBranchInstruction(CircuitInstruction):
             )
 
         if len(self.cbits) != 1:
-            raise ValueError(
-                "Conditional Branch instruction must be on a single qubit."
-            )
+            raise ValueError("Conditional Branch instruction must be on a single cbit.")
 
     @staticmethod
     def is_conditional_instruction() -> bool:

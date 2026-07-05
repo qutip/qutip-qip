@@ -276,6 +276,8 @@ class QubitCircuit:
         if type(cbits) is int:
             cbits = [cbits]
 
+        # TODO Implement other checks
+
         label = Label(f"label_{self._label_counter}")
         self._label_counter += 1
 
@@ -324,7 +326,9 @@ class QubitCircuit:
                     )
                 )
 
-            elif isinstance(op, Measurement) or issubclass(op, Measurement):
+            elif isinstance(op, Measurement) or (
+                isinstance(op, type) and issubclass(op, Measurement)
+            ):
                 self._instructions.append(
                     MeasurementInstruction(
                         operation=op,
@@ -333,7 +337,9 @@ class QubitCircuit:
                     )
                 )
 
-            elif isinstance(op, Gate) or issubclass(op, Gate):
+            elif isinstance(op, Gate) or (
+                isinstance(op, type) and issubclass(op, Gate)
+            ):
                 self._instructions.append(
                     GateInstruction(
                         operation=op,

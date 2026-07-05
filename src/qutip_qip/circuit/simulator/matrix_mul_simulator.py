@@ -5,7 +5,7 @@ from typing import Self
 import numpy as np
 
 from qutip import ket2dm, Qobj
-from qutip_qip.circuit.conditional import Cbz, Cbnz, Label
+from qutip_qip.circuit.conditional import Cbz, Cbnz
 from qutip_qip.circuit.simulator import CircuitResult
 from qutip_qip.operations import expand_operator
 
