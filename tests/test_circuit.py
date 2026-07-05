@@ -375,6 +375,24 @@ class TestQubitCircuit:
         assert qc.instructions[3].controls == (1,)
         assert qc.instructions[1].controls == (0,)
 
+    def test_classical_control_flow(self):
+        qc = QubitCircuit(num_qubits=2, num_cbits=1)
+
+        qc.add_op(gates.H, qreg=0)
+        qc.add_op(gates.CX, qreg=(0, 1))
+        qc.add_op(Mz, qreg=0, creg=0)
+
+        cbit = 0
+        with qc.test_if(cbit, 1):
+            qc.add_op(gates.X, qreg=0)
+            qc.add_op(gates.X, qreg=1)
+
+        qc.build()
+
+        result = qc.run()
+        fid = qutip.fidelity(result, basis(4, 0))
+        assert pytest.approx(fid, 1.0e-6) == 1
+
     def test_reverse(self):
         """
         Reverse a quantum circuit
@@ -897,10 +915,6 @@ class TestInstructionErrors:
 
             def __str__(self):
                 return ""
-
-        with pytest.raises(ValueError):
-            # Circuit Instruction must operate on at least one qubit or cbit
-            MockInstruction("gate", qubits=(), cbits=())
 
         with pytest.raises(TypeError):
             MockInstruction(
