@@ -224,28 +224,8 @@ class CircuitSimulator:
         """
 
         current_instruction = self.qc.instructions[self._op_index]
-        if current_instruction.is_label_instruction():
-            pass
 
-        elif current_instruction.is_conditional_instruction():
-            op = current_instruction.operation
-            label_name = op.label.name
-
-            if (
-                isinstance(op, Cbz) and self.cbits[current_instruction.cbits[0]] == 0
-            ) or (
-                isinstance(op, Cbnz) and self.cbits[current_instruction.cbits[0]] == 1
-            ):
-                self._op_index = self._label_map[label_name]
-
-        elif current_instruction.is_measurement_instruction():
-            targets = current_instruction.qubits
-            classical_store = current_instruction.cbits
-            self._state = self._apply_measurement(
-                current_instruction.operation, targets, classical_store
-            )
-
-        elif current_instruction.is_gate_instruction():
+        if current_instruction.is_gate_instruction():
             gate = current_instruction.operation
             qubits = current_instruction.qubits
             classical_controls = current_instruction.cbits
@@ -265,6 +245,27 @@ class CircuitSimulator:
                 self._state = self._evolve_state_einsum(gate, qubits, self._state)
             else:
                 self._state = self._evolve_state(gate, qubits, self._state)
+
+        elif current_instruction.is_measurement_instruction():
+            targets = current_instruction.qubits
+            classical_store = current_instruction.cbits
+            self._state = self._apply_measurement(
+                current_instruction.operation, targets, classical_store
+            )
+
+        elif current_instruction.is_conditional_instruction():
+            op = current_instruction.operation
+            label_name = op.label.name
+
+            if (
+                isinstance(op, Cbz) and self.cbits[current_instruction.cbits[0]] == 0
+            ) or (
+                isinstance(op, Cbnz) and self.cbits[current_instruction.cbits[0]] == 1
+            ):
+                self._op_index = self._label_map[label_name]
+
+        elif current_instruction.is_label_instruction():
+            pass
 
         else:
             raise ValueError(f"Invalid operation {current_instruction}")

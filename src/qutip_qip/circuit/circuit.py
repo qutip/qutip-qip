@@ -316,16 +316,17 @@ class QubitCircuit:
 
         for op_instruction in self._ops:
             op = op_instruction.op
-            if isinstance(op, Label):
-                self._instructions.append(LabelInstruction(operation=op))
 
-            elif isinstance(op, Conditional):
+            if isinstance(op, Gate) or (isinstance(op, type) and issubclass(op, Gate)):
                 self._instructions.append(
-                    ConditionalBranchInstruction(
-                        operation=op, cbits=op_instruction.creg
+                    GateInstruction(
+                        operation=op,
+                        qubits=op_instruction.qreg,
+                        cbits=op_instruction.creg,
                     )
                 )
 
+            # TODO In future Measurement should always just be a class
             elif isinstance(op, Measurement) or (
                 isinstance(op, type) and issubclass(op, Measurement)
             ):
@@ -337,16 +338,15 @@ class QubitCircuit:
                     )
                 )
 
-            elif isinstance(op, Gate) or (
-                isinstance(op, type) and issubclass(op, Gate)
-            ):
+            elif isinstance(op, Conditional):
                 self._instructions.append(
-                    GateInstruction(
-                        operation=op,
-                        qubits=op_instruction.qreg,
-                        cbits=op_instruction.creg,
+                    ConditionalBranchInstruction(
+                        operation=op, cbits=op_instruction.creg
                     )
                 )
+
+            elif isinstance(op, Label):
+                self._instructions.append(LabelInstruction(operation=op))
 
             # TODO handle non-gate/non-measurement op
 
