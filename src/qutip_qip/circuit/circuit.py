@@ -293,7 +293,7 @@ class QubitCircuit:
         if check == ClassicalControlCheck.EQ:
             for index, cbit in enumerate(cbits):
                 if (value >> index) & 1 == 1:
-                    # If does not match for cbit_value=1, then branch to label (don't execute the condiitonal if)
+                    # If does not match for cbit_value=1, then branch to label (don't execute the conditional if)
                     self.add_op(Cbz(label=label), creg=cbit)
                 else:
                     # If does not match for cbit_value=0, then branch to label
