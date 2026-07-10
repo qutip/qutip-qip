@@ -53,6 +53,8 @@ class ClassicalControlCheck(StrEnum):
     NEQ = "NEQ"
     GT = "GT"
     LT = "LT"
+    GTE = "GTE"  # This can be subimplemented using GT - 1
+    LTE = "LTE"
 
 
 class QubitCircuit:
@@ -266,28 +268,120 @@ class QubitCircuit:
                 self.output_states[i] = state
 
     @contextmanager
-    def test_if(
+    def if_test(
         self: Self,
         cbits: int | IntSequence,
         value: int,
         check: ClassicalControlCheck = "EQ",
     ):
-        # TODO check the arguments
+        # TODO Validate the arguments
         if type(cbits) is int:
             cbits = [cbits]
 
-        # TODO Implement other checks
+        # GTE, LTE checks can be implemented as GT, LT conditions itself
+        if check == ClassicalControlCheck.GTE:
+            check = ClassicalControlCheck.GT
+            value -= 1
+
+        elif check == ClassicalControlCheck.LTE:
+            check = ClassicalControlCheck.LT
+            value += 1
 
         label = Label(f"label_{self._label_counter}")
         self._label_counter += 1
 
-        for index, cbit in enumerate(cbits):
-            if (value >> index) & 1 == 0:
-                self.add_op(Cbnz(label=label), creg=cbit)
-            else:
-                self.add_op(Cbz(label=label), creg=cbit)
+        if check == ClassicalControlCheck.EQ:
+            for index, cbit in enumerate(cbits):
+                if (value >> index) & 1 == 1:
+                    # If does not match for cbit_value=1, then branch to label (don't execute the condiitonal if)
+                    self.add_op(Cbz(label=label), creg=cbit)
+                else:
+                    # If does not match for cbit_value=0, then branch to label
+                    self.add_op(Cbnz(label=label), creg=cbit)
 
-        # Yields the control back to the code inside the `with` block
+        elif check == ClassicalControlCheck.NEQ:
+            neq_label = Label(f"label_{self._label_counter}")
+            self._label_counter += 1
+
+            for index, cbit in enumerate(cbits):
+                target_bit_value = (value >> index) & 1
+
+                if target_bit_value == 1:
+                    # If a mismatch match for cbit_value=1, then branch to neqlabel
+                    self.add_op(Cbz(label=neq_label), creg=cbit)
+                else:
+                    self.add_op(Cbnz(label=neq_label), creg=cbit)
+
+            # This will only execute if non of the earlier conditional branching executes.
+            # means NEQ is FALSE. We must skip the conditional block.
+
+            # This must be preferably replaced Jump statement (unconditional)
+            self.add_op(Cbz(label=label), creg=0)
+            self.add_op(Cbnz(label=label), creg=0)
+
+            # Successful entry point for the NEQ condition
+            self.add_op(neq_label)
+
+        elif check == ClassicalControlCheck.GT:
+            # Check for redundant conditions
+            if value >= 2 ** len(cbits):  # Never true
+                return
+
+            elif value > 0:  # for value less than 0, condition is always true
+                gt_label = Label(f"label_{self._label_counter}")
+                self._label_counter += 1
+
+                for index, cbit in enumerate(cbits):
+                    target_bit_value = (value >> index) & 1
+
+                    # We break at first point of discontinuity (but to different labels)
+                    if target_bit_value == 1:
+                        self.add_op(Cbz(label=label), creg=cbit)
+                    else:
+                        self.add_op(Cbnz(label=gt_label), creg=cbit)
+
+                # If execution falls through the entire loop without jumping,
+                # it means every single bit matched exactly.
+                # self.add_op(Jump(label=label))
+                self.add_op(Cbz(label=label), creg=0)
+                self.add_op(Cbnz(label=label), creg=0)
+
+                # Entry point for the GT conditional block
+                self.add_op(gt_label)
+
+        elif check == ClassicalControlCheck.LT:
+            # Check for redundant conditions
+            if value <= 0:  # Never true
+                return
+
+            elif value < 2 ** len(
+                cbits
+            ):  # for value larger than 2^m, condition is always true
+                lt_label = Label(f"label_{self._label_counter}")
+                self._label_counter += 1
+
+                for index, cbit in enumerate(cbits):
+                    target_bit_value = (value >> index) & 1
+
+                    # We break at first point of discontinuity (but to different labels)
+                    if target_bit_value == 1:
+                        self.add_op(Cbz(label=lt_label), creg=cbit)
+                    else:
+                        self.add_op(Cbnz(label=label), creg=cbit)
+
+                # If execution falls through the entire loop without jumping,
+                # it means every single bit matched exactly.
+                # self.add_op(Jump(label=label))
+                self.add_op(Cbz(label=label), creg=0)
+                self.add_op(Cbnz(label=label), creg=0)
+
+                # Entry point for the GT conditional block
+                self.add_op(lt_label)
+
+        else:
+            raise ValueError(f"Invalid check {check}")
+
+        # Yields the control back to the code inside the "with" context block
         try:
             yield
         finally:
