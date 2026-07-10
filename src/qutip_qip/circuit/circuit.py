@@ -291,33 +291,43 @@ class QubitCircuit:
         self._label_counter += 1
 
         if check == ClassicalControlCheck.EQ:
-            for index, cbit in enumerate(cbits):
-                if (value >> index) & 1 == 1:
-                    # If does not match for cbit_value=1, then branch to label (don't execute the conditional if)
-                    self.add_op(Cbz(label=label), creg=cbit)
-                else:
-                    # If does not match for cbit_value=0, then branch to label
-                    self.add_op(Cbnz(label=label), creg=cbit)
+            if (value < 0) or (value >= 2 ** len(cbits)):
+                return  # Useless if_test condition
+
+            else:
+                for index, cbit in enumerate(cbits):
+                    if (value >> index) & 1 == 1:
+                        # If does not match for cbit_value=1, then branch to label (don't execute the conditional if)
+                        self.add_op(Cbz(label=label), creg=cbit)
+                    else:
+                        # If does not match for cbit_value=0, then branch to label
+                        self.add_op(Cbnz(label=label), creg=cbit)
 
         elif check == ClassicalControlCheck.NEQ:
             neq_label = Label(f"label_{self._label_counter}")
             self._label_counter += 1
 
-            for index, cbit in enumerate(cbits):
-                target_bit_value = (value >> index) & 1
+            if (value < 0) or (value >= 2 ** len(cbits)):
+                # This is an unconditional jump essentially
+                self.add_op(Cbz(label=neq_label), creg=0)
+                self.add_op(Cbnz(label=neq_label), creg=0)
 
-                if target_bit_value == 1:
-                    # If a mismatch match for cbit_value=1, then branch to neqlabel
-                    self.add_op(Cbz(label=neq_label), creg=cbit)
-                else:
-                    self.add_op(Cbnz(label=neq_label), creg=cbit)
+            else:
+                for index, cbit in enumerate(cbits):
+                    target_bit_value = (value >> index) & 1
 
-            # This will only execute if non of the earlier conditional branching executes.
-            # means NEQ is FALSE. We must skip the conditional block.
+                    if target_bit_value == 1:
+                        # If a mismatch match for cbit_value=1, then branch to neqlabel
+                        self.add_op(Cbz(label=neq_label), creg=cbit)
+                    else:
+                        self.add_op(Cbnz(label=neq_label), creg=cbit)
 
-            # This must be preferably replaced Jump statement (unconditional)
-            self.add_op(Cbz(label=label), creg=0)
-            self.add_op(Cbnz(label=label), creg=0)
+                # This will only execute if non of the earlier conditional branching executes.
+                # means NEQ is FALSE. We must skip the conditional block.
+
+                # This must be preferably replaced Jump statement (unconditional)
+                self.add_op(Cbz(label=label), creg=0)
+                self.add_op(Cbnz(label=label), creg=0)
 
             # Successful entry point for the NEQ condition
             self.add_op(neq_label)
@@ -327,7 +337,7 @@ class QubitCircuit:
             if value >= 2 ** len(cbits):  # Never true
                 return
 
-            elif value > 0:  # for value less than 0, condition is always true
+            elif value >= 0:  # for value less than 0, condition is always true
                 gt_label = Label(f"label_{self._label_counter}")
                 self._label_counter += 1
 
