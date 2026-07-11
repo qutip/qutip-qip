@@ -89,6 +89,8 @@ jobs:
 
       - name: Upload to Coveralls
         uses: coverallsapp/github-action@v2
+        env:
+          HOMEBREW_NO_REQUIRE_TAP_TRUST: 1
         with:
           flag-name: run-${{ matrix.os }}-py${{ matrix.python-version }}-${{ matrix.case-name }}
           parallel: true
