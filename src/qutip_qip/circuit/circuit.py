@@ -4,23 +4,26 @@ Quantum circuit representation and simulation.
 
 import warnings
 import inspect
+from contextlib import contextmanager
+from enum import StrEnum
 from typing import Iterable, Type, Self
 from qutip import qeye, Qobj, basis, tensor
 import numpy as np
 
-from qutip_qip.circuit import (
-    CircuitSimulator,
-    CircuitInstruction,
-    GateInstruction,
-    MeasurementInstruction,
-    OpInstruction,
-)
+from qutip_qip.circuit import CircuitSimulator, OpInstruction
 from qutip_qip.circuit._decompose import (
     _resolve_to_universal,
     _resolve_2q_basis,
 )
+from qutip_qip.circuit.instruction import (
+    CircuitInstruction,
+    ConditionalBranchInstruction,
+    GateInstruction,
+    LabelInstruction,
+    MeasurementInstruction,
+)
+from qutip_qip.circuit.conditional import Cbnz, Cbz, Conditional, Label
 from qutip_qip.operations import (
-    Bloq,
     Gate,
     Measurement,
     Op,
@@ -43,6 +46,15 @@ except ImportError:
 
     def DisplaySVG(data, *args, **kwargs):
         return data
+
+
+class ClassicalControlCheck(StrEnum):
+    EQ = "EQ"
+    NEQ = "NEQ"
+    GT = "GT"
+    LT = "LT"
+    GTE = "GTE"  # This can be subimplemented using GT - 1
+    LTE = "LTE"
 
 
 class QubitCircuit:
@@ -90,6 +102,7 @@ class QubitCircuit:
         self._global_phase: float = 0.0
         self._ops: list[Op] = []
         self._instructions: list[CircuitInstruction] = []
+        self._label_counter = 0
         self.dims = dims if dims is not None else [2] * self.num_qubits
 
         if input_states:
@@ -218,6 +231,8 @@ class QubitCircuit:
     def instructions(self) -> list[CircuitInstruction]:
         return self._instructions
 
+    # TODO: Add method to add auxiliary qubits
+
     def add_state(
         self,
         state: str,
@@ -252,6 +267,136 @@ class QubitCircuit:
             for i in targets:
                 self.output_states[i] = state
 
+    @contextmanager
+    def if_test(
+        self: Self,
+        cbits: int | IntSequence,
+        value: int,
+        check: ClassicalControlCheck = "EQ",
+    ):
+        # TODO Validate the arguments
+        if type(cbits) is int:
+            cbits = [cbits]
+
+        # GTE, LTE checks can be implemented as GT, LT conditions itself
+        if check == ClassicalControlCheck.GTE:
+            check = ClassicalControlCheck.GT
+            value -= 1
+
+        elif check == ClassicalControlCheck.LTE:
+            check = ClassicalControlCheck.LT
+            value += 1
+
+        label = Label(f"label_{self._label_counter}")
+        self._label_counter += 1
+
+        if check == ClassicalControlCheck.EQ:
+            if (value < 0) or (value >= 2 ** len(cbits)):
+                return  # Useless if_test condition
+
+            else:
+                for index, cbit in enumerate(cbits):
+                    if (value >> index) & 1 == 1:
+                        # If does not match for cbit_value=1, then branch to label (don't execute the conditional if)
+                        self.add_op(Cbz(label=label), creg=cbit)
+                    else:
+                        # If does not match for cbit_value=0, then branch to label
+                        self.add_op(Cbnz(label=label), creg=cbit)
+
+        elif check == ClassicalControlCheck.NEQ:
+            neq_label = Label(f"label_{self._label_counter}")
+            self._label_counter += 1
+
+            if (value < 0) or (value >= 2 ** len(cbits)):
+                # This is an unconditional jump essentially
+                self.add_op(Cbz(label=neq_label), creg=0)
+                self.add_op(Cbnz(label=neq_label), creg=0)
+
+            else:
+                for index, cbit in enumerate(cbits):
+                    target_bit_value = (value >> index) & 1
+
+                    if target_bit_value == 1:
+                        # If a mismatch match for cbit_value=1, then branch to neqlabel
+                        self.add_op(Cbz(label=neq_label), creg=cbit)
+                    else:
+                        self.add_op(Cbnz(label=neq_label), creg=cbit)
+
+                # This will only execute if non of the earlier conditional branching executes.
+                # means NEQ is FALSE. We must skip the conditional block.
+
+                # This must be preferably replaced Jump statement (unconditional)
+                self.add_op(Cbz(label=label), creg=0)
+                self.add_op(Cbnz(label=label), creg=0)
+
+            # Successful entry point for the NEQ condition
+            self.add_op(neq_label)
+
+        elif check == ClassicalControlCheck.GT:
+            # Check for redundant conditions
+            if value >= 2 ** len(cbits):  # Never true
+                return
+
+            elif value >= 0:  # for value less than 0, condition is always true
+                gt_label = Label(f"label_{self._label_counter}")
+                self._label_counter += 1
+
+                for index, cbit in enumerate(cbits):
+                    target_bit_value = (value >> index) & 1
+
+                    # We break at first point of discontinuity (but to different labels)
+                    if target_bit_value == 1:
+                        self.add_op(Cbz(label=label), creg=cbit)
+                    else:
+                        self.add_op(Cbnz(label=gt_label), creg=cbit)
+
+                # If execution falls through the entire loop without jumping,
+                # it means every single bit matched exactly.
+                # self.add_op(Jump(label=label))
+                self.add_op(Cbz(label=label), creg=0)
+                self.add_op(Cbnz(label=label), creg=0)
+
+                # Entry point for the GT conditional block
+                self.add_op(gt_label)
+
+        elif check == ClassicalControlCheck.LT:
+            # Check for redundant conditions
+            if value <= 0:  # Never true
+                return
+
+            elif value < 2 ** len(
+                cbits
+            ):  # for value larger than 2^m, condition is always true
+                lt_label = Label(f"label_{self._label_counter}")
+                self._label_counter += 1
+
+                for index, cbit in enumerate(cbits):
+                    target_bit_value = (value >> index) & 1
+
+                    # We break at first point of discontinuity (but to different labels)
+                    if target_bit_value == 1:
+                        self.add_op(Cbz(label=lt_label), creg=cbit)
+                    else:
+                        self.add_op(Cbnz(label=label), creg=cbit)
+
+                # If execution falls through the entire loop without jumping,
+                # it means every single bit matched exactly.
+                # self.add_op(Jump(label=label))
+                self.add_op(Cbz(label=label), creg=0)
+                self.add_op(Cbnz(label=label), creg=0)
+
+                # Entry point for the GT conditional block
+                self.add_op(lt_label)
+
+        else:
+            raise ValueError(f"Invalid check {check}")
+
+        # Yields the control back to the code inside the "with" context block
+        try:
+            yield
+        finally:
+            self.add_op(label)
+
     def add_op(
         self: Self,
         op: Op,
@@ -274,18 +419,39 @@ class QubitCircuit:
         self._instructions = []
 
         for op_instruction in self._ops:
-            if isinstance(op_instruction.op, Gate) or issubclass(
-                op_instruction.op, Gate
-            ):
+            op = op_instruction.op
+
+            if isinstance(op, Gate) or (isinstance(op, type) and issubclass(op, Gate)):
                 self._instructions.append(
                     GateInstruction(
-                        operation=op_instruction.op,
+                        operation=op,
                         qubits=op_instruction.qreg,
                         cbits=op_instruction.creg,
                     )
                 )
 
-            # TODO handle measurement op
+            # TODO In future Measurement should always just be a class
+            elif isinstance(op, Measurement) or (
+                isinstance(op, type) and issubclass(op, Measurement)
+            ):
+                self._instructions.append(
+                    MeasurementInstruction(
+                        operation=op,
+                        qubits=op_instruction.qreg,
+                        cbits=op_instruction.creg,
+                    )
+                )
+
+            elif isinstance(op, Conditional):
+                self._instructions.append(
+                    ConditionalBranchInstruction(
+                        operation=op, cbits=op_instruction.creg
+                    )
+                )
+
+            elif isinstance(op, Label):
+                self._instructions.append(LabelInstruction(operation=op))
+
             # TODO handle non-gate/non-measurement op
 
         self._instructions = tuple(self._instructions)
