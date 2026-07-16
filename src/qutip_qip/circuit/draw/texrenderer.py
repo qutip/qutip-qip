@@ -72,7 +72,7 @@ class TeXRenderer:
                 cbits = tuple(sorted(set(cbits).union(classical_controls[index])))
                 gate = op
                 targets = qubits
-                controls = ()
+                controls = []
 
                 if gate.is_controlled:
                     controls = qubits[: gate.num_ctrl_qubits]

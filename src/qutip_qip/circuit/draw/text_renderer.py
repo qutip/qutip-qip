@@ -423,7 +423,7 @@ class TextRenderer(BaseRenderer):
                 gate = op
                 gate_text = gate.name
                 targets = qubits
-                controls = targets
+                controls = []
 
                 if gate.is_controlled:
                     controls = qubits[: gate.num_ctrl_qubits]

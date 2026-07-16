@@ -775,7 +775,7 @@ class MatRenderer(BaseRenderer):
             ):
                 cbits = tuple(sorted(set(cbits).union(classical_controls[index])))
                 gate = op
-                controls = ()
+                controls = []
                 targets = qubits
 
                 if gate.is_controlled:

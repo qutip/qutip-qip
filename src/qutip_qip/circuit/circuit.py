@@ -697,7 +697,6 @@ class QubitCircuit:
                 qubits=tuple(qubits),
                 cbits=tuple(classical_controls),
                 cbits_ctrl_value=classical_control_value,
-                style=style,
             )
         )
 
@@ -735,7 +734,6 @@ class QubitCircuit:
                     controls=[start + c for c in circuit_op.controls],
                     classical_controls=circuit_op.cbits,
                     classical_control_value=circuit_op.cbits_ctrl_value,
-                    style=circuit_op.style,
                 )
 
             elif circuit_op.is_measurement_instruction():
@@ -834,7 +832,6 @@ class QubitCircuit:
                     controls=circ_instruction.controls,
                     classical_controls=circ_instruction.cbits,
                     classical_control_value=circ_instruction.cbits_ctrl_value,
-                    style=circ_instruction.style,
                 )
 
             elif circ_instruction.is_measurement_instruction():
@@ -1009,7 +1006,6 @@ class QubitCircuit:
                             controls=controls,
                             classical_controls=circ_instruction.cbits,
                             classical_control_value=circ_instruction.cbits_ctrl_value,
-                            style=circ_instruction.style,
                         )
                     else:
                         exception = f"Gate {gate.name} cannot be resolved."
@@ -1085,7 +1081,6 @@ class QubitCircuit:
                     controls=controls,
                     classical_controls=circ_instruction.cbits,
                     classical_control_value=circ_instruction.cbits_ctrl_value,
-                    style=circ_instruction.style,
                 )
 
         return qc_temp

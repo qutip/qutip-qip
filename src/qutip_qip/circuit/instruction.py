@@ -36,7 +36,6 @@ class CircuitInstruction(ABC):
     operation: Gate | Type[Gate] | Measurement | Conditional | Label
     qubits: tuple[int, ...] = tuple()
     cbits: tuple[int, ...] = tuple()
-    style: dict = field(default_factory=dict)
 
     def __post_init__(self):
         """Basic validation for all instructions."""
