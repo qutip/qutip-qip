@@ -8,6 +8,7 @@ import collections
 from typing import Callable
 
 from qutip_qip.circuit import QubitCircuit
+from qutip_qip.circuit.draw._control_flow import infer_classical_controls
 from qutip_qip.operations import gates as std
 from qutip_qip.operations import Gate, Measurement
 
@@ -60,13 +61,15 @@ class TeXRenderer:
 
         rows = []
         col = []
+        classical_controls = infer_classical_controls(self.instructions)
 
-        for op_instruction in self.instructions:
+        for index, op_instruction in enumerate(self.instructions):
             op = op_instruction.op
             qubits = op_instruction.qreg
             cbits = op_instruction.creg
 
             if isinstance(op, Gate) or (isinstance(op, type) and issubclass(op, Gate)):
+                cbits = tuple(sorted(set(cbits).union(classical_controls[index])))
                 gate = op
                 targets = qubits
                 controls = ()
@@ -149,6 +152,11 @@ class TeXRenderer:
                     else:
                         col.append(r" \qw ")
 
+            else:
+                # Labels and branches affect execution but do not occupy a
+                # column in a circuit diagram.
+                continue
+
             col.append(r" \qw ")
             rows.append(col)
 
@@ -170,8 +178,8 @@ class TeXRenderer:
         )
         for n in n_iter:
             code += rf" & {input_states[n]}"
-            for m in range(len(self.instructions)):
-                code += rf" & {rows[m][n]}"
+            for row in rows:
+                code += rf" & {row[n]}"
             code += r" & \qw \\ " + "\n"
 
         return self._latex_template % code

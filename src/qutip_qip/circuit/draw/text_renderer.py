@@ -7,6 +7,7 @@ from typing import Type
 
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.circuit.draw import BaseRenderer, StyleConfig
+from qutip_qip.circuit.draw._control_flow import infer_classical_controls
 from qutip_qip.operations import Gate, Measurement
 from qutip_qip.operations import gates as std
 
@@ -396,8 +397,9 @@ class TextRenderer(BaseRenderer):
         Layout the circuit
         """
         self._add_wire_labels()
+        classical_controls = infer_classical_controls(self._qc._ops)
 
-        for op_instruction in self._qc._ops:
+        for index, op_instruction in enumerate(self._qc._ops):
             op = op_instruction.op
             qubits = list(op_instruction.qreg)
             cbits = list(op_instruction.creg)
@@ -417,6 +419,7 @@ class TextRenderer(BaseRenderer):
             elif isinstance(op, Gate) or (
                 isinstance(op, type) and issubclass(op, Gate)
             ):
+                cbits = sorted(set(cbits).union(classical_controls[index]))
                 gate = op
                 gate_text = gate.name
                 targets = qubits
@@ -453,6 +456,11 @@ class TextRenderer(BaseRenderer):
                     parts, width = self._draw_multiq_gate(
                         gate, gate_text, targets, controls, cbits
                     )
+
+            else:
+                # Conditional branches and labels affect execution, but have no
+                # visual representation in a circuit diagram.
+                continue
 
             # update the render strings for the operation
             layer = max(len(self._layer_list[i]) for i in wire_list)

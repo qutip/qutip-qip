@@ -799,6 +799,26 @@ class TestQubitCircuit:
             ]
         )
 
+    @pytest.mark.parametrize(
+        ("check", "value"),
+        [("EQ", 1), ("NEQ", 0), ("GT", 0)],
+    )
+    def test_latex_code_conditional_blocks(self, check, value):
+        qc = QubitCircuit(1, num_cbits=1, reverse_states=True)
+        with qc.if_test(0, value, check):
+            qc.add_op(gates.X, qreg=0)
+            qc.add_op(gates.X, qreg=0)
+
+        renderer = TeXRenderer(qc)
+        latex = renderer.latex_code()
+        assert latex == renderer._latex_template % "\n".join(
+            [
+                r" &  &  \ctrl{1}  &  \ctrl{1}  & \qw \\ ",
+                r" &  &  \gate{X}  &  \gate{X}  & \qw \\ ",
+                "",
+            ]
+        )
+
     H = Qobj([[1 / np.sqrt(2), 1 / np.sqrt(2)], [1 / np.sqrt(2), -1 / np.sqrt(2)]])
     H_zyz_gates = _ZYZ_rotation(H)
     H_zyz_quantum_circuit = QubitCircuit(1)

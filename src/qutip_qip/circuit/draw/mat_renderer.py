@@ -15,6 +15,7 @@ from matplotlib.patches import (
 
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.circuit.draw import BaseRenderer, StyleConfig
+from qutip_qip.circuit.draw._control_flow import infer_classical_controls
 from qutip_qip.operations import Gate, Measurement
 from qutip_qip.operations import gates as std
 
@@ -746,8 +747,9 @@ class MatRenderer(BaseRenderer):
         """
 
         self._add_wire_labels()
+        classical_controls = infer_classical_controls(self._qc._ops)
 
-        for instruction in self._qc._ops:
+        for index, instruction in enumerate(self._qc._ops):
             op = instruction.op
             qubits = instruction.qreg
             cbits = instruction.creg
@@ -771,6 +773,7 @@ class MatRenderer(BaseRenderer):
             elif isinstance(op, Gate) or (
                 isinstance(op, type) and issubclass(op, Gate)
             ):
+                cbits = tuple(sorted(set(cbits).union(classical_controls[index])))
                 gate = op
                 controls = ()
                 targets = qubits
