@@ -28,6 +28,8 @@ class OpInstruction:
     def __post_init__(self):
         pass
 
+    # TODO add instructions to test for gate, measurement etc. (used in circuit draw)
+
 
 @dataclass(frozen=True, slots=True)
 class CircuitInstruction(ABC):
