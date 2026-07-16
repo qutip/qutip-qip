@@ -513,6 +513,14 @@ class QubitCircuit:
             )
         )
 
+        self._ops.append(
+            OpInstruction(
+                op=measurement,
+                qreg=tuple(targets),
+                creg=tuple(classical_store),
+            )
+        )
+
     def add_gate(
         self,
         gate: Gate | Type[Gate] | str,
@@ -692,6 +700,18 @@ class QubitCircuit:
                 style=style,
             )
         )
+
+        instruction = OpInstruction(
+            op=gate,
+            qreg=tuple(qubits),
+            style=style,
+        )
+
+        if len(classical_controls) > 0:
+            with self.if_test(classical_controls, classical_control_value):
+                self._ops.append(instruction)
+        else:
+            self._ops.append(instruction)
 
     def add_circuit(self, qc, start=0):  # TODO Instead of start have a qubit mapping?
         """

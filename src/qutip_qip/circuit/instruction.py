@@ -23,8 +23,7 @@ class OpInstruction:
     op: Op
     qreg: tuple[int, ...] = tuple()
     creg: tuple[int, ...] = tuple()
-    # TODO add a style here instead of circuit instruction
-    # TODO move the circuit draw functionality based on Op then CircuitInstructions
+    style: dict = field(default_factory=dict)
 
     def __post_init__(self):
         pass
