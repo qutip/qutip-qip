@@ -844,8 +844,13 @@ class Processor:
                 grid = grids[pulse_ind]
                 ax = plt.subplot(grid)
                 axis.append(ax)
-                ax.fill(tlist, coeff, color_list[i], alpha=0.7)
-                ax.plot(tlist, coeff, color_list[i])
+                # The color must be passed as a keyword argument. The third
+                # positional argument is only treated as a format string if it
+                # is a string; since matplotlib 3.11 the default property
+                # cycle yields RGB tuples, which are instead consumed as the
+                # x data of a second line, leaving the pulse itself uncolored.
+                ax.fill(tlist, coeff, color=color_list[i], alpha=0.7)
+                ax.plot(tlist, coeff, color=color_list[i])
                 if rescale_pulse_coeffs:
                     ymax = np.max(np.abs(coeff)) * 1.1
                 else:
