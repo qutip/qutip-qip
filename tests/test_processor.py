@@ -176,6 +176,40 @@ class TestCircuitProcessor:
         # left open, so we politely close it:
         plt.close(fig)
 
+    def test_plot_pulses_group_colors(self):
+        """
+        Each group of pulse labels gets its own color from the property cycle.
+
+        Regression test: matplotlib 3.11 changed the default property cycle to
+        yield RGB tuples rather than hex strings. A tuple passed as the third
+        positional argument of ax.plot is not a format string, so it is taken
+        as the x data of a further line instead of as a color, and every group
+        ends up drawn in the first color of the cycle.
+        """
+        plt = pytest.importorskip("matplotlib.pyplot")
+        from matplotlib.colors import to_rgba
+
+        tlist = np.linspace(0.0, 2 * np.pi, 20)
+        processor = Processor(num_qubits=1, spline_kind="cubic")
+        processor.add_control(sigmaz(), label="sz")
+        processor.add_control(sigmax(), label="sx")
+        processor.set_all_coeffs(
+            {
+                "sz": np.array([np.sin(t) for t in tlist]),
+                "sx": np.array([np.cos(t) for t in tlist]),
+            }
+        )
+        processor.set_all_tlist(tlist)
+
+        # One group per control, so each axis uses a different cycle color.
+        fig, axis = processor.plot_pulses(pulse_labels=[{"sz": "sz"}, {"sx": "sx"}])
+        color_list = plt.rcParams["axes.prop_cycle"].by_key()["color"]
+        for ax, expected in zip(axis, color_list):
+            # A stray line would mean the color was consumed as plot data.
+            assert len(ax.get_lines()) == 1
+            assert to_rgba(ax.get_lines()[0].get_color()) == to_rgba(expected)
+        plt.close(fig)
+
     def testSpline(self):
         """
         Test if the spline kind is correctly transferred into
