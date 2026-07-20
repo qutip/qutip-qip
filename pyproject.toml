@@ -70,8 +70,7 @@ Donate = "https://github.com/sponsors/qutip"
 graphics = ["matplotlib>=3.6"]
 control = ["qutip-qtrl>=0.1.5"]
 qiskit = ["qiskit>=2.0"]
-jax = ["qutip-jax", "jax", "jaxlib"]
-cuquantum = ["qutip-cuquantum", "cuquantum", "cupy"]
+cuquantum = ["qutip-cuquantum>=0.1.0", "cuquantum>=23.3.0", "cupy>=12.2.0"]
 full = [
     "qutip-qip[graphics,qiskit,control]",
 ]
