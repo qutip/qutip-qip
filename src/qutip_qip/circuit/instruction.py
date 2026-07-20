@@ -30,6 +30,9 @@ class OpInstruction:
 
     # TODO add instructions to test for gate, measurement etc. (used in circuit draw)
 
+    def __str__(self):
+        print(f"op={self.op}, qreg={self.qreg}, creg={self.creg}, style({self.style})")
+
 
 @dataclass(frozen=True, slots=True)
 class CircuitInstruction(ABC):
@@ -174,7 +177,7 @@ class GateInstruction(CircuitInstruction):
 
     def __str__(self) -> str:
         return f"Gate({self.operation}), qubits({self.qubits}),\
-                cbits({self.cbits}), style({self.style})"
+                cbits({self.cbits})"
 
 
 @dataclass(frozen=True, slots=True)

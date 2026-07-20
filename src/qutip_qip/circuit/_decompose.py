@@ -484,7 +484,6 @@ def _basis_SQRTISWAP(qc_temp, temp_resolved):
                 controls=controls,
                 classical_controls=circ_instruction.cbits,
                 classical_control_value=circ_instruction.cbits_ctrl_value,
-                style=circ_instruction.style,
             )
 
 
