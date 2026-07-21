@@ -54,7 +54,6 @@ class ModelProcessor(Processor):
         self.transpile_functions = []
         self._default_compiler = None
 
-
     def run_state(
         self, init_state=None, analytical=False, qc=None, states=None, **kwargs
     ):
