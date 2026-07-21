@@ -54,17 +54,6 @@ class ModelProcessor(Processor):
         self.transpile_functions = []
         self._default_compiler = None
 
-    def set_up_params(self):
-        """
-        Save the parameters in the attribute `params` and check the validity.
-        (Defined in subclasses)
-
-        Notes
-        -----
-        All parameters will be multiplied by 2*pi for simplicity
-        """
-        raise NotImplementedError("Parameters should be defined in subclass.")
-
     def run_state(
         self, init_state=None, analytical=False, qc=None, states=None, **kwargs
     ):
