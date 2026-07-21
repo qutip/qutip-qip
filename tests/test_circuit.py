@@ -17,6 +17,7 @@ from qutip import (
     ket2dm,
     identity,
 )
+from qutip.measurement import measurement_statistics
 
 from qutip_qip.circuit import (
     QubitCircuit,
@@ -27,7 +28,12 @@ from qutip_qip.circuit import (
 )
 from qutip_qip.circuit.draw import TeXRenderer
 from qutip_qip.decompose.decompose_single_qubit_gate import _ZYZ_rotation
-from qutip_qip.operations import Gate, Measurement, gate_sequence_product
+from qutip_qip.operations import (
+    Gate,
+    Measurement,
+    gate_sequence_product,
+    expand_operator,
+)
 import qutip_qip.operations.gates as gates
 from qutip_qip.operations.measurement import Mz
 from qutip_qip.transpiler import to_chain_structure
@@ -77,6 +83,20 @@ def _measurement_circuit():
     qc.add_measurement(Mz, targets=[1], classical_store=1)
 
     return qc
+
+
+def _get_probs(state, measurement_obj, targets):
+    """Helper to get probabilities"""
+    if isinstance(measurement_obj, type):
+        measurement_obj = measurement_obj()
+    n = int(np.log2(state.shape[0]))
+    raw_ops = measurement_obj.get_measurement_ops()
+    expanded_ops = [
+        expand_operator(oper=op, dims=[2] * n, targets=targets) for op in raw_ops
+    ]
+
+    _, probabilities = measurement_statistics(state, expanded_ops)
+    return probabilities
 
 
 class TestQubitCircuit:
@@ -318,7 +338,7 @@ class TestQubitCircuit:
         # checking correct addition of measurements
         assert qc.instructions[0].qubits[0] == 0
         assert qc.instructions[0].cbits[0] == 0
-        assert isinstance(qc.instructions[3].operation, Measurement)
+        assert issubclass(qc.instructions[3].operation, Measurement)
         assert qc.instructions[5].cbits[0] == 2
 
         # checking if gates are added correctly with measurements
@@ -393,7 +413,7 @@ class TestQubitCircuit:
         qc_rev = qc.reverse_circuit()
 
         assert qc_rev.instructions[0].operation == gates.H
-        assert isinstance(qc_rev.instructions[1].operation, Measurement)
+        assert issubclass(qc_rev.instructions[1].operation, Measurement)
         assert qc_rev.instructions[2].operation == gates.CX
         assert isinstance(qc_rev.instructions[3].operation, gates.RX)
 
@@ -531,13 +551,13 @@ class TestQubitCircuit:
         teleportation = _teleportation_circuit()
 
         state = tensor(rand_ket(2), basis(2, 0), basis(2, 0))
-        _, initial_probabilities = Mz.measurement_comp_basis(state, qubits=[0])
+        initial_probabilities = _get_probs(state, Mz, [0])
 
         teleportation_sim = CircuitSimulator(teleportation)
         teleportation_sim_results = teleportation_sim.run(state)
         state_final = teleportation_sim_results.get_final_states(0)
 
-        _, final_probabilities = Mz.measurement_comp_basis(state_final, qubits=[2])
+        final_probabilities = _get_probs(state_final, Mz, [2])
 
         np.testing.assert_allclose(initial_probabilities, final_probabilities)
 
@@ -572,7 +592,7 @@ class TestQubitCircuit:
         teleportation = _teleportation_circuit()
 
         original_state = tensor(rand_ket(2), basis(2, 0), basis(2, 0))
-        _, initial_probabilities = Mz.measurement_comp_basis(original_state, qubits=[0])
+        initial_probabilities = _get_probs(original_state, Mz, [0])
 
         teleportation_results = teleportation.run_statistics(original_state)
         states = teleportation_results.get_final_states()
@@ -581,7 +601,7 @@ class TestQubitCircuit:
         for i, state in enumerate(states):
             state_final = state
             prob = probabilities[i]
-            _, final_probabilities = Mz.measurement_comp_basis(state_final, qubits=[2])
+            final_probabilities = _get_probs(state_final, Mz, [2])
             np.testing.assert_allclose(initial_probabilities, final_probabilities)
             assert prob == pytest.approx(0.25, abs=1e-7)
 
@@ -591,8 +611,8 @@ class TestQubitCircuit:
         teleportation2 = _teleportation_circuit2()
 
         final_state = teleportation2.run(dm_state)
-        _, probs1 = Mz.measurement_comp_basis(final_state, qubits=[2])
-        _, probs2 = Mz.measurement_comp_basis(mixed_state, qubits=[2])
+        probs1 = _get_probs(final_state, Mz, [2])
+        probs2 = _get_probs(mixed_state, Mz, [2])
 
         np.testing.assert_allclose(probs1, probs2)
 
@@ -677,7 +697,7 @@ class TestQubitCircuit:
         rand_state = rand_ket(2)
         state = tensor(basis(2, 0), basis(2, 0), basis(2, 0), rand_state)
 
-        _, probs_initial = Mz.measurement_comp_basis(state, qubits=[3])
+        probs_initial = _get_probs(state, Mz, [3])
 
         simulator = CircuitSimulator(qc)
 
@@ -686,7 +706,7 @@ class TestQubitCircuit:
         result_cbits = result.get_cbits()
 
         for i, final_state in enumerate(final_states):
-            _, probs_final = Mz.measurement_comp_basis(final_state, qubits=[3])
+            probs_final = _get_probs(final_state, Mz, [3])
             np.testing.assert_allclose(probs_initial, probs_final)
             assert sum(result_cbits[i]) == 1
 

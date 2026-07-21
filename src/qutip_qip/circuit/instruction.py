@@ -19,7 +19,7 @@ def _validate_non_negative_int_tuple(T: any, txt: str = ""):
 
 @dataclass(frozen=True, slots=True)
 class CircuitInstruction(ABC):
-    operation: Gate | Type[Gate] | Measurement
+    operation: Gate | Type[Gate] | Type[Measurement]
     qubits: tuple[int, ...] = tuple()
     cbits: tuple[int, ...] = tuple()
     style: dict = field(default_factory=dict)
@@ -168,7 +168,13 @@ class MeasurementInstruction(CircuitInstruction):
 
     def __post_init__(self) -> None:
         super(MeasurementInstruction, self).__post_init__()
-        if not isinstance(self.operation, Measurement):
+        if not (
+            isinstance(self.operation, Measurement)
+            or (
+                isinstance(self.operation, type)
+                and issubclass(self.operation, Measurement)
+            )
+        ):
             raise TypeError(f"Operation must be a measurement, got {self.operation}")
 
         if len(self.qubits) != len(self.cbits):

@@ -1,11 +1,13 @@
 from itertools import product
 from operator import mul
 from functools import reduce
+from typing import Type
 import numpy as np
 
 from qutip import ket2dm, Qobj
+from qutip.measurement import measurement_statistics
 from qutip_qip.circuit.simulator import CircuitResult
-from qutip_qip.operations import expand_operator
+from qutip_qip.operations import expand_operator, Measurement
 
 
 def _decimal_to_binary(decimal, length):
@@ -312,14 +314,19 @@ class CircuitSimulator:
         )
         return state
 
-    def _apply_measurement(self, operation, qubits, cbits):
+    def _apply_measurement(
+        self,
+        operation: Type[Measurement],
+        qubits: tuple[int, ...],
+        cbits: tuple[int, ...],
+    ) -> Qobj:
         """
         Applies measurement gate specified by operation to current state.
 
         Parameters
         ----------
-        operation: :class:`.Measurement`
-            Measurement gate in a circuit object.
+        operation: :class:`.Measurement` or Type[:class:`.Measurement`]
+            Measurement gate in a circuit object or its class.
         qubits : tuple of int
             The indices of the qubits to be measured.
         cbits : tuple of int
@@ -331,7 +338,16 @@ class CircuitSimulator:
         state : qutip.Qobj
             The collapsed state after the measurement.
         """
-        states, probabilities = operation.measurement_comp_basis(self.state, qubits)
+        current_state = self.state
+        n = self.qc.num_qubits
+        if issubclass(operation, Measurement):
+            operation = operation()
+        raw_ops = operation.get_measurement_ops()
+        measurement_ops = [
+            expand_operator(oper=op, dims=[2] * n, targets=qubits) for op in raw_ops
+        ]
+
+        states, probabilities = measurement_statistics(current_state, measurement_ops)
 
         if self.mode == "state_vector_simulator":
             if self._measure_results:
@@ -339,7 +355,8 @@ class CircuitSimulator:
                 self._measure_ind += 1
             else:
                 probabilities = [p / sum(probabilities) for p in probabilities]
-                i = np.random.choice([0, 1], p=probabilities)
+                outcome_indices = np.arange(len(probabilities))
+                i = np.random.choice(outcome_indices, p=probabilities)
             self._probability *= probabilities[i]
             state = states[i]
             if cbits:
