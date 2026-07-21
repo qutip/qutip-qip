@@ -7,7 +7,8 @@ from typing import Type
 
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.circuit.draw import BaseRenderer, StyleConfig
-from qutip_qip.operations import Gate
+from qutip_qip.circuit.draw._control_flow import infer_classical_controls
+from qutip_qip.operations import Gate, Measurement
 from qutip_qip.operations import gates as std
 
 
@@ -396,13 +397,17 @@ class TextRenderer(BaseRenderer):
         Layout the circuit
         """
         self._add_wire_labels()
+        classical_controls = infer_classical_controls(self._qc._ops)
 
-        for circ_instruction in self._qc.instructions:
-            qubits = list(circ_instruction.qubits)
-            cbits = list(circ_instruction.cbits)
+        for index, op_instruction in enumerate(self._qc._ops):
+            op = op_instruction.op
+            qubits = list(op_instruction.qreg)
+            cbits = list(op_instruction.creg)
 
             # generate the parts, width and wire_list for the gates
-            if circ_instruction.is_measurement_instruction():
+            if isinstance(op, Measurement) or (
+                isinstance(op, type) and issubclass(op, Measurement)
+            ):
                 wire_list = list(range(qubits[0] + 1)) + list(
                     range(
                         cbits[0] + self._qwires,
@@ -411,11 +416,18 @@ class TextRenderer(BaseRenderer):
                 )
                 parts, width = self._draw_measurement_gate(qubits, cbits)
 
-            elif circ_instruction.is_gate_instruction():
-                gate = circ_instruction.operation
+            elif isinstance(op, Gate) or (
+                isinstance(op, type) and issubclass(op, Gate)
+            ):
+                cbits = sorted(set(cbits).union(classical_controls[index]))
+                gate = op
                 gate_text = gate.name
-                targets = list(circ_instruction.targets)
-                controls = list(circ_instruction.controls)
+                targets = qubits
+                controls = []
+
+                if gate.is_controlled:
+                    controls = qubits[: gate.num_ctrl_qubits]
+                    targets = qubits[gate.num_ctrl_qubits :]
 
                 if gate.is_parametric and gate.arg_label is not None:
                     gate_text = gate.arg_label
@@ -445,17 +457,26 @@ class TextRenderer(BaseRenderer):
                         gate, gate_text, targets, controls, cbits
                     )
 
+            else:
+                # Conditional branches and labels affect execution, but have no
+                # visual representation in a circuit diagram.
+                continue
+
             # update the render strings for the operation
             layer = max(len(self._layer_list[i]) for i in wire_list)
             xskip = self._get_xskip(wire_list, layer)
             self._adjust_layer_pad(wire_list, xskip)
             self._manage_layers(width, wire_list, layer, xskip)
 
-            if circ_instruction.is_measurement_instruction():
+            if isinstance(op, Measurement) or (
+                isinstance(op, type) and issubclass(op, Measurement)
+            ):
                 self._update_singleq(qubits, parts)
                 self._update_cbridge(qubits, cbits, wire_list, width)
 
-            elif circ_instruction.is_gate_instruction():
+            elif isinstance(op, Gate) or (
+                isinstance(op, type) and issubclass(op, Gate)
+            ):
                 if gate == std.SWAP:
                     self._update_swap_gate(wire_list)
                 else:

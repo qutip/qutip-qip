@@ -15,7 +15,8 @@ from matplotlib.patches import (
 
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.circuit.draw import BaseRenderer, StyleConfig
-from qutip_qip.operations import Gate
+from qutip_qip.circuit.draw._control_flow import infer_classical_controls
+from qutip_qip.operations import Gate, Measurement
 from qutip_qip.operations import gates as std
 
 
@@ -746,14 +747,17 @@ class MatRenderer(BaseRenderer):
         """
 
         self._add_wire_labels()
+        classical_controls = infer_classical_controls(self._qc._ops)
 
-        for instruction in self._qc.instructions:
-            gate = instruction.operation
-            qubits = instruction.qubits
-            cbits = instruction.cbits
+        for index, instruction in enumerate(self._qc._ops):
+            op = instruction.op
+            qubits = instruction.qreg
+            cbits = instruction.creg
             style = instruction.style
 
-            if instruction.is_measurement_instruction():
+            if isinstance(op, Measurement) or (
+                isinstance(op, type) and issubclass(op, Measurement)
+            ):
                 self.merged_wires = list(qubits)
                 self.merged_wires.sort()
 
@@ -766,9 +770,18 @@ class MatRenderer(BaseRenderer):
                     ),
                 )
 
-            if instruction.is_gate_instruction():
-                targets = instruction.targets
-                controls = instruction.controls
+            elif isinstance(op, Gate) or (
+                isinstance(op, type) and issubclass(op, Gate)
+            ):
+                cbits = tuple(sorted(set(cbits).union(classical_controls[index])))
+                gate = op
+                controls = []
+                targets = qubits
+
+                if gate.is_controlled:
+                    controls = qubits[: gate.num_ctrl_qubits]
+                    targets = qubits[gate.num_ctrl_qubits :]
+
                 style = style if style is not None else {}
                 self.text = gate.name
 

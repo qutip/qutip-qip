@@ -23,11 +23,15 @@ class OpInstruction:
     op: Op
     qreg: tuple[int, ...] = tuple()
     creg: tuple[int, ...] = tuple()
-    # TODO add a style here instead of circuit instruction
-    # TODO move the circuit draw functionality based on Op then CircuitInstructions
+    style: dict = field(default_factory=dict)
 
     def __post_init__(self):
         pass
+
+    # TODO add instructions to test for gate, measurement etc. (used in circuit draw)
+
+    def __str__(self):
+        print(f"op={self.op}, qreg={self.qreg}, creg={self.creg}, style({self.style})")
 
 
 @dataclass(frozen=True, slots=True)
@@ -35,7 +39,6 @@ class CircuitInstruction(ABC):
     operation: Gate | Type[Gate] | Measurement | Conditional | Label
     qubits: tuple[int, ...] = tuple()
     cbits: tuple[int, ...] = tuple()
-    style: dict = field(default_factory=dict)
 
     def __post_init__(self):
         """Basic validation for all instructions."""
@@ -174,7 +177,7 @@ class GateInstruction(CircuitInstruction):
 
     def __str__(self) -> str:
         return f"Gate({self.operation}), qubits({self.qubits}),\
-                cbits({self.cbits}), style({self.style})"
+                cbits({self.cbits})"
 
 
 @dataclass(frozen=True, slots=True)

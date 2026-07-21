@@ -8,7 +8,9 @@ import collections
 from typing import Callable
 
 from qutip_qip.circuit import QubitCircuit
+from qutip_qip.circuit.draw._control_flow import infer_classical_controls
 from qutip_qip.operations import gates as std
+from qutip_qip.operations import Gate, Measurement
 
 
 # As a general note wherever you see {{}} in a python rf string that represents a {}
@@ -25,7 +27,7 @@ class TeXRenderer:
         self.qc = qc
         self.num_qubits = qc.num_qubits
         self.num_cbits = qc.num_cbits
-        self.instructions = qc.instructions
+        self.instructions = qc._ops
         self.input_states = qc.input_states
         self.reverse_states = qc.reverse_states
 
@@ -59,13 +61,23 @@ class TeXRenderer:
 
         rows = []
         col = []
+        classical_controls = infer_classical_controls(self.instructions)
 
-        for circ_instruction in self.instructions:
-            if circ_instruction.is_gate_instruction():
-                gate = circ_instruction.operation
-                targets = circ_instruction.targets
-                controls = circ_instruction.controls
-                cbits = circ_instruction.cbits
+        for index, op_instruction in enumerate(self.instructions):
+            op = op_instruction.op
+            qubits = op_instruction.qreg
+            cbits = op_instruction.creg
+
+            if isinstance(op, Gate) or (isinstance(op, type) and issubclass(op, Gate)):
+                cbits = tuple(sorted(set(cbits).union(classical_controls[index])))
+                gate = op
+                targets = qubits
+                controls = []
+
+                if gate.is_controlled:
+                    controls = qubits[: gate.num_ctrl_qubits]
+                    targets = qubits[gate.num_ctrl_qubits :]
+
                 col = []
                 _swap_processing = False
 
@@ -125,9 +137,9 @@ class TeXRenderer:
                     else:
                         col.append(r" \qw ")
 
-            else:
-                qubits = list(circ_instruction.qubits)
-                cbits = list(circ_instruction.cbits)
+            elif isinstance(op, Measurement) or (
+                isinstance(op, type) and issubclass(op, Measurement)
+            ):
                 col = []
 
                 for n in range(self.num_qubits + self.num_cbits):
@@ -139,6 +151,11 @@ class TeXRenderer:
                         col.append(rf" \qw \cwx[{store_tag}] ")
                     else:
                         col.append(r" \qw ")
+
+            else:
+                # Labels and branches affect execution but do not occupy a
+                # column in a circuit diagram.
+                continue
 
             col.append(r" \qw ")
             rows.append(col)
@@ -161,8 +178,8 @@ class TeXRenderer:
         )
         for n in n_iter:
             code += rf" & {input_states[n]}"
-            for m in range(len(self.instructions)):
-                code += rf" & {rows[m][n]}"
+            for row in rows:
+                code += rf" & {row[n]}"
             code += r" & \qw \\ " + "\n"
 
         return self._latex_template % code
