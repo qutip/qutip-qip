@@ -16,6 +16,8 @@ class Measurement(Op):
     """
 
     name = "M"
+    num_qreg: int = 1  # TODO: Make this abstract
+    num_creg: int = 1
 
     def __init__(self, name=None, targets=None, index=None, classical_store=None):
         """

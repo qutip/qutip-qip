@@ -162,6 +162,7 @@ class Gate(Op, metaclass=_GateMetaClass):
 
     name: str
     num_qubits: int
+    num_creg: int = 0
     self_inverse: bool = False
     is_clifford: bool = False
     latex_str: str
@@ -269,6 +270,10 @@ class Gate(Op, metaclass=_GateMetaClass):
             f"If your gate requires parameters, it must inherit from 'ParametricGate'. "
             f"Or if it must be controlled, it must inherit from 'ControlledGate'."
         )
+
+    @staticmethod
+    def num_qreg(self) -> int:
+        return self.num_qubits
 
     @staticmethod
     @abstractmethod
