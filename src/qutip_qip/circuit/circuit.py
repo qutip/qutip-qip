@@ -9,7 +9,7 @@ from qutip import qeye, Qobj, basis, tensor
 import numpy as np
 
 from qutip_qip.circuit import CircuitSimulator
-from qutip_qip.circuit._decompose import (
+from qutip_qip.decompose._decompose import (
     _resolve_to_universal,
     _resolve_2q_basis,
 )
