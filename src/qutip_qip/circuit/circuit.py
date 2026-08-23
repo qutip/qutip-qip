@@ -22,7 +22,6 @@ from qutip_qip.circuit.instruction import (
 )
 from qutip_qip.operations.conditional import Conditional, Label, ClassicalControlCheck
 from qutip_qip.operations import (
-    BloqBuilder,
     Gate,
     Measurement,
     Op,
@@ -30,6 +29,7 @@ from qutip_qip.operations import (
     expand_operator,
     get_unitary_gate,
 )
+from qutip_qip.operations.bloq import _BloqBuilder
 from qutip_qip.operations.measurement import Mz
 from qutip_qip.operations import AngleParametricGate
 from qutip_qip.operations import gates as std
@@ -88,7 +88,7 @@ class QubitCircuit:
             num_qubits = N
 
         self.dims = dims if dims is not None else [2] * num_qubits
-        self._builder = BloqBuilder(num_qubits, num_cbits, qreg_dim=self.dims)
+        self._builder = _BloqBuilder(num_qubits, num_cbits, qreg_dim=self.dims)
 
         self.reverse_states = reverse_states
         self._instructions: list[CircuitInstruction] = []
@@ -832,7 +832,7 @@ class QubitCircuit:
         phase = qc_temp.global_phase
         half_pi = np.pi / 2
 
-        qc_temp._builder = BloqBuilder(qc_temp.num_qubits, qc_temp.num_cbits)
+        qc_temp._builder = _BloqBuilder(qc_temp.num_qubits, qc_temp.num_cbits)
         qc_temp.add_global_phase(phase)
 
         for circ_instruction in instructions:

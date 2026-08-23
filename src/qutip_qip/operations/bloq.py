@@ -32,7 +32,7 @@ class Bloq:
     # The only linking between them happens via the BloqRepository.
 
 
-class BloqBuilder:
+class _BloqBuilder:
     __slots__ = (
         "_qreg_dim",
         "_aux_qreg_dim",
@@ -56,15 +56,15 @@ class BloqBuilder:
                 f"Length of qreg_dim={qreg_dim} must be equal to num_qreg={num_qreg}"
             )
 
-        self._qreg_dim = qreg_dim
+        self._qreg_dim: tuple[int, ...] = qreg_dim
         if len(self._qreg_dim) == 0:
             self._qreg_dim = (2,) * num_qreg
 
-        self._aux_qreg_dim = []
-        self._num_creg = num_creg
-        self._num_aux_creg = 0
-        self._global_phase = 0.0
-        self._op_instructions = []
+        self._aux_qreg_dim: list[int] = []
+        self._num_creg: int = num_creg
+        self._num_aux_creg: int = 0
+        self._global_phase: float = 0.0
+        self._op_instructions: list[OpInstruction] = []
 
     @property
     def num_qreg(self) -> int:
@@ -113,12 +113,12 @@ class BloqBuilder:
         return tuple(range(self.num_qreg))
 
     @property
-    def aux_qreg(self) -> tuple[int, ...]:
-        return tuple(range(self.num_qreg, self.num_qreg + self.num_aux_qreg))
-
-    @property
     def creg(self) -> tuple[int, ...]:
         return tuple(range(self.num_creg))
+
+    @property
+    def aux_qreg(self) -> tuple[int, ...]:
+        return tuple(range(self.num_qreg, self.num_qreg + self.num_aux_qreg))
 
     @property
     def aux_creg(self) -> tuple[int, ...]:
@@ -267,7 +267,3 @@ class BloqBuilder:
             global_phase=self.global_phase,
             instructions=self.instructions,
         )
-
-
-class BloqRepository:
-    pass

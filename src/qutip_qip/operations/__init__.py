@@ -14,7 +14,7 @@ from .parametric import ParametricGate, AngleParametricGate
 from .controlled import ControlledGate, get_controlled_gate
 from .measurement import Measurement
 from .op import Op, OpInstruction
-from .bloq import Bloq, BloqBuilder
+from .bloq import Bloq
 from .old_gates import (
     rx,
     ry,
@@ -62,7 +62,6 @@ __all__ = [
     "Op",
     "OpInstruction",
     "Bloq",
-    "BloqBuilder",
     "rx",
     "ry",
     "rz",
