@@ -4,6 +4,7 @@ from typing import Final, Type
 import scipy.sparse as sp
 import numpy as np
 from qutip import Qobj
+import inspect
 
 from qutip_qip.operations import Gate, ControlledGate, AngleParametricGate
 from qutip_qip.operations.gates import X, SWAP
@@ -198,3 +199,74 @@ class FREDKIN(ControlledGate):
             dims=[[2, 2, 2], [2, 2, 2]],
             dtype=dtype,
         )
+
+
+def get_oracle_gate(num_qubits, logic_func, num_target_qubits=1, name="ORACLE"):
+    """
+    Function that returns a gate class that performs the operation
+    ``|x>|y> --> |x>|y ⊕ logic_func(x)>``.
+
+    Parameters
+    ----------
+    num_qubits : int
+        The total number of qubits the Oracle Gate acts upon.
+    logic_func : function
+        The logic function involved in mapping of the control to target qubits.
+    num_target_qubits : int, optional
+        The number of qubits the y value of the function is stored in.
+        The value is defaulted to 1, the most common use case.
+
+    Returns
+    -------
+    type
+        A gate class representing the Oracle.
+    """
+
+    try:
+        source_code = inspect.getsource(logic_func)
+    except (TypeError, OSError):
+        source_code = "Custom logic function"
+
+    @staticmethod
+    def _get_qobj(dtype="dense"):
+        N = num_qubits
+        m = num_target_qubits
+        dim = 2**N
+
+        mask = (1 << m) - 1
+
+        rows = []
+        cols = []
+
+        for i in range(dim):
+            x = i >> m
+            y = i & mask
+            f_val = logic_func(x)
+            y_new = y ^ f_val
+            j = (x << m) | y_new
+            cols.append(i)
+            rows.append(j)
+
+        data = np.ones(dim, dtype=complex)
+
+        matrix = sp.csr_matrix((data, (rows, cols)), shape=(dim, dim))
+
+        return Qobj(matrix, dims=[[2] * N, [2] * N], dtype=dtype)
+
+    return type(
+        "OracleGate",
+        (Gate,),
+        {
+            "num_qubits": num_qubits,
+            "name": name,
+            "logic_func": logic_func,
+            "num_target_qubits": num_target_qubits,
+            "_source": source_code,
+            "self_inverse": True,
+            "is_clifford": False,
+            "is_parametric": False,
+            "is_controlled": False,
+            "latex_str": r"{\rm ORACLE}",
+            "get_qobj": _get_qobj,  ## Temporary helper function for the oracle
+        },
+    )
