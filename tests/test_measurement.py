@@ -1,69 +1,99 @@
 import numpy as np
+import qutip
 import pytest
 from math import sqrt
-from qutip_qip.operations.measurement import Mz
-from qutip import basis, ket2dm, tensor, rand_ket
-import qutip
+from qutip_qip.operations import expand_operator
+from qutip_qip.operations.measurement import Measurement, Mz, Mx, My
+from qutip import basis, tensor
+from qutip.measurement import measurement_statistics
 
 
-@pytest.mark.repeat(10)
-def test_measurement_comp_basis():
-    """
-    Test measurements to test probability calculation in
-    computational basis measurements on a 3 qubit state
-    """
+def _get_measurement_results(state, measurement_obj, targets):
+    """Helper to apply measurement and return states and probabilities"""
+    if isinstance(measurement_obj, type):
+        measurement_obj = measurement_obj()
+    n = int(np.log2(state.shape[0]))
+    raw_ops = measurement_obj.get_measurement_ops()
+    expanded_ops = [
+        expand_operator(oper=op, dims=[2] * n, targets=targets) for op in raw_ops
+    ]
 
-    qubit_kets = [rand_ket(2), rand_ket(2), rand_ket(2)]
-    qubit_dms = [ket2dm(qubit_kets[i]) for i in range(3)]
+    measurement_tol = qutip.settings.core["atol"] ** 2
+    states, probabilities = measurement_statistics(state, expanded_ops)
+    probabilities = [p if p > measurement_tol else 0.0 for p in probabilities]
+    states = [s if p > measurement_tol else None for s, p in zip(states, probabilities)]
+    return states, probabilities
 
-    state = tensor(qubit_kets)
-    density_mat = tensor(qubit_dms)
 
-    for i in range(3):
-        final_states, probabilities_state = Mz.measurement_comp_basis(state, [i])
-        final_dms, probabilities_dm = Mz.measurement_comp_basis(density_mat, [i])
+def test_measurement_classes():
+    """Test standard measurement class attributes and operators."""
+    for cls, name, num_ops in [(Mz, "Mz", 2), (Mx, "Mx", 2), (My, "My", 2)]:
+        meas = cls()
+        assert meas.name == name
+        assert meas.num_qubits == 1
+        ops = meas.get_measurement_ops()
+        assert len(ops) == num_ops
+        for op in ops:
+            assert isinstance(op, qutip.Qobj)
 
-        amps = qubit_kets[i].full()
-        probabilities_i = [np.abs(amps[0][0]) ** 2, np.abs(amps[1][0]) ** 2]
 
-        np.testing.assert_allclose(probabilities_state, probabilities_dm)
-        np.testing.assert_allclose(probabilities_state, probabilities_i)
-        for j, final_state in enumerate(final_states):
-            np.testing.assert_allclose(final_dms[j].full(), ket2dm(final_state).full())
+def test_custom_measurement_subclass():
+    """Test creating a custom Measurement subclass."""
+
+    class MyCustomMeasurement(Measurement):
+        def get_measurement_ops(self):
+            return [basis(2, 0) * basis(2, 0).dag(), basis(2, 1) * basis(2, 1).dag()]
+
+    meas = MyCustomMeasurement()
+    assert meas.name == "M"
+    assert meas.num_qubits == 1
+    assert len(meas.get_measurement_ops()) == 2
 
 
 @pytest.mark.parametrize("index", [0, 1])
-def test_measurement_collapse(index):
+@pytest.mark.parametrize("measurement_class", [Mz, Mx, My])
+def test_measurement_collapse(index, measurement_class):
     """
     Test if correct state is created after measurement using the example of
-    the Bell state
+    the Bell state in respective bases.
     """
+    if measurement_class == Mz:
+        v0 = basis(2, 0)
+        v1 = basis(2, 1)
+    elif measurement_class == Mx:
+        v0 = (basis(2, 0) + basis(2, 1)).unit()
+        v1 = (basis(2, 0) - basis(2, 1)).unit()
+    elif measurement_class == My:
+        v0 = (basis(2, 0) + 1j * basis(2, 1)).unit()
+        v1 = (basis(2, 0) - 1j * basis(2, 1)).unit()
 
-    state_00 = tensor(basis(2, 0), basis(2, 0))
-    state_11 = tensor(basis(2, 1), basis(2, 1))
+    state_00 = tensor(v0, v0)
+    state_11 = tensor(v1, v1)
 
     bell_state = (state_00 + state_11) / sqrt(2)
 
-    states, probabilities = Mz.measurement_comp_basis(bell_state, qubits=[index])
+    states, probabilities = _get_measurement_results(
+        bell_state, measurement_class, targets=[index]
+    )
     np.testing.assert_allclose(probabilities, [0.5, 0.5])
 
     for i, state in enumerate(states):
         if i == 0:
-            states_00, probability_00 = Mz.measurement_comp_basis(
-                state, qubits=[1 - index]
+            states_00, probability_00 = _get_measurement_results(
+                state, measurement_class, targets=[1 - index]
             )
-            assert probability_00[0] == 1
+            assert probability_00[0] == pytest.approx(1.0)
             assert states_00[1] is None
         else:
-            states_11, probability_11 = Mz.measurement_comp_basis(
-                state, qubits=[1 - index]
+            states_11, probability_11 = _get_measurement_results(
+                state, measurement_class, targets=[1 - index]
             )
-            assert probability_11[1] == 1
+            assert probability_11[1] == pytest.approx(1.0)
             assert states_11[0] is None
 
 
 def test_against_numerical_error():
     state = qutip.Qobj([[1], [1.0e-12]])
-    states, probabilities = Mz.measurement_comp_basis(state, [0])
+    states, probabilities = _get_measurement_results(state, Mz, [0])
     assert states[1] is None
     assert probabilities[1] == 0.0

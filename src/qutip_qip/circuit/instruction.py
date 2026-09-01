@@ -3,6 +3,7 @@ from typing import Type
 from dataclasses import dataclass, field
 import warnings
 from qutip_qip.operations import Gate, Measurement
+from qutip_qip.operations.measurement import Mz
 
 
 def _validate_non_negative_int_tuple(T: any, txt: str = ""):
@@ -19,7 +20,7 @@ def _validate_non_negative_int_tuple(T: any, txt: str = ""):
 
 @dataclass(frozen=True, slots=True)
 class CircuitInstruction(ABC):
-    operation: Gate | Type[Gate] | Measurement
+    operation: Gate | Type[Gate] | Type[Measurement]
     qubits: tuple[int, ...] = tuple()
     cbits: tuple[int, ...] = tuple()
     style: dict = field(default_factory=dict)
@@ -168,7 +169,13 @@ class MeasurementInstruction(CircuitInstruction):
 
     def __post_init__(self) -> None:
         super(MeasurementInstruction, self).__post_init__()
-        if not isinstance(self.operation, Measurement):
+        if not (
+            isinstance(self.operation, Measurement)
+            or (
+                isinstance(self.operation, type)
+                and issubclass(self.operation, Measurement)
+            )
+        ):
             raise TypeError(f"Operation must be a measurement, got {self.operation}")
 
         if len(self.qubits) != len(self.cbits):
@@ -179,6 +186,10 @@ class MeasurementInstruction(CircuitInstruction):
         return True
 
     def to_qasm(self, qasm_out) -> None:
+        if self.operation is not Mz:
+            raise NotImplementedError(
+                f"Exporting non-Z basis measurement ({self.operation}) to QASM is not supported."
+            )
         for qubit, cbit in zip(self.qubits, self.cbits):
             qasm_out.output(f"measure q[{qubit}] -> c[{cbit}];")
 

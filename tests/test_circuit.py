@@ -17,6 +17,7 @@ from qutip import (
     ket2dm,
     identity,
 )
+from qutip.measurement import measurement_statistics
 
 from qutip_qip.circuit import (
     QubitCircuit,
@@ -96,6 +97,20 @@ def _measurement_circuit():
     qc.add_measurement(Mz, targets=[1], classical_store=1)
 
     return qc
+
+
+def _get_probs(state, measurement_obj, targets):
+    """Helper to get probabilities"""
+    if isinstance(measurement_obj, type):
+        measurement_obj = measurement_obj()
+    n = int(np.log2(state.shape[0]))
+    raw_ops = measurement_obj.get_measurement_ops()
+    expanded_ops = [
+        expand_operator(oper=op, dims=[2] * n, targets=targets) for op in raw_ops
+    ]
+
+    _, probabilities = measurement_statistics(state, expanded_ops)
+    return probabilities
 
 
 class TestQubitCircuit:
@@ -337,7 +352,7 @@ class TestQubitCircuit:
         # checking correct addition of measurements
         assert qc.instructions[0].qubits[0] == 0
         assert qc.instructions[0].cbits[0] == 0
-        assert isinstance(qc.instructions[3].operation, Measurement)
+        assert issubclass(qc.instructions[3].operation, Measurement)
         assert qc.instructions[5].cbits[0] == 2
 
         # checking if gates are added correctly with measurements
@@ -412,7 +427,7 @@ class TestQubitCircuit:
         qc_rev = qc.reverse_circuit()
 
         assert qc_rev.instructions[0].operation == gates.H
-        assert isinstance(qc_rev.instructions[1].operation, Measurement)
+        assert issubclass(qc_rev.instructions[1].operation, Measurement)
         assert qc_rev.instructions[2].operation == gates.CX
         assert isinstance(qc_rev.instructions[3].operation, gates.RX)
 
@@ -550,13 +565,13 @@ class TestQubitCircuit:
         teleportation = _teleportation_circuit()
 
         state = tensor(rand_ket(2), basis(2, 0), basis(2, 0))
-        _, initial_probabilities = Mz.measurement_comp_basis(state, qubits=[0])
+        initial_probabilities = _get_probs(state, Mz, [0])
 
         teleportation_sim = CircuitSimulator(teleportation)
         teleportation_sim_results = teleportation_sim.run(state)
         state_final = teleportation_sim_results.get_final_states(0)
 
-        _, final_probabilities = Mz.measurement_comp_basis(state_final, qubits=[2])
+        final_probabilities = _get_probs(state_final, Mz, [2])
 
         np.testing.assert_allclose(initial_probabilities, final_probabilities)
 
@@ -591,7 +606,7 @@ class TestQubitCircuit:
         teleportation = _teleportation_circuit()
 
         original_state = tensor(rand_ket(2), basis(2, 0), basis(2, 0))
-        _, initial_probabilities = Mz.measurement_comp_basis(original_state, qubits=[0])
+        initial_probabilities = _get_probs(original_state, Mz, [0])
 
         teleportation_results = teleportation.run_statistics(original_state)
         states = teleportation_results.get_final_states()
@@ -600,7 +615,7 @@ class TestQubitCircuit:
         for i, state in enumerate(states):
             state_final = state
             prob = probabilities[i]
-            _, final_probabilities = Mz.measurement_comp_basis(state_final, qubits=[2])
+            final_probabilities = _get_probs(state_final, Mz, [2])
             np.testing.assert_allclose(initial_probabilities, final_probabilities)
             assert prob == pytest.approx(0.25, abs=1e-7)
 
@@ -610,8 +625,8 @@ class TestQubitCircuit:
         teleportation2 = _teleportation_circuit2()
 
         final_state = teleportation2.run(dm_state)
-        _, probs1 = Mz.measurement_comp_basis(final_state, qubits=[2])
-        _, probs2 = Mz.measurement_comp_basis(mixed_state, qubits=[2])
+        probs1 = _get_probs(final_state, Mz, [2])
+        probs2 = _get_probs(mixed_state, Mz, [2])
 
         np.testing.assert_allclose(probs1, probs2)
 
@@ -696,7 +711,7 @@ class TestQubitCircuit:
         rand_state = rand_ket(2)
         state = tensor(basis(2, 0), basis(2, 0), basis(2, 0), rand_state)
 
-        _, probs_initial = Mz.measurement_comp_basis(state, qubits=[3])
+        probs_initial = _get_probs(state, Mz, [3])
 
         simulator = CircuitSimulator(qc)
 
@@ -705,7 +720,7 @@ class TestQubitCircuit:
         result_cbits = result.get_cbits()
 
         for i, final_state in enumerate(final_states):
-            _, probs_final = Mz.measurement_comp_basis(final_state, qubits=[3])
+            probs_final = _get_probs(final_state, Mz, [3])
             np.testing.assert_allclose(probs_initial, probs_final)
             assert sum(result_cbits[i]) == 1
 
@@ -993,6 +1008,43 @@ class TestEinsumBackend:
         expected_oper = U_T_exp * U_CX_exp * U_H_exp * init_oper_cpu
 
         np.testing.assert_allclose(res_einsum.full(), expected_oper.full(), atol=1e-12)
+
+    @pytest.mark.filterwarnings(
+        "ignore:ExternalStream is deprecated:DeprecationWarning"
+    )
+    @pytest.mark.parametrize("dtype", AVAILABLE_DTYPES)
+    def test_measurement_einsum_evolution(self, dtype):
+        """
+        Test measurement einsum evolution across backends (Dense, JAX, CuState).
+        """
+        if dtype == "CuState":
+            import qutip_cuquantum
+            from cuquantum.densitymat import WorkStream
+
+            qutip_cuquantum.set_as_default(WorkStream())
+
+        try:
+            qc = QubitCircuit(2, num_cbits=1)
+            qc.add_gate(gates.H, targets=0)
+            qc.add_gate(gates.CX, controls=0, targets=1)
+            qc.add_measurement(Mz, targets=[0], classical_store=0)
+
+            init_state = tensor(basis(2, 0), basis(2, 0)).to(dtype)
+            sim = CircuitSimulator(qc, mode="state_vector_simulator")
+            result = sim.run(init_state)
+
+            final_state = result.get_final_states()[0]
+            assert type(final_state.data) is type(init_state.data)
+            assert sim.cbits[0] in (0, 1)
+
+            if sim.cbits[0] == 0:
+                expected = tensor(basis(2, 0), basis(2, 0))
+            else:
+                expected = tensor(basis(2, 1), basis(2, 1))
+            np.testing.assert_allclose(final_state.full(), expected.full(), atol=1e-12)
+        finally:
+            if dtype == "CuState":
+                qutip_cuquantum.set_as_default(reverse=True)
 
 
 class TestAddGateError:
