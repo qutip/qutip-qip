@@ -1,4 +1,4 @@
-from qutip_qip.circuit.conditional import Cbnz, Cbz, Conditional, Label
+from qutip_qip.operations.conditional import Cbnz, Cbz, Conditional, Label
 
 
 def _is_unconditional_pair(instructions, index):

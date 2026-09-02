@@ -27,7 +27,7 @@ class TeXRenderer:
         self.qc = qc
         self.num_qubits = qc.num_qubits
         self.num_cbits = qc.num_cbits
-        self.instructions = qc._ops
+        self.instructions = qc.ops
         self.input_states = qc.input_states
         self.reverse_states = qc.reverse_states
 

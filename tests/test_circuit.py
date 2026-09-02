@@ -217,9 +217,11 @@ class TestQubitCircuit:
         qc.add_gate(gates.RY(1.570796), targets=4)
         qc.add_gate(gates.RY(1.570796), targets=5)
         qc.add_gate(gates.CRX(np.pi / 2), controls=[1], targets=[2])
+        qc.build()
 
         qc1 = QubitCircuit(6, num_cbits=2)
         qc1.add_circuit(qc)
+        qc1.build()
 
         # Test if all gates and measurements are added
         assert len(qc1.instructions) == len(qc.instructions)
@@ -249,6 +251,7 @@ class TestQubitCircuit:
 
         qc2 = QubitCircuit(8, num_cbits=2)
         qc2.add_circuit(qc, start=2)
+        qc2.build()
 
         # Test if all gates are added
         assert len(qc2.instructions) == len(qc.instructions)
@@ -319,11 +322,12 @@ class TestQubitCircuit:
         assert qc.instructions[0].qubits[0] == 0
         assert qc.instructions[0].cbits[0] == 0
         assert isinstance(qc.instructions[3].operation, Measurement)
-        assert qc.instructions[5].cbits[0] == 2
+        assert qc.instructions[5].cbits[0] == 1
 
         # checking if gates are added correctly with measurements
         assert qc.instructions[2].operation == gates.TOFFOLI
-        assert qc.instructions[4].cbits == (0, 1)
+        assert qc.instructions[4].cbits == (0,)
+        assert qc.instructions[5].cbits == (1,)
 
     @pytest.mark.parametrize("gate", [gates.X, gates.Y, gates.Z, gates.S, gates.T])
     def test_exceptions(self, gate):
@@ -446,6 +450,7 @@ class TestQubitCircuit:
         qc.add_state("-", targets=[1])
 
         qc_rev = qc.reverse_circuit()
+        qc_rev.build()
 
         assert qc_rev.instructions[0].operation == gates.H
         assert isinstance(qc_rev.instructions[1].operation, Measurement)

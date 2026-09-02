@@ -1,11 +1,12 @@
 # annotations import won't be needed after minimum version becomes 3.14 (PEP 749)
 from __future__ import annotations
 import inspect
-from abc import ABC, ABCMeta, abstractmethod
+from abc import ABCMeta, abstractmethod
 from typing import Type
 
 import numpy as np
 from qutip import Qobj
+from .op import Op
 from qutip_qip.operations.namespace import NameSpace
 
 _read_only_set: set[str] = set(
@@ -122,7 +123,7 @@ class _GateMetaClass(ABCMeta):
         return f"Gate({gatename}, num_qubits={num_qubits})"
 
 
-class Gate(ABC, metaclass=_GateMetaClass):
+class Gate(Op, metaclass=_GateMetaClass):
     r"""
     Abstract base class for a quantum gate.
 

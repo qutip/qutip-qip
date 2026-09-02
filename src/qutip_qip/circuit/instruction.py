@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import Type
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 import warnings
-from qutip_qip.circuit.conditional import Conditional, Label, Cbnz, Cbz
-from qutip_qip.operations import Gate, Measurement, Op
+from qutip_qip.operations.conditional import Conditional, Label, Cbnz, Cbz
+from qutip_qip.operations import Gate, Measurement
 
 
 def _validate_non_negative_int_tuple(T: any, txt: str = ""):
@@ -16,22 +16,6 @@ def _validate_non_negative_int_tuple(T: any, txt: str = ""):
 
         if q < 0:
             raise ValueError(f"{txt} indices must be non-negative, found {q}")
-
-
-@dataclass(frozen=True, slots=True)
-class OpInstruction:
-    op: Op
-    qreg: tuple[int, ...] = tuple()
-    creg: tuple[int, ...] = tuple()
-    style: dict = field(default_factory=dict)
-
-    def __post_init__(self):
-        pass
-
-    # TODO add instructions to test for gate, measurement etc. (used in circuit draw)
-
-    def __str__(self):
-        print(f"op={self.op}, qreg={self.qreg}, creg={self.creg}, style({self.style})")
 
 
 @dataclass(frozen=True, slots=True)

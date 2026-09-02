@@ -75,9 +75,15 @@ def test_qasm_addcircuit():
     check_gate_instruction_defn(qc.instructions[3], "CX", (1,), (0,))
     check_gate_instruction_defn(qc.instructions[4], "H", (0,))
     check_gate_instruction_defn(qc.instructions[5], "H", (1,))
-    check_gate_instruction_defn(qc.instructions[6], "H", (0,), (), (0, 1), 0)
-    check_measurement_defn(qc.instructions[7], "M", (0,), (0,))
-    check_measurement_defn(qc.instructions[8], "M", (1,), (1,))
+    assert qc.instructions[6].is_conditional_instruction()
+    assert qc.instructions[6].operation.name == "Cbnz"
+    assert qc.instructions[6].cbits == (0,)
+    assert qc.instructions[7].operation.name == "Cbnz"
+    assert qc.instructions[7].cbits == (1,)
+    check_gate_instruction_defn(qc.instructions[8], "H", (0,))
+    assert qc.instructions[9].is_label_instruction()
+    check_measurement_defn(qc.instructions[10], "M", (0,), (0,))
+    check_measurement_defn(qc.instructions[11], "M", (1,), (1,))
 
 
 def test_custom_gates():

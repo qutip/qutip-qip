@@ -747,9 +747,9 @@ class MatRenderer(BaseRenderer):
         """
 
         self._add_wire_labels()
-        classical_controls = infer_classical_controls(self._qc._ops)
+        classical_controls = infer_classical_controls(self._qc.ops)
 
-        for index, instruction in enumerate(self._qc._ops):
+        for index, instruction in enumerate(self._qc.ops):
             op = instruction.op
             qubits = instruction.qreg
             cbits = instruction.creg

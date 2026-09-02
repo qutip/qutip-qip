@@ -50,13 +50,15 @@ A circuit with the various gates and registers available is demonstrated below:
 **Output**:
 
 .. testoutput::
-  :options: +NORMALIZE_WHITESPACE
+  :options: +NORMALIZE_WHITESPACE +ELLIPSIS
 
-    [GateInstruction(operation=Gate(SWAP, num_qubits=2), qubits=(0, 1), cbits=(), cbits_ctrl_value=None),
-      MeasurementInstruction(operation= Measurement(M), qubits=(1,), cbits=(0,)),
-      GateInstruction(operation=Gate(CX, num_qubits=2), qubits=(0, 1), cbits=(), cbits_ctrl_value=None),
-      GateInstruction(operation=Gate(X, num_qubits=1), qubits=(0,), cbits=(0,), cbits_ctrl_value=1),
-      GateInstruction(operation=Gate(SWAP, num_qubits=2), qubits=(0, 1), cbits=(), cbits_ctrl_value=None)]
+    (GateInstruction(operation=Gate(SWAP, num_qubits=2), qubits=(0, 1), cbits=(), cbits_ctrl_value=None),
+    MeasurementInstruction(operation= Measurement(M), qubits=(1,), cbits=(0,)),
+    GateInstruction(operation=Gate(CX, num_qubits=2), qubits=(0, 1), cbits=(), cbits_ctrl_value=None),
+    ConditionalBranchInstruction(operation=Cbz(_name='Cbz', uuid='...', params=(), qreg_dim=(), num_creg=0, unitary=True, self_inverse=False), qubits=(), cbits=(0,)),
+    GateInstruction(operation=Gate(X, num_qubits=1), qubits=(0,), cbits=(), cbits_ctrl_value=None),
+    LabelInstruction(operation=Label(_name='...', uuid='...', params=(), qreg_dim=(), num_creg=0, unitary=True, self_inverse=False), qubits=(), cbits=()),
+    GateInstruction(operation=Gate(SWAP, num_qubits=2), qubits=(0, 1), cbits=(), cbits_ctrl_value=None))
 
 Unitaries
 =========

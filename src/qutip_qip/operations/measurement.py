@@ -4,11 +4,12 @@ import qutip
 from qutip import basis
 from qutip.measurement import measurement_statistics
 from qutip_qip.operations import expand_operator
+from .op import Op
 
 __all__ = ["Mz"]
 
 
-class Measurement:
+class Measurement(Op):
     """
     Representation of a quantum measurement, with its required parameters,
     and target qubits.

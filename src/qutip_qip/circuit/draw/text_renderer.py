@@ -397,9 +397,9 @@ class TextRenderer(BaseRenderer):
         Layout the circuit
         """
         self._add_wire_labels()
-        classical_controls = infer_classical_controls(self._qc._ops)
+        classical_controls = infer_classical_controls(self._qc.ops)
 
-        for index, op_instruction in enumerate(self._qc._ops):
+        for index, op_instruction in enumerate(self._qc.ops):
             op = op_instruction.op
             qubits = list(op_instruction.qreg)
             cbits = list(op_instruction.creg)
