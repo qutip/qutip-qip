@@ -773,9 +773,10 @@ class MatRenderer(BaseRenderer):
                 self.text = gate.name
 
                 if gate.is_parametric:
-                    self.text = (
-                        gate.arg_label if gate.arg_label is not None else gate.name
-                    )
+                    if gate.arg_label is not None:
+                        self.text = f"{gate.name}({gate.arg_label})"
+                    else:
+                        self.text = gate.name
 
                 self.color = style.get(
                     "color",
