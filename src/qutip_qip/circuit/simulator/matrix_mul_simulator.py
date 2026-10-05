@@ -156,8 +156,8 @@ class CircuitSimulator:
         Returns
         -------
         result: CircuitResult
-            Return a CircuitResult object containing
-            output state and probability.
+            Return a CircuitResult object containing post-measurement
+            state, classical bit and probability corresponding to it.
         """
         self.initialize(state, cbits, measure_results)
 
