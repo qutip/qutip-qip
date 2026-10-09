@@ -372,7 +372,7 @@ class QubitCircuit:
                 "'control_value' is no longer a valid argument and has been deprecated and will be removed in the future version.\n"
                 "from qutip_qip.operations import get_controlled_gate\n"
                 "from qutip_qip.operations.gates import X\n"
-                "Example: gate = get_controlled_gate(X, num_ctrl_qubits=1, control_value=0)\n"
+                "Example: gate = get_controlled_gate(X, n_ctrl_qubits=1, control_value=0)\n"
                 "Please refer to the tutorial for the recommended way to define them:\n"
                 "https://nbviewer.org/urls/qutip.org/qutip-tutorials/tutorials-v5/quantum-circuits/quantum-gates.ipynb",
                 DeprecationWarning,
