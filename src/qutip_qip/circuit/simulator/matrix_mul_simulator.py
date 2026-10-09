@@ -156,8 +156,13 @@ class CircuitSimulator:
         Returns
         -------
         result: CircuitResult
-            Return a CircuitResult object containing
-            output state and probability.
+            Return a CircuitResult object containing post-measurement
+            state, classical bit and probability corresponding to it.
+
+        Notes
+        -----
+        Plotting a histogram will generate an unnormalized distribution
+        with a single bar representing the corresponding probability.
         """
         self.initialize(state, cbits, measure_results)
 
