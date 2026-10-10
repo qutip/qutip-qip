@@ -245,8 +245,47 @@ def get_controlled_gate(
     gate_name: str | None = None,
     gate_namespace: NameSpace | None = None,
 ) -> ControlledGate:
-    """
-    Gate Factory for Controlled Gate that takes a gate and num_ctrl_qubits.
+    r"""
+    Gate factory that builds a controlled version of ``gate``.
+
+    Parameters
+    ----------
+    gate : type[:class:`.Gate`]
+        The gate to control, given as the :class:`.Gate` subclass itself, e.g.
+        ``get_controlled_gate(X)``. The factory returns a new subclass, not an
+        instance.
+    n_ctrl_qubits : int
+        The number of control qubits. Defaults to ``1``.
+    control_value : int, optional
+        The decimal value of the control qubits that activates ``gate``.
+        Defaults to ``(1 << n_ctrl_qubits) - 1``, so that every control qubit
+        must be in state :math:`|1\rangle`. Passing ``0`` instead inverts the
+        condition, so ``gate`` is applied when every control qubit is in state
+        :math:`|0\rangle`.
+    gate_name : str, optional
+        The name of the resulting controlled gate. Defaults to ``n_ctrl_qubits``
+        copies of ``"C"`` followed by ``gate.name``.
+    gate_namespace : :class:`.NameSpace`, optional
+        A namespace used to look up an existing controlled gate with the same
+        ``gate.name``, ``n_ctrl_qubits`` and ``control_value``. If one is found
+        it is returned and a ``UserWarning`` is emitted.
+
+    Returns
+    -------
+    :class:`.ControlledGate`
+        The controlled version of ``gate``.
+
+    Examples
+    --------
+    >>> from qutip_qip.operations import gates, get_controlled_gate
+    >>> ctrl_x = get_controlled_gate(gates.X, n_ctrl_qubits=1)
+    >>> ctrl_x_on_zero = get_controlled_gate(
+    ...     gates.X, n_ctrl_qubits=1, control_value=0
+    ... )
+
+    ``ctrl_x`` is applied when its control qubit is in state
+    :math:`|1\rangle`, whereas ``ctrl_x_on_zero`` is applied when it is in
+    state :math:`|0\rangle`.
     """
 
     if control_value is None:

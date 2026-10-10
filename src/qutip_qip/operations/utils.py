@@ -14,26 +14,24 @@ def controlled_gate_unitary(
     control_value: int,
 ) -> Qobj:
     """
-    Create an N-qubit controlled gate from a single-qubit gate U with the given
-    control and target qubits.
+    Create a controlled gate from an arbitrary unitary ``U``.
 
     Parameters
     ----------
     U : :class:`qutip.Qobj`
-        An arbitrary unitary gate.
-    controls : list of int
-        The index of the first control qubit.
-    targets : list of int
-        The index of the target qubit.
-    N : int
-        The total number of qubits.
+        An arbitrary unitary. It may act on more than one qubit; those qubits
+        are then treated as a single controlled register.
+    num_controls : int
+        The number of control qubits.
     control_value : int
-        The decimal value of the controlled qubits that activates the gate U.
+        The decimal value of the control qubits that activates the gate ``U``.
+        ``0`` inverts the condition, so ``U`` is applied when every control
+        qubit is in state ``|0>``.
 
     Returns
     -------
-    result : qobj
-        Quantum object representing the controlled-U gate.
+    result : :class:`qutip.Qobj`
+        Quantum object representing the controlled-``U`` gate.
     """
     # Compatibility
     num_targets = len(U.dims[0])
