@@ -274,14 +274,14 @@ class QubitCircuit:
     ):
         return self._builder.if_test(cbits, value, check)
 
-    def add_op(
+    def add(
         self: Self,
         op: Op,
         qreg: int | IntSequence = (),
         creg: int | IntSequence = (),
         style: dict | None = None,
     ):
-        self._builder.add_op(op, qreg, creg, style)
+        self._builder.add(op, qreg, creg, style)
 
     def build(self: Self):
         """
@@ -378,7 +378,7 @@ class QubitCircuit:
         check_limit("targets", targets, 0, self.num_qubits - 1)
         check_limit("classical_store", classical_store, 0, self.num_cbits - 1)
 
-        self.add_op(
+        self.add(
             op=measurement,
             qreg=tuple(targets),
             creg=tuple(classical_store),
@@ -556,9 +556,9 @@ class QubitCircuit:
 
         if len(classical_controls) > 0:
             with self._builder.if_test(classical_controls, classical_control_value):
-                self.add_op(op=gate, qreg=tuple(qubits), style=style)
+                self.add(op=gate, qreg=tuple(qubits), style=style)
         else:
-            self.add_op(op=gate, qreg=tuple(qubits), style=style)
+            self.add(op=gate, qreg=tuple(qubits), style=style)
 
     def add_circuit(self, qc, start=0):  # TODO Instead of start have a qubit mapping?
         """
@@ -581,7 +581,7 @@ class QubitCircuit:
             raise NotImplementedError("Targets exceed number of qubits.")
 
         for circuit_op in qc.ops:
-            self.add_op(
+            self.add(
                 op=circuit_op.op,
                 qreg=[start + t for t in circuit_op.qreg],
                 creg=circuit_op.creg,
@@ -638,7 +638,7 @@ class QubitCircuit:
         )
 
         for circ_op in reversed(self.ops):
-            temp.add_op(
+            temp.add(
                 op=circ_op.op,
                 qreg=circ_op.qreg,
                 creg=circ_op.creg,

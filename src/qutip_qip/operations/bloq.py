@@ -124,7 +124,7 @@ class _BloqBuilder:
     def aux_creg(self) -> tuple[int, ...]:
         return tuple(range(self.num_creg, self.num_creg + self.num_aux_creg))
 
-    def add_op(self, op, qreg=(), creg=(), style: dict = None) -> None:
+    def add(self, op, qreg=(), creg=(), style: dict = None) -> None:
         # Type checking is handled internally within OpInstruction
         # We just check each element of qreg, creg are within the limit
         if isinstance(qreg, Int):
@@ -165,17 +165,17 @@ class _BloqBuilder:
                 for index, cbit in enumerate(creg):
                     if (value >> (num_bits - 1 - index)) & 1 == 1:  # MSB first ordering
                         # If does not match for cbit_value=1, then branch to label (don't execute the conditional if)
-                        self.add_op(Cbz(label=label), creg=cbit)
+                        self.add(Cbz(label=label), creg=cbit)
                     else:
                         # If does not match for cbit_value=0, then branch to label
-                        self.add_op(Cbnz(label=label), creg=cbit)
+                        self.add(Cbnz(label=label), creg=cbit)
 
         elif check == ClassicalControlCheck.NEQ:
             neq_label = Label(uuid4().hex)
             if (value < 0) or (value >= lg_check_value):
                 # This is an unconditional jump essentially
-                self.add_op(Cbz(label=neq_label), creg=0)
-                self.add_op(Cbnz(label=neq_label), creg=0)
+                self.add(Cbz(label=neq_label), creg=0)
+                self.add(Cbnz(label=neq_label), creg=0)
 
             else:
                 for index, cbit in enumerate(creg):
@@ -183,19 +183,19 @@ class _BloqBuilder:
 
                     if target_bit_value == 1:
                         # If a mismatch match for cbit_value=1, then branch to neqlabel
-                        self.add_op(Cbz(label=neq_label), creg=cbit)
+                        self.add(Cbz(label=neq_label), creg=cbit)
                     else:
-                        self.add_op(Cbnz(label=neq_label), creg=cbit)
+                        self.add(Cbnz(label=neq_label), creg=cbit)
 
                 # This will only execute if non of the earlier conditional branching executes.
                 # means NEQ is FALSE. We must skip the conditional block.
 
                 # This must be preferably replaced Jump statement (unconditional)
-                self.add_op(Cbz(label=label), creg=0)
-                self.add_op(Cbnz(label=label), creg=0)
+                self.add(Cbz(label=label), creg=0)
+                self.add(Cbnz(label=label), creg=0)
 
             # Successful entry point for the NEQ condition
-            self.add_op(neq_label)
+            self.add(neq_label)
 
         elif check == ClassicalControlCheck.GT:
             # Check for redundant conditions
@@ -210,18 +210,18 @@ class _BloqBuilder:
 
                     # We break at first point of discontinuity (but to different labels)
                     if target_bit_value == 1:
-                        self.add_op(Cbz(label=label), creg=cbit)
+                        self.add(Cbz(label=label), creg=cbit)
                     else:
-                        self.add_op(Cbnz(label=gt_label), creg=cbit)
+                        self.add(Cbnz(label=gt_label), creg=cbit)
 
                 # If execution falls through the entire loop without jumping,
                 # it means every single bit matched exactly.
-                # self.add_op(Jump(label=label))
-                self.add_op(Cbz(label=label), creg=0)
-                self.add_op(Cbnz(label=label), creg=0)
+                # self.add(Jump(label=label))
+                self.add(Cbz(label=label), creg=0)
+                self.add(Cbnz(label=label), creg=0)
 
                 # Entry point for the GT conditional block
-                self.add_op(gt_label)
+                self.add(gt_label)
 
         elif check == ClassicalControlCheck.LT:
             # Check for redundant conditions
@@ -237,18 +237,18 @@ class _BloqBuilder:
 
                     # We break at first point of discontinuity (but to different labels)
                     if target_bit_value == 1:
-                        self.add_op(Cbz(label=lt_label), creg=cbit)
+                        self.add(Cbz(label=lt_label), creg=cbit)
                     else:
-                        self.add_op(Cbnz(label=label), creg=cbit)
+                        self.add(Cbnz(label=label), creg=cbit)
 
                 # If execution falls through the entire loop without jumping,
                 # it means every single bit matched exactly.
-                # self.add_op(Jump(label=label))
-                self.add_op(Cbz(label=label), creg=0)
-                self.add_op(Cbnz(label=label), creg=0)
+                # self.add(Jump(label=label))
+                self.add(Cbz(label=label), creg=0)
+                self.add(Cbnz(label=label), creg=0)
 
                 # Entry point for the GT conditional block
-                self.add_op(lt_label)
+                self.add(lt_label)
 
         else:
             raise ValueError(f"Invalid check {check}")
@@ -256,7 +256,7 @@ class _BloqBuilder:
         try:
             yield
         finally:
-            self.add_op(label)
+            self.add(label)
 
     def build(self) -> Bloq:
         return Bloq(
