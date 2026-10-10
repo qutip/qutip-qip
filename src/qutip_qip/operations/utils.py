@@ -25,8 +25,8 @@ def controlled_gate_unitary(
         The number of control qubits.
     control_value : int
         The decimal value of the control qubits that activates the gate ``U``.
-        ``0`` gives an anti-control gate, which is applied when every control
-        qubit is in state 0.
+        ``0`` inverts the condition, so ``U`` is applied when every control
+        qubit is in state ``|0>``.
 
     Returns
     -------

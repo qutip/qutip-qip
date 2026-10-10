@@ -259,9 +259,9 @@ def get_controlled_gate(
     control_value : int, optional
         The decimal value of the control qubits that activates ``gate``.
         Defaults to ``(1 << n_ctrl_qubits) - 1``, so that every control qubit
-        must be in state :math:`|1\rangle`.
-        Passing ``0`` inverts the condition, giving an *anti-control* gate that
-        is applied when every control qubit is in state :math:`|0\rangle`.
+        must be in state :math:`|1\rangle`. Passing ``0`` instead inverts the
+        condition, so ``gate`` is applied when every control qubit is in state
+        :math:`|0\rangle`.
     gate_name : str, optional
         The name of the resulting controlled gate. Defaults to ``n_ctrl_qubits``
         copies of ``"C"`` followed by ``gate.name``.
@@ -279,13 +279,13 @@ def get_controlled_gate(
     --------
     >>> from qutip_qip.operations import gates, get_controlled_gate
     >>> ctrl_x = get_controlled_gate(gates.X, n_ctrl_qubits=1)
-    >>> anti_ctrl_x = get_controlled_gate(
+    >>> ctrl_x_on_zero = get_controlled_gate(
     ...     gates.X, n_ctrl_qubits=1, control_value=0
     ... )
 
     ``ctrl_x`` is applied when its control qubit is in state
-    :math:`|1\rangle`, whereas ``anti_ctrl_x`` is applied when it is in state
-    :math:`|0\rangle`.
+    :math:`|1\rangle`, whereas ``ctrl_x_on_zero`` is applied when it is in
+    state :math:`|0\rangle`.
     """
 
     if control_value is None:
