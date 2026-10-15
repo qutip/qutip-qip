@@ -1,7 +1,6 @@
 from abc import ABC
 from dataclasses import dataclass, field
 from typing import Generic, TypeVar
-from uuid import uuid4
 
 from qutip_qip.typing import Int
 from qutip_qip.utils import convert_type_input_to_sequence
@@ -14,7 +13,6 @@ P = TypeVar("P")
 @dataclass
 class Op:
     _name: str
-    uuid: str = field(default_factory=lambda: uuid4().hex)
     params: tuple[P, ...] = ()
 
     @property

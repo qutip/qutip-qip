@@ -2,7 +2,12 @@ from abc import ABC, abstractmethod
 from typing import ClassVar
 import inspect
 
-from qutip_qip.operations.bloq import _BloqBuilder
+from qutip_qip.operations.bloq import _BloqBuilder, Bloq
+from qutip_qip.operations.op import Op
+
+
+def define_op(bloq_def: BloqDef) -> tuple[Op, Bloq]:
+    pass
 
 
 class BloqDef(_BloqBuilder, ABC):
