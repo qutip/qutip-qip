@@ -9,8 +9,8 @@ from qutip_qip.utils import convert_type_input_to_sequence
 P = TypeVar("P")
 
 
-# @dataclass(frozen=True)  # TODO: Add slots when minimum Python is bumped to 3.14
-@dataclass
+# TODO: Add slots when minimum Python is bumped to 3.14
+@dataclass(frozen=True)
 class Op:
     _name: str
     params: tuple[P, ...] = ()
@@ -33,8 +33,8 @@ class Op:
     self_inverse: bool = False
 
 
-# Think of Parametric Op as Op Factory, takes params and returns a Op
 # TODO: Update this typing when updating min Python version to 3.12
+# Think of Parametric Op as Op Factory, takes params and returns a Op
 class ParametricOp(ABC, Generic[P]):
     def __call__(self, *params) -> Op: ...
     def validate_params(self, *params: P) -> None: ...

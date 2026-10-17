@@ -94,19 +94,24 @@ class _BloqBuilder:
         self._global_phase += phase
         self._global_phase %= 2 * math.pi
 
-    def add_aux_qreg(self, count: Int = 1, dim: Int = 2) -> None:
+    def add_aux_qreg(self, count: Int = 1, dim: Int = 2) -> tuple[int, ...]:
         if not (isinstance(count, Int) and count > 0):
             raise TypeError(f"count must be of type int, got {count}")
 
         if not (isinstance(dim, Int) and dim > 0):
             raise TypeError(f"dim must be of type int, got {dim}")
 
+        start = self.num_qreg + self.num_aux_qreg
         self._aux_qreg_dim.extend([dim] * count)
+        return tuple(range(start, start + count))
 
-    def add_aux_creg(self, count: Int = 1) -> None:
+    def add_aux_creg(self, count: Int = 1) -> tuple[int, ...]:
         if not (isinstance(count, Int) and count > 0):
             raise TypeError(f"count must be of type int, got {count}")
+
+        start = self.num_qreg + self.num_aux_qreg
         self._num_aux_creg += count
+        return tuple(range(start, start + count))
 
     @property
     def qreg(self) -> tuple[int, ...]:
