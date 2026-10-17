@@ -32,7 +32,7 @@ class Bloq:
     # The only linking between them happens via the BloqRepository.
 
 
-class _BloqBuilder:
+class BloqBuilder:
     __slots__ = (
         "_qreg_dim",
         "_aux_qreg_dim",

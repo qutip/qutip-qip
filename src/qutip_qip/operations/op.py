@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Generic, TypeVar
 
@@ -36,7 +36,11 @@ class Op:
 # TODO: Update this typing when updating min Python version to 3.12
 # Think of Parametric Op as Op Factory, takes params and returns a Op
 class ParametricOp(ABC, Generic[P]):
-    def __call__(self, *params) -> Op: ...
+
+    @abstractmethod
+    def __call__(self, *params: P) -> Op: ...
+
+    @abstractmethod
     def validate_params(self, *params: P) -> None: ...
 
 
