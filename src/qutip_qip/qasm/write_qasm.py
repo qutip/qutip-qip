@@ -165,7 +165,7 @@ class QasmOutput:
         elif type(gate) is gates.CRX:
             gate_def = "gate crx(theta) a,b { cu3(theta,-pi/2,pi/2) a,b; }"
         elif gate == gates.SQRTX:
-            gate_def = "gate sqrtnot a {h a; u1(-pi/2) a; h a; }"
+            gate_def = "gate sqrtx a {h a; u1(pi/2) a; h a; }"
         elif gate == gates.CZ:
             gate_def = "gate cz a,b { cu1(pi) a,b; }"
         elif gate == gates.CS:
