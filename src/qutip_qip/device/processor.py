@@ -1137,9 +1137,9 @@ class Processor:
         # add collapse operators into kwargs
         if "c_ops" in kwargs:
             if isinstance(kwargs["c_ops"], (Qobj, QobjEvo)):
-                kwargs["c_ops"] += [kwargs["c_ops"]] + sys_c_ops
+                kwargs["c_ops"] = [kwargs["c_ops"]] + sys_c_ops
             else:
-                kwargs["c_ops"] += sys_c_ops
+                kwargs["c_ops"] = list(kwargs["c_ops"]) + sys_c_ops
         else:
             kwargs["c_ops"] = sys_c_ops
 
