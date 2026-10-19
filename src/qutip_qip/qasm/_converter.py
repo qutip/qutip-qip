@@ -85,6 +85,7 @@ class QasmProcessor:
                     "u1",
                     "cx",
                     "id",
+                    "sx",
                     "x",
                     "y",
                     "z",
@@ -450,6 +451,7 @@ class QasmProcessor:
             "s": gates.S,
             "sdg": gates.Sdag,
             "tdg": gates.Tdag,
+            "sx": gates.SQRTX,
         }
 
         if name == "u3":

@@ -18,6 +18,7 @@ _GATE_NAME_TO_QASM_NAME = {
     "Z": "z",
     "S": "s",
     "T": "t",
+    "SQRTX": "sx",
     "CRZ": "crz",
     "CX": "cx",
     "TOFFOLI": "ccx",
@@ -164,8 +165,6 @@ class QasmOutput:
             gate_def = "gate cry(theta) a,b { cu3(theta,0,0) a,b; }"
         elif type(gate) is gates.CRX:
             gate_def = "gate crx(theta) a,b { cu3(theta,-pi/2,pi/2) a,b; }"
-        elif gate == gates.SQRTX:
-            gate_def = "gate sqrtx a {h a; u1(pi/2) a; h a; }"
         elif gate == gates.CZ:
             gate_def = "gate cz a,b { cu1(pi) a,b; }"
         elif gate == gates.CS:

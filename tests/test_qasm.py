@@ -185,14 +185,9 @@ def test_export_import_sqrtx():
     qc = QubitCircuit(1)
     qc.add_gate(gates.SQRTX, targets=0)
 
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        read_qc = read_qasm(circuit_to_qasm_str(qc), strmode=True)
+    read_qc = read_qasm(circuit_to_qasm_str(qc), strmode=True)
 
-    # u1 is read as RZ, so the unitaries agree up to a global phase.
-    u0 = qc.compute_unitary().full()
-    u1 = read_qc.compute_unitary().full()
-    np.testing.assert_allclose(u1 / u1[0, 0], u0 / u0[0, 0], atol=1e-12)
+    assert (qc.compute_unitary() - read_qc.compute_unitary()).norm() < 1e-12
 
 
 def test_read_qasm_1():
