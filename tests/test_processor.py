@@ -423,6 +423,21 @@ class TestCircuitProcessor:
         result2 = processor.run_state(basis(2, 0), tlist=np.linspace(0, 1, 10))
         assert_allclose(result1.states[-1].full(), result2.states[-1].full())
 
+    @pytest.mark.parametrize(
+        "c_ops",
+        [[0.1 * sigmaz()], (0.1 * sigmaz(),), 0.1 * sigmaz()],
+        ids=["list", "tuple", "Qobj"],
+    )
+    def test_repeated_use_of_user_c_ops(self, c_ops):
+        processor = Processor(1, t1=1.0)
+        processor.add_pulse(Pulse(sigmax(), targets=0, coeff=True))
+        tlist = np.linspace(0, 1, 10)
+        result1 = processor.run_state(basis(2, 0), tlist=tlist, c_ops=c_ops)
+        result2 = processor.run_state(basis(2, 0), tlist=tlist, c_ops=c_ops)
+        assert_allclose(result1.states[-1].full(), result2.states[-1].full())
+        if isinstance(c_ops, list):
+            assert len(c_ops) == 1
+
     def test_pulse_mode(self):
         processor = Processor(2)
         processor.add_control(sigmax(), targets=0, label="sx")
