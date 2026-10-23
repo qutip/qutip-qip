@@ -9,6 +9,7 @@ from typing import Callable
 
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.circuit.draw._control_flow import infer_classical_controls
+from qutip_qip.circuit.draw.base_renderer import apply_showarg
 from qutip_qip.operations import gates as std
 from qutip_qip.operations import Gate, Measurement
 
@@ -43,11 +44,11 @@ class TeXRenderer:
         self._pdflatex = self._find_system_command(["pdflatex"])
         self._pdfcrop = self._find_system_command(["pdfcrop"])
 
-    def _gate_label(self, gate) -> str:
+    def _gate_label(self, gate, style=None) -> str:
         gate_label = gate.latex_str
         if gate.is_parametric and gate.arg_label is not None:
-            return rf"{gate_label}({gate.arg_label})"
-        return rf"{gate_label}"
+            gate_label = rf"{gate_label}({gate.arg_label})"
+        return apply_showarg(gate_label, gate, style, latex=True)
 
     def latex_code(self) -> str:
         """
@@ -67,6 +68,7 @@ class TeXRenderer:
             op = op_instruction.op
             qubits = op_instruction.qreg
             cbits = op_instruction.creg
+            style = op_instruction.style
 
             if isinstance(op, Gate) or (isinstance(op, type) and issubclass(op, Gate)):
                 cbits = tuple(sorted(set(cbits).union(classical_controls[index])))
@@ -102,10 +104,12 @@ class TeXRenderer:
                                 # No new line is added in the process
                                 col.append(
                                     rf" \multigate{{{len(targets) - 1}}}"
-                                    rf"{{{self._gate_label(gate)}}} "
+                                    rf"{{{self._gate_label(gate, style)}}} "
                                 )
                             else:
-                                col.append(rf" \ghost{{{self._gate_label(gate)}}} ")
+                                col.append(
+                                    rf" \ghost{{{self._gate_label(gate, style)}}} "
+                                )
 
                         elif gate == std.CX:
                             col.append(r" \targ ")
@@ -120,7 +124,7 @@ class TeXRenderer:
                         elif gate == std.TOFFOLI:
                             col.append(r" \targ ")
                         else:
-                            col.append(rf" \gate{{{self._gate_label(gate)}}} ")
+                            col.append(rf" \gate{{{self._gate_label(gate, style)}}} ")
 
                     elif n in controls:
                         control_tag = (-1 if self.reverse_states else 1) * (
