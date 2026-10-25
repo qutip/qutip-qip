@@ -23,17 +23,10 @@ _RESERVED_ATTRS = frozenset(
 # TODO: Add slots when minimum Python is bumped to 3.14
 @dataclass(frozen=True)
 class Op:
-    _name: str
-
-    @property
-    def name(self) -> str:  # e.g. "MultiSWAP(3)" for drawing
-        if not self.params:
-            return self._name
-        else:
-            return f"{self._name}({', '.join(map(str, self.params))})"
-
+    name: str
     num_qreg: int = 0
     num_creg: int = 0
+
     _: KW_ONLY  # Anything after this should be passed as a keyword
     unitary: bool = True
     self_inverse: bool = False
@@ -72,6 +65,12 @@ class Op:
 
         if not isinstance(self.self_inverse, bool):
             raise TypeError("self_inverse must be of type bool")
+
+    def __repr__(self) -> str:  # e.g. "MultiSWAP(3)" for drawing
+        if not self.params:
+            return self.name
+        else:
+            return f"{self.name}({', '.join(map(str, self.params))})"
 
 
 # Think of Parametric Op as Op Factory, takes params and returns a Op

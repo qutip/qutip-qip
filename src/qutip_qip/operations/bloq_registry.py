@@ -12,10 +12,9 @@ BloqImpl = Callable[..., None]
 
 
 def _name_of(op: Op | type[ParametricOp]) -> str:
-    if isinstance(op, Op):
-        return op._name
-    if isinstance(op, type) and issubclass(op, ParametricOp):
+    if isinstance(op, Op) or (isinstance(op, type) and issubclass(op, ParametricOp)):
         return op.name
+
     if isinstance(op, ParametricOp):
         raise TypeError(
             f"Register the class {type(op).__name__}, not the value {op!r}."
@@ -69,7 +68,7 @@ class BloqRepository:
         return impl
 
     def resolve(self, op: Op) -> Bloq | None:
-        impl = self._entries.get(op._name)
+        impl = self._entries.get(op.name)
         if impl is None:
             return None
 
