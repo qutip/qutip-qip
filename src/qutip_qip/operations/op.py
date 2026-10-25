@@ -38,9 +38,9 @@ class Op:
 class ParametricOp(ABC, Generic[P]):
 
     @abstractmethod
-    def __call__(self, *params: P) -> Op: ...
+    def __call__(self, *params: P) -> Op:
+        return Op()
 
-    @abstractmethod
     def validate_params(self, *params: P) -> None: ...
 
 

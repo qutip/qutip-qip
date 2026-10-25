@@ -2,7 +2,9 @@ from __future__ import annotations
 from collections import ChainMap
 from dataclasses import dataclass, field
 
-from qutip_qip.operations import BloqBuilder, BloqDef, Bloq, Op
+from qutip_qip.operations.bloq import BloqBuilder, Bloq
+from qutip_qip.operations.bloq_def import BloqDef
+from qutip_qip.operations.op import Op, ParametricOp
 
 
 @dataclass(eq=False)
@@ -22,12 +24,16 @@ class BloqRepository:
     def __contains__(self, name: str) -> bool:
         return name in self._entries
 
-    def register(self, bloqdef: type[BloqDef], op: Op | None = None):
+    def register(
+        self, bloqdef: type[BloqDef], replace: bool = False, op: Op | None = None
+    ):
         if not (isinstance(bloqdef, type) and issubclass(bloqdef, BloqDef)):
             raise TypeError(f"Expected a BloqDef subclass, got {bloqdef!r}")
 
-        if bloqdef.name in self._entries.maps[0]:
-            raise ValueError(f"{bloqdef.name!r} is already registered.")
+        if bloqdef.name in self._entries.maps[0] and not replace:
+            raise ValueError(
+                f"{bloqdef.name!r} is already registered and replace argument is False."
+            )
 
         if op is not None:
             self._entries[op._name] = bloqdef
@@ -35,7 +41,7 @@ class BloqRepository:
             self._entries[bloqdef.name] = bloqdef
 
     def resolve(self, op: Op) -> Bloq | None:
-        bloqdef = self._entries.get(op)
+        bloqdef = self._entries.get(op._name)
         if bloqdef is None:
             return None
 
@@ -60,5 +66,10 @@ class BloqRepository:
 DEFAULT_REPOSITORY = BloqRepository()
 
 
-def compile_bloq(bloq: Bloq, primitives: tuple[Op, ...]) -> Bloq:
-    pass
+def register_op(
+    bloqdef: type[BloqDef], repository: BloqRepository = DEFAULT_REPOSITORY
+) -> Op | ParametricOp:
+    repository.register(bloqdef)
+
+    # If the Bloq is parametric
+    # return Op(bloqdef.name, bloqdef.params, tuple(bloqdef.qreg_dim), bloqdef.num_creg, bloqdef.unitary, bloqdef.self_inverse)
