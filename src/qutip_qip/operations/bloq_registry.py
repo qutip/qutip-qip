@@ -33,8 +33,7 @@ def _with_params(spec: type[ParametricOp], impl: BloqImpl) -> BloqImpl:
 @dataclass(eq=False)
 class BloqRepository:
     """
-    Maps Op names to the BloqDef for implementing them.
-    The actual implemented is lazy and only constructed during the run-time.
+    Maps Op names to its implementation. The actual implemented is lazy and only constructed during the runtime.
     """
 
     # The entries are mapped using string since Op carries params and the
@@ -48,7 +47,10 @@ class BloqRepository:
         return name in self._entries
 
     def register(
-        self, op: Op | ParametricOp, impl: BloqImpl | None = None, replace: bool = False
+        self,
+        op: Op | type[ParametricOp],
+        impl: BloqImpl | None = None,
+        replace: bool = False,
     ):
         if impl is None:
             return lambda f: self.register(op, f, replace=replace)

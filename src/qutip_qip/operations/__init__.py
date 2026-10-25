@@ -13,8 +13,9 @@ from .gateclass import Gate, get_unitary_gate
 from .parametric import ParametricGate, AngleParametricGate
 from .controlled import ControlledGate, get_controlled_gate
 from .measurement import Measurement
-from .op import Op, OpInstruction
+from .op import Op, OpInstruction, ParametricOp
 from .bloq import Bloq, BloqBuilder
+from .bloq_registry import BloqRepository, register_op
 from .old_gates import (
     rx,
     ry,
@@ -60,9 +61,12 @@ __all__ = [
     "AngleParametricGate",
     "Measurement",
     "Op",
+    "ParametricOp",
     "OpInstruction",
     "Bloq",
     "BloqBuilder",
+    "BloqRepository",
+    "register_op",
     "rx",
     "ry",
     "rz",

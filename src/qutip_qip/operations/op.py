@@ -1,4 +1,4 @@
-from dataclasses import dataclass, dataclasses, field
+from dataclasses import dataclass, field, fields
 from typing import ClassVar, dataclass_transform, TypeVar
 
 from qutip_qip.typing import Int
@@ -80,7 +80,7 @@ class ParametricOp:
             ann[attr] = ClassVar[ann[attr]]
 
         cls.__annotations__ = ann
-        dataclasses.dataclass(frozen=True)(cls)
+        dataclass(frozen=True)(cls)
 
     # This function will only be executed in the inherited dataclass.
     def __post_init__(self) -> None:
@@ -96,7 +96,7 @@ class ParametricOp:
     @property
     def params(self) -> tuple:
         """Returns a tuple of names of parameters."""
-        return tuple(getattr(self, f.name) for f in dataclasses.fields(self))
+        return tuple(getattr(self, f.name) for f in fields(self))
 
     @property
     def num_qreg(self) -> int:
