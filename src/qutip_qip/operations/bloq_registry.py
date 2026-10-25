@@ -1,10 +1,33 @@
 from __future__ import annotations
 from collections import ChainMap
+from collections.abc import Callable
 from dataclasses import dataclass, field
 
 from qutip_qip.operations.bloq import BloqBuilder, Bloq
-from qutip_qip.operations.bloq_def import BloqDef
 from qutip_qip.operations.op import Op, ParametricOp
+
+# The implementation of an Op (or ParametricOp) is just a function
+# which takes a BloqBuilder instances and adds the relevant gates.
+BloqImpl = Callable[..., None]
+
+
+def _name_of(op: Op | type[ParametricOp]) -> str:
+    if isinstance(op, Op):
+        return op._name
+    if isinstance(op, type) and issubclass(op, ParametricOp):
+        return op.name
+    if isinstance(op, ParametricOp):
+        raise TypeError(
+            f"Register the class {type(op).__name__}, not the value {op!r}."
+        )
+    raise TypeError(f"Expected an Op or a ParametricOp subclass, got {op!r}.")
+
+
+def _with_params(spec: type[ParametricOp], impl: BloqImpl) -> BloqImpl:
+    def bound(op: Op, builder: BloqBuilder) -> None:
+        impl(spec(*op.params), builder)
+
+    return bound
 
 
 @dataclass(eq=False)
@@ -19,35 +42,38 @@ class BloqRepository:
     # but share the same implementation.
 
     # TODO: introduce namespace here (only the key changes e.g. std.MultiSWAP)
-    _entries: ChainMap[str, type[BloqDef]] = field(default_factory=ChainMap, init=False)
+    _entries: ChainMap[str, BloqImpl] = field(default_factory=ChainMap, init=False)
 
     def __contains__(self, name: str) -> bool:
         return name in self._entries
 
     def register(
-        self, bloqdef: type[BloqDef], replace: bool = False, op: Op | None = None
+        self, op: Op | ParametricOp, impl: BloqImpl | None = None, replace: bool = False
     ):
-        if not (isinstance(bloqdef, type) and issubclass(bloqdef, BloqDef)):
-            raise TypeError(f"Expected a BloqDef subclass, got {bloqdef!r}")
+        if impl is None:
+            return lambda f: self.register(op, f, replace=replace)
 
-        if bloqdef.name in self._entries.maps[0] and not replace:
+        name = _name_of(op)
+        if name in self._entries.maps[0] and not replace:
             raise ValueError(
-                f"{bloqdef.name!r} is already registered and replace argument is False."
+                f"{name!r} is already registered and replace argument is False."
             )
 
-        if op is not None:
-            self._entries[op._name] = bloqdef
+        if isinstance(op, type) and issubclass(op, ParametricOp):
+            self._entries[name] = _with_params(op, impl)
         else:
-            self._entries[bloqdef.name] = bloqdef
+            self._entries[name] = impl
+
+        return impl
 
     def resolve(self, op: Op) -> Bloq | None:
-        bloqdef = self._entries.get(op._name)
-        if bloqdef is None:
+        impl = self._entries.get(op._name)
+        if impl is None:
             return None
 
         # Constructing the bloq for the given params
         builder = BloqBuilder(op.num_qreg, op.num_creg, op.qreg_dim)
-        bloqdef(*op.params).build(builder)
+        impl(op, builder)
         return builder.build()
 
     def scope(self) -> BloqRepository:
@@ -67,9 +93,10 @@ DEFAULT_REPOSITORY = BloqRepository()
 
 
 def register_op(
-    bloqdef: type[BloqDef], repository: BloqRepository = DEFAULT_REPOSITORY
-) -> Op | ParametricOp:
-    repository.register(bloqdef)
-
-    # If the Bloq is parametric
-    # return Op(bloqdef.name, bloqdef.params, tuple(bloqdef.qreg_dim), bloqdef.num_creg, bloqdef.unitary, bloqdef.self_inverse)
+    op: Op | type[ParametricOp],
+    impl: BloqImpl | None = None,
+    *,
+    repository: BloqRepository = DEFAULT_REPOSITORY,
+    replace: bool = False,
+):
+    return repository.register(op, impl, replace=replace)
