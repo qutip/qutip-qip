@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field, fields
+from dataclasses import KW_ONLY, dataclass, field, fields
 from typing import ClassVar, dataclass_transform, TypeVar
 
 from qutip_qip.typing import Int
@@ -32,15 +32,46 @@ class Op:
         else:
             return f"{self._name}({', '.join(map(str, self.params))})"
 
-    @property
-    def num_qreg(self) -> int:
-        return len(self.qreg_dim)
-
+    num_qreg: int = 0
     num_creg: int = 0
-    params: tuple[P, ...] = ()
+    _: KW_ONLY  # Anything after this should be passed as a keyword
     unitary: bool = True
     self_inverse: bool = False
     qreg_dim: tuple[int, ...] = ()
+    params: tuple[P, ...] = ()
+
+    def __post_init__(self) -> None:
+        """Validate each input."""
+
+        if not isinstance(self.num_qreg, Int) or self.num_qreg < 0:
+            raise ValueError("num_qreg must be an integer >= 0.")
+
+        if not isinstance(self.num_creg, Int) or self.num_creg < 0:
+            raise ValueError("num_creg must be an integer >= 0.")
+
+        if not self.qreg_dim:
+            # Since the dataclass is frozen, we have to use __setattr__
+            object.__setattr__(self, "qreg_dim", (2,) * self.num_qreg)
+
+        else:
+            for d in self.qreg_dim:
+                if not isinstance(d, Int) or d < 2:
+                    raise ValueError(
+                        "qreg_dim can only have integer dimension, with each dimension >= 2."
+                    )
+            object.__setattr__(self, "qreg_dim", tuple(self.qreg_dim))
+
+        if len(self.qreg_dim) != self.num_qreg:
+            raise ValueError(
+                f"qreg_dim={self.qreg_dim} has length {len(self.qreg_dim)}, "
+                f"but num_qreg={self.num_qreg}."
+            )
+
+        if not isinstance(self.unitary, bool):
+            raise TypeError("unitary must be of type bool")
+
+        if not isinstance(self.self_inverse, bool):
+            raise TypeError("self_inverse must be of type bool")
 
 
 # Think of Parametric Op as Op Factory, takes params and returns a Op
@@ -53,13 +84,12 @@ class Op:
 # If we don't have this dataclass, the Parametric Ops will have to
 # define the parameters in __init__ (Pythonic but slightly less readable)
 
+
 # Note: dataclass transform is just a typehint to indicate that
 # the inherited classes will be a dataclass.
-
-
 @dataclass_transform(frozen_default=True)
 class ParametricOp:
-    name: ClassVar[str]  # defaults to class name minus "Def"
+    name: ClassVar[str]  # defaults to class name
     unitary: ClassVar[bool] = True
     self_inverse: ClassVar[bool] = False
     num_creg: ClassVar[int] = 0
@@ -67,7 +97,7 @@ class ParametricOp:
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         if "name" not in vars(cls):
-            cls.name = cls.__name__.removesuffix("Def")
+            cls.name = cls.__name__
 
         # Example:
         # Say user writes num_qreg: int in the child dataclass and this will generate __init__(self, num_qreg=3).
@@ -88,14 +118,14 @@ class ParametricOp:
 
     def validate_params(self) -> None:
         """
-        This can be overwridden in the Parametric child classes to check for user input.
+        This can be overwritten in the Parametric child classes to check for user input.
         Raise a ValueError in case of wrong parameter being passed.
         """
         pass
 
     @property
     def params(self) -> tuple:
-        """Returns a tuple of names of parameters."""
+        """Returns a tuple of values of parameters."""
         return tuple(getattr(self, f.name) for f in fields(self))
 
     @property
@@ -111,6 +141,7 @@ class ParametricOp:
     def to_op(self) -> Op:
         return Op(
             self.name,
+            num_qreg=self.num_qreg,
             qreg_dim=tuple(self.qreg_dim),
             num_creg=self.num_creg,
             unitary=self.unitary,
