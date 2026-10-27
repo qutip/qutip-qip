@@ -770,12 +770,7 @@ class MatRenderer(BaseRenderer):
                 targets = instruction.targets
                 controls = instruction.controls
                 style = style if style is not None else {}
-                self.text = gate.name
-
-                if gate.is_parametric:
-                    self.text = (
-                        gate.arg_label if gate.arg_label is not None else gate.name
-                    )
+                self.text = self._gate_label(gate, math_arg=True)
 
                 self.color = style.get(
                     "color",
