@@ -270,3 +270,80 @@ def test_circuit_saving(request, qc_fixture, tmpdir):
     # test TextRenderer
     qc.draw("text", save=True, file_path=str(tmpdir.join("test")))
     assert tmpdir.join("test.txt").check(), "TextRenderer saved TXT file not found."
+
+
+def _control_nodes(qc):
+    """
+    Render ``qc`` and return the drawn control nodes with the wire separation.
+    """
+    from matplotlib.backends.backend_agg import FigureCanvasAgg
+    from matplotlib.figure import Figure
+    from matplotlib.patches import Circle
+    from qutip_qip.circuit.draw import MatRenderer
+
+    # Draw on an Agg canvas so the test does not depend on a GUI backend.
+    fig = Figure()
+    FigureCanvasAgg(fig)
+    with patch("matplotlib.pyplot.show"):  # to avoid showing the plot
+        renderer = MatRenderer(qc, ax=fig.add_subplot(111))
+        renderer.canvas_plot()
+
+    control_nodes = [
+        drawn
+        for drawn in renderer._ax.patches
+        if isinstance(drawn, Circle) and drawn.radius == renderer._control_node_r
+    ]
+    return control_nodes, renderer.style.wire_sep
+
+
+def _is_filled(control_node) -> bool:
+    """A control node is filled when its face and edge share the gate color."""
+    return tuple(control_node.get_facecolor()) == tuple(control_node.get_edgecolor())
+
+
+@pytest.mark.parametrize("control_value, filled", [(1, True), (0, False)])
+def test_matrenderer_control_value_sets_the_control_fill(control_value, filled):
+    """
+    Check that a control activated by |1> is filled and one by |0> is hollow.
+    """
+    pytest.importorskip("matplotlib")
+    controlled_x = get_controlled_gate(X, n_ctrl_qubits=1, control_value=control_value)
+    qc = QubitCircuit(2)
+    qc.add_gate(controlled_x, controls=[0], targets=[1])
+
+    control_nodes, _ = _control_nodes(qc)
+
+    assert len(control_nodes) == 1
+    assert _is_filled(control_nodes[0]) is filled
+
+
+def test_matrenderer_control_values_follow_the_ctrl_value_bits():
+    """
+    Check that each control is filled according to the gate's own semantics.
+
+    Every control qubit is drawn from the matching bit of ``ctrl_value``, the
+    most significant bit belonging to the first control qubit. For
+    ``ctrl_value=0b01`` with two controls the gate applies when the first
+    control is |0> and the second is |1>, so the hollow control must be drawn
+    on the first control qubit.
+    """
+    pytest.importorskip("matplotlib")
+    controlled_x = get_controlled_gate(X, n_ctrl_qubits=2, control_value=0b01)
+    qc = QubitCircuit(3)
+    qc.add_gate(controlled_x, controls=[0, 1], targets=[2])
+
+    # The unitary confirms the mapping the rendering has to follow.
+    unitary = qc.compute_unitary().full()
+    flipped_states = {
+        format(index, "03b") for index in range(8) if abs(unitary[index, index]) < 0.5
+    }
+    assert flipped_states == {"010", "011"}
+
+    control_nodes, wire_sep = _control_nodes(qc)
+    assert len(control_nodes) == 2
+
+    fills = {
+        round(control_node.center[1] / wire_sep): _is_filled(control_node)
+        for control_node in control_nodes
+    }
+    assert fills == {0: False, 1: True}
