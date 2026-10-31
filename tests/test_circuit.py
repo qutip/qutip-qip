@@ -343,15 +343,15 @@ class TestQubitCircuit:
         """
         qc = QubitCircuit(3)
 
-        qc.add_op(gates.X, qreg=0)
-        qc.add_op(gates.CY, qreg=(0, 1))
-        qc.add_op(gates.Y, qreg=2)
-        qc.add_op(gates.CS, qreg=(1, 0))
-        qc.add_op(gates.Z, qreg=1)
-        qc.add_op(gates.CT, qreg=(2, 1))
-        qc.add_op(gates.CZ, qreg=(1, 0))
-        qc.add_op(gates.S, 1)
-        qc.add_op(gates.T, 2)
+        qc.add(gates.X, qreg=0)
+        qc.add(gates.CY, qreg=(0, 1))
+        qc.add(gates.Y, qreg=2)
+        qc.add(gates.CS, qreg=(1, 0))
+        qc.add(gates.Z, qreg=1)
+        qc.add(gates.CT, qreg=(2, 1))
+        qc.add(gates.CZ, qreg=(1, 0))
+        qc.add(gates.S, 1)
+        qc.add(gates.T, 2)
         qc.build()
 
         assert qc.instructions[8].operation == gates.T
@@ -382,14 +382,14 @@ class TestQubitCircuit:
     def test_classical_control_flow_eq(self):
         qc = QubitCircuit(num_qubits=2, num_cbits=1)
 
-        qc.add_op(gates.H, qreg=0)
-        qc.add_op(gates.CX, qreg=(0, 1))
-        qc.add_op(Mz, qreg=0, creg=0)
+        qc.add(gates.H, qreg=0)
+        qc.add(gates.CX, qreg=(0, 1))
+        qc.add(Mz, qreg=0, creg=0)
 
         cbit = 0
         with qc.if_test(cbit, 1):
-            qc.add_op(gates.X, qreg=0)
-            qc.add_op(gates.X, qreg=1)
+            qc.add(gates.X, qreg=0)
+            qc.add(gates.X, qreg=1)
 
         qc.build()
 
@@ -400,14 +400,14 @@ class TestQubitCircuit:
     def test_classical_control_flow_neq(self):
         qc = QubitCircuit(num_qubits=2, num_cbits=1)
 
-        qc.add_op(gates.H, qreg=0)
-        qc.add_op(gates.CX, qreg=(0, 1))
-        qc.add_op(Mz, qreg=0, creg=0)
+        qc.add(gates.H, qreg=0)
+        qc.add(gates.CX, qreg=(0, 1))
+        qc.add(Mz, qreg=0, creg=0)
 
         cbit = 0
         with qc.if_test(cbit, 0, "NEQ"):
-            qc.add_op(gates.X, qreg=0)
-            qc.add_op(gates.X, qreg=1)
+            qc.add(gates.X, qreg=0)
+            qc.add(gates.X, qreg=1)
 
         qc.build()
 
@@ -418,14 +418,14 @@ class TestQubitCircuit:
     def test_classical_control_flow_gt(self):
         qc = QubitCircuit(num_qubits=2, num_cbits=1)
 
-        qc.add_op(gates.H, qreg=0)
-        qc.add_op(gates.CX, qreg=(0, 1))
-        qc.add_op(Mz, qreg=0, creg=0)
+        qc.add(gates.H, qreg=0)
+        qc.add(gates.CX, qreg=(0, 1))
+        qc.add(Mz, qreg=0, creg=0)
 
         cbit = 0
         with qc.if_test(cbit, 0, "GT"):
-            qc.add_op(gates.X, qreg=0)
-            qc.add_op(gates.X, qreg=1)
+            qc.add(gates.X, qreg=0)
+            qc.add(gates.X, qreg=1)
 
         qc.build()
 
@@ -811,8 +811,8 @@ class TestQubitCircuit:
     def test_latex_code_conditional_blocks(self, check, value):
         qc = QubitCircuit(1, num_cbits=1, reverse_states=True)
         with qc.if_test(0, value, check):
-            qc.add_op(gates.X, qreg=0)
-            qc.add_op(gates.X, qreg=0)
+            qc.add(gates.X, qreg=0)
+            qc.add(gates.X, qreg=0)
 
         renderer = TeXRenderer(qc)
         latex = renderer.latex_code()

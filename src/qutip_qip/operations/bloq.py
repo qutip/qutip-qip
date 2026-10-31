@@ -3,8 +3,8 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from uuid import uuid4
 
-from qutip_qip.operations import OpInstruction
 from qutip_qip.operations.conditional import Cbz, Cbnz, ClassicalControlCheck, Label
+from qutip_qip.operations.op import Op, OpInstruction, ParametricOp
 from qutip_qip.typing import Int
 from qutip_qip.utils import check_limit
 
@@ -56,15 +56,15 @@ class BloqBuilder:
                 f"Length of qreg_dim={qreg_dim} must be equal to num_qreg={num_qreg}"
             )
 
-        self._qreg_dim = qreg_dim
+        self._qreg_dim: tuple[int, ...] = qreg_dim
         if len(self._qreg_dim) == 0:
             self._qreg_dim = (2,) * num_qreg
 
-        self._aux_qreg_dim = []
-        self._num_creg = num_creg
-        self._num_aux_creg = 0
-        self._global_phase = 0.0
-        self._op_instructions = []
+        self._aux_qreg_dim: list[int] = []
+        self._num_creg: int = num_creg
+        self._num_aux_creg: int = 0
+        self._global_phase: float = 0.0
+        self._op_instructions: list[OpInstruction] = []
 
     @property
     def num_qreg(self) -> int:
@@ -94,37 +94,45 @@ class BloqBuilder:
         self._global_phase += phase
         self._global_phase %= 2 * math.pi
 
-    def add_aux_qreg(self, count: Int = 1, dim: Int = 2) -> None:
+    def add_aux_qreg(self, count: Int = 1, dim: Int = 2) -> tuple[int, ...]:
         if not (isinstance(count, Int) and count > 0):
             raise TypeError(f"count must be of type int, got {count}")
 
         if not (isinstance(dim, Int) and dim > 0):
             raise TypeError(f"dim must be of type int, got {dim}")
 
+        start = self.num_qreg + self.num_aux_qreg
         self._aux_qreg_dim.extend([dim] * count)
+        return tuple(range(start, start + count))
 
-    def add_aux_creg(self, count: Int = 1) -> None:
+    def add_aux_creg(self, count: Int = 1) -> tuple[int, ...]:
         if not (isinstance(count, Int) and count > 0):
             raise TypeError(f"count must be of type int, got {count}")
+
+        start = self.num_qreg + self.num_aux_qreg
         self._num_aux_creg += count
+        return tuple(range(start, start + count))
 
     @property
     def qreg(self) -> tuple[int, ...]:
         return tuple(range(self.num_qreg))
 
     @property
-    def aux_qreg(self) -> tuple[int, ...]:
-        return tuple(range(self.num_qreg, self.num_qreg + self.num_aux_qreg))
-
-    @property
     def creg(self) -> tuple[int, ...]:
         return tuple(range(self.num_creg))
+
+    @property
+    def aux_qreg(self) -> tuple[int, ...]:
+        return tuple(range(self.num_qreg, self.num_qreg + self.num_aux_qreg))
 
     @property
     def aux_creg(self) -> tuple[int, ...]:
         return tuple(range(self.num_creg, self.num_creg + self.num_aux_creg))
 
-    def add_op(self, op, qreg=(), creg=(), style: dict = None) -> None:
+    def add(self, op: Op | ParametricOp, qreg=(), creg=(), style: dict = None) -> None:
+        if isinstance(op, ParametricOp):
+            op = op.to_op()
+
         # Type checking is handled internally within OpInstruction
         # We just check each element of qreg, creg are within the limit
         if isinstance(qreg, Int):
@@ -165,17 +173,17 @@ class BloqBuilder:
                 for index, cbit in enumerate(creg):
                     if (value >> (num_bits - 1 - index)) & 1 == 1:  # MSB first ordering
                         # If does not match for cbit_value=1, then branch to label (don't execute the conditional if)
-                        self.add_op(Cbz(label=label), creg=cbit)
+                        self.add(Cbz(label=label), creg=cbit)
                     else:
                         # If does not match for cbit_value=0, then branch to label
-                        self.add_op(Cbnz(label=label), creg=cbit)
+                        self.add(Cbnz(label=label), creg=cbit)
 
         elif check == ClassicalControlCheck.NEQ:
             neq_label = Label(uuid4().hex)
             if (value < 0) or (value >= lg_check_value):
                 # This is an unconditional jump essentially
-                self.add_op(Cbz(label=neq_label), creg=0)
-                self.add_op(Cbnz(label=neq_label), creg=0)
+                self.add(Cbz(label=neq_label), creg=0)
+                self.add(Cbnz(label=neq_label), creg=0)
 
             else:
                 for index, cbit in enumerate(creg):
@@ -183,19 +191,19 @@ class BloqBuilder:
 
                     if target_bit_value == 1:
                         # If a mismatch match for cbit_value=1, then branch to neqlabel
-                        self.add_op(Cbz(label=neq_label), creg=cbit)
+                        self.add(Cbz(label=neq_label), creg=cbit)
                     else:
-                        self.add_op(Cbnz(label=neq_label), creg=cbit)
+                        self.add(Cbnz(label=neq_label), creg=cbit)
 
                 # This will only execute if non of the earlier conditional branching executes.
                 # means NEQ is FALSE. We must skip the conditional block.
 
                 # This must be preferably replaced Jump statement (unconditional)
-                self.add_op(Cbz(label=label), creg=0)
-                self.add_op(Cbnz(label=label), creg=0)
+                self.add(Cbz(label=label), creg=0)
+                self.add(Cbnz(label=label), creg=0)
 
             # Successful entry point for the NEQ condition
-            self.add_op(neq_label)
+            self.add(neq_label)
 
         elif check == ClassicalControlCheck.GT:
             # Check for redundant conditions
@@ -210,18 +218,18 @@ class BloqBuilder:
 
                     # We break at first point of discontinuity (but to different labels)
                     if target_bit_value == 1:
-                        self.add_op(Cbz(label=label), creg=cbit)
+                        self.add(Cbz(label=label), creg=cbit)
                     else:
-                        self.add_op(Cbnz(label=gt_label), creg=cbit)
+                        self.add(Cbnz(label=gt_label), creg=cbit)
 
                 # If execution falls through the entire loop without jumping,
                 # it means every single bit matched exactly.
-                # self.add_op(Jump(label=label))
-                self.add_op(Cbz(label=label), creg=0)
-                self.add_op(Cbnz(label=label), creg=0)
+                # self.add(Jump(label=label))
+                self.add(Cbz(label=label), creg=0)
+                self.add(Cbnz(label=label), creg=0)
 
                 # Entry point for the GT conditional block
-                self.add_op(gt_label)
+                self.add(gt_label)
 
         elif check == ClassicalControlCheck.LT:
             # Check for redundant conditions
@@ -237,18 +245,18 @@ class BloqBuilder:
 
                     # We break at first point of discontinuity (but to different labels)
                     if target_bit_value == 1:
-                        self.add_op(Cbz(label=lt_label), creg=cbit)
+                        self.add(Cbz(label=lt_label), creg=cbit)
                     else:
-                        self.add_op(Cbnz(label=label), creg=cbit)
+                        self.add(Cbnz(label=label), creg=cbit)
 
                 # If execution falls through the entire loop without jumping,
                 # it means every single bit matched exactly.
-                # self.add_op(Jump(label=label))
-                self.add_op(Cbz(label=label), creg=0)
-                self.add_op(Cbnz(label=label), creg=0)
+                # self.add(Jump(label=label))
+                self.add(Cbz(label=label), creg=0)
+                self.add(Cbnz(label=label), creg=0)
 
                 # Entry point for the GT conditional block
-                self.add_op(lt_label)
+                self.add(lt_label)
 
         else:
             raise ValueError(f"Invalid check {check}")
@@ -256,7 +264,7 @@ class BloqBuilder:
         try:
             yield
         finally:
-            self.add_op(label)
+            self.add(label)
 
     def build(self) -> Bloq:
         return Bloq(
@@ -267,7 +275,3 @@ class BloqBuilder:
             global_phase=self.global_phase,
             instructions=self.instructions,
         )
-
-
-class BloqRepository:
-    pass
