@@ -46,8 +46,10 @@ class Controlled(Modifier):
             if cls.ctrl_dim is None:
                 cls.ctrl_dim = (2,) * num_ctrl_qreg
 
-            if len(cls.ctrl_dim) != num_ctrl_qreg or any(
-                not isinstance(d, Int) or d < 2 for d in cls.ctrl_dim
+            if (
+                not isinstance(cls.ctrl_dim, tuple)
+                or len(cls.ctrl_dim) != num_ctrl_qreg
+                or any(not isinstance(d, Int) or d < 2 for d in cls.ctrl_dim)
             ):
                 raise ValueError(
                     f"{cls.__name__}: ctrl_dim={cls.ctrl_dim} needs {num_ctrl_qreg} entries, each >= 2."

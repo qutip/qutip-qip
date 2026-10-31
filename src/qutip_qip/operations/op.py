@@ -26,8 +26,10 @@ def _check_config(op) -> None:
     if not isinstance(op.num_creg, Int) or op.num_creg < 0:
         raise ValueError(f"{op.name}: num_creg must be an integer >= 0.")
 
-    if len(op.qreg_dim) != op.num_qreg or any(
-        not isinstance(d, Int) or d < 2 for d in op.qreg_dim
+    if (
+        not isinstance(op.qreg_dim, tuple)
+        or len(op.qreg_dim) != op.num_qreg
+        or any(not isinstance(d, Int) or d < 2 for d in op.qreg_dim)
     ):
         raise ValueError(
             f"{op.name}: qreg_dim={op.qreg_dim} needs {op.num_qreg} entries, each >= 2."
