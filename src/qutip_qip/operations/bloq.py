@@ -109,7 +109,7 @@ class BloqBuilder:
         if not (isinstance(count, Int) and count > 0):
             raise TypeError(f"count must be of type int, got {count}")
 
-        start = self.num_qreg + self.num_aux_qreg
+        start = self.num_creg + self.num_aux_creg
         self._num_aux_creg += count
         return tuple(range(start, start + count))
 

@@ -140,7 +140,6 @@ class Op(ABC, metaclass=OpMeta):
         if any(f.kw_only or not f.init for f in fields(cls)):
             raise TypeError(f"{cls.__name__}: parameters must be positional fields.")
 
-        cls.is_controlled = "target" in cls.config
         cls.is_parametric = bool(fields(cls))
         if cls.is_parametric:
             cls.params = Op.params

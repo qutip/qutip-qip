@@ -19,7 +19,8 @@ class Controlled(Modifier):
     Abstract class for defining a Controlled Op.
     """
 
-    config = Op.config | {"num_ctrl_qreg", "ctrl_dim", "ctrl_value", "target"}
+    config = Modifier.config | {"num_ctrl_qreg", "ctrl_dim", "ctrl_value", "target"}
+    is_controlled: ClassVar[bool] = True
     num_ctrl_qreg: ClassVar[int] = 1
     ctrl_value: ClassVar[int | None] = (
         None  # None: all controls in |1> (|d-1> for control on a qudit)
@@ -171,25 +172,25 @@ class ControlledGate(Controlled, Gate):
 @op_factory
 @lru_cache(maxsize=128)
 def controlled(
-    target: type[Op],
+    op: type[Op],
     num_ctrl_qreg: int = 1,
     ctrl_value: int | None = None,
     ctrl_dim: tuple[int, ...] | None = None,
     name: str | None = None,
 ) -> type[Controlled]:
 
-    if not isinstance(target, type) and not issubclass(target, Op):
+    if not isinstance(op, type) or not issubclass(op, Op):
         raise TypeError(
-            f"controlled() takes an op class, e.g. controlled(RX), got {target!r}."
+            f"controlled() takes an op class, e.g. controlled(RX), got {op!r}."
         )
 
     # What are we controlling a Gate or an Op
-    base_class = ControlledGate if issubclass(target, Gate) else Controlled
+    base_class = ControlledGate if issubclass(op, Gate) else Controlled
 
     # A class body cannot read a parameter if what it assigns has the same name, so we use aliases.
-    _name = name or f"{'C' * num_ctrl_qreg}{target.name}"
+    _name = name or f"{'C' * num_ctrl_qreg}{op.name}"
     _target, _num_ctrl_qreg, _ctrl_value, _ctrl_dim = (
-        target,
+        op,
         num_ctrl_qreg,
         ctrl_value,
         ctrl_dim,
