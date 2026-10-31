@@ -11,26 +11,17 @@ from qutip_qip.operations.op import Op
 BloqImpl = Callable[..., None]
 
 
-def _name_of(op: type[Op]) -> str:
-    if isinstance(op, type) and issubclass(op, Op):
-        return op.name
-    raise TypeError(f"Register the Op class, not a value, got {op!r}.")
-
-
 @dataclass(eq=False)
 class BloqRepository:
     """
-    Maps Op names to its implementation. The actual implemented is lazy and only constructed during the runtime.
+    Maps Op to its implementation. The actual implemented is lazy and only constructed during the runtime.
     """
 
-    # The entries are mapped using string since Op carries params and the
+    # The entries are mapped using Op hashes of the Op type since Op carries params and the
     # registry does not care about them e.g. MultiSWAP(3), MultiSWAP(4) are two different Op values
     # but share the same implementation.
 
-    _entries: ChainMap[str, BloqImpl] = field(default_factory=ChainMap, init=False)
-
-    def __contains__(self, name: str) -> bool:
-        return name in self._entries
+    _entries: ChainMap[type[Op], BloqImpl] = field(default_factory=ChainMap, init=False)
 
     def register(
         self,
@@ -41,17 +32,23 @@ class BloqRepository:
         if impl is None:
             return lambda f: self.register(op, f, replace=replace)
 
-        name = _name_of(op)
-        if name in self._entries.maps[0] and not replace:
+        if not (isinstance(op, type) and issubclass(op, Op)):
+            raise TypeError(f"Register the Op class, not a value, got {op!r}.")
+
+        if op in self._entries.maps[0] and not replace:
             raise ValueError(
-                f"{name!r} is already registered and replace argument is False."
+                f"{op.name!r} is already registered and replace argument is False."
             )
 
-        self._entries[name] = impl
+        self._entries[op] = impl
         return impl
 
-    def resolve(self, op: type[Op]) -> Bloq | None:
-        impl = self._entries.get(op.name)
+    def resolve(self, op: Op | type[Op]) -> Bloq | None:
+        if isinstance(op, Op):
+            impl = self._entries.get(hash(type(op)))
+        else:
+            impl = self._entries.get(hash(op))
+
         if impl is None:
             return None
 
@@ -71,6 +68,9 @@ class BloqRepository:
         # The parent's entries are shared by reference, not copied.
         child_repository._entries = self._entries.new_child()
         return child_repository
+
+    def __contains__(self, op: Op | type[Op]) -> bool:
+        return (op if isinstance(op, type) else type(op)) in self._entries
 
 
 DEFAULT_REPOSITORY = BloqRepository()
