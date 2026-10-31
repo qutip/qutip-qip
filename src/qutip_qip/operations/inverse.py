@@ -3,9 +3,9 @@ from functools import lru_cache
 
 from qutip import Qobj
 from qutip_qip.operations.gateclass import Gate
-from qutip_qip.operations.helper import class_or_instance_method
-from qutip_qip.operations.op import Op, op_factory
 from qutip_qip.operations.modifier import Modifier
+from qutip_qip.operations.op import Op, op_factory
+from qutip_qip.operations.utils import class_or_instance_method
 
 
 class Inverse(Modifier):

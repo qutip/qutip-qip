@@ -6,8 +6,8 @@ from collections.abc import Callable
 from dataclasses import fields
 from typing import ClassVar
 
-from qutip_qip.operations.helper import cached_class_or_instance_method
 from qutip_qip.operations.op import Op
+from qutip_qip.operations.utils import cached_class_or_instance_method
 
 
 class Modifier(Op):

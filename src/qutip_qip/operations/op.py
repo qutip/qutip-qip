@@ -5,7 +5,7 @@ from dataclasses import dataclass, field, fields
 from functools import partial, wraps
 from typing import ClassVar, dataclass_transform, get_origin
 
-from qutip_qip.operations.helper import class_or_instance_method
+from qutip_qip.operations.utils import class_or_instance_method
 from qutip_qip.typing import Int
 from qutip_qip.utils import convert_type_input_to_sequence
 

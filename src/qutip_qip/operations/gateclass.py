@@ -6,8 +6,8 @@ from abc import abstractmethod
 from typing import ClassVar
 
 from qutip import Qobj
-from qutip_qip.operations.helper import cached_class_or_instance_method
 from qutip_qip.operations.op import Op, is_op, op_factory
+from qutip_qip.operations.utils import cached_class_or_instance_method
 from qutip_qip.typing import Real
 
 
