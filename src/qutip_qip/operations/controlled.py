@@ -92,6 +92,23 @@ class Controlled(Modifier):
         if self.target_op().num_qreg < 1:
             raise ValueError(f"{self.name}: target must act on at least one register.")
 
+    @class_or_instance_method
+    def inverse(cls_ins) -> Op | type[Op]:
+        # We invert the target gate
+        inverse_op = cls_ins.target_op().inverse()
+        op_type = inverse_op if isinstance(inverse_op, type) else type(inverse_op)
+
+        # Same op, changed params e.g. in case of RX(0.5)
+        if op_type is cls_ins.target:
+            if isinstance(cls_ins, type):
+                return cls_ins
+            return type(cls_ins)(*inverse_op.params)
+
+        cgate = controlled(
+            op_type, cls_ins.num_ctrl_qreg, cls_ins.ctrl_value, cls_ins.ctrl_dim
+        )
+        return cgate if isinstance(inverse_op, type) else cgate(*inverse_op.params)
+
 
 class ControlledGate(Controlled, Gate):
     r"""
@@ -145,28 +162,6 @@ class ControlledGate(Controlled, Gate):
             dims=[list(cls_ins.ctrl_dim) + U.dims[0]] * 2,
             dtype=dtype,
         )
-
-    @class_or_instance_method
-    def inverse(cls_ins) -> Gate | type[Gate]:
-        if cls_ins.self_inverse:
-            return cls_ins
-
-        # We invert the target gate
-        inverse_gate = cls_ins.target_op().inverse()
-        gate_type = (
-            inverse_gate if isinstance(inverse_gate, type) else type(inverse_gate)
-        )
-
-        # Same gate_type, changed params e.g. in case of RX(0.5)
-        if gate_type is cls_ins.target:
-            if isinstance(cls_ins, type):
-                return cls_ins
-            return type(cls_ins)(*inverse_gate.params)
-
-        cgate = controlled(
-            gate_type, cls_ins.num_ctrl_qreg, cls_ins.ctrl_value, cls_ins.ctrl_dim
-        )
-        return cgate if isinstance(inverse_gate, type) else cgate(*inverse_gate.params)
 
 
 @op_factory

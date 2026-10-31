@@ -6,10 +6,7 @@ from abc import abstractmethod
 from typing import ClassVar
 
 from qutip import Qobj
-from qutip_qip.operations.helper import (
-    cached_class_or_instance_method,
-    class_or_instance_method,
-)
+from qutip_qip.operations.helper import cached_class_or_instance_method
 from qutip_qip.operations.op import Op, is_op, op_factory
 from qutip_qip.typing import Real
 
@@ -46,6 +43,7 @@ class Gate(Op):
     """
 
     config = Op.config | {"is_clifford", "latex_str"}
+    unitary: ClassVar[bool] = True
     is_clifford: ClassVar[bool] = False
     latex_str: ClassVar[str]
 
@@ -107,23 +105,6 @@ class Gate(Op):
                 f"e.g. {cls_ins.name}(...).get_qobj()."
             )
         return cls_ins.compute_qobj(dtype)
-
-    @class_or_instance_method
-    def inverse(cls_ins) -> Gate | type[Gate]:
-        """
-        Return the inverse of the gate.
-
-        If ``self_inverse`` is True, returns ``self``. Otherwise,
-        returns the specific inverse gate class.
-
-        Returns
-        -------
-        type[Gate]
-            A Gate instance representing $G^{-1}$.
-        """
-        if cls_ins.self_inverse:
-            return cls_ins
-        return get_unitary_gate(f"{cls_ins.name}_inv", cls_ins.get_qobj().dag())
 
     @property
     def arg_value(self) -> tuple:  # deprecated alias for the 72 call sites

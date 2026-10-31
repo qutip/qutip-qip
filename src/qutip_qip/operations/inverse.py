@@ -1,0 +1,60 @@
+import inspect
+from functools import lru_cache
+
+from qutip import Qobj
+from qutip_qip.operations.gateclass import Gate
+from qutip_qip.operations.helper import class_or_instance_method
+from qutip_qip.operations.op import Op, op_factory
+from qutip_qip.operations.modifier import Modifier
+
+
+class Inverse(Modifier):
+    _derived = {
+        "num_qreg": lambda c, t: t.num_qreg,
+        "qreg_dim": lambda c, t: t.qreg_dim,
+        "num_creg": lambda c, t: t.num_creg,
+        "self_inverse": lambda c, t: t.self_inverse,
+    }
+
+    def __init_subclass__(cls) -> None:
+        if not inspect.isabstract(cls):
+            cls._key = ("inverse", cls.target)
+        super().__init_subclass__()
+
+    @class_or_instance_method
+    def inverse(cls_ins):
+        return cls_ins.target_op()
+
+
+class InverseGate(Inverse, Gate):
+    _derived = Inverse._derived | {"is_clifford": lambda c, t: t.is_clifford}
+
+    def __init_subclass__(cls) -> None:
+        super().__init_subclass__()
+        if inspect.isabstract(cls):
+            return
+
+        # Target must be a Gate class
+        if not issubclass(cls.target, Gate):
+            raise TypeError(f"{cls.__name__}: target must be a Gate.")
+
+    @class_or_instance_method
+    def compute_qobj(cls_ins, dtype: str = "dense") -> Qobj:
+        return cls_ins.target_op().get_qobj(dtype).dag()
+
+
+@op_factory
+@lru_cache(maxsize=128)
+def inverse(op: type[Op], name: str | None = None) -> type[Inverse]:
+    if not (isinstance(op, type) and issubclass(op, Op)):
+        raise TypeError(f"inverse() takes an op class, e.g. inverse(RX), got {op!r}.")
+
+    base_class = InverseGate if issubclass(op, Gate) else Inverse
+    _name, _target = name or f"{op.name}dag", op
+
+    class _Inverse(base_class):
+        name = _name
+        target = _target
+
+    _Inverse.__name__ = _Inverse.__qualname__ = _name
+    return _Inverse

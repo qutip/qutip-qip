@@ -5,6 +5,7 @@ from dataclasses import dataclass, field, fields
 from functools import partial, wraps
 from typing import ClassVar, dataclass_transform, get_origin
 
+from qutip_qip.operations.helper import class_or_instance_method
 from qutip_qip.typing import Int
 from qutip_qip.utils import convert_type_input_to_sequence
 
@@ -97,7 +98,6 @@ class Op(ABC, metaclass=OpMeta):
     num_qreg: ClassVar[int] = 0
     num_creg: ClassVar[int] = 0
     qreg_dim: ClassVar[tuple[int, ...]] = ()
-    unitary: ClassVar[bool] = True
     self_inverse: ClassVar[bool] = False
 
     # derived from configuration
@@ -173,6 +173,22 @@ class Op(ABC, metaclass=OpMeta):
     @property
     def params(self) -> tuple:
         return tuple(getattr(self, f.name) for f in fields(self))
+
+    @class_or_instance_method
+    def inverse(cls_ins):
+        """Default inverse; ops with a closed form (T -> Tdag, RX(t) -> RX(-t)) override it."""
+        if not cls_ins.unitary:
+            raise TypeError(f"{cls_ins.name} is not unitary, so it has no inverse.")
+
+        if cls_ins.self_inverse:
+            return cls_ins
+
+        # inverse.py builds on Op, so it is imported when first needed.
+        from qutip_qip.operations.inverse import inverse as inverse_of
+
+        if isinstance(cls_ins, type):
+            return inverse_of(cls_ins)
+        return inverse_of(type(cls_ins))(*cls_ins.params)
 
     def __repr__(self) -> str:  # e.g. "MultiSWAP(3)" for drawing
         if not self.params:
