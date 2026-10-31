@@ -1,7 +1,9 @@
+import copy
 import inspect
 import math
+
 from abc import abstractmethod
-from dataclasses import MISSING, fields
+from dataclasses import fields
 from functools import lru_cache
 from typing import ClassVar
 
@@ -67,8 +69,8 @@ class Controlled(Op):
                 )
 
             # Say if the Op we were controlling was it itself controlled e.g. CX
-            # Then it defines ctrl_dim, ctrl_value already. Using them in the MRO is incorrect
-            # Instead we should set the values retrieved from target as None and then set them in next step.
+            # Then using inheriting target's ctrl_dim, ctrl_value is wrong which happends during MRO.
+            # Instead we set the values retrieved from target as None and then set them in next step.
             if vars(cls).keys() & {"num_ctrl_qreg", "ctrl_dim"}:
                 for attr in ("ctrl_dim", "ctrl_value"):
                     if attr not in vars(cls):
@@ -110,8 +112,7 @@ class Controlled(Op):
                 cls.__annotations__
             )
             for f in fields(target):
-                if f.default is not MISSING:
-                    setattr(cls, f.name, f.default)
+                setattr(cls, f.name, copy.copy(f))
 
         super().__init_subclass__()
 
@@ -194,10 +195,10 @@ class ControlledGate(Controlled, Gate):
             inverse_gate if isinstance(inverse_gate, type) else type(inverse_gate)
         )
 
-        # Inverse of Hadamard is Hadmard, but inverse of T is not T
-        if (
-            gate_type is cls_ins.target
-        ):  # same gate_type, changed params e.g. in case of RX(0.5)
+        # Same gate_type, changed params e.g. in case of RX(0.5)
+        if gate_type is cls_ins.target:
+            if isinstance(cls_ins, type):
+                return cls_ins
             return type(cls_ins)(*inverse_gate.params)
 
         cgate = controlled(
@@ -216,7 +217,7 @@ def controlled(
     name: str | None = None,
 ) -> type[Controlled]:
 
-    if not isinstance(target, type):
+    if not isinstance(target, type) and not issubclass(target, Op):
         raise TypeError(
             f"controlled() takes an op class, e.g. controlled(RX), got {target!r}."
         )

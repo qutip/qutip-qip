@@ -20,28 +20,6 @@ class Measurement(Op):
     num_creg: int = 1
     unitary: bool = False
 
-    def __init__(self, name=None, targets=None, index=None, classical_store=None):
-        """
-        Create a measurement with specified parameters.
-        """
-        if name is not None:
-            warnings.warn(
-                "'name' argument in Measurement has been deprecated.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-
-        if index is not None:
-            raise AttributeError("argument index is no longer supported")
-
-        if targets is not None or classical_store is not None:
-            warnings.warn(
-                "'targets' and 'classical_store' arguments in Measurement are deprecated. "
-                "Please pass these directly to QubitCircuit.add_measurement() method.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-
     @classmethod
     def measurement_comp_basis(cls, state, qubits):
         """

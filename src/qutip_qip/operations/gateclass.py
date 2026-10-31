@@ -83,7 +83,7 @@ class Gate(Op):
             cls.latex_str = cls.name
 
         if "dtype" not in inspect.signature(cls.compute_qobj).parameters:
-            raise TypeError(f"{cls.name}.get_qobj must accept a dtype parameter.")
+            raise TypeError(f"{cls.name}.compute_qobj must accept a dtype parameter.")
 
         if not isinstance(cls.is_clifford, bool):
             raise TypeError(f"{cls.name}: is_clifford must be a bool.")
@@ -154,7 +154,7 @@ class Gate(Op):
 
 
 class AngleParametricGate(Gate):
-    """Parametric gate whose parameters are all real angles. Replaces AngleParametricGate."""
+    """Parametric gate whose parameters are all real angles."""
 
     def validate_params(self) -> None:
         for v in self.params:
@@ -185,6 +185,7 @@ def get_unitary_gate(name: str, U: Qobj) -> type[Gate]:
         qreg_dim = tuple(U.dims[0])
         self_inverse = U == U.dag()
 
+        @staticmethod
         def compute_qobj(dtype=U.dtype):
             return U.to(dtype)
 
