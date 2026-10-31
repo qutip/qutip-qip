@@ -158,6 +158,11 @@ class Op(ABC, metaclass=OpMeta):
                 cls.qreg_dim = (2,) * cls.num_qreg
             _check_config(cls)
 
+        if not inspect.isabstract(cls) and cls.is_derived and not cls.is_parametric:
+            raise TypeError(
+                f"{cls.__name__}: config can only be derived from parameters, add a new parameter."
+            )
+
     def __post_init__(self) -> None:  # parametric instances only
         if self.is_derived:
             if not self.qreg_dim:
@@ -177,6 +182,12 @@ class Op(ABC, metaclass=OpMeta):
 
     @class_or_instance_method
     def inverse(cls_ins):
+        # To disallow something like RX.inverse()
+        if not is_op(cls_ins):
+            raise TypeError(
+                f"{cls_ins.name} is parametric, build an instance first e.g. {cls_ins.name}(...).inverse()."
+            )
+
         if not cls_ins.unitary:
             raise TypeError(f"{cls_ins.name} is not unitary, so it has no inverse.")
 
@@ -184,11 +195,11 @@ class Op(ABC, metaclass=OpMeta):
             return cls_ins
 
         # To avoid circular import
-        from qutip_qip.operations.inverse import inverse as inverse_of
+        from qutip_qip.operations.inverse import inverse
 
         if isinstance(cls_ins, type):
-            return inverse_of(cls_ins)
-        return inverse_of(type(cls_ins))(*cls_ins.params)
+            return inverse(cls_ins)
+        return inverse(type(cls_ins))(*cls_ins.params)
 
     def __repr__(self) -> str:  # e.g. "MultiSWAP(3)" for drawing
         if not self.params:

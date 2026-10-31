@@ -6,7 +6,7 @@ from collections.abc import Callable
 from dataclasses import fields
 from typing import ClassVar
 
-from qutip_qip.operations.helper import class_or_instance_method
+from qutip_qip.operations.helper import cached_class_or_instance_method
 from qutip_qip.operations.op import Op
 
 
@@ -64,7 +64,7 @@ class Modifier(Op):
     def validate_params(self) -> None:
         self.target_op()  # building the target runs its own validation
 
-    @class_or_instance_method
+    @cached_class_or_instance_method
     def target_op(cls_ins) -> Op | type[Op]:
         return (
             cls_ins.target
