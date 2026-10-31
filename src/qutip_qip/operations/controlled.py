@@ -94,20 +94,12 @@ class Controlled(Modifier):
 
     @class_or_instance_method
     def inverse(cls_ins) -> Op | type[Op]:
-        # We invert the target gate
-        inverse_op = cls_ins.target_op().inverse()
-        op_type = inverse_op if isinstance(inverse_op, type) else type(inverse_op)
-
-        # Same op, changed params e.g. in case of RX(0.5)
-        if op_type is cls_ins.target:
-            if isinstance(cls_ins, type):
-                return cls_ins
-            return type(cls_ins)(*inverse_op.params)
-
-        cgate = controlled(
-            op_type, cls_ins.num_ctrl_qreg, cls_ins.ctrl_value, cls_ins.ctrl_dim
+        return controlled(
+            cls_ins.target_op().inverse(),
+            cls_ins.num_ctrl_qreg,
+            cls_ins.ctrl_value,
+            cls_ins.ctrl_dim,
         )
-        return cgate if isinstance(inverse_op, type) else cgate(*inverse_op.params)
 
 
 class ControlledGate(Controlled, Gate):

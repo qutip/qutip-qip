@@ -99,6 +99,7 @@ class Op(ABC, metaclass=OpMeta):
     num_creg: ClassVar[int] = 0
     qreg_dim: ClassVar[tuple[int, ...]] = ()
     self_inverse: ClassVar[bool] = False
+    unitary: ClassVar[bool] = False
 
     # derived from configuration
     is_controlled: ClassVar[bool] = False
@@ -176,14 +177,13 @@ class Op(ABC, metaclass=OpMeta):
 
     @class_or_instance_method
     def inverse(cls_ins):
-        """Default inverse; ops with a closed form (T -> Tdag, RX(t) -> RX(-t)) override it."""
         if not cls_ins.unitary:
             raise TypeError(f"{cls_ins.name} is not unitary, so it has no inverse.")
 
         if cls_ins.self_inverse:
             return cls_ins
 
-        # inverse.py builds on Op, so it is imported when first needed.
+        # To avoid circular import
         from qutip_qip.operations.inverse import inverse as inverse_of
 
         if isinstance(cls_ins, type):
@@ -242,6 +242,9 @@ copyreg.pickle(OpMeta, lambda cls: vars(cls).get("_factory") or cls.__qualname__
 def op_factory(build):
     @wraps(build)
     def factory(*args, **kwargs):
+        if args and isinstance(args[0], Op):
+            op, *rest = args
+            return factory(type(op), *rest, **kwargs)(*op.params)
         cls = build(*args, **kwargs)
         cls._factory = (partial(factory, *args, **kwargs), ())
         return cls
