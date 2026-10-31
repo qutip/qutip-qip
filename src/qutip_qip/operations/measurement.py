@@ -1,5 +1,4 @@
 import numpy as np
-import warnings
 import qutip
 from qutip import basis
 from qutip.measurement import measurement_statistics

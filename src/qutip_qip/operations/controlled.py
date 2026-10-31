@@ -1,10 +1,5 @@
-import copy
 import inspect
 import math
-import warnings
-
-from abc import abstractmethod
-from dataclasses import fields
 from functools import lru_cache
 from typing import ClassVar
 
@@ -12,12 +7,14 @@ import numpy as np
 from scipy.linalg import block_diag
 
 from qutip import Qobj
-from qutip_qip.operations.gateclass import Gate, class_or_instance_method
+from qutip_qip.operations.gateclass import Gate
+from qutip_qip.operations.helper import class_or_instance_method
 from qutip_qip.operations.op import Op, op_factory
+from qutip_qip.operations.modifier import Modifier
 from qutip_qip.typing import Int
 
 
-class Controlled(Op):
+class Controlled(Modifier):
     """
     Abstract class for defining a Controlled Op.
     """
@@ -29,11 +26,6 @@ class Controlled(Op):
     )
     ctrl_dim: ClassVar[tuple[int, ...] | None] = None  # None: qubits
 
-    # Abstract class attribute i.e. subclasses need to define target Op for e.g. RX
-    @property
-    @abstractmethod
-    def target(self) -> type[Op]: ...
-
     _derived = {
         "num_qreg": lambda c, t: c.num_ctrl_qreg + t.num_qreg,
         "qreg_dim": lambda c, t: c.ctrl_dim + t.qreg_dim,
@@ -42,48 +34,22 @@ class Controlled(Op):
     }
 
     def __init_subclass__(cls) -> None:
-        if clash := vars(cls).keys() & cls._derived.keys():
-            warnings.warn(
-                f"{cls.__name__}: cannot set {', '.join(clash)}, derived from the target.",
-                SyntaxWarning,
-            )
-
         if not inspect.isabstract(cls):
-            target, num_ctrl_qreg = cls.target, cls.num_ctrl_qreg
-            if not (
-                isinstance(
-                    target, type
-                )  # It must not be an instance e.g. RX(0.5), rather the class itself
-                and issubclass(target, Op)
-                and not inspect.isabstract(target)
-            ):
-                raise TypeError(
-                    f"{cls.__name__}: target must be a concrete Op, got {target!r}."
-                )
-
-            if not target.unitary:
-                raise TypeError(f"{cls.__name__}: target must be unitary.")
-
-            # A derived target e.g. MCX(n) only knows num_qreg per instance, validate_params will covers it.
-            if not target.is_derived and target.num_qreg < 1:
-                raise TypeError(
-                    f"{cls.__name__}: target must act on at least one register."
-                )
-
+            num_ctrl_qreg = cls.num_ctrl_qreg
             if not isinstance(num_ctrl_qreg, Int) or num_ctrl_qreg < 1:
                 raise ValueError(
                     f"{cls.__name__}: num_ctrl_qreg must be an integer >= 1."
                 )
 
-            # Say if the Op we were controlling was it itself controlled e.g. CX
-            # Then using inheriting target's ctrl_dim, ctrl_value is wrong which happends during MRO.
+            # Say if the Op we were controlling was itself controlled e.g. CX
+            # Then inheriting target's ctrl_dim, ctrl_value is wrong which happens during MRO.
             # Instead we set the values retrieved from target as None and then set them in next step.
             if vars(cls).keys() & {"num_ctrl_qreg", "ctrl_dim"}:
                 for attr in ("ctrl_dim", "ctrl_value"):
                     if attr not in vars(cls):
                         setattr(cls, attr, None)
 
-            # Validating creg_dim, ctrl_value
+            # Default value and validation for ctrl_dim
             if cls.ctrl_dim is None:
                 cls.ctrl_dim = (2,) * num_ctrl_qreg
 
@@ -94,6 +60,7 @@ class Controlled(Op):
                     f"{cls.__name__}: ctrl_dim={cls.ctrl_dim} needs {num_ctrl_qreg} entries, each >= 2."
                 )
 
+            # Default value and validation for ctrl_value
             size = math.prod(cls.ctrl_dim)
             if cls.ctrl_value is None:
                 cls.ctrl_value = size - 1
@@ -102,26 +69,20 @@ class Controlled(Op):
                 raise ValueError(f"{cls.__name__}: ctrl_value must be in [0, {size}).")
 
             # Acts as hash (identity) for a Controlled Op
-            cls._key = (target, num_ctrl_qreg, cls.ctrl_value, cls.ctrl_dim)
-
-            for attr, rule in cls._derived.items():
-                if target.is_derived:  # e.g. MCX(n)
-                    setattr(
-                        cls,
-                        attr,
-                        property(lambda self, rule=rule: rule(self, self.target_op())),
-                    )
-                else:
-                    setattr(cls, attr, rule(cls, target))
-
-            # The target Op's parameters e.g. theta in RX, become parameter of the Controlled Op as well.
-            cls.__annotations__ = {f.name: f.type for f in fields(target)} | dict(
-                cls.__annotations__
-            )
-            for f in fields(target):
-                setattr(cls, f.name, copy.copy(f))
+            cls._key = (cls.target, num_ctrl_qreg, cls.ctrl_value, cls.ctrl_dim)
 
         super().__init_subclass__()
+
+        # For a derived target e.g. MCX(n) only knows num_qreg per instance, validate_params covers it.
+        # Below check is for a non-derived target
+        if (
+            not inspect.isabstract(cls)
+            and not cls.target.is_derived
+            and cls.target.num_qreg < 1
+        ):
+            raise TypeError(
+                f"{cls.__name__}: target must act on at least one register."
+            )
 
     def validate_params(self) -> None:
         # Run the validate_params method by buidling the target
@@ -129,12 +90,6 @@ class Controlled(Op):
         # For Parametric target Op (say RX), when we call CRX(theta), RX(theta) gets constructed which validates the params
         if self.target_op().num_qreg < 1:
             raise ValueError(f"{self.name}: target must act on at least one register.")
-
-    @class_or_instance_method
-    def target_op(cls_ins) -> Op | type[Op]:
-        if isinstance(cls_ins, type):
-            return cls_ins.target
-        return cls_ins.target(*cls_ins.params)
 
 
 class ControlledGate(Controlled, Gate):

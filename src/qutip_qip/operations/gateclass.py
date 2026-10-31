@@ -3,33 +3,15 @@ from __future__ import annotations
 import inspect
 import warnings
 from abc import abstractmethod
-from functools import lru_cache, partial
 from typing import ClassVar
 
 from qutip import Qobj
+from qutip_qip.operations.helper import (
+    cached_class_or_instance_method,
+    class_or_instance_method,
+)
 from qutip_qip.operations.op import Op, is_op, op_factory
 from qutip_qip.typing import Real
-
-
-class class_or_instance_method:
-    """Bind to the class when accessed on a class value (X.inverse()),
-    to the instance otherwise (RX(0.5).inverse()). Used here and in Controlled."""
-
-    def __init__(self, f):
-        self.f = f
-
-    def __get__(self, obj, owner):
-        return partial(self.f, owner if obj is None else obj)
-
-
-class cached_class_or_instance_method(class_or_instance_method):
-    def __set_name__(self, owner, name):
-        self.slot = f"_{name}_cache"
-
-    def __get__(self, obj, owner):
-        if self.slot not in vars(owner):
-            setattr(owner, self.slot, lru_cache(maxsize=128)(self.f))
-        return partial(vars(owner)[self.slot], owner if obj is None else obj)
 
 
 class Gate(Op):
