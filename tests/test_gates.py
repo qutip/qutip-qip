@@ -125,7 +125,7 @@ class TestExplicitForm:
     )
     def test_molmer_sorensen(self, angle, expected):
         np.testing.assert_allclose(
-            gates.MS(angle).get_qobj().full(), expected.full(), atol=1e-15
+            gates.MS(*angle).get_qobj().full(), expected.full(), atol=1e-15
         )
 
     @pytest.mark.parametrize(
@@ -140,7 +140,7 @@ class TestExplicitForm:
     )
     def test_zero_rotations_are_identity(self, gate, n_angles):
         np.testing.assert_allclose(
-            np.eye(2), gate([0] * n_angles).get_qobj().full(), atol=1e-15
+            np.eye(2), gate(*[0] * n_angles).get_qobj().full(), atol=1e-15
         )
 
 
@@ -241,9 +241,7 @@ class TestGateExpansion:
             pytest.param(gates.SWAP, 0, id="SWAP"),
             pytest.param(gates.ISWAP, 0, id="ISWAP"),
             pytest.param(gates.SQRTSWAP, 0, id="SQRTSWAP"),
-            pytest.param(
-                gates.MS(arg_value=(0.5 * np.pi, 0.0)), 0, id="Molmer-Sorensen"
-            ),
+            pytest.param(gates.MS(0.5 * np.pi, 0.0), 0, id="Molmer-Sorensen"),
         ],
     )
     def test_two_qubit(self, gate, n_controls):
@@ -390,27 +388,25 @@ class U1(Gate):
     num_qreg = 1
 
     @staticmethod
-    def get_qobj(dtype: str = "dense"):
+    def compute_qobj(dtype: str = "dense"):
         return rand_U.to(dtype)
 
 
 class U2(AngleParametricGate):
-    num_qubits = 1
+    num_qreg = 1
     theta: float
 
-    def get_qobj(self, dtype: str = "dense"):
-        theta = self.arg_value[0]
+    def compute_qobj(self, dtype: str = "dense"):
         return qutip.Qobj(
             [
-                [np.exp(-1j * theta), 0],
-                [0, np.exp(1j * theta)],
+                [np.exp(-1j * self.theta), 0],
+                [0, np.exp(1j * self.theta)],
             ],
             dtype=dtype,
         )
 
     def inverse(self):
-        theta = self.arg_value[0]
-        return U2(-theta)
+        return U2(-self.theta)
 
 
 GATES = [
@@ -439,10 +435,10 @@ PARAMETRIC_GATE = [
     gates.RY(0.5),
     gates.RZ(0.5),
     gates.PHASE(0.5),
-    gates.R(arg_value=(0.5, 0.9)),
-    gates.QASMU(arg_value=(0.1, 0.2, 0.3)),
+    gates.R(0.5, 0.9),
+    gates.QASMU(0.1, 0.2, 0.3),
     gates.SWAPALPHA(0.3),
-    gates.MS((0.47, 0.8)),
+    gates.MS(0.47, 0.8),
     gates.RZX(0.6),
     U2(0.447),
 ]
@@ -458,7 +454,7 @@ CONTROLLED_GATE = [
     gates.CRY(0.88),
     gates.CRZ(0.78),
     gates.CPHASE(0.9),
-    gates.CQASMU(arg_value=(0.9, 0.22, 0.15)),
+    gates.CQASMU(0.9, 0.22, 0.15),
     gates.TOFFOLI,
     gates.FREDKIN,
     controlled(U1, 1, 1),
@@ -494,7 +490,7 @@ def test_gate_equality():
 
 class TestGateErrors:
     def test_gateclass_errors(self):
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueError):
 
             class BadGate(Gate):
                 num_qreg = -1
@@ -585,14 +581,10 @@ class TestGateErrors:
             def get_qobj(self, dtype):
                 return qutip.qeye(2)
 
-        with pytest.raises(ValueError, match="Requires 2 parameters, got 1"):
+        with pytest.raises(ValueError):
             GoodParamGate(1.0)
 
-        with pytest.raises(TypeError):
-            # second argument is a string instead of float
-            GoodParamGate(arg_value=[1.0, "wrong"])
-
-        gate = GoodParamGate(arg_value=[1.0, 2.0])
+        gate = GoodParamGate(1.0, 2.0)
         with pytest.raises(NotImplementedError):
             gate.inverse()
 
@@ -605,7 +597,7 @@ class TestGateErrors:
         with pytest.raises(SyntaxError):
 
             class NotGoodParamGate2(GoodParamGate):
-                def get_qobj(self, arg2):
+                def compute_qobj(self, arg2):
                     pass
 
     def test_controlled_gate_errors(self):
@@ -625,7 +617,7 @@ class TestGateErrors:
                 num_ctrl_qreg = -1  # Can't be negative
                 ctrl_value = 1
 
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueError):
 
             class BadCtrlGate3(ControlledGate):
                 target = gates.X
@@ -682,7 +674,7 @@ class TestGateErrors:
 
         # Control_value > 2^n -1
         with pytest.raises(ValueError):
-            controlled(gates.X, num_ctrl_qreg=1, control_value=2)
+            controlled(gates.X, num_ctrl_qreg=1, ctrl_value=2)
 
         with pytest.raises(TypeError):
             controlled(gates.X, num_ctrl_qreg=0)  # num_ctrl_qreg > 0

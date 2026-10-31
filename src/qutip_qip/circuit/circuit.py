@@ -490,7 +490,10 @@ class QubitCircuit:
                 )
 
             if gate_class.is_parametric:
-                gate = gate_class(arg_value, arg_label=arg_label)
+                if isinstance(arg_value, iter):
+                    gate = gate_class(*arg_value)
+                else:
+                    gate = gate_class(arg_value)
             else:
                 gate = gate_class
 
@@ -840,43 +843,43 @@ class QubitCircuit:
 
             if type(gate) is std.RX and "RX" not in basis_1q:
                 qc_temp.add_gate(
-                    std.RY(-half_pi, arg_label=r"-\pi/2"),
+                    std.RY(-half_pi),
                     targets=targets,
                 )
                 qc_temp.add_gate(
-                    std.RZ(gate.arg_value[0], arg_label=gate.arg_label),
+                    std.RZ(gate.arg_value[0]),
                     targets=targets,
                 )
                 qc_temp.add_gate(
-                    std.RY(-half_pi, arg_label=r"\pi/2"),
+                    std.RY(-half_pi),
                     targets=targets,
                 )
 
             elif type(gate) is std.RY and "RY" not in basis_1q:
                 qc_temp.add_gate(
-                    std.RZ(-half_pi, arg_label=r"-\pi/2"),
+                    std.RZ(-half_pi),
                     targets=targets,
                 )
                 qc_temp.add_gate(
-                    std.RX(gate.arg_value[0], arg_label=gate.arg_label),
+                    std.RX(gate.theta),
                     targets=targets,
                 )
                 qc_temp.add_gate(
-                    std.RZ(half_pi, arg_label=r"\pi/2"),
+                    std.RZ(half_pi),
                     targets=targets,
                 )
 
             elif type(gate) is std.RZ and "RZ" not in basis_1q:
                 qc_temp.add_gate(
-                    std.RX(-half_pi, arg_label=r"-\pi/2"),
+                    std.RX(-half_pi),
                     targets=targets,
                 )
                 qc_temp.add_gate(
-                    std.RY(gate.arg_value[0], arg_label=gate.arg_label),
+                    std.RY(gate.arg_value[0]),
                     targets=targets,
                 )
                 qc_temp.add_gate(
-                    std.RX(half_pi, arg_label=r"\pi/2"),
+                    std.RX(half_pi),
                     targets=targets,
                 )
             else:

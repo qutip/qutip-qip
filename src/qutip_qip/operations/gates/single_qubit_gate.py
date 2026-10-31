@@ -629,8 +629,6 @@ class IDLE(_SingleQubitParametricGate):
     ----------
     T : float
         The non-negative time duration for the idle gate.
-    arg_label : str, optional
-        An optional string label for the gate argument
 
     Examples
     --------

@@ -3,6 +3,7 @@ from typing import Type
 from dataclasses import dataclass
 import warnings
 from qutip_qip.operations.conditional import Conditional, Label, Cbnz, Cbz
+from qutip_qip.operations.op import is_op
 from qutip_qip.operations import Gate, Measurement
 
 
@@ -170,7 +171,7 @@ class MeasurementInstruction(CircuitInstruction):
 
     def __post_init__(self) -> None:
         super(MeasurementInstruction, self).__post_init__()
-        if not isinstance(self.operation, Measurement):
+        if is_op(self.operation, Measurement):
             raise TypeError(f"Operation must be a measurement, got {self.operation}")
 
         if (not len(self.qubits)) or (not len(self.cbits)):

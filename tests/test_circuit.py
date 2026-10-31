@@ -436,7 +436,7 @@ class TestQubitCircuit:
         """
         qc = QubitCircuit(3, num_cbits=1)
 
-        qc.add_gate(gates.RX(3.141, arg_label=r"\pi/2"), targets=[0])
+        qc.add_gate(gates.RX(3.141), targets=[0])
         qc.add_gate(gates.CX, targets=[1], controls=[0])
         qc.add_measurement(Mz, targets=[1], classical_store=0)
         qc.add_gate(gates.H, targets=[2])
@@ -1052,10 +1052,8 @@ def test_gates_class():
     circuit1.add_gate(gates.SQRTX, targets=0)
     circuit1.add_gate(gates.S, targets=2)
     circuit1.add_gate(gates.T, targets=1)
-    circuit1.add_gate(gates.R(arg_value=(np.pi / 4, np.pi / 6)), targets=1)
-    circuit1.add_gate(
-        gates.QASMU(arg_value=(np.pi / 4, np.pi / 4, np.pi / 4)), targets=0
-    )
+    circuit1.add_gate(gates.R(np.pi / 4, np.pi / 6), targets=1)
+    circuit1.add_gate(gates.QASMU(np.pi / 4, np.pi / 4, np.pi / 4), targets=0)
     circuit1.add_gate(gates.CX, controls=0, targets=1)
     circuit1.add_gate(gates.CPHASE(np.pi / 4), controls=0, targets=1)
     circuit1.add_gate(gates.SWAP, targets=[0, 1])
@@ -1064,7 +1062,7 @@ def test_gates_class():
     circuit1.add_gate(gates.SQRTSWAP, [2, 0])
     circuit1.add_gate(gates.SQRTISWAP, [0, 1])
     circuit1.add_gate(gates.SWAPALPHA(np.pi / 4), [1, 2])
-    circuit1.add_gate(gates.MS(arg_value=(np.pi / 4, np.pi / 7)), targets=[1, 0])
+    circuit1.add_gate(gates.MS(np.pi / 4, np.pi / 7), targets=[1, 0])
     circuit1.add_gate(gates.TOFFOLI, controls=[2, 0], targets=[1])
     circuit1.add_gate(gates.FREDKIN, controls=[0], targets=[1, 2])
     circuit1.add_gate(gates.BERKELEY, targets=[1, 0])
@@ -1082,10 +1080,8 @@ def test_gates_class():
     circuit2.add_gate(gates.SQRTX, targets=0)
     circuit2.add_gate(gates.S, targets=2)
     circuit2.add_gate(gates.T, targets=1)
-    circuit2.add_gate(gates.R(arg_value=(np.pi / 4, np.pi / 6)), targets=1)
-    circuit2.add_gate(
-        gates.QASMU(arg_value=(np.pi / 4, np.pi / 4, np.pi / 4)), targets=0
-    )
+    circuit2.add_gate(gates.R(np.pi / 4, np.pi / 6), targets=1)
+    circuit2.add_gate(gates.QASMU(np.pi / 4, np.pi / 4, np.pi / 4), targets=0)
     circuit2.add_gate(gates.CX, controls=0, targets=1)
     circuit2.add_gate(gates.CPHASE(np.pi / 4), controls=0, targets=1)
     circuit2.add_gate(gates.SWAP, targets=[0, 1])
@@ -1094,7 +1090,7 @@ def test_gates_class():
     circuit2.add_gate(gates.SQRTSWAP, targets=[2, 0])
     circuit2.add_gate(gates.SQRTISWAP, targets=[0, 1])
     circuit2.add_gate(gates.SWAPALPHA(np.pi / 4), targets=[1, 2])
-    circuit2.add_gate(gates.MS(arg_value=(np.pi / 4, np.pi / 7)), targets=[1, 0])
+    circuit2.add_gate(gates.MS(np.pi / 4, np.pi / 7), targets=[1, 0])
     circuit2.add_gate(gates.TOFFOLI, controls=[2, 0], targets=[1])
     circuit2.add_gate(gates.FREDKIN, controls=[0], targets=[1, 2])
     circuit2.add_gate(gates.BERKELEY, targets=[1, 0])

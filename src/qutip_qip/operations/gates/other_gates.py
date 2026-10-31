@@ -21,8 +21,6 @@ class GLOBALPHASE(AngleParametricGate):
     arg_value : float
         The phase angle $\theta$ to be applied. Passed down to the `ParametricGate`
         base class.
-    arg_label : str, optional
-        Label for the argument to be shown in the circuit plot.
 
     Examples
     --------

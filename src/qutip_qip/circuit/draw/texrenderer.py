@@ -45,8 +45,8 @@ class TeXRenderer:
 
     def _gate_label(self, gate) -> str:
         gate_label = gate.latex_str
-        if gate.is_parametric and gate.arg_label is not None:
-            return rf"{gate_label}({gate.arg_label})"
+        # if gate.is_parametric and gate.arg_label is not None:
+        #     return rf"{gate_label}({gate.arg_label})"
         return rf"{gate_label}"
 
     def latex_code(self) -> str:

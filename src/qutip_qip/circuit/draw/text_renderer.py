@@ -429,8 +429,8 @@ class TextRenderer(BaseRenderer):
                     controls = qubits[: gate.num_ctrl_qreg]
                     targets = qubits[gate.num_ctrl_qreg :]
 
-                if gate.is_parametric and gate.arg_label is not None:
-                    gate_text = gate.arg_label
+                # if gate.is_parametric and gate.arg_label is not None:
+                #     gate_text = gate.arg_label
 
                 if gate == std.SWAP:
                     wire_list = list(range(min(targets), max(targets) + 1))
