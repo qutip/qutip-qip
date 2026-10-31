@@ -1,6 +1,7 @@
 import copy
 import inspect
 import math
+import warnings
 
 from abc import abstractmethod
 from dataclasses import fields
@@ -41,6 +42,12 @@ class Controlled(Op):
     }
 
     def __init_subclass__(cls) -> None:
+        if clash := vars(cls).keys() & cls._derived.keys():
+            warnings.warn(
+                f"{cls.__name__}: cannot set {', '.join(clash)}, derived from the target.",
+                SyntaxWarning,
+            )
+
         if not inspect.isabstract(cls):
             target, num_ctrl_qreg = cls.target, cls.num_ctrl_qreg
             if not (

@@ -31,14 +31,6 @@ class _TwoQubitParametricGate(AngleParametricGate):
     num_qreg: int = 2
 
 
-class _ControlledTwoQubitGate(ControlledGate):
-    """Abstract two-qubit Controlled Gate (both parametric and non-parametric)."""
-
-    num_qreg: int = 2
-    num_ctrl_qreg: int = 1
-    ctrl_value: int = 1
-
-
 class SWAP(_TwoQubitGate):
     r"""
     SWAP gate.
@@ -632,7 +624,7 @@ class RZX(_TwoQubitParametricGate):
         return RZX(-self.theta)
 
 
-class CX(_ControlledTwoQubitGate):
+class CX(ControlledGate):
     """
     CNOT gate i.e. Controlled Pauli X gate.
 
@@ -664,7 +656,7 @@ class CX(_ControlledTwoQubitGate):
 CNOT = CX
 
 
-class CY(_ControlledTwoQubitGate):
+class CY(ControlledGate):
     """
     Controlled Pauli Y gate.
 
@@ -693,7 +685,7 @@ class CY(_ControlledTwoQubitGate):
         )
 
 
-class CZ(_ControlledTwoQubitGate):
+class CZ(ControlledGate):
     """
     Controlled Pauli Z gate.
 
@@ -725,7 +717,7 @@ class CZ(_ControlledTwoQubitGate):
 CSIGN = CZ
 
 
-class CH(_ControlledTwoQubitGate):
+class CH(ControlledGate):
     r"""
     Controlled Hadamard gate.
 
@@ -768,7 +760,7 @@ class CH(_ControlledTwoQubitGate):
         )
 
 
-class CT(_ControlledTwoQubitGate):
+class CT(ControlledGate):
     r"""
     Controlled T gate.
 
@@ -814,7 +806,7 @@ class CT(_ControlledTwoQubitGate):
         return CTdag
 
 
-class CTdag(_ControlledTwoQubitGate):
+class CTdag(ControlledGate):
     r"""
     Inverse of CT gate.
 
@@ -860,7 +852,7 @@ class CTdag(_ControlledTwoQubitGate):
         return CT
 
 
-class CS(_ControlledTwoQubitGate):
+class CS(ControlledGate):
     r"""
     Controlled S gate.
 
@@ -901,7 +893,7 @@ class CS(_ControlledTwoQubitGate):
         return CSdag
 
 
-class CSdag(_ControlledTwoQubitGate):
+class CSdag(ControlledGate):
     r"""
     Inverse of CS gate.
 
@@ -942,7 +934,7 @@ class CSdag(_ControlledTwoQubitGate):
         return CS
 
 
-class CRX(_ControlledTwoQubitGate):
+class CRX(ControlledGate):
     r"""
     Two-qubit Controlled RX gate.
 
@@ -984,7 +976,7 @@ class CRX(_ControlledTwoQubitGate):
         return CRX(-self.theta)
 
 
-class CRY(_ControlledTwoQubitGate):
+class CRY(ControlledGate):
     r"""
     Two-qubit Controlled RY gate.
 
@@ -1026,7 +1018,7 @@ class CRY(_ControlledTwoQubitGate):
         return CRY(-self.theta)
 
 
-class CRZ(_ControlledTwoQubitGate):
+class CRZ(ControlledGate):
     r"""
     Two-qubit Controlled RZ gate.
 
@@ -1068,7 +1060,7 @@ class CRZ(_ControlledTwoQubitGate):
         return CRZ(-self.theta)
 
 
-class CPHASE(_ControlledTwoQubitGate):
+class CPHASE(ControlledGate):
     r"""
     Two-qubit parameterized controlled phase (CPHASE) gate.
 
@@ -1122,7 +1114,7 @@ class CPHASE(_ControlledTwoQubitGate):
         return CPHASE(-self.theta)
 
 
-class CQASMU(_ControlledTwoQubitGate):
+class CQASMU(ControlledGate):
     r"""
     Two-qubit controlled universal rotation (CQASMU) gate.
 
