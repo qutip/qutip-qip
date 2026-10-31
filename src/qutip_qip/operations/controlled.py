@@ -113,8 +113,6 @@ class ControlledGate(Controlled, Gate):
         If the gate should execute when two control qubits are $|10\rangle$ (binary 10), set ``ctrl_value=0b10``.
     """
 
-    config = Controlled.config | Gate.config
-
     def __init_subclass__(cls) -> None:
         """
         Validates the subclass definition.
@@ -138,11 +136,12 @@ class ControlledGate(Controlled, Gate):
         qobj : qutip.Qobj
             The unitary matrix representing the controlled operation.
         """
-        return controlled_gate_unitary(
-            U=cls_ins.target_op().get_qobj(dtype),
-            num_ctrls=cls_ins.num_ctrl_qreg,
-            ctrl_value=cls_ins.ctrl_value,
-            ctrl_dim=cls_ins.ctrl_dim,
+        U = cls_ins.target_op().get_qobj(dtype)
+        blocks = [np.eye(U.shape[0]) for _ in range(math.prod(cls_ins.ctrl_dim))]
+        blocks[cls_ins.ctrl_value] = U.full()
+        return Qobj(
+            block_diag(*blocks),
+            dims=[list(cls_ins.ctrl_dim) + U.dims[0]] * 2,
             dtype=dtype,
         )
 
@@ -206,38 +205,3 @@ def controlled(
     # Without this every factory-made class is called _Controlled when cls.__name__ is called
     _Controlled.__name__ = _Controlled.__qualname__ = _name
     return _Controlled
-
-
-def controlled_gate_unitary(
-    U: Qobj,
-    num_ctrls: int,
-    ctrl_value: int,
-    ctrl_dim: tuple[int, ...] | None = None,
-    dtype: str = "dense",
-) -> Qobj:
-    """
-    Create an N-qubit controlled gate from a single-qubit gate U with the given
-    control and target qubits.
-
-    Parameters
-    ----------
-    U : :class:`qutip.Qobj`
-        An arbitrary unitary gate.
-    num_ctrls : int
-        The total number of control qubits.
-    control_value : int
-        The decimal value of the controlled qubits that activates the gate U.
-    ctrl_dim: tuple[int, ...]
-        For generalized qudit targets
-
-    Returns
-    -------
-    result : qobj
-        Quantum object representing the controlled-U gate.
-    """
-    if ctrl_dim is None:
-        ctrl_dim = (2,) * num_ctrls
-
-    blocks = [np.eye(U.shape[0]) for _ in range(math.prod(ctrl_dim))]
-    blocks[ctrl_value] = U.full()
-    return Qobj(block_diag(*blocks), dims=[list(ctrl_dim) + U.dims[0]] * 2, dtype=dtype)

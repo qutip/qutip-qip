@@ -8,7 +8,7 @@ from .utils import (
     gate_sequence_product,
 )
 from .gateclass import Gate, AngleParametricGate, get_unitary_gate
-from .controlled import ControlledGate, controlled, controlled_gate_unitary
+from .controlled import ControlledGate, controlled
 from .measurement import Measurement
 from .op import Op, OpInstruction
 from .bloq import Bloq, BloqBuilder
@@ -91,7 +91,6 @@ __all__ = [
     "molmer_sorensen",
     "toffoli",
     "rotation",
-    "controlled_gate_unitary",
     "globalphase",
     "hadamard_transform",
     "qubit_clifford_group",

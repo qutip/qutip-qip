@@ -114,6 +114,11 @@ class Op(ABC, metaclass=OpMeta):
     def __init_subclass__(cls) -> None:
         super().__init_subclass__()
 
+        # Each class adds its own config names; the full set is the union over its bases.
+        cls.config = frozenset().union(
+            *(vars(base).get("config", ()) for base in cls.__mro__)
+        )
+
         # Example:
         # Say user writes num_qreg: int in the child dataclass and this will generate __init__(self, num_qreg=3).
         # Now num_qreg is a parameter i.e it shows in __eq__ and Op(num_qreg=7) is accepted (which we don't want).
