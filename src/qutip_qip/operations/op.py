@@ -149,7 +149,7 @@ class Op(ABC, metaclass=OpMeta):
             for attr in cls.config
         )
         if not cls.is_derived:
-            if "qreg_dim" not in vars(cls):
+            if "num_qreg" in vars(cls) and "qreg_dim" not in vars(cls):
                 cls.qreg_dim = (2,) * cls.num_qreg
             _check_config(cls)
 
