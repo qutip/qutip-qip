@@ -30,7 +30,7 @@ class TestQPE(unittest.TestCase):
         U = Qobj([[0, 1], [1, 0]])
 
         controlled_u = controlled(
-            gate=get_unitary_gate(name="CU", U=U),
+            get_unitary_gate(name="CU", U=U),
         )
 
         assert_equal(controlled_u.ctrl_value, 1)

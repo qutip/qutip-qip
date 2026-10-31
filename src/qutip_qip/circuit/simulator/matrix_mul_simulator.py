@@ -61,7 +61,7 @@ class CircuitSimulator:
         self.dims = qc.dims
         self.mode = mode
         self._label_map = {
-            circ_instruction.operation.name: index
+            circ_instruction.operation: index
             for index, circ_instruction in enumerate(qc.instructions)
             if circ_instruction.is_label_instruction()
         }
@@ -255,14 +255,13 @@ class CircuitSimulator:
 
         elif current_instruction.is_conditional_instruction():
             op = current_instruction.operation
-            label_name = op.label.name
 
             if (
                 isinstance(op, Cbz) and self.cbits[current_instruction.cbits[0]] == 0
             ) or (
                 isinstance(op, Cbnz) and self.cbits[current_instruction.cbits[0]] == 1
             ):
-                self._op_index = self._label_map[label_name]
+                self._op_index = self._label_map[op.label]
 
         elif current_instruction.is_label_instruction():
             pass

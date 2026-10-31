@@ -318,7 +318,7 @@ class TestQubitCircuit:
         # checking correct addition of measurements
         assert qc.instructions[0].qubits[0] == 0
         assert qc.instructions[0].cbits[0] == 0
-        assert isinstance(qc.instructions[3].operation, Measurement)
+        assert qc.instructions[3].operation is Measurement
         assert qc.instructions[5].cbits[0] == 1
 
         # checking if gates are added correctly with measurements
@@ -450,7 +450,7 @@ class TestQubitCircuit:
         qc_rev.build()
 
         assert qc_rev.instructions[0].operation == gates.H
-        assert isinstance(qc_rev.instructions[1].operation, Measurement)
+        assert qc_rev.instructions[1].operation is Measurement
         assert qc_rev.instructions[2].operation == gates.CX
         assert isinstance(qc_rev.instructions[3].operation, gates.RX)
 

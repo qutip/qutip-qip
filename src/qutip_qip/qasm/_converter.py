@@ -475,7 +475,7 @@ class QasmProcessor:
             )
         elif name == "u1":
             qc.add_gate(
-                gates.RZ(args),
+                gates.RZ(*args),
                 targets=regs[0],
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
@@ -553,21 +553,21 @@ class QasmProcessor:
             )
         elif name == "rx":
             qc.add_gate(
-                gates.RX(args),
+                gates.RX(*args),
                 targets=int(regs[0]),
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
             )
         elif name == "ry":
             qc.add_gate(
-                gates.RY(args),
+                gates.RY(*args),
                 targets=int(regs[0]),
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,
             )
         elif name == "rz":
             qc.add_gate(
-                gates.RZ(args),
+                gates.RZ(*args),
                 targets=int(regs[0]),
                 classical_controls=classical_controls,
                 classical_control_value=classical_control_value,

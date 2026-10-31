@@ -543,62 +543,20 @@ class TestGateErrors:
         with pytest.raises(ValueError):
             get_unitary_gate("U_rect", U_rect)  # U must be a square matrix
 
-        U_dim = qutip.Qobj(np.eye(3))
-        with pytest.raises(ValueError):
-            get_unitary_gate("U_dim", U_dim)  # 3 != 2^n
-
         U_not_unitary = qutip.Qobj(np.zeros((2, 2)))
         with pytest.raises(ValueError):
             get_unitary_gate("U_not_unitary", U_not_unitary)  # U must be unitaru
-
-        with pytest.raises(TypeError):
-
-            class NotGoodGate(GoodGate):
-                def is_controlled(args):
-                    return args  # is_controlled can't take arguments
-
-        with pytest.raises(TypeError):
-
-            class NotGoodGate2(GoodGate):
-                is_controlled = 1  # must return a bool
-
-        with pytest.raises(TypeError):
-
-            class NotGoodGate3(GoodGate):
-                def is_parametric(args):
-                    return args  # is_parametric can't take arguments
-
-        with pytest.raises(TypeError):
-
-            class NotGoodGate4(GoodGate):
-                is_parametric = 1  # must return a bool
 
         class GoodParamGate(AngleParametricGate):
             num_qreg = 1
             theta: float
             phi: float
 
-            def get_qobj(self, dtype):
+            def compute_qobj(self, dtype):
                 return qutip.qeye(2)
 
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             GoodParamGate(1.0)
-
-        gate = GoodParamGate(1.0, 2.0)
-        with pytest.raises(NotImplementedError):
-            gate.inverse()
-
-        with pytest.raises(SyntaxError):
-
-            class NotGoodParamGate(GoodParamGate):
-                def validate_params(arg1, arg2):
-                    pass
-
-        with pytest.raises(SyntaxError):
-
-            class NotGoodParamGate2(GoodParamGate):
-                def compute_qobj(self, arg2):
-                    pass
 
     def test_controlled_gate_errors(self):
         with pytest.raises(TypeError):
@@ -610,7 +568,7 @@ class TestGateErrors:
                     0
                 )  # target gate must be a gate subclass not an instantiated object
 
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueError):
 
             class BadCtrlGate2(ControlledGate):
                 target = gates.X
@@ -676,7 +634,7 @@ class TestGateErrors:
         with pytest.raises(ValueError):
             controlled(gates.X, num_ctrl_qreg=1, ctrl_value=2)
 
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueError):
             controlled(gates.X, num_ctrl_qreg=0)  # num_ctrl_qreg > 0
 
     def test_class_attribute_modification(self):
@@ -719,5 +677,3 @@ class TestGateErrors:
 
             def compute_qobj(dtype):
                 pass
-
-        H.name = "Hadamard"

@@ -68,7 +68,7 @@ def qpe(
 
         # Add controlled-U^power gate
         controlled_u = controlled(
-            gate=get_unitary_gate(
+            get_unitary_gate(
                 name=f"U^{power}",
                 U=U_power,
             ),
