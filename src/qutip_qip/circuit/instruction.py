@@ -171,7 +171,7 @@ class MeasurementInstruction(CircuitInstruction):
 
     def __post_init__(self) -> None:
         super(MeasurementInstruction, self).__post_init__()
-        if is_op(self.operation, Measurement):
+        if not is_op(self.operation, Measurement):
             raise TypeError(f"Operation must be a measurement, got {self.operation}")
 
         if (not len(self.qubits)) or (not len(self.cbits)):

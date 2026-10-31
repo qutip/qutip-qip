@@ -49,6 +49,17 @@ class OpMeta(ABCMeta):
     __instancecheck__ = type.__instancecheck__
     __subclasscheck__ = type.__subclasscheck__
 
+    def __init__(cls, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        cls._sealed = True  # class creation, including __init_subclass__ is complete
+
+    # We require this so that class attributes are not overwritable e.g. X.num_qreg fails
+    # frozen=True in dataclass generated for each Op works only for instance (i.e. Parametric Op)
+    def __setattr__(cls, name, value):
+        if not name.startswith("_") and "_sealed" in cls.__dict__:
+            raise AttributeError(f"{cls.__name__}.{name} is read-only.")
+        super().__setattr__(name, value)
+
     def __eq__(cls, other):
         key = vars(cls).get("_key")
         return cls is other or (

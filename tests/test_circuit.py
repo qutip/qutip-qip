@@ -1024,7 +1024,7 @@ class TestInstructionErrors:
         with pytest.warns(DeprecationWarning):
             assert instr.name == "RX"
         with pytest.warns(DeprecationWarning):
-            assert instr.num_qreg == 1
+            assert instr.num_qubits == 1
         with pytest.warns(DeprecationWarning):
             assert np.isclose(instr.arg_value, np.pi / 3)
 

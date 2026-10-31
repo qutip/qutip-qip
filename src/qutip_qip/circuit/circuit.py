@@ -490,7 +490,7 @@ class QubitCircuit:
                 )
 
             if gate_class.is_parametric:
-                if isinstance(arg_value, iter):
+                if isinstance(arg_value, (tuple, list)):
                     gate = gate_class(*arg_value)
                 else:
                     gate = gate_class(arg_value)

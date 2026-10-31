@@ -7,7 +7,7 @@ from functools import lru_cache, partial
 from typing import ClassVar
 
 from qutip import Qobj
-from qutip_qip.operations.op import Op, op_factory
+from qutip_qip.operations.op import Op, is_op, op_factory
 from qutip_qip.typing import Real
 
 
@@ -119,6 +119,11 @@ class Gate(Op):
         qobj : :obj:`qutip.Qobj`
             The compact gate operator as a unitary matrix.
         """
+        if not is_op(cls_ins):
+            raise TypeError(
+                f"{cls_ins.name} is parametric, build an instance first "
+                f"e.g. {cls_ins.name}(...).get_qobj()."
+            )
         return cls_ins.compute_qobj(dtype)
 
     @class_or_instance_method
