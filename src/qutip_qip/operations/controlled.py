@@ -42,14 +42,6 @@ class Controlled(Modifier):
                     f"{cls.__name__}: num_ctrl_qreg must be an integer >= 1."
                 )
 
-            # Say if the Op we were controlling was itself controlled e.g. CX
-            # Then inheriting target's ctrl_dim, ctrl_value is wrong which happens during MRO.
-            # Instead we set the values retrieved from target as None and then set them in next step.
-            if vars(cls).keys() & {"num_ctrl_qreg", "ctrl_dim"}:
-                for attr in ("ctrl_dim", "ctrl_value"):
-                    if attr not in vars(cls):
-                        setattr(cls, attr, None)
-
             # Default value and validation for ctrl_dim
             if cls.ctrl_dim is None:
                 cls.ctrl_dim = (2,) * num_ctrl_qreg
@@ -68,6 +60,17 @@ class Controlled(Modifier):
 
             if not isinstance(cls.ctrl_value, Int) or not 0 <= cls.ctrl_value < size:
                 raise ValueError(f"{cls.__name__}: ctrl_value must be in [0, {size}).")
+
+            # If we are controlling an already controlled Op e.g. CX
+            # we can just use X as target and increase the num_ctrl_qreg, ctrl_dim count
+            target = cls.target
+            if issubclass(target, Controlled):
+                cls.ctrl_value = (
+                    cls.ctrl_value * math.prod(target.ctrl_dim) + target.ctrl_value
+                )
+                cls.ctrl_dim = cls.ctrl_dim + target.ctrl_dim
+                cls.num_ctrl_qreg = num_ctrl_qreg = len(cls.ctrl_dim)
+                cls.target = target.target
 
             # Acts as hash (identity) for a Controlled Op
             cls._key = (cls.target, num_ctrl_qreg, cls.ctrl_value, cls.ctrl_dim)
