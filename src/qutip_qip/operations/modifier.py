@@ -14,6 +14,7 @@ class Modifier(Op):
     """An op defined by a target op and a rule applied to it, e.g. Controlled, Inverse."""
 
     config = Op.config | {"target"}
+    unitary = True
 
     # Abstract class attribute i.e. subclasses need to define target Op for e.g. RX
     @property
