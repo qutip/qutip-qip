@@ -91,7 +91,7 @@ class Controlled(Modifier):
             )
 
     def validate_params(self) -> None:
-        # Run the validate_params method by buidling the target
+        # Run the validate_params method by building the target
         # For non-parametric target Op like X, validate_params is just pass be default, so it passes
         # For Parametric target Op (say RX), when we call CRX(theta), RX(theta) gets constructed which validates the params
         if self.target_op().num_qreg < 1:

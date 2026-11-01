@@ -76,7 +76,7 @@ class Gate(Op):
                 f"Remove the method; the base class handles it automatically."
             )
 
-        # Ideally we don't require cls.is_derived here (num_qreg, num_creg etc.) are parameteric
+        # Ideally we don't require cls.is_derived here (num_qreg, num_creg etc.) are parametric
         # But we could have a case in future where say MCX(n) or QFT(n) is a basis gate on some future modality
         # This allows us to handle those cases as well.
         if inspect.isabstract(cls) or cls.is_derived:
