@@ -1,16 +1,16 @@
 import numpy as np
 
 from qutip import Qobj, sigmax, sigmay, sigmaz, qeye
-from qutip_qip.operations import Gate, AngleParametricGate
+from qutip_qip.operations import AngleParametricOp, Unitary
 
 
-class _SingleQubitGate(Gate):
+class _SingleQubitGate(Unitary):
     """Abstract one-qubit gate."""
 
     num_qreg: int = 1
 
 
-class _SingleQubitParametricGate(AngleParametricGate):
+class _SingleQubitParametricGate(AngleParametricOp):
     """Abstract one-qubit parametric gate."""
 
     num_qreg: int = 1
@@ -158,7 +158,7 @@ class SQRTX(_SingleQubitGate):
         return Qobj([[0.5 + 0.5j, 0.5 - 0.5j], [0.5 - 0.5j, 0.5 + 0.5j]], dtype=dtype)
 
     @staticmethod
-    def inverse() -> type[Gate]:
+    def inverse() -> type[Unitary]:
         return SQRTXdag
 
 
@@ -185,7 +185,7 @@ class SQRTXdag(_SingleQubitGate):
         return Qobj([[0.5 - 0.5j, 0.5 + 0.5j], [0.5 + 0.5j, 0.5 - 0.5j]], dtype=dtype)
 
     @staticmethod
-    def inverse() -> type[Gate]:
+    def inverse() -> type[Unitary]:
         return SQRTX
 
 
@@ -215,7 +215,7 @@ class S(_SingleQubitGate):
         return Qobj([[1, 0], [0, 1j]], dtype=dtype)
 
     @staticmethod
-    def inverse() -> type[Gate]:
+    def inverse() -> type[Unitary]:
         return Sdag
 
 
@@ -242,7 +242,7 @@ class Sdag(_SingleQubitGate):
         return Qobj([[1, 0], [0, -1j]], dtype=dtype)
 
     @staticmethod
-    def inverse() -> type[Gate]:
+    def inverse() -> type[Unitary]:
         return S
 
 
@@ -268,7 +268,7 @@ class T(_SingleQubitGate):
         return Qobj([[1, 0], [0, np.exp(1j * np.pi / 4)]], dtype=dtype)
 
     @staticmethod
-    def inverse() -> type[Gate]:
+    def inverse() -> type[Unitary]:
         return Tdag
 
 
@@ -294,7 +294,7 @@ class Tdag(_SingleQubitGate):
         return Qobj([[1, 0], [0, np.exp(-1j * np.pi / 4)]], dtype=dtype)
 
     @staticmethod
-    def inverse() -> type[Gate]:
+    def inverse() -> type[Unitary]:
         return T
 
 
@@ -343,7 +343,7 @@ class RX(_SingleQubitParametricGate):
             dtype=dtype,
         )
 
-    def inverse(self) -> Gate:
+    def inverse(self) -> Unitary:
         return RX(-self.theta)
 
 
@@ -392,7 +392,7 @@ class RY(_SingleQubitParametricGate):
             dtype=dtype,
         )
 
-    def inverse(self) -> Gate:
+    def inverse(self) -> Unitary:
         return RY(-self.theta)
 
 
@@ -438,7 +438,7 @@ class RZ(_SingleQubitParametricGate):
             dtype=dtype,
         )
 
-    def inverse(self) -> Gate:
+    def inverse(self) -> Unitary:
         return RZ(-self.theta)
 
 
@@ -484,7 +484,7 @@ class PHASE(_SingleQubitParametricGate):
             dtype=dtype,
         )
 
-    def inverse(self) -> Gate:
+    def inverse(self) -> Unitary:
         return PHASE(-self.theta)
 
 
@@ -543,7 +543,7 @@ class R(_SingleQubitParametricGate):
             dtype=dtype,
         )
 
-    def inverse(self) -> Gate:
+    def inverse(self) -> Unitary:
         return R(self.phi, -self.theta)
 
 
@@ -604,7 +604,7 @@ class QASMU(_SingleQubitParametricGate):
             dtype=dtype,
         )
 
-    def inverse(self) -> Gate:
+    def inverse(self) -> Unitary:
         return QASMU(-self.theta, -self.gamma, -self.phi)
 
 

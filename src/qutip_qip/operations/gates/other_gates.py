@@ -4,11 +4,11 @@ import scipy.sparse as sp
 import numpy as np
 from qutip import Qobj
 
-from qutip_qip.operations import Gate, ControlledGate, AngleParametricGate
+from qutip_qip.operations import Controlled, Unitary, AngleParametricOp
 from qutip_qip.operations.gates import X, SWAP
 
 
-class GLOBALPHASE(AngleParametricGate):
+class GLOBALPHASE(AngleParametricOp):
     r"""
     Global phase gate.
 
@@ -95,7 +95,7 @@ class GLOBALPHASE(AngleParametricGate):
         return GLOBALPHASE(-self.phi)
 
 
-class TOFFOLI(ControlledGate):
+class TOFFOLI(Controlled):
     """
     TOFFOLI gate (CCX).
 
@@ -118,7 +118,7 @@ class TOFFOLI(ControlledGate):
     num_ctrl_qreg: int = 2
     ctrl_value: int = 0b11
 
-    target: type[Gate] = X
+    target: type[Unitary] = X
     latex_str: str = r"{\rm TOFFOLI}"
 
     @staticmethod
@@ -139,7 +139,7 @@ class TOFFOLI(ControlledGate):
         )
 
 
-class FREDKIN(ControlledGate):
+class FREDKIN(Controlled):
     """
     FREDKIN gate (C-SWAP).
 
@@ -162,7 +162,7 @@ class FREDKIN(ControlledGate):
     num_ctrl_qreg: int = 1
     ctrl_value: int = 1
 
-    target: type[Gate] = SWAP
+    target: type[Unitary] = SWAP
     latex_str: str = r"{\rm FREDKIN}"
 
     @staticmethod

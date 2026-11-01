@@ -1,7 +1,7 @@
 import numpy as np
 from qutip import Qobj
 
-from qutip_qip.operations import Gate, ControlledGate, AngleParametricGate
+from qutip_qip.operations import AngleParametricOp, Controlled, Unitary
 from qutip_qip.operations.gates import (
     X,
     Y,
@@ -19,13 +19,13 @@ from qutip_qip.operations.gates import (
 )
 
 
-class _TwoQubitGate(Gate):
+class _TwoQubitGate(Unitary):
     """Abstract two-qubit gate."""
 
     num_qreg: int = 2
 
 
-class _TwoQubitParametricGate(AngleParametricGate):
+class _TwoQubitParametricGate(AngleParametricOp):
     """Abstract two-qubit gate. We require this due to the validator"""
 
     num_qreg: int = 2
@@ -101,7 +101,7 @@ class ISWAP(_TwoQubitGate):
         )
 
     @staticmethod
-    def inverse() -> type[Gate]:
+    def inverse() -> type[Unitary]:
         return ISWAPdag
 
 
@@ -138,7 +138,7 @@ class ISWAPdag(_TwoQubitGate):
         )
 
     @staticmethod
-    def inverse() -> type[Gate]:
+    def inverse() -> type[Unitary]:
         return ISWAP
 
 
@@ -197,7 +197,7 @@ class SQRTSWAP(_TwoQubitGate):
         )
 
     @staticmethod
-    def inverse() -> type[Gate]:
+    def inverse() -> type[Unitary]:
         return SQRTSWAPdag
 
 
@@ -235,7 +235,7 @@ class SQRTSWAPdag(_TwoQubitGate):
         )
 
     @staticmethod
-    def inverse() -> type[Gate]:
+    def inverse() -> type[Unitary]:
         return SQRTSWAP
 
 
@@ -282,7 +282,7 @@ class SQRTISWAP(_TwoQubitGate):
         )
 
     @staticmethod
-    def inverse() -> type[Gate]:
+    def inverse() -> type[Unitary]:
         return SQRTISWAPdag
 
 
@@ -321,7 +321,7 @@ class SQRTISWAPdag(_TwoQubitGate):
         )
 
     @staticmethod
-    def inverse() -> type[Gate]:
+    def inverse() -> type[Unitary]:
         return SQRTISWAP
 
 
@@ -375,7 +375,7 @@ class BERKELEY(_TwoQubitGate):
         )
 
     @staticmethod
-    def inverse() -> type[Gate]:
+    def inverse() -> type[Unitary]:
         return BERKELEYdag
 
 
@@ -420,7 +420,7 @@ class BERKELEYdag(_TwoQubitGate):
         )
 
     @staticmethod
-    def inverse() -> type[Gate]:
+    def inverse() -> type[Unitary]:
         return BERKELEY
 
 
@@ -489,7 +489,7 @@ class SWAPALPHA(_TwoQubitParametricGate):
             dtype=dtype,
         )
 
-    def inverse(self) -> Gate:
+    def inverse(self) -> Unitary:
         return SWAPALPHA(-self.alpha)
 
 
@@ -559,7 +559,7 @@ class MS(_TwoQubitParametricGate):
             dtype=dtype,
         )
 
-    def inverse(self) -> Gate:
+    def inverse(self) -> Unitary:
         return MS(-self.theta, self.phi)
 
 
@@ -620,11 +620,11 @@ class RZX(_TwoQubitParametricGate):
             dtype=dtype,
         )
 
-    def inverse(self) -> Gate:
+    def inverse(self) -> Unitary:
         return RZX(-self.theta)
 
 
-class CX(ControlledGate):
+class CX(Controlled):
     """
     CNOT gate i.e. Controlled Pauli X gate.
 
@@ -640,7 +640,7 @@ class CX(ControlledGate):
      [0. 0. 1. 0.]]
     """
 
-    target: type[Gate] = X
+    target: type[Unitary] = X
     is_clifford: bool = True
     latex_str: str = r"{\rm CNOT}"
 
@@ -656,7 +656,7 @@ class CX(ControlledGate):
 CNOT = CX
 
 
-class CY(ControlledGate):
+class CY(Controlled):
     """
     Controlled Pauli Y gate.
 
@@ -672,7 +672,7 @@ class CY(ControlledGate):
      [ 0.+0.j  0.+0.j  0.+1.j   0.+0.j]]
     """
 
-    target: type[Gate] = Y
+    target: type[Unitary] = Y
     is_clifford: bool = True
     latex_str: str = r"{\rm CY}"
 
@@ -685,7 +685,7 @@ class CY(ControlledGate):
         )
 
 
-class CZ(ControlledGate):
+class CZ(Controlled):
     """
     Controlled Pauli Z gate.
 
@@ -701,7 +701,7 @@ class CZ(ControlledGate):
      [ 0.  0.  0. -1.]]
     """
 
-    target: type[Gate] = Z
+    target: type[Unitary] = Z
     is_clifford: bool = True
     latex_str: str = r"{\rm CZ}"
 
@@ -717,7 +717,7 @@ class CZ(ControlledGate):
 CSIGN = CZ
 
 
-class CH(ControlledGate):
+class CH(Controlled):
     r"""
     Controlled Hadamard gate.
 
@@ -742,7 +742,7 @@ class CH(ControlledGate):
      [ 0.          0.          0.70710678 -0.70710678]]
     """
 
-    target: type[Gate] = H
+    target: type[Unitary] = H
     latex_str: str = r"{\rm CH}"
 
     @staticmethod
@@ -760,7 +760,7 @@ class CH(ControlledGate):
         )
 
 
-class CT(ControlledGate):
+class CT(Controlled):
     r"""
     Controlled T gate.
 
@@ -785,7 +785,7 @@ class CT(ControlledGate):
      [0. +0.j  0. +0.j  0. +0.j   0.70710678+0.70710678j]]
     """
 
-    target: type[Gate] = T
+    target: type[Unitary] = T
     latex_str: str = r"{\rm CT}"
 
     @staticmethod
@@ -802,11 +802,11 @@ class CT(ControlledGate):
         )
 
     @staticmethod
-    def inverse() -> type[Gate]:
+    def inverse() -> type[Unitary]:
         return CTdag
 
 
-class CTdag(ControlledGate):
+class CTdag(Controlled):
     r"""
     Inverse of CT gate.
 
@@ -831,7 +831,7 @@ class CTdag(ControlledGate):
      [0. +0.j  0. +0.j  0. +0.j   0.70710678-0.70710678j]]
     """
 
-    target: type[Gate] = Tdag
+    target: type[Unitary] = Tdag
     latex_str: str = r"{\rm CT^\dagger}"
 
     @staticmethod
@@ -848,11 +848,11 @@ class CTdag(ControlledGate):
         )
 
     @staticmethod
-    def inverse() -> type[Gate]:
+    def inverse() -> type[Unitary]:
         return CT
 
 
-class CS(ControlledGate):
+class CS(Controlled):
     r"""
     Controlled S gate.
 
@@ -877,7 +877,7 @@ class CS(ControlledGate):
      [0.+0.j  0.+0.j  0.+0.j   0.+1.j]]
     """
 
-    target: type[Gate] = S
+    target: type[Unitary] = S
     latex_str: str = r"{\rm CS}"
 
     @staticmethod
@@ -889,11 +889,11 @@ class CS(ControlledGate):
         )
 
     @staticmethod
-    def inverse() -> type[Gate]:
+    def inverse() -> type[Unitary]:
         return CSdag
 
 
-class CSdag(ControlledGate):
+class CSdag(Controlled):
     r"""
     Inverse of CS gate.
 
@@ -918,7 +918,7 @@ class CSdag(ControlledGate):
      [ 0.+0.j  0.+0.j  0.+0.j   -0.-1.j]]
     """
 
-    target: type[Gate] = Sdag
+    target: type[Unitary] = Sdag
     latex_str: str = r"{\rm CS^\dagger}"
 
     @staticmethod
@@ -930,11 +930,11 @@ class CSdag(ControlledGate):
         )
 
     @staticmethod
-    def inverse() -> type[Gate]:
+    def inverse() -> type[Unitary]:
         return CS
 
 
-class CRX(ControlledGate):
+class CRX(Controlled):
     r"""
     Two-qubit Controlled RX gate.
 
@@ -957,7 +957,7 @@ class CRX(ControlledGate):
      [0.+0.j 0.+0.j 0.-1.j 0.+0.j]]
     """
 
-    target: type[Gate] = RX
+    target: type[Unitary] = RX
     latex_str: str = r"{\rm CRX}"
 
     def compute_qobj(self, dtype: str = "dense") -> Qobj:
@@ -972,11 +972,11 @@ class CRX(ControlledGate):
             dtype=dtype,
         )
 
-    def inverse(self) -> Gate:
+    def inverse(self) -> Unitary:
         return CRX(-self.theta)
 
 
-class CRY(ControlledGate):
+class CRY(Controlled):
     r"""
     Two-qubit Controlled RY gate.
 
@@ -999,7 +999,7 @@ class CRY(ControlledGate):
      [ 0.          0.          0.70710678  0.70710678]]
     """
 
-    target: type[Gate] = RY
+    target: type[Unitary] = RY
     latex_str: str = r"{\rm CRY}"
 
     def compute_qobj(self, dtype: str = "dense") -> Qobj:
@@ -1014,11 +1014,11 @@ class CRY(ControlledGate):
             dtype=dtype,
         )
 
-    def inverse(self) -> Gate:
+    def inverse(self) -> Unitary:
         return CRY(-self.theta)
 
 
-class CRZ(ControlledGate):
+class CRZ(Controlled):
     r"""
     Two-qubit Controlled RZ gate.
 
@@ -1041,7 +1041,7 @@ class CRZ(ControlledGate):
      [0.+0.j 0.+0.j 0.+0.j 0.+1.j]]
     """
 
-    target: type[Gate] = RZ
+    target: type[Unitary] = RZ
     latex_str: str = r"{\rm CRZ}"
 
     def compute_qobj(self, dtype: str = "dense") -> Qobj:
@@ -1056,11 +1056,11 @@ class CRZ(ControlledGate):
             dtype=dtype,
         )
 
-    def inverse(self) -> Gate:
+    def inverse(self) -> Unitary:
         return CRZ(-self.theta)
 
 
-class CPHASE(ControlledGate):
+class CPHASE(Controlled):
     r"""
     Two-qubit parameterized controlled phase (CPHASE) gate.
 
@@ -1095,7 +1095,7 @@ class CPHASE(ControlledGate):
      [0.+0.j 0.+0.j 0.+0.j 0.+1.j]]
     """
 
-    target: type[Gate] = PHASE
+    target: type[Unitary] = PHASE
     latex_str: str = r"{\rm CPHASE}"
 
     def compute_qobj(self, dtype: str = "dense") -> Qobj:
@@ -1110,11 +1110,11 @@ class CPHASE(ControlledGate):
             dtype=dtype,
         )
 
-    def inverse(self) -> Gate:
+    def inverse(self) -> Unitary:
         return CPHASE(-self.theta)
 
 
-class CQASMU(ControlledGate):
+class CQASMU(Controlled):
     r"""
     Two-qubit controlled universal rotation (CQASMU) gate.
 
@@ -1148,7 +1148,7 @@ class CQASMU(ControlledGate):
      [ 0. +0.j   0. +0.j   0.5+0.5j -0.5+0.5j]]
     """
 
-    target: type[Gate] = QASMU
+    target: type[Unitary] = QASMU
     latex_str: str = r"{\rm CQASMU}"
 
     def compute_qobj(self, dtype: str = "dense") -> Qobj:
@@ -1173,5 +1173,5 @@ class CQASMU(ControlledGate):
             dtype=dtype,
         )
 
-    def inverse(self) -> Gate:
+    def inverse(self) -> Unitary:
         return CQASMU(-self.theta, -self.gamma, -self.phi)
