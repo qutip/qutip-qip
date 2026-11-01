@@ -1,11 +1,16 @@
 import copyreg
 import inspect
+import warnings
 from abc import ABC, ABCMeta
 from dataclasses import dataclass, field, fields
 from functools import partial, wraps
 from typing import ClassVar, dataclass_transform, get_origin
 
-from qutip_qip.operations.utils import class_or_instance_method
+from qutip import Qobj
+from qutip_qip.operations.utils import (
+    class_or_instance_method,
+    cached_class_or_instance_method,
+)
 from qutip_qip.typing import Int
 from qutip_qip.utils import convert_type_input_to_sequence
 
@@ -40,6 +45,18 @@ def _check_config(op) -> None:
 
     if not isinstance(op.self_inverse, bool):
         raise TypeError("self_inverse must be of type bool")
+
+    if "latex_str" not in vars(op):
+        op.latex_str = op.name
+
+    if "dtype" not in inspect.signature(op.compute_qobj).parameters:
+        raise TypeError(f"{op.name}.compute_qobj must accept a dtype parameter.")
+
+    if not isinstance(op.is_clifford, bool):
+        raise TypeError(f"{op.name}: is_clifford must be a bool.")
+
+    # TODO: For backward compatibility, remove this
+    op.num_qubits = op.num_qreg
 
 
 class OpMeta(ABCMeta):
@@ -100,15 +117,26 @@ class Op(ABC, metaclass=OpMeta):
     num_qreg: ClassVar[int] = 0
     num_creg: ClassVar[int] = 0
     qreg_dim: ClassVar[tuple[int, ...]] = ()
+    unitary: ClassVar[bool] = True
     self_inverse: ClassVar[bool] = False
-    unitary: ClassVar[bool] = False
+    is_clifford: ClassVar[bool] = False
+    latex_str: ClassVar[str]
 
     # derived from configuration
     is_controlled: ClassVar[bool] = False
     is_parametric: ClassVar[bool] = False
     is_derived: ClassVar[bool] = False  #
     config: ClassVar[frozenset[str]] = frozenset(
-        {"name", "num_qreg", "num_creg", "qreg_dim", "unitary", "self_inverse"}
+        {
+            "name",
+            "num_qreg",
+            "num_creg",
+            "qreg_dim",
+            "unitary",
+            "self_inverse",
+            "is_clifford",
+            "latex_str",
+        }
     )
 
     def __init__(self, *args, **kwargs) -> None:
@@ -180,6 +208,28 @@ class Op(ABC, metaclass=OpMeta):
     @property
     def params(self) -> tuple:
         return tuple(getattr(self, f.name) for f in fields(self))
+
+    @property
+    def arg_value(self) -> tuple:  # deprecated alias for the 72 call sites
+        warnings.warn(
+            "arg_value argument for parametric gates is deprecated",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.params
+
+    @class_or_instance_method
+    def compute_qobj(cls_ins, dtype: str = "dense") -> Qobj:
+        """The op's matrix. Any op may define one, from X to QFT(n); the default is to have none."""
+        raise NotImplementedError(
+            f"{cls_ins.name} has no matrix, decompose it instead."
+        )
+
+    @cached_class_or_instance_method
+    def get_qobj(cls_ins, dtype: str = "dense") -> Qobj:
+        if not is_op(cls_ins):
+            raise TypeError(...)  # the parametric-class guard, as today
+        return cls_ins.compute_qobj(dtype)
 
     @class_or_instance_method
     def inverse(cls_ins):
