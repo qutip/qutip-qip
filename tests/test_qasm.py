@@ -8,7 +8,21 @@ from qutip_qip.qasm import read_qasm, circuit_to_qasm_str
 from qutip_qip.circuit import QubitCircuit
 from qutip import tensor, rand_ket, basis, identity
 from qutip_qip.operations.measurement import Mz
+from qutip_qip.operations import expand_operator
+from qutip.measurement import measurement_statistics
 import qutip_qip.operations.gates as gates
+
+
+def _get_probs(state, measurement_obj, targets):
+    """Helper to get probabilities"""
+    n = int(np.log2(state.shape[0]))
+    raw_ops = measurement_obj.get_measurement_ops()
+    expanded_ops = [
+        expand_operator(oper=op, dims=[2] * n, targets=targets) for op in raw_ops
+    ]
+
+    _, probabilities = measurement_statistics(state, expanded_ops)
+    return probabilities
 
 
 @pytest.mark.parametrize(
@@ -82,8 +96,8 @@ def test_qasm_addcircuit():
     assert qc.instructions[7].cbits == (1,)
     check_gate_instruction_defn(qc.instructions[8], "H", (0,))
     assert qc.instructions[9].is_label_instruction()
-    check_measurement_defn(qc.instructions[10], "M", (0,), (0,))
-    check_measurement_defn(qc.instructions[11], "M", (1,), (1,))
+    check_measurement_defn(qc.instructions[10], "Mz", (0,), (0,))
+    check_measurement_defn(qc.instructions[11], "Mz", (1,), (1,))
 
 
 def test_custom_gates():
@@ -108,9 +122,7 @@ def test_qasm_teleportation():
     initial_measurement = Mz
 
     state = tensor(rand_ket(2), basis(2, 0), basis(2, 0))
-    _, initial_probabilities = initial_measurement.measurement_comp_basis(
-        state, qubits=[0]
-    )
+    initial_probabilities = _get_probs(state, initial_measurement, [0])
 
     teleportation_results = teleportation.run_statistics(state)
 
@@ -120,9 +132,7 @@ def test_qasm_teleportation():
     for i, state in enumerate(states):
         final = state
         prob = probabilities[i]
-        _, final_probabilities = final_measurement.measurement_comp_basis(
-            final, qubits=[2]
-        )
+        final_probabilities = _get_probs(final, final_measurement, [2])
         np.testing.assert_allclose(initial_probabilities, final_probabilities)
         assert prob == pytest.approx(0.25, abs=1e-7)
 
