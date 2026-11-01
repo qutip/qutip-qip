@@ -7,7 +7,6 @@ import numpy as np
 from scipy.linalg import block_diag
 
 from qutip import Qobj
-from qutip_qip.operations.gateclass import Gate
 from qutip_qip.operations.op import Op, op_factory
 from qutip_qip.operations.modifier import Modifier
 from qutip_qip.operations.utils import class_or_instance_method
@@ -15,8 +14,24 @@ from qutip_qip.typing import Int
 
 
 class Controlled(Modifier):
-    """
+    r"""
     Abstract class for defining a Controlled Op.
+
+    Attributes
+    ----------
+    target : :class:`.Op`
+        The Op to be applied to the target qubits.
+
+    num_ctrl_qreg : int
+        The number of qreg acting as controls.
+
+    ctrl_value : int
+        The decimal value of the control state required to execute the
+        unitary operator on the target qubits.
+
+        Example:
+        If the Op should execute when the 0-th qubit is $|1\rangle$ set ``ctrl_value=1``.
+        If the Op should execute when two control qubits are $|10\rangle$ (binary 10), set ``ctrl_value=0b10``.
     """
 
     config = Modifier.config | {"num_ctrl_qreg", "ctrl_dim", "ctrl_value", "target"}
@@ -98,50 +113,6 @@ class Controlled(Modifier):
             raise ValueError(f"{self.name}: target must act on at least one register.")
 
     @class_or_instance_method
-    def inverse(cls_ins) -> Op | type[Op]:
-        return controlled(
-            cls_ins.target_op().inverse(),
-            cls_ins.num_ctrl_qreg,
-            cls_ins.ctrl_value,
-            cls_ins.ctrl_dim,
-        )
-
-
-class ControlledGate(Controlled, Gate):
-    r"""
-    Controlled Op whose target is a Gate.
-
-    Attributes
-    ----------
-    target : :class:`.Gate`
-        The gate to be applied to the target qubits.
-
-    num_ctrl_qreg : int
-        The number of qubits acting as controls.
-
-    ctrl_value : int
-        The decimal value of the control state required to execute the
-        unitary operator on the target qubits.
-
-        Example:
-        If the gate should execute when the 0-th qubit is $|1\rangle$ set ``ctrl_value=1``.
-        If the gate should execute when two control qubits are $|10\rangle$ (binary 10), set ``ctrl_value=0b10``.
-    """
-
-    def __init_subclass__(cls) -> None:
-        """
-        Validates the subclass definition.
-        """
-
-        super().__init_subclass__()
-        if inspect.isabstract(cls):
-            return
-
-        # Target must be a Gate class
-        if not issubclass(cls.target, Gate):
-            raise TypeError(f"{cls.__name__}: target must be a Gate.")
-
-    @class_or_instance_method
     def compute_qobj(cls_ins, dtype: str = "dense") -> Qobj:
         """
         Construct the full Qobj representation of the controlled gate.
@@ -160,6 +131,15 @@ class ControlledGate(Controlled, Gate):
             dtype=dtype,
         )
 
+    @class_or_instance_method
+    def inverse(cls_ins) -> Op | type[Op]:
+        return controlled(
+            cls_ins.target_op().inverse(),
+            cls_ins.num_ctrl_qreg,
+            cls_ins.ctrl_value,
+            cls_ins.ctrl_dim,
+        )
+
 
 @op_factory
 @lru_cache(maxsize=128)
@@ -176,9 +156,6 @@ def controlled(
             f"controlled() takes an op class, e.g. controlled(RX), got {op!r}."
         )
 
-    # What are we controlling a Gate or an Op
-    base_class = ControlledGate if issubclass(op, Gate) else Controlled
-
     # A class body cannot read a parameter if what it assigns has the same name, so we use aliases.
     _name = name or f"{'C' * num_ctrl_qreg}{op.name}"
     _target, _num_ctrl_qreg, _ctrl_value, _ctrl_dim = (
@@ -188,7 +165,7 @@ def controlled(
         ctrl_dim,
     )
 
-    class _Controlled(base_class):
+    class _Controlled(Controlled):
         name = _name
         target = _target
         num_ctrl_qreg = _num_ctrl_qreg

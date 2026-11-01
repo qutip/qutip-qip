@@ -14,6 +14,7 @@ class Inverse(Modifier):
         "qreg_dim": lambda c, t: t.qreg_dim,
         "num_creg": lambda c, t: t.num_creg,
         "self_inverse": lambda c, t: t.self_inverse,
+        "is_clifford": lambda c, t: t.is_clifford,
     }
 
     def __init_subclass__(cls) -> None:
@@ -25,21 +26,8 @@ class Inverse(Modifier):
     def inverse(cls_ins):
         return cls_ins.target_op()
 
-
-class InverseGate(Inverse, Gate):
-    _derived = Inverse._derived | {"is_clifford": lambda c, t: t.is_clifford}
-
-    def __init_subclass__(cls) -> None:
-        super().__init_subclass__()
-        if inspect.isabstract(cls):
-            return
-
-        # Target must be a Gate class
-        if not issubclass(cls.target, Gate):
-            raise TypeError(f"{cls.__name__}: target must be a Gate.")
-
     @class_or_instance_method
-    def compute_qobj(cls_ins, dtype: str = "dense") -> Qobj:
+    def compute_qobj(cls_ins, dtype="dense") -> Qobj:
         return cls_ins.target_op().get_qobj(dtype).dag()
 
 
@@ -49,10 +37,9 @@ def inverse(op: type[Op], name: str | None = None) -> type[Inverse]:
     if not (isinstance(op, type) and issubclass(op, Op)):
         raise TypeError(f"inverse() takes an op class, e.g. inverse(RX), got {op!r}.")
 
-    base_class = InverseGate if issubclass(op, Gate) else Inverse
     _name, _target = name or f"{op.name}dag", op
 
-    class _Inverse(base_class):
+    class _Inverse(Inverse):
         name = _name
         target = _target
 
