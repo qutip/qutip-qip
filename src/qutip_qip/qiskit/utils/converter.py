@@ -1,16 +1,15 @@
 """Conversion of circuits from qiskit to qutip_qip."""
 
 from collections.abc import Iterable
-from typing import Type
 from qiskit.circuit import QuantumCircuit
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import Gate
+from qutip_qip.operations import Unitary
 import qutip_qip.operations.gates as gates
 from qutip_qip.operations.measurement import Mz
 
 # TODO Expand this dictionary for all the valid qiskit gates
 # https://quantum.cloud.ibm.com/docs/en/api/qiskit/circuit_library#standard-gates
-_map_gates: dict[str, Type[Gate]] = {
+_map_gates: dict[str, type[Unitary]] = {
     "x": gates.X,
     "y": gates.Y,
     "z": gates.Z,
@@ -29,7 +28,7 @@ _map_gates: dict[str, Type[Gate]] = {
     "swap": gates.SWAP,
 }
 
-_map_controlled_gates: dict[str, Type[Gate]] = {
+_map_controlled_gates: dict[str, type[Unitary]] = {
     "cx": gates.CX,
     "cy": gates.CY,
     "cz": gates.CZ,

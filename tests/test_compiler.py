@@ -15,7 +15,7 @@ from qutip_qip.compiler import (
     GateCompiler,
 )
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import AngleParametricGate
+from qutip_qip.operations import AngleParametricOp
 from qutip_qip.operations.gates import X, RX
 from qutip import basis, fidelity
 
@@ -80,14 +80,14 @@ def test_compiling_gates_different_sampling_number():
                 )
             ]
 
-    class U1(AngleParametricGate):
+    class U1(AngleParametricOp):
         num_qreg = 1
         theta: float
 
         def compute_qobj(self, dtype):
             pass
 
-    class U2(AngleParametricGate):
+    class U2(AngleParametricOp):
         num_qreg = 2
         theta: float
 

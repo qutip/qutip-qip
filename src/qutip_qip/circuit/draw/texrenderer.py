@@ -10,7 +10,7 @@ from typing import Callable
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.circuit.draw._control_flow import infer_classical_controls
 from qutip_qip.operations import gates as std
-from qutip_qip.operations import Gate, Measurement
+from qutip_qip.operations import Measurement, Unitary, is_op
 
 
 # As a general note wherever you see {{}} in a python rf string that represents a {}
@@ -68,7 +68,7 @@ class TeXRenderer:
             qubits = op_instruction.qreg
             cbits = op_instruction.creg
 
-            if isinstance(op, Gate) or (isinstance(op, type) and issubclass(op, Gate)):
+            if is_op(op, Unitary):
                 cbits = tuple(sorted(set(cbits).union(classical_controls[index])))
                 gate = op
                 targets = qubits

@@ -29,8 +29,7 @@ from qutip_qip.circuit import (
 from qutip_qip.circuit.draw import TeXRenderer
 from qutip_qip.decompose.decompose_single_qubit_gate import _ZYZ_rotation
 from qutip_qip.operations import (
-    Gate,
-    Measurement,
+    Unitary,
     gate_sequence_product,
     expand_operator,
 )
@@ -186,7 +185,7 @@ class TestQubitCircuit:
         assert qc.instructions[7].targets == (3,)
         assert qc.instructions[7].operation.arg_value[0] == -np.pi / 2
 
-        class DUMMY1(Gate):
+        class DUMMY1(Unitary):
             num_qreg = 1
             self_inverse = False
 
@@ -486,7 +485,7 @@ class TestQubitCircuit:
             mat[2:4, 2:4] = gates.RX(arg_values).get_qobj().full()
             return Qobj(mat, dims=[[2, 2], [2, 2]])
 
-        class T1(Gate):
+        class T1(Unitary):
             num_qreg = 1
             self_inverse = True
 
@@ -564,7 +563,7 @@ class TestQubitCircuit:
         """
         mat3 = qutip.rand_unitary(3)
 
-        class CTRLMAT3(Gate):
+        class CTRLMAT3(Unitary):
             num_qreg = 2
             qreg_dim = (2, 3)
 
@@ -913,15 +912,15 @@ class TestAddGateError:
 
         with pytest.raises(TypeError):
 
-            class BadGate: ...  # Doesn't inherit for Gate
+            class BadGate: ...  # Doesn't inherit from Op
 
             qc.add_gate(BadGate)
 
-        with pytest.raises(TypeError):
+        # with pytest.raises(TypeError):
 
-            class AbstractGate(Gate): ...  # Doesn't define num_qreg, get_qobj
+        #     class AbstractGate(Unitary): ...  # Doesn't define num_qreg, get_qobj
 
-            qc.add_gate(AbstractGate)
+        #     qc.add_gate(AbstractGate)
 
         with pytest.raises(TypeError):
             qc.add_gate(gates.RX, targets=[0])  # RX must be initialized

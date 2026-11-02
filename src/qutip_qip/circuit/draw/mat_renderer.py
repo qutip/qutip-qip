@@ -16,7 +16,7 @@ from matplotlib.patches import (
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.circuit.draw import BaseRenderer, StyleConfig
 from qutip_qip.circuit.draw._control_flow import infer_classical_controls
-from qutip_qip.operations import Gate, Measurement
+from qutip_qip.operations import Measurement, Unitary, is_op
 from qutip_qip.operations import gates as std
 
 
@@ -519,7 +519,7 @@ class MatRenderer(BaseRenderer):
 
     def _draw_multiq_gate(
         self,
-        gate: Gate | Type[Gate],
+        gate: Unitary | Type[Unitary],
         targets: list[int],
         controls: list[int],
         cbits: list[int],
@@ -530,7 +530,7 @@ class MatRenderer(BaseRenderer):
 
         Parameters
         ----------
-        gate : Gate Object
+        gate : Unitary Object
             The gate to be plotted.
 
         layer : int
@@ -770,9 +770,7 @@ class MatRenderer(BaseRenderer):
                     ),
                 )
 
-            elif isinstance(op, Gate) or (
-                isinstance(op, type) and issubclass(op, Gate)
-            ):
+            elif is_op(op, Unitary):
                 cbits = tuple(sorted(set(cbits).union(classical_controls[index])))
                 gate = op
                 controls = []

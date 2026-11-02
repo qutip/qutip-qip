@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import warnings
 from qutip_qip.operations.conditional import Conditional, Label, Cbnz, Cbz
 from qutip_qip.operations.op import is_op
-from qutip_qip.operations import Gate, Measurement
+from qutip_qip.operations import Measurement, Op, Unitary
 from qutip_qip.operations.measurement import Mz
 
 
@@ -21,7 +21,7 @@ def _validate_non_negative_int_tuple(T: any, txt: str = ""):
 
 @dataclass(frozen=True, slots=True)
 class CircuitInstruction(ABC):
-    operation: Gate | type[Gate] | Measurement | Conditional | Label
+    operation: Op | type[Op]
     qubits: tuple[int, ...] = tuple()
     cbits: tuple[int, ...] = tuple()
 
@@ -65,7 +65,7 @@ class CircuitInstruction(ABC):
 
 @dataclass(frozen=True, slots=True)
 class GateInstruction(CircuitInstruction):
-    operation: Gate | type[Gate]
+    operation: Unitary | type[Unitary]
     cbits_ctrl_value: int | None = None
 
     def __post_init__(self) -> None:
@@ -74,7 +74,9 @@ class GateInstruction(CircuitInstruction):
         # destroys __class__ reference to the original class until Python 3.13
         # Check CPython Issue #90562, this has been resolved in Python 3.14
 
-        if not (isinstance(self.operation, Gate) or issubclass(self.operation, Gate)):
+        if not (
+            isinstance(self.operation, Unitary) or issubclass(self.operation, Unitary)
+        ):
             raise TypeError(f"Operation must be a Gate, got {self.operation}")
 
         if len(self.qubits) != self.operation.num_qreg:

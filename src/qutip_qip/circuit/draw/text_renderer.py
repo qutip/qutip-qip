@@ -3,12 +3,11 @@ Module for rendering a quantum circuit in text format.
 """
 
 from math import ceil
-from typing import Type
 
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.circuit.draw import BaseRenderer, StyleConfig
 from qutip_qip.circuit.draw._control_flow import infer_classical_controls
-from qutip_qip.operations import Gate, Measurement
+from qutip_qip.operations import Measurement, Unitary, is_op
 from qutip_qip.operations import gates as std
 
 
@@ -117,7 +116,7 @@ class TextRenderer(BaseRenderer):
 
     def _draw_multiq_gate(
         self,
-        gate: Gate | Type[Gate],
+        gate: Unitary | type[Unitary],
         gate_text: str,
         targets: list[int],
         controls: list[int],
@@ -314,7 +313,7 @@ class TextRenderer(BaseRenderer):
 
     def _update_qbridge(
         self,
-        gate: Gate | Type[Gate],
+        gate: Unitary | type[Unitary],
         targets: list[int],
         controls: list[int],
         wire_list_control: list[int],
@@ -416,9 +415,7 @@ class TextRenderer(BaseRenderer):
                 )
                 parts, width = self._draw_measurement_gate(qubits, cbits)
 
-            elif isinstance(op, Gate) or (
-                isinstance(op, type) and issubclass(op, Gate)
-            ):
+            elif is_op(op, Unitary):
                 cbits = sorted(set(cbits).union(classical_controls[index]))
                 gate = op
                 gate_text = gate.name
@@ -474,9 +471,7 @@ class TextRenderer(BaseRenderer):
                 self._update_singleq(qubits, parts)
                 self._update_cbridge(qubits, cbits, wire_list, width)
 
-            elif isinstance(op, Gate) or (
-                isinstance(op, type) and issubclass(op, Gate)
-            ):
+            elif is_op(op, Unitary):
                 if gate == std.SWAP:
                     self._update_swap_gate(wire_list)
                 else:

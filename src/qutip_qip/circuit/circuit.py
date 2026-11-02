@@ -22,16 +22,17 @@ from qutip_qip.circuit.instruction import (
 )
 from qutip_qip.operations.conditional import Conditional, Label, ClassicalControlCheck
 from qutip_qip.operations import (
-    Gate,
+    AngleParametricOp,
+    BloqBuilder,
     Measurement,
+    Mz,
     Op,
     OpInstruction,
+    Unitary,
     expand_operator,
     get_unitary_gate,
+    is_op,
 )
-from qutip_qip.operations.bloq import BloqBuilder
-from qutip_qip.operations.measurement import Mz
-from qutip_qip.operations import AngleParametricGate
 from qutip_qip.operations import gates as std
 from qutip_qip.typing import Int, IntSequence
 from qutip_qip.utils import check_limit, convert_type_input_to_sequence
@@ -159,7 +160,7 @@ class QubitCircuit:
         )
 
     @property
-    def user_gates(self) -> dict[str, Type[Gate]]:
+    def user_gates(self) -> dict[str, type[Unitary]]:
         return getattr(self, "_user_gates", {})
 
     @user_gates.setter
@@ -209,7 +210,7 @@ class QubitCircuit:
 
                 return get_qobj
 
-            class _OldUserParametricGate(AngleParametricGate):
+            class _OldUserParametricGate(AngleParametricOp):
                 __slots__ = ()
                 name = gate_name
                 num_qreg = _num_qreg
@@ -292,19 +293,7 @@ class QubitCircuit:
         for op_instruction in bloq.instructions:
             op = op_instruction.op
 
-            if isinstance(op, Gate) or (isinstance(op, type) and issubclass(op, Gate)):
-                self._instructions.append(
-                    GateInstruction(
-                        operation=op,
-                        qubits=op_instruction.qreg,
-                        cbits=op_instruction.creg,
-                    )
-                )
-
-            # TODO In future Measurement should always just be a class
-            elif isinstance(op, Measurement) or (
-                isinstance(op, type) and issubclass(op, Measurement)
-            ):
+            if is_op(op, Measurement):
                 self._instructions.append(
                     MeasurementInstruction(
                         operation=op,
@@ -322,6 +311,15 @@ class QubitCircuit:
 
             elif isinstance(op, Label):
                 self._instructions.append(LabelInstruction(operation=op))
+
+            elif is_op(op, Unitary):
+                self._instructions.append(
+                    GateInstruction(
+                        operation=op,
+                        qubits=op_instruction.qreg,
+                        cbits=op_instruction.creg,
+                    )
+                )
 
             # TODO handle non-gate/non-measurement op
 
@@ -385,7 +383,7 @@ class QubitCircuit:
 
     def add_gate(
         self,
-        gate: Gate | Type[Gate] | str,
+        gate: Unitary | type[Unitary] | str,
         targets: int | IntSequence = (),
         controls: int | IntSequence = (),
         classical_controls: int | IntSequence = (),
@@ -463,7 +461,7 @@ class QubitCircuit:
 
         # This conditional block can be remove if the gate input is only
         # restricted to Gate subclasses or object instead of strings in the future.
-        if not isinstance(gate, Gate):
+        if not isinstance(gate, Unitary):
             if type(gate) is str:
                 if gate in std.GATE_CLASS_MAP:
                     warnings.warn(
@@ -480,7 +478,7 @@ class QubitCircuit:
                         f"Gate '{gate}' is not a recognized standard gate or user-defined gate."
                     )
 
-            elif issubclass(gate, Gate):
+            elif issubclass(gate, Unitary):
                 gate_class = gate
 
             else:
@@ -496,18 +494,6 @@ class QubitCircuit:
                     gate = gate_class(arg_value)
             else:
                 gate = gate_class
-
-        # Check for gates
-        if inspect.isabstract(gate):
-            raise TypeError("gate must not be an abstract class")
-        elif not (isinstance(gate, Gate) or issubclass(gate, Gate)):
-            raise TypeError(f"gate must be of type Gate, got {gate}")
-        elif gate.is_parametric and (not isinstance(gate, Gate)):
-            raise TypeError(
-                "You must pass an instantiated object for a Parametrized Gate"
-            )
-        elif (not gate.is_parametric) and (not issubclass(gate, Gate)):
-            raise TypeError("You must pass a Gate type for a non-parametrized gate")
 
         # Handling case for integer input
         targets = convert_type_input_to_sequence(int, "targets", targets)

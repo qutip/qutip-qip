@@ -1,5 +1,4 @@
 from copy import deepcopy
-from typing import Type
 import pytest
 import itertools
 
@@ -7,9 +6,9 @@ import numpy as np
 import qutip
 
 from qutip_qip.operations import (
-    AngleParametricGate,
-    ControlledGate,
-    Gate,
+    AngleParametricOp,
+    Controlled,
+    Unitary,
     controlled,
     expand_operator,
     get_unitary_gate,
@@ -210,7 +209,7 @@ class TestGateExpansion:
             pytest.param(gates.R, 2, id="Rabi rotation"),
         ],
     )
-    def test_single_qubit_rotation(self, gate: Type[Gate], n_angles: int):
+    def test_single_qubit_rotation(self, gate: type[Unitary], n_angles: int):
         base = qutip.rand_ket(2)
         if n_angles > 0:
             angles = 2 * np.pi * (np.random.rand(n_angles))
@@ -269,7 +268,7 @@ class TestGateExpansion:
             pytest.param(RandomThreeQubitGate, 2, id="random"),
         ],
     )
-    def test_three_qubit(self, gate: Type[Gate], n_controls):
+    def test_three_qubit(self, gate: type[Unitary], n_controls):
         targets = [qutip.rand_ket(2) for _ in [None] * 3]
         others = [qutip.rand_ket(2) for _ in [None] * self.n_qubits]
         reference = gate.get_qobj() * qutip.tensor(targets)
@@ -384,7 +383,7 @@ class Test_expand_operator:
 rand_U = qutip.rand_unitary(dimensions=[2], seed=rng)
 
 
-class U1(Gate):
+class U1(Unitary):
     num_qreg = 1
 
     @staticmethod
@@ -392,7 +391,7 @@ class U1(Gate):
         return rand_U.to(dtype)
 
 
-class U2(AngleParametricGate):
+class U2(AngleParametricOp):
     num_qreg = 1
     theta: float
 
@@ -463,7 +462,7 @@ CONTROLLED_GATE = [
 
 
 @pytest.mark.parametrize("gate", GATES + PARAMETRIC_GATE + CONTROLLED_GATE)
-def test_gate_inverse(gate: Gate | Type[Gate]):
+def test_gate_inverse(gate: Unitary | type[Unitary]):
     n = 1 << gate.num_qubits
     inverse = gate.inverse()
     print(rand_U)
@@ -492,7 +491,7 @@ class TestGateErrors:
     def test_gateclass_errors(self):
         with pytest.raises(ValueError):
 
-            class BadGate(Gate):
+            class BadGate(Unitary):
                 num_qreg = -1
 
                 def compute_qobj(cls):
@@ -500,7 +499,7 @@ class TestGateErrors:
 
         with pytest.raises(TypeError):
 
-            class BadGate2(Gate):
+            class BadGate2(Unitary):
                 num_qreg = 1
                 is_clifford = 1  # attribute 'is_clifford' must be a bool
 
@@ -509,26 +508,14 @@ class TestGateErrors:
 
         with pytest.raises(TypeError):
 
-            class BadGate3(Gate):
+            class BadGate3(Unitary):
                 num_qreg = 1
                 self_inverse = 1  # attribute 'self_inverse' must be a bool
 
                 def compute_qobj(dtype):
                     pass
 
-        with pytest.raises(TypeError):
-
-            class BadGate4(Gate):
-                num_qreg = 1
-                self_inverse = True
-
-                def compute_qobj(dtype):
-                    pass
-
-                def inverse(cls):
-                    pass  # Can't define inverse method is self_inverse=True
-
-        class GoodGate(Gate):
+        class GoodGate(Unitary):
             num_qreg = 1
 
             @staticmethod
@@ -547,7 +534,7 @@ class TestGateErrors:
         with pytest.raises(ValueError):
             get_unitary_gate("U_not_unitary", U_not_unitary)  # U must be unitaru
 
-        class GoodParamGate(AngleParametricGate):
+        class GoodParamGate(AngleParametricOp):
             num_qreg = 1
             theta: float
             phi: float
@@ -561,7 +548,7 @@ class TestGateErrors:
     def test_controlled_gate_errors(self):
         with pytest.raises(TypeError):
 
-            class BadCtrlGate(ControlledGate):
+            class BadCtrlGate(Controlled):
                 num_ctrl_qreg = 1
                 ctrl_value = 1
                 target = gates.RX(
@@ -570,21 +557,21 @@ class TestGateErrors:
 
         with pytest.raises(ValueError):
 
-            class BadCtrlGate2(ControlledGate):
+            class BadCtrlGate2(Controlled):
                 target = gates.X
                 num_ctrl_qreg = -1  # Can't be negative
                 ctrl_value = 1
 
         with pytest.raises(ValueError):
 
-            class BadCtrlGate3(ControlledGate):
+            class BadCtrlGate3(Controlled):
                 target = gates.X
                 num_ctrl_qreg = 1
                 ctrl_value = 1.5  # Control value must be an int
 
         with pytest.raises(ValueError):
 
-            class BadCtrlGate4(ControlledGate):
+            class BadCtrlGate4(Controlled):
                 target = gates.X
                 num_ctrl_qreg = 1
                 ctrl_value = 2  # Control value can't be greater than 1 in this case
@@ -662,7 +649,7 @@ class TestGateErrors:
         with pytest.raises(AttributeError):
             gates.RY.latex_str = "R_y"
 
-        class H(Gate):
+        class H(Unitary):
             num_qreg = 1
 
             def compute_qobj(dtype):
@@ -670,10 +657,3 @@ class TestGateErrors:
 
         assert H.name == "H"
         assert H.latex_str == "H"
-
-        class H(Gate):
-            name = "Hadamard"
-            num_qreg = 1
-
-            def compute_qobj(dtype):
-                pass

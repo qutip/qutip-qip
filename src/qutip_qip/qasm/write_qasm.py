@@ -1,10 +1,10 @@
 from collections.abc import Iterable
 from copy import deepcopy
-from typing import Self, Type
+from typing import Self
 
 import qutip_qip.operations.gates as gates
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import Gate
+from qutip_qip.operations import Unitary
 
 _GATE_NAME_TO_QASM_NAME = {
     "QASMU": "U",
@@ -150,7 +150,7 @@ class QasmOutput:
         else:
             return f"{q_name} {q_regs};"
 
-    def _qasm_defns(self, gate: Gate | Type[Gate]) -> None:
+    def _qasm_defns(self, gate: Unitary | type[Unitary]) -> None:
         """
         Define QASM gates for QuTiP gates that do not have QASM counterparts.
 
