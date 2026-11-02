@@ -19,7 +19,7 @@ class Measurement(Op, ABC):
     name = "M"
     num_qreg: int = 1  # TODO: Make this abstract
     num_creg: int = 1
-    unitary: bool = False
+    is_unitary: bool = False
 
     @classmethod
     def measurement_comp_basis(cls, state, qubits):

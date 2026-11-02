@@ -2,9 +2,8 @@ import inspect
 from functools import lru_cache
 
 from qutip import Qobj
-from qutip_qip.operations.gateclass import Gate
 from qutip_qip.operations.modifier import Modifier
-from qutip_qip.operations.op import Op, op_factory
+from qutip_qip.operations.op import Unitary, is_op, op_factory
 from qutip_qip.operations.utils import class_or_instance_method
 
 
@@ -23,18 +22,18 @@ class Inverse(Modifier):
         super().__init_subclass__()
 
     @class_or_instance_method
-    def inverse(cls_ins):
-        return cls_ins.target_op()
+    def inverse(cls_ins) -> Unitary | type[Unitary]:
+        return cls_ins.target_unitary()
 
     @class_or_instance_method
     def compute_qobj(cls_ins, dtype="dense") -> Qobj:
-        return cls_ins.target_op().get_qobj(dtype).dag()
+        return cls_ins.target_unitary().get_qobj(dtype).dag()
 
 
 @op_factory
 @lru_cache(maxsize=128)
-def inverse(op: type[Op], name: str | None = None) -> type[Inverse]:
-    if not (isinstance(op, type) and issubclass(op, Op)):
+def inverse(op: Unitary | type[Unitary], name: str | None = None) -> type[Inverse]:
+    if not is_op(op, Unitary):
         raise TypeError(f"inverse() takes an op class, e.g. inverse(RX), got {op!r}.")
 
     _name, _target = name or f"{op.name}dag", op

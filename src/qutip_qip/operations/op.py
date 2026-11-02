@@ -13,6 +13,7 @@ from qutip_qip.operations.utils import (
 )
 from qutip_qip.typing import Int
 from qutip_qip.utils import convert_type_input_to_sequence
+from qutip_qip.typing import Real
 
 
 def _check_config(op) -> None:
@@ -40,23 +41,8 @@ def _check_config(op) -> None:
             f"{op.name}: qreg_dim={op.qreg_dim} needs {op.num_qreg} entries, each >= 2."
         )
 
-    if not isinstance(op.unitary, bool):
-        raise TypeError("unitary must be of type bool")
-
-    if not isinstance(op.self_inverse, bool):
-        raise TypeError("self_inverse must be of type bool")
-
-    if "latex_str" not in vars(op):
-        op.latex_str = op.name
-
-    if "dtype" not in inspect.signature(op.compute_qobj).parameters:
-        raise TypeError(f"{op.name}.compute_qobj must accept a dtype parameter.")
-
-    if not isinstance(op.is_clifford, bool):
-        raise TypeError(f"{op.name}: is_clifford must be a bool.")
-
-    # TODO: For backward compatibility, remove this
-    op.num_qubits = op.num_qreg
+    if not isinstance(op.is_unitary, bool):
+        raise TypeError("is_unitary must be of type bool")
 
 
 class OpMeta(ABCMeta):
@@ -117,13 +103,10 @@ class Op(ABC, metaclass=OpMeta):
     num_qreg: ClassVar[int] = 0
     num_creg: ClassVar[int] = 0
     qreg_dim: ClassVar[tuple[int, ...]] = ()
-    unitary: ClassVar[bool] = True
-    self_inverse: ClassVar[bool] = False
-    is_clifford: ClassVar[bool] = False
     latex_str: ClassVar[str]
+    is_unitary: ClassVar[bool] = False
 
     # derived from configuration
-    is_controlled: ClassVar[bool] = False
     is_parametric: ClassVar[bool] = False
     is_derived: ClassVar[bool] = False  #
     config: ClassVar[frozenset[str]] = frozenset(
@@ -132,10 +115,8 @@ class Op(ABC, metaclass=OpMeta):
             "num_qreg",
             "num_creg",
             "qreg_dim",
-            "unitary",
-            "self_inverse",
-            "is_clifford",
             "latex_str",
+            "is_unitary",
         }
     )
 
@@ -164,6 +145,9 @@ class Op(ABC, metaclass=OpMeta):
         if "name" not in vars(cls):
             cls.name = cls.__name__
 
+        if "latex_str" not in vars(cls):
+            cls.latex_str = cls.name
+
         dataclass(frozen=True, repr=False, eq=False)(cls)
 
         # If a user defines a keyword "only" field in a dataclass, we reject it
@@ -185,7 +169,11 @@ class Op(ABC, metaclass=OpMeta):
         if not cls.is_derived:
             if "num_qreg" in vars(cls) and "qreg_dim" not in vars(cls):
                 cls.qreg_dim = (2,) * cls.num_qreg
+
             _check_config(cls)
+            cls.num_qubits = (
+                cls.num_qreg
+            )  # TODO: For backward compatibility, remove this
 
         if not inspect.isabstract(cls) and cls.is_derived and not cls.is_parametric:
             raise TypeError(
@@ -201,6 +189,7 @@ class Op(ABC, metaclass=OpMeta):
             _check_config(self)
 
         self.validate_params()
+        object.__setattr__(self, "num_qubits", self.num_qreg)
 
     def validate_params(self) -> None:
         """Overwritten for Parametric Ops. Raise ValueError on invalid parameters."""
@@ -217,40 +206,6 @@ class Op(ABC, metaclass=OpMeta):
             stacklevel=2,
         )
         return self.params
-
-    @class_or_instance_method
-    def compute_qobj(cls_ins, dtype: str = "dense") -> Qobj:
-        """The op's matrix. Any op may define one, from X to QFT(n); the default is to have none."""
-        raise NotImplementedError(
-            f"{cls_ins.name} has no matrix, decompose it instead."
-        )
-
-    @cached_class_or_instance_method
-    def get_qobj(cls_ins, dtype: str = "dense") -> Qobj:
-        if not is_op(cls_ins):
-            raise TypeError(...)  # the parametric-class guard, as today
-        return cls_ins.compute_qobj(dtype)
-
-    @class_or_instance_method
-    def inverse(cls_ins):
-        # To disallow something like RX.inverse()
-        if not is_op(cls_ins):
-            raise TypeError(
-                f"{cls_ins.name} is parametric, build an instance first e.g. {cls_ins.name}(...).inverse()."
-            )
-
-        if not cls_ins.unitary:
-            raise TypeError(f"{cls_ins.name} is not unitary, so it has no inverse.")
-
-        if cls_ins.self_inverse:
-            return cls_ins
-
-        # To avoid circular import
-        from qutip_qip.operations.inverse import inverse
-
-        if isinstance(cls_ins, type):
-            return inverse(cls_ins)
-        return inverse(type(cls_ins))(*cls_ins.params)
 
     def __repr__(self) -> str:  # e.g. "MultiSWAP(3)" for drawing
         if not self.params:
@@ -295,6 +250,71 @@ class OpInstruction:
         return f"OpInstruction({label}, qreg={self.qreg}, creg={self.creg})"
 
 
+class Unitary(Op):
+    self_inverse: ClassVar[bool] = False
+    is_unitary: ClassVar[bool] = True
+    is_clifford: ClassVar[bool] = False
+    is_controlled: ClassVar[bool] = False
+    config = Op.config | {"self_inverse", "is_clifford", "is_controlled"}
+
+    def __init_subclass__(cls) -> None:
+        super().__init_subclass__()
+
+        if not cls.is_unitary:
+            raise TypeError(f"{cls.name} is not unitary, so it has no inverse.")
+
+        if not isinstance(cls.is_clifford, bool):
+            raise TypeError(f"{cls.name}: is_clifford must be a bool.")
+
+        if not isinstance(cls.self_inverse, bool):
+            raise TypeError("self_inverse must be of type bool")
+
+        if "dtype" not in inspect.signature(cls.compute_qobj).parameters:
+            raise TypeError(f"{cls.name}.compute_qobj must accept a dtype parameter.")
+
+    @class_or_instance_method
+    def compute_qobj(cls_ins, dtype: str = "dense") -> Qobj:
+        """The op's matrix. Any op may define one, from X to QFT(n); the default is to have none."""
+        raise NotImplementedError(
+            f"{cls_ins.name} has no matrix, decompose it instead."
+        )
+
+    @cached_class_or_instance_method
+    def get_qobj(cls_ins, dtype: str = "dense") -> Qobj:
+        if not is_op(cls_ins):
+            raise TypeError(...)  # the parametric-class guard, as today
+        return cls_ins.compute_qobj(dtype)
+
+    @class_or_instance_method
+    def inverse(cls_ins):
+        # To disallow something like RX.inverse()
+        if not is_op(cls_ins):
+            raise TypeError(
+                f"{cls_ins.name} is parametric, build an instance first e.g. {cls_ins.name}(...).inverse()."
+            )
+
+        if cls_ins.self_inverse:
+            return cls_ins
+
+        # To avoid circular import
+        from qutip_qip.operations.inverse import inverse
+
+        if isinstance(cls_ins, type):
+            return inverse(cls_ins)
+        return inverse(type(cls_ins))(*cls_ins.params)
+
+
+class AngleParametricOp(Unitary):
+    """Parametric gate whose parameters are all real angles."""
+
+    def validate_params(self) -> None:
+        for v in self.params:
+            if isinstance(v, bool) or not isinstance(
+                v, Real
+            ):  # bool is an int in Python, but not an angle from our perspective
+                raise TypeError(f"{self.name}: parameters must be real, got {v!r}.")
+
+
 # In future if we want to pickle Ops or use the multiprocessing package
 # the Ops created via functions like get_unitary_gate, controlled won't
 # reduce properly due to the import path issue. That's why we have to define op_factory.
@@ -314,7 +334,7 @@ def op_factory(build):
     return factory
 
 
-# Helper function for other modules
+# Helper functions
 def is_op(obj, kind: type[Op] = Op) -> bool:
     if isinstance(obj, kind):
         return True
@@ -326,3 +346,32 @@ def is_op(obj, kind: type[Op] = Op) -> bool:
         and not obj.is_parametric
         and not inspect.isabstract(obj)
     )
+
+
+@op_factory
+def get_unitary_gate(name: str, U: Qobj) -> type[Op]:
+    """
+    Gate Factory for Custom Gate that wraps an arbitrary unitary matrix U.
+    """
+
+    _name = name
+    if not U.isoper or U.dims[0] != U.dims[1]:
+        raise ValueError(
+            "U must be a square operator with equal input and output dims."
+        )
+
+    if not U.isunitary:
+        raise ValueError("U must be unitary.")
+
+    class _CustomGate(Unitary):
+        name = _name
+        num_qreg = len(U.dims[0])
+        qreg_dim = tuple(U.dims[0])
+        self_inverse = U == U.dag()
+
+        @staticmethod
+        def compute_qobj(dtype=U.dtype):
+            return U.to(dtype)
+
+    _CustomGate.__name__ = _CustomGate.__qualname__ = _name
+    return _CustomGate

@@ -7,7 +7,7 @@ import numpy as np
 from scipy.linalg import block_diag
 
 from qutip import Qobj
-from qutip_qip.operations.op import Op, op_factory
+from qutip_qip.operations.op import op_factory, Unitary
 from qutip_qip.operations.modifier import Modifier
 from qutip_qip.operations.utils import class_or_instance_method
 from qutip_qip.typing import Int
@@ -19,7 +19,7 @@ class Controlled(Modifier):
 
     Attributes
     ----------
-    target : :class:`.Op`
+    target : :class:`.Unitary`
         The Op to be applied to the target qubits.
 
     num_ctrl_qreg : int
@@ -34,7 +34,7 @@ class Controlled(Modifier):
         If the Op should execute when two control qubits are $|10\rangle$ (binary 10), set ``ctrl_value=0b10``.
     """
 
-    config = Modifier.config | {"num_ctrl_qreg", "ctrl_dim", "ctrl_value", "target"}
+    config = Modifier.config | {"num_ctrl_qreg", "ctrl_dim", "ctrl_value"}
     is_controlled: ClassVar[bool] = True
     num_ctrl_qreg: ClassVar[int] = 1
     ctrl_value: ClassVar[int | None] = (
@@ -109,7 +109,7 @@ class Controlled(Modifier):
         # Run the validate_params method by building the target
         # For non-parametric target Op like X, validate_params is just pass be default, so it passes
         # For Parametric target Op (say RX), when we call CRX(theta), RX(theta) gets constructed which validates the params
-        if self.target_op().num_qreg < 1:
+        if self.target_unitary().num_qreg < 1:
             raise ValueError(f"{self.name}: target must act on at least one register.")
 
     @class_or_instance_method
@@ -122,7 +122,7 @@ class Controlled(Modifier):
         qobj : qutip.Qobj
             The unitary matrix representing the controlled operation.
         """
-        U = cls_ins.target_op().get_qobj(dtype)
+        U = cls_ins.target_unitary().get_qobj(dtype)
         blocks = [np.eye(U.shape[0]) for _ in range(math.prod(cls_ins.ctrl_dim))]
         blocks[cls_ins.ctrl_value] = U.full()
         return Qobj(
@@ -132,9 +132,9 @@ class Controlled(Modifier):
         )
 
     @class_or_instance_method
-    def inverse(cls_ins) -> Op | type[Op]:
+    def inverse(cls_ins) -> Unitary | type[Unitary]:
         return controlled(
-            cls_ins.target_op().inverse(),
+            cls_ins.target_unitary().inverse(),
             cls_ins.num_ctrl_qreg,
             cls_ins.ctrl_value,
             cls_ins.ctrl_dim,
@@ -144,14 +144,14 @@ class Controlled(Modifier):
 @op_factory
 @lru_cache(maxsize=128)
 def controlled(
-    op: type[Op],
+    op: type[Unitary],
     num_ctrl_qreg: int = 1,
     ctrl_value: int | None = None,
     ctrl_dim: tuple[int, ...] | None = None,
     name: str | None = None,
 ) -> type[Controlled]:
 
-    if not isinstance(op, type) or not issubclass(op, Op):
+    if not (isinstance(op, type) and issubclass(op, Unitary)):
         raise TypeError(
             f"controlled() takes an op class, e.g. controlled(RX), got {op!r}."
         )

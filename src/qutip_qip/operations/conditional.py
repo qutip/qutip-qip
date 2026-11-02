@@ -15,14 +15,12 @@ class ClassicalControlCheck(StrEnum):
 class Label(Op):
     """A static marker in the instruction list."""
 
-    unitary = False
     uuid: str
 
 
 class Conditional(Op):
     """Classical conditional control flow statements"""
 
-    unitary = False
     num_creg = 1
     label: Label
 

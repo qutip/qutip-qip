@@ -7,10 +7,9 @@ from .utils import (
     expand_operator,
     gate_sequence_product,
 )
-from .gateclass import AngleParametricGate, get_unitary_gate
 from .controlled import Controlled, controlled
-from .measurement import Measurement
-from .op import Op, OpInstruction
+from .measurement import Measurement, Mz
+from .op import AngleParametricOp, Op, OpInstruction, Unitary, get_unitary_gate, is_op
 from .bloq import Bloq, BloqBuilder
 from .bloq_repository import BloqRepository, register_op
 from .old_gates import (
@@ -52,16 +51,19 @@ __all__ = [
     "Op",
     "Controlled",
     "Inverse",
+    "Unitary",
     "get_unitary_gate",
     "controlled",
     "inverse",
-    "AngleParametricGate",
+    "AngleParametricOp",
     "Measurement",
     "OpInstruction",
     "Bloq",
     "BloqBuilder",
     "BloqRepository",
     "register_op",
+    "is_op",
+    "Mz",
     "rx",
     "ry",
     "rz",
