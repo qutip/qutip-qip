@@ -28,21 +28,3 @@ class InverseUnitary(Modifier):
     @class_or_instance_method
     def compute_qobj(cls_ins, dtype="dense") -> Qobj:
         return cls_ins.target_unitary().get_qobj(dtype).dag()
-
-
-@op_factory
-@lru_cache(maxsize=128)
-def inverse(
-    op: Unitary | type[Unitary], name: str | None = None
-) -> type[InverseUnitary]:
-    if not is_op(op, Unitary):
-        raise TypeError(f"inverse() takes an op class, e.g. inverse(RX), got {op!r}.")
-
-    _name, _target = name or f"{op.name}dag", op
-
-    class _Inverse(InverseUnitary):
-        name = _name
-        target = _target
-
-    _Inverse.__name__ = _Inverse.__qualname__ = _name
-    return _Inverse

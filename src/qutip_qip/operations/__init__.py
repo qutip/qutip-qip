@@ -10,7 +10,8 @@ from .utils import (
 from .controlled import ControlledUnitary, controlled
 from .inverse import inverse
 from .measurement import Measurement, Mz
-from .op import AngleParametricOp, Op, OpInstruction, Unitary, get_unitary_gate, is_op
+from .op import AngleParametricOp, Op, OpInstruction, is_op
+from .unitary import Unitary, get_unitary_gate
 from .bloq import Bloq, BloqBuilder
 from .bloq_repository import BloqRepository, register_op
 from .old_gates import (
