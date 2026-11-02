@@ -7,7 +7,7 @@ import qutip
 
 from qutip_qip.operations import (
     AngleParametricOp,
-    Controlled,
+    ControlledUnitary,
     Unitary,
     controlled,
     expand_operator,
@@ -548,7 +548,7 @@ class TestGateErrors:
     def test_controlled_gate_errors(self):
         with pytest.raises(TypeError):
 
-            class BadCtrlGate(Controlled):
+            class BadCtrlGate(ControlledUnitary):
                 num_ctrl_qreg = 1
                 ctrl_value = 1
                 target = gates.RX(
@@ -557,21 +557,21 @@ class TestGateErrors:
 
         with pytest.raises(ValueError):
 
-            class BadCtrlGate2(Controlled):
+            class BadCtrlGate2(ControlledUnitary):
                 target = gates.X
                 num_ctrl_qreg = -1  # Can't be negative
                 ctrl_value = 1
 
         with pytest.raises(ValueError):
 
-            class BadCtrlGate3(Controlled):
+            class BadCtrlGate3(ControlledUnitary):
                 target = gates.X
                 num_ctrl_qreg = 1
                 ctrl_value = 1.5  # Control value must be an int
 
         with pytest.raises(ValueError):
 
-            class BadCtrlGate4(Controlled):
+            class BadCtrlGate4(ControlledUnitary):
                 target = gates.X
                 num_ctrl_qreg = 1
                 ctrl_value = 2  # Control value can't be greater than 1 in this case

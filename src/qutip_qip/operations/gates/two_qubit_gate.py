@@ -1,7 +1,7 @@
 import numpy as np
 from qutip import Qobj
 
-from qutip_qip.operations import AngleParametricOp, Controlled, Unitary
+from qutip_qip.operations import AngleParametricOp, ControlledUnitary, Unitary
 from qutip_qip.operations.gates import (
     X,
     Y,
@@ -624,7 +624,7 @@ class RZX(_TwoQubitParametricGate):
         return RZX(-self.theta)
 
 
-class CX(Controlled):
+class CX(ControlledUnitary):
     """
     CNOT gate i.e. Controlled Pauli X gate.
 
@@ -656,7 +656,7 @@ class CX(Controlled):
 CNOT = CX
 
 
-class CY(Controlled):
+class CY(ControlledUnitary):
     """
     Controlled Pauli Y gate.
 
@@ -685,7 +685,7 @@ class CY(Controlled):
         )
 
 
-class CZ(Controlled):
+class CZ(ControlledUnitary):
     """
     Controlled Pauli Z gate.
 
@@ -717,7 +717,7 @@ class CZ(Controlled):
 CSIGN = CZ
 
 
-class CH(Controlled):
+class CH(ControlledUnitary):
     r"""
     Controlled Hadamard gate.
 
@@ -760,7 +760,7 @@ class CH(Controlled):
         )
 
 
-class CT(Controlled):
+class CT(ControlledUnitary):
     r"""
     Controlled T gate.
 
@@ -806,7 +806,7 @@ class CT(Controlled):
         return CTdag
 
 
-class CTdag(Controlled):
+class CTdag(ControlledUnitary):
     r"""
     Inverse of CT gate.
 
@@ -852,7 +852,7 @@ class CTdag(Controlled):
         return CT
 
 
-class CS(Controlled):
+class CS(ControlledUnitary):
     r"""
     Controlled S gate.
 
@@ -893,7 +893,7 @@ class CS(Controlled):
         return CSdag
 
 
-class CSdag(Controlled):
+class CSdag(ControlledUnitary):
     r"""
     Inverse of CS gate.
 
@@ -934,7 +934,7 @@ class CSdag(Controlled):
         return CS
 
 
-class CRX(Controlled):
+class CRX(ControlledUnitary):
     r"""
     Two-qubit Controlled RX gate.
 
@@ -976,7 +976,7 @@ class CRX(Controlled):
         return CRX(-self.theta)
 
 
-class CRY(Controlled):
+class CRY(ControlledUnitary):
     r"""
     Two-qubit Controlled RY gate.
 
@@ -1018,7 +1018,7 @@ class CRY(Controlled):
         return CRY(-self.theta)
 
 
-class CRZ(Controlled):
+class CRZ(ControlledUnitary):
     r"""
     Two-qubit Controlled RZ gate.
 
@@ -1060,7 +1060,7 @@ class CRZ(Controlled):
         return CRZ(-self.theta)
 
 
-class CPHASE(Controlled):
+class CPHASE(ControlledUnitary):
     r"""
     Two-qubit parameterized controlled phase (CPHASE) gate.
 
@@ -1114,7 +1114,7 @@ class CPHASE(Controlled):
         return CPHASE(-self.theta)
 
 
-class CQASMU(Controlled):
+class CQASMU(ControlledUnitary):
     r"""
     Two-qubit controlled universal rotation (CQASMU) gate.
 

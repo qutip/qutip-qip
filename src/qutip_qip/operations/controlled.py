@@ -13,7 +13,7 @@ from qutip_qip.operations.utils import class_or_instance_method
 from qutip_qip.typing import Int
 
 
-class Controlled(Modifier):
+class ControlledUnitary(Modifier):
     r"""
     Abstract class for defining a Controlled Op.
 
@@ -81,7 +81,7 @@ class Controlled(Modifier):
             # If we are controlling an already controlled Op e.g. CX
             # we can just use X as target and increase the num_ctrl_qreg, ctrl_dim count
             target = cls.target
-            if issubclass(target, Controlled):
+            if issubclass(target, ControlledUnitary):
                 cls.ctrl_value = (
                     cls.ctrl_value * math.prod(target.ctrl_dim) + target.ctrl_value
                 )
@@ -149,7 +149,7 @@ def controlled(
     ctrl_value: int | None = None,
     ctrl_dim: tuple[int, ...] | None = None,
     name: str | None = None,
-) -> type[Controlled]:
+) -> type[ControlledUnitary]:
 
     if not (isinstance(op, type) and issubclass(op, Unitary)):
         raise TypeError(
@@ -165,7 +165,7 @@ def controlled(
         ctrl_dim,
     )
 
-    class _Controlled(Controlled):
+    class _Controlled(ControlledUnitary):
         name = _name
         target = _target
         num_ctrl_qreg = _num_ctrl_qreg
