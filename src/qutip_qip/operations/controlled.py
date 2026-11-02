@@ -133,6 +133,9 @@ class ControlledUnitary(Modifier):
 
     @class_or_instance_method
     def inverse(cls_ins) -> Unitary | type[Unitary]:
+        if cls_ins.self_inverse:
+            return cls_ins
+
         return controlled(
             cls_ins.target_unitary().inverse(),
             cls_ins.num_ctrl_qreg,

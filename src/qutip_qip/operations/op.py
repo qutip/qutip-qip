@@ -174,6 +174,8 @@ class Op(ABC, metaclass=OpMeta):
             cls.num_qubits = (
                 cls.num_qreg
             )  # TODO: For backward compatibility, remove this
+        else:
+            cls.num_qubits = property(lambda self: self.num_qreg)
 
         if not inspect.isabstract(cls) and cls.is_derived and not cls.is_parametric:
             raise TypeError(
@@ -263,14 +265,12 @@ class Unitary(Op):
         if not cls.is_unitary:
             raise TypeError(f"{cls.name} is not unitary, so it has no inverse.")
 
-        if not isinstance(cls.is_clifford, bool):
-            raise TypeError(f"{cls.name}: is_clifford must be a bool.")
-
-        if not isinstance(cls.self_inverse, bool):
-            raise TypeError("self_inverse must be of type bool")
-
         if "dtype" not in inspect.signature(cls.compute_qobj).parameters:
             raise TypeError(f"{cls.name}.compute_qobj must accept a dtype parameter.")
+
+        for attr in ("self_inverse", "is_clifford"):
+            if not isinstance(inspect.getattr_static(cls, attr), bool | property):
+                raise TypeError(f"{cls.name}: {attr} must be a bool.")
 
     @class_or_instance_method
     def compute_qobj(cls_ins, dtype: str = "dense") -> Qobj:
@@ -281,14 +281,14 @@ class Unitary(Op):
 
     @cached_class_or_instance_method
     def get_qobj(cls_ins, dtype: str = "dense") -> Qobj:
-        if not is_op(cls_ins):
-            raise TypeError(...)  # the parametric-class guard, as today
+        if not is_op(cls_ins, Unitary):
+            raise TypeError("For parametric Unitary, they must be instantiated.")
         return cls_ins.compute_qobj(dtype)
 
     @class_or_instance_method
     def inverse(cls_ins):
         # To disallow something like RX.inverse()
-        if not is_op(cls_ins):
+        if not is_op(cls_ins, Unitary):
             raise TypeError(
                 f"{cls_ins.name} is parametric, build an instance first e.g. {cls_ins.name}(...).inverse()."
             )

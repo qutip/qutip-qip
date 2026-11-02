@@ -8,6 +8,7 @@ from .utils import (
     gate_sequence_product,
 )
 from .controlled import ControlledUnitary, controlled
+from .inverse import inverse
 from .measurement import Measurement, Mz
 from .op import AngleParametricOp, Op, OpInstruction, Unitary, get_unitary_gate, is_op
 from .bloq import Bloq, BloqBuilder
@@ -50,7 +51,6 @@ from .old_gates import (
 __all__ = [
     "Op",
     "ControlledUnitary",
-    "Inverse",
     "Unitary",
     "get_unitary_gate",
     "controlled",

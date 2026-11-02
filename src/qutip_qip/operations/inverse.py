@@ -7,7 +7,7 @@ from qutip_qip.operations.op import Unitary, is_op, op_factory
 from qutip_qip.operations.utils import class_or_instance_method
 
 
-class Inverse(Modifier):
+class InverseUnitary(Modifier):
     _derived = {
         "num_qreg": lambda c, t: t.num_qreg,
         "qreg_dim": lambda c, t: t.qreg_dim,
@@ -32,13 +32,15 @@ class Inverse(Modifier):
 
 @op_factory
 @lru_cache(maxsize=128)
-def inverse(op: Unitary | type[Unitary], name: str | None = None) -> type[Inverse]:
+def inverse(
+    op: Unitary | type[Unitary], name: str | None = None
+) -> type[InverseUnitary]:
     if not is_op(op, Unitary):
         raise TypeError(f"inverse() takes an op class, e.g. inverse(RX), got {op!r}.")
 
     _name, _target = name or f"{op.name}dag", op
 
-    class _Inverse(Inverse):
+    class _Inverse(InverseUnitary):
         name = _name
         target = _target
 

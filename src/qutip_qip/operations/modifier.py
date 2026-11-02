@@ -39,8 +39,6 @@ class Modifier(Unitary):
                 raise TypeError(
                     f"{cls.__name__}: target must be a concrete Unitary, got {target!r}."
                 )
-            if not target.is_unitary:
-                raise TypeError(f"{cls.__name__}: target {target.name} is not unitary.")
 
             for attr, rule in cls._derived.items():
                 if target.is_derived:

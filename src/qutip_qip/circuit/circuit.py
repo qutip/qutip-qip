@@ -495,6 +495,11 @@ class QubitCircuit:
             else:
                 gate = gate_class
 
+        if not is_op(gate, Unitary):
+            raise TypeError(
+                "gate must be a proper Unitary, not just a non-initiated parametric class like RX."
+            )
+
         # Handling case for integer input
         targets = convert_type_input_to_sequence(int, "targets", targets)
         controls = convert_type_input_to_sequence(int, "controls", controls)
