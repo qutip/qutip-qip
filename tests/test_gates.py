@@ -643,9 +643,6 @@ class TestGateErrors:
         with pytest.raises(AttributeError):
             gates.CX.target = gates.Y
 
-        # with pytest.raises(AttributeError):
-        #     len(gates.RX.params) = 2
-
         with pytest.raises(AttributeError):
             gates.RY.latex_str = "R_y"
 

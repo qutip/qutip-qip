@@ -102,7 +102,7 @@ class Op(ABC, metaclass=OpMeta):
 
     # derived from configuration
     is_parametric: ClassVar[bool] = False
-    is_derived: ClassVar[bool] = False  #
+    is_derived: ClassVar[bool] = False
     config: ClassVar[frozenset[str]] = frozenset(
         {
             "name",
@@ -165,9 +165,9 @@ class Op(ABC, metaclass=OpMeta):
                 cls.qreg_dim = (2,) * cls.num_qreg
 
             _check_config(cls)
-            cls.num_qubits = (
-                cls.num_qreg
-            )  # TODO: For backward compatibility, remove this
+
+            # TODO: For backward compatibility, remove this
+            cls.num_qubits = cls.num_qreg
         else:
             cls.num_qubits = property(lambda self: self.num_qreg)
 
