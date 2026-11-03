@@ -1,5 +1,9 @@
+import copy
 import inspect
 import math
+import warnings
+from abc import abstractmethod
+from dataclasses import fields
 from functools import lru_cache
 from typing import ClassVar
 
@@ -9,12 +13,14 @@ from scipy.linalg import block_diag
 from qutip import Qobj
 from qutip_qip.operations.op import op_factory
 from qutip_qip.operations.unitary import Inverse, Unitary
-from qutip_qip.operations.modifier import Modifier
-from qutip_qip.operations.utils import class_or_instance_method
+from qutip_qip.operations.utils import (
+    class_or_instance_method,
+    cached_class_or_instance_method,
+)
 from qutip_qip.typing import Int
 
 
-class ControlledUnitary(Modifier):
+class ControlledUnitary(Unitary):
     r"""
     Abstract class for defining a Controlled Op.
 
@@ -35,13 +41,17 @@ class ControlledUnitary(Modifier):
         If the Op should execute when two control qubits are $|10\rangle$ (binary 10), set ``ctrl_value=0b10``.
     """
 
-    config = Modifier.config | {"num_ctrl_qreg", "ctrl_dim", "ctrl_value"}
+    config = Unitary.config | {"target", "num_ctrl_qreg", "ctrl_dim", "ctrl_value"}
     is_controlled: ClassVar[bool] = True
     num_ctrl_qreg: ClassVar[int] = 1
     ctrl_value: ClassVar[int | None] = (
         None  # None: all controls in |1> (|d-1> for control on a qudit)
     )
     ctrl_dim: ClassVar[tuple[int, ...] | None] = None  # None: qubits
+
+    @property
+    @abstractmethod
+    def target(self) -> type[Unitary]: ...
 
     _derived = {
         "num_qreg": lambda c, t: c.num_ctrl_qreg + t.num_qreg,
@@ -51,7 +61,23 @@ class ControlledUnitary(Modifier):
     }
 
     def __init_subclass__(cls) -> None:
+        if clash := vars(cls).keys() & cls._derived.keys():
+            warnings.warn(
+                f"{cls.__name__}: cannot set {', '.join(clash)}, derived from the target.",
+                SyntaxWarning,
+            )
+
         if not inspect.isabstract(cls):
+            target = cls.target
+            if not (
+                isinstance(target, type)
+                and issubclass(target, Unitary)
+                and not inspect.isabstract(target)
+            ):
+                raise TypeError(
+                    f"{cls.__name__}: target must be a concrete Unitary, got {target!r}."
+                )
+
             num_ctrl_qreg = cls.num_ctrl_qreg
             if not isinstance(num_ctrl_qreg, Int) or num_ctrl_qreg < 1:
                 raise ValueError(
@@ -79,39 +105,53 @@ class ControlledUnitary(Modifier):
             if not isinstance(cls.ctrl_value, Int) or not 0 <= cls.ctrl_value < size:
                 raise ValueError(f"{cls.__name__}: ctrl_value must be in [0, {size}).")
 
-            # If we are controlling an already controlled Op e.g. CX
+            # If we are controlling an already ControlledUnitary e.g. CX
             # we can just use X as target and increase the num_ctrl_qreg, ctrl_dim count
-            target = cls.target
             if issubclass(target, ControlledUnitary):
                 cls.ctrl_value = (
                     cls.ctrl_value * math.prod(target.ctrl_dim) + target.ctrl_value
                 )
                 cls.ctrl_dim = cls.ctrl_dim + target.ctrl_dim
                 cls.num_ctrl_qreg = num_ctrl_qreg = len(cls.ctrl_dim)
-                cls.target = target.target
+                cls.target = target = target.target
 
-            # Acts as hash (identity) for a Controlled Op
-            cls._key = (cls.target, num_ctrl_qreg, cls.ctrl_value, cls.ctrl_dim)
+            cls._key = (target, num_ctrl_qreg, cls.ctrl_value, cls.ctrl_dim)
+
+            # A derived target, e.g. MCX(n), only knows its registers per instance.
+            for attr, rule in cls._derived.items():
+                if target.is_derived:
+                    setattr(
+                        cls,
+                        attr,
+                        property(
+                            lambda self, rule=rule: rule(self, self.target_unitary())
+                        ),
+                    )
+                else:
+                    setattr(cls, attr, rule(cls, target))
+
+            # The target's parameters e.g. theta in RX, become parameter in a Controlled Op
+            cls.__annotations__ = {f.name: f.type for f in fields(target)} | dict(
+                cls.__annotations__
+            )
+            for f in fields(target):
+                setattr(cls, f.name, copy.copy(f))
 
         super().__init_subclass__()
-
-        # For a derived target e.g. MCX(n) only knows num_qreg per instance, validate_params covers it.
-        # Below check is for a non-derived target
-        if (
-            not inspect.isabstract(cls)
-            and not cls.target.is_derived
-            and cls.target.num_qreg < 1
-        ):
-            raise TypeError(
-                f"{cls.__name__}: target must act on at least one register."
-            )
 
     def validate_params(self) -> None:
         # Run the validate_params method by building the target
         # For non-parametric target Op like X, validate_params is just pass be default, so it passes
         # For Parametric target Op (say RX), when we call CRX(theta), RX(theta) gets constructed which validates the params
-        if self.target_unitary().num_qreg < 1:
-            raise ValueError(f"{self.name}: target must act on at least one register.")
+        self.target_unitary()
+
+    @cached_class_or_instance_method
+    def target_unitary(cls_ins) -> Unitary | type[Unitary]:
+        return (
+            cls_ins.target
+            if isinstance(cls_ins, type)
+            else cls_ins.target(*cls_ins.params)
+        )
 
     @class_or_instance_method
     def compute_qobj(cls_ins, dtype: str = "dense") -> Qobj:
