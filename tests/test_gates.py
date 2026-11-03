@@ -529,6 +529,56 @@ class TestInverse:
                 def inverse(self): ...  # the method to overwrite is compute_inverse
 
 
+class TestControlled:
+    def test_factory_and_hand_written_classes_are_one_value(self):
+        assert controlled(gates.X) == gates.CX
+        assert hash(controlled(gates.X)) == hash(gates.CX)
+        assert controlled(gates.X, 2) == gates.TOFFOLI
+        assert controlled(gates.SWAP) == gates.FREDKIN
+        assert controlled(gates.RX)(0.5) == controlled(gates.RX(0.5)) == gates.CRX(0.5)
+        assert pickle.loads(pickle.dumps(controlled(gates.X, 2))) is controlled(
+            gates.X, 2
+        )
+        assert pickle.loads(pickle.dumps(controlled(gates.RX)(0.5))) == gates.CRX(0.5)
+
+    def test_nested_controls_flatten(self):
+        assert controlled(gates.CX) == controlled(gates.X, 2) == gates.TOFFOLI
+        assert controlled(gates.CX).target is gates.X
+        nested = controlled(controlled(gates.X, ctrl_value=0))
+        assert nested == controlled(gates.X, 2, ctrl_value=0b10)
+
+    def test_registers_follow_the_target(self):
+        assert (controlled(gates.RX).num_qreg, controlled(gates.RX).qreg_dim) == (
+            2,
+            (2, 2),
+        )
+        assert controlled(gates.X, ctrl_dim=(3,)).qreg_dim == (3, 2)
+        assert controlled(gates.X).self_inverse and not controlled(gates.T).self_inverse
+
+        class Identity(Unitary):
+            n: int
+            num_qreg = property(lambda self: self.n)
+
+            def compute_qobj(self, dtype="dense"):
+                return qutip.qeye([2] * self.n).to(dtype)
+
+        CI = controlled(Identity)(2)
+        assert (CI.num_qreg, CI.qreg_dim) == (3, (2, 2, 2))
+        assert CI.get_qobj() == qutip.qeye([2, 2, 2])
+
+    def test_target_parameters_and_control_value(self):
+        assert gates.CRX(0.5).params == (0.5,)
+        assert gates.CRX(0.5).target_unitary() == gates.RX(0.5)
+        with pytest.raises(TypeError):
+            gates.CRX(True)  # the target validates its own parameters
+
+    def test_errors(self):
+        with pytest.raises(TypeError):
+            controlled(Mz)  # only unitaries have controlled forms
+        with pytest.raises(ValueError):
+            controlled(gates.X, ctrl_dim=(2, 2))  # one control, two dimensions
+
+
 class TestGateErrors:
     def test_gateclass_errors(self):
         with pytest.raises(ValueError):
