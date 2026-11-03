@@ -16,7 +16,7 @@ from qutip import (
     fock_dm,
 )
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import AngleParametricOp
+from qutip_qip.operations import AngleUnitary
 from qutip_qip.operations.gates import RX, RY, Z
 from qutip_qip.device import ModelProcessor, Model
 from qutip_qip.compiler import GateCompiler, PulseInstruction
@@ -27,7 +27,7 @@ LINEWIDTH = 3.48692403487
 TEXTWIDTH = 7.1398920714
 
 
-class ROT(AngleParametricOp):
+class ROT(AngleUnitary):
     num_qreg = 1
     theta: float
 

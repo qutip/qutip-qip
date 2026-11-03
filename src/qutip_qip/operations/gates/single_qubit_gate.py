@@ -1,7 +1,7 @@
 import numpy as np
 
 from qutip import Qobj, sigmax, sigmay, sigmaz, qeye
-from qutip_qip.operations import AngleParametricOp, Unitary
+from qutip_qip.operations import AngleUnitary, Unitary
 
 
 class _SingleQubitGate(Unitary):
@@ -10,7 +10,7 @@ class _SingleQubitGate(Unitary):
     num_qreg: int = 1
 
 
-class _SingleQubitParametricGate(AngleParametricOp):
+class _SingleQubitParametricGate(AngleUnitary):
     """Abstract one-qubit parametric gate."""
 
     num_qreg: int = 1

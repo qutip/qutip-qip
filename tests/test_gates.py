@@ -7,7 +7,7 @@ import numpy as np
 import qutip
 
 from qutip_qip.operations import (
-    AngleParametricOp,
+    AngleUnitary,
     ControlledUnitary,
     Mz,
     Unitary,
@@ -394,7 +394,7 @@ class U1(Unitary):
         return rand_U.to(dtype)
 
 
-class U2(AngleParametricOp):
+class U2(AngleUnitary):
     num_qreg = 1
     theta: float
 
@@ -626,7 +626,7 @@ class TestGateErrors:
         with pytest.raises(ValueError):
             get_unitary_gate("U_not_unitary", U_not_unitary)  # U must be unitaru
 
-        class GoodParamGate(AngleParametricOp):
+        class GoodParamGate(AngleUnitary):
             num_qreg = 1
             theta: float
             phi: float

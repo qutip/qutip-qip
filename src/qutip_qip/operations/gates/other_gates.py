@@ -4,11 +4,11 @@ import scipy.sparse as sp
 import numpy as np
 from qutip import Qobj
 
-from qutip_qip.operations import ControlledUnitary, Unitary, AngleParametricOp
+from qutip_qip.operations import ControlledUnitary, Unitary, AngleUnitary
 from qutip_qip.operations.gates import X, SWAP
 
 
-class GLOBALPHASE(AngleParametricOp):
+class GLOBALPHASE(AngleUnitary):
     r"""
     Global phase gate.
 

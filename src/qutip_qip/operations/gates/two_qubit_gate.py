@@ -1,7 +1,7 @@
 import numpy as np
 from qutip import Qobj
 
-from qutip_qip.operations import AngleParametricOp, ControlledUnitary, Unitary
+from qutip_qip.operations import AngleUnitary, ControlledUnitary, Unitary
 from qutip_qip.operations.gates import (
     X,
     Y,
@@ -25,7 +25,7 @@ class _TwoQubitGate(Unitary):
     num_qreg: int = 2
 
 
-class _TwoQubitParametricGate(AngleParametricOp):
+class _TwoQubitParametricGate(AngleUnitary):
     """Abstract two-qubit gate. We require this due to the validator"""
 
     num_qreg: int = 2

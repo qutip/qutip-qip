@@ -105,7 +105,7 @@ class Inverse(Unitary):
         return f"{label}dag"
 
 
-class AngleParametricOp(Unitary):
+class AngleUnitary(Unitary):
     """Parametric gate whose parameters are all real angles."""
 
     def validate_params(self) -> None:

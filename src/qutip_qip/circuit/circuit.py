@@ -22,7 +22,7 @@ from qutip_qip.circuit.instruction import (
 )
 from qutip_qip.operations.conditional import Conditional, Label, ClassicalControlCheck
 from qutip_qip.operations import (
-    AngleParametricOp,
+    AngleUnitary,
     BloqBuilder,
     Measurement,
     Mz,
@@ -210,7 +210,7 @@ class QubitCircuit:
 
                 return get_qobj
 
-            class _OldUserParametricGate(AngleParametricOp):
+            class _OldUserParametricGate(AngleUnitary):
                 __slots__ = ()
                 name = gate_name
                 num_qreg = _num_qreg
