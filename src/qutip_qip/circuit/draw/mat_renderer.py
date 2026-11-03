@@ -503,16 +503,25 @@ class MatRenderer(BaseRenderer):
             The value in terms of pi.
         """
 
+        if value == 0:
+            return "[0]"
+
         pi_value = value / np.pi
         if abs(pi_value - round(pi_value)) < tolerance:
             num = round(pi_value)
-            return f"[{num}\\pi]" if num != 1 else "[\\pi]"
+            if num:
+                return f"[{num}\\pi]" if num != 1 else "[\\pi]"
 
         for denom in [2, 3, 4, 6, 8, 12]:
             fraction_value = pi_value * denom
             if abs(fraction_value - round(fraction_value)) < tolerance:
                 num = round(fraction_value)
-                return f"[{num}\\pi/{denom}]" if num != 1 else f"[\\pi/{denom}]"
+                if num:
+                    return (
+                        f"[{num}\\pi/{denom}]"
+                        if num != 1
+                        else f"[\\pi/{denom}]"
+                    )
 
         return f"[{round(value, 2)}]"
 
@@ -787,6 +796,19 @@ class MatRenderer(BaseRenderer):
                 self.fontstyle = style.get("fontstyle", "normal")
                 self.fontfamily = style.get("fontfamily", "monospace")
                 self.showarg = style.get("showarg", False)
+
+                if self.showarg and gate.is_parametric:
+                    if gate.arg_label is not None:
+                        self.text = f"{gate.name}({gate.arg_label})"
+                    elif gate.arg_value is not None:
+                        arg_values = gate.arg_value
+                        if not isinstance(arg_values, (list, tuple)):
+                            arg_values = [arg_values]
+                        formatted_args = ", ".join(
+                            self.to_pi_fraction(value)[1:-1].replace(r"\pi", "π")
+                            for value in arg_values
+                        )
+                        self.text = f"{gate.name}({formatted_args})"
 
                 self.merged_wires = list(targets)
                 self.merged_wires.extend(controls)

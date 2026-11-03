@@ -16,8 +16,30 @@ from qutip_qip.operations.gates import (
     TOFFOLI,
     FREDKIN,
     BERKELEY,
+    QASMU,
+    RZ,
 )
 from qutip_qip.operations.measurement import Mz
+
+
+def _matplotlib_gate_label(gate, showarg=None):
+    pytest.importorskip("matplotlib")
+    import matplotlib.pyplot as plt
+
+    from qutip_qip.circuit.draw.mat_renderer import MatRenderer
+
+    qc = QubitCircuit(1)
+    if showarg is None:
+        qc.add_gate(gate, targets=0)
+    else:
+        qc.add_gate(gate, targets=0, style={"showarg": showarg})
+
+    renderer = MatRenderer(qc)
+    with patch("matplotlib.pyplot.show"):
+        renderer.canvas_plot()
+    label = renderer._ax.texts[-1].get_text()
+    plt.close(renderer.fig)
+    return label
 
 
 @pytest.fixture
@@ -252,6 +274,30 @@ def test_matrenderer(request, qc_fixture):
 
     with patch("matplotlib.pyplot.show"):  # to avoid showing the plot
         qc.draw("matplotlib")
+
+
+def test_matrenderer_showarg_formats_pi_value():
+    assert _matplotlib_gate_label(RZ(np.pi / 2), showarg=True) == "RZ(π/2)"
+
+
+def test_matrenderer_showarg_uses_arg_label():
+    assert (
+        _matplotlib_gate_label(RZ(np.pi / 2, arg_label="theta"), showarg=True)
+        == "RZ(theta)"
+    )
+
+
+def test_matrenderer_showarg_formats_list_of_values():
+    gate = QASMU([0.1, np.pi / 2, 0.3])
+    assert (
+        _matplotlib_gate_label(gate, showarg=True)
+        == "QASMU(0.1, π/2, 0.3)"
+    )
+
+
+@pytest.mark.parametrize("showarg", [False, None])
+def test_matrenderer_without_showarg_keeps_gate_name(showarg):
+    assert _matplotlib_gate_label(RZ(np.pi / 2), showarg=showarg) == "RZ"
 
 
 @pytest.mark.parametrize("qc_fixture", ["qc1", "qc2", "qc3"])
