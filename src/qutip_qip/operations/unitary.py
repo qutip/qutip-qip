@@ -11,8 +11,8 @@ from qutip_qip.utils import convert_type_input_to_sequence
 from qutip_qip.typing import Real
 
 
-def _from_target(attr: str) -> property:
-    return property(lambda self: getattr(self.target, attr))
+def _from_op(attr: str) -> property:
+    return property(lambda self: getattr(self.op, attr))
 
 
 class Unitary(Op):
@@ -58,47 +58,50 @@ class Unitary(Op):
 
     @cached_class_or_instance_method
     def inverse(cls_ins) -> "Unitary | type[Unitary]":
-        # To disallow something like RX.inverse()
-        if not is_op(cls_ins):
-            raise TypeError(
-                f"{cls_ins.name} is parametric, build an instance first e.g. {cls_ins.name}(...).inverse()."
-            )
-
-        if cls_ins.self_inverse:
-            return cls_ins
-        return cls_ins.compute_inverse()
+        return Inverse(cls_ins)
 
     @class_or_instance_method
-    def compute_inverse(cls_ins) -> "Unitary | type[Unitary]":
+    def compute_inverse(cls_ins) -> "Unitary | type[Unitary] | None":
         """Ops with a closed form should overwrite this."""
-        return Inverse(cls_ins)
+        return None
 
 
 class Inverse(Unitary):
 
-    target: Unitary | type[Unitary]
+    op: Unitary | type[Unitary]
 
-    # An inverse has its target's shape and properties, so all configuration reads through
+    # An inverse has its op's shape and properties, so all configuration reads through
     # and only what differs is written out. At class scope locals() is the class namespace.
-    locals().update({attr: _from_target(attr) for attr in Unitary.config})
+    locals().update({attr: _from_op(attr) for attr in Unitary.config})
 
-    name = property(lambda self: f"{self.target.name}dag")
-    latex_str = property(lambda self: rf"{self.target.latex_str}^\dagger")
+    name = property(lambda self: f"{self.op.name}dag")
+    latex_str = property(lambda self: rf"{self.op.latex_str}^\dagger")
 
-    def validate_params(self) -> None:
-        if not is_op(self.target, Unitary):
+    def __new__(cls, op):
+        # To disallow something like RX.inverse()
+        if not is_op(op, Unitary):
             raise TypeError(
-                f"Inverse takes a unitary op value, e.g. Inverse(U), got {self.target!r}."
+                f"Inverse takes a unitary op value, e.g. Inverse(U), got {op!r}."
             )
 
+        # Inverse(T) is Tdag, Inverse(CX) is CX and Inverse(Inverse(U)) is U.
+        if op.self_inverse:
+            return op
+        inv = op.compute_inverse()
+        return super().__new__(cls) if inv is None else inv
+
     def compute_inverse(self) -> Unitary | type[Unitary]:
-        return self.target
+        return self.op
 
     def compute_qobj(self, dtype: str = "dense") -> Qobj:
-        return self.target.get_qobj(dtype).dag()
+        return self.op.get_qobj(dtype).dag()
+
+    # For pickling
+    def __reduce__(self):
+        return Inverse, (self.op,)
 
     def __repr__(self) -> str:
-        label = self.target.name if isinstance(self.target, type) else repr(self.target)
+        label = self.op.name if isinstance(self.op, type) else repr(self.op)
         return f"{label}dag"
 
 

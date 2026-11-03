@@ -12,7 +12,7 @@ from scipy.linalg import block_diag
 
 from qutip import Qobj
 from qutip_qip.operations.op import op_factory
-from qutip_qip.operations.unitary import Inverse, Unitary
+from qutip_qip.operations.unitary import Unitary
 from qutip_qip.operations.utils import (
     class_or_instance_method,
     cached_class_or_instance_method,
@@ -174,12 +174,15 @@ class ControlledUnitary(Unitary):
 
     @class_or_instance_method
     def compute_inverse(cls_ins) -> Unitary | type[Unitary]:
-        inv = cls_ins.target_unitary().inverse()
-        if isinstance(inv, Inverse):
-            return Inverse(cls_ins)
         return controlled(
-            inv, cls_ins.num_ctrl_qreg, cls_ins.ctrl_value, cls_ins.ctrl_dim
+            cls_ins.target_unitary().inverse(),
+            cls_ins.num_ctrl_qreg,
+            cls_ins.ctrl_value,
+            cls_ins.ctrl_dim,
         )
+
+    def __repr__(self) -> str:
+        return f"{'C' * self.num_ctrl_qreg}{self.target_unitary()!r}"
 
 
 @op_factory
@@ -198,12 +201,18 @@ def controlled(
         )
 
     # A class body cannot read a parameter if what it assigns has the same name, so we use aliases.
-    _name = name or f"{'C' * num_ctrl_qreg}{op.name}"
     _target, _num_ctrl_qreg, _ctrl_value, _ctrl_dim = (
         op,
         num_ctrl_qreg,
         ctrl_value,
         ctrl_dim,
+    )
+
+    prefix = "C" * num_ctrl_qreg
+    _name = name or (
+        prefix + op.name
+        if isinstance(op.name, str)
+        else property(lambda self: prefix + self.target_unitary().name)
     )
 
     class _Controlled(ControlledUnitary):
@@ -214,5 +223,5 @@ def controlled(
         ctrl_dim = _ctrl_dim
 
     # Without this every factory-made class is called _Controlled when cls.__name__ is called
-    _Controlled.__name__ = _Controlled.__qualname__ = _name
+    _Controlled.__name__ = _Controlled.__qualname__ = name or prefix + op.__name__
     return _Controlled
