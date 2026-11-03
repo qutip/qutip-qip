@@ -12,7 +12,8 @@ qutip\_qip.operations
 
    .. autosummary::
    
-      Gate
+      Op
+      Unitary
       Measurement
       gates.GATE_CLASS_MAP
       gates.IDENTITY
