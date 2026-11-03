@@ -1,6 +1,7 @@
 from copy import deepcopy
 import pytest
 import itertools
+import pickle
 
 import numpy as np
 import qutip
@@ -8,6 +9,7 @@ import qutip
 from qutip_qip.operations import (
     AngleParametricOp,
     ControlledUnitary,
+    Mz,
     Unitary,
     controlled,
     expand_operator,
@@ -16,6 +18,7 @@ from qutip_qip.operations import (
     qubit_clifford_group,
 )
 import qutip_qip.operations.gates as gates
+from qutip_qip.operations.unitary import Inverse
 
 rng = np.random.default_rng(seed=101)
 
@@ -485,6 +488,45 @@ def test_gate_equality():
     assert gates.CRX(0.5) == gates.CRX(0.5)
     assert gates.CRX(0.5) != gates.CRY(0.5)
     assert gates.CRX(0.5) != gates.CRX(0.6)
+
+
+class TestInverse:
+    def test_closed_form_and_self_inverse(self):
+        assert gates.T.inverse() is Inverse(gates.T) is gates.Tdag
+        assert gates.X.inverse() is Inverse(gates.X) is gates.X
+        assert gates.RX(0.5).inverse() == Inverse(gates.RX(0.5)) == gates.RX(-0.5)
+
+    def test_wrapper_when_there_is_no_closed_form(self):
+        Udag = U1.inverse()
+        assert isinstance(Udag, Inverse) and Inverse(U1) == Udag
+        assert Udag.inverse() is Inverse(Udag) is U1  # U.inverse().inverse()
+        assert Udag.name == "U1dag" and Udag.is_clifford is False
+        assert (Udag.num_qreg, Udag.qreg_dim) == (1, (2,))
+        assert Udag.get_qobj() == U1.get_qobj().dag()
+        assert pickle.loads(pickle.dumps(Udag)) == Udag
+
+    def test_controlled_inverse_keeps_its_controls(self):
+        CUdag = controlled(U1).inverse()
+        assert CUdag == controlled(U1.inverse()) == Inverse(controlled(U1))
+        assert isinstance(CUdag, ControlledUnitary) and CUdag.num_ctrl_qreg == 1
+        assert CUdag.name == "CU1dag"
+        assert CUdag.get_qobj() == controlled(U1).get_qobj().dag()
+        assert gates.CT.inverse() is gates.CTdag
+        assert gates.CRX(0.5).inverse() == gates.CRX(-0.5)
+
+    def test_errors(self):
+        with pytest.raises(TypeError):
+            gates.RX.inverse()  # RX(0.5).inverse is valid
+
+        with pytest.raises(TypeError):
+            Inverse(Mz)  # non-unitary
+
+        with pytest.raises(TypeError):
+
+            class OverridesInverse(Unitary):
+                num_qreg = 1
+
+                def inverse(self): ...  # the method to overwrite is compute_inverse
 
 
 class TestGateErrors:
