@@ -775,6 +775,7 @@ class MatRenderer(BaseRenderer):
         """
 
         self._add_wire_labels()
+        showarg_label = False
 
         for instruction in self._qc.instructions:
             gate = instruction.operation
@@ -811,6 +812,9 @@ class MatRenderer(BaseRenderer):
                 self.fontfamily = style.get("fontfamily", "monospace")
                 self.showarg = style.get("showarg", False)
                 self.text = self._gate_label(gate, self.showarg)
+                showarg_label |= bool(self.showarg) and gate.is_parametric and (
+                    gate.arg_label is not None or gate.arg_value is not None
+                )
 
                 self.merged_wires = list(targets)
                 self.merged_wires.extend(controls)
@@ -828,7 +832,28 @@ class MatRenderer(BaseRenderer):
 
         self._add_wire()
         self._fig_config()
-        plt.tight_layout()
+        if showarg_label:
+            xlim = self._ax.get_xlim()
+            ylim = self._ax.get_ylim()
+            title_height = (
+                (self.style.fontsize + 10) / 72
+                if self.style.title is not None
+                else 0
+            )
+            self.fig.set_size_inches(
+                xlim[1] - xlim[0],
+                ylim[1] - ylim[0] + title_height,
+            )
+            self._ax.set_position(
+                [
+                    0,
+                    0,
+                    1,
+                    (ylim[1] - ylim[0]) / (ylim[1] - ylim[0] + title_height),
+                ]
+            )
+        else:
+            plt.tight_layout()
         plt.show()
 
     def _fig_config(self) -> None:

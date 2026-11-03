@@ -295,6 +295,32 @@ def test_matrenderer_showarg_formats_list_of_values():
     )
 
 
+def test_matrenderer_showarg_box_fits_measured_text():
+    pytest.importorskip("matplotlib")
+    import matplotlib.pyplot as plt
+
+    from qutip_qip.circuit.draw.mat_renderer import MatRenderer
+
+    qc = QubitCircuit(1)
+    qc.add_gate(RZ(np.pi / 2), targets=0, style={"showarg": True})
+    renderer = MatRenderer(qc)
+    with patch("matplotlib.pyplot.show"):
+        renderer.canvas_plot()
+    renderer.fig.canvas.draw()
+
+    fig = renderer.fig
+    label = next(
+        text for text in renderer._ax.texts if text.get_text() == "RZ(π/2)"
+    )
+    gate_patch = renderer._ax.patches[-1]
+    canvas_renderer = fig.canvas.get_renderer()
+    text_width = label.get_window_extent(canvas_renderer).width
+    box_width = gate_patch.get_window_extent(canvas_renderer).width
+    plt.close(fig)
+
+    assert box_width >= text_width
+
+
 @pytest.mark.parametrize("showarg", [False, None])
 def test_matrenderer_without_showarg_keeps_gate_name(showarg):
     assert _matplotlib_gate_label(RZ(np.pi / 2), showarg=showarg) == "RZ"
