@@ -185,7 +185,6 @@ class Op(ABC, metaclass=OpMeta):
             _check_config(self)
 
         self.validate_params()
-        object.__setattr__(self, "num_qubits", self.num_qreg)
 
     def validate_params(self) -> None:
         """Overwritten for Parametric Ops. Raise ValueError on invalid parameters."""

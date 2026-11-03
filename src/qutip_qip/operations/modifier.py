@@ -6,7 +6,7 @@ from collections.abc import Callable
 from dataclasses import fields
 from typing import ClassVar
 
-from qutip_qip.operations.op import Unitary
+from qutip_qip.operations.unitary import Unitary
 from qutip_qip.operations.utils import cached_class_or_instance_method
 
 

@@ -11,6 +11,10 @@ from qutip_qip.utils import convert_type_input_to_sequence
 from qutip_qip.typing import Real
 
 
+def _from_target(attr: str) -> property:
+    return property(lambda self: getattr(self.target, attr))
+
+
 class Unitary(Op):
     self_inverse: ClassVar[bool] = False
     is_unitary: ClassVar[bool] = True
@@ -66,10 +70,36 @@ class Unitary(Op):
 
     @class_or_instance_method
     def compute_inverse(cls_ins) -> "Unitary | type[Unitary]":
-        """Ops with a closed form override this; the default wraps the op in Inverse."""
-        from qutip_qip.operations.inverse import _inverse_class
+        """Ops with a closed form should overwrite this."""
+        return Inverse(cls_ins)
 
-        return _inverse_class(cls_ins)
+
+class Inverse(Unitary):
+
+    target: Unitary | type[Unitary]
+
+    # An inverse has its target's shape and properties, so all configuration reads through
+    # and only what differs is written out. At class scope locals() is the class namespace.
+    locals().update({attr: _from_target(attr) for attr in Unitary.config})
+
+    name = property(lambda self: f"{self.target.name}dag")
+    latex_str = property(lambda self: rf"{self.target.latex_str}^\dagger")
+
+    def validate_params(self) -> None:
+        if not is_op(self.target, Unitary):
+            raise TypeError(
+                f"Inverse takes a unitary op value, e.g. Inverse(U), got {self.target!r}."
+            )
+
+    def compute_inverse(self) -> Unitary | type[Unitary]:
+        return self.target
+
+    def compute_qobj(self, dtype: str = "dense") -> Qobj:
+        return self.target.get_qobj(dtype).dag()
+
+    def __repr__(self) -> str:
+        label = self.target.name if isinstance(self.target, type) else repr(self.target)
+        return f"{label}dag"
 
 
 class AngleParametricOp(Unitary):

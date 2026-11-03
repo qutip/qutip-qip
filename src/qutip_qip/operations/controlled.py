@@ -7,7 +7,8 @@ import numpy as np
 from scipy.linalg import block_diag
 
 from qutip import Qobj
-from qutip_qip.operations.op import op_factory, Unitary
+from qutip_qip.operations.op import op_factory
+from qutip_qip.operations.unitary import Inverse, Unitary
 from qutip_qip.operations.modifier import Modifier
 from qutip_qip.operations.utils import class_or_instance_method
 from qutip_qip.typing import Int
@@ -132,15 +133,12 @@ class ControlledUnitary(Modifier):
         )
 
     @class_or_instance_method
-    def inverse(cls_ins) -> Unitary | type[Unitary]:
-        if cls_ins.self_inverse:
-            return cls_ins
-
+    def compute_inverse(cls_ins) -> Unitary | type[Unitary]:
+        inv = cls_ins.target_unitary().inverse()
+        if isinstance(inv, Inverse):
+            return Inverse(cls_ins)
         return controlled(
-            cls_ins.target_unitary().inverse(),
-            cls_ins.num_ctrl_qreg,
-            cls_ins.ctrl_value,
-            cls_ins.ctrl_dim,
+            inv, cls_ins.num_ctrl_qreg, cls_ins.ctrl_value, cls_ins.ctrl_dim
         )
 
 
