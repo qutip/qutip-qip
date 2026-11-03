@@ -91,7 +91,7 @@ class GLOBALPHASE(AngleParametricOp):
             dtype=dtype,
         )
 
-    def inverse(self):
+    def compute_inverse(self):
         return GLOBALPHASE(-self.phi)
 
 

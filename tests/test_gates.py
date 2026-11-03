@@ -404,7 +404,7 @@ class U2(AngleParametricOp):
             dtype=dtype,
         )
 
-    def inverse(self):
+    def compute_inverse(self):
         return U2(-self.theta)
 
 
