@@ -525,9 +525,29 @@ class MatRenderer(BaseRenderer):
 
         return f"[{round(value, 2)}]"
 
+    def _gate_label(self, gate: Gate | Type[Gate], showarg: bool) -> str:
+        if not gate.is_parametric:
+            return gate.name
+
+        if showarg:
+            if gate.arg_label is not None:
+                return f"{gate.name}({gate.arg_label})"
+            if gate.arg_value is not None:
+                arg_values = gate.arg_value
+                if not isinstance(arg_values, (list, tuple)):
+                    arg_values = [arg_values]
+                formatted_args = ", ".join(
+                    self.to_pi_fraction(value)[1:-1].replace(r"\pi", "π")
+                    for value in arg_values
+                )
+                return f"{gate.name}({formatted_args})"
+
+        return gate.arg_label if gate.arg_label is not None else gate.name
+
     def _draw_multiq_gate(
         self,
         gate: Gate | Type[Gate],
+        gate_label: str,
         targets: list[int],
         controls: list[int],
         cbits: list[int],
@@ -586,7 +606,7 @@ class MatRenderer(BaseRenderer):
         else:
             adj_targets = [i + self._cwires for i in sorted(targets)]
             text_width = self._get_text_width(
-                self.text,
+                gate_label,
                 self.fontsize,
                 self.fontweight,
                 self.fontfamily,
@@ -598,7 +618,7 @@ class MatRenderer(BaseRenderer):
             gate_text = plt.Text(
                 xskip + self.style.gate_margin + gate_width / 2,
                 (adj_targets[0] + adj_targets[-1]) / 2 * self.style.wire_sep,
-                self.text,
+                gate_label,
                 color=self.fontcolor,
                 fontsize=self.fontsize,
                 fontweight=self.fontweight,
@@ -779,12 +799,6 @@ class MatRenderer(BaseRenderer):
                 targets = instruction.targets
                 controls = instruction.controls
                 style = style if style is not None else {}
-                self.text = gate.name
-
-                if gate.is_parametric:
-                    self.text = (
-                        gate.arg_label if gate.arg_label is not None else gate.name
-                    )
 
                 self.color = style.get(
                     "color",
@@ -796,19 +810,7 @@ class MatRenderer(BaseRenderer):
                 self.fontstyle = style.get("fontstyle", "normal")
                 self.fontfamily = style.get("fontfamily", "monospace")
                 self.showarg = style.get("showarg", False)
-
-                if self.showarg and gate.is_parametric:
-                    if gate.arg_label is not None:
-                        self.text = f"{gate.name}({gate.arg_label})"
-                    elif gate.arg_value is not None:
-                        arg_values = gate.arg_value
-                        if not isinstance(arg_values, (list, tuple)):
-                            arg_values = [arg_values]
-                        formatted_args = ", ".join(
-                            self.to_pi_fraction(value)[1:-1].replace(r"\pi", "π")
-                            for value in arg_values
-                        )
-                        self.text = f"{gate.name}({formatted_args})"
+                self.text = self._gate_label(gate, self.showarg)
 
                 self.merged_wires = list(targets)
                 self.merged_wires.extend(controls)
@@ -820,7 +822,9 @@ class MatRenderer(BaseRenderer):
                     len(self._layer_list[i])
                     for i in range(self.merged_wires[0], self.merged_wires[-1] + 1)
                 ]
-                self._draw_multiq_gate(gate, targets, controls, cbits, max(find_layer))
+                self._draw_multiq_gate(
+                    gate, self.text, targets, controls, cbits, max(find_layer)
+                )
 
         self._add_wire()
         self._fig_config()
