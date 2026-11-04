@@ -15,6 +15,7 @@ from qutip import (
     rand_ket,
     rand_dm,
     fidelity,
+    QobjEvo,
 )
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.device import Processor, LinearSpinChain
@@ -258,6 +259,8 @@ class TestCircuitProcessor:
         processor.set_all_tlist(tlist)
 
         unitary_qobjevo, _ = processor.get_qobjevo(args={"test": True}, noisy=False)
+        # Remove the qzeros components, avoid inplace modification.
+        unitary_qobjevo = QobjEvo(unitary_qobjevo, compress=True)
         components = unitary_qobjevo.to_list()
         assert_allclose(components[0][0].data.to_array(), sigmaz().data.to_array())
 
@@ -269,9 +272,10 @@ class TestCircuitProcessor:
         dec_noise = DecoherenceNoise(c_ops=sigmax(), coeff=coeff, tlist=tlist)
         processor.add_noise(dec_noise)
 
+        non_noisy = QobjEvo(processor.get_qobjevo(noisy=False)[0], compress=True)
         assert_equal(
             unitary_qobjevo.to_list()[0][0],
-            processor.get_qobjevo(noisy=False)[0].to_list()[0][0],
+            non_noisy.to_list()[0][0],
         )  # We index [0] to get the Hamiltonian before calling .to_list()
 
         # Check that sigmaz is present in the Hamiltonian components with noise
