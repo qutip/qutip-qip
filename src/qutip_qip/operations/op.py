@@ -1,7 +1,7 @@
 import copyreg
 import inspect
 import warnings
-from abc import ABC, ABCMeta
+from abc import ABC, ABCMeta, abstractmethod
 from dataclasses import dataclass, field, fields
 from functools import partial, wraps
 from typing import ClassVar, dataclass_transform, get_origin
@@ -39,38 +39,14 @@ def _check_config(op) -> None:
         raise TypeError("is_unitary must be of type bool")
 
 
-class OpMeta(ABCMeta):
-    """_key if present is a custom key to be used to hash"""
+class _OpMeta(ABCMeta):
 
-    # To avoid checking the base class for hierarchy.
-    # Otherwise having a intermediatery class e.g. _TwoQubitControlledGate for CX
-    # makes CX == controlled(X) check fail.
-    # For further details, read about ABCMeta cache
-    __instancecheck__ = type.__instancecheck__
-    __subclasscheck__ = type.__subclasscheck__
-
-    def __init__(cls, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        cls._sealed = True  # class creation, including __init_subclass__ is complete
-
-    # We require this so that class attributes are not overwritable e.g. X.num_qreg fails
-    # frozen=True in dataclass generated for each Op works only for instance (i.e. Parametric Op)
-    def __setattr__(cls, name, value):
-        if not name.startswith("_") and "_sealed" in cls.__dict__:
-            raise AttributeError(f"{cls.__name__}.{name} is read-only.")
-        super().__setattr__(name, value)
-
-    def __eq__(cls, other):
-        key = vars(cls).get("_key")
-        return cls is other or (
-            key is not None
-            and isinstance(other, OpMeta)
-            and key == vars(other).get("_key")
-        )
-
-    def __hash__(cls):
-        key = vars(cls).get("_key")
-        return type.__hash__(cls) if key is None else hash(key)
+    # Instead of asking the user to initialize X() or custom Op so that we support isinstance throughout
+    # We instead do it directly in the Metaclass (where the class gets constructed)
+    # This also ensure non-parametric Ops like X stay a singleton (no duplicates)
+    def __new__(mcls, name, bases, ns, **kw):
+        cls = super().__new__(mcls, name, bases, ns, **kw)
+        return cls if cls.__abstractmethods__ or cls.is_parametric else cls()
 
 
 # Think of userdefined Op as Op Factory, takes params and returns a Op
@@ -87,18 +63,21 @@ class OpMeta(ABCMeta):
 # Note: dataclass transform is just a typehint to indicate that
 # the inherited classes will be a dataclass.
 @dataclass_transform(frozen_default=True)
-class Op(ABC, metaclass=OpMeta):
+class Op(ABC, metaclass=_OpMeta):
     """
     Base class of every operation. Operations are defined by subclassing.
     """
 
     # configuration
     name: ClassVar[str]
-    num_qreg: ClassVar[int] = 0
     num_creg: ClassVar[int] = 0
     qreg_dim: ClassVar[tuple[int, ...]] = ()
     latex_str: ClassVar[str]
     is_unitary: ClassVar[bool] = False
+
+    @property
+    @abstractmethod
+    def num_qreg(self) -> int: ...
 
     # derived from configuration
     is_parametric: ClassVar[bool] = False
@@ -262,7 +241,7 @@ def is_op(obj, kind: type[Op] = Op) -> bool:
 # In future if we want to pickle Ops or use the multiprocessing package
 # the Ops created via functions like get_unitary_gate, controlled won't
 # reduce properly due to the import path issue. That's why we have to define op_factory.
-copyreg.pickle(OpMeta, lambda cls: vars(cls).get("_factory") or cls.__qualname__)
+copyreg.pickle(_OpMeta, lambda cls: vars(cls).get("_factory") or cls.__qualname__)
 
 
 def op_factory(build):
