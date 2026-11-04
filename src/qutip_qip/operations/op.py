@@ -16,8 +16,6 @@ def _check_config(op) -> None:
 
     e.g. class Toffoli(Op): num_qreg = 3, is known when the class is created.
     Checking it in __init_subclass__ makes an authoring error fail at import and it is the only chance for non-parametric op.
-
-    e.g. MCX with num_qreg as a property over n, cannot be checked until there is an instance with a value for n. So __post_init__ checks it there
     """
 
     if not isinstance(op.num_qreg, Int) or op.num_qreg < 0:
@@ -43,7 +41,7 @@ class _OpMeta(ABCMeta):
 
     # Instead of asking the user to initialize X() or custom Op so that we support isinstance throughout
     # We instead do it directly in the Metaclass (where the class gets constructed)
-    # This also ensure non-parametric Ops like X stay a singleton (no duplicates)
+    # This also ensure non-parametric Ops like X stay a singleton (no duplicates), also saves memory
     def __new__(mcls, name, bases, ns, **kw):
         cls = super().__new__(mcls, name, bases, ns, **kw)
         return cls if cls.__abstractmethods__ or cls.is_parametric else cls()
@@ -60,7 +58,7 @@ class _OpMeta(ABCMeta):
 # define the parameters in __init__ (Pythonic but slightly less readable)
 
 
-# Note: dataclass transform is just a typehint to indicate that
+# Note: dataclass transform below is just a typehint to indicate that
 # the inherited classes will be a dataclass.
 @dataclass_transform(frozen_default=True)
 class Op(ABC, metaclass=_OpMeta):
@@ -93,8 +91,8 @@ class Op(ABC, metaclass=_OpMeta):
         }
     )
 
-    def __init__(self, *args, **kwargs) -> None:
-        raise TypeError(f"{type(self).__name__} class can't be instantiated.")
+    def __mro_entries__(self, bases):
+        return (type(self),)
 
     def __init_subclass__(cls) -> None:
         super().__init_subclass__()
@@ -104,8 +102,7 @@ class Op(ABC, metaclass=_OpMeta):
             *(vars(base).get("config", ()) for base in cls.__mro__)
         )
 
-        # Example:
-        # Say user writes num_qreg: int in the child dataclass and this will generate __init__(self, num_qreg=3).
+        # Say user writes num_qreg: int in an inherited dataclass and this will generate __init__(self, num_qreg=3).
         # Now num_qreg is a parameter i.e it shows in __eq__ and Op(num_qreg=7) is accepted (which we don't want).
         # So we keep the annotation for field matching _CONFIG just we can ignore them by making them a ClassVar.
         ann = dict(cls.__annotations__)
@@ -117,52 +114,44 @@ class Op(ABC, metaclass=_OpMeta):
         #  If name attribute in subclass is not defined, set it to the name of the subclass
         if "name" not in vars(cls):
             cls.name = cls.__name__
-
         if "latex_str" not in vars(cls):
             cls.latex_str = cls.name
 
         dataclass(frozen=True, repr=False, eq=False)(cls)
 
-        # If a user defines a keyword "only" field in a dataclass, we reject it
+        # If a user defines a keyword "only" field (kw) in a dataclass, we reject it
         if any(f.kw_only or not f.init for f in fields(cls)):
             raise TypeError(f"{cls.__name__}: parameters must be positional fields.")
 
         cls.is_parametric = bool(fields(cls))
-        if cls.is_parametric:
-            cls.params = Op.params
-        else:
-            cls.params = ()
-            cls.__init__ = Op.__init__
 
-        # Check the config (num_qreg, num_creg etc.) if none of them are parametric
+        # Skip abstract classes, below checks don't apply to abstract classes
+        if inspect.isabstract(cls):
+            return
+
         cls.is_derived = any(
             isinstance(inspect.getattr_static(cls, attr, None), property)
             for attr in cls.config
         )
+
         if not cls.is_derived:
             if "num_qreg" in vars(cls) and "qreg_dim" not in vars(cls):
                 cls.qreg_dim = (2,) * cls.num_qreg
-
             _check_config(cls)
 
-            # TODO: For backward compatibility, remove this
-            cls.num_qubits = cls.num_qreg
-        else:
-            cls.num_qubits = property(lambda self: self.num_qreg)
-
-        if not inspect.isabstract(cls) and cls.is_derived and not cls.is_parametric:
+        # Just for safety, every derived class must be parametric
+        if cls.is_derived and not cls.is_parametric:
             raise TypeError(
                 f"{cls.__name__}: config can only be derived from parameters, add a new parameter."
             )
 
-    def __post_init__(self) -> None:  # parametric instances only
+    def __post_init__(self) -> None:
         if self.is_derived:
             if not self.qreg_dim:
-                object.__setattr__(
-                    self, "qreg_dim", (2,) * self.num_qreg
-                )  # The dataclass is frozen
-            _check_config(self)
+                # The dataclass is frozen
+                object.__setattr__(self, "qreg_dim", (2,) * self.num_qreg)
 
+            _check_config(self)
         self.validate_params()
 
     def validate_params(self) -> None:
@@ -186,15 +175,26 @@ class Op(ABC, metaclass=_OpMeta):
             return self.name
         return f"{self.name}({', '.join(map(str, self.params))})"
 
-    def __eq__(self, other) -> bool:
-        return (
-            isinstance(other, Op)
-            and type(self) == type(other)  # noqa: E721
-            and self.params == other.params
-        )
+    @property
+    def _key(self):
+        return (type(self), self.params)
 
     def __hash__(self) -> int:
-        return hash((type(self), self.params))
+        return hash(self._key)
+
+    def __eq__(self, other) -> bool:
+        return isinstance(other, Op) and self._key == other._key
+
+    def __reduce__(self):
+        cls = type(self)
+        if self.params:
+            return cls, self.params
+        return vars(cls).get("_factory") or cls.__qualname__
+
+    # TODO: For dev backward compatibility only, remove later
+    @property
+    def num_qubits(self) -> int:
+        return self.num_qreg
 
 
 # Class to keep track of this Op on this qubit, cbit
@@ -206,7 +206,7 @@ class OpInstruction:
     style: dict = field(default_factory=dict)  # For circuit draw
 
     def __post_init__(self):
-        if not is_op(self.op):
+        if not isinstance(self.op, Op):
             raise TypeError(f"op must be an operation value, got {self.op!r}.")
 
         if len(self.qreg) != self.op.num_qreg:
@@ -220,22 +220,7 @@ class OpInstruction:
             )
 
     def __repr__(self) -> str:
-        label = self.op.name if isinstance(self.op, type) else repr(self.op)
-        return f"OpInstruction({label}, qreg={self.qreg}, creg={self.creg})"
-
-
-# Helper functions
-def is_op(obj, kind: type[Op] = Op) -> bool:
-    if isinstance(obj, kind):
-        return True
-
-    return (
-        isinstance(obj, type)
-        and issubclass(obj, kind)
-        and obj is not Op
-        and not obj.is_parametric
-        and not inspect.isabstract(obj)
-    )
+        return f"OpInstruction({repr(self.op)}, qreg={self.qreg}, creg={self.creg})"
 
 
 # In future if we want to pickle Ops or use the multiprocessing package
@@ -247,11 +232,15 @@ copyreg.pickle(_OpMeta, lambda cls: vars(cls).get("_factory") or cls.__qualname_
 def op_factory(build):
     @wraps(build)
     def factory(*args, **kwargs):
-        if args and isinstance(args[0], Op):
-            op, *rest = args
-            return factory(type(op), *rest, **kwargs)(*op.params)
-        cls = build(*args, **kwargs)
-        cls._factory = (partial(factory, *args, **kwargs), ())
-        return cls
+        # A value's parameters carry over: controlled(RX(0.5)) is controlled(RX)(0.5).
+        params = args[0].params if args and isinstance(args[0], Op) else ()
+        if params:
+            args = (type(args[0]), *args[1:])
+        made = build(*args, **kwargs)
+
+        # A Op factory-made class (e.g. via controlled, get_unitary_gate etc.) has no import path, so it pickles as the call that made it.
+        family = made if made.is_parametric else type(made)
+        family._factory = (partial(factory, *args, **kwargs), ())
+        return made(*params) if params else made
 
     return factory
