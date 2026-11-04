@@ -1,6 +1,6 @@
 import numpy as np
 
-from qutip_qip.circuit import GateInstruction
+from qutip_qip.circuit import UnitaryInstruction
 from qutip_qip.compiler import GateCompiler, PulseInstruction
 from qutip_qip.operations.gates import CX, RX, RY, RZX
 
@@ -274,27 +274,27 @@ class SCQubitsCompiler(GateCompiler):
 
         # += extends a list in Python
         result += self.gate_compiler[RX](
-            GateInstruction(operation=RX(-PI / 2), qubits=(q2,)),
+            UnitaryInstruction(operation=RX(-PI / 2), qubits=(q2,)),
             args,
         )
 
         result += self.gate_compiler[RZX](
-            GateInstruction(operation=RZX(PI / 2), qubits=(q1, q2)),
+            UnitaryInstruction(operation=RZX(PI / 2), qubits=(q1, q2)),
             args,
         )
 
         result += self.gate_compiler[RX](
-            GateInstruction(operation=RX(-PI / 2), qubits=(q1,)),
+            UnitaryInstruction(operation=RX(-PI / 2), qubits=(q1,)),
             args,
         )
 
         result += self.gate_compiler[RY](
-            GateInstruction(operation=RY(-PI / 2), qubits=(q1,)),
+            UnitaryInstruction(operation=RY(-PI / 2), qubits=(q1,)),
             args,
         )
 
         result += self.gate_compiler[RX](
-            GateInstruction(operation=RX(PI / 2), qubits=(q1,)),
+            UnitaryInstruction(operation=RX(PI / 2), qubits=(q1,)),
             args,
         )
 

@@ -83,7 +83,7 @@ class MyCompiler(GateCompiler):
         """Generates the pulses.
 
         Args:
-            circ_op (qutip_qip.circuit.GateInstruction): A GateInstruction object.
+            circ_op (qutip_qip.circuit.UnitaryInstruction): A UnitaryInstruction object.
             tlist (array): A list of times for the evolution.
             coeff (array): An array of coefficients for the gate pulses
             phase (float): The value of the phase for the gate.
@@ -104,7 +104,7 @@ class MyCompiler(GateCompiler):
         """Compiles single qubit gates to pulses.
 
         Args:
-            circ_op (qutip_qip.circuit.GateInstruction)
+            circ_op (qutip_qip.circuit.UnitaryInstruction)
 
         Returns:
             PulseInstruction (qutip_qip.compiler.instruction.PulseInstruction):
@@ -126,7 +126,7 @@ class MyCompiler(GateCompiler):
         """Compiles gates with a phase term.
 
         Args:
-            circ_op (qutip_qip.circuit.GateInstruction):
+            circ_op (qutip_qip.circuit.UnitaryInstruction):
 
         Returns:
             PulseInstruction (qutip_qip.compiler.instruction.PulseInstruction):

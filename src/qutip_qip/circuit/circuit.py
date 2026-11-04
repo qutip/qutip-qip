@@ -16,7 +16,7 @@ from qutip_qip.decompose._decompose import (
 from qutip_qip.circuit.instruction import (
     CircuitInstruction,
     ConditionalBranchInstruction,
-    GateInstruction,
+    UnitaryInstruction,
     LabelInstruction,
     MeasurementInstruction,
 )
@@ -313,7 +313,7 @@ class QubitCircuit:
 
             elif isinstance(op, Unitary):
                 self._instructions.append(
-                    GateInstruction(
+                    UnitaryInstruction(
                         operation=op,
                         qubits=op_instruction.qreg,
                         cbits=op_instruction.creg,

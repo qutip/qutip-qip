@@ -62,12 +62,12 @@ class CircuitInstruction(ABC):
 
 
 @dataclass(frozen=True, slots=True)
-class GateInstruction(CircuitInstruction):
+class UnitaryInstruction(CircuitInstruction):
     operation: Unitary | type[Unitary]
     cbits_ctrl_value: int | None = None
 
     def __post_init__(self) -> None:
-        super(GateInstruction, self).__post_init__()
+        super(UnitaryInstruction, self).__post_init__()
         # Don't make it super(), it will throw an error because slots=True
         # destroys __class__ reference to the original class until Python 3.13
         # Check CPython Issue #90562, this has been resolved in Python 3.14
@@ -122,7 +122,7 @@ class GateInstruction(CircuitInstruction):
         if name in ("name", "num_qubits", "arg_value"):
             warnings.warn(
                 f"Gate object in a circuit has been replaced by GateInstructions."
-                f"use GateInstruction.operation.{name} instead.",
+                f"use UnitaryInstruction.operation.{name} instead.",
                 DeprecationWarning,
                 stacklevel=2,
             )

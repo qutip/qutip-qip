@@ -52,13 +52,13 @@ A circuit with the various gates and registers available is demonstrated below:
 .. testoutput::
   :options: +NORMALIZE_WHITESPACE +ELLIPSIS
 
-    (GateInstruction(operation=Gate(SWAP, num_qubits=2), qubits=(0, 1), cbits=(), cbits_ctrl_value=None),
+    (UnitaryInstruction(operation=Gate(SWAP, num_qubits=2), qubits=(0, 1), cbits=(), cbits_ctrl_value=None),
     MeasurementInstruction(operation= Measurement(M), qubits=(1,), cbits=(0,)),
-    GateInstruction(operation=Gate(CX, num_qubits=2), qubits=(0, 1), cbits=(), cbits_ctrl_value=None),
+    UnitaryInstruction(operation=Gate(CX, num_qubits=2), qubits=(0, 1), cbits=(), cbits_ctrl_value=None),
     ConditionalBranchInstruction(operation=Cbz, qubits=(), cbits=(0,)),
-    GateInstruction(operation=Gate(X, num_qubits=1), qubits=(0,), cbits=(), cbits_ctrl_value=None),
+    UnitaryInstruction(operation=Gate(X, num_qubits=1), qubits=(0,), cbits=(), cbits_ctrl_value=None),
     LabelInstruction(operation=..., qubits=(), cbits=()),
-    GateInstruction(operation=Gate(SWAP, num_qubits=2), qubits=(0, 1), cbits=(), cbits_ctrl_value=None))
+    UnitaryInstruction(operation=Gate(SWAP, num_qubits=2), qubits=(0, 1), cbits=(), cbits_ctrl_value=None))
 
 Unitaries
 =========

@@ -23,7 +23,7 @@ from qutip_qip.circuit import (
     QubitCircuit,
     CircuitSimulator,
     CircuitInstruction,
-    GateInstruction,
+    UnitaryInstruction,
     MeasurementInstruction,
 )
 from qutip_qip.circuit.draw import TeXRenderer
@@ -1010,32 +1010,32 @@ class TestInstructionErrors:
 
     def test_gate_instruction_errors(self):
         with pytest.raises(TypeError):
-            GateInstruction(operation="not a gate", qubits=(0,))
+            UnitaryInstruction(operation="not a gate", qubits=(0,))
 
         with pytest.raises(ValueError):
-            GateInstruction(operation=gates.X, qubits=(0, 1))  # requires 1 qubits
+            UnitaryInstruction(operation=gates.X, qubits=(0, 1))  # requires 1 qubits
 
         with pytest.raises(ValueError):
-            GateInstruction(operation=gates.X, qubits=(0,), cbits=(0,))
+            UnitaryInstruction(operation=gates.X, qubits=(0,), cbits=(0,))
             # cbits_ctrl_value can't be None if classical controls are provided
 
         with pytest.raises(ValueError):
             # Classical Control value can't be negative
-            GateInstruction(
+            UnitaryInstruction(
                 operation=gates.X, qubits=(0,), cbits=(0,), cbits_ctrl_value=-1
             )
 
         with pytest.raises(ValueError):
             # Classical Control value can't be greater than 1 in this case
-            GateInstruction(
+            UnitaryInstruction(
                 operation=gates.X, qubits=(0,), cbits=(0,), cbits_ctrl_value=2
             )
 
     def test_gate_instruction_attr_forwarding(self):
         """
-        Temporarily test that GateInstruction forwards attributes of the underlying gate operation.
+        Temporarily test that UnitaryInstruction forwards attributes of the underlying gate operation.
         """
-        instr = GateInstruction(operation=gates.RX(np.pi / 3), qubits=(0,))
+        instr = UnitaryInstruction(operation=gates.RX(np.pi / 3), qubits=(0,))
 
         with pytest.warns(DeprecationWarning):
             assert instr.name == "RX"

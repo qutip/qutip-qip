@@ -2,7 +2,7 @@
 
 from .instruction import (
     CircuitInstruction,
-    GateInstruction,
+    UnitaryInstruction,
     MeasurementInstruction,
 )
 from .simulator import CircuitResult, CircuitSimulator
@@ -13,6 +13,6 @@ __all__ = [
     "CircuitResult",
     "QubitCircuit",
     "CircuitInstruction",
-    "GateInstruction",
+    "UnitaryInstruction",
     "MeasurementInstruction",
 ]
