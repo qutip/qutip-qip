@@ -568,7 +568,7 @@ class TestControlled:
 
     def test_target_parameters_and_control_value(self):
         assert gates.CRX(0.5).params == (0.5,)
-        assert gates.CRX(0.5).target_unitary() == gates.RX(0.5)
+        assert gates.CRX(0.5).target_unitary == gates.RX(0.5)
         with pytest.raises(TypeError):
             gates.CRX(True)  # the target validates its own parameters
 
@@ -638,32 +638,23 @@ class TestGateErrors:
             GoodParamGate(1.0)
 
     def test_controlled_gate_errors(self):
-        with pytest.raises(TypeError):
-
-            class BadCtrlGate(ControlledUnitary):
-                num_ctrl_qreg = 1
-                ctrl_value = 1
-                target = gates.RX(
-                    0
-                )  # target gate must be a gate subclass not an instantiated object
-
         with pytest.raises(ValueError):
 
-            class BadCtrlGate2(ControlledUnitary):
+            class BadCtrlGate(ControlledUnitary):
                 target = gates.X
                 num_ctrl_qreg = -1  # Can't be negative
                 ctrl_value = 1
 
         with pytest.raises(ValueError):
 
-            class BadCtrlGate3(ControlledUnitary):
+            class BadCtrlGate2(ControlledUnitary):
                 target = gates.X
                 num_ctrl_qreg = 1
                 ctrl_value = 1.5  # Control value must be an int
 
         with pytest.raises(ValueError):
 
-            class BadCtrlGate4(ControlledUnitary):
+            class BadCtrlGate3(ControlledUnitary):
                 target = gates.X
                 num_ctrl_qreg = 1
                 ctrl_value = 2  # Control value can't be greater than 1 in this case

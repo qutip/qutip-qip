@@ -487,7 +487,7 @@ class QubitCircuit:
                 )
 
             if gate_class.is_parametric:
-                if isinstance(arg_value, (tuple, list)):
+                if isinstance(arg_value, (tuple, list, np.ndarray)):
                     gate = gate_class(*arg_value)
                 else:
                     gate = gate_class(arg_value)
@@ -841,7 +841,7 @@ class QubitCircuit:
                     targets=targets,
                 )
                 qc_temp.add_gate(
-                    std.RY(-half_pi),
+                    std.RY(half_pi),
                     targets=targets,
                 )
 

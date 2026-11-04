@@ -140,7 +140,7 @@ def convert_qiskit_circuit_to_qutip(
         elif qiskit_instruction.name in _map_controlled_gates.keys():
             gate = _map_controlled_gates[qiskit_instruction.name]
             if gate.is_parametric:
-                gate = gate(arg_value)
+                gate = gate(*arg_value)
 
             # FIXME This doesn't work for multicontrolled gates
             qutip_circuit.add_gate(

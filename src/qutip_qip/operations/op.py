@@ -44,7 +44,13 @@ class _OpMeta(ABCMeta):
     # This also ensure non-parametric Ops like X stay a singleton (no duplicates), also saves memory
     def __new__(mcls, name, bases, ns, **kw):
         cls = super().__new__(mcls, name, bases, ns, **kw)
+        cls._sealed = True  # from here on class is read-only
         return cls if cls.__abstractmethods__ or cls.is_parametric else cls()
+
+    def __setattr__(cls, name, value):
+        if not name.startswith("_") and "_sealed" in vars(cls):
+            raise AttributeError(f"{cls.__name__}.{name} is read-only.")
+        super().__setattr__(name, value)
 
 
 # Think of userdefined Op as Op Factory, takes params and returns a Op
