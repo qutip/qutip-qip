@@ -2,9 +2,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 import warnings
 from qutip_qip.operations.conditional import Conditional, Label, Cbnz, Cbz
-from qutip_qip.operations.op import is_op
-from qutip_qip.operations import Measurement, Op, Unitary
-from qutip_qip.operations.measurement import Mz
+from qutip_qip.operations import Measurement, Op, Unitary, Mz
 
 
 def _validate_non_negative_int_tuple(T: any, txt: str = ""):
@@ -173,7 +171,7 @@ class MeasurementInstruction(CircuitInstruction):
 
     def __post_init__(self) -> None:
         super(MeasurementInstruction, self).__post_init__()
-        if not is_op(self.operation, Measurement):
+        if not isinstance(self.operation, Measurement):
             raise TypeError(f"Operation must be a measurement, got {self.operation}")
 
         if (not len(self.qubits)) or (not len(self.cbits)):

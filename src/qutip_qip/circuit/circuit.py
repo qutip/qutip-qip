@@ -31,7 +31,6 @@ from qutip_qip.operations import (
     Unitary,
     expand_operator,
     get_unitary_gate,
-    is_op,
 )
 from qutip_qip.operations import gates as std
 from qutip_qip.typing import Int, IntSequence
@@ -293,7 +292,7 @@ class QubitCircuit:
         for op_instruction in bloq.instructions:
             op = op_instruction.op
 
-            if is_op(op, Measurement):
+            if isinstance(op, Measurement):
                 self._instructions.append(
                     MeasurementInstruction(
                         operation=op,
@@ -312,7 +311,7 @@ class QubitCircuit:
             elif isinstance(op, Label):
                 self._instructions.append(LabelInstruction(operation=op))
 
-            elif is_op(op, Unitary):
+            elif isinstance(op, Unitary):
                 self._instructions.append(
                     GateInstruction(
                         operation=op,
@@ -495,7 +494,7 @@ class QubitCircuit:
             else:
                 gate = gate_class
 
-        if not is_op(gate, Unitary):
+        if not isinstance(gate, Unitary):
             raise TypeError(
                 "gate must be a proper Unitary, not just a non-initiated parametric class like RX."
             )

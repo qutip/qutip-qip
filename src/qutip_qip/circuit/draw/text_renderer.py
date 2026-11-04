@@ -7,7 +7,7 @@ from math import ceil
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.circuit.draw import BaseRenderer, StyleConfig
 from qutip_qip.circuit.draw._control_flow import infer_classical_controls
-from qutip_qip.operations import Measurement, Unitary, is_op
+from qutip_qip.operations import Measurement, Unitary
 from qutip_qip.operations import gates as std
 
 
@@ -415,7 +415,7 @@ class TextRenderer(BaseRenderer):
                 )
                 parts, width = self._draw_measurement_gate(qubits, cbits)
 
-            elif is_op(op, Unitary):
+            elif isinstance(op, Unitary):
                 cbits = sorted(set(cbits).union(classical_controls[index]))
                 gate = op
                 gate_text = gate.name
@@ -471,7 +471,7 @@ class TextRenderer(BaseRenderer):
                 self._update_singleq(qubits, parts)
                 self._update_cbridge(qubits, cbits, wire_list, width)
 
-            elif is_op(op, Unitary):
+            elif isinstance(op, Unitary):
                 if gate == std.SWAP:
                     self._update_swap_gate(wire_list)
                 else:

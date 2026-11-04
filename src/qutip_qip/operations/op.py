@@ -125,18 +125,19 @@ class Op(ABC, metaclass=_OpMeta):
 
         cls.is_parametric = bool(fields(cls))
 
-        # Skip abstract classes, below checks don't apply to abstract classes
-        if inspect.isabstract(cls):
-            return
+        if isinstance(vars(cls).get("num_qreg"), Int) and "qreg_dim" not in vars(cls):
+            cls.qreg_dim = (2,) * cls.num_qreg
 
         cls.is_derived = any(
             isinstance(inspect.getattr_static(cls, attr, None), property)
             for attr in cls.config
         )
 
+        # Skip abstract classes, below checks don't apply to abstract classes
+        if inspect.isabstract(cls):
+            return
+
         if not cls.is_derived:
-            if "num_qreg" in vars(cls) and "qreg_dim" not in vars(cls):
-                cls.qreg_dim = (2,) * cls.num_qreg
             _check_config(cls)
 
         # Just for safety, every derived class must be parametric

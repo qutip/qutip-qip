@@ -2,7 +2,7 @@ import inspect
 from typing import ClassVar
 
 from qutip import Qobj
-from qutip_qip.operations.op import Op, is_op, op_factory
+from qutip_qip.operations.op import Op, op_factory
 from qutip_qip.operations.utils import (
     class_or_instance_method,
     cached_class_or_instance_method,
@@ -45,7 +45,7 @@ class Unitary(Op):
 
     @cached_class_or_instance_method
     def get_qobj(cls_ins, dtype: str = "dense") -> Qobj:
-        if not is_op(cls_ins, Unitary):
+        if not isinstance(cls_ins, Unitary):
             raise TypeError("For parametric Unitary, they must be instantiated.")
         return cls_ins.compute_qobj(dtype)
 
@@ -79,7 +79,7 @@ class Inverse(Unitary):
 
     def __new__(cls, op):
         # To disallow something like RX.inverse()
-        if not is_op(op, Unitary):
+        if not isinstance(op, Unitary):
             raise TypeError(
                 f"Inverse takes a unitary op value, e.g. Inverse(U), got {op!r}."
             )

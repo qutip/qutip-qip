@@ -16,7 +16,7 @@ from matplotlib.patches import (
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.circuit.draw import BaseRenderer, StyleConfig
 from qutip_qip.circuit.draw._control_flow import infer_classical_controls
-from qutip_qip.operations import Measurement, Unitary, is_op
+from qutip_qip.operations import Measurement, Unitary
 from qutip_qip.operations import gates as std
 
 
@@ -770,7 +770,7 @@ class MatRenderer(BaseRenderer):
                     ),
                 )
 
-            elif is_op(op, Unitary):
+            elif isinstance(op, Unitary):
                 cbits = tuple(sorted(set(cbits).union(classical_controls[index])))
                 gate = op
                 controls = []
