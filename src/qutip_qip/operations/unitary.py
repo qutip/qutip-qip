@@ -1,12 +1,9 @@
 import inspect
+from functools import lru_cache
 from typing import ClassVar
 
 from qutip import Qobj
 from qutip_qip.operations.op import Op, op_factory
-from qutip_qip.operations.utils import (
-    class_or_instance_method,
-    cached_class_or_instance_method,
-)
 from qutip_qip.utils import convert_type_input_to_sequence
 from qutip_qip.typing import Real
 
@@ -43,32 +40,25 @@ class Unitary(Op):
                 f"{cls.name} is self_inverse, so it must not define compute_inverse."
             )
 
-    @cached_class_or_instance_method
-    def get_qobj(cls_ins, dtype: str = "dense") -> Qobj:
-        if not isinstance(cls_ins, Unitary):
-            raise TypeError("For parametric Unitary, they must be instantiated.")
-        return cls_ins.compute_qobj(dtype)
+    @lru_cache
+    def get_qobj(self, dtype: str = "dense") -> Qobj:
+        return self.compute_qobj(dtype)
 
-    @class_or_instance_method
-    def compute_qobj(cls_ins, dtype: str = "dense") -> Qobj:
+    def compute_qobj(self, dtype: str = "dense") -> Qobj:
         """The op's matrix. Any op may define one, from X to QFT(n); the default is to have none."""
-        raise NotImplementedError(
-            f"{cls_ins.name} has no matrix, decompose it instead."
-        )
+        raise NotImplementedError(f"{self.name} has no matrix, decompose it instead.")
 
-    @cached_class_or_instance_method
-    def inverse(cls_ins) -> "Unitary | type[Unitary]":
-        return Inverse(cls_ins)
+    def inverse(self) -> "Unitary":
+        return Inverse(self)
 
-    @class_or_instance_method
-    def compute_inverse(cls_ins) -> "Unitary | type[Unitary] | None":
+    def compute_inverse(self) -> "Unitary | None":
         """Ops with a closed form should overwrite this."""
         return None
 
 
 class Inverse(Unitary):
 
-    op: Unitary | type[Unitary]
+    op: Unitary
 
     # An inverse has its op's shape and properties, so all configuration reads through
     # and only what differs is written out. At class scope locals() is the class namespace.
@@ -90,7 +80,7 @@ class Inverse(Unitary):
         inv = op.compute_inverse()
         return super().__new__(cls) if inv is None else inv
 
-    def compute_inverse(self) -> Unitary | type[Unitary]:
+    def compute_inverse(self) -> Unitary:
         return self.op
 
     def compute_qobj(self, dtype: str = "dense") -> Qobj:
@@ -101,8 +91,7 @@ class Inverse(Unitary):
         return Inverse, (self.op,)
 
     def __repr__(self) -> str:
-        label = self.op.name if isinstance(self.op, type) else repr(self.op)
-        return f"{label}dag"
+        return f"{self.op!r}dag"
 
 
 class AngleUnitary(Unitary):
@@ -117,7 +106,7 @@ class AngleUnitary(Unitary):
 
 
 @op_factory
-def get_unitary_gate(name: str, U: Qobj) -> type[Op]:
+def get_unitary_gate(name: str, U: Qobj) -> Unitary:
     """
     Gate Factory for Custom Gate that wraps an arbitrary unitary matrix U.
     """
@@ -132,14 +121,13 @@ def get_unitary_gate(name: str, U: Qobj) -> type[Op]:
         raise ValueError("U must be unitary.")
 
     class _CustomGate(Unitary):
+        __qualname__ = _name
         name = _name
         num_qreg = len(U.dims[0])
         qreg_dim = tuple(U.dims[0])
         self_inverse = U == U.dag()
 
-        @staticmethod
-        def compute_qobj(dtype=U.dtype):
+        def compute_qobj(self, dtype=U.dtype):
             return U.to(dtype)
 
-    _CustomGate.__name__ = _CustomGate.__qualname__ = _name
     return _CustomGate
