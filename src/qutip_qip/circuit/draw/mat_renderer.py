@@ -755,9 +755,7 @@ class MatRenderer(BaseRenderer):
             cbits = instruction.creg
             style = instruction.style
 
-            if isinstance(op, Measurement) or (
-                isinstance(op, type) and issubclass(op, Measurement)
-            ):
+            if isinstance(op, Measurement):
                 self.merged_wires = list(qubits)
                 self.merged_wires.sort()
 

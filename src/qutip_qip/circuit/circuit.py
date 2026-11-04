@@ -454,7 +454,7 @@ class QubitCircuit:
                 stacklevel=2,
             )
 
-        if type(gate) is std.GLOBALPHASE:
+        if isinstance(gate, std.GLOBALPHASE):
             self.add_global_phase(gate.arg_value[0])
             return
 
@@ -477,13 +477,10 @@ class QubitCircuit:
                         f"Gate '{gate}' is not a recognized standard gate or user-defined gate."
                     )
 
-            elif issubclass(gate, Unitary):
-                gate_class = gate
-
             else:
                 raise TypeError(
-                    "gate must be of Gate type or object or a string ",
-                    f"got {type(gate)} instead.",
+                    "gate must be of a Gate object or a string ",
+                    f"got {gate} instead.",
                 )
 
             if gate_class.is_parametric:
@@ -493,11 +490,6 @@ class QubitCircuit:
                     gate = gate_class(arg_value)
             else:
                 gate = gate_class
-
-        if not isinstance(gate, Unitary):
-            raise TypeError(
-                "gate must be a proper Unitary, not just a non-initiated parametric class like RX."
-            )
 
         # Handling case for integer input
         targets = convert_type_input_to_sequence(int, "targets", targets)

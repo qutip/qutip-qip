@@ -137,9 +137,7 @@ class TeXRenderer:
                     else:
                         col.append(r" \qw ")
 
-            elif isinstance(op, Measurement) or (
-                isinstance(op, type) and issubclass(op, Measurement)
-            ):
+            elif isinstance(op, Measurement):
                 col = []
 
                 for n in range(self.num_qubits + self.num_cbits):

@@ -404,9 +404,7 @@ class TextRenderer(BaseRenderer):
             cbits = list(op_instruction.creg)
 
             # generate the parts, width and wire_list for the gates
-            if isinstance(op, Measurement) or (
-                isinstance(op, type) and issubclass(op, Measurement)
-            ):
+            if isinstance(op, Measurement):
                 wire_list = list(range(qubits[0] + 1)) + list(
                     range(
                         cbits[0] + self._qwires,
@@ -465,9 +463,7 @@ class TextRenderer(BaseRenderer):
             self._adjust_layer_pad(wire_list, xskip)
             self._manage_layers(width, wire_list, layer, xskip)
 
-            if isinstance(op, Measurement) or (
-                isinstance(op, type) and issubclass(op, Measurement)
-            ):
+            if isinstance(op, Measurement):
                 self._update_singleq(qubits, parts)
                 self._update_cbridge(qubits, cbits, wire_list, width)
 

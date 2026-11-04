@@ -72,10 +72,8 @@ class GateInstruction(CircuitInstruction):
         # destroys __class__ reference to the original class until Python 3.13
         # Check CPython Issue #90562, this has been resolved in Python 3.14
 
-        if not (
-            isinstance(self.operation, Unitary) or issubclass(self.operation, Unitary)
-        ):
-            raise TypeError(f"Operation must be a Gate, got {self.operation}")
+        if not isinstance(self.operation, Unitary):
+            raise TypeError(f"Operation must be a Unitary, got {self.operation}")
 
         if len(self.qubits) != self.operation.num_qreg:
             raise ValueError(
