@@ -15,6 +15,7 @@ from matplotlib.patches import (
 
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.circuit.draw import BaseRenderer, StyleConfig
+from qutip_qip.circuit.draw.base_renderer import apply_showarg
 from qutip_qip.circuit.draw._control_flow import infer_classical_controls
 from qutip_qip.operations import Gate, Measurement
 from qutip_qip.operations import gates as std
@@ -800,6 +801,7 @@ class MatRenderer(BaseRenderer):
                 self.fontstyle = style.get("fontstyle", "normal")
                 self.fontfamily = style.get("fontfamily", "monospace")
                 self.showarg = style.get("showarg", False)
+                self.text = apply_showarg(self.text, gate, style)
 
                 self.merged_wires = list(targets)
                 self.merged_wires.extend(controls)

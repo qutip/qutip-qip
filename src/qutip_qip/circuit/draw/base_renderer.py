@@ -2,8 +2,13 @@
 Base class Implementation for Renderers
 """
 
+import math
 from dataclasses import dataclass
+
 from qutip_qip.circuit.draw.color_theme import qutip, light, dark, modern
+
+# Denominators used when a gate argument is a simple fraction of pi.
+_PI_FRACTION_DENOMINATORS = (2, 3, 4, 6, 8, 12)
 
 
 @dataclass(frozen=False, slots=True)
@@ -199,3 +204,112 @@ class BaseRenderer:
                 self._layer_list[wire].append(
                     temp + gate_width + self.style.gate_margin * 2
                 )
+
+
+def format_gate_parameters(
+    arg_value, *, latex: bool = False, tolerance: float = 0.01
+) -> str:
+    """
+    Format parametric-gate arguments for a circuit label.
+
+    Values close to a rational multiple of pi are written as a pi fraction
+    (``π/2``, ``-3π/4``, ``2π``). Other values are rounded to two decimal
+    places so a raw float is not printed in full.
+
+    Parameters
+    ----------
+    arg_value : float or sequence of float
+        Parameter value or values stored on the gate.
+
+    latex : bool, optional
+        When True, the pi symbol is the LaTeX command ``\\pi``. Otherwise it
+        is the unicode character. The default is False.
+
+    tolerance : float, optional
+        Absolute tolerance, in units of pi, for matching a pi fraction.
+        The default is 0.01.
+
+    Returns
+    -------
+    str
+        Arguments joined by ``", "``.
+    """
+
+    if isinstance(arg_value, (str, bytes)):
+        values = (arg_value,)
+    else:
+        try:
+            values = tuple(arg_value)
+        except TypeError:
+            values = (arg_value,)
+
+    return ", ".join(
+        _format_one_parameter(value, latex=latex, tolerance=tolerance)
+        for value in values
+    )
+
+
+def apply_showarg(label: str, gate, style: dict | None, *, latex: bool = False) -> str:
+    """
+    Include a parametric gate's argument when ``style["showarg"]`` is set.
+
+    ``showarg`` selects the numeric argument. A symbolic ``arg_label`` is left
+    unchanged when the flag is absent or false.
+
+    Parameters
+    ----------
+    label : str
+        Label already chosen for the gate (name, LaTeX name, or ``arg_label``).
+
+    gate : :class:`~qutip_qip.operations.Gate`
+        Gate being drawn.
+
+    style : dict or None
+        Per-instruction style dictionary.
+
+    latex : bool, optional
+        Format the argument for LaTeX. The default is False.
+
+    Returns
+    -------
+    str
+        ``label``, or ``name(arguments)`` when ``showarg`` is true.
+    """
+
+    if not style or not style.get("showarg", False):
+        return label
+    if not getattr(gate, "is_parametric", False):
+        return label
+
+    base = gate.latex_str if latex else gate.name
+    args = format_gate_parameters(gate.arg_value, latex=latex)
+    return f"{base}({args})"
+
+
+def _format_one_parameter(value, *, latex: bool, tolerance: float) -> str:
+    number = float(value)
+    pi_symbol = r"\pi" if latex else "π"
+    pi_value = number / math.pi
+
+    def from_pi(numerator: int, denominator: int | None = None) -> str:
+        if numerator == 0:
+            return "0"
+        sign = "-" if numerator < 0 else ""
+        magnitude = abs(numerator)
+        coefficient = "" if magnitude == 1 else str(magnitude)
+        body = f"{coefficient}{pi_symbol}"
+        if denominator not in (None, 1):
+            body = f"{body}/{denominator}"
+        return f"{sign}{body}"
+
+    nearest = round(pi_value)
+    if abs(pi_value - nearest) < tolerance:
+        return from_pi(nearest)
+
+    for denominator in _PI_FRACTION_DENOMINATORS:
+        scaled = pi_value * denominator
+        nearest = round(scaled)
+        if abs(scaled - nearest) < tolerance:
+            return from_pi(nearest, denominator)
+
+    return f"{number:.2f}"
