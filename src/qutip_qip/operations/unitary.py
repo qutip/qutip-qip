@@ -1,9 +1,9 @@
 import inspect
-from functools import lru_cache
 from typing import ClassVar
 
 from qutip import Qobj
 from qutip_qip.operations.op import Op, op_factory
+from qutip_qip.operations.utils import cached_method
 from qutip_qip.utils import convert_type_input_to_sequence
 from qutip_qip.typing import Real
 
@@ -40,7 +40,7 @@ class Unitary(Op):
                 f"{cls.name} is self_inverse, so it must not define compute_inverse."
             )
 
-    @lru_cache
+    @cached_method
     def get_qobj(self, dtype: str = "dense") -> Qobj:
         return self.compute_qobj(dtype)
 
@@ -48,6 +48,7 @@ class Unitary(Op):
         """The op's matrix. Any op may define one, from X to QFT(n); the default is to have none."""
         raise NotImplementedError(f"{self.name} has no matrix, decompose it instead.")
 
+    @cached_method
     def inverse(self) -> "Unitary":
         return Inverse(self)
 

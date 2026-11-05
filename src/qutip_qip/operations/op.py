@@ -45,7 +45,18 @@ class _OpMeta(ABCMeta):
     def __new__(mcls, name, bases, ns, **kw):
         cls = super().__new__(mcls, name, bases, ns, **kw)
         cls._sealed = True  # from here on class is read-only
-        return cls if cls.__abstractmethods__ or cls.is_parametric else cls()
+
+        if cls.__abstractmethods__ or cls.is_parametric:
+            return cls
+        cls._value = cls()
+        return cls._value
+
+    def __call__(cls, *args, **kwargs):
+        if "_value" in vars(cls):
+            raise TypeError(
+                f"{cls.__qualname__} is a value, not a parametric op, use it directly."
+            )
+        return super().__call__(*args, **kwargs)
 
     def __setattr__(cls, name, value):
         if not name.startswith("_") and "_sealed" in vars(cls):

@@ -1,10 +1,22 @@
 from collections.abc import Iterable
 from itertools import chain
+from functools import wraps
 import numbers
 
 from qutip import Qobj, identity, tensor
 import numpy as np
 import qutip
+
+
+def cached_method(f):
+    @wraps(f)
+    def wrapper(self, *args):
+        cache = self.__dict__.setdefault(f"_{f.__name__}_cache", {})
+        if args not in cache:
+            cache[args] = f(self, *args)
+        return cache[args]
+
+    return wrapper
 
 
 def _check_oper_dims(
