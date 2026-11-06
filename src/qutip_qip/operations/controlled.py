@@ -117,7 +117,7 @@ class ControlledUnitary(Unitary):
 
         # A derived target, e.g. MCX(n), only knows its registers per instance.
         for attr, rule in cls._derived.items():
-            if target.is_derived:
+            if isinstance(target, type) and target.is_derived:
                 setattr(
                     cls,
                     attr,
