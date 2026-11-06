@@ -468,7 +468,6 @@ CONTROLLED_GATE = [
 def test_gate_inverse(gate: Unitary | type[Unitary]):
     n = 1 << gate.num_qubits
     inverse = gate.inverse()
-    print(rand_U)
     np.testing.assert_allclose(
         (gate.get_qobj() * inverse.get_qobj()).full(),
         np.eye(n),

@@ -382,7 +382,7 @@ class QubitCircuit:
 
     def add_gate(
         self,
-        gate: Unitary | type[Unitary] | str,
+        gate: Unitary | str,
         targets: int | IntSequence = (),
         controls: int | IntSequence = (),
         classical_controls: int | IntSequence = (),

@@ -2,9 +2,10 @@ import copy
 import inspect
 import math
 import warnings
+import weakref
 from abc import abstractmethod
 from dataclasses import fields
-from functools import cached_property, lru_cache
+from functools import cached_property
 from typing import ClassVar
 
 import numpy as np
@@ -44,6 +45,7 @@ class ControlledUnitary(Unitary):
         None  # None: all controls in |1> (|d-1> for control on a qudit)
     )
     ctrl_dim: ClassVar[tuple[int, ...] | None] = None  # None: qubits
+    _families: ClassVar[weakref.WeakValueDictionary] = weakref.WeakValueDictionary()
 
     @property
     @abstractmethod
@@ -65,55 +67,74 @@ class ControlledUnitary(Unitary):
         # We are setting num_qreg (an abstract property in Op) using the target Unitary
         # So instead of doing inspect.isabstract, we just check on target directly
         target = inspect.getattr_static(cls, "target")
-        if not isinstance(target, property):
-            cls._configure(target)
+        if isinstance(target, property):
+            return super().__init_subclass__()
 
+        cls._configure(target)
         super().__init_subclass__()
+        cls._families.setdefault(
+            (cls.target, cls.num_ctrl_qreg, cls.ctrl_value, cls.ctrl_dim, cls.name), cls
+        )
 
     @classmethod
-    def _configure(cls, target: Unitary | type[Unitary]) -> None:
+    def _resolve(cls, target, num_ctrl_qreg, ctrl_value, ctrl_dim, name):
+        """Validate and fill in the controls."""
         family = type(target) if isinstance(target, Unitary) else target
         if not (isinstance(family, type) and issubclass(family, Unitary)):
             raise TypeError(
-                f"{cls.__name__}: target must be a unitary value like X or a family like RX, got {target!r}."
+                f"{name}: target must be a unitary value like X or a family like RX, got {target!r}."
             )
 
-        n = cls.num_ctrl_qreg
-        if not isinstance(n, Int) or n < 1:
-            raise ValueError(f"{cls.__name__}: num_ctrl_qreg must be an integer >= 1.")
+        if not isinstance(num_ctrl_qreg, Int) or num_ctrl_qreg < 1:
+            raise ValueError(f"{name}: num_ctrl_qreg must be an integer >= 1.")
 
         # Default value and validation for ctrl_dim
-        if cls.ctrl_dim is None:
-            cls.ctrl_dim = (2,) * n
+        if ctrl_dim is None:
+            ctrl_dim = (2,) * num_ctrl_qreg
 
         if (
-            not isinstance(cls.ctrl_dim, tuple)
-            or len(cls.ctrl_dim) != n
-            or any(not isinstance(d, Int) or d < 2 for d in cls.ctrl_dim)
+            not isinstance(ctrl_dim, tuple)
+            or len(ctrl_dim) != num_ctrl_qreg
+            or any(not isinstance(d, Int) or d < 2 for d in ctrl_dim)
         ):
             raise ValueError(
-                f"{cls.__name__}: ctrl_dim={cls.ctrl_dim} needs {n} entries, each >= 2."
+                f"{name}: ctrl_dim={ctrl_dim} needs {num_ctrl_qreg} entries, each >= 2."
             )
 
         # Default value and validation for ctrl_value
-        size = math.prod(cls.ctrl_dim)
-        if cls.ctrl_value is None:
-            cls.ctrl_value = size - 1
+        size = math.prod(ctrl_dim)
+        if ctrl_value is None:
+            ctrl_value = size - 1
 
-        if not isinstance(cls.ctrl_value, Int) or not 0 <= cls.ctrl_value < size:
-            raise ValueError(f"{cls.__name__}: ctrl_value must be in [0, {size}).")
+        if not isinstance(ctrl_value, Int) or not 0 <= ctrl_value < size:
+            raise ValueError(f"{name}: ctrl_value must be in [0, {size}).")
 
         # If we are controlling an already ControlledUnitary e.g. CX
         # we can just use X as target and increase the num_ctrl_qreg, ctrl_dim count
         if issubclass(family, ControlledUnitary):
-            cls.ctrl_value = (
-                cls.ctrl_value * math.prod(target.ctrl_dim) + target.ctrl_value
-            )
-            cls.ctrl_dim = cls.ctrl_dim + target.ctrl_dim
-            cls.num_ctrl_qreg = len(cls.ctrl_dim)
-            cls.target = target = (
+            ctrl_value = ctrl_value * math.prod(target.ctrl_dim) + target.ctrl_value
+            ctrl_dim = ctrl_dim + target.ctrl_dim
+            num_ctrl_qreg = len(ctrl_dim)
+            target = (
                 target.target_unitary if isinstance(target, Unitary) else target.target
             )
+
+        return target, num_ctrl_qreg, ctrl_value, ctrl_dim, name
+
+    @classmethod
+    def _family(cls, controls):
+        """The family already made with these controls"""
+        family = cls._families.get(controls)
+        if family is None:
+            return None
+        return family if family.is_parametric else family._value
+
+    @classmethod
+    def _configure(cls, target: Unitary | type[Unitary]) -> None:
+        cls.target, cls.num_ctrl_qreg, cls.ctrl_value, cls.ctrl_dim, _ = cls._resolve(
+            target, cls.num_ctrl_qreg, cls.ctrl_value, cls.ctrl_dim, cls.name
+        )
+        target = cls.target
 
         # A derived target, e.g. MCX(n), only knows its registers per instance.
         for attr, rule in cls._derived.items():
@@ -179,7 +200,6 @@ class ControlledUnitary(Unitary):
 
 
 @op_factory
-@lru_cache(maxsize=128)
 def controlled(
     op: Unitary | type[Unitary],
     num_ctrl_qreg: int = 1,
@@ -189,11 +209,6 @@ def controlled(
 ) -> ControlledUnitary | type[ControlledUnitary]:
 
     # A class body cannot read a parameter if what it assigns has the same name, so we use aliases.
-    _target = op
-    _num_ctrl_qreg = num_ctrl_qreg
-    _ctrl_value = ctrl_value
-    _ctrl_dim = ctrl_dim
-
     prefix = "C" * num_ctrl_qreg
     label = name or prefix + (op if isinstance(op, type) else type(op)).__name__
     _name = name or (
@@ -201,6 +216,13 @@ def controlled(
         if isinstance(op.name, str)
         else property(lambda self: prefix + self.target_unitary.name)
     )
+
+    controls = ControlledUnitary._resolve(
+        op, num_ctrl_qreg, ctrl_value, ctrl_dim, _name
+    )
+    if (control_family := ControlledUnitary._family(controls)) is not None:
+        return control_family
+    _target, _num_ctrl_qreg, _ctrl_value, _ctrl_dim, _name = controls
 
     class _Controlled(ControlledUnitary):
         __qualname__ = label  # otherwise every factory-made class is named _Controlled
