@@ -737,3 +737,12 @@ class TestGateErrors:
 
         assert H.name == "H"
         assert H.latex_str == "H"
+
+
+class TestCachedMethod:
+    def test_cache_is_per_value_and_per_argument(self):
+        dense, csr = gates.X.get_qobj(), gates.X.get_qobj(dtype="csr")
+        assert csr.dtype is qutip.data.CSR
+        assert gates.X.get_qobj() is dense
+        assert gates.X.get_qobj(dtype="csr") is csr
+        assert gates.Y.get_qobj() is not dense

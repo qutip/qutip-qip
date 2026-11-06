@@ -10,11 +10,12 @@ import qutip
 
 def cached_method(f):
     @wraps(f)
-    def wrapper(self, *args):
+    def wrapper(self, *args, **kwargs):
         cache = self.__dict__.setdefault(f"_{f.__name__}_cache", {})
-        if args not in cache:
-            cache[args] = f(self, *args)
-        return cache[args]
+        key = (args, tuple(sorted(kwargs.items())))
+        if key not in cache:
+            cache[key] = f(self, *args, **kwargs)
+        return cache[key]
 
     return wrapper
 
