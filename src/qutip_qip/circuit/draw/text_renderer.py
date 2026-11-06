@@ -413,12 +413,9 @@ class TextRenderer(BaseRenderer):
 
             elif circ_instruction.is_gate_instruction():
                 gate = circ_instruction.operation
-                gate_text = gate.name
                 targets = list(circ_instruction.targets)
                 controls = list(circ_instruction.controls)
-
-                if gate.is_parametric and gate.arg_label is not None:
-                    gate_text = gate.arg_label
+                gate_text = self._gate_label(gate)
 
                 if gate == std.SWAP:
                     wire_list = list(range(min(targets), max(targets) + 1))
