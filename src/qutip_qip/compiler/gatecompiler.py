@@ -166,9 +166,8 @@ class GateCompiler:
 
         # compile gates
         for circuit_instruction in instructions:
-            gate = circuit_instruction.operation
-            if gate.is_parametric:
-                gate = type(gate)
+            op = circuit_instruction.operation
+            gate = type(op) if op.is_parametric else op
 
             compiler_key = None
             # Support both class and string based keys.
@@ -179,7 +178,7 @@ class GateCompiler:
                     "H": "SNOT",
                     "CX": "CNOT",
                 }
-                candidate_keys = [gate.name, gate.__name__]
+                candidate_keys = [op.name]
                 for key in candidate_keys:
                     if key in self.gate_compiler:
                         compiler_key = key

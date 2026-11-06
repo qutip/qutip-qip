@@ -303,7 +303,7 @@ def qrot(theta, phi, *args, **kwargs):
     """
     warnings.warn(
         "qrot has been deprecated and will be removed in future version. \
-        Use R([theta, phi]).get_qobj() instead.",
+        Use R(theta, phi).get_qobj() instead.",
         DeprecationWarning,
         stacklevel=2,
     )
@@ -690,8 +690,8 @@ def molmer_sorensen(theta, phi=0.0, *args, **kwargs):
         Quantum object representation of the Mølmer–Sørensen gate.
     """
     warnings.warn(
-        "MS has been deprecated and will be removed in future version. \
-        Use MS([theta, phi]).get_qobj() instead.",
+        "molmer_sorensen has been deprecated and will be removed in future version. \
+        Use MS(theta, phi).get_qobj() instead.",
         DeprecationWarning,
         stacklevel=2,
     )

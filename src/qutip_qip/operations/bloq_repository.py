@@ -4,71 +4,55 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 
 from qutip_qip.operations.bloq import BloqBuilder, Bloq
-from qutip_qip.operations.op import Op, ParametricOp
+from qutip_qip.operations.op import Op
 
-# The implementation of an Op (or ParametricOp) is just a function
+# The implementation of an Op is just a function
 # which takes a BloqBuilder instances and adds the relevant gates.
 BloqImpl = Callable[..., None]
 
 
-def _name_of(op: Op | type[ParametricOp]) -> str:
-    if isinstance(op, Op) or (isinstance(op, type) and issubclass(op, ParametricOp)):
-        return op.name
-
-    if isinstance(op, ParametricOp):
-        raise TypeError(
-            f"Register the class {type(op).__name__}, not the value {op!r}."
-        )
-    raise TypeError(f"Expected an Op or a ParametricOp subclass, got {op!r}.")
-
-
-def _with_params(spec: type[ParametricOp], impl: BloqImpl) -> BloqImpl:
-    def bound(op: Op, builder: BloqBuilder) -> None:
-        impl(spec(*op.params), builder)
-
-    return bound
+def _key(op):
+    # A parametric op registers by family, MultiSWAP(3) and MultiSWAP(4) share one entry.
+    return type(op) if isinstance(op, Op) and op.is_parametric else op
 
 
 @dataclass(eq=False)
 class BloqRepository:
     """
-    Maps Op names to its implementation. The actual implemented is lazy and only constructed during the runtime.
+    Maps Op to its implementation. The actual implemented is lazy and only constructed during the runtime.
     """
 
-    # The entries are mapped using string since Op carries params and the
+    # The entries are mapped using Op hashes of the Op type since Op carries params and the
     # registry does not care about them e.g. MultiSWAP(3), MultiSWAP(4) are two different Op values
     # but share the same implementation.
 
-    # TODO: introduce namespace here (only the key changes e.g. std.MultiSWAP)
-    _entries: ChainMap[str, BloqImpl] = field(default_factory=ChainMap, init=False)
-
-    def __contains__(self, name: str) -> bool:
-        return name in self._entries
+    _entries: ChainMap[Op | type[Op], BloqImpl] = field(
+        default_factory=ChainMap, init=False
+    )
 
     def register(
         self,
-        op: Op | type[ParametricOp],
+        op: Op | type[Op],
         impl: BloqImpl | None = None,
         replace: bool = False,
     ):
         if impl is None:
             return lambda f: self.register(op, f, replace=replace)
 
-        name = _name_of(op)
-        if name in self._entries.maps[0] and not replace:
+        key = _key(op)
+        if not isinstance(key, Op | type(Op)):
+            raise TypeError(f"Register the Op family, got {op!r}.")
+
+        if key in self._entries.maps[0] and not replace:
             raise ValueError(
-                f"{name!r} is already registered and replace argument is False."
+                f"{key.name} is already registered and replace argument is False."
             )
 
-        if isinstance(op, type) and issubclass(op, ParametricOp):
-            self._entries[name] = _with_params(op, impl)
-        else:
-            self._entries[name] = impl
-
+        self._entries[key] = impl
         return impl
 
-    def resolve(self, op: Op) -> Bloq | None:
-        impl = self._entries.get(op.name)
+    def resolve(self, op: Op | type[Op]) -> Bloq | None:
+        impl = self._entries.get(_key(op))
         if impl is None:
             return None
 
@@ -89,12 +73,15 @@ class BloqRepository:
         child_repository._entries = self._entries.new_child()
         return child_repository
 
+    def __contains__(self, op: Op | type[Op]) -> bool:
+        return _key(op) in self._entries
+
 
 DEFAULT_REPOSITORY = BloqRepository()
 
 
 def register_op(
-    op: Op | type[ParametricOp],
+    op: Op | type[Op],
     impl: BloqImpl | None = None,
     *,
     repository: BloqRepository = DEFAULT_REPOSITORY,

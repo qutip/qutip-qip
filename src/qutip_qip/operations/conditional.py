@@ -1,7 +1,6 @@
-from dataclasses import dataclass
 from enum import StrEnum
 
-from qutip_qip.operations import Op
+from qutip_qip.operations.op import Op
 
 
 class ClassicalControlCheck(StrEnum):
@@ -16,22 +15,16 @@ class ClassicalControlCheck(StrEnum):
 class Label(Op):
     """A static marker in the instruction list."""
 
-    def __init__(self, name):
-        super(Label, self).__init__(name=name)
+    num_qreg = 0
+    uuid: str
 
 
-# @dataclass
 class Conditional(Op):
     """Classical conditional control flow statements"""
 
-    label: str
-
-    def __init__(self, label: str):
-        # Don't make it super(), it will throw an error because slots=True
-        # destroys __class__ reference to the original class until Python 3.13
-        # Check CPython Issue #90562, TODO: this has been resolved in Python 3.14
-        super(Conditional, self).__init__(name=type(self).__name__)
-        object.__setattr__(self, "label", label)
+    num_qreg = 0
+    num_creg = 1
+    label: Label
 
 
 # TODO: Implement this in future using NOT + Cbnz

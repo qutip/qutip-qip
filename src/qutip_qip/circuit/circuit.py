@@ -16,22 +16,22 @@ from qutip_qip.decompose._decompose import (
 from qutip_qip.circuit.instruction import (
     CircuitInstruction,
     ConditionalBranchInstruction,
-    GateInstruction,
+    UnitaryInstruction,
     LabelInstruction,
     MeasurementInstruction,
 )
 from qutip_qip.operations.conditional import Conditional, Label, ClassicalControlCheck
 from qutip_qip.operations import (
-    Gate,
+    AngleUnitary,
+    BloqBuilder,
     Measurement,
+    Mz,
     Op,
     OpInstruction,
+    Unitary,
     expand_operator,
     get_unitary_gate,
 )
-from qutip_qip.operations.bloq import BloqBuilder
-from qutip_qip.operations.measurement import Mz
-from qutip_qip.operations import AngleParametricGate
 from qutip_qip.operations import gates as std
 from qutip_qip.typing import Int, IntSequence
 from qutip_qip.utils import check_limit, convert_type_input_to_sequence
@@ -159,7 +159,7 @@ class QubitCircuit:
         )
 
     @property
-    def user_gates(self) -> dict[str, Type[Gate]]:
+    def user_gates(self) -> dict[str, type[Unitary]]:
         return getattr(self, "_user_gates", {})
 
     @user_gates.setter
@@ -197,7 +197,7 @@ class QubitCircuit:
                 for parameter in parameters
             )
             sample_unitary = user_gate_callable(*sample_arg_value)
-            _num_qubits = int(np.log2(sample_unitary.shape[0]))
+            _num_qreg = int(np.log2(sample_unitary.shape[0]))
             _num_params = num_params
 
             # Without it, if you write get_qobj directly in the loop and reference
@@ -209,14 +209,13 @@ class QubitCircuit:
 
                 return get_qobj
 
-            class _OldUserParametricGate(AngleParametricGate):
+            class _OldUserParametricGate(AngleUnitary):
                 __slots__ = ()
-                namespace = None
                 name = gate_name
-                num_qubits = _num_qubits
-                num_params = _num_params
+                num_qreg = _num_qreg
+                __annotations__ = {f"arg{i}": float for i in range(_num_params)}
 
-                get_qobj = _make_get_qobj(user_gate_callable)
+                compute_qobj = _make_get_qobj(user_gate_callable)
 
             gate_classes[gate_name] = _OldUserParametricGate
 
@@ -293,19 +292,7 @@ class QubitCircuit:
         for op_instruction in bloq.instructions:
             op = op_instruction.op
 
-            if isinstance(op, Gate) or (isinstance(op, type) and issubclass(op, Gate)):
-                self._instructions.append(
-                    GateInstruction(
-                        operation=op,
-                        qubits=op_instruction.qreg,
-                        cbits=op_instruction.creg,
-                    )
-                )
-
-            # TODO In future Measurement should always just be a class
-            elif isinstance(op, Measurement) or (
-                isinstance(op, type) and issubclass(op, Measurement)
-            ):
+            if isinstance(op, Measurement):
                 self._instructions.append(
                     MeasurementInstruction(
                         operation=op,
@@ -323,6 +310,15 @@ class QubitCircuit:
 
             elif isinstance(op, Label):
                 self._instructions.append(LabelInstruction(operation=op))
+
+            elif isinstance(op, Unitary):
+                self._instructions.append(
+                    UnitaryInstruction(
+                        operation=op,
+                        qubits=op_instruction.qreg,
+                        cbits=op_instruction.creg,
+                    )
+                )
 
             # TODO handle non-gate/non-measurement op
 
@@ -386,7 +382,7 @@ class QubitCircuit:
 
     def add_gate(
         self,
-        gate: Gate | Type[Gate] | str,
+        gate: Unitary | str,
         targets: int | IntSequence = (),
         controls: int | IntSequence = (),
         classical_controls: int | IntSequence = (),
@@ -449,22 +445,22 @@ class QubitCircuit:
         if control_value is not None:
             warnings.warn(
                 "'control_value' is no longer a valid argument and has been deprecated and will be removed in the future version.\n"
-                "from qutip_qip.operations import get_controlled_gate\n"
+                "from qutip_qip.operations import controlled\n"
                 "from qutip_qip.operations.gates import X\n"
-                "Example: gate = get_controlled_gate(X, num_ctrl_qubits=1, control_value=0)\n"
+                "Example: gate = controlled(X, num_ctrl_qreg=1, ctrl_value=0)\n"
                 "Please refer to the tutorial for the recommended way to define them:\n"
                 "https://nbviewer.org/urls/qutip.org/qutip-tutorials/tutorials-v5/quantum-circuits/quantum-gates.ipynb",
                 DeprecationWarning,
                 stacklevel=2,
             )
 
-        if type(gate) is std.GLOBALPHASE:
+        if isinstance(gate, std.GLOBALPHASE):
             self.add_global_phase(gate.arg_value[0])
             return
 
         # This conditional block can be remove if the gate input is only
         # restricted to Gate subclasses or object instead of strings in the future.
-        if not isinstance(gate, Gate):
+        if not isinstance(gate, Unitary):
             if type(gate) is str:
                 if gate in std.GATE_CLASS_MAP:
                     warnings.warn(
@@ -481,31 +477,19 @@ class QubitCircuit:
                         f"Gate '{gate}' is not a recognized standard gate or user-defined gate."
                     )
 
-            elif issubclass(gate, Gate):
-                gate_class = gate
-
             else:
                 raise TypeError(
-                    "gate must be of Gate type or object or a string ",
-                    f"got {type(gate)} instead.",
+                    "gate must be of a Gate object or a string ",
+                    f"got {gate} instead.",
                 )
 
             if gate_class.is_parametric:
-                gate = gate_class(arg_value, arg_label=arg_label)
+                if isinstance(arg_value, (tuple, list, np.ndarray)):
+                    gate = gate_class(*arg_value)
+                else:
+                    gate = gate_class(arg_value)
             else:
                 gate = gate_class
-
-        # Check for gates
-        if inspect.isabstract(gate):
-            raise TypeError("gate must not be an abstract class")
-        elif not (isinstance(gate, Gate) or issubclass(gate, Gate)):
-            raise TypeError(f"gate must be of type Gate, got {gate}")
-        elif gate.is_parametric and (not isinstance(gate, Gate)):
-            raise TypeError(
-                "You must pass an instantiated object for a Parametrized Gate"
-            )
-        elif (not gate.is_parametric) and (not issubclass(gate, Gate)):
-            raise TypeError("You must pass a Gate type for a non-parametrized gate")
 
         # Handling case for integer input
         targets = convert_type_input_to_sequence(int, "targets", targets)
@@ -519,15 +503,14 @@ class QubitCircuit:
         check_limit("controls", controls, 0, self.num_qubits - 1)
         check_limit("classical_controls", classical_controls, 0, self.num_cbits - 1)
 
-        # Check len(controls) == gate.num_ctrl_qubits
-        if gate.is_controlled and len(controls) != gate.num_ctrl_qubits:
+        if gate.is_controlled and len(controls) != gate.num_ctrl_qreg:
             raise ValueError(
-                f"{gate.name} takes {gate.num_ctrl_qubits} qubits, but {len(controls)} were provided."
+                f"{gate.name} takes {gate.num_ctrl_qreg} qreg, but {len(controls)} were provided."
             )
 
-        if len(controls) + len(targets) != gate.num_qubits:
+        if len(controls) + len(targets) != gate.num_qreg:
             raise ValueError(
-                f"{gate.name} takes {gate.num_qubits} qubits, but {len(controls) + len(targets)} were provided."
+                f"{gate.name} takes {gate.num_qreg} qreg, but {len(controls) + len(targets)} were provided."
             )
 
         # Check for classical control
@@ -842,43 +825,43 @@ class QubitCircuit:
 
             if type(gate) is std.RX and "RX" not in basis_1q:
                 qc_temp.add_gate(
-                    std.RY(-half_pi, arg_label=r"-\pi/2"),
+                    std.RY(-half_pi),
                     targets=targets,
                 )
                 qc_temp.add_gate(
-                    std.RZ(gate.arg_value[0], arg_label=gate.arg_label),
+                    std.RZ(gate.arg_value[0]),
                     targets=targets,
                 )
                 qc_temp.add_gate(
-                    std.RY(-half_pi, arg_label=r"\pi/2"),
+                    std.RY(half_pi),
                     targets=targets,
                 )
 
             elif type(gate) is std.RY and "RY" not in basis_1q:
                 qc_temp.add_gate(
-                    std.RZ(-half_pi, arg_label=r"-\pi/2"),
+                    std.RZ(-half_pi),
                     targets=targets,
                 )
                 qc_temp.add_gate(
-                    std.RX(gate.arg_value[0], arg_label=gate.arg_label),
+                    std.RX(gate.theta),
                     targets=targets,
                 )
                 qc_temp.add_gate(
-                    std.RZ(half_pi, arg_label=r"\pi/2"),
+                    std.RZ(half_pi),
                     targets=targets,
                 )
 
             elif type(gate) is std.RZ and "RZ" not in basis_1q:
                 qc_temp.add_gate(
-                    std.RX(-half_pi, arg_label=r"-\pi/2"),
+                    std.RX(-half_pi),
                     targets=targets,
                 )
                 qc_temp.add_gate(
-                    std.RY(gate.arg_value[0], arg_label=gate.arg_label),
+                    std.RY(gate.arg_value[0]),
                     targets=targets,
                 )
                 qc_temp.add_gate(
-                    std.RX(half_pi, arg_label=r"\pi/2"),
+                    std.RX(half_pi),
                     targets=targets,
                 )
             else:

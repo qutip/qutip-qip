@@ -1,6 +1,6 @@
 import numpy as np
 
-from qutip_qip.circuit import GateInstruction
+from qutip_qip.circuit import UnitaryInstruction
 from qutip_qip.compiler import GateCompiler, PulseInstruction
 from qutip_qip.operations.gates import RX, RZ, ISWAP, SQRTISWAP, GLOBALPHASE
 
@@ -187,13 +187,13 @@ class CavityQEDCompiler(GateCompiler):
 
         # corrections
         compiled_gate1 = self.gate_compiler[RZ](
-            GateInstruction(operation=RZ(correction_angle), qubits=(q1,)),
+            UnitaryInstruction(operation=RZ(correction_angle), qubits=(q1,)),
             args,
         )
         instruction_list += compiled_gate1
 
         compiled_gate2 = self.gate_compiler[RZ](
-            GateInstruction(operation=RZ(correction_angle), qubits=(q2,)),
+            UnitaryInstruction(operation=RZ(correction_angle), qubits=(q2,)),
             args,
         )
         instruction_list += compiled_gate2

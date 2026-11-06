@@ -18,7 +18,7 @@ The circuit is characterized by registers and gates:
   and the argument ``num_cbits`` (optional) specifies the number of classical bits available for measurement
   and control.
 
-- **Gates**: Each quantum gate is saved as a class object :class:`~.operations.Gate`
+- **Gates**: Each quantum gate is saved as a class object :class:`~.operations.Op`
   with information such as gate name, target qubits and arguments.
   Gates can also be controlled on a classical bit by specifying the register number
   with the argument ``classical_controls``.
@@ -52,13 +52,13 @@ A circuit with the various gates and registers available is demonstrated below:
 .. testoutput::
   :options: +NORMALIZE_WHITESPACE +ELLIPSIS
 
-    (GateInstruction(operation=Gate(SWAP, num_qubits=2), qubits=(0, 1), cbits=(), cbits_ctrl_value=None),
+    (UnitaryInstruction(operation=Gate(SWAP, num_qubits=2), qubits=(0, 1), cbits=(), cbits_ctrl_value=None),
     MeasurementInstruction(operation= Measurement(M), qubits=(1,), cbits=(0,)),
-    GateInstruction(operation=Gate(CX, num_qubits=2), qubits=(0, 1), cbits=(), cbits_ctrl_value=None),
+    UnitaryInstruction(operation=Gate(CX, num_qubits=2), qubits=(0, 1), cbits=(), cbits_ctrl_value=None),
     ConditionalBranchInstruction(operation=Cbz, qubits=(), cbits=(0,)),
-    GateInstruction(operation=Gate(X, num_qubits=1), qubits=(0,), cbits=(), cbits_ctrl_value=None),
+    UnitaryInstruction(operation=Gate(X, num_qubits=1), qubits=(0,), cbits=(), cbits_ctrl_value=None),
     LabelInstruction(operation=..., qubits=(), cbits=()),
-    GateInstruction(operation=Gate(SWAP, num_qubits=2), qubits=(0, 1), cbits=(), cbits_ctrl_value=None))
+    UnitaryInstruction(operation=Gate(SWAP, num_qubits=2), qubits=(0, 1), cbits=(), cbits_ctrl_value=None))
 
 Unitaries
 =========
@@ -137,7 +137,7 @@ can be achieved with the argument ``expand=False`` specified to the
 Gates
 =====
 
-The pre-defined gates for the class :class:`~.operations.Gate` are shown in the table below:
+The pre-defined gates for the class :class:`~.operations.Unitary` are shown in the table below:
 
 ====================  ========================================
 Gate name                           Description
@@ -204,13 +204,13 @@ gate function returning a :class:`qutip.Qobj` and save it in the attribute ``use
 
 .. testcode::
 
-      from qutip_qip.operations import Gate, rx
+      from qutip_qip.operations.gates import RX
 
       def user_gate1(arg_value):
            # controlled rotation X
            mat = np.zeros((4, 4), dtype=np.complex128)
            mat[0, 0] = mat[1, 1] = 1.
-           mat[2:4, 2:4] = rx(arg_value).full()
+           mat[2:4, 2:4] = RX(arg_value).get_qobj()
            return Qobj(mat, dims=[[2, 2], [2, 2]])
 
 

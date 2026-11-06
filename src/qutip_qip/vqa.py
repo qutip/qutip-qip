@@ -143,7 +143,7 @@ class VQA:
 
                     current_params = angles[i : i + n] if n > 0 else []
                     gate_instance = get_unitary_gate(
-                        gate_name=f"{block.name}{layer_num}",
+                        name=f"{block.name}{layer_num}",
                         U=block.get_unitary(current_params),
                     )
 
