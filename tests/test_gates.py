@@ -578,6 +578,12 @@ class TestControlled:
         with pytest.raises(ValueError):
             controlled(gates.X, ctrl_dim=(2, 2))  # one control, two dimensions
 
+    def test_nested_value_keeps_its_parameters(self):
+        class CCRXh(ControlledUnitary):
+            target = gates.CRX(0.5)
+
+        assert CCRXh == controlled(gates.CRX(0.5))
+
 
 class TestGateErrors:
     def test_gateclass_errors(self):

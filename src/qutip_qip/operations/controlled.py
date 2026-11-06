@@ -111,7 +111,9 @@ class ControlledUnitary(Unitary):
             )
             cls.ctrl_dim = cls.ctrl_dim + target.ctrl_dim
             cls.num_ctrl_qreg = len(cls.ctrl_dim)
-            cls.target = target = target.target
+            cls.target = target = (
+                target.target_unitary if isinstance(target, Unitary) else target.target
+            )
 
         # A derived target, e.g. MCX(n), only knows its registers per instance.
         for attr, rule in cls._derived.items():
