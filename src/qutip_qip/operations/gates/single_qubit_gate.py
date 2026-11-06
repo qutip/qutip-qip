@@ -4,19 +4,7 @@ from qutip import Qobj, sigmax, sigmay, sigmaz, qeye
 from qutip_qip.operations import AngleUnitary, Unitary
 
 
-class _SingleQubitGate(Unitary):
-    """Abstract one-qubit gate."""
-
-    num_qreg: int = 1
-
-
-class _SingleQubitParametricGate(AngleUnitary):
-    """Abstract one-qubit parametric gate."""
-
-    num_qreg: int = 1
-
-
-class X(_SingleQubitGate):
+class X(Unitary):
     """
     Pauli X gate.
 
@@ -30,6 +18,7 @@ class X(_SingleQubitGate):
      [1. 0.]]
     """
 
+    num_qreg: int = 1
     self_inverse: bool = True
     is_clifford: bool = True
     latex_str: str = r"X"
@@ -39,7 +28,7 @@ class X(_SingleQubitGate):
         return sigmax(dtype=dtype)
 
 
-class Y(_SingleQubitGate):
+class Y(Unitary):
     """
     Pauli Y gate.
 
@@ -53,6 +42,7 @@ class Y(_SingleQubitGate):
      [0.+1.j 0.+0.j]]
     """
 
+    num_qreg: int = 1
     self_inverse: bool = True
     is_clifford: bool = True
     latex_str: str = r"Y"
@@ -62,7 +52,7 @@ class Y(_SingleQubitGate):
         return sigmay(dtype=dtype)
 
 
-class Z(_SingleQubitGate):
+class Z(Unitary):
     """
     Pauli Z gate.
 
@@ -76,6 +66,7 @@ class Z(_SingleQubitGate):
      [ 0. -1.]]
     """
 
+    num_qreg: int = 1
     self_inverse: bool = True
     is_clifford: bool = True
     latex_str: str = r"Z"
@@ -85,7 +76,7 @@ class Z(_SingleQubitGate):
         return sigmaz(dtype=dtype)
 
 
-class IDENTITY(_SingleQubitGate):
+class IDENTITY(Unitary):
     """
     Single-Qubit IDENTITY gate.
 
@@ -99,6 +90,7 @@ class IDENTITY(_SingleQubitGate):
      [0. 1.]]
     """
 
+    num_qreg: int = 1
     self_inverse: bool = True
     is_clifford: bool = True
     latex_str: str = r"{\rm I}"
@@ -108,7 +100,7 @@ class IDENTITY(_SingleQubitGate):
         return qeye(2, dtype=dtype)
 
 
-class H(_SingleQubitGate):
+class H(Unitary):
     """
     Hadamard gate.
 
@@ -122,6 +114,7 @@ class H(_SingleQubitGate):
      [ 0.70710678 -0.70710678]]
     """
 
+    num_qreg: int = 1
     self_inverse: bool = True
     is_clifford: bool = True
     latex_str: str = r"H"
@@ -135,7 +128,7 @@ class H(_SingleQubitGate):
 SNOT = H
 
 
-class SQRTX(_SingleQubitGate):
+class SQRTX(Unitary):
     r"""
     :math:`\sqrt{X}` gate.
 
@@ -149,6 +142,7 @@ class SQRTX(_SingleQubitGate):
      [0.5-0.5j 0.5+0.5j]]
     """
 
+    num_qreg: int = 1
     self_inverse: bool = False
     is_clifford: bool = True
     latex_str: str = r"\sqrt{\rm X}"
@@ -162,7 +156,7 @@ class SQRTX(_SingleQubitGate):
         return SQRTXdag
 
 
-class SQRTXdag(_SingleQubitGate):
+class SQRTXdag(Unitary):
     r"""
     :math:`\sqrt{X}^\dagger` gate.
 
@@ -176,6 +170,7 @@ class SQRTXdag(_SingleQubitGate):
      [0.5+0.5j 0.5-0.5j]]
     """
 
+    num_qreg: int = 1
     self_inverse: bool = False
     is_clifford: bool = True
     latex_str: str = r"\sqrt{\rm X}^\dagger"
@@ -192,7 +187,7 @@ class SQRTXdag(_SingleQubitGate):
 SQRTNOT = SQRTX
 
 
-class S(_SingleQubitGate):
+class S(Unitary):
     r"""
     S gate i.e. :math:`\sqrt{Z}` gate.
 
@@ -206,6 +201,7 @@ class S(_SingleQubitGate):
      [0.+0.j 0.+1.j]]
     """
 
+    num_qreg: int = 1
     self_inverse: bool = False
     is_clifford: bool = True
     latex_str: str = r"{\rm S}"
@@ -219,7 +215,7 @@ class S(_SingleQubitGate):
         return Sdag
 
 
-class Sdag(_SingleQubitGate):
+class Sdag(Unitary):
     r"""
     Sdag gate i.e. :math:`(\sqrt{Z})^\dagger` gate.
 
@@ -233,6 +229,7 @@ class Sdag(_SingleQubitGate):
      [ 0.+0.j -0.-1.j]]
     """
 
+    num_qreg: int = 1
     self_inverse: bool = False
     is_clifford: bool = True
     latex_str: str = r"{\rm S^\dagger}"
@@ -246,7 +243,7 @@ class Sdag(_SingleQubitGate):
         return S
 
 
-class T(_SingleQubitGate):
+class T(Unitary):
     r"""
     T gate i.e. :math:`\sqrt[4]{Z}` gate.
 
@@ -260,6 +257,7 @@ class T(_SingleQubitGate):
      [0.     +0.j      0.70710678+0.70710678j]]
     """
 
+    num_qreg: int = 1
     self_inverse: bool = False
     latex_str: str = r"{\rm T}"
 
@@ -272,7 +270,7 @@ class T(_SingleQubitGate):
         return Tdag
 
 
-class Tdag(_SingleQubitGate):
+class Tdag(Unitary):
     r"""
     Tdag gate i.e. :math:`\sqrt[4]{Z}^\dagger` gate.
 
@@ -286,6 +284,7 @@ class Tdag(_SingleQubitGate):
      [0.     +0.j      0.70710678-0.70710678j]]
     """
 
+    num_qreg: int = 1
     self_inverse: bool = False
     latex_str: str = r"{\rm Tdag}"
 
@@ -298,7 +297,7 @@ class Tdag(_SingleQubitGate):
         return T
 
 
-class RX(_SingleQubitParametricGate):
+class RX(AngleUnitary):
     r"""
     Single-qubit rotation gate about the X-axis.
 
@@ -330,6 +329,7 @@ class RX(_SingleQubitParametricGate):
      [0.        -0.70710678j 0.70710678+0.j        ]]
     """
 
+    num_qreg: int = 1
     theta: float
     latex_str: str = r"R_x"
 
@@ -347,7 +347,7 @@ class RX(_SingleQubitParametricGate):
         return RX(-self.theta)
 
 
-class RY(_SingleQubitParametricGate):
+class RY(AngleUnitary):
     r"""
     Single-qubit rotation gate about the Y-axis.
 
@@ -379,6 +379,7 @@ class RY(_SingleQubitParametricGate):
      [ 0.70710678  0.70710678]]
     """
 
+    num_qreg: int = 1
     theta: float
     latex_str: str = r"R_y"
 
@@ -396,7 +397,7 @@ class RY(_SingleQubitParametricGate):
         return RY(-self.theta)
 
 
-class RZ(_SingleQubitParametricGate):
+class RZ(AngleUnitary):
     r"""
     Single-qubit rotation gate about the Z-axis.
 
@@ -428,6 +429,7 @@ class RZ(_SingleQubitParametricGate):
      [0.        +0.j         0.70710678+0.70710678j]]
     """
 
+    num_qreg: int = 1
     theta: float
     latex_str: str = r"R_z"
 
@@ -442,7 +444,7 @@ class RZ(_SingleQubitParametricGate):
         return RZ(-self.theta)
 
 
-class PHASE(_SingleQubitParametricGate):
+class PHASE(AngleUnitary):
     r"""
     Single-qubit parametric phase shift gate.
 
@@ -474,6 +476,7 @@ class PHASE(_SingleQubitParametricGate):
      [0.        +0.j         0.70710678+0.70710678j]]
     """
 
+    num_qreg: int = 1
     theta: float
     latex_str: str = r"PHASE"
 
@@ -488,7 +491,7 @@ class PHASE(_SingleQubitParametricGate):
         return PHASE(-self.theta)
 
 
-class R(_SingleQubitParametricGate):
+class R(AngleUnitary):
     r"""
     Arbitrary single-qubit rotation gate.
 
@@ -523,6 +526,7 @@ class R(_SingleQubitParametricGate):
      [ 0.70710678  0.70710678]]
     """
 
+    num_qreg: int = 1
     phi: float
     theta: float
     latex_str: str = r"{\rm R}"
@@ -547,7 +551,7 @@ class R(_SingleQubitParametricGate):
         return R(self.phi, -self.theta)
 
 
-class QASMU(_SingleQubitParametricGate):
+class QASMU(AngleUnitary):
     r"""
     Universal single-qubit rotation gate (OpenQASM standard).
 
@@ -583,6 +587,7 @@ class QASMU(_SingleQubitParametricGate):
      [ 0.5+0.5j -0.5+0.5j]]
     """
 
+    num_qreg: int = 1
     theta: float
     phi: float
     gamma: float
@@ -608,7 +613,7 @@ class QASMU(_SingleQubitParametricGate):
         return QASMU(-self.theta, -self.gamma, -self.phi)
 
 
-class IDLE(_SingleQubitParametricGate):
+class IDLE(AngleUnitary):
     r"""
     Single-qubit idle operation (delay).
 
@@ -641,6 +646,7 @@ class IDLE(_SingleQubitParametricGate):
      [0. 1.]]
     """
 
+    num_qreg: int = 1
     T: float
     self_inverse: bool = True
 

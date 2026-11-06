@@ -19,19 +19,7 @@ from qutip_qip.operations.gates import (
 )
 
 
-class _TwoQubitGate(Unitary):
-    """Abstract two-qubit gate."""
-
-    num_qreg: int = 2
-
-
-class _TwoQubitParametricGate(AngleUnitary):
-    """Abstract two-qubit gate. We require this due to the validator"""
-
-    num_qreg: int = 2
-
-
-class SWAP(_TwoQubitGate):
+class SWAP(Unitary):
     r"""
     SWAP gate.
 
@@ -52,6 +40,7 @@ class SWAP(_TwoQubitGate):
      [0. 0. 0. 1.]]
     """
 
+    num_qreg: int = 2
     self_inverse: bool = True
     is_clifford: bool = True
     latex_str: str = r"{\rm SWAP}"
@@ -65,7 +54,7 @@ class SWAP(_TwoQubitGate):
         )
 
 
-class ISWAP(_TwoQubitGate):
+class ISWAP(Unitary):
     r"""
     Two-qubit iSWAP gate.
 
@@ -89,6 +78,7 @@ class ISWAP(_TwoQubitGate):
      [0.+0.j 0.+0.j 0.+0.j 1.+0.j]]
     """
 
+    num_qreg: int = 2
     is_clifford: bool = True
     latex_str: str = r"{i}{\rm SWAP}"
 
@@ -105,7 +95,7 @@ class ISWAP(_TwoQubitGate):
         return ISWAPdag
 
 
-class ISWAPdag(_TwoQubitGate):
+class ISWAPdag(Unitary):
     r"""
     Inverse iSWAP (iSWAP dagger) gate.
 
@@ -126,6 +116,7 @@ class ISWAPdag(_TwoQubitGate):
      [ 0.+0.j  0.+0.j  0.+0.j 1.+0.j]]
     """
 
+    num_qreg: int = 2
     is_clifford: bool = True
     latex_str: str = r"{i}{\rm SWAP^\dagger}"
 
@@ -142,7 +133,7 @@ class ISWAPdag(_TwoQubitGate):
         return ISWAP
 
 
-class SQRTSWAP(_TwoQubitGate):
+class SQRTSWAP(Unitary):
     r"""
     Two-qubit square root of SWAP (:math:`\sqrt{\mathrm{SWAP}}`) gate.
 
@@ -179,6 +170,7 @@ class SQRTSWAP(_TwoQubitGate):
      [0. +0.j  0. +0.j  0. +0.j  1. +0.j ]]
     """
 
+    num_qreg: int = 2
     latex_str: str = r"\sqrt{\rm SWAP}"
 
     @staticmethod
@@ -201,7 +193,7 @@ class SQRTSWAP(_TwoQubitGate):
         return SQRTSWAPdag
 
 
-class SQRTSWAPdag(_TwoQubitGate):
+class SQRTSWAPdag(Unitary):
     r"""
     Inverse (hermitian conjugate) of SQRTSWAP gate i.e. (:math:`\sqrt{\mathrm{SWAP}}^\dagger`).
 
@@ -217,6 +209,7 @@ class SQRTSWAPdag(_TwoQubitGate):
      [0. +0.j  0. +0.j  0. +0.j  1. +0.j ]]
     """
 
+    num_qreg: int = 2
     latex_str: str = r"\sqrt{\rm SWAP}^\dagger"
 
     @staticmethod
@@ -239,7 +232,7 @@ class SQRTSWAPdag(_TwoQubitGate):
         return SQRTSWAP
 
 
-class SQRTISWAP(_TwoQubitGate):
+class SQRTISWAP(Unitary):
     r"""
     Two-qubit square root of iSWAP (:math:`\sqrt{\mathrm{iSWAP}}`) gate.
 
@@ -263,6 +256,7 @@ class SQRTISWAP(_TwoQubitGate):
      [0.     +0.j      0.        +0.j         0.        +0.j         1.     +0.j ]]
     """
 
+    num_qreg: int = 2
     is_clifford: bool = True
     latex_str: str = r"\sqrt{{i}\rm SWAP}"
 
@@ -286,7 +280,7 @@ class SQRTISWAP(_TwoQubitGate):
         return SQRTISWAPdag
 
 
-class SQRTISWAPdag(_TwoQubitGate):
+class SQRTISWAPdag(Unitary):
     r"""
     Inverse (hermitian conjugate) of SQRTISWAP gate i.e. (:math:`\sqrt{\mathrm{ISWAP}}^\dagger`).
 
@@ -302,6 +296,7 @@ class SQRTISWAPdag(_TwoQubitGate):
      [ 0.         +0.j           0.        +0.j           0.        +0.j         1.     +0.j     ]]
     """
 
+    num_qreg: int = 2
     is_clifford: bool = True
     latex_str: str = r"\sqrt{{i}\rm SWAP}^\dagger"
 
@@ -325,7 +320,7 @@ class SQRTISWAPdag(_TwoQubitGate):
         return SQRTISWAP
 
 
-class BERKELEY(_TwoQubitGate):
+class BERKELEY(Unitary):
     r"""
     Two-qubit Berkeley gate.
 
@@ -359,6 +354,7 @@ class BERKELEY(_TwoQubitGate):
      [0.        +0.38268343j 0.        +0.j         0.        +0.j         0.92387953+0.j     ]]
     """
 
+    num_qreg: int = 2
     latex_str: str = r"{\rm BERKELEY}"
 
     @staticmethod
@@ -379,7 +375,7 @@ class BERKELEY(_TwoQubitGate):
         return BERKELEYdag
 
 
-class BERKELEYdag(_TwoQubitGate):
+class BERKELEYdag(Unitary):
     r"""
     Inverse (hermitian conjugate) of BERKELEY gate.
 
@@ -404,6 +400,7 @@ class BERKELEYdag(_TwoQubitGate):
      [0.        -0.38268343j 0.        +0.j         0.        +0.j         0.92387953+0.j     ]]
     """
 
+    num_qreg: int = 2
     latex_str: str = r"{\rm BERKELEY^\dagger}"
 
     @staticmethod
@@ -424,7 +421,7 @@ class BERKELEYdag(_TwoQubitGate):
         return BERKELEY
 
 
-class SWAPALPHA(_TwoQubitParametricGate):
+class SWAPALPHA(AngleUnitary):
     r"""
     Two-qubit parameterized fractional SWAP (SWAP-alpha) gate.
 
@@ -464,6 +461,7 @@ class SWAPALPHA(_TwoQubitParametricGate):
      [0. +0.j  0. +0.j  0. +0.j  1. +0.j ]]
     """
 
+    num_qreg: int = 2
     alpha: float
     latex_str: str = r"{\rm SWAPALPHA}"
 
@@ -493,7 +491,7 @@ class SWAPALPHA(_TwoQubitParametricGate):
         return SWAPALPHA(-self.alpha)
 
 
-class MS(_TwoQubitParametricGate):
+class MS(AngleUnitary):
     r"""
     Two-qubit parameterized Mølmer–Sørensen (MS) gate.
 
@@ -533,6 +531,7 @@ class MS(_TwoQubitParametricGate):
      [0.        -0.70710678j 0.        +0.j         0.        +0.j         0.70710678+0.j     ]]
     """
 
+    num_qreg: int = 2
     theta: float
     phi: float
     latex_str: str = r"{\rm MS}"
@@ -563,7 +562,7 @@ class MS(_TwoQubitParametricGate):
         return MS(-self.theta, self.phi)
 
 
-class RZX(_TwoQubitParametricGate):
+class RZX(AngleUnitary):
     r"""
     Two-qubit parameterized RZX gate.
 
@@ -603,6 +602,7 @@ class RZX(_TwoQubitParametricGate):
     [0.+0.j 0.+0.j 0.+1.j 0.+0.j]]
     """
 
+    num_qreg: int = 2
     theta: float
     latex_str: str = r"{\rm RZX}"
 
