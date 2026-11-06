@@ -209,6 +209,13 @@ class Op(ABC, metaclass=_OpMeta):
             return cls, self.params
         return vars(cls).get("_factory") or cls.__qualname__
 
+    # Ops are immutable, so a copy is the value itself
+    def __copy__(self):
+        return self
+
+    def __deepcopy__(self, memo):
+        return self
+
     # TODO: For dev backward compatibility only, remove later
     @property
     def num_qubits(self) -> int:

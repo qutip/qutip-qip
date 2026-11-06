@@ -121,7 +121,7 @@ class UnitaryInstruction(CircuitInstruction):
         """
         if name in ("name", "num_qubits", "arg_value"):
             warnings.warn(
-                f"Gate object in a circuit has been replaced by GateInstructions."
+                f"Gate object in a circuit has been replaced by UnitaryInstruction."
                 f"use UnitaryInstruction.operation.{name} instead.",
                 DeprecationWarning,
                 stacklevel=2,
