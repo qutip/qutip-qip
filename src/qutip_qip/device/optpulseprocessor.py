@@ -185,16 +185,14 @@ class OptPulseProcessor(Processor):
             if gates is not None and setting_args:
                 gate = gates[prop_ind]
                 gate_setting = None
-                gateclass = gate
-                if isinstance(gate, Unitary):
-                    gateclass = type(gate)
+                gateclass = type(gate) if gate.is_parametric else gate
 
                 if gateclass in setting_args:
                     gate_setting = setting_args[gateclass]
-                elif gateclass.name in setting_args:
-                    gate_setting = setting_args[gateclass.name]
-                elif gateclass.__name__ in setting_args:
-                    gate_setting = setting_args[gateclass.__name__]
+                elif gate.name in setting_args:
+                    gate_setting = setting_args[gate.name]
+                elif type(gate).__name__ in setting_args:
+                    gate_setting = setting_args[type(gate).__name__]
                 else:
                     aliases = {
                         "H": "SNOT",
@@ -203,11 +201,11 @@ class OptPulseProcessor(Processor):
                         "SQRTNOT": "SQRTX",
                         "CSIGN": "CZ",
                     }
-                    alt = aliases[gateclass.name]
+                    alt = aliases[gate.name]
                     if alt is not None:
                         gate_setting = setting_args.get(alt)
 
-                if gate_setting is not None and gate not in setting_args:
+                if gate_setting is not None and gateclass not in setting_args:
                     # String key is used.
                     warnings.warn(
                         "Using string gate names as setting_args keys is deprecated. "
