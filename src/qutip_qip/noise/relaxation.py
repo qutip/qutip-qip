@@ -129,8 +129,12 @@ class RelaxationNoise(Noise):
                 # Keep the total dephasing ~ exp(-t/t2)
                 if t1 is not None:
                     if 2 * t1 < t2:
-                        raise ValueError(f"t1={t1}, t2={t2} does not fulfill 2*t1>t2")
-                    T2_eff = 1.0 / (1.0 / t2 - 1.0 / 2.0 / t1)
+                        raise ValueError(f"t1={t1}, t2={t2} does not fulfill 2*t1>=t2")
+                    dephasing_rate = 1.0 / t2 - 1.0 / 2.0 / t1
+                    if dephasing_rate <= 0:
+                        # T2 is fully set by T1 decay, so there is no pure dephasing
+                        continue
+                    T2_eff = 1.0 / dephasing_rate
                 else:
                     T2_eff = t2
 
