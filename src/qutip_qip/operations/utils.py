@@ -1,55 +1,23 @@
 from collections.abc import Iterable
 from itertools import chain
+from functools import wraps
 import numbers
 
 from qutip import Qobj, identity, tensor
-from scipy.linalg import block_diag
 import numpy as np
 import qutip
 
 
-def controlled_gate_unitary(
-    U: Qobj,
-    num_controls: int,
-    control_value: int,
-) -> Qobj:
-    """
-    Create an N-qubit controlled gate from a single-qubit gate U with the given
-    control and target qubits.
+def cached_method(f):
+    @wraps(f)
+    def wrapper(self, *args, **kwargs):
+        cache = self.__dict__.setdefault(f"_{f.__name__}_cache", {})
+        key = (args, tuple(sorted(kwargs.items())))
+        if key not in cache:
+            cache[key] = f(self, *args, **kwargs)
+        return cache[key]
 
-    Parameters
-    ----------
-    U : :class:`qutip.Qobj`
-        An arbitrary unitary gate.
-    controls : list of int
-        The index of the first control qubit.
-    targets : list of int
-        The index of the target qubit.
-    N : int
-        The total number of qubits.
-    control_value : int
-        The decimal value of the controlled qubits that activates the gate U.
-
-    Returns
-    -------
-    result : qobj
-        Quantum object representing the controlled-U gate.
-    """
-    # Compatibility
-    num_targets = len(U.dims[0])
-
-    # First, assume that the last qubit is the target and control qubits are
-    # in the increasing order.
-    # The control_value is the location of this unitary.
-    target_dim = U.shape[0]
-    block_matrices = [np.eye(target_dim) for _ in range(1 << num_controls)]
-    block_matrices[control_value] = U.full()
-
-    result = block_diag(*block_matrices)
-    result = Qobj(result, dims=[[2] * (num_controls + num_targets)] * 2)
-
-    # Expand it to N qubits and permute qubits labelling
-    return result
+    return wrapper
 
 
 def _check_oper_dims(

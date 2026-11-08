@@ -3,7 +3,7 @@ from qutip import Qobj
 from qutip_qip.typing import IntSequence
 from qutip_qip.algorithms import qft_gate_sequence
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import get_unitary_gate, get_controlled_gate
+from qutip_qip.operations import get_unitary_gate, controlled
 from qutip_qip.operations.gates import H
 
 
@@ -67,9 +67,9 @@ def qpe(
         U_power = U if power == 1 else U**power
 
         # Add controlled-U^power gate
-        controlled_u = get_controlled_gate(
-            gate=get_unitary_gate(
-                gate_name=f"U^{power}",
+        controlled_u = controlled(
+            get_unitary_gate(
+                name=f"U^{power}",
                 U=U_power,
             ),
         )

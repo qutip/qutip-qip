@@ -6,8 +6,9 @@ import numpy as np
 
 from qutip import ket2dm, Qobj
 from qutip_qip.operations.conditional import Cbz, Cbnz
+from qutip.measurement import measurement_statistics
 from qutip_qip.circuit.simulator import CircuitResult
-from qutip_qip.operations import expand_operator
+from qutip_qip.operations import expand_operator, Measurement
 
 
 def _decimal_to_binary(decimal, length):
@@ -61,7 +62,7 @@ class CircuitSimulator:
         self.dims = qc.dims
         self.mode = mode
         self._label_map = {
-            circ_instruction.operation.name: index
+            circ_instruction.operation: index
             for index, circ_instruction in enumerate(qc.instructions)
             if circ_instruction.is_label_instruction()
         }
@@ -161,8 +162,13 @@ class CircuitSimulator:
         Returns
         -------
         result: CircuitResult
-            Return a CircuitResult object containing
-            output state and probability.
+            Return a CircuitResult object containing post-measurement
+            state, classical bit and probability corresponding to it.
+
+        Notes
+        -----
+        Plotting a histogram will generate an unnormalized distribution
+        with a single bar representing the corresponding probability.
         """
         self.initialize(state, cbits, measure_results)
 
@@ -255,14 +261,13 @@ class CircuitSimulator:
 
         elif current_instruction.is_conditional_instruction():
             op = current_instruction.operation
-            label_name = op.label.name
 
             if (
                 isinstance(op, Cbz) and self.cbits[current_instruction.cbits[0]] == 0
             ) or (
                 isinstance(op, Cbnz) and self.cbits[current_instruction.cbits[0]] == 1
             ):
-                self._op_index = self._label_map[label_name]
+                self._op_index = self._label_map[op.label]
 
         elif current_instruction.is_label_instruction():
             pass
@@ -325,14 +330,19 @@ class CircuitSimulator:
         )
         return state
 
-    def _apply_measurement(self, operation, qubits, cbits):
+    def _apply_measurement(
+        self,
+        operation: type[Measurement],
+        qubits: tuple[int, ...],
+        cbits: tuple[int, ...],
+    ) -> Qobj:
         """
         Applies measurement gate specified by operation to current state.
 
         Parameters
         ----------
-        operation: :class:`.Measurement`
-            Measurement gate in a circuit object.
+        operation: :class:`.Measurement` or Type[:class:`.Measurement`]
+            Measurement gate in a circuit object or its class.
         qubits : tuple of int
             The indices of the qubits to be measured.
         cbits : tuple of int
@@ -344,7 +354,14 @@ class CircuitSimulator:
         state : qutip.Qobj
             The collapsed state after the measurement.
         """
-        states, probabilities = operation.measurement_comp_basis(self.state, qubits)
+        current_state = self.state
+        n = self.qc.num_qubits
+        raw_ops = operation.get_measurement_ops()
+        measurement_ops = [
+            expand_operator(oper=op, dims=[2] * n, targets=qubits) for op in raw_ops
+        ]
+
+        states, probabilities = measurement_statistics(current_state, measurement_ops)
 
         if self.mode == "state_vector_simulator":
             if self._measure_results:
@@ -352,7 +369,8 @@ class CircuitSimulator:
                 self._measure_ind += 1
             else:
                 probabilities = [p / sum(probabilities) for p in probabilities]
-                i = np.random.choice([0, 1], p=probabilities)
+                outcome_indices = np.arange(len(probabilities))
+                i = np.random.choice(outcome_indices, p=probabilities)
             self._probability *= probabilities[i]
             state = states[i]
             if cbits:

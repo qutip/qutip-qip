@@ -2,7 +2,7 @@ from copy import deepcopy
 from functools import cmp_to_key
 from random import shuffle
 
-from qutip_qip.circuit import GateInstruction, QubitCircuit
+from qutip_qip.circuit import UnitaryInstruction, QubitCircuit
 from qutip_qip.compiler import PulseInstruction
 
 
@@ -39,7 +39,7 @@ class InstructionsGraph:
         instructions = deepcopy(instructions)
         self.nodes = []
         for instruction in instructions:
-            if isinstance(instruction, GateInstruction):
+            if isinstance(instruction, UnitaryInstruction):
                 self.nodes.append(PulseInstruction(instruction))
             else:
                 self.nodes.append(instruction)

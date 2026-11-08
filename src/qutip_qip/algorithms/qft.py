@@ -120,10 +120,7 @@ def qft_gate_sequence(
             for j in range(i):
                 if not to_cnot:
                     qc.add_gate(
-                        CPHASE(
-                            arg_value=np.pi / (2 ** (i - j)),
-                            arg_label=r"{\pi/2^{%d}}" % (i - j),
-                        ),
+                        CPHASE(np.pi / (2 ** (i - j))),
                         targets=[j],
                         controls=[i],
                     )
@@ -149,6 +146,4 @@ def _cphase_to_cnot(
     qc.add_gate(decomposed_gates[4], targets=targets)
     qc.add_gate(CX, targets=targets, controls=controls)
     qc.add_gate(RZ(arg_value / 2), targets=controls)
-    gate = decomposed_gates[7]  # This is a GLOBALPHASE Gate
-    gate.arg_value = gate.arg_value[0] + arg_value / 4
-    qc.add_gate(gate, targets=targets)
+    qc.add_global_phase(decomposed_gates[7].params[0] + arg_value / 4)
