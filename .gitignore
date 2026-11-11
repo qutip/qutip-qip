@@ -7,6 +7,9 @@ __pycache__/
 *.html
 *.htm
 
+# Ignore the default lock files by uv, poetry etc. (pylock.toml is meant for that)
+*.lock
+
 # Pdf files (from plots in /pulse-paper)
 *.pdf
 /pulse-paper/deutsch-jozsa-qutip.qasm
