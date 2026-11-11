@@ -148,6 +148,18 @@ class TestQubitCircuit:
         U2 = qc2.compute_unitary()
         assert _op_dist(U1, U2) < 1e-12
 
+    def testTOFFOLIdecompose(self):
+        """
+        TOFFOLI to rotation and CNOT: compare unitary matrix for TOFFOLI and product of
+        resolved matrices in terms of rotation gates and CNOT.
+        """
+        qc1 = QubitCircuit(3)
+        qc1.add_gate(gates.TOFFOLI, targets=[2], controls=[0, 1])
+        U1 = qc1.compute_unitary()
+        qc2 = qc1.resolve_gates()
+        U2 = qc2.compute_unitary()
+        assert _op_dist(U1, U2) < 1e-12
+
     def test_add_gate(self):
         """
         Addition of a gate object directly to a `QubitCircuit`
