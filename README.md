@@ -5,7 +5,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/qutip/qutip-qip/badge.svg)](https://coveralls.io/github/qutip/qutip-qip)
 [![Maintainability](https://qlty.sh/gh/qutip/projects/qutip-qip/maintainability.svg)](https://qlty.sh/gh/qutip/projects/qutip-qip)
 [![PyPI version](https://badge.fury.io/py/qutip-qip.svg)](https://badge.fury.io/py/qutip-qip)
-![Python Version](https://img.shields.io/badge/python-3.11+-blue)
+![Python Version](https://img.shields.io/badge/python-3.12+-blue)
 [![DOI](https://img.shields.io/badge/DOI-10.22331%2Fq--2022--01--24--630-blue.svg)](https://doi.org/10.22331/q-2022-01-24-630)
 [![License](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
