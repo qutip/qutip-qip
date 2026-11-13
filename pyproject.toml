@@ -16,8 +16,8 @@ requires-python = ">=3.12"
 # When Python version is updated same change needs to be made in classifier tags in pyproject.toml,
 # build.yaml and in contributing to code, Installation guide. 
 dependencies = [
-    "numpy>=1.24",
-    "scipy>=1.9.2",
+    "numpy>=1.26",
+    "scipy>=1.13",
     "qutip>=5.0",
 ]
 classifiers = [
