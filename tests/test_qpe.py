@@ -1,8 +1,9 @@
 import unittest
 import numpy as np
 from numpy.testing import assert_, assert_equal
-from qutip import Qobj, sigmaz, tensor
+from qutip import Qobj, basis, sigmaz, tensor
 
+from qutip_qip.algorithms.qft import qft, qft_gate_sequence, _inverse_qft_gate_sequence
 from qutip_qip.algorithms.qpe import qpe
 from qutip_qip.operations import get_controlled_gate, get_unitary_gate
 from qutip_qip.operations import gates as std
@@ -126,3 +127,37 @@ class TestQPE(unittest.TestCase):
         has_cnot = any(gate.operation == std.CX for gate in circuit2.instructions)
         assert_(has_cnot)
         assert_(len(circuit2.instructions) > len(circuit1.instructions))
+
+    def test_qpe_exact_phases(self):
+        """
+        Test if QPE returns the exact bit string for exactly representable
+        eigenphases (issue #440)
+        """
+        for num_counting, phase in [(2, 1 / 4), (3, 1 / 8), (3, 3 / 8)]:
+            for to_cnot in (False, True):
+                with self.subTest(
+                    num_counting=num_counting, phase=phase, to_cnot=to_cnot
+                ):
+                    U = Qobj(np.diag([1.0, np.exp(2j * np.pi * phase)]))
+                    initial = tensor([basis(2, 0)] * num_counting + [basis(2, 1)])
+                    circuit = qpe(U, num_counting_qubits=num_counting, to_cnot=to_cnot)
+                    final = circuit.run(initial)
+                    probabilities = np.real(
+                        final.ptrace(list(range(num_counting))).diag()
+                    )
+                    expected = int(round(phase * 2**num_counting))
+                    assert_(abs(probabilities[expected] - 1) < 1e-10)
+
+    def test_inverse_qft_gate_sequence(self):
+        """
+        Test if the inverse QFT gate sequence used by QPE is the adjoint of
+        the QFT
+        """
+        for N in range(1, 5):
+            with self.subTest(N=N):
+                U = _inverse_qft_gate_sequence(N).compute_unitary()
+                assert_((U - qft(N).dag()).norm() < 1e-12)
+
+                forward = qft_gate_sequence(N, to_cnot=True).compute_unitary()
+                U = _inverse_qft_gate_sequence(N, to_cnot=True).compute_unitary()
+                assert_((U - forward.dag()).norm() < 1e-12)
