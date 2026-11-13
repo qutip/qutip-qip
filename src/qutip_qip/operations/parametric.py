@@ -19,11 +19,13 @@ class ParametricGate(Gate):
         and can be accessed or modified later.
 
     arg_label : str, optional
-        Label for the argument to be shown in the circuit plot.
+        Label for the argument to be shown in the circuit plot, without
+        surrounding ``$`` delimiters.
 
         Example:
-        If ``arg_label="\phi"``, the LaTeX name for the gate in the circuit
-        plot will be rendered as ``$U(\phi)$``.
+        If ``arg_label=r"\phi"``, the gate is rendered as ``RZ(\phi)``
+        in the text and matplotlib renderers, with ``\phi`` displayed as
+        a symbol in matplotlib.
 
     Attributes
     ----------

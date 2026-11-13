@@ -199,3 +199,18 @@ class BaseRenderer:
                 self._layer_list[wire].append(
                     temp + gate_width + self.style.gate_margin * 2
                 )
+
+    def _gate_label(self, gate, *, math_arg: bool = False) -> str:
+        """
+        Return the display label for a gate.
+
+        Parametric gates show both the gate name and the argument label,
+        e.g. ``RZ(\\pi)``. If ``math_arg`` is True, the argument is wrapped
+        in mathtext delimiters so matplotlib renders ``\\pi`` as a symbol.
+        """
+        if gate.is_parametric and gate.arg_label is not None:
+            arg_label = gate.arg_label.strip("$")
+            if math_arg:
+                arg_label = f"${arg_label}$"
+            return f"{gate.name}({arg_label})"
+        return gate.name

@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 from unittest.mock import patch
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.circuit.draw import TextRenderer
+from qutip_qip.circuit.draw import MatRenderer, TeXRenderer, TextRenderer
 from qutip_qip.operations import get_controlled_gate
 from qutip_qip.operations.gates import (
     IDENTITY,
@@ -10,6 +10,7 @@ from qutip_qip.operations.gates import (
     H,
     CX,
     CRX,
+    RZ,
     CPHASE,
     SWAP,
     ISWAP,
@@ -270,3 +271,48 @@ def test_circuit_saving(request, qc_fixture, tmpdir):
     # test TextRenderer
     qc.draw("text", save=True, file_path=str(tmpdir.join("test")))
     assert tmpdir.join("test.txt").check(), "TextRenderer saved TXT file not found."
+
+
+@pytest.fixture
+def qc_parametric():
+    qc = QubitCircuit(2)
+    qc.add_gate(RZ(np.pi, arg_label=r"\pi"), targets=[0])
+    qc.add_gate(CRX(np.pi / 2, arg_label=r"\pi/2"), targets=[1], controls=[0])
+    return qc
+
+
+def test_text_parametric_arg_label(qc_parametric):
+    tr = TextRenderer(qc_parametric)
+    tr.layout()
+    rendered = "\n".join(tr._render_strs["mid_frame"])
+
+    assert r"RZ(\pi)" in rendered
+    assert r"CRX(\pi/2)" in rendered
+    assert r"┤ \pi ├" not in rendered
+
+
+def test_matplotlib_parametric_arg_label(qc_parametric):
+    pytest.importorskip("matplotlib")
+    from matplotlib.text import Text
+
+    with patch("matplotlib.pyplot.show"):
+        renderer = MatRenderer(qc_parametric)
+        renderer.canvas_plot()
+
+    labels = [
+        child.get_text()
+        for child in renderer._ax.get_children()
+        if isinstance(child, Text)
+    ]
+
+    assert r"RZ($\pi$)" in labels
+    assert r"CRX($\pi/2$)" in labels
+    assert r"\pi" not in labels
+    assert r"\pi/2" not in labels
+
+
+def test_tex_parametric_arg_label(qc_parametric):
+    latex = TeXRenderer(qc_parametric).latex_code()
+
+    assert r"\gate{R_z(\pi)}" in latex
+    assert r"\gate{{\rm CRX}(\pi/2)}" in latex
