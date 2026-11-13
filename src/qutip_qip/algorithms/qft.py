@@ -136,6 +136,28 @@ def qft_gate_sequence(
     return qc
 
 
+def _inverse_qft_gate_sequence(
+    N: int = 1, swapping: bool = True, to_cnot: bool = False
+) -> QubitCircuit:
+    """
+    Gate sequence of the inverse Quantum Fourier Transform on N qubits.
+
+    The gates of :func:`qft_gate_sequence` are applied in reverse order and
+    each gate is replaced by its inverse, e.g. the controlled phase angles
+    are negated.
+    """
+    qft_circuit = qft_gate_sequence(N, swapping=swapping, to_cnot=to_cnot)
+    qc = QubitCircuit(N)
+    qc.add_global_phase(-qft_circuit.global_phase)
+    for instruction in reversed(qft_circuit.instructions):
+        qc.add_gate(
+            instruction.operation.inverse(),
+            targets=instruction.targets,
+            controls=instruction.controls,
+        )
+    return qc
+
+
 def _cphase_to_cnot(
     targets: int | IntSequence,
     controls: int | IntSequence,
