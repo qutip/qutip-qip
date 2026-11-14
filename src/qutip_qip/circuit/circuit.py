@@ -178,34 +178,6 @@ class QuantumCircuit(BloqBuilder):
         self._instructions = tuple(self._instructions)
         self._built_count = len(self._op_instructions)
 
-    def add_circuit(self, qc, start=0):  # TODO Instead of start have a qubit mapping?
-        """
-        Adds a block of a qubit circuit to the main circuit.
-
-        Parameters
-        ----------
-        qc : :class:`.QubitCircuit`
-            The circuit block to be added to the main circuit.
-        start : int
-            The qubit on which the first gate is applied.
-        """
-        warnings.warn(
-            "QubitCircuit.add_circuit has been deprecated, instead use Ops",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-        if self.num_qubits - start < qc.num_qubits:
-            raise NotImplementedError("Targets exceed number of qubits.")
-
-        for circuit_op in qc.ops:
-            self.add(
-                op=circuit_op.op,
-                qreg=[start + t for t in circuit_op.qreg],
-                creg=circuit_op.creg,
-                style=circuit_op.style,
-            )
-
     def run(
         self,
         state=None,
@@ -272,187 +244,6 @@ class QuantumCircuit(BloqBuilder):
             raise TypeError("State is not a ket or a density matrix.")
         sim = CircuitSimulator(self, mode)
         return sim.run_statistics(state, cbits)
-
-    def resolve_gates(self, basis=["CX", "RX", "RY", "RZ"]):
-        """
-        Unitary matrix calculator for N qubits returning the individual
-        steps as unitary matrices operating from left to right in the specified
-        basis.
-        Calls '_resolve_to_universal' for each gate, this function maps
-        each 'GATENAME' with its corresponding '_gate_basis_2q'
-        Subsequently calls _resolve_2q_basis for each basis, this function maps
-        each '2QGATENAME' with its corresponding '_basis_'
-
-        Parameters
-        ----------
-        basis : list.
-            Basis of the resolved circuit.
-
-        Returns
-        -------
-        qc : :class:`.QubitCircuit`
-            Return :class:`.QubitCircuit` of resolved gates
-            for the qubit circuit in the desired basis.
-        """
-
-        num_measurements = len(
-            list(filter(lambda x: x.is_measurement_instruction(), self.instructions))
-        )
-        if num_measurements > 0:
-            raise NotImplementedError("adjacent_gates must be called before \
-                measurements are added to the circuit")
-
-        basis_1q_valid = ["RX", "RY", "RZ", "IDENTITY"]
-        basis_2q_valid = [
-            "CX",
-            "CSIGN",
-            "CZ",
-            "ISWAP",
-            "SQRTSWAP",
-            "SQRTISWAP",
-        ]
-        basis_1q = []
-        basis_2q = []
-
-        if isinstance(basis, Iterable):
-            for gate in basis:
-                if gate in basis_2q_valid:
-                    basis_2q.append(gate)
-                elif gate in basis_1q_valid:
-                    basis_1q.append(gate)
-
-            if len(basis_1q) == 1:
-                raise ValueError("Not sufficient single-qubit gates in basis")
-            if len(basis_1q) == 0:
-                basis_1q = ["RX", "RY", "RZ"]
-
-        else:  # only one 2q gate is given as basis
-            basis_1q = ["RX", "RY", "RZ"]
-            if basis in basis_2q_valid:
-                basis_2q = [basis]
-            else:
-                raise ValueError(f"{basis} is not a valid two-qubit basis gate")
-
-        match = False
-        qc_temp = QubitCircuit(
-            self.num_qubits,
-            reverse_states=self.reverse_states,
-            num_cbits=self.num_cbits,
-        )
-        temp_resolved = QubitCircuit(
-            self.num_qubits,
-            reverse_states=self.reverse_states,
-            num_cbits=self.num_cbits,
-        )
-
-        for circ_instruction in self.instructions:
-            gate = circ_instruction.operation
-            targets = circ_instruction.targets
-            controls = circ_instruction.controls
-
-            if gate in (std.X, std.Y, std.Z):
-                temp_resolved.add_global_phase(phase=np.pi / 2)
-
-                if gate == std.X:
-                    temp_resolved.add_gate(std.RX(np.pi), targets=targets)
-                elif gate == std.Y:
-                    temp_resolved.add_gate(std.RY(np.pi), targets=targets)
-                else:
-                    temp_resolved.add_gate(std.RZ(np.pi), targets=targets)
-
-            else:
-                try:
-                    _resolve_to_universal(
-                        circ_instruction, temp_resolved, basis_1q, basis_2q
-                    )
-                except KeyError:
-                    if gate.name in basis:
-                        temp_resolved.add_gate(
-                            gate,
-                            targets=targets,
-                            controls=controls,
-                            classical_controls=circ_instruction.cbits,
-                            classical_control_value=circ_instruction.cbits_ctrl_value,
-                        )
-                    else:
-                        exception = f"Gate {gate.name} cannot be resolved."
-                        raise NotImplementedError(exception)
-
-        qc_temp.add_global_phase(temp_resolved.global_phase)
-
-        for basis_unit in ["CSIGN", "CZ", "ISWAP", "SQRTSWAP", "SQRTISWAP"]:
-            if basis_unit in basis_2q:
-                match = True
-                _resolve_2q_basis(basis_unit, qc_temp, temp_resolved)
-                break
-        if not match:
-            qc_temp = temp_resolved
-
-        if len(basis_1q) != 2:
-            return qc_temp
-
-        instructions = qc_temp.instructions
-        half_pi = np.pi / 2
-
-        qc_temp._op_instructions = []
-        qc_temp._built_count = -1
-
-        for circ_instruction in instructions:
-            gate = circ_instruction.operation
-            targets = circ_instruction.targets
-            controls = circ_instruction.controls
-
-            if type(gate) is std.RX and "RX" not in basis_1q:
-                qc_temp.add_gate(
-                    std.RY(-half_pi),
-                    targets=targets,
-                )
-                qc_temp.add_gate(
-                    std.RZ(gate.arg_value[0]),
-                    targets=targets,
-                )
-                qc_temp.add_gate(
-                    std.RY(half_pi),
-                    targets=targets,
-                )
-
-            elif type(gate) is std.RY and "RY" not in basis_1q:
-                qc_temp.add_gate(
-                    std.RZ(-half_pi),
-                    targets=targets,
-                )
-                qc_temp.add_gate(
-                    std.RX(gate.theta),
-                    targets=targets,
-                )
-                qc_temp.add_gate(
-                    std.RZ(half_pi),
-                    targets=targets,
-                )
-
-            elif type(gate) is std.RZ and "RZ" not in basis_1q:
-                qc_temp.add_gate(
-                    std.RX(-half_pi),
-                    targets=targets,
-                )
-                qc_temp.add_gate(
-                    std.RY(gate.arg_value[0]),
-                    targets=targets,
-                )
-                qc_temp.add_gate(
-                    std.RX(half_pi),
-                    targets=targets,
-                )
-            else:
-                qc_temp.add_gate(
-                    gate,
-                    targets=targets,
-                    controls=controls,
-                    classical_controls=circ_instruction.cbits,
-                    classical_control_value=circ_instruction.cbits_ctrl_value,
-                )
-
-        return qc_temp
 
     def propagators(self, expand=True, ignore_measurement=False):
         """
@@ -1056,3 +847,212 @@ class QubitCircuit(QuantumCircuit):
             "adjacent_gates method has been removed. "
             "Use qutip_qip.transpiler.to_chain_structure method instead"
         )
+
+    def add_circuit(self, qc, start=0):  # TODO Instead of start have a qubit mapping?
+        """
+        Adds a block of a qubit circuit to the main circuit.
+
+        Parameters
+        ----------
+        qc : :class:`.QubitCircuit`
+            The circuit block to be added to the main circuit.
+        start : int
+            The qubit on which the first gate is applied.
+        """
+        warnings.warn(
+            "QubitCircuit.add_circuit has been deprecated, instead use Ops",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        if self.num_qubits - start < qc.num_qubits:
+            raise NotImplementedError("Targets exceed number of qubits.")
+
+        for circuit_op in qc.ops:
+            self.add(
+                op=circuit_op.op,
+                qreg=[start + t for t in circuit_op.qreg],
+                creg=circuit_op.creg,
+                style=circuit_op.style,
+            )
+
+    def resolve_gates(self, basis=["CX", "RX", "RY", "RZ"]):
+        """
+        Unitary matrix calculator for N qubits returning the individual
+        steps as unitary matrices operating from left to right in the specified
+        basis.
+        Calls '_resolve_to_universal' for each gate, this function maps
+        each 'GATENAME' with its corresponding '_gate_basis_2q'
+        Subsequently calls _resolve_2q_basis for each basis, this function maps
+        each '2QGATENAME' with its corresponding '_basis_'
+
+        Parameters
+        ----------
+        basis : list.
+            Basis of the resolved circuit.
+
+        Returns
+        -------
+        qc : :class:`.QubitCircuit`
+            Return :class:`.QubitCircuit` of resolved gates
+            for the qubit circuit in the desired basis.
+        """
+
+        num_measurements = len(
+            list(filter(lambda x: x.is_measurement_instruction(), self.instructions))
+        )
+        if num_measurements > 0:
+            raise NotImplementedError("adjacent_gates must be called before \
+                measurements are added to the circuit")
+
+        basis_1q_valid = ["RX", "RY", "RZ", "IDENTITY"]
+        basis_2q_valid = [
+            "CX",
+            "CSIGN",
+            "CZ",
+            "ISWAP",
+            "SQRTSWAP",
+            "SQRTISWAP",
+        ]
+        basis_1q = []
+        basis_2q = []
+
+        if isinstance(basis, Iterable):
+            for gate in basis:
+                if gate in basis_2q_valid:
+                    basis_2q.append(gate)
+                elif gate in basis_1q_valid:
+                    basis_1q.append(gate)
+
+            if len(basis_1q) == 1:
+                raise ValueError("Not sufficient single-qubit gates in basis")
+            if len(basis_1q) == 0:
+                basis_1q = ["RX", "RY", "RZ"]
+
+        else:  # only one 2q gate is given as basis
+            basis_1q = ["RX", "RY", "RZ"]
+            if basis in basis_2q_valid:
+                basis_2q = [basis]
+            else:
+                raise ValueError(f"{basis} is not a valid two-qubit basis gate")
+
+        match = False
+        qc_temp = QubitCircuit(
+            self.num_qubits,
+            reverse_states=self.reverse_states,
+            num_cbits=self.num_cbits,
+        )
+        temp_resolved = QubitCircuit(
+            self.num_qubits,
+            reverse_states=self.reverse_states,
+            num_cbits=self.num_cbits,
+        )
+
+        for circ_instruction in self.instructions:
+            gate = circ_instruction.operation
+            targets = circ_instruction.targets
+            controls = circ_instruction.controls
+
+            if gate in (std.X, std.Y, std.Z):
+                temp_resolved.add_global_phase(phase=np.pi / 2)
+
+                if gate == std.X:
+                    temp_resolved.add_gate(std.RX(np.pi), targets=targets)
+                elif gate == std.Y:
+                    temp_resolved.add_gate(std.RY(np.pi), targets=targets)
+                else:
+                    temp_resolved.add_gate(std.RZ(np.pi), targets=targets)
+
+            else:
+                try:
+                    _resolve_to_universal(
+                        circ_instruction, temp_resolved, basis_1q, basis_2q
+                    )
+                except KeyError:
+                    if gate.name in basis:
+                        temp_resolved.add_gate(
+                            gate,
+                            targets=targets,
+                            controls=controls,
+                            classical_controls=circ_instruction.cbits,
+                            classical_control_value=circ_instruction.cbits_ctrl_value,
+                        )
+                    else:
+                        exception = f"Gate {gate.name} cannot be resolved."
+                        raise NotImplementedError(exception)
+
+        qc_temp.add_global_phase(temp_resolved.global_phase)
+
+        for basis_unit in ["CSIGN", "CZ", "ISWAP", "SQRTSWAP", "SQRTISWAP"]:
+            if basis_unit in basis_2q:
+                match = True
+                _resolve_2q_basis(basis_unit, qc_temp, temp_resolved)
+                break
+        if not match:
+            qc_temp = temp_resolved
+
+        if len(basis_1q) != 2:
+            return qc_temp
+
+        instructions = qc_temp.instructions
+        half_pi = np.pi / 2
+
+        qc_temp._op_instructions = []
+        qc_temp._built_count = -1
+
+        for circ_instruction in instructions:
+            gate = circ_instruction.operation
+            targets = circ_instruction.targets
+            controls = circ_instruction.controls
+
+            if type(gate) is std.RX and "RX" not in basis_1q:
+                qc_temp.add_gate(
+                    std.RY(-half_pi),
+                    targets=targets,
+                )
+                qc_temp.add_gate(
+                    std.RZ(gate.arg_value[0]),
+                    targets=targets,
+                )
+                qc_temp.add_gate(
+                    std.RY(half_pi),
+                    targets=targets,
+                )
+
+            elif type(gate) is std.RY and "RY" not in basis_1q:
+                qc_temp.add_gate(
+                    std.RZ(-half_pi),
+                    targets=targets,
+                )
+                qc_temp.add_gate(
+                    std.RX(gate.theta),
+                    targets=targets,
+                )
+                qc_temp.add_gate(
+                    std.RZ(half_pi),
+                    targets=targets,
+                )
+
+            elif type(gate) is std.RZ and "RZ" not in basis_1q:
+                qc_temp.add_gate(
+                    std.RX(-half_pi),
+                    targets=targets,
+                )
+                qc_temp.add_gate(
+                    std.RY(gate.arg_value[0]),
+                    targets=targets,
+                )
+                qc_temp.add_gate(
+                    std.RX(half_pi),
+                    targets=targets,
+                )
+            else:
+                qc_temp.add_gate(
+                    gate,
+                    targets=targets,
+                    controls=controls,
+                    classical_controls=circ_instruction.cbits,
+                    classical_control_value=circ_instruction.cbits_ctrl_value,
+                )
+
+        return qc_temp
