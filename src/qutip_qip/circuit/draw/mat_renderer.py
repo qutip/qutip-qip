@@ -503,22 +503,51 @@ class MatRenderer(BaseRenderer):
             The value in terms of pi.
         """
 
+        if value == 0:
+            return "[0]"
+
         pi_value = value / np.pi
         if abs(pi_value - round(pi_value)) < tolerance:
             num = round(pi_value)
-            return f"[{num}\\pi]" if num != 1 else "[\\pi]"
+            if num:
+                return f"[{num}\\pi]" if num != 1 else "[\\pi]"
 
         for denom in [2, 3, 4, 6, 8, 12]:
             fraction_value = pi_value * denom
             if abs(fraction_value - round(fraction_value)) < tolerance:
                 num = round(fraction_value)
-                return f"[{num}\\pi/{denom}]" if num != 1 else f"[\\pi/{denom}]"
+                if num:
+                    return (
+                        f"[{num}\\pi/{denom}]"
+                        if num != 1
+                        else f"[\\pi/{denom}]"
+                    )
 
         return f"[{round(value, 2)}]"
+
+    def _gate_label(self, gate: Gate | Type[Gate], showarg: bool) -> str:
+        if not gate.is_parametric:
+            return gate.name
+
+        if showarg:
+            if gate.arg_label is not None:
+                return f"{gate.name}({gate.arg_label})"
+            if gate.arg_value is not None:
+                arg_values = gate.arg_value
+                if not isinstance(arg_values, (list, tuple)):
+                    arg_values = [arg_values]
+                formatted_args = ", ".join(
+                    self.to_pi_fraction(value)[1:-1].replace(r"\pi", "π")
+                    for value in arg_values
+                )
+                return f"{gate.name}({formatted_args})"
+
+        return gate.arg_label if gate.arg_label is not None else gate.name
 
     def _draw_multiq_gate(
         self,
         gate: Gate | Type[Gate],
+        gate_label: str,
         targets: list[int],
         controls: list[int],
         cbits: list[int],
@@ -577,7 +606,7 @@ class MatRenderer(BaseRenderer):
         else:
             adj_targets = [i + self._cwires for i in sorted(targets)]
             text_width = self._get_text_width(
-                self.text,
+                gate_label,
                 self.fontsize,
                 self.fontweight,
                 self.fontfamily,
@@ -589,7 +618,7 @@ class MatRenderer(BaseRenderer):
             gate_text = plt.Text(
                 xskip + self.style.gate_margin + gate_width / 2,
                 (adj_targets[0] + adj_targets[-1]) / 2 * self.style.wire_sep,
-                self.text,
+                gate_label,
                 color=self.fontcolor,
                 fontsize=self.fontsize,
                 fontweight=self.fontweight,
@@ -746,6 +775,7 @@ class MatRenderer(BaseRenderer):
         """
 
         self._add_wire_labels()
+        showarg_label = False
 
         for instruction in self._qc.instructions:
             gate = instruction.operation
@@ -770,12 +800,6 @@ class MatRenderer(BaseRenderer):
                 targets = instruction.targets
                 controls = instruction.controls
                 style = style if style is not None else {}
-                self.text = gate.name
-
-                if gate.is_parametric:
-                    self.text = (
-                        gate.arg_label if gate.arg_label is not None else gate.name
-                    )
 
                 self.color = style.get(
                     "color",
@@ -787,6 +811,10 @@ class MatRenderer(BaseRenderer):
                 self.fontstyle = style.get("fontstyle", "normal")
                 self.fontfamily = style.get("fontfamily", "monospace")
                 self.showarg = style.get("showarg", False)
+                self.text = self._gate_label(gate, self.showarg)
+                showarg_label |= bool(self.showarg) and gate.is_parametric and (
+                    gate.arg_label is not None or gate.arg_value is not None
+                )
 
                 self.merged_wires = list(targets)
                 self.merged_wires.extend(controls)
@@ -798,11 +826,34 @@ class MatRenderer(BaseRenderer):
                     len(self._layer_list[i])
                     for i in range(self.merged_wires[0], self.merged_wires[-1] + 1)
                 ]
-                self._draw_multiq_gate(gate, targets, controls, cbits, max(find_layer))
+                self._draw_multiq_gate(
+                    gate, self.text, targets, controls, cbits, max(find_layer)
+                )
 
         self._add_wire()
         self._fig_config()
-        plt.tight_layout()
+        if showarg_label:
+            xlim = self._ax.get_xlim()
+            ylim = self._ax.get_ylim()
+            title_height = (
+                (self.style.fontsize + 10) / 72
+                if self.style.title is not None
+                else 0
+            )
+            self.fig.set_size_inches(
+                xlim[1] - xlim[0],
+                ylim[1] - ylim[0] + title_height,
+            )
+            self._ax.set_position(
+                [
+                    0,
+                    0,
+                    1,
+                    (ylim[1] - ylim[0]) / (ylim[1] - ylim[0] + title_height),
+                ]
+            )
+        else:
+            plt.tight_layout()
         plt.show()
 
     def _fig_config(self) -> None:
