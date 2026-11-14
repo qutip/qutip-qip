@@ -251,5 +251,5 @@ class BloqBuilder:
             num_creg=self.num_creg,
             num_aux_creg=self.num_aux_creg,
             global_phase=self.global_phase,
-            instructions=self.instructions,
+            instructions=tuple(self._op_instructions),
         )

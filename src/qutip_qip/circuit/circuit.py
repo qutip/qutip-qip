@@ -4,7 +4,7 @@ Quantum circuit representation and simulation.
 
 import warnings
 import inspect
-from typing import Iterable, Type, Self
+from typing import Iterable, Self
 from qutip import qeye, Qobj, basis, tensor
 import numpy as np
 
@@ -26,7 +26,6 @@ from qutip_qip.operations import (
     BloqBuilder,
     Measurement,
     Mz,
-    Op,
     OpInstruction,
     Unitary,
     expand_operator,
@@ -68,7 +67,7 @@ class QuantumCircuit(BloqBuilder):
     """
 
     def __init__(
-        self,
+        self: Self,
         num_qreg: int,
         num_creg: int = 0,
         qreg_dim: tuple[int, ...] = (),
@@ -76,7 +75,6 @@ class QuantumCircuit(BloqBuilder):
         output_states=None,
         reverse_states=True,
     ):
-        self._builder = BloqBuilder(num_qreg, num_creg, qreg_dim)
         self.reverse_states = reverse_states
         self._instructions: list[CircuitInstruction] = []
         self._built_count = -1
@@ -94,19 +92,12 @@ class QuantumCircuit(BloqBuilder):
         super().__init__(num_qreg, num_creg, qreg_dim)
 
     @property
-    def global_phase(self):
-        return self._builder.global_phase
-
-    def add_global_phase(self, phase: float):
-        self._builder.add_global_phase(phase)
-
-    @property
     def ops(self) -> tuple[OpInstruction, ...]:
-        return self._builder.instructions
+        return tuple(self._op_instructions)
 
     @property
     def instructions(self) -> list[CircuitInstruction]:
-        if self._built_count != len(self._builder._op_instructions):
+        if self._built_count != len(self._op_instructions):
             self.build()
         return self._instructions
 
@@ -144,29 +135,12 @@ class QuantumCircuit(BloqBuilder):
             for i in targets:
                 self.output_states[i] = state
 
-    def if_test(
-        self: Self,
-        cbits: int | IntSequence,
-        value: int,
-        check: ClassicalControlCheck = "EQ",
-    ):
-        return self._builder.if_test(cbits, value, check)
-
-    def add(
-        self: Self,
-        op: Op,
-        qreg: int | IntSequence = (),
-        creg: int | IntSequence = (),
-        style: dict | None = None,
-    ):
-        self._builder.add(op, qreg, creg, style)
-
     def build(self: Self):
         """
         Converts _ops list to a frozen _instructions tuple.
         """
         self._instructions = []
-        bloq = self._builder.to_bloq()
+        bloq = self.to_bloq()
 
         for op_instruction in bloq.instructions:
             op = op_instruction.op
@@ -202,7 +176,7 @@ class QuantumCircuit(BloqBuilder):
             # TODO handle non-gate/non-measurement op
 
         self._instructions = tuple(self._instructions)
-        self._built_count = len(self._builder._op_instructions)
+        self._built_count = len(self._op_instructions)
 
     def add_circuit(self, qc, start=0):  # TODO Instead of start have a qubit mapping?
         """
@@ -365,7 +339,11 @@ class QuantumCircuit(BloqBuilder):
             reverse_states=self.reverse_states,
             num_cbits=self.num_cbits,
         )
-        temp_resolved = QubitCircuit(self.num_qubits)
+        temp_resolved = QubitCircuit(
+            self.num_qubits,
+            reverse_states=self.reverse_states,
+            num_cbits=self.num_cbits,
+        )
 
         for circ_instruction in self.instructions:
             gate = circ_instruction.operation
@@ -408,17 +386,16 @@ class QuantumCircuit(BloqBuilder):
                 _resolve_2q_basis(basis_unit, qc_temp, temp_resolved)
                 break
         if not match:
-            qc_temp._builder = temp_resolved._builder
+            qc_temp = temp_resolved
 
         if len(basis_1q) != 2:
             return qc_temp
 
         instructions = qc_temp.instructions
-        phase = qc_temp.global_phase
         half_pi = np.pi / 2
 
-        qc_temp._builder = BloqBuilder(qc_temp.num_qubits, qc_temp.num_cbits)
-        qc_temp.add_global_phase(phase)
+        qc_temp._op_instructions = []
+        qc_temp._built_count = -1
 
         for circ_instruction in instructions:
             gate = circ_instruction.operation
@@ -723,14 +700,14 @@ class QubitCircuit(QuantumCircuit):
         """
         Number of qubits in the circuit.
         """
-        return self._builder.num_qreg
+        return self.num_qreg
 
     @property
     def num_cbits(self) -> int:
         """
         Number of cbits in the circuit.
         """
-        return self._builder.num_creg
+        return self.num_creg
 
     @property
     def N(self) -> int:
@@ -823,7 +800,7 @@ class QubitCircuit(QuantumCircuit):
 
     def add_measurement(
         self,
-        measurement: Type[Measurement],
+        measurement: type[Measurement],
         targets: int | IntSequence,
         classical_store: int | IntSequence,
         index: None = None,
@@ -1016,7 +993,7 @@ class QubitCircuit(QuantumCircuit):
         qubits.extend(targets)
 
         if len(classical_controls) > 0:
-            with self._builder.if_test(classical_controls, classical_control_value):
+            with self.if_test(classical_controls, classical_control_value):
                 self.add(op=gate, qreg=tuple(qubits), style=style)
         else:
             self.add(op=gate, qreg=tuple(qubits), style=style)
