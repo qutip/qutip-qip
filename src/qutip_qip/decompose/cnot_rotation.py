@@ -1,4 +1,7 @@
-"Decompose gates in CNOT + 1 qubit Rotation (RX, RY, RZ)"
+"""
+Decompose gates in CNOT + 1 qubit Rotation (RX, RY, RZ)
+We only 2 rotation gates, the third one can be decomposed in terms of other two.
+"""
 
 import numpy as np
 
@@ -123,6 +126,27 @@ def _QASMU(op, bloq):
 def _PHASE(op, bloq):
     bloq.add_global_phase(op.theta / 2)
     bloq.add(RZ(op.theta), 0)
+
+
+@register_op(RX, repository=CNOT_ROTATION_BASIS)
+def _RX(op, bloq):
+    bloq.add(RY(-PI / 2), 0)
+    bloq.add(RZ(op.theta), 0)
+    bloq.add(RY(PI / 2), 0)
+
+
+@register_op(RY, repository=CNOT_ROTATION_BASIS)
+def _RY(op, bloq):
+    bloq.add(RZ(-PI / 2), 0)
+    bloq.add(RX(op.theta), 0)
+    bloq.add(RZ(PI / 2), 0)
+
+
+@register_op(RZ, repository=CNOT_ROTATION_BASIS)
+def _RZ(op, bloq):
+    bloq.add(RX(-PI / 2), 0)
+    bloq.add(RY(op.theta), 0)
+    bloq.add(RX(PI / 2), 0)
 
 
 # Two qubit-gates
