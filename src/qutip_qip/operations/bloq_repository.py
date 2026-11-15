@@ -21,7 +21,7 @@ class BloqRepository:
     # registry does not care about them e.g. MultiSWAP(3), MultiSWAP(4) are two different Op values
     # but share the same implementation.
 
-    _entries: ChainMap[Op | type[Op], BloqImpl] = field(
+    _entries: ChainMap[Op | type[Op], tuple[BloqImpl, bool]] = field(
         default_factory=ChainMap, init=False
     )
 
@@ -30,9 +30,10 @@ class BloqRepository:
         op: Op | type[Op],
         impl: BloqImpl | None = None,
         replace: bool = False,
+        resolve: bool = False,
     ):
         if impl is None:
-            return lambda f: self.register(op, f, replace=replace)
+            return lambda f: self.register(op, f, replace=replace, resolve=resolve)
 
         key = get_op_class(op)
         if key is None:
@@ -43,17 +44,30 @@ class BloqRepository:
                 f"{key.name} is already registered and replace argument is False."
             )
 
-        self._entries[key] = impl
+        self._entries[key] = (impl, resolve)
         return impl
 
-    def resolve(self, op: Op | type[Op]) -> Bloq | None:
-        impl = self._entries.get(get_op_class(op))
-        if impl is None:
-            return None
+    def _lookup(self, op: Op) -> tuple[BloqImpl, bool] | None:
+        for key in (op, *type(op).__mro__):
+            if key in self._entries:
+                return self._entries[key]
+        return None
+
+    def resolve(self, op: Op | type[Op]) -> Bloq:
+        entry = self._lookup(op)
+        if entry is None:
+            raise NotImplementedError(
+                f"{op!r} has no decomposition in this repository."
+            )
 
         # Constructing the bloq for the given params
+        impl, requires_resolve = entry
         builder = BloqBuilder(op.num_qreg, op.num_creg, op.qreg_dim)
-        impl(op, builder)
+
+        if requires_resolve:
+            impl(op, builder, self.resolve)
+        else:
+            impl(op, builder)
         return builder.to_bloq()
 
     def scope(self) -> BloqRepository:
@@ -69,7 +83,7 @@ class BloqRepository:
         return child_repository
 
     def __contains__(self, op: Op | type[Op]) -> bool:
-        return get_op_class(op) in self._entries
+        return self._lookup(op) is not None
 
 
 DEFAULT_REPOSITORY = BloqRepository()
@@ -81,8 +95,9 @@ def register_op(
     *,
     repository: BloqRepository = DEFAULT_REPOSITORY,
     replace: bool = False,
+    resolve: bool = False,
 ):
-    return repository.register(op, impl, replace=replace)
+    return repository.register(op, impl, replace=replace, resolve=resolve)
 
 
 def _expand(
@@ -99,17 +114,18 @@ def _expand(
         builder.add(op, instruction.qreg, instruction.creg, instruction.style)
         return
 
-    # Without this, RX -> RY -> RX would recurse forever when both are missing.
+    # Without this RX -> RY -> RX would recurse forever when both are missing.
     if op in expanded:
         raise ValueError(
             f"{op!r} decomposes back into itself, it cannot reach the primitives."
         )
 
     bloq = repository.resolve(op)
-    if bloq is None:
-        raise NotImplementedError(f"{op!r} has no decomposition in this repository.")
     builder.add_global_phase(bloq.global_phase)
 
+    # Allocating the auxiliary (ancilla) qreg, creg
+    # In case of creg, we can directly reuse existing aux_cregs instead of caring
+    # whether they are clean, but in case of qreg they need to be clean ancilla.
     aux_creg_end = aux_creg_start + bloq.num_aux_creg
     missing = aux_creg_end - builder.num_aux_creg
     if missing > 0:
@@ -134,7 +150,7 @@ def _expand(
     builder.release_aux_qreg(aux_qreg)
 
 
-def compile(
+def decompose(
     op: Op, repository: BloqRepository, primitives: frozenset[Op | type[Op]]
 ) -> Bloq:
     builder = BloqBuilder(op.num_qreg, op.num_creg, op.qreg_dim)
