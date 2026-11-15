@@ -1,6 +1,7 @@
 import numpy as np
 
-from qutip_qip.operations import DEFAULT_REPOSITORY, register_op
+from qutip_qip.decompose.cnot_rotation import CNOT_ROTATION_BASIS
+from qutip_qip.operations import register_op
 from qutip_qip.operations.gates import (
     RX,
     RY,
@@ -15,10 +16,10 @@ from qutip_qip.operations.gates import (
 
 PI = np.pi
 
-CZ_BASIS = DEFAULT_REPOSITORY.scope()
-ISWAP_BASIS = DEFAULT_REPOSITORY.scope()
-SQRTSWAP_BASIS = DEFAULT_REPOSITORY.scope()
-SQRTISWAP_BASIS = DEFAULT_REPOSITORY.scope()
+CZ_BASIS = CNOT_ROTATION_BASIS.scope()
+ISWAP_BASIS = CNOT_ROTATION_BASIS.scope()
+SQRTSWAP_BASIS = CNOT_ROTATION_BASIS.scope()
+SQRTISWAP_BASIS = CNOT_ROTATION_BASIS.scope()
 
 
 @register_op(CX, repository=CZ_BASIS)

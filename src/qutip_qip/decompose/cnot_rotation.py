@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from qutip_qip.operations import register_op
+from qutip_qip.operations import DEFAULT_REPOSITORY, register_op
 from qutip_qip.operations.gates import (
     X,
     Y,
@@ -40,91 +40,93 @@ from qutip_qip.operations.gates import (
 
 PI = np.pi
 
+CNOT_ROTATION_BASIS = DEFAULT_REPOSITORY.scope()
+
 
 # Single qubit
-@register_op(X)
+@register_op(X, repository=CNOT_ROTATION_BASIS)
 def _X(op, bloq):
     bloq.add_global_phase(PI / 2)
     bloq.add(RX(PI), 0)
 
 
-@register_op(Y)
+@register_op(Y, repository=CNOT_ROTATION_BASIS)
 def _Y(op, bloq):
     bloq.add_global_phase(PI / 2)
     bloq.add(RY(PI), 0)
 
 
-@register_op(Z)
+@register_op(Z, repository=CNOT_ROTATION_BASIS)
 def _Z(op, bloq):
     bloq.add_global_phase(PI / 2)
     bloq.add(RZ(PI), 0)
 
 
-@register_op(H)
+@register_op(H, repository=CNOT_ROTATION_BASIS)
 def _H(op, bloq):
     bloq.add_global_phase(PI / 2)
     bloq.add(RY(PI / 2), 0)
     bloq.add(RX(PI), 0)
 
 
-@register_op(S)
+@register_op(S, repository=CNOT_ROTATION_BASIS)
 def _S(op, bloq):
     bloq.add_global_phase(PI / 4)
     bloq.add(RZ(PI / 2), 0)
 
 
-@register_op(Sdag)
+@register_op(Sdag, repository=CNOT_ROTATION_BASIS)
 def _Sdag(op, bloq):
     bloq.add_global_phase(-PI / 4)
     bloq.add(RZ(-PI / 2), 0)
 
 
-@register_op(T)
+@register_op(T, repository=CNOT_ROTATION_BASIS)
 def _T(op, bloq):
     bloq.add_global_phase(PI / 8)
     bloq.add(RZ(PI / 4), 0)
 
 
-@register_op(Tdag)
+@register_op(Tdag, repository=CNOT_ROTATION_BASIS)
 def _Tdag(op, bloq):
     bloq.add_global_phase(-PI / 8)
     bloq.add(RZ(-PI / 4), 0)
 
 
-@register_op(SQRTX)
+@register_op(SQRTX, repository=CNOT_ROTATION_BASIS)
 def _SQRTNOT(op, bloq):
     bloq.add_global_phase(PI / 4)
     bloq.add(RX(PI / 2), 0)
 
 
-@register_op(SQRTXdag)
+@register_op(SQRTXdag, repository=CNOT_ROTATION_BASIS)
 def _SQRTXdag(op, bloq):
     bloq.add_global_phase(-PI / 4)
     bloq.add(RX(-PI / 2), 0)
 
 
-@register_op(R)
+@register_op(R, repository=CNOT_ROTATION_BASIS)
 def _R(op, bloq):
     bloq.add(RZ(-op.phi), 0)
     bloq.add(RX(op.theta), 0)
     bloq.add(RZ(op.phi), 0)
 
 
-@register_op(QASMU)
+@register_op(QASMU, repository=CNOT_ROTATION_BASIS)
 def _QASMU(op, bloq):
     bloq.add(RZ(op.gamma), 0)
     bloq.add(RY(op.theta), 0)
     bloq.add(RZ(op.phi), 0)
 
 
-@register_op(PHASE)
+@register_op(PHASE, repository=CNOT_ROTATION_BASIS)
 def _PHASE(op, bloq):
     bloq.add_global_phase(op.theta / 2)
     bloq.add(RZ(op.theta), 0)
 
 
 # Two qubit-gates
-@register_op(CZ)
+@register_op(CZ, repository=CNOT_ROTATION_BASIS)
 def _CZ(op, bloq):
     bloq.add_global_phase(PI)
     bloq.add(RY(PI / 2), 1)
@@ -134,14 +136,14 @@ def _CZ(op, bloq):
     bloq.add(RX(PI), 1)
 
 
-@register_op(SWAP)
+@register_op(SWAP, repository=CNOT_ROTATION_BASIS)
 def _SWAP(op, bloq):
     bloq.add(CX, (0, 1))
     bloq.add(CX, (1, 0))
     bloq.add(CX, (0, 1))
 
 
-@register_op(ISWAP)
+@register_op(ISWAP, repository=CNOT_ROTATION_BASIS)
 def _ISWAP(op, bloq):
     bloq.add(RX(PI / 2), 0)
     bloq.add(RX(PI / 2), 1)
@@ -153,8 +155,8 @@ def _ISWAP(op, bloq):
     bloq.add(RX(-PI / 2), 1)
 
 
-@register_op(ISWAPdag)
-def _ISWAP(op, bloq):
+@register_op(ISWAPdag, repository=CNOT_ROTATION_BASIS)
+def _ISWAPdag(op, bloq):
     bloq.add(RX(PI / 2), 0)
     bloq.add(RX(PI / 2), 1)
     bloq.add(CX, (0, 1))
@@ -165,7 +167,7 @@ def _ISWAP(op, bloq):
     bloq.add(RX(-PI / 2), 1)
 
 
-@register_op(MS)
+@register_op(MS, repository=CNOT_ROTATION_BASIS)
 def _MS(op, bloq):
     bloq.add(RZ(-op.phi), 0)
     bloq.add(RZ(-op.phi), 1)
@@ -176,7 +178,7 @@ def _MS(op, bloq):
     bloq.add(RZ(op.phi), 1)
 
 
-@register_op(RZX)
+@register_op(RZX, repository=CNOT_ROTATION_BASIS)
 def _RZX(op, bloq):
     bloq.add(RY(-PI / 2), 1)
     bloq.add(CX, (0, 1))
@@ -185,7 +187,7 @@ def _RZX(op, bloq):
     bloq.add(RY(PI / 2), 1)
 
 
-@register_op(SWAPALPHA)
+@register_op(SWAPALPHA, repository=CNOT_ROTATION_BASIS)
 def _SWAPALPHA(op, bloq):
     theta = PI / 2 * (1 + op.alpha)
 
@@ -200,7 +202,7 @@ def _SWAPALPHA(op, bloq):
     bloq.add(RZ(PI / 2), 0)
 
 
-@register_op(SQRTSWAP)
+@register_op(SQRTSWAP, repository=CNOT_ROTATION_BASIS)
 def _SQRTSWAP(op, bloq):
     bloq.add_global_phase(3 * PI / 8)
     bloq.add(RZ(-PI / 2), 1)
@@ -213,7 +215,7 @@ def _SQRTSWAP(op, bloq):
     bloq.add(RZ(PI / 2), 0)
 
 
-@register_op(SQRTSWAPdag)
+@register_op(SQRTSWAPdag, repository=CNOT_ROTATION_BASIS)
 def _SQRTSWAPdag(op, bloq):
     bloq.add_global_phase(PI / 8)
     bloq.add(RZ(-PI / 2), 1)
@@ -226,7 +228,7 @@ def _SQRTSWAPdag(op, bloq):
     bloq.add(RZ(PI / 2), 0)
 
 
-@register_op(SQRTISWAP)
+@register_op(SQRTISWAP, repository=CNOT_ROTATION_BASIS)
 def _SQRTISWAP(op, bloq):
     bloq.add(RX(PI / 2), 0)
     bloq.add(RX(PI / 2), 1)
@@ -238,7 +240,7 @@ def _SQRTISWAP(op, bloq):
     bloq.add(RX(-PI / 2), 1)
 
 
-@register_op(SQRTISWAPdag)
+@register_op(SQRTISWAPdag, repository=CNOT_ROTATION_BASIS)
 def _SQRTISWAPdag(op, bloq):
     bloq.add(RX(PI / 2), 0)
     bloq.add(RX(PI / 2), 1)
@@ -250,7 +252,7 @@ def _SQRTISWAPdag(op, bloq):
     bloq.add(RX(-PI / 2), 1)
 
 
-@register_op(BERKELEY)
+@register_op(BERKELEY, repository=CNOT_ROTATION_BASIS)
 def _BERKELEY(op, bloq):
     bloq.add(RX(PI / 2), 0)
     bloq.add(RX(PI / 2), 1)
@@ -262,7 +264,7 @@ def _BERKELEY(op, bloq):
     bloq.add(RX(-PI / 2), 1)
 
 
-@register_op(BERKELEYdag)
+@register_op(BERKELEYdag, repository=CNOT_ROTATION_BASIS)
 def _BERKELEYdag(op, bloq):
     bloq.add(RX(PI / 2), 0)
     bloq.add(RX(PI / 2), 1)
@@ -275,7 +277,7 @@ def _BERKELEYdag(op, bloq):
 
 
 # Three qubit gates
-@register_op(FREDKIN)
+@register_op(FREDKIN, repository=CNOT_ROTATION_BASIS)
 def _FREDKIN(op, bloq):
     ctrl, *target = bloq.qreg  # 1 control and 2 target
 
@@ -290,10 +292,10 @@ def _FREDKIN(op, bloq):
     bloq.add(RZ(-PI / 4), target[1])
     bloq.add(CX, (ctrl, target[1]))
     bloq.add(RZ(PI / 4), target[1])
-    bloq.add(CX, target[1])
+    bloq.add(CX, target)
     bloq.add(RZ(PI / 4), target[0])
     bloq.add(RZ(-PI / 4), target[1])
-    bloq.add(CX, (ctrl, target[1]))
+    bloq.add(CX, (ctrl, target[0]))
     bloq.add(CX, (ctrl, target[1]))
     bloq.add(RZ(PI / 4), ctrl)
     bloq.add(RZ(-PI / 4), target[0])
@@ -306,7 +308,7 @@ def _FREDKIN(op, bloq):
     bloq.add(CX, (target[1], target[0]))
 
 
-@register_op(TOFFOLI)
+@register_op(TOFFOLI, repository=CNOT_ROTATION_BASIS)
 def _TOFFOLI(op, bloq):
     *ctrls, target = bloq.qreg
 
