@@ -32,7 +32,9 @@ from qutip_qip.operations.gates import (
     SQRTISWAP,
     SQRTISWAPdag,
     SQRTX,
-    CZ,
+    CRX,
+    CRY,
+    CRZ,
     SWAP,
     FREDKIN,
     TOFFOLI,
@@ -150,14 +152,27 @@ def _RZ(op, bloq):
 
 
 # Two qubit-gates
-@register_op(CZ, repository=CNOT_ROTATION_BASIS)
-def _CZ(op, bloq):
-    bloq.add_global_phase(PI)
+@register_op(CRX, repository=CNOT_ROTATION_BASIS)
+def _CRX(op, bloq):
+    bloq.add(RY(-PI / 2), 1)
+    bloq.add(CRZ(op.theta), (0, 1))
     bloq.add(RY(PI / 2), 1)
-    bloq.add(RX(PI), 1)
+
+
+@register_op(CRY, repository=CNOT_ROTATION_BASIS)
+def _CRY(op, bloq):
+    bloq.add(RY(op.theta / 2), 1)
     bloq.add(CX, (0, 1))
-    bloq.add(RY(PI / 2), 1)
-    bloq.add(RX(PI), 1)
+    bloq.add(RY(-op.theta / 2), 1)
+    bloq.add(CX, (0, 1))
+
+
+@register_op(CRZ, repository=CNOT_ROTATION_BASIS)
+def _CRZ(op, bloq):
+    bloq.add(RZ(op.theta / 2), 1)
+    bloq.add(CX, (0, 1))
+    bloq.add(RZ(-op.theta / 2), 1)
+    bloq.add(CX, (0, 1))
 
 
 @register_op(SWAP, repository=CNOT_ROTATION_BASIS)
