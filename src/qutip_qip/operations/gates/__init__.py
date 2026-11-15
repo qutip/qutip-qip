@@ -53,6 +53,7 @@ from .other_gates import (
     GLOBALPHASE,
     TOFFOLI,
     FREDKIN,
+    get_oracle_gate,
 )
 
 GATE_CLASS_MAP = {
@@ -105,6 +106,7 @@ GATE_CLASS_MAP = {
     "CPHASE": CPHASE,
     "RZX": RZX,
     "CQASMU": CQASMU,
+    "ORACLE": get_oracle_gate,
 }
 
 CONTROLLED_GATE_MAP = {
