@@ -4,7 +4,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 
 from qutip_qip.operations.bloq import BloqBuilder, Bloq
-from qutip_qip.operations.op import Op, get_op_class
+from qutip_qip.operations.op import Op, OpInstruction, get_op_class
 
 # The implementation of an Op is just a function
 # which takes a BloqBuilder instances and adds the relevant gates.
@@ -83,3 +83,59 @@ def register_op(
     replace: bool = False,
 ):
     return repository.register(op, impl, replace=replace)
+
+
+def _expand(
+    ins: OpInstruction,
+    builder: BloqBuilder,
+    repository: BloqRepository,
+    primitives: frozenset[Op | type[Op]],
+    active: frozenset[Op],
+) -> None:
+
+    op = ins.op
+    if get_op_class(op) in primitives:
+        builder.add(op, ins.qreg, ins.creg, ins.style)
+        return
+
+    # Without this, RX -> RY -> RX would recurse forever when both are missing.
+    if op in active:
+        raise ValueError(
+            f"{op!r} decomposes back into itself, it cannot reach the primitives."
+        )
+
+    bloq = repository.resolve(op)
+    if bloq is None:
+        raise NotImplementedError(f"{op!r} has no decomposition in this repository.")
+
+    builder.add_global_phase(bloq.global_phase)
+
+    aux = tuple(q for dim in bloq.aux_qreg_dim for q in builder.add_aux_qreg(dim=dim))
+    qreg = ins.qreg + aux
+    creg = ins.creg + (
+        builder.add_aux_creg(bloq.num_aux_creg) if bloq.num_aux_creg else ()
+    )
+
+    for sub in bloq.instructions:
+        placed = OpInstruction(
+            sub.op,
+            tuple(qreg[q] for q in sub.qreg),
+            tuple(creg[c] for c in sub.creg),
+            sub.style,
+        )
+        _expand(placed, builder, repository, primitives, active | {op})
+    builder.release_aux_qreg(aux)
+
+
+def compile(
+    op: Op, repository: BloqRepository, primitives: frozenset[Op | type[Op]]
+) -> Bloq:
+    builder = BloqBuilder(op.num_qreg, op.num_creg, op.qreg_dim)
+    _expand(
+        OpInstruction(op, builder.qreg, builder.creg),
+        builder,
+        repository,
+        primitives,
+        frozenset(),
+    )
+    return builder.to_bloq()
