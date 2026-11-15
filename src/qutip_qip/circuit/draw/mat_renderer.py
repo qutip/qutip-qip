@@ -16,6 +16,7 @@ from matplotlib.patches import (
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.circuit.draw import BaseRenderer, StyleConfig
 from qutip_qip.operations import Gate
+from qutip_qip.operations import ControlledGate
 from qutip_qip.operations import gates as std
 
 
@@ -220,9 +221,15 @@ class MatRenderer(BaseRenderer):
             )
             self._ax.add_artist(wire_label)
 
-    def _draw_control_node(self, pos: int, xskip: float, color: str) -> None:
+    def _draw_control_node(
+        self, pos: int, xskip: float, color: str, control_value: int = 1
+    ) -> None:
         """
         Draw the control node for the multi-qubit gate.
+
+        A control that is activated by :math:`|1\rangle` is drawn filled, while
+        one activated by :math:`|0\rangle` is drawn hollow, which is the usual
+        circuit convention.
 
         Parameters
         ----------
@@ -234,20 +241,63 @@ class MatRenderer(BaseRenderer):
 
         color : str
             The color of the control node. HEX code or color name supported by matplotlib are valid.
+
+        control_value : int, optional
+            The value the control qubit has to take for the gate to be applied.
+            The default is 1, i.e. a filled control node.
         """
 
         pos = pos + self._cwires
 
+        filled = bool(control_value)
         control_node = Circle(
             (
                 xskip + self.style.gate_margin + self.style.gate_pad,
                 pos * self.style.wire_sep,
             ),
             self._control_node_r,
-            color=color,
+            facecolor=color if filled else self.style.bgcolor,
+            edgecolor=color,
+            linewidth=1.5,
             zorder=self._zorder["node"],
         )
         self._ax.add_artist(control_node)
+
+    @staticmethod
+    def _control_requirements(
+        gate: Gate | Type[Gate], controls: list[int]
+    ) -> list[int]:
+        """
+        Find the value that each control qubit has to take for the gate to apply.
+
+        For a :class:`.ControlledGate` the required values are the bits of
+        ``ctrl_value``, the most significant bit belonging to the first control
+        qubit. Every other gate falls back to controls that are activated by
+        :math:`|1\rangle`.
+
+        Parameters
+        ----------
+        gate : Gate Object
+            The gate being drawn.
+
+        controls : list of int
+            The control qubits, in the order they were given to the gate.
+
+        Returns
+        -------
+        list of int
+            The value each control qubit has to take, in the same order.
+        """
+
+        gate_type = gate if isinstance(gate, type) else type(gate)
+        if not issubclass(gate_type, ControlledGate):
+            return [1] * len(controls)
+
+        num_ctrl_qubits = gate.num_ctrl_qubits
+        return [
+            (gate.ctrl_value >> (num_ctrl_qubits - 1 - index)) & 1
+            for index in range(len(controls))
+        ]
 
     def _draw_target_node(self, pos: int, xskip: float, color: str) -> None:
         """
@@ -642,8 +692,12 @@ class MatRenderer(BaseRenderer):
                     self._ax.add_artist(connector_r)
 
             # add qbridge if control qubits are present
-            for control in controls:
-                self._draw_control_node(control, xskip + text_width / 2, self.color)
+            for control, control_value in zip(
+                controls, self._control_requirements(gate, controls)
+            ):
+                self._draw_control_node(
+                    control, xskip + text_width / 2, self.color, control_value
+                )
                 self._draw_qbridge(
                     control,
                     targets[0],
