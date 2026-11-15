@@ -86,20 +86,21 @@ def register_op(
 
 
 def _expand(
-    ins: OpInstruction,
+    instruction: OpInstruction,
     builder: BloqBuilder,
     repository: BloqRepository,
     primitives: frozenset[Op | type[Op]],
-    active: frozenset[Op],
+    expanded: frozenset[Op],
+    aux_creg_start: int,
 ) -> None:
 
-    op = ins.op
+    op = instruction.op
     if get_op_class(op) in primitives:
-        builder.add(op, ins.qreg, ins.creg, ins.style)
+        builder.add(op, instruction.qreg, instruction.creg, instruction.style)
         return
 
     # Without this, RX -> RY -> RX would recurse forever when both are missing.
-    if op in active:
+    if op in expanded:
         raise ValueError(
             f"{op!r} decomposes back into itself, it cannot reach the primitives."
         )
@@ -107,24 +108,30 @@ def _expand(
     bloq = repository.resolve(op)
     if bloq is None:
         raise NotImplementedError(f"{op!r} has no decomposition in this repository.")
-
     builder.add_global_phase(bloq.global_phase)
 
-    aux = tuple(q for dim in bloq.aux_qreg_dim for q in builder.add_aux_qreg(dim=dim))
-    qreg = ins.qreg + aux
-    creg = ins.creg + (
-        builder.add_aux_creg(bloq.num_aux_creg) if bloq.num_aux_creg else ()
+    aux_creg_end = aux_creg_start + bloq.num_aux_creg
+    missing = aux_creg_end - builder.num_aux_creg
+    if missing > 0:
+        builder.add_aux_creg(missing)
+
+    aux_creg = builder.aux_creg[aux_creg_start:aux_creg_end]
+    aux_qreg = tuple(
+        q for dim in bloq.aux_qreg_dim for q in builder.add_aux_qreg(dim=dim)
     )
 
-    for sub in bloq.instructions:
+    qreg_map = instruction.qreg + aux_qreg
+    creg_map = instruction.creg + aux_creg
+
+    for ins in bloq.instructions:
         placed = OpInstruction(
-            sub.op,
-            tuple(qreg[q] for q in sub.qreg),
-            tuple(creg[c] for c in sub.creg),
-            sub.style,
+            ins.op,
+            tuple(qreg_map[q] for q in ins.qreg),
+            tuple(creg_map[c] for c in ins.creg),
+            ins.style,
         )
-        _expand(placed, builder, repository, primitives, active | {op})
-    builder.release_aux_qreg(aux)
+        _expand(placed, builder, repository, primitives, expanded | {op}, aux_creg_end)
+    builder.release_aux_qreg(aux_qreg)
 
 
 def compile(
@@ -137,5 +144,6 @@ def compile(
         repository,
         primitives,
         frozenset(),
+        0,
     )
     return builder.to_bloq()
