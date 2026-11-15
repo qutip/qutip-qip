@@ -228,28 +228,12 @@ def _SWAPALPHA(op, bloq):
 
 @register_op(SQRTSWAP, repository=CNOT_ROTATION_BASIS)
 def _SQRTSWAP(op, bloq):
-    bloq.add_global_phase(3 * PI / 8)
-    bloq.add(RZ(-PI / 2), 1)
-    bloq.add(CX, (1, 0))
-    bloq.add(RZ(3 * PI / 4), 0)
-    bloq.add(RY(-3 * PI / 4), 1)
-    bloq.add(CX, (0, 1))
-    bloq.add(RY(3 * PI / 4), 1)
-    bloq.add(CX, (1, 0))
-    bloq.add(RZ(PI / 2), 0)
+    bloq.add(SWAPALPHA(0.5), (0, 1))
 
 
 @register_op(SQRTSWAPdag, repository=CNOT_ROTATION_BASIS)
 def _SQRTSWAPdag(op, bloq):
-    bloq.add_global_phase(PI / 8)
-    bloq.add(RZ(-PI / 2), 1)
-    bloq.add(CX, (1, 0))
-    bloq.add(RZ(PI / 4), 0)
-    bloq.add(RY(-PI / 4), 1)
-    bloq.add(CX, (0, 1))
-    bloq.add(RY(PI / 4), 1)
-    bloq.add(CX, (1, 0))
-    bloq.add(RZ(PI / 2), 0)
+    bloq.add(SWAPALPHA(-0.5), (0, 1))
 
 
 @register_op(SQRTISWAP, repository=CNOT_ROTATION_BASIS)
