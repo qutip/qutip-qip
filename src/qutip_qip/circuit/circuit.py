@@ -5,14 +5,11 @@ Quantum circuit representation and simulation.
 import warnings
 import inspect
 from typing import Iterable, Self
-from qutip import qeye, Qobj, basis, tensor
+
 import numpy as np
+from qutip import qeye, Qobj, basis, tensor
 
 from qutip_qip.circuit import CircuitSimulator
-from qutip_qip.decompose._decompose import (
-    _resolve_to_universal,
-    _resolve_2q_basis,
-)
 from qutip_qip.circuit.instruction import (
     CircuitInstruction,
     ConditionalBranchInstruction,
@@ -20,7 +17,7 @@ from qutip_qip.circuit.instruction import (
     LabelInstruction,
     MeasurementInstruction,
 )
-from qutip_qip.operations.conditional import Conditional, Label, ClassicalControlCheck
+from qutip_qip.operations.conditional import Conditional, Label
 from qutip_qip.operations import (
     AngleUnitary,
     BloqBuilder,
@@ -76,8 +73,6 @@ class QuantumCircuit(BloqBuilder):
         reverse_states=True,
     ):
         self.reverse_states = reverse_states
-        self._instructions: list[CircuitInstruction] = []
-        self._built_count = -1
 
         if input_states:
             self.input_states = input_states
@@ -90,16 +85,6 @@ class QuantumCircuit(BloqBuilder):
             self.output_states = [None for i in range(num_qreg + num_creg)]
 
         super().__init__(num_qreg, num_creg, qreg_dim)
-
-    @property
-    def ops(self) -> tuple[OpInstruction, ...]:
-        return tuple(self._op_instructions)
-
-    @property
-    def instructions(self) -> list[CircuitInstruction]:
-        if self._built_count != len(self._op_instructions):
-            self.build()
-        return self._instructions
 
     def add_state(
         self,
@@ -134,49 +119,6 @@ class QuantumCircuit(BloqBuilder):
         if state_type == "output":
             for i in targets:
                 self.output_states[i] = state
-
-    def build(self: Self):
-        """
-        Converts _ops list to a frozen _instructions tuple.
-        """
-        self._instructions = []
-        bloq = self.to_bloq()
-
-        for op_instruction in bloq.instructions:
-            op = op_instruction.op
-
-            if isinstance(op, Measurement):
-                self._instructions.append(
-                    MeasurementInstruction(
-                        operation=op,
-                        qubits=op_instruction.qreg,
-                        cbits=op_instruction.creg,
-                    )
-                )
-
-            elif isinstance(op, Conditional):
-                self._instructions.append(
-                    ConditionalBranchInstruction(
-                        operation=op, cbits=op_instruction.creg
-                    )
-                )
-
-            elif isinstance(op, Label):
-                self._instructions.append(LabelInstruction(operation=op))
-
-            elif isinstance(op, Unitary):
-                self._instructions.append(
-                    UnitaryInstruction(
-                        operation=op,
-                        qubits=op_instruction.qreg,
-                        cbits=op_instruction.creg,
-                    )
-                )
-
-            # TODO handle non-gate/non-measurement op
-
-        self._instructions = tuple(self._instructions)
-        self._built_count = len(self._op_instructions)
 
     def run(
         self,
@@ -589,6 +531,12 @@ class QubitCircuit(QuantumCircuit):
 
         self._user_gates = gate_classes
 
+    @property
+    def instructions(self) -> list[CircuitInstruction]:
+        if self._built_count != len(self._op_instructions):
+            self.build()
+        return self._instructions
+
     def add_measurement(
         self,
         measurement: type[Measurement],
@@ -832,7 +780,7 @@ class QubitCircuit(QuantumCircuit):
             output_states=self.output_states,
         )
 
-        for circ_op in reversed(self.ops):
+        for circ_op in reversed(self._op_instructions):
             temp.add(
                 op=circ_op.op,
                 qreg=circ_op.qreg,
@@ -868,7 +816,7 @@ class QubitCircuit(QuantumCircuit):
         if self.num_qubits - start < qc.num_qubits:
             raise NotImplementedError("Targets exceed number of qubits.")
 
-        for circuit_op in qc.ops:
+        for circuit_op in qc._op_instructions:
             self.add(
                 op=circuit_op.op,
                 qreg=[start + t for t in circuit_op.qreg],
@@ -936,123 +884,52 @@ class QubitCircuit(QuantumCircuit):
             else:
                 raise ValueError(f"{basis} is not a valid two-qubit basis gate")
 
-        match = False
         qc_temp = QubitCircuit(
             self.num_qubits,
             reverse_states=self.reverse_states,
             num_cbits=self.num_cbits,
         )
-        temp_resolved = QubitCircuit(
-            self.num_qubits,
-            reverse_states=self.reverse_states,
-            num_cbits=self.num_cbits,
-        )
-
-        for circ_instruction in self.instructions:
-            gate = circ_instruction.operation
-            targets = circ_instruction.targets
-            controls = circ_instruction.controls
-
-            if gate in (std.X, std.Y, std.Z):
-                temp_resolved.add_global_phase(phase=np.pi / 2)
-
-                if gate == std.X:
-                    temp_resolved.add_gate(std.RX(np.pi), targets=targets)
-                elif gate == std.Y:
-                    temp_resolved.add_gate(std.RY(np.pi), targets=targets)
-                else:
-                    temp_resolved.add_gate(std.RZ(np.pi), targets=targets)
-
-            else:
-                try:
-                    _resolve_to_universal(
-                        circ_instruction, temp_resolved, basis_1q, basis_2q
-                    )
-                except KeyError:
-                    if gate.name in basis:
-                        temp_resolved.add_gate(
-                            gate,
-                            targets=targets,
-                            controls=controls,
-                            classical_controls=circ_instruction.cbits,
-                            classical_control_value=circ_instruction.cbits_ctrl_value,
-                        )
-                    else:
-                        exception = f"Gate {gate.name} cannot be resolved."
-                        raise NotImplementedError(exception)
-
-        qc_temp.add_global_phase(temp_resolved.global_phase)
-
-        for basis_unit in ["CSIGN", "CZ", "ISWAP", "SQRTSWAP", "SQRTISWAP"]:
-            if basis_unit in basis_2q:
-                match = True
-                _resolve_2q_basis(basis_unit, qc_temp, temp_resolved)
-                break
-        if not match:
-            qc_temp = temp_resolved
-
-        if len(basis_1q) != 2:
-            return qc_temp
-
-        instructions = qc_temp.instructions
-        half_pi = np.pi / 2
-
-        qc_temp._op_instructions = []
-        qc_temp._built_count = -1
-
-        for circ_instruction in instructions:
-            gate = circ_instruction.operation
-            targets = circ_instruction.targets
-            controls = circ_instruction.controls
-
-            if type(gate) is std.RX and "RX" not in basis_1q:
-                qc_temp.add_gate(
-                    std.RY(-half_pi),
-                    targets=targets,
-                )
-                qc_temp.add_gate(
-                    std.RZ(gate.arg_value[0]),
-                    targets=targets,
-                )
-                qc_temp.add_gate(
-                    std.RY(half_pi),
-                    targets=targets,
-                )
-
-            elif type(gate) is std.RY and "RY" not in basis_1q:
-                qc_temp.add_gate(
-                    std.RZ(-half_pi),
-                    targets=targets,
-                )
-                qc_temp.add_gate(
-                    std.RX(gate.theta),
-                    targets=targets,
-                )
-                qc_temp.add_gate(
-                    std.RZ(half_pi),
-                    targets=targets,
-                )
-
-            elif type(gate) is std.RZ and "RZ" not in basis_1q:
-                qc_temp.add_gate(
-                    std.RX(-half_pi),
-                    targets=targets,
-                )
-                qc_temp.add_gate(
-                    std.RY(gate.arg_value[0]),
-                    targets=targets,
-                )
-                qc_temp.add_gate(
-                    std.RX(half_pi),
-                    targets=targets,
-                )
-            else:
-                qc_temp.add_gate(
-                    gate,
-                    targets=targets,
-                    controls=controls,
-                    classical_controls=circ_instruction.cbits,
-                    classical_control_value=circ_instruction.cbits_ctrl_value,
-                )
-
         return qc_temp
+
+    def build(self: Self):
+        """
+        Converts _ops list to a frozen _instructions tuple.
+        """
+        self._instructions = []
+        bloq = self.to_bloq()
+
+        for op_instruction in bloq.instructions:
+            op = op_instruction.op
+
+            if isinstance(op, Measurement):
+                self._instructions.append(
+                    MeasurementInstruction(
+                        operation=op,
+                        qubits=op_instruction.qreg,
+                        cbits=op_instruction.creg,
+                    )
+                )
+
+            elif isinstance(op, Conditional):
+                self._instructions.append(
+                    ConditionalBranchInstruction(
+                        operation=op, cbits=op_instruction.creg
+                    )
+                )
+
+            elif isinstance(op, Label):
+                self._instructions.append(LabelInstruction(operation=op))
+
+            elif isinstance(op, Unitary):
+                self._instructions.append(
+                    UnitaryInstruction(
+                        operation=op,
+                        qubits=op_instruction.qreg,
+                        cbits=op_instruction.creg,
+                    )
+                )
+
+            # TODO handle non-gate/non-measurement op
+
+        self._instructions = tuple(self._instructions)
+        self._built_count = len(self._op_instructions)
