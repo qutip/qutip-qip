@@ -45,7 +45,7 @@ class BloqBuilder:
         "_op_instructions",
     )
 
-    # Note: We don't require an ancilla like clean mechanism for aux_creg becauase
+    # Note: We don't require an ancilla like clean mechanism for aux_creg because
     # classical registers can be overwritten in measurement. So a creg is reusable
     # as soon as its bloq ends.
 
