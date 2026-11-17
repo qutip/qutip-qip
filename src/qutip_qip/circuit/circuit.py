@@ -4,7 +4,7 @@ Quantum circuit representation and simulation.
 
 import warnings
 import inspect
-from typing import Iterable, Self
+from typing import Self
 
 import numpy as np
 from qutip import qeye, Qobj, basis, tensor
@@ -17,14 +17,25 @@ from qutip_qip.circuit.instruction import (
     LabelInstruction,
     MeasurementInstruction,
 )
+from qutip_qip.decompose import (
+    CNOT_ROTATION_BASIS,
+    CZ_BASIS,
+    ISWAP_BASIS,
+    SQRTSWAP_BASIS,
+    SQRTISWAP_BASIS,
+)
 from qutip_qip.operations.conditional import Conditional, Label
 from qutip_qip.operations import (
     AngleUnitary,
+    Bloq,
     BloqBuilder,
+    BloqRepository,
+    Controlled,
     Measurement,
     Mz,
-    OpInstruction,
+    Op,
     Unitary,
+    decompose,
     expand_operator,
     get_unitary_gate,
 )
@@ -42,6 +53,15 @@ except ImportError:
 
     def DisplaySVG(data, *args, **kwargs):
         return data
+
+
+_BASIS_REPOSITORY = {
+    "CSIGN": CZ_BASIS,
+    "CZ": CZ_BASIS,
+    "ISWAP": ISWAP_BASIS,
+    "SQRTSWAP": SQRTSWAP_BASIS,
+    "SQRTISWAP": SQRTISWAP_BASIS,
+}
 
 
 class QuantumCircuit(BloqBuilder):
@@ -348,29 +368,10 @@ class QuantumCircuit(BloqBuilder):
                 f"Unknown renderer '{renderer}' not supported. Please choose from 'latex', 'matplotlib', 'text'."
             )
 
-    def _to_qasm(self, qasm_out):
-        """
-        Pipe output of circuit object to QasmOutput object.
-
-        Parameters
-        ----------
-        qasm_out: QasmOutput
-            object to store QASM output.
-        """
-
-        qasm_out.output(f"qreg q[{self.num_qubits}];")
-        if self.num_cbits:
-            qasm_out.output(f"creg c[{self.num_cbits}];")
-        qasm_out.output(n=1)
-
-        for circ_instruction in self.instructions:
-            if circ_instruction.is_gate_instruction() and not qasm_out.is_defined(
-                circ_instruction.operation.name
-            ):
-                qasm_out._qasm_defns(circ_instruction.operation)
-
-        for circ_instruction in self.instructions:
-            circ_instruction.to_qasm(qasm_out)
+    def decompose(
+        self: Self, repository: BloqRepository, primitives: frozenset[Op | type[Op]]
+    ) -> Bloq:
+        return decompose(self.to_bloq(), repository, primitives)
 
 
 class QubitCircuit(QuantumCircuit):
@@ -727,6 +728,11 @@ class QubitCircuit(QuantumCircuit):
                 f"{classical_control_value} must be with [0, {default_classical_ctrl_val}]"
             )
 
+        if isinstance(gate, Controlled) and len(controls) != gate.num_ctrl_qreg:
+            raise ValueError(
+                f"{gate.name} has {gate.num_ctrl_qreg} control qubits, got {len(controls)}."
+            )
+
         qubits = []
         qubits.extend(controls)
         qubits.extend(targets)
@@ -816,7 +822,7 @@ class QubitCircuit(QuantumCircuit):
         if self.num_qubits - start < qc.num_qubits:
             raise NotImplementedError("Targets exceed number of qubits.")
 
-        for circuit_op in qc._op_instructions:
+        for circuit_op in qc.to_bloq().instructions:
             self.add(
                 op=circuit_op.op,
                 qreg=[start + t for t in circuit_op.qreg],
@@ -846,50 +852,36 @@ class QubitCircuit(QuantumCircuit):
             for the qubit circuit in the desired basis.
         """
 
-        num_measurements = len(
-            list(filter(lambda x: x.is_measurement_instruction(), self.instructions))
+        names = [basis] if isinstance(basis, str) else list(basis)
+
+        rotations = {"RX", "RY", "RZ"}.intersection(names)
+        if len(rotations) == 1:
+            raise ValueError("Not sufficient single-qubit gates in basis")
+        if not rotations:
+            names += ["RX", "RY", "RZ"]
+
+        repository = next(
+            (repo for name, repo in _BASIS_REPOSITORY.items() if name in names),
+            None,
         )
-        if num_measurements > 0:
-            raise NotImplementedError("adjacent_gates must be called before \
-                measurements are added to the circuit")
+        if repository is None:
+            repository = CNOT_ROTATION_BASIS
+            names.append("CX")
 
-        basis_1q_valid = ["RX", "RY", "RZ", "IDENTITY"]
-        basis_2q_valid = [
-            "CX",
-            "CSIGN",
-            "CZ",
-            "ISWAP",
-            "SQRTSWAP",
-            "SQRTISWAP",
-        ]
-        basis_1q = []
-        basis_2q = []
+        primitives = frozenset(std.GATE_CLASS_MAP[name] for name in names) | {std.IDLE}
+        bloq = self.decompose(repository, primitives)
 
-        if isinstance(basis, Iterable):
-            for gate in basis:
-                if gate in basis_2q_valid:
-                    basis_2q.append(gate)
-                elif gate in basis_1q_valid:
-                    basis_1q.append(gate)
-
-            if len(basis_1q) == 1:
-                raise ValueError("Not sufficient single-qubit gates in basis")
-            if len(basis_1q) == 0:
-                basis_1q = ["RX", "RY", "RZ"]
-
-        else:  # only one 2q gate is given as basis
-            basis_1q = ["RX", "RY", "RZ"]
-            if basis in basis_2q_valid:
-                basis_2q = [basis]
-            else:
-                raise ValueError(f"{basis} is not a valid two-qubit basis gate")
-
-        qc_temp = QubitCircuit(
+        qc = QubitCircuit(
             self.num_qubits,
             reverse_states=self.reverse_states,
             num_cbits=self.num_cbits,
         )
-        return qc_temp
+        qc.add_global_phase(bloq.global_phase)
+        for instruction in bloq.instructions:
+            qc.add(
+                instruction.op, instruction.qreg, instruction.creg, instruction.style
+            )
+        return qc
 
     def build(self: Self):
         """
@@ -933,3 +925,27 @@ class QubitCircuit(QuantumCircuit):
 
         self._instructions = tuple(self._instructions)
         self._built_count = len(self._op_instructions)
+
+    def _to_qasm(self, qasm_out):
+        """
+        Pipe output of circuit object to QasmOutput object.
+
+        Parameters
+        ----------
+        qasm_out: QasmOutput
+            object to store QASM output.
+        """
+
+        qasm_out.output(f"qreg q[{self.num_qubits}];")
+        if self.num_cbits:
+            qasm_out.output(f"creg c[{self.num_cbits}];")
+        qasm_out.output(n=1)
+
+        for circ_instruction in self.instructions:
+            if circ_instruction.is_gate_instruction() and not qasm_out.is_defined(
+                circ_instruction.operation.name
+            ):
+                qasm_out._qasm_defns(circ_instruction.operation)
+
+        for circ_instruction in self.instructions:
+            circ_instruction.to_qasm(qasm_out)

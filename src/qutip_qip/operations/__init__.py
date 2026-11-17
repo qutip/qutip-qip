@@ -12,7 +12,7 @@ from .unitary import AngleUnitary, Inverse, Unitary, get_unitary_gate
 from .controlled import Controlled
 from .measurement import Measurement, Mz
 from .bloq import Bloq, BloqBuilder
-from .bloq_repository import BloqRepository, DEFAULT_REPOSITORY, register_op
+from .bloq_repository import BloqRepository, DEFAULT_REPOSITORY, decompose, register_op
 from .helper import Power
 from .old_gates import (
     rx,
@@ -62,6 +62,7 @@ __all__ = [
     "BloqBuilder",
     "BloqRepository",
     "DEFAULT_REPOSITORY",
+    "decompose",
     "register_op",
     "get_op_class",
     "Mz",
