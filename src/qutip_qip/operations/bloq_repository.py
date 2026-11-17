@@ -89,6 +89,23 @@ class BloqRepository:
 DEFAULT_REPOSITORY = BloqRepository()
 
 
+def decompose(
+    bloq: Bloq, repository: BloqRepository, primitives: frozenset[Op | type[Op]]
+) -> Bloq:
+    builder = BloqBuilder(bloq.num_qreg, bloq.num_creg, bloq.qreg_dim)
+    _inline(
+        bloq,
+        builder.qreg,
+        builder.creg,
+        builder,
+        repository,
+        primitives,
+        frozenset(),
+        0,
+    )
+    return builder.to_bloq()
+
+
 def register_op(
     op: Op | type[Op],
     impl: BloqImpl | None = None,
@@ -121,6 +138,29 @@ def _expand(
         )
 
     bloq = repository.resolve(op)
+    _inline(
+        bloq,
+        instruction.qreg,
+        instruction.creg,
+        builder,
+        repository,
+        primitives,
+        expanded | {op},
+        aux_creg_start,
+    )
+
+
+def _inline(
+    bloq: Bloq,
+    qreg: tuple[int, ...],
+    creg: tuple[int, ...],
+    builder: BloqBuilder,
+    repository: BloqRepository,
+    primitives: frozenset[Op | type[Op]],
+    expanded: frozenset[Op],
+    aux_creg_start: int,
+) -> None:
+
     builder.add_global_phase(bloq.global_phase)
 
     # Allocating the auxiliary (ancilla) qreg, creg
@@ -136,8 +176,8 @@ def _expand(
         q for dim in bloq.aux_qreg_dim for q in builder.add_aux_qreg(dim=dim)
     )
 
-    qreg_map = instruction.qreg + aux_qreg
-    creg_map = instruction.creg + aux_creg
+    qreg_map = qreg + aux_qreg
+    creg_map = creg + aux_creg
 
     for ins in bloq.instructions:
         placed = OpInstruction(
@@ -146,20 +186,5 @@ def _expand(
             tuple(creg_map[c] for c in ins.creg),
             ins.style,
         )
-        _expand(placed, builder, repository, primitives, expanded | {op}, aux_creg_end)
+        _expand(placed, builder, repository, primitives, expanded, aux_creg_end)
     builder.release_aux_qreg(aux_qreg)
-
-
-def decompose(
-    op: Op, repository: BloqRepository, primitives: frozenset[Op | type[Op]]
-) -> Bloq:
-    builder = BloqBuilder(op.num_qreg, op.num_creg, op.qreg_dim)
-    _expand(
-        OpInstruction(op, builder.qreg, builder.creg),
-        builder,
-        repository,
-        primitives,
-        frozenset(),
-        0,
-    )
-    return builder.to_bloq()
