@@ -83,29 +83,6 @@ class QuantumCircuit(BloqBuilder):
         Number of classical bits in the system.
     """
 
-    def __init__(
-        self: Self,
-        num_qreg: int,
-        num_creg: int = 0,
-        qreg_dim: tuple[int, ...] = (),
-        input_states=None,
-        output_states=None,
-        reverse_states=True,
-    ):
-        self.reverse_states = reverse_states
-
-        if input_states:
-            self.input_states = input_states
-        else:
-            self.input_states = [None for i in range(num_qreg + num_creg)]
-
-        if output_states:
-            self.output_states = output_states
-        else:
-            self.output_states = [None for i in range(num_qreg + num_creg)]
-
-        super().__init__(num_qreg, num_creg, qreg_dim)
-
     def add_state(
         self,
         state: str,
@@ -420,14 +397,7 @@ class QubitCircuit(QuantumCircuit):
         if user_gates is not None:
             self.user_gates = user_gates
 
-        super().__init__(
-            num_qubits,
-            num_cbits,
-            self.dims,
-            input_states,
-            output_states,
-            reverse_states,
-        )
+        super().__init__(num_qubits, num_cbits, tuple(self.dims))
 
     @property
     def num_qubits(self) -> int:
@@ -655,7 +625,7 @@ class QubitCircuit(QuantumCircuit):
         if control_value is not None:
             warnings.warn(
                 "'control_value' is no longer a valid argument and has been deprecated and will be removed in the future version.\n"
-                "from qutip_qip.operations import controlled\n"
+                "from qutip_qip.operations import Controlled\n"
                 "from qutip_qip.operations.gates import X\n"
                 "Example: gate = controlled(X, num_ctrl_qreg=1, ctrl_value=0)\n"
                 "Please refer to the tutorial for the recommended way to define them:\n"

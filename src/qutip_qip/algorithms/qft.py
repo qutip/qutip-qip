@@ -17,7 +17,7 @@ class QFT(Unitary):
 
     def validate_params(self):
         if not isinstance(self.n, Int) or self.n < 1:
-            raise ValueError(f"n must be an integer and greater than 1, got {self.n}")
+            raise ValueError(f"n must be an integer and >= 1, got {self.n}")
 
     @property
     def num_qreg(self):
@@ -56,7 +56,7 @@ def qft(N: int = 1) -> Qobj:
     warnings.warn(
         "qft has been deprecated and will be removed in future. Please use QFT(n).get_qobj() instead",
         DeprecationWarning,
-        stacklevel=3,
+        stacklevel=2,
     )
     return QFT(N).get_qobj()
 
@@ -89,7 +89,7 @@ def qft_gate_sequence(
         "qft_gate_sequence has been deprecated and will be removed in future. Please use QFT instead"
         "Also use of swapping, to_cnot is no longer supported.",
         DeprecationWarning,
-        stacklevel=3,
+        stacklevel=2,
     )
 
     qc = QubitCircuit(N)

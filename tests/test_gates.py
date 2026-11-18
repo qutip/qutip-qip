@@ -12,7 +12,6 @@ from qutip_qip.operations import (
     Inverse,
     Mz,
     Unitary,
-    Controlled,
     expand_operator,
     get_unitary_gate,
     hadamard_transform,
