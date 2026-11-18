@@ -13,13 +13,13 @@ from scipy.linalg import block_diag
 
 from qutip import Qobj
 from qutip_qip.operations.op import op_factory
-from qutip_qip.operations.unitary import Unitary
+from qutip_qip.operations.unitary import Inverse, Unitary
 from qutip_qip.typing import Int
 
 
-class ControlledUnitary(Unitary):
+class Controlled(Unitary):
     r"""
-    Abstract class for defining a Controlled Unitary.
+    Abstract class for defining a Controlled Unitaries.
 
     Attributes
     ----------
@@ -73,20 +73,20 @@ class ControlledUnitary(Unitary):
         cls._configure(target)
         super().__init_subclass__()
         cls._families.setdefault(
-            (cls.target, cls.num_ctrl_qreg, cls.ctrl_value, cls.ctrl_dim, cls.name), cls
+            (cls.target, cls.num_ctrl_qreg, cls.ctrl_value, cls.ctrl_dim), cls
         )
 
     @classmethod
-    def _resolve(cls, target, num_ctrl_qreg, ctrl_value, ctrl_dim, name):
+    def _resolve(cls, target, num_ctrl_qreg, ctrl_value, ctrl_dim):
         """Validate and fill in the controls."""
         family = type(target) if isinstance(target, Unitary) else target
         if not (isinstance(family, type) and issubclass(family, Unitary)):
             raise TypeError(
-                f"{name}: target must be a unitary value like X or a family like RX, got {target!r}."
+                f"{cls.name}: target must be a unitary value like X or a family like RX, got {target!r}."
             )
 
         if not isinstance(num_ctrl_qreg, Int) or num_ctrl_qreg < 1:
-            raise ValueError(f"{name}: num_ctrl_qreg must be an integer >= 1.")
+            raise ValueError(f"{cls.name}: num_ctrl_qreg must be an integer >= 1.")
 
         # Default value and validation for ctrl_dim
         if ctrl_dim is None:
@@ -98,7 +98,7 @@ class ControlledUnitary(Unitary):
             or any(not isinstance(d, Int) or d < 2 for d in ctrl_dim)
         ):
             raise ValueError(
-                f"{name}: ctrl_dim={ctrl_dim} needs {num_ctrl_qreg} entries, each >= 2."
+                f"{cls.name}: ctrl_dim={ctrl_dim} needs {num_ctrl_qreg} entries, each >= 2."
             )
 
         # Default value and validation for ctrl_value
@@ -107,11 +107,11 @@ class ControlledUnitary(Unitary):
             ctrl_value = size - 1
 
         if not isinstance(ctrl_value, Int) or not 0 <= ctrl_value < size:
-            raise ValueError(f"{name}: ctrl_value must be in [0, {size}).")
+            raise ValueError(f"{cls.name}: ctrl_value must be in [0, {size}).")
 
-        # If we are controlling an already ControlledUnitary e.g. CX
+        # If we are controlling an already Controlled e.g. CX
         # we can just use X as target and increase the num_ctrl_qreg, ctrl_dim count
-        if issubclass(family, ControlledUnitary):
+        if issubclass(family, Controlled):
             ctrl_value = ctrl_value * math.prod(target.ctrl_dim) + target.ctrl_value
             ctrl_dim = ctrl_dim + target.ctrl_dim
             num_ctrl_qreg = len(ctrl_dim)
@@ -119,7 +119,7 @@ class ControlledUnitary(Unitary):
                 target.target_unitary if isinstance(target, Unitary) else target.target
             )
 
-        return target, num_ctrl_qreg, ctrl_value, ctrl_dim, name
+        return target, num_ctrl_qreg, ctrl_value, ctrl_dim
 
     @classmethod
     def _family(cls, controls):
@@ -131,8 +131,8 @@ class ControlledUnitary(Unitary):
 
     @classmethod
     def _configure(cls, target: Unitary | type[Unitary]) -> None:
-        cls.target, cls.num_ctrl_qreg, cls.ctrl_value, cls.ctrl_dim, _ = cls._resolve(
-            target, cls.num_ctrl_qreg, cls.ctrl_value, cls.ctrl_dim, cls.name
+        cls.target, cls.num_ctrl_qreg, cls.ctrl_value, cls.ctrl_dim = cls._resolve(
+            target, cls.num_ctrl_qreg, cls.ctrl_value, cls.ctrl_dim
         )
         target = cls.target
 
@@ -154,6 +154,11 @@ class ControlledUnitary(Unitary):
             )
             for f in fields(target):
                 setattr(cls, f.name, copy.copy(f))
+
+    def __new__(cls, *args, **kwargs):
+        if cls is Controlled:
+            return _controlled(*args, **kwargs)
+        return super().__new__(cls)
 
     def validate_params(self) -> None:
         # Run the validate_params method by building the target
@@ -187,9 +192,9 @@ class ControlledUnitary(Unitary):
             dtype=dtype,
         )
 
-    def compute_inverse(self) -> Unitary:
-        return controlled(
-            self.target_unitary.inverse(),
+    def inverse(self) -> Unitary:
+        return Controlled(
+            Inverse(self.target_unitary),
             self.num_ctrl_qreg,
             self.ctrl_value,
             self.ctrl_dim,
@@ -200,31 +205,30 @@ class ControlledUnitary(Unitary):
 
 
 @op_factory
-def controlled(
+def _controlled(
     op: Unitary | type[Unitary],
     num_ctrl_qreg: int = 1,
     ctrl_value: int | None = None,
     ctrl_dim: tuple[int, ...] | None = None,
     name: str | None = None,
-) -> ControlledUnitary | type[ControlledUnitary]:
+) -> Controlled | type[Controlled]:
 
-    # A class body cannot read a parameter if what it assigns has the same name, so we use aliases.
     prefix = "C" * num_ctrl_qreg
     label = name or prefix + (op if isinstance(op, type) else type(op)).__name__
+
+    controls = Controlled._resolve(op, num_ctrl_qreg, ctrl_value, ctrl_dim)
+    if (control_family := Controlled._family(controls)) is not None:
+        return control_family
+
+    # A class body cannot have the same name for a parameter so we use aliases (starts with _).
+    _target, _num_ctrl_qreg, _ctrl_value, _ctrl_dim = controls
     _name = name or (
         prefix + op.name
         if isinstance(op.name, str)
         else property(lambda self: prefix + self.target_unitary.name)
     )
 
-    controls = ControlledUnitary._resolve(
-        op, num_ctrl_qreg, ctrl_value, ctrl_dim, _name
-    )
-    if (control_family := ControlledUnitary._family(controls)) is not None:
-        return control_family
-    _target, _num_ctrl_qreg, _ctrl_value, _ctrl_dim, _name = controls
-
-    class _Controlled(ControlledUnitary):
+    class _Controlled(Controlled):
         __qualname__ = label  # otherwise every factory-made class is named _Controlled
         name = _name
         target = _target

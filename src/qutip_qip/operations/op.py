@@ -56,7 +56,11 @@ class _OpMeta(ABCMeta):
             raise TypeError(
                 f"{cls.__qualname__} is a value, not a parametric op, use it directly."
             )
-        return super().__call__(*args, **kwargs)
+
+        op = cls.__new__(cls, *args, **kwargs)
+        if type(op) is cls:
+            op.__init__(*args, **kwargs)
+        return op
 
     def __setattr__(cls, name, value):
         if not name.startswith("_") and "_sealed" in vars(cls):
@@ -249,7 +253,7 @@ class OpInstruction:
 
 
 # In future if we want to pickle Ops or use the multiprocessing package
-# the Ops created via functions like get_unitary_gate, controlled won't
+# the Ops created via functions like get_unitary_gate, Controlled(..) won't
 # reduce properly due to the import path issue. That's why we have to define op_factory.
 copyreg.pickle(_OpMeta, lambda cls: vars(cls).get("_factory") or cls.__qualname__)
 
@@ -257,15 +261,23 @@ copyreg.pickle(_OpMeta, lambda cls: vars(cls).get("_factory") or cls.__qualname_
 def op_factory(build):
     @wraps(build)
     def factory(*args, **kwargs):
-        # A value's parameters carry over: controlled(RX(0.5)) is controlled(RX)(0.5).
+        # A value's parameters carry over: Controlled(RX(0.5)) is Controlled(RX)(0.5).
         params = args[0].params if args and isinstance(args[0], Op) else ()
         if params:
             args = (type(args[0]), *args[1:])
         made = build(*args, **kwargs)
 
-        # A Op factory-made class (e.g. via controlled, get_unitary_gate etc.) has no import path, so it pickles as the call that made it.
+        # A Op factory-made class (e.g. via Controlled, get_unitary_gate etc.) has no import path, so it pickles as the call that made it.
         family = made if made.is_parametric else type(made)
         family._factory = (partial(factory, *args, **kwargs), ())
         return made(*params) if params else made
 
     return factory
+
+
+def get_op_class(op: Op | type[Op]) -> Op | type[Op] | None:
+    if isinstance(op, Op):
+        return type(op) if op.is_parametric else op
+    if isinstance(op, type) and issubclass(op, Op):
+        return op
+    return None

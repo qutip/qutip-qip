@@ -1,7 +1,7 @@
 import numpy as np
 from qutip import Qobj
 
-from qutip_qip.operations import AngleUnitary, ControlledUnitary, Unitary
+from qutip_qip.operations import AngleUnitary, Controlled, Unitary
 from qutip_qip.operations.gates import (
     X,
     Y,
@@ -91,7 +91,7 @@ class ISWAP(Unitary):
         )
 
     @staticmethod
-    def compute_inverse() -> type[Unitary]:
+    def inverse() -> type[Unitary]:
         return ISWAPdag
 
 
@@ -129,7 +129,7 @@ class ISWAPdag(Unitary):
         )
 
     @staticmethod
-    def compute_inverse() -> type[Unitary]:
+    def inverse() -> type[Unitary]:
         return ISWAP
 
 
@@ -189,7 +189,7 @@ class SQRTSWAP(Unitary):
         )
 
     @staticmethod
-    def compute_inverse() -> type[Unitary]:
+    def inverse() -> type[Unitary]:
         return SQRTSWAPdag
 
 
@@ -228,7 +228,7 @@ class SQRTSWAPdag(Unitary):
         )
 
     @staticmethod
-    def compute_inverse() -> type[Unitary]:
+    def inverse() -> type[Unitary]:
         return SQRTSWAP
 
 
@@ -276,7 +276,7 @@ class SQRTISWAP(Unitary):
         )
 
     @staticmethod
-    def compute_inverse() -> type[Unitary]:
+    def inverse() -> type[Unitary]:
         return SQRTISWAPdag
 
 
@@ -316,7 +316,7 @@ class SQRTISWAPdag(Unitary):
         )
 
     @staticmethod
-    def compute_inverse() -> type[Unitary]:
+    def inverse() -> type[Unitary]:
         return SQRTISWAP
 
 
@@ -371,7 +371,7 @@ class BERKELEY(Unitary):
         )
 
     @staticmethod
-    def compute_inverse() -> type[Unitary]:
+    def inverse() -> type[Unitary]:
         return BERKELEYdag
 
 
@@ -417,7 +417,7 @@ class BERKELEYdag(Unitary):
         )
 
     @staticmethod
-    def compute_inverse() -> type[Unitary]:
+    def inverse() -> type[Unitary]:
         return BERKELEY
 
 
@@ -487,7 +487,7 @@ class SWAPALPHA(AngleUnitary):
             dtype=dtype,
         )
 
-    def compute_inverse(self) -> Unitary:
+    def inverse(self) -> Unitary:
         return SWAPALPHA(-self.alpha)
 
 
@@ -558,7 +558,7 @@ class MS(AngleUnitary):
             dtype=dtype,
         )
 
-    def compute_inverse(self) -> Unitary:
+    def inverse(self) -> Unitary:
         return MS(-self.theta, self.phi)
 
 
@@ -620,11 +620,11 @@ class RZX(AngleUnitary):
             dtype=dtype,
         )
 
-    def compute_inverse(self) -> Unitary:
+    def inverse(self) -> Unitary:
         return RZX(-self.theta)
 
 
-class CX(ControlledUnitary):
+class CX(Controlled):
     """
     CNOT gate i.e. Controlled Pauli X gate.
 
@@ -656,7 +656,7 @@ class CX(ControlledUnitary):
 CNOT = CX
 
 
-class CY(ControlledUnitary):
+class CY(Controlled):
     """
     Controlled Pauli Y gate.
 
@@ -685,7 +685,7 @@ class CY(ControlledUnitary):
         )
 
 
-class CZ(ControlledUnitary):
+class CZ(Controlled):
     """
     Controlled Pauli Z gate.
 
@@ -717,7 +717,7 @@ class CZ(ControlledUnitary):
 CSIGN = CZ
 
 
-class CH(ControlledUnitary):
+class CH(Controlled):
     r"""
     Controlled Hadamard gate.
 
@@ -760,7 +760,7 @@ class CH(ControlledUnitary):
         )
 
 
-class CT(ControlledUnitary):
+class CT(Controlled):
     r"""
     Controlled T gate.
 
@@ -802,11 +802,11 @@ class CT(ControlledUnitary):
         )
 
     @staticmethod
-    def compute_inverse() -> type[Unitary]:
+    def inverse() -> type[Unitary]:
         return CTdag
 
 
-class CTdag(ControlledUnitary):
+class CTdag(Controlled):
     r"""
     Inverse of CT gate.
 
@@ -848,11 +848,11 @@ class CTdag(ControlledUnitary):
         )
 
     @staticmethod
-    def compute_inverse() -> type[Unitary]:
+    def inverse() -> type[Unitary]:
         return CT
 
 
-class CS(ControlledUnitary):
+class CS(Controlled):
     r"""
     Controlled S gate.
 
@@ -889,11 +889,11 @@ class CS(ControlledUnitary):
         )
 
     @staticmethod
-    def compute_inverse() -> type[Unitary]:
+    def inverse() -> type[Unitary]:
         return CSdag
 
 
-class CSdag(ControlledUnitary):
+class CSdag(Controlled):
     r"""
     Inverse of CS gate.
 
@@ -930,11 +930,11 @@ class CSdag(ControlledUnitary):
         )
 
     @staticmethod
-    def compute_inverse() -> type[Unitary]:
+    def inverse() -> type[Unitary]:
         return CS
 
 
-class CRX(ControlledUnitary):
+class CRX(Controlled):
     r"""
     Two-qubit Controlled RX gate.
 
@@ -972,11 +972,11 @@ class CRX(ControlledUnitary):
             dtype=dtype,
         )
 
-    def compute_inverse(self) -> Unitary:
+    def inverse(self) -> Unitary:
         return CRX(-self.theta)
 
 
-class CRY(ControlledUnitary):
+class CRY(Controlled):
     r"""
     Two-qubit Controlled RY gate.
 
@@ -1014,11 +1014,11 @@ class CRY(ControlledUnitary):
             dtype=dtype,
         )
 
-    def compute_inverse(self) -> Unitary:
+    def inverse(self) -> Unitary:
         return CRY(-self.theta)
 
 
-class CRZ(ControlledUnitary):
+class CRZ(Controlled):
     r"""
     Two-qubit Controlled RZ gate.
 
@@ -1056,11 +1056,11 @@ class CRZ(ControlledUnitary):
             dtype=dtype,
         )
 
-    def compute_inverse(self) -> Unitary:
+    def inverse(self) -> Unitary:
         return CRZ(-self.theta)
 
 
-class CPHASE(ControlledUnitary):
+class CPHASE(Controlled):
     r"""
     Two-qubit parameterized controlled phase (CPHASE) gate.
 
@@ -1110,11 +1110,11 @@ class CPHASE(ControlledUnitary):
             dtype=dtype,
         )
 
-    def compute_inverse(self) -> Unitary:
+    def inverse(self) -> Unitary:
         return CPHASE(-self.theta)
 
 
-class CQASMU(ControlledUnitary):
+class CQASMU(Controlled):
     r"""
     Two-qubit controlled universal rotation (CQASMU) gate.
 
@@ -1173,5 +1173,5 @@ class CQASMU(ControlledUnitary):
             dtype=dtype,
         )
 
-    def compute_inverse(self) -> Unitary:
+    def inverse(self) -> Unitary:
         return CQASMU(-self.theta, -self.gamma, -self.phi)

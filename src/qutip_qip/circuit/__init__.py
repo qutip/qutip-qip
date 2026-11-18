@@ -6,11 +6,12 @@ from .instruction import (
     MeasurementInstruction,
 )
 from .simulator import CircuitResult, CircuitSimulator
-from .circuit import QubitCircuit
+from .circuit import QuantumCircuit, QubitCircuit
 
 __all__ = [
     "CircuitSimulator",
     "CircuitResult",
+    "QuantumCircuit",
     "QubitCircuit",
     "CircuitInstruction",
     "UnitaryInstruction",

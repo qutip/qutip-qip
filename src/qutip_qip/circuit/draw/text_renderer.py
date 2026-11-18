@@ -24,8 +24,8 @@ class TextRenderer(BaseRenderer):
 
         super().__init__(self.style)
         self._qc = qc
-        self._qwires = qc.num_qubits
-        self._cwires = qc.num_cbits
+        self._qwires = qc.num_qreg
+        self._cwires = qc.num_creg
         self._layer_list = [[] for _ in range(self._qwires + self._cwires)]
 
         self._render_strs = {
@@ -396,9 +396,9 @@ class TextRenderer(BaseRenderer):
         Layout the circuit
         """
         self._add_wire_labels()
-        classical_controls = infer_classical_controls(self._qc.ops)
+        classical_controls = infer_classical_controls(self._qc.to_bloq().instructions)
 
-        for index, op_instruction in enumerate(self._qc.ops):
+        for index, op_instruction in enumerate(self._qc.to_bloq().instructions):
             op = op_instruction.op
             qubits = list(op_instruction.qreg)
             cbits = list(op_instruction.creg)

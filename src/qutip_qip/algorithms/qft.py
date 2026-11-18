@@ -2,13 +2,43 @@
 This module provides the circuit implementation for Quantum Fourier Transform.
 """
 
+import warnings
+
 import numpy as np
 from qutip import Qobj
-from qutip_qip.typing import IntSequence
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.decompose import decompose_one_qubit_gate
-from qutip_qip.operations import expand_operator
-from qutip_qip.operations.gates import H, RZ, CX, CPHASE, SWAP
+from qutip_qip.operations import Unitary, register_op
+from qutip_qip.operations.gates import CPHASE, H, SWAP
+from qutip_qip.typing import Int
+
+
+class QFT(Unitary):
+    n: int
+
+    def validate_params(self):
+        if not isinstance(self.n, Int) or self.n < 1:
+            raise ValueError(f"n must be an integer and >= 1, got {self.n}")
+
+    @property
+    def num_qreg(self):
+        return self.n
+
+    def compute_qobj(self, dtype: str = "dense") -> Qobj:
+        N = 1 << self.n
+        rows = np.arange(N)
+        U = np.exp(2j * np.pi / N * np.outer(rows, rows)) / np.sqrt(N)
+        return Qobj(U, dims=[[2] * self.n] * 2, dtype=dtype)
+
+
+@register_op(QFT)
+def _qft(op, bloq):
+    for i in range(op.n):
+        for j in range(i):
+            bloq.add(CPHASE(np.pi / (2 ** (i - j))), (i, j))
+        bloq.add(H, i)
+
+    for i in range(op.n // 2):
+        bloq.add(SWAP, (i, op.n - 1 - i))
 
 
 def qft(N: int = 1) -> Qobj:
@@ -26,63 +56,12 @@ def qft(N: int = 1) -> Qobj:
         Quantum Fourier transform operator.
 
     """
-    if N < 1:
-        raise ValueError("Minimum value of N can be 1")
-
-    N2 = 1 << N
-    phase = 2.0j * np.pi / N2
-    arr = np.arange(N2)
-    L, M = np.meshgrid(arr, arr)
-    L = phase * (L * M)
-    L = np.exp(L)
-    dims = [[2] * N, [2] * N]
-    return Qobj(1.0 / np.sqrt(N2) * L, dims=dims)
-
-
-def qft_steps(N: int = 1, swapping: bool = True) -> list[Qobj]:
-    """
-    Quantum Fourier Transform operator on N qubits returning the individual
-    steps as unitary matrices operating from left to right.
-
-    Parameters
-    ----------
-    N : int
-        Number of qubits.
-    swapping : bool, optional
-        Flag indicating sequence of swap gates to be applied at the end or
-        not.
-
-    Returns
-    -------
-    U_step_list : list of Qobj
-        List of Hadamard and controlled rotation gates implementing QFT.
-
-    """
-    if N < 1:
-        raise ValueError("Minimum value of N can be 1")
-
-    U_step_list = []
-    if N == 1:
-        U_step_list.append(H.get_qobj())
-    else:
-        for i in range(N):
-            for j in range(i):
-                U_step_list.append(
-                    expand_operator(
-                        CPHASE(np.pi / (2 ** (i - j))).get_qobj(),
-                        dims=[2] * N,
-                        targets=[i, j],
-                    )
-                )
-            U_step_list.append(expand_operator(H.get_qobj(), dims=[2] * N, targets=i))
-        if swapping:
-            for i in range(N // 2):
-                U_step_list.append(
-                    expand_operator(
-                        SWAP.get_qobj(), dims=[2] * N, targets=[N - i - 1, i]
-                    )
-                )
-    return U_step_list
+    warnings.warn(
+        "qft has been deprecated and will be removed in future. Please use QFT(n).get_qobj() instead",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return QFT(N).get_qobj()
 
 
 def qft_gate_sequence(
@@ -97,10 +76,10 @@ def qft_gate_sequence(
         Number of qubits.
     swapping : bool, optional
         Flag indicating sequence of swap gates to be applied at the end or
-        not (default: True).
+        not (default: True). This is deprecated.
     to_cnot : bool, optional
         Flag to decompose controlled phase gates to CNOT gates
-        (default: False).
+        (default: False). This is deprecated.
 
     Returns
     -------
@@ -109,41 +88,13 @@ def qft_gate_sequence(
         QFT.
     """
 
-    if N < 1:
-        raise ValueError("Minimum value of N can be 1")
+    warnings.warn(
+        "qft_gate_sequence has been deprecated and will be removed in future. Please use QFT instead"
+        "Also use of swapping, to_cnot is no longer supported.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
 
     qc = QubitCircuit(N)
-    if N == 1:
-        qc.add_gate(H, targets=[0])
-    else:
-        for i in range(N):
-            for j in range(i):
-                if not to_cnot:
-                    qc.add_gate(
-                        CPHASE(np.pi / (2 ** (i - j))),
-                        targets=[j],
-                        controls=[i],
-                    )
-                else:
-                    _cphase_to_cnot([j], [i], np.pi / (2 ** (i - j)), qc)
-            qc.add_gate(H, targets=[i])
-        if swapping:
-            for i in range(N // 2):
-                qc.add_gate(SWAP, targets=[N - i - 1, i])
+    qc.add(QFT(N), tuple(range(N)))
     return qc
-
-
-def _cphase_to_cnot(
-    targets: int | IntSequence,
-    controls: int | IntSequence,
-    arg_value: float,
-    qc: QubitCircuit,
-) -> None:
-    rotation = Qobj([[1.0, 0.0], [0.0, np.exp(1.0j * arg_value)]])
-    decomposed_gates = list(decompose_one_qubit_gate(rotation, method="ZYZ_PauliX"))
-    qc.add_gate(decomposed_gates[0], targets=targets)
-    qc.add_gate(CX, targets=targets, controls=controls)
-    qc.add_gate(decomposed_gates[4], targets=targets)
-    qc.add_gate(CX, targets=targets, controls=controls)
-    qc.add_gate(RZ(arg_value / 2), targets=controls)
-    qc.add_global_phase(decomposed_gates[7].params[0] + arg_value / 4)

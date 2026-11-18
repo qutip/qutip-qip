@@ -1,18 +1,15 @@
-from .qft import qft, qft_steps, qft_gate_sequence
-from .qpe import qpe
+from .qft import QFT
+from .qpe import QPE
 from .bit_flip import BitFlipCode
 from .phase_flip import PhaseFlipCode
 from .shor_code import ShorCode
-from .grover import grover_oracle, grover
+from .grover import Grover
 
 __all__ = [
-    "qft",
-    "qft_steps",
-    "qft_gate_sequence",
-    "qpe",
+    "QFT",
+    "QPE",
+    "Grover",
     "BitFlipCode",
     "PhaseFlipCode",
     "ShorCode",
-    "grover_oracle",
-    "grover",
 ]

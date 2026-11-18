@@ -25,9 +25,9 @@ class TeXRenderer:
     def __init__(self, qc: QubitCircuit):
 
         self.qc = qc
-        self.num_qubits = qc.num_qubits
-        self.num_cbits = qc.num_cbits
-        self.instructions = qc.ops
+        self.num_qubits = qc.num_qreg
+        self.num_cbits = qc.num_creg
+        self.instructions = qc.to_bloq().instructions
         self.input_states = qc.input_states
         self.reverse_states = qc.reverse_states
 

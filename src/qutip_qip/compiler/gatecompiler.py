@@ -5,6 +5,7 @@ from scipy import signal
 from qutip_qip.compiler import PulseInstruction, Scheduler
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations.gates import GLOBALPHASE, IDLE
+from qutip_qip.operations import get_op_class
 
 
 class GateCompiler:
@@ -167,7 +168,7 @@ class GateCompiler:
         # compile gates
         for circuit_instruction in instructions:
             op = circuit_instruction.operation
-            gate = type(op) if op.is_parametric else op
+            gate = get_op_class(op)
 
             compiler_key = None
             # Support both class and string based keys.

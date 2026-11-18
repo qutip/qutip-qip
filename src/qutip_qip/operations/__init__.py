@@ -7,12 +7,13 @@ from .utils import (
     expand_operator,
     gate_sequence_product,
 )
-from .controlled import ControlledUnitary, controlled
+from .op import Op, OpInstruction, get_op_class
+from .unitary import AngleUnitary, Inverse, Unitary, get_unitary_gate
+from .controlled import Controlled
 from .measurement import Measurement, Mz
-from .op import Op, OpInstruction
-from .unitary import AngleUnitary, Unitary, get_unitary_gate
 from .bloq import Bloq, BloqBuilder
-from .bloq_repository import BloqRepository, register_op
+from .bloq_repository import BloqRepository, DEFAULT_REPOSITORY, decompose, register_op
+from .helper import Power
 from .old_gates import (
     rx,
     ry,
@@ -50,18 +51,22 @@ from .old_gates import (
 
 __all__ = [
     "Op",
-    "ControlledUnitary",
+    "Controlled",
     "Unitary",
+    "Inverse",
     "get_unitary_gate",
-    "controlled",
     "AngleUnitary",
     "Measurement",
     "OpInstruction",
     "Bloq",
     "BloqBuilder",
     "BloqRepository",
+    "DEFAULT_REPOSITORY",
+    "decompose",
     "register_op",
+    "get_op_class",
     "Mz",
+    "Power",
     "rx",
     "ry",
     "rz",
