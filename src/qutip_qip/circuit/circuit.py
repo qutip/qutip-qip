@@ -83,40 +83,6 @@ class QuantumCircuit(BloqBuilder):
         Number of classical bits in the system.
     """
 
-    def add_state(
-        self,
-        state: str,
-        targets: IntSequence,
-        state_type: str = "input",  # FIXME Add an enum type hinting?
-    ):
-        """
-        Add an input or output state to the circuit. By default all the input
-        and output states will be initialized to `None`. A particular state can
-        be added by specifying the state and the qubit where it has to be added
-        along with the type as input or output.
-
-        Parameters
-        ----------
-        state: str
-            The state that has to be added. It can be any string such as `0`,
-            '+', "A", "Y"
-        targets: list
-            A list of qubit positions where the given state has to be added.
-        state_type: str
-            One of either "input" or "output". This specifies whether the state
-            to be added is an input or output.
-            default: "input"
-
-        """
-
-        if state_type == "input":
-            for i in targets:
-                self.input_states[i] = state
-
-        if state_type == "output":
-            for i in targets:
-                self.output_states[i] = state
-
     def run(
         self,
         state=None,
@@ -508,6 +474,40 @@ class QubitCircuit(QuantumCircuit):
             self.build()
         return self._instructions
 
+    def add_state(
+        self,
+        state: str,
+        targets: IntSequence,
+        state_type: str = "input",  # FIXME Add an enum type hinting?
+    ):
+        """
+        Add an input or output state to the circuit. By default all the input
+        and output states will be initialized to `None`. A particular state can
+        be added by specifying the state and the qubit where it has to be added
+        along with the type as input or output.
+
+        Parameters
+        ----------
+        state: str
+            The state that has to be added. It can be any string such as `0`,
+            '+', "A", "Y"
+        targets: list
+            A list of qubit positions where the given state has to be added.
+        state_type: str
+            One of either "input" or "output". This specifies whether the state
+            to be added is an input or output.
+            default: "input"
+
+        """
+
+        if state_type == "input":
+            for i in targets:
+                self.input_states[i] = state
+
+        if state_type == "output":
+            for i in targets:
+                self.output_states[i] = state
+
     def add_measurement(
         self,
         measurement: type[Measurement],
@@ -627,7 +627,7 @@ class QubitCircuit(QuantumCircuit):
                 "'control_value' is no longer a valid argument and has been deprecated and will be removed in the future version.\n"
                 "from qutip_qip.operations import Controlled\n"
                 "from qutip_qip.operations.gates import X\n"
-                "Example: gate = controlled(X, num_ctrl_qreg=1, ctrl_value=0)\n"
+                "Example: gate = Controlled(X, num_ctrl_qreg=1, ctrl_value=0)\n"
                 "Please refer to the tutorial for the recommended way to define them:\n"
                 "https://nbviewer.org/urls/qutip.org/qutip-tutorials/tutorials-v5/quantum-circuits/quantum-gates.ipynb",
                 DeprecationWarning,
