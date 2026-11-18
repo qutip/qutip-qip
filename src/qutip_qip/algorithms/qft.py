@@ -8,7 +8,7 @@ import numpy as np
 from qutip import Qobj
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.operations import Unitary, register_op
-from qutip_qip.operations.gates import H, CPHASE
+from qutip_qip.operations.gates import CPHASE, H, SWAP
 from qutip_qip.typing import Int
 
 
@@ -36,6 +36,9 @@ def _qft(op, bloq):
         for j in range(i):
             bloq.add(CPHASE(np.pi / (2 ** (i - j))), (i, j))
         bloq.add(H, i)
+
+    for i in range(op.n // 2):
+        bloq.add(SWAP, (i, op.n - 1 - i))
 
 
 def qft(N: int = 1) -> Qobj:
