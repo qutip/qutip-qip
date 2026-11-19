@@ -290,6 +290,8 @@ def test_format_gate_parameters():
     assert format_gate_parameters((np.pi / 2, 0.5)) == "π/2, 0.50"
     assert format_gate_parameters(np.pi / 2, latex=True) == r"\pi/2"
     assert format_gate_parameters((-np.pi, np.pi / 4), latex=True) == r"-\pi, \pi/4"
+    assert format_gate_parameters(np.pi / 2 + 0.001) == "1.57"
+    assert format_gate_parameters(np.pi / 2 + 0.001) != "π/2"
 
 
 def test_showarg_text_renderer():

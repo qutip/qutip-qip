@@ -207,7 +207,7 @@ class BaseRenderer:
 
 
 def format_gate_parameters(
-    arg_value, *, latex: bool = False, tolerance: float = 0.01
+    arg_value, *, latex: bool = False, tolerance: float = 1e-6
 ) -> str:
     """
     Format parametric-gate arguments for a circuit label.
@@ -227,7 +227,7 @@ def format_gate_parameters(
 
     tolerance : float, optional
         Absolute tolerance, in units of pi, for matching a pi fraction.
-        The default is 0.01.
+        The default is 1e-6.
 
     Returns
     -------
