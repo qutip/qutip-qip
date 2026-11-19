@@ -3,13 +3,12 @@ Module for rendering a quantum circuit in text format.
 """
 
 from math import ceil
-from typing import Type
 
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.circuit.draw import BaseRenderer, StyleConfig
 from qutip_qip.circuit.draw.base_renderer import apply_showarg
 from qutip_qip.circuit.draw._control_flow import infer_classical_controls
-from qutip_qip.operations import Gate, Measurement
+from qutip_qip.operations import Measurement, Unitary
 from qutip_qip.operations import gates as std
 
 
@@ -118,7 +117,7 @@ class TextRenderer(BaseRenderer):
 
     def _draw_multiq_gate(
         self,
-        gate: Gate | Type[Gate],
+        gate: Unitary | type[Unitary],
         gate_text: str,
         targets: list[int],
         controls: list[int],
@@ -315,7 +314,7 @@ class TextRenderer(BaseRenderer):
 
     def _update_qbridge(
         self,
-        gate: Gate | Type[Gate],
+        gate: Unitary | type[Unitary],
         targets: list[int],
         controls: list[int],
         wire_list_control: list[int],
@@ -406,9 +405,7 @@ class TextRenderer(BaseRenderer):
             cbits = list(op_instruction.creg)
 
             # generate the parts, width and wire_list for the gates
-            if isinstance(op, Measurement) or (
-                isinstance(op, type) and issubclass(op, Measurement)
-            ):
+            if isinstance(op, Measurement):
                 wire_list = list(range(qubits[0] + 1)) + list(
                     range(
                         cbits[0] + self._qwires,
@@ -417,9 +414,7 @@ class TextRenderer(BaseRenderer):
                 )
                 parts, width = self._draw_measurement_gate(qubits, cbits)
 
-            elif isinstance(op, Gate) or (
-                isinstance(op, type) and issubclass(op, Gate)
-            ):
+            elif isinstance(op, Unitary):
                 cbits = sorted(set(cbits).union(classical_controls[index]))
                 gate = op
                 gate_text = gate.name
@@ -427,11 +422,11 @@ class TextRenderer(BaseRenderer):
                 controls = []
 
                 if gate.is_controlled:
-                    controls = qubits[: gate.num_ctrl_qubits]
-                    targets = qubits[gate.num_ctrl_qubits :]
+                    controls = qubits[: gate.num_ctrl_qreg]
+                    targets = qubits[gate.num_ctrl_qreg :]
 
-                if gate.is_parametric and gate.arg_label is not None:
-                    gate_text = gate.arg_label
+                # if gate.is_parametric and gate.arg_label is not None:
+                #     gate_text = gate.arg_label
                 gate_text = apply_showarg(gate_text, gate, op_instruction.style)
 
                 if gate == std.SWAP:
@@ -470,15 +465,11 @@ class TextRenderer(BaseRenderer):
             self._adjust_layer_pad(wire_list, xskip)
             self._manage_layers(width, wire_list, layer, xskip)
 
-            if isinstance(op, Measurement) or (
-                isinstance(op, type) and issubclass(op, Measurement)
-            ):
+            if isinstance(op, Measurement):
                 self._update_singleq(qubits, parts)
                 self._update_cbridge(qubits, cbits, wire_list, width)
 
-            elif isinstance(op, Gate) or (
-                isinstance(op, type) and issubclass(op, Gate)
-            ):
+            elif isinstance(op, Unitary):
                 if gate == std.SWAP:
                     self._update_swap_gate(wire_list)
                 else:

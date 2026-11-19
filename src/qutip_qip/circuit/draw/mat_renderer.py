@@ -17,7 +17,7 @@ from qutip_qip.circuit import QubitCircuit
 from qutip_qip.circuit.draw import BaseRenderer, StyleConfig
 from qutip_qip.circuit.draw.base_renderer import apply_showarg
 from qutip_qip.circuit.draw._control_flow import infer_classical_controls
-from qutip_qip.operations import Gate, Measurement
+from qutip_qip.operations import Measurement, Unitary
 from qutip_qip.operations import gates as std
 
 
@@ -520,7 +520,7 @@ class MatRenderer(BaseRenderer):
 
     def _draw_multiq_gate(
         self,
-        gate: Gate | Type[Gate],
+        gate: Unitary | Type[Unitary],
         targets: list[int],
         controls: list[int],
         cbits: list[int],
@@ -531,7 +531,7 @@ class MatRenderer(BaseRenderer):
 
         Parameters
         ----------
-        gate : Gate Object
+        gate : Unitary Object
             The gate to be plotted.
 
         layer : int
@@ -756,9 +756,7 @@ class MatRenderer(BaseRenderer):
             cbits = instruction.creg
             style = instruction.style
 
-            if isinstance(op, Measurement) or (
-                isinstance(op, type) and issubclass(op, Measurement)
-            ):
+            if isinstance(op, Measurement):
                 self.merged_wires = list(qubits)
                 self.merged_wires.sort()
 
@@ -771,25 +769,23 @@ class MatRenderer(BaseRenderer):
                     ),
                 )
 
-            elif isinstance(op, Gate) or (
-                isinstance(op, type) and issubclass(op, Gate)
-            ):
+            elif isinstance(op, Unitary):
                 cbits = tuple(sorted(set(cbits).union(classical_controls[index])))
                 gate = op
                 controls = []
                 targets = qubits
 
                 if gate.is_controlled:
-                    controls = qubits[: gate.num_ctrl_qubits]
-                    targets = qubits[gate.num_ctrl_qubits :]
+                    controls = qubits[: gate.num_ctrl_qreg]
+                    targets = qubits[gate.num_ctrl_qreg :]
 
                 style = style if style is not None else {}
                 self.text = gate.name
 
-                if gate.is_parametric:
-                    self.text = (
-                        gate.arg_label if gate.arg_label is not None else gate.name
-                    )
+                # if gate.is_parametric:
+                #     self.text = (
+                #         gate.arg_label if gate.arg_label is not None else gate.name
+                #     )
 
                 self.color = style.get(
                     "color",

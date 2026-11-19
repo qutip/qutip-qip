@@ -282,7 +282,7 @@ def apply_showarg(label: str, gate, style: dict | None, *, latex: bool = False) 
         return label
 
     base = gate.latex_str if latex else gate.name
-    args = format_gate_parameters(gate.arg_value, latex=latex)
+    args = format_gate_parameters(gate.params, latex=latex)
     return f"{base}({args})"
 
 

@@ -1,8 +1,6 @@
 import numpy as np
 import pytest
 from qutip import basis, tensor, Qobj
-from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import Gate
 from qutip_qip.algorithms.grover import grover, grover_oracle
 
 

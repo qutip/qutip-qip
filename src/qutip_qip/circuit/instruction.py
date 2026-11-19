@@ -1,9 +1,8 @@
 from abc import ABC, abstractmethod
-from typing import Type
 from dataclasses import dataclass
 import warnings
 from qutip_qip.operations.conditional import Conditional, Label, Cbnz, Cbz
-from qutip_qip.operations import Gate, Measurement
+from qutip_qip.operations import Measurement, Op, Unitary, Mz
 
 
 def _validate_non_negative_int_tuple(T: any, txt: str = ""):
@@ -20,7 +19,7 @@ def _validate_non_negative_int_tuple(T: any, txt: str = ""):
 
 @dataclass(frozen=True, slots=True)
 class CircuitInstruction(ABC):
-    operation: Gate | Type[Gate] | Measurement | Conditional | Label
+    operation: Op | type[Op]
     qubits: tuple[int, ...] = tuple()
     cbits: tuple[int, ...] = tuple()
 
@@ -63,22 +62,22 @@ class CircuitInstruction(ABC):
 
 
 @dataclass(frozen=True, slots=True)
-class GateInstruction(CircuitInstruction):
-    operation: Gate | Type[Gate]
+class UnitaryInstruction(CircuitInstruction):
+    operation: Unitary | type[Unitary]
     cbits_ctrl_value: int | None = None
 
     def __post_init__(self) -> None:
-        super(GateInstruction, self).__post_init__()
+        super(UnitaryInstruction, self).__post_init__()
         # Don't make it super(), it will throw an error because slots=True
         # destroys __class__ reference to the original class until Python 3.13
         # Check CPython Issue #90562, this has been resolved in Python 3.14
 
-        if not (isinstance(self.operation, Gate) or issubclass(self.operation, Gate)):
-            raise TypeError(f"Operation must be a Gate, got {self.operation}")
+        if not isinstance(self.operation, Unitary):
+            raise TypeError(f"Operation must be a Unitary, got {self.operation}")
 
-        if len(self.qubits) != self.operation.num_qubits:
+        if len(self.qubits) != self.operation.num_qreg:
             raise ValueError(
-                f"Gate '{self.operation.name}' requires {self.operation.num_qubits} qubits."
+                f"Gate '{self.operation.name}' requires {self.operation.num_qreg} qubits."
                 f" But got {len(self.qubits)}."
             )
 
@@ -101,13 +100,13 @@ class GateInstruction(CircuitInstruction):
     @property
     def controls(self) -> tuple[int, ...]:
         if self.operation.is_controlled:
-            return self.qubits[: self.operation.num_ctrl_qubits]
+            return self.qubits[: self.operation.num_ctrl_qreg]
         return ()
 
     @property
     def targets(self) -> tuple[int, ...]:
         if self.operation.is_controlled:
-            return self.qubits[self.operation.num_ctrl_qubits :]
+            return self.qubits[self.operation.num_ctrl_qreg :]
         return self.qubits
 
     @staticmethod
@@ -122,8 +121,8 @@ class GateInstruction(CircuitInstruction):
         """
         if name in ("name", "num_qubits", "arg_value"):
             warnings.warn(
-                f"Gate object in a circuit has been replaced by GateInstructions."
-                f"use GateInstruction.operation.{name} instead.",
+                f"Gate object in a circuit has been replaced by UnitaryInstruction."
+                f"use UnitaryInstruction.operation.{name} instead.",
                 DeprecationWarning,
                 stacklevel=2,
             )
@@ -184,6 +183,10 @@ class MeasurementInstruction(CircuitInstruction):
         return True
 
     def to_qasm(self, qasm_out) -> None:
+        if self.operation is not Mz:
+            raise NotImplementedError(
+                f"Exporting non-Z basis measurement ({self.operation}) to QASM is not supported."
+            )
         for qubit, cbit in zip(self.qubits, self.cbits):
             qasm_out.output(f"measure q[{qubit}] -> c[{cbit}];")
 

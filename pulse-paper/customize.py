@@ -16,7 +16,7 @@ from qutip import (
     fock_dm,
 )
 from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import AngleParametricGate
+from qutip_qip.operations import AngleUnitary
 from qutip_qip.operations.gates import RX, RY, Z
 from qutip_qip.device import ModelProcessor, Model
 from qutip_qip.compiler import GateCompiler, PulseInstruction
@@ -27,14 +27,11 @@ LINEWIDTH = 3.48692403487
 TEXTWIDTH = 7.1398920714
 
 
-class ROT(AngleParametricGate):
-    num_qubits = 1
-    num_params = 1
+class ROT(AngleUnitary):
+    num_qreg = 1
+    theta: float
 
-    def __init__(self, arg_value):
-        super().__init__(arg_value)
-
-    def get_qobj(self, dtype) -> Qobj:
+    def compute_qobj(self, dtype) -> Qobj:
         # This is not required, because Pulse level implementation
         # of this gate is already provided.
         pass
@@ -86,7 +83,7 @@ class MyCompiler(GateCompiler):
         """Generates the pulses.
 
         Args:
-            circ_op (qutip_qip.circuit.GateInstruction): A GateInstruction object.
+            circ_op (qutip_qip.circuit.UnitaryInstruction): A UnitaryInstruction object.
             tlist (array): A list of times for the evolution.
             coeff (array): An array of coefficients for the gate pulses
             phase (float): The value of the phase for the gate.
@@ -107,7 +104,7 @@ class MyCompiler(GateCompiler):
         """Compiles single qubit gates to pulses.
 
         Args:
-            circ_op (qutip_qip.circuit.GateInstruction)
+            circ_op (qutip_qip.circuit.UnitaryInstruction)
 
         Returns:
             PulseInstruction (qutip_qip.compiler.instruction.PulseInstruction):
@@ -129,7 +126,7 @@ class MyCompiler(GateCompiler):
         """Compiles gates with a phase term.
 
         Args:
-            circ_op (qutip_qip.circuit.GateInstruction):
+            circ_op (qutip_qip.circuit.UnitaryInstruction):
 
         Returns:
             PulseInstruction (qutip_qip.compiler.instruction.PulseInstruction):
@@ -228,7 +225,7 @@ def single_crosstalk_simulation(num_gates):
 
     # Define a random circuit.
     gates_set = [
-        ROT(arg_value=0),
+        ROT(0),
         ROT(np.pi / 2),
         ROT(np.pi),
         ROT(np.pi / 2 * 3),

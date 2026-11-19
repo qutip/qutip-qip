@@ -27,7 +27,7 @@ The :func:`.grover` function requires the following:
 ====================  ==================================================
 Argument                           Description
 ====================  ==================================================
-``oracle``            A :class:`.QubitCircuit` or :class:`.Gate` representing the phase oracle.
+``oracle``            A :class:`.QubitCircuit` representing the phase oracle.
 ``search_qubits``     List of qubit indices (or integer count) to run the search on.
 ``num_solutions``     Integer representing the number of marked states :math:`M`.
 ``num_iterations``    Optional integer for manual control over the rotation count.

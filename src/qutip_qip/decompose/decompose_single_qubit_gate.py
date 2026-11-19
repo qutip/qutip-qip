@@ -59,18 +59,9 @@ def _ZYZ_rotation(input_gate):
     alpha, theta, beta, global_phase_angle = _angles_for_ZYZ(input_gate)
 
     Phase_gate = GLOBALPHASE(global_phase_angle)
-    Rz_beta = RZ(
-        beta,
-        arg_label=rf"{(beta / np.pi):0.2f} \times \pi",
-    )
-    Ry_theta = RY(
-        theta,
-        arg_label=rf"{(theta / np.pi):0.2f} \times \pi",
-    )
-    Rz_alpha = RZ(
-        alpha,
-        arg_label=rf"{(alpha / np.pi):0.2f} \times \pi",
-    )
+    Rz_beta = RZ(beta)
+    Ry_theta = RY(theta)
+    Rz_alpha = RZ(alpha)
 
     return (Rz_alpha, Ry_theta, Rz_beta, Phase_gate)
 
@@ -91,18 +82,9 @@ def _ZXZ_rotation(input_gate):
     # theta and global phase are same as ZYZ values
 
     Phase_gate = GLOBALPHASE(global_phase_angle)
-    Rz_alpha = RZ(
-        alpha,
-        arg_label=rf"{(alpha / np.pi):0.2f} \times \pi",
-    )
-    Rx_theta = RX(
-        theta,
-        arg_label=rf"{(theta / np.pi):0.2f} \times \pi",
-    )
-    Rz_beta = RZ(
-        beta,
-        arg_label=rf"{(beta / np.pi):0.2f} \times \pi",
-    )
+    Rz_alpha = RZ(alpha)
+    Rx_theta = RX(theta)
+    Rz_beta = RZ(beta)
 
     return (Rz_alpha, Rx_theta, Rz_beta, Phase_gate)
 
@@ -117,29 +99,13 @@ def _ZYZ_pauli_X(input_gate):
     alpha, theta, beta, global_phase_angle = _angles_for_ZYZ(input_gate)
 
     Phase_gate = GLOBALPHASE(global_phase_angle)
-    Rz_A = RZ(
-        alpha,
-        arg_label=rf"{(alpha / np.pi):0.2f} \times \pi",
-    )
-    Ry_A = RY(
-        theta / 2,
-        arg_label=rf"{(theta / np.pi):0.2f} \times \pi",
-    )
-    Pauli_X = X
-    Ry_B = RY(
-        -theta / 2,
-        arg_label=rf"{(-theta / np.pi):0.2f} \times \pi",
-    )
-    Rz_B = RZ(
-        -(alpha + beta) / 2,
-        arg_label=rf"{(-(alpha + beta) / (2 * np.pi)):0.2f} \times \pi",
-    )
-    Rz_C = RZ(
-        (-alpha + beta) / 2,
-        arg_label=rf"{((-alpha + beta) / (2 * np.pi)):0.2f} \times \pi",
-    )
+    Rz_A = RZ(alpha)
+    Ry_A = RY(theta / 2)
+    Ry_B = RY(-theta / 2)
+    Rz_B = RZ(-(alpha + beta) / 2)
+    Rz_C = RZ((-alpha + beta) / 2)
 
-    return (Rz_A, Ry_A, Pauli_X, Ry_B, Rz_B, Pauli_X, Rz_C, Phase_gate)
+    return (Rz_A, Ry_A, X, Ry_B, Rz_B, X, Rz_C, Phase_gate)
 
 
 _single_decompositions_dictionary = {

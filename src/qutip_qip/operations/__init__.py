@@ -2,19 +2,17 @@
 Operations on quantum circuits.
 """
 
-from .namespace import NameSpace
 from .utils import (
     hadamard_transform,
     expand_operator,
     gate_sequence_product,
-    controlled_gate_unitary,
 )
-from .gateclass import Gate, get_unitary_gate
-from .parametric import ParametricGate, AngleParametricGate
-from .controlled import ControlledGate, get_controlled_gate
-from .measurement import Measurement
+from .controlled import ControlledUnitary, controlled
+from .measurement import Measurement, Mz
 from .op import Op, OpInstruction
+from .unitary import AngleUnitary, Unitary, get_unitary_gate
 from .bloq import Bloq, BloqBuilder
+from .bloq_repository import BloqRepository, register_op
 from .old_gates import (
     rx,
     ry,
@@ -51,18 +49,19 @@ from .old_gates import (
 )
 
 __all__ = [
-    "NameSpace",
-    "Gate",
-    "ParametricGate",
-    "ControlledGate",
-    "get_unitary_gate",
-    "get_controlled_gate",
-    "AngleParametricGate",
-    "Measurement",
     "Op",
+    "ControlledUnitary",
+    "Unitary",
+    "get_unitary_gate",
+    "controlled",
+    "AngleUnitary",
+    "Measurement",
     "OpInstruction",
     "Bloq",
     "BloqBuilder",
+    "BloqRepository",
+    "register_op",
+    "Mz",
     "rx",
     "ry",
     "rz",
@@ -93,7 +92,6 @@ __all__ = [
     "molmer_sorensen",
     "toffoli",
     "rotation",
-    "controlled_gate_unitary",
     "globalphase",
     "hadamard_transform",
     "qubit_clifford_group",

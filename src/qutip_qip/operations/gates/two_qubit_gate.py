@@ -1,11 +1,7 @@
-from abc import abstractmethod
-from functools import cache, lru_cache
-from typing import Final, Type
-
 import numpy as np
 from qutip import Qobj
 
-from qutip_qip.operations import Gate, ControlledGate, AngleParametricGate
+from qutip_qip.operations import AngleUnitary, ControlledUnitary, Unitary
 from qutip_qip.operations.gates import (
     X,
     Y,
@@ -21,45 +17,9 @@ from qutip_qip.operations.gates import (
     QASMU,
     PHASE,
 )
-from qutip_qip.operations.namespace import NS_GATE
 
 
-class _TwoQubitGate(Gate):
-    """Abstract two-qubit gate."""
-
-    __slots__ = ()
-    namespace = NS_GATE
-    num_qubits: Final[int] = 2
-
-
-class _TwoQubitParametricGate(AngleParametricGate):
-    """Abstract two-qubit Parametric Gate (non-controlled)."""
-
-    __slots__ = ()
-    namespace = NS_GATE
-    num_qubits: Final[int] = 2
-
-    def get_qobj(self, dtype: str = "dense") -> Qobj:
-        return self.compute_qobj(self.arg_value, dtype)
-
-    @staticmethod
-    @abstractmethod
-    def compute_qobj(args: tuple[float], dtype: str) -> Qobj:
-        raise NotImplementedError
-
-
-class _ControlledTwoQubitGate(ControlledGate):
-    """Abstract two-qubit Controlled Gate (both parametric and non-parametric)."""
-
-    __slots__ = ()
-    namespace = NS_GATE
-
-    num_qubits: Final[int] = 2
-    num_ctrl_qubits: Final[int] = 1
-    ctrl_value: Final[int] = 1
-
-
-class SWAP(_TwoQubitGate):
+class SWAP(Unitary):
     r"""
     SWAP gate.
 
@@ -80,15 +40,13 @@ class SWAP(_TwoQubitGate):
      [0. 0. 0. 1.]]
     """
 
-    __slots__ = ()
-
-    self_inverse: Final[bool] = True
-    is_clifford: Final[bool] = True
-    latex_str: Final[str] = r"{\rm SWAP}"
+    num_qreg: int = 2
+    self_inverse: bool = True
+    is_clifford: bool = True
+    latex_str: str = r"{\rm SWAP}"
 
     @staticmethod
-    @cache
-    def get_qobj(dtype: str = "dense") -> Qobj:
+    def compute_qobj(dtype: str = "dense") -> Qobj:
         return Qobj(
             [[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]],
             dims=[[2, 2], [2, 2]],
@@ -96,7 +54,7 @@ class SWAP(_TwoQubitGate):
         )
 
 
-class ISWAP(_TwoQubitGate):
+class ISWAP(Unitary):
     r"""
     Two-qubit iSWAP gate.
 
@@ -120,15 +78,12 @@ class ISWAP(_TwoQubitGate):
      [0.+0.j 0.+0.j 0.+0.j 1.+0.j]]
     """
 
-    __slots__ = ()
-
-    self_inverse: Final[bool] = False
-    is_clifford: Final[bool] = True
-    latex_str: Final[str] = r"{i}{\rm SWAP}"
+    num_qreg: int = 2
+    is_clifford: bool = True
+    latex_str: str = r"{i}{\rm SWAP}"
 
     @staticmethod
-    @cache
-    def get_qobj(dtype: str = "dense") -> Qobj:
+    def compute_qobj(dtype: str = "dense") -> Qobj:
         return Qobj(
             [[1, 0, 0, 0], [0, 0, 1j, 0], [0, 1j, 0, 0], [0, 0, 0, 1]],
             dims=[[2, 2], [2, 2]],
@@ -136,11 +91,11 @@ class ISWAP(_TwoQubitGate):
         )
 
     @staticmethod
-    def inverse() -> Type[Gate]:
+    def compute_inverse() -> type[Unitary]:
         return ISWAPdag
 
 
-class ISWAPdag(_TwoQubitGate):
+class ISWAPdag(Unitary):
     r"""
     Inverse iSWAP (iSWAP dagger) gate.
 
@@ -161,15 +116,12 @@ class ISWAPdag(_TwoQubitGate):
      [ 0.+0.j  0.+0.j  0.+0.j 1.+0.j]]
     """
 
-    __slots__ = ()
-
-    self_inverse: Final[bool] = False
-    is_clifford: Final[bool] = True
-    latex_str: Final[str] = r"{i}{\rm SWAP^\dagger}"
+    num_qreg: int = 2
+    is_clifford: bool = True
+    latex_str: str = r"{i}{\rm SWAP^\dagger}"
 
     @staticmethod
-    @cache
-    def get_qobj(dtype: str = "dense") -> Qobj:
+    def compute_qobj(dtype: str = "dense") -> Qobj:
         return Qobj(
             [[1, 0, 0, 0], [0, 0, -1j, 0], [0, -1j, 0, 0], [0, 0, 0, 1]],
             dims=[[2, 2], [2, 2]],
@@ -177,11 +129,11 @@ class ISWAPdag(_TwoQubitGate):
         )
 
     @staticmethod
-    def inverse() -> Type[Gate]:
+    def compute_inverse() -> type[Unitary]:
         return ISWAP
 
 
-class SQRTSWAP(_TwoQubitGate):
+class SQRTSWAP(Unitary):
     r"""
     Two-qubit square root of SWAP (:math:`\sqrt{\mathrm{SWAP}}`) gate.
 
@@ -218,14 +170,11 @@ class SQRTSWAP(_TwoQubitGate):
      [0. +0.j  0. +0.j  0. +0.j  1. +0.j ]]
     """
 
-    __slots__ = ()
-
-    self_inverse: Final[bool] = False
-    latex_str: Final[str] = r"\sqrt{\rm SWAP}"
+    num_qreg: int = 2
+    latex_str: str = r"\sqrt{\rm SWAP}"
 
     @staticmethod
-    @cache
-    def get_qobj(dtype: str = "dense") -> Qobj:
+    def compute_qobj(dtype: str = "dense") -> Qobj:
         return Qobj(
             np.array(
                 [
@@ -240,11 +189,11 @@ class SQRTSWAP(_TwoQubitGate):
         )
 
     @staticmethod
-    def inverse() -> Type[Gate]:
+    def compute_inverse() -> type[Unitary]:
         return SQRTSWAPdag
 
 
-class SQRTSWAPdag(_TwoQubitGate):
+class SQRTSWAPdag(Unitary):
     r"""
     Inverse (hermitian conjugate) of SQRTSWAP gate i.e. (:math:`\sqrt{\mathrm{SWAP}}^\dagger`).
 
@@ -260,14 +209,11 @@ class SQRTSWAPdag(_TwoQubitGate):
      [0. +0.j  0. +0.j  0. +0.j  1. +0.j ]]
     """
 
-    __slots__ = ()
-
-    self_inverse: Final[bool] = False
-    latex_str: Final[str] = r"\sqrt{\rm SWAP}^\dagger"
+    num_qreg: int = 2
+    latex_str: str = r"\sqrt{\rm SWAP}^\dagger"
 
     @staticmethod
-    @cache
-    def get_qobj(dtype: str = "dense") -> Qobj:
+    def compute_qobj(dtype: str = "dense") -> Qobj:
         return Qobj(
             np.array(
                 [
@@ -282,11 +228,11 @@ class SQRTSWAPdag(_TwoQubitGate):
         )
 
     @staticmethod
-    def inverse() -> Type[Gate]:
+    def compute_inverse() -> type[Unitary]:
         return SQRTSWAP
 
 
-class SQRTISWAP(_TwoQubitGate):
+class SQRTISWAP(Unitary):
     r"""
     Two-qubit square root of iSWAP (:math:`\sqrt{\mathrm{iSWAP}}`) gate.
 
@@ -310,15 +256,12 @@ class SQRTISWAP(_TwoQubitGate):
      [0.     +0.j      0.        +0.j         0.        +0.j         1.     +0.j ]]
     """
 
-    __slots__ = ()
-
-    self_inverse: Final[bool] = False
-    is_clifford: Final[bool] = True
-    latex_str: Final[str] = r"\sqrt{{i}\rm SWAP}"
+    num_qreg: int = 2
+    is_clifford: bool = True
+    latex_str: str = r"\sqrt{{i}\rm SWAP}"
 
     @staticmethod
-    @cache
-    def get_qobj(dtype: str = "dense") -> Qobj:
+    def compute_qobj(dtype: str = "dense") -> Qobj:
         return Qobj(
             np.array(
                 [
@@ -333,11 +276,11 @@ class SQRTISWAP(_TwoQubitGate):
         )
 
     @staticmethod
-    def inverse() -> Type[Gate]:
+    def compute_inverse() -> type[Unitary]:
         return SQRTISWAPdag
 
 
-class SQRTISWAPdag(_TwoQubitGate):
+class SQRTISWAPdag(Unitary):
     r"""
     Inverse (hermitian conjugate) of SQRTISWAP gate i.e. (:math:`\sqrt{\mathrm{ISWAP}}^\dagger`).
 
@@ -353,15 +296,12 @@ class SQRTISWAPdag(_TwoQubitGate):
      [ 0.         +0.j           0.        +0.j           0.        +0.j         1.     +0.j     ]]
     """
 
-    __slots__ = ()
-
-    self_inverse: Final[bool] = False
-    is_clifford: Final[bool] = True
-    latex_str: Final[str] = r"\sqrt{{i}\rm SWAP}^\dagger"
+    num_qreg: int = 2
+    is_clifford: bool = True
+    latex_str: str = r"\sqrt{{i}\rm SWAP}^\dagger"
 
     @staticmethod
-    @cache
-    def get_qobj(dtype: str = "dense") -> Qobj:
+    def compute_qobj(dtype: str = "dense") -> Qobj:
         return Qobj(
             np.array(
                 [
@@ -376,11 +316,11 @@ class SQRTISWAPdag(_TwoQubitGate):
         )
 
     @staticmethod
-    def inverse() -> Type[Gate]:
+    def compute_inverse() -> type[Unitary]:
         return SQRTISWAP
 
 
-class BERKELEY(_TwoQubitGate):
+class BERKELEY(Unitary):
     r"""
     Two-qubit Berkeley gate.
 
@@ -414,14 +354,11 @@ class BERKELEY(_TwoQubitGate):
      [0.        +0.38268343j 0.        +0.j         0.        +0.j         0.92387953+0.j     ]]
     """
 
-    __slots__ = ()
-
-    self_inverse: Final[bool] = False
-    latex_str: Final[str] = r"{\rm BERKELEY}"
+    num_qreg: int = 2
+    latex_str: str = r"{\rm BERKELEY}"
 
     @staticmethod
-    @cache
-    def get_qobj(dtype: str = "dense") -> Qobj:
+    def compute_qobj(dtype: str = "dense") -> Qobj:
         return Qobj(
             [
                 [np.cos(np.pi / 8), 0, 0, 1.0j * np.sin(np.pi / 8)],
@@ -434,11 +371,11 @@ class BERKELEY(_TwoQubitGate):
         )
 
     @staticmethod
-    def inverse() -> Type[Gate]:
+    def compute_inverse() -> type[Unitary]:
         return BERKELEYdag
 
 
-class BERKELEYdag(_TwoQubitGate):
+class BERKELEYdag(Unitary):
     r"""
     Inverse (hermitian conjugate) of BERKELEY gate.
 
@@ -463,14 +400,11 @@ class BERKELEYdag(_TwoQubitGate):
      [0.        -0.38268343j 0.        +0.j         0.        +0.j         0.92387953+0.j     ]]
     """
 
-    __slots__ = ()
-
-    self_inverse: Final[bool] = False
-    latex_str: Final[str] = r"{\rm BERKELEY^\dagger}"
+    num_qreg: int = 2
+    latex_str: str = r"{\rm BERKELEY^\dagger}"
 
     @staticmethod
-    @cache
-    def get_qobj(dtype: str = "dense") -> Qobj:
+    def compute_qobj(dtype: str = "dense") -> Qobj:
         return Qobj(
             [
                 [np.cos(np.pi / 8), 0, 0, -1.0j * np.sin(np.pi / 8)],
@@ -483,11 +417,11 @@ class BERKELEYdag(_TwoQubitGate):
         )
 
     @staticmethod
-    def inverse() -> Type[Gate]:
+    def compute_inverse() -> type[Unitary]:
         return BERKELEY
 
 
-class SWAPALPHA(_TwoQubitParametricGate):
+class SWAPALPHA(AngleUnitary):
     r"""
     Two-qubit parameterized fractional SWAP (SWAP-alpha) gate.
 
@@ -527,28 +461,24 @@ class SWAPALPHA(_TwoQubitParametricGate):
      [0. +0.j  0. +0.j  0. +0.j  1. +0.j ]]
     """
 
-    __slots__ = ("alpha",)
+    num_qreg: int = 2
+    alpha: float
+    latex_str: str = r"{\rm SWAPALPHA}"
 
-    num_params: Final[int] = 1
-    latex_str: Final[str] = r"{\rm SWAPALPHA}"
-
-    @staticmethod
-    @lru_cache(maxsize=128)
-    def compute_qobj(arg_value: tuple[float], dtype: str) -> Qobj:
-        alpha = arg_value[0]
+    def compute_qobj(self, dtype: str = "dense") -> Qobj:
         return Qobj(
             [
                 [1, 0, 0, 0],
                 [
                     0,
-                    0.5 * (1 + np.exp(1.0j * np.pi * alpha)),
-                    0.5 * (1 - np.exp(1.0j * np.pi * alpha)),
+                    0.5 * (1 + np.exp(1.0j * np.pi * self.alpha)),
+                    0.5 * (1 - np.exp(1.0j * np.pi * self.alpha)),
                     0,
                 ],
                 [
                     0,
-                    0.5 * (1 - np.exp(1.0j * np.pi * alpha)),
-                    0.5 * (1 + np.exp(1.0j * np.pi * alpha)),
+                    0.5 * (1 - np.exp(1.0j * np.pi * self.alpha)),
+                    0.5 * (1 + np.exp(1.0j * np.pi * self.alpha)),
                     0,
                 ],
                 [0, 0, 0, 1],
@@ -557,12 +487,11 @@ class SWAPALPHA(_TwoQubitParametricGate):
             dtype=dtype,
         )
 
-    def inverse(self) -> Gate | tuple[Type[Gate], tuple[float]]:
-        alpha = self.arg_value[0]
-        return SWAPALPHA((-alpha,))
+    def compute_inverse(self) -> Unitary:
+        return SWAPALPHA(-self.alpha)
 
 
-class MS(_TwoQubitParametricGate):
+class MS(AngleUnitary):
     r"""
     Two-qubit parameterized Mølmer–Sørensen (MS) gate.
 
@@ -593,7 +522,7 @@ class MS(_TwoQubitParametricGate):
     Examples
     --------
     >>> from qutip_qip.operations.gates import MS
-    >>> MS((np.pi/2, 0)).get_qobj()
+    >>> MS(np.pi/2, 0).get_qobj()
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[0.70710678+0.j         0.        +0.j         0.        +0.j         0.        -0.70710678j]
@@ -602,42 +531,38 @@ class MS(_TwoQubitParametricGate):
      [0.        -0.70710678j 0.        +0.j         0.        +0.j         0.70710678+0.j     ]]
     """
 
-    __slots__ = ("theta", "phi")
+    num_qreg: int = 2
+    theta: float
+    phi: float
+    latex_str: str = r"{\rm MS}"
 
-    num_params: Final[int] = 2
-    latex_str: Final[str] = r"{\rm MS}"
-
-    @staticmethod
-    @lru_cache(maxsize=128)
-    def compute_qobj(arg_value: tuple[float, float], dtype: str) -> Qobj:
-        theta, phi = arg_value
+    def compute_qobj(self, dtype: str = "dense") -> Qobj:
         return Qobj(
             [
                 [
-                    np.cos(theta / 2),
+                    np.cos(self.theta / 2),
                     0,
                     0,
-                    -1j * np.exp(-1j * 2 * phi) * np.sin(theta / 2),
+                    -1j * np.exp(-1j * 2 * self.phi) * np.sin(self.theta / 2),
                 ],
-                [0, np.cos(theta / 2), -1j * np.sin(theta / 2), 0],
-                [0, -1j * np.sin(theta / 2), np.cos(theta / 2), 0],
+                [0, np.cos(self.theta / 2), -1j * np.sin(self.theta / 2), 0],
+                [0, -1j * np.sin(self.theta / 2), np.cos(self.theta / 2), 0],
                 [
-                    -1j * np.exp(1j * 2 * phi) * np.sin(theta / 2),
+                    -1j * np.exp(1j * 2 * self.phi) * np.sin(self.theta / 2),
                     0,
                     0,
-                    np.cos(theta / 2),
+                    np.cos(self.theta / 2),
                 ],
             ],
             dims=[[2, 2], [2, 2]],
             dtype=dtype,
         )
 
-    def inverse(self) -> Gate | tuple[Type[Gate], tuple[float, float]]:
-        theta, phi = self.arg_value
-        return MS((-theta, phi))
+    def compute_inverse(self) -> Unitary:
+        return MS(-self.theta, self.phi)
 
 
-class RZX(_TwoQubitParametricGate):
+class RZX(AngleUnitary):
     r"""
     Two-qubit parameterized RZX gate.
 
@@ -677,34 +602,29 @@ class RZX(_TwoQubitParametricGate):
     [0.+0.j 0.+0.j 0.+1.j 0.+0.j]]
     """
 
-    __slots__ = ("theta",)
+    num_qreg: int = 2
+    theta: float
+    latex_str: str = r"{\rm RZX}"
 
-    num_params: Final[int] = 1
-    latex_str: Final[str] = r"{\rm RZX}"
-
-    @staticmethod
-    @lru_cache(maxsize=128)
-    def compute_qobj(arg_value: tuple[float], dtype: str) -> Qobj:
-        theta = arg_value[0]
+    def compute_qobj(self, dtype: str = "dense") -> Qobj:
         return Qobj(
             np.array(
                 [
-                    [np.cos(theta / 2), -1.0j * np.sin(theta / 2), 0.0, 0.0],
-                    [-1.0j * np.sin(theta / 2), np.cos(theta / 2), 0.0, 0.0],
-                    [0.0, 0.0, np.cos(theta / 2), 1.0j * np.sin(theta / 2)],
-                    [0.0, 0.0, 1.0j * np.sin(theta / 2), np.cos(theta / 2)],
+                    [np.cos(self.theta / 2), -1.0j * np.sin(self.theta / 2), 0.0, 0.0],
+                    [-1.0j * np.sin(self.theta / 2), np.cos(self.theta / 2), 0.0, 0.0],
+                    [0.0, 0.0, np.cos(self.theta / 2), 1.0j * np.sin(self.theta / 2)],
+                    [0.0, 0.0, 1.0j * np.sin(self.theta / 2), np.cos(self.theta / 2)],
                 ]
             ),
             dims=[[2, 2], [2, 2]],
             dtype=dtype,
         )
 
-    def inverse(self) -> Gate | tuple[Type[Gate], tuple[float]]:
-        theta = self.arg_value[0]
-        return RZX((-theta,))
+    def compute_inverse(self) -> Unitary:
+        return RZX(-self.theta)
 
 
-class CX(_ControlledTwoQubitGate):
+class CX(ControlledUnitary):
     """
     CNOT gate i.e. Controlled Pauli X gate.
 
@@ -720,16 +640,12 @@ class CX(_ControlledTwoQubitGate):
      [0. 0. 1. 0.]]
     """
 
-    __slots__ = ()
-
-    target_gate: Final[Type[Gate]] = X
-    self_inverse: Final[bool] = True
-    is_clifford: Final[bool] = True
-    latex_str: Final[str] = r"{\rm CNOT}"
+    target: type[Unitary] = X
+    is_clifford: bool = True
+    latex_str: str = r"{\rm CNOT}"
 
     @staticmethod
-    @cache
-    def get_qobj(dtype: str = "dense") -> Qobj:
+    def compute_qobj(dtype: str = "dense") -> Qobj:
         return Qobj(
             [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]],
             dims=[[2, 2], [2, 2]],
@@ -740,7 +656,7 @@ class CX(_ControlledTwoQubitGate):
 CNOT = CX
 
 
-class CY(_ControlledTwoQubitGate):
+class CY(ControlledUnitary):
     """
     Controlled Pauli Y gate.
 
@@ -756,16 +672,12 @@ class CY(_ControlledTwoQubitGate):
      [ 0.+0.j  0.+0.j  0.+1.j   0.+0.j]]
     """
 
-    __slots__ = ()
-
-    target_gate: Final[Type[Gate]] = Y
-    self_inverse: Final[bool] = True
-    is_clifford: Final[bool] = True
-    latex_str: Final[str] = r"{\rm CY}"
+    target: type[Unitary] = Y
+    is_clifford: bool = True
+    latex_str: str = r"{\rm CY}"
 
     @staticmethod
-    @cache
-    def get_qobj(dtype: str = "dense") -> Qobj:
+    def compute_qobj(dtype: str = "dense") -> Qobj:
         return Qobj(
             [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, -1j], [0, 0, 1j, 0]],
             dims=[[2, 2], [2, 2]],
@@ -773,7 +685,7 @@ class CY(_ControlledTwoQubitGate):
         )
 
 
-class CZ(_ControlledTwoQubitGate):
+class CZ(ControlledUnitary):
     """
     Controlled Pauli Z gate.
 
@@ -789,16 +701,12 @@ class CZ(_ControlledTwoQubitGate):
      [ 0.  0.  0. -1.]]
     """
 
-    __slots__ = ()
-
-    target_gate: Final[Type[Gate]] = Z
-    self_inverse: Final[bool] = True
-    is_clifford: Final[bool] = True
-    latex_str: Final[str] = r"{\rm CZ}"
+    target: type[Unitary] = Z
+    is_clifford: bool = True
+    latex_str: str = r"{\rm CZ}"
 
     @staticmethod
-    @cache
-    def get_qobj(dtype: str = "dense") -> Qobj:
+    def compute_qobj(dtype: str = "dense") -> Qobj:
         return Qobj(
             [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]],
             dims=[[2, 2], [2, 2]],
@@ -809,7 +717,7 @@ class CZ(_ControlledTwoQubitGate):
 CSIGN = CZ
 
 
-class CH(_ControlledTwoQubitGate):
+class CH(ControlledUnitary):
     r"""
     Controlled Hadamard gate.
 
@@ -834,15 +742,11 @@ class CH(_ControlledTwoQubitGate):
      [ 0.          0.          0.70710678 -0.70710678]]
     """
 
-    __slots__ = ()
-
-    target_gate: Final[Type[Gate]] = H
-    self_inverse: Final[bool] = True
-    latex_str: Final[str] = r"{\rm CH}"
+    target: type[Unitary] = H
+    latex_str: str = r"{\rm CH}"
 
     @staticmethod
-    @cache
-    def get_qobj(dtype: str = "dense") -> Qobj:
+    def compute_qobj(dtype: str = "dense") -> Qobj:
         sq_2 = 1 / np.sqrt(2)
         return Qobj(
             [
@@ -856,7 +760,7 @@ class CH(_ControlledTwoQubitGate):
         )
 
 
-class CT(_ControlledTwoQubitGate):
+class CT(ControlledUnitary):
     r"""
     Controlled T gate.
 
@@ -881,14 +785,11 @@ class CT(_ControlledTwoQubitGate):
      [0. +0.j  0. +0.j  0. +0.j   0.70710678+0.70710678j]]
     """
 
-    __slots__ = ()
-
-    target_gate: Final[Type[Gate]] = T
-    latex_str: Final[str] = r"{\rm CT}"
+    target: type[Unitary] = T
+    latex_str: str = r"{\rm CT}"
 
     @staticmethod
-    @cache
-    def get_qobj(dtype: str = "dense") -> Qobj:
+    def compute_qobj(dtype: str = "dense") -> Qobj:
         return Qobj(
             [
                 [1, 0, 0, 0],
@@ -901,11 +802,11 @@ class CT(_ControlledTwoQubitGate):
         )
 
     @staticmethod
-    def inverse() -> Type[Gate]:
+    def compute_inverse() -> type[Unitary]:
         return CTdag
 
 
-class CTdag(_ControlledTwoQubitGate):
+class CTdag(ControlledUnitary):
     r"""
     Inverse of CT gate.
 
@@ -930,14 +831,11 @@ class CTdag(_ControlledTwoQubitGate):
      [0. +0.j  0. +0.j  0. +0.j   0.70710678-0.70710678j]]
     """
 
-    __slots__ = ()
-
-    target_gate: Final[Type[Gate]] = Tdag
-    latex_str: Final[str] = r"{\rm CT^\dagger}"
+    target: type[Unitary] = Tdag
+    latex_str: str = r"{\rm CT^\dagger}"
 
     @staticmethod
-    @cache
-    def get_qobj(dtype: str = "dense") -> Qobj:
+    def compute_qobj(dtype: str = "dense") -> Qobj:
         return Qobj(
             [
                 [1, 0, 0, 0],
@@ -950,11 +848,11 @@ class CTdag(_ControlledTwoQubitGate):
         )
 
     @staticmethod
-    def inverse() -> Type[Gate]:
+    def compute_inverse() -> type[Unitary]:
         return CT
 
 
-class CS(_ControlledTwoQubitGate):
+class CS(ControlledUnitary):
     r"""
     Controlled S gate.
 
@@ -979,14 +877,11 @@ class CS(_ControlledTwoQubitGate):
      [0.+0.j  0.+0.j  0.+0.j   0.+1.j]]
     """
 
-    __slots__ = ()
-
-    target_gate: Final[Type[Gate]] = S
-    latex_str: Final[str] = r"{\rm CS}"
+    target: type[Unitary] = S
+    latex_str: str = r"{\rm CS}"
 
     @staticmethod
-    @cache
-    def get_qobj(dtype: str = "dense") -> Qobj:
+    def compute_qobj(dtype: str = "dense") -> Qobj:
         return Qobj(
             np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1j]]),
             dims=[[2, 2], [2, 2]],
@@ -994,11 +889,11 @@ class CS(_ControlledTwoQubitGate):
         )
 
     @staticmethod
-    def inverse() -> Type[Gate]:
+    def compute_inverse() -> type[Unitary]:
         return CSdag
 
 
-class CSdag(_ControlledTwoQubitGate):
+class CSdag(ControlledUnitary):
     r"""
     Inverse of CS gate.
 
@@ -1023,14 +918,11 @@ class CSdag(_ControlledTwoQubitGate):
      [ 0.+0.j  0.+0.j  0.+0.j   -0.-1.j]]
     """
 
-    __slots__ = ()
-
-    target_gate: Final[Type[Gate]] = Sdag
-    latex_str: Final[str] = r"{\rm CS^\dagger}"
+    target: type[Unitary] = Sdag
+    latex_str: str = r"{\rm CS^\dagger}"
 
     @staticmethod
-    @cache
-    def get_qobj(dtype: str = "dense") -> Qobj:
+    def compute_qobj(dtype: str = "dense") -> Qobj:
         return Qobj(
             np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1j]]),
             dims=[[2, 2], [2, 2]],
@@ -1038,11 +930,11 @@ class CSdag(_ControlledTwoQubitGate):
         )
 
     @staticmethod
-    def inverse() -> Type[Gate]:
+    def compute_inverse() -> type[Unitary]:
         return CS
 
 
-class CRX(_ControlledTwoQubitGate):
+class CRX(ControlledUnitary):
     r"""
     Two-qubit Controlled RX gate.
 
@@ -1065,36 +957,26 @@ class CRX(_ControlledTwoQubitGate):
      [0.+0.j 0.+0.j 0.-1.j 0.+0.j]]
     """
 
-    __slots__ = ()
+    target: type[Unitary] = RX
+    latex_str: str = r"{\rm CRX}"
 
-    num_params: Final[int] = 1
-    target_gate: Final[Type[Gate]] = RX
-    latex_str: Final[str] = r"{\rm CRX}"
-
-    @staticmethod
-    @lru_cache(maxsize=128)
-    def compute_qobj(arg_value: tuple[float], dtype: str) -> Qobj:
-        theta = arg_value[0]
+    def compute_qobj(self, dtype: str = "dense") -> Qobj:
         return Qobj(
             [
                 [1, 0, 0, 0],
                 [0, 1, 0, 0],
-                [0, 0, np.cos(theta / 2), -1j * np.sin(theta / 2)],
-                [0, 0, -1j * np.sin(theta / 2), np.cos(theta / 2)],
+                [0, 0, np.cos(self.theta / 2), -1j * np.sin(self.theta / 2)],
+                [0, 0, -1j * np.sin(self.theta / 2), np.cos(self.theta / 2)],
             ],
             dims=[[2, 2], [2, 2]],
             dtype=dtype,
         )
 
-    def get_qobj(self, dtype: str = "dense") -> Qobj:
-        return self.compute_qobj(self.arg_value, dtype=dtype)
-
-    def inverse(self) -> Gate:
-        theta = self.arg_value[0]
-        return CRX((-theta,))
+    def compute_inverse(self) -> Unitary:
+        return CRX(-self.theta)
 
 
-class CRY(_ControlledTwoQubitGate):
+class CRY(ControlledUnitary):
     r"""
     Two-qubit Controlled RY gate.
 
@@ -1117,36 +999,26 @@ class CRY(_ControlledTwoQubitGate):
      [ 0.          0.          0.70710678  0.70710678]]
     """
 
-    __slots__ = ()
+    target: type[Unitary] = RY
+    latex_str: str = r"{\rm CRY}"
 
-    num_params: Final[int] = 1
-    target_gate: Final[Type[Gate]] = RY
-    latex_str: Final[str] = r"{\rm CRY}"
-
-    @staticmethod
-    @lru_cache(maxsize=128)
-    def compute_qobj(arg_value: tuple[float], dtype: str) -> Qobj:
-        theta = arg_value[0]
+    def compute_qobj(self, dtype: str = "dense") -> Qobj:
         return Qobj(
             [
                 [1, 0, 0, 0],
                 [0, 1, 0, 0],
-                [0, 0, np.cos(theta / 2), -np.sin(theta / 2)],
-                [0, 0, np.sin(theta / 2), np.cos(theta / 2)],
+                [0, 0, np.cos(self.theta / 2), -np.sin(self.theta / 2)],
+                [0, 0, np.sin(self.theta / 2), np.cos(self.theta / 2)],
             ],
             dims=[[2, 2], [2, 2]],
             dtype=dtype,
         )
 
-    def get_qobj(self, dtype: str = "dense") -> Qobj:
-        return self.compute_qobj(self.arg_value, dtype)
-
-    def inverse(self) -> Gate:
-        theta = self.arg_value[0]
-        return CRY((-theta,))
+    def compute_inverse(self) -> Unitary:
+        return CRY(-self.theta)
 
 
-class CRZ(_ControlledTwoQubitGate):
+class CRZ(ControlledUnitary):
     r"""
     Two-qubit Controlled RZ gate.
 
@@ -1169,36 +1041,26 @@ class CRZ(_ControlledTwoQubitGate):
      [0.+0.j 0.+0.j 0.+0.j 0.+1.j]]
     """
 
-    __slots__ = ()
+    target: type[Unitary] = RZ
+    latex_str: str = r"{\rm CRZ}"
 
-    num_params: Final[int] = 1
-    target_gate: Final[Type[Gate]] = RZ
-    latex_str: Final[str] = r"{\rm CRZ}"
-
-    @staticmethod
-    @lru_cache(maxsize=128)
-    def compute_qobj(arg_value: tuple[float], dtype: str) -> Qobj:
-        theta = arg_value[0]
+    def compute_qobj(self, dtype: str = "dense") -> Qobj:
         return Qobj(
             [
                 [1, 0, 0, 0],
                 [0, 1, 0, 0],
-                [0, 0, np.exp(-1j * theta / 2), 0],
-                [0, 0, 0, np.exp(1j * theta / 2)],
+                [0, 0, np.exp(-1j * self.theta / 2), 0],
+                [0, 0, 0, np.exp(1j * self.theta / 2)],
             ],
             dims=[[2, 2], [2, 2]],
             dtype=dtype,
         )
 
-    def get_qobj(self, dtype: str = "dense") -> Qobj:
-        return self.compute_qobj(self.arg_value, dtype)
-
-    def inverse(self) -> Gate:
-        theta = self.arg_value[0]
-        return CRZ((-theta,))
+    def compute_inverse(self) -> Unitary:
+        return CRZ(-self.theta)
 
 
-class CPHASE(_ControlledTwoQubitGate):
+class CPHASE(ControlledUnitary):
     r"""
     Two-qubit parameterized controlled phase (CPHASE) gate.
 
@@ -1233,36 +1095,26 @@ class CPHASE(_ControlledTwoQubitGate):
      [0.+0.j 0.+0.j 0.+0.j 0.+1.j]]
     """
 
-    __slots__ = ()
+    target: type[Unitary] = PHASE
+    latex_str: str = r"{\rm CPHASE}"
 
-    num_params: Final[int] = 1
-    target_gate: Final[Type[Gate]] = PHASE
-    latex_str: Final[str] = r"{\rm CPHASE}"
-
-    @staticmethod
-    @lru_cache(maxsize=128)
-    def compute_qobj(arg_value: tuple[float], dtype: str) -> Qobj:
-        theta = arg_value[0]
+    def compute_qobj(self, dtype: str = "dense") -> Qobj:
         return Qobj(
             [
                 [1, 0, 0, 0],
                 [0, 1, 0, 0],
                 [0, 0, 1, 0],
-                [0, 0, 0, np.exp(1j * theta)],
+                [0, 0, 0, np.exp(1j * self.theta)],
             ],
             dims=[[2, 2], [2, 2]],
             dtype=dtype,
         )
 
-    def get_qobj(self, dtype: str = "dense") -> Qobj:
-        return self.compute_qobj(self.arg_value, dtype)
-
-    def inverse(self) -> Gate:
-        theta = self.arg_value[0]
-        return CPHASE((-theta,))
+    def compute_inverse(self) -> Unitary:
+        return CPHASE(-self.theta)
 
 
-class CQASMU(_ControlledTwoQubitGate):
+class CQASMU(ControlledUnitary):
     r"""
     Two-qubit controlled universal rotation (CQASMU) gate.
 
@@ -1287,7 +1139,7 @@ class CQASMU(_ControlledTwoQubitGate):
     --------
     >>> from qutip_qip.operations.gates import CQASMU
     >>> from math import pi
-    >>> CQASMU((pi/2, pi, pi/2)).get_qobj()
+    >>> CQASMU(pi/2, pi, pi/2).get_qobj()
     Quantum object: dims=[[2, 2], [2, 2]], shape=(4, 4), type='oper', dtype=Dense, isherm=False
     Qobj data =
     [[ 1. +0.j   0. +0.j   0. +0.j   0. +0.j ]
@@ -1296,16 +1148,10 @@ class CQASMU(_ControlledTwoQubitGate):
      [ 0. +0.j   0. +0.j   0.5+0.5j -0.5+0.5j]]
     """
 
-    __slots__ = ()
+    target: type[Unitary] = QASMU
+    latex_str: str = r"{\rm CQASMU}"
 
-    num_params: Final[int] = 3
-    target_gate: Final[Type[Gate]] = QASMU
-    latex_str: Final[str] = r"{\rm CQASMU}"
-
-    @staticmethod
-    @lru_cache(maxsize=128)
-    def compute_qobj(arg_value: tuple[float, float, float], dtype: str) -> Qobj:
-        theta, phi, gamma = arg_value
+    def compute_qobj(self, dtype: str = "dense") -> Qobj:
         return Qobj(
             [
                 [1, 0, 0, 0],
@@ -1313,23 +1159,19 @@ class CQASMU(_ControlledTwoQubitGate):
                 [
                     0,
                     0,
-                    np.exp(-1j * (phi + gamma) / 2) * np.cos(theta / 2),
-                    -np.exp(-1j * (phi - gamma) / 2) * np.sin(theta / 2),
+                    np.exp(-1j * (self.phi + self.gamma) / 2) * np.cos(self.theta / 2),
+                    -np.exp(-1j * (self.phi - self.gamma) / 2) * np.sin(self.theta / 2),
                 ],
                 [
                     0,
                     0,
-                    np.exp(1j * (phi - gamma) / 2) * np.sin(theta / 2),
-                    np.exp(1j * (phi + gamma) / 2) * np.cos(theta / 2),
+                    np.exp(1j * (self.phi - self.gamma) / 2) * np.sin(self.theta / 2),
+                    np.exp(1j * (self.phi + self.gamma) / 2) * np.cos(self.theta / 2),
                 ],
             ],
             dims=[[2, 2], [2, 2]],
             dtype=dtype,
         )
 
-    def get_qobj(self, dtype: str = "dense") -> Qobj:
-        return self.compute_qobj(self.arg_value, dtype=dtype)
-
-    def inverse(self) -> Gate:
-        theta, phi, gamma = self.arg_value
-        return CQASMU((-theta, -gamma, -phi))
+    def compute_inverse(self) -> Unitary:
+        return CQASMU(-self.theta, -self.gamma, -self.phi)

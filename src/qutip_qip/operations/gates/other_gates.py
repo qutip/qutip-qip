@@ -1,16 +1,14 @@
-from functools import cache
-from typing import Final, Type
+import warnings
 
 import scipy.sparse as sp
 import numpy as np
 from qutip import Qobj
 
-from qutip_qip.operations import Gate, ControlledGate, AngleParametricGate
+from qutip_qip.operations import ControlledUnitary, Unitary, AngleUnitary
 from qutip_qip.operations.gates import X, SWAP
-from qutip_qip.operations.namespace import NS_GATE
 
 
-class GLOBALPHASE(AngleParametricGate):
+class GLOBALPHASE(AngleUnitary):
     r"""
     Global phase gate.
 
@@ -23,8 +21,6 @@ class GLOBALPHASE(AngleParametricGate):
     arg_value : float
         The phase angle $\theta$ to be applied. Passed down to the `ParametricGate`
         base class.
-    arg_label : str, optional
-        Label for the argument to be shown in the circuit plot.
 
     Examples
     --------
@@ -43,18 +39,20 @@ class GLOBALPHASE(AngleParametricGate):
      [ 0. -1.]]
     """
 
-    __slots__ = ()
-    namespace = NS_GATE
+    num_qreg: int = 0
+    phi: float
+    latex_str: str = r"{\rm GLOBALPHASE}"
 
-    num_qubits: Final[int] = 0
-    num_params: Final[int] = 1
-    self_inverse: Final[bool] = False
-    latex_str: Final[str] = r"{\rm GLOBALPHASE}"
+    def __post_init__(self) -> None:
+        warnings.warn(
+            "GLOBALPHASE is deprecated and will be removed in a future version. "
+            "Use QubitCircuit.add_global_phase(phase) instead.",
+            DeprecationWarning,
+            stacklevel=3,
+        )
+        super().__post_init__()
 
-    def __repr__(self):
-        return f"Gate({self.name}, phase {self.arg_value[0]}) -> Qobj:"
-
-    def get_qobj(self, dtype: str = "dense") -> Qobj:
+    def compute_qobj(self, dtype: str = "dense") -> Qobj:
         r"""
         Return the scalar Qobj corresponding to the global phase factor
         :math:`e^{i \theta}`.
@@ -63,8 +61,7 @@ class GLOBALPHASE(AngleParametricGate):
         qobj : qutip.Qobj
             A scalar quantum object with data equal to :math:`e^{i \theta}`.
         """
-        phase = self.arg_value[0]
-        return Qobj(np.exp(1.0j * phase), dtype=dtype)
+        return Qobj(np.exp(1.0j * self.phi), dtype=dtype)
 
     def get_expanded_qobj(self, num_qubits: int, dtype: str = "dense") -> Qobj:
         r"""
@@ -87,20 +84,18 @@ class GLOBALPHASE(AngleParametricGate):
             The expanded unitary matrix representing $e^{i \theta} I$ for the
             $N$-qubit system.
         """
-        phase = self.arg_value[0]
         N = 1 << num_qubits
         return Qobj(
-            np.exp(1.0j * phase) * sp.eye(N, N, dtype=complex, format="csr"),
+            np.exp(1.0j * self.phi) * sp.eye(N, N, dtype=complex, format="csr"),
             dims=[[2] * num_qubits, [2] * num_qubits],
             dtype=dtype,
         )
 
-    def inverse(self):
-        theta = self.arg_value[0]
-        return GLOBALPHASE((-theta,))
+    def compute_inverse(self):
+        return GLOBALPHASE(-self.phi)
 
 
-class TOFFOLI(ControlledGate):
+class TOFFOLI(ControlledUnitary):
     """
     TOFFOLI gate (CCX).
 
@@ -120,20 +115,14 @@ class TOFFOLI(ControlledGate):
      [0. 0. 0. 0. 0. 0. 1. 0.]]
     """
 
-    __slots__ = ()
-    namespace = NS_GATE
+    num_ctrl_qreg: int = 2
+    ctrl_value: int = 0b11
 
-    num_qubits: Final[int] = 3
-    num_ctrl_qubits: Final[int] = 2
-    ctrl_value: Final[int] = 0b11
-
-    target_gate: Final[Type[Gate]] = X
-    self_inverse: Final[bool] = True
-    latex_str: Final[str] = r"{\rm TOFFOLI}"
+    target: type[Unitary] = X
+    latex_str: str = r"{\rm TOFFOLI}"
 
     @staticmethod
-    @cache
-    def get_qobj(dtype: str = "dense") -> Qobj:
+    def compute_qobj(dtype: str = "dense") -> Qobj:
         return Qobj(
             [
                 [1, 0, 0, 0, 0, 0, 0, 0],
@@ -150,7 +139,7 @@ class TOFFOLI(ControlledGate):
         )
 
 
-class FREDKIN(ControlledGate):
+class FREDKIN(ControlledUnitary):
     """
     FREDKIN gate (C-SWAP).
 
@@ -170,20 +159,14 @@ class FREDKIN(ControlledGate):
      [0. 0. 0. 0. 0. 0. 0. 1.]]
     """
 
-    __slots__ = ()
-    namespace = NS_GATE
+    num_ctrl_qreg: int = 1
+    ctrl_value: int = 1
 
-    num_qubits: Final[int] = 3
-    num_ctrl_qubits: Final[int] = 1
-    ctrl_value: Final[int] = 1
-
-    target_gate: Final[Type[Gate]] = SWAP
-    self_inverse: Final[bool] = True
-    latex_str: Final[str] = r"{\rm FREDKIN}"
+    target: type[Unitary] = SWAP
+    latex_str: str = r"{\rm FREDKIN}"
 
     @staticmethod
-    @cache
-    def get_qobj(dtype: str = "dense") -> Qobj:
+    def compute_qobj(dtype: str = "dense") -> Qobj:
         return Qobj(
             [
                 [1, 0, 0, 0, 0, 0, 0, 0],

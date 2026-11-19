@@ -34,9 +34,9 @@ from qutip_qip.device import (
 _tol = 3.0e-2
 num_qubits = 2
 
-_rx = RX(np.pi / 2, arg_label=r"\pi/2")
-_ry = RY(np.pi / 2, arg_label=r"\pi/2")
-_rz = RZ(np.pi / 2, arg_label=r"\pi/2")
+_rx = RX(np.pi / 2)
+_ry = RY(np.pi / 2)
+_rz = RZ(np.pi / 2)
 
 
 single_gate_tests = [

@@ -4,7 +4,7 @@ from unittest.mock import patch
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.circuit.draw import TeXRenderer, TextRenderer
 from qutip_qip.circuit.draw.base_renderer import format_gate_parameters
-from qutip_qip.operations import get_controlled_gate
+from qutip_qip.operations import controlled
 from qutip_qip.operations.gates import (
     IDENTITY,
     X,
@@ -168,11 +168,9 @@ def qc3():
 
 @pytest.fixture
 def qc4():
-    i = get_controlled_gate(IDENTITY, n_ctrl_qubits=1, gate_name="i")
-    ii = get_controlled_gate(IDENTITY, n_ctrl_qubits=2, gate_name="ii")
-    iii = get_controlled_gate(
-        IDENTITY, n_ctrl_qubits=1, control_value=0, gate_name="iii"
-    )
+    i = controlled(IDENTITY, num_ctrl_qreg=1, name="i")
+    ii = controlled(IDENTITY, num_ctrl_qreg=2, name="ii")
+    iii = controlled(IDENTITY, num_ctrl_qreg=1, ctrl_value=0, name="iii")
 
     qc = QubitCircuit(5, num_cbits=2)
     qc.add_gate(X, targets=0, classical_controls=[0, 1], classical_control_value=0)
@@ -310,7 +308,7 @@ def test_showarg_text_renderer():
     assert "RZ(0.50)" in _text_mid(numeric)
 
     multi = QubitCircuit(1)
-    multi.add_gate(R((np.pi / 2, np.pi / 4)), targets=0, style={"showarg": True})
+    multi.add_gate(R(np.pi / 2, np.pi / 4), targets=0, style={"showarg": True})
     assert "R(π/2, π/4)" in _text_mid(multi)
 
     controlled = QubitCircuit(2)
@@ -325,17 +323,13 @@ def test_showarg_text_renderer():
 
 def test_showarg_does_not_replace_arg_label():
     symbolic = QubitCircuit(1)
-    symbolic.add_gate(RZ(np.pi / 2, arg_label=r"\phi"), targets=0)
+    symbolic.add_gate(RZ(np.pi / 2), targets=0)
     symbolic_mid = _text_mid(symbolic)
-    assert r"\phi" in symbolic_mid
+    assert "RZ" in symbolic_mid
     assert "π/2" not in symbolic_mid
 
     both = QubitCircuit(1)
-    both.add_gate(
-        RZ(np.pi / 2, arg_label=r"\phi"),
-        targets=0,
-        style={"showarg": True},
-    )
+    both.add_gate(RZ(np.pi / 2), targets=0, style={"showarg": True})
     assert "RZ(π/2)" in _text_mid(both)
 
 
@@ -359,15 +353,17 @@ def test_showarg_latex_renderer():
     assert r"\pi" not in hidden_latex
 
     symbolic = QubitCircuit(1)
-    symbolic.add_gate(RZ(np.pi / 2, arg_label=r"\phi"), targets=0)
-    assert r"\gate{R_z(\phi)}" in TeXRenderer(symbolic).latex_code()
+    symbolic.add_gate(RZ(np.pi / 2), targets=0)
+    symbolic_latex = TeXRenderer(symbolic).latex_code()
+    assert r"\gate{R_z}" in symbolic_latex
+    assert r"\phi" not in symbolic_latex
 
     controlled = QubitCircuit(2)
     controlled.add_gate(CRX(np.pi / 2), targets=1, controls=0, style={"showarg": True})
     assert r"\gate{{\rm CRX}(\pi/2)}" in TeXRenderer(controlled).latex_code()
 
     multi = QubitCircuit(1)
-    multi.add_gate(R((np.pi / 2, 0.2)), targets=0, style={"showarg": True})
+    multi.add_gate(R(np.pi / 2, 0.2), targets=0, style={"showarg": True})
     assert r"\gate{{\rm R}(\pi/2, 0.20)}" in TeXRenderer(multi).latex_code()
 
 

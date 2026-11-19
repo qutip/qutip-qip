@@ -107,20 +107,6 @@ GATE_CLASS_MAP = {
     "CQASMU": CQASMU,
 }
 
-CONTROLLED_GATE_MAP = {
-    X: CX,
-    Y: CY,
-    Z: CZ,
-    H: CH,
-    S: CS,
-    T: CT,
-    RX: CRX,
-    RY: CRY,
-    RZ: CRZ,
-    PHASE: CPHASE,
-    QASMU: CQASMU,
-}
-
 
 __all__ = [
     "GATE_CLASS_MAP",

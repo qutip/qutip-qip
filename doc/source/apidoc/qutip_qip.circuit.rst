@@ -16,5 +16,5 @@ qutip\_qip.circuit
       CircuitResult
       CircuitSimulator
       CircuitInstruction
-      GateInstruction
+      UnitaryInstruction
       MeasurementInstruction
