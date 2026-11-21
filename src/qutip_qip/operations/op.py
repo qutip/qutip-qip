@@ -168,13 +168,13 @@ class Op(ABC, metaclass=_OpMeta):
             )
 
     def __post_init__(self) -> None:
+        self.validate_params()
+
         if self.is_derived:
             if not self.qreg_dim:
                 # The dataclass is frozen
                 object.__setattr__(self, "qreg_dim", (2,) * self.num_qreg)
-
             _check_config(self)
-        self.validate_params()
 
     def validate_params(self) -> None:
         """Overwritten for Parametric Ops. Raise ValueError on invalid parameters."""

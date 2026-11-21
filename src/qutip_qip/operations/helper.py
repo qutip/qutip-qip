@@ -26,7 +26,13 @@ class Power(Unitary):
     locals().update(
         {
             a: _from_op(a)
-            for a in ("num_qreg", "qreg_dim", "self_inverse", "is_clifford")
+            for a in (
+                "num_qreg",
+                "qreg_dim",
+                "self_inverse",
+                "is_clifford",
+                "has_matrix",
+            )
         }
     )
     name = property(lambda self: f"{self.op.name}^{self.k}")

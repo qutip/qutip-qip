@@ -174,6 +174,10 @@ class Controlled(Unitary):
     def _key(self):
         return (self.target_unitary, self.num_ctrl_qreg, self.ctrl_value, self.ctrl_dim)
 
+    @property
+    def has_matrix(self) -> bool:
+        return self.target_unitary.has_matrix
+
     def compute_qobj(self, dtype: str = "dense") -> Qobj:
         """
         Construct the full Qobj representation of the controlled gate.
