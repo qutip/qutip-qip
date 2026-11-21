@@ -1,7 +1,7 @@
 import math
 from collections import defaultdict
 from contextlib import contextmanager
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from uuid import uuid4
 from typing import Self
 
@@ -13,7 +13,6 @@ from qutip_qip.utils import check_limit
 
 @dataclass(frozen=True, slots=True)
 class Bloq:
-    uuid: str = field(default_factory=lambda: uuid4().hex)
     qreg_dim: tuple[Int, ...] = ()
     aux_qreg_dim: tuple[Int, ...] = ()
 
