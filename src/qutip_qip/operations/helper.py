@@ -1,56 +1,60 @@
+from typing import ClassVar, Self
+
 from qutip import Qobj
 
 from qutip_qip.operations.bloq_repository import register_op
 from qutip_qip.operations.inverse import Inverse
-from qutip_qip.operations.unitary import Modifier, Unitary
-
+from qutip_qip.operations.unitary import (
+    Modifier,
+    Unitary,
+    UnitaryFamily,
+    get_unitary_class,
+)
 from qutip_qip.typing import Int
 
 
-def _from_op(attr: str) -> property:
-    return property(lambda self: getattr(self.op, attr))
-
-
 class Power(Modifier):
-    op: Unitary
-    k: int
+    _settings = ("exponent",)
+    config = Modifier.config | set(_settings)
+    exponent: ClassVar[int]
 
-    target = property(lambda self: self.op)
-
-    locals().update(
-        {
-            a: _from_op(a)
-            for a in (
-                "num_qreg",
-                "qreg_dim",
-                "self_inverse",
-                "is_clifford",
+    @classmethod
+    def _apply_modifier(cls, op: UnitaryFamily, exponent: int) -> Self | type[Self]:
+        family = get_unitary_class(op)
+        if isinstance(exponent, bool) or not isinstance(exponent, Int) or exponent < 0:
+            raise ValueError(
+                f"Power: exponent must be an integer >= 0, got {exponent!r}."
             )
-        }
-    )
-    name = property(lambda self: f"{self.op.name}^{self.k}")
-    latex_str = property(lambda self: rf"{self.op.latex_str}^{{{self.k}}}")
+        return cls._make_modifier(
+            op, f"{family.__name__}^{exponent}", exponent=exponent
+        )
 
-    def validate_params(self) -> None:
-        if not isinstance(self.op, Unitary):
-            raise TypeError(f"Power takes a unitary op, got {self.op!r}.")
-        if isinstance(self.k, bool) or not isinstance(self.k, Int) or self.k < 0:
-            raise ValueError(f"Power: k must be an integer >= 0, got {self.k!r}.")
+    @property
+    def name(self) -> str:
+        return f"{self.target.name}^{self.exponent}"
+
+    @property
+    def latex_str(self) -> str:
+        return rf"{{{self.target.latex_str}}}^{{{self.exponent}}}"
 
     def compute_qobj(self, dtype: str = "dense") -> Qobj:
-        return self.op.get_qobj(dtype) ** self.k
+        return self.target.get_qobj(dtype) ** self.exponent
 
     def inverse(self) -> Unitary:
-        return Power(Inverse(self.op), self.k)
+        """
+        The inverse of a power keeps the same exponent and inverts only the
+        target. For example, the inverse of Power(T, 3) is Power(Tdag, 3).
+        """
+        return Power(Inverse(self.target), self.exponent)
 
     def __repr__(self) -> str:
-        return f"{self.op!r}^{self.k}"
+        return f"{self.target!r}^{self.exponent}"
 
 
 @register_op(Power)
 def _power(p, bloq):
-    for _ in range(p.k):
-        bloq.add(p.op, tuple(range(p.num_qreg)))
+    for _ in range(p.exponent):
+        bloq.add(p.target, tuple(range(p.num_qreg)))
 
 
 # Add SELECT
