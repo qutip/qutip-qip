@@ -13,8 +13,9 @@ from .inverse import Inverse
 from .controlled import Controlled
 from .measurement import Measurement, Mz
 from .bloq import Bloq, BloqBuilder
-from .bloq_repository import BloqRepository, DEFAULT_REPOSITORY, decompose, register_op
+from .bloq_repository import BloqRepository, DEFAULT_REPOSITORY, register_op
 from .helper import Power
+from .decompose import decompose
 from .old_gates import (
     rx,
     ry,

@@ -4,7 +4,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 
 from qutip_qip.operations.bloq import BloqBuilder, Bloq
-from qutip_qip.operations.op import Op, OpInstruction, get_op_class
+from qutip_qip.operations.op import Op, get_op_class
 
 # The implementation of an Op is just a function
 # which takes a BloqBuilder instances and adds the relevant gates.
@@ -89,23 +89,6 @@ class BloqRepository:
 DEFAULT_REPOSITORY = BloqRepository()
 
 
-def decompose(
-    bloq: Bloq, repository: BloqRepository, primitives: frozenset[Op | type[Op]]
-) -> Bloq:
-    builder = BloqBuilder(bloq.num_qreg, bloq.num_creg, bloq.qreg_dim)
-    _inline(
-        bloq,
-        builder.qreg,
-        builder.creg,
-        builder,
-        repository,
-        primitives,
-        frozenset(),
-        0,
-    )
-    return builder.to_bloq()
-
-
 def register_op(
     op: Op | type[Op],
     impl: BloqImpl | None = None,
@@ -115,76 +98,3 @@ def register_op(
     resolve: bool = False,
 ):
     return repository.register(op, impl, replace=replace, resolve=resolve)
-
-
-def _expand(
-    instruction: OpInstruction,
-    builder: BloqBuilder,
-    repository: BloqRepository,
-    primitives: frozenset[Op | type[Op]],
-    expanded: frozenset[Op],
-    aux_creg_start: int,
-) -> None:
-
-    op = instruction.op
-    if get_op_class(op) in primitives:
-        builder.add(op, instruction.qreg, instruction.creg, instruction.style)
-        return
-
-    # Without this RX -> RY -> RX would recurse forever when both are missing.
-    if op in expanded:
-        raise ValueError(
-            f"{op!r} decomposes back into itself, it cannot reach the primitives."
-        )
-
-    bloq = repository.resolve(op)
-    _inline(
-        bloq,
-        instruction.qreg,
-        instruction.creg,
-        builder,
-        repository,
-        primitives,
-        expanded | {op},
-        aux_creg_start,
-    )
-
-
-def _inline(
-    bloq: Bloq,
-    qreg: tuple[int, ...],
-    creg: tuple[int, ...],
-    builder: BloqBuilder,
-    repository: BloqRepository,
-    primitives: frozenset[Op | type[Op]],
-    expanded: frozenset[Op],
-    aux_creg_start: int,
-) -> None:
-
-    builder.add_global_phase(bloq.global_phase)
-
-    # Allocating the auxiliary (ancilla) qreg, creg
-    # In case of creg, we can directly reuse existing aux_cregs instead of caring
-    # whether they are clean, but in case of qreg they need to be clean ancilla.
-    aux_creg_end = aux_creg_start + bloq.num_aux_creg
-    missing = aux_creg_end - builder.num_aux_creg
-    if missing > 0:
-        builder.add_aux_creg(missing)
-
-    aux_creg = builder.aux_creg[aux_creg_start:aux_creg_end]
-    aux_qreg = tuple(
-        q for dim in bloq.aux_qreg_dim for q in builder.add_aux_qreg(dim=dim)
-    )
-
-    qreg_map = qreg + aux_qreg
-    creg_map = creg + aux_creg
-
-    for ins in bloq.instructions:
-        placed = OpInstruction(
-            ins.op,
-            tuple(qreg_map[q] for q in ins.qreg),
-            tuple(creg_map[c] for c in ins.creg),
-            ins.style,
-        )
-        _expand(placed, builder, repository, primitives, expanded, aux_creg_end)
-    builder.release_aux_qreg(aux_qreg)
