@@ -1,34 +1,64 @@
-import copy
-import inspect
-import weakref
-from dataclasses import fields
-from operator import attrgetter
-from typing import ClassVar
-
 from qutip import Qobj
-from qutip_qip.operations.op import op_factory
-from qutip_qip.operations.unitary import Modifier, Unitary
+from qutip_qip.operations.unitary import (
+    Modifier,
+    Unitary,
+    UnitaryFamily,
+    get_unitary_class,
+)
 
 
 class Inverse(Modifier):
     """
     Inverse() gives the inverse of a value like U or of a family like QFT.
     It is also the base class of every inverse that has no closed form.
+
+    >>> Inverse(T)
+    Tdag
+    >>> Inverse(RX(0.5))
+    RX(-0.5)
+    >>> Inverse(RX)(0.5)
+    RX(-0.5)
+
+    Parameters
+    ----------
+    op : Unitary or type[Unitary]
+        The value or family to invert.
     """
 
-    _cache: ClassVar[weakref.WeakValueDictionary] = weakref.WeakValueDictionary()
+    @classmethod
+    def _apply_modifier(cls, op: UnitaryFamily) -> UnitaryFamily:
+        unitary_class = get_unitary_class(op)
 
-    def __new__(cls, *args, **kwargs):
-        if cls is Inverse:
-            return _invert(*args, **kwargs)
+        if isinstance(op, Unitary):
+            closed_form = op.inverse()
 
-        self = super().__new__(cls)
-        if cls.is_parametric:
-            target = cls.target(*args, **kwargs)
-            if (closed_form := target.inverse()) is not None:
-                return closed_form  # Inverse(RX)(0.5) is RX(-0.5)
-            object.__setattr__(self, "target", target)  # the dataclass is frozen
-        return self
+        elif issubclass(unitary_class, Inverse):
+            closed_form = unitary_class.target  # Inverse(Inverse(QFT)) is QFT
+
+        elif unitary_class.self_inverse is True:
+            closed_form = unitary_class
+        else:
+            closed_form = None
+
+        if closed_form:
+            return closed_form
+        return cls._make_modifier(op, f"{unitary_class.__name__}dag")
+
+    @classmethod
+    def _find_simpler_form(cls, target: Unitary) -> Unitary | None:
+        # Inverse(RX)(0.5) is RX(-0.5), not an Inverse around RX(0.5).
+        closed_form = target.inverse()
+        if closed_form is not None:
+            return closed_form
+        return super()._find_simpler_form(target)
+
+    @property
+    def name(self) -> str:
+        return f"{self.target.name}dag"
+
+    @property
+    def latex_str(self) -> str:
+        return rf"{{{self.target.latex_str}}}^\dagger"
 
     def compute_qobj(self, dtype: str = "dense") -> Qobj:
         return self.target.get_qobj(dtype).dag()
@@ -38,57 +68,3 @@ class Inverse(Modifier):
 
     def __repr__(self) -> str:
         return f"{self.target!r}dag"
-
-
-def _invert(op: Unitary | type[Unitary]) -> Unitary | type[Unitary]:
-    """What Inverse(op) returns."""
-    family = op if isinstance(op, type) else type(op)
-
-    if issubclass(family, Inverse) and family is not Inverse:
-        # Inverse(Inverse(QFT)) is QFT, and the same for a value.
-        return op.target if op is family else op.inverse()
-
-    if issubclass(family, Unitary) and family.self_inverse is True:
-        return op
-
-    if isinstance(op, Unitary) and not op.params:
-        if (closed_form := op.inverse()) is not None:
-            return closed_form  # Inverse(T) is Tdag
-    return _make_inverse(op)
-
-
-@op_factory
-def _make_inverse(op: Unitary | type[Unitary]) -> Inverse | type[Inverse]:
-    is_family = isinstance(op, type)
-    family = op if is_family else type(op)
-
-    if not issubclass(family, Unitary) or inspect.isabstract(family):
-        raise TypeError(f"Inverse takes a unitary like RX or QFT, got {op!r}.")
-
-    if (cached := Inverse._cache.get(op)) is not None:
-        return cached
-
-    def from_target(getter):
-        # A config value, such as num_qreg, that the inverse takes from its target.
-        # E.g. For QFT, it depends on the parameters so each instance has to look it up.
-        if is_family and op.is_derived:
-            return property(lambda self: getter(self.target))
-        return getter(op)
-
-    class _Inverse(Inverse):
-        # Otherwise every one of these classes is named _Inverse.
-        __qualname__ = f"{family.__qualname__}dag"
-        target = op
-
-        # The target's parameters, e.g. theta in RX, become the inverse's parameters.
-        __annotations__ = {f.name: f.type for f in fields(op)}
-        locals().update({f.name: copy.copy(f) for f in fields(op)})
-        locals().update(
-            {attr: from_target(attrgetter(attr)) for attr in Unitary.config}
-        )
-
-        name = from_target(lambda t: f"{t.name}dag")
-        latex_str = from_target(lambda t: rf"{t.latex_str}^\dagger")
-
-    Inverse._cache[op] = _Inverse
-    return _Inverse
