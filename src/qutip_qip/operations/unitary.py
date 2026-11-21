@@ -84,7 +84,7 @@ class Inverse(Unitary):
         return super().__new__(cls) if closed is None else closed
 
     @cached_property
-    def target_unitary(self) -> Unitary:
+    def target_unitary(self):
         return self.target(*self.params) if self.params else self.target
 
     @property
@@ -94,6 +94,7 @@ class Inverse(Unitary):
     def compute_qobj(self, dtype: str = "dense") -> Qobj:
         return self.target_unitary.get_qobj(dtype).dag()
 
+    @cached_method
     def inverse(self) -> Unitary:
         return self.target_unitary
 
@@ -103,10 +104,18 @@ class Inverse(Unitary):
 
 def _invert(op: Unitary | type[Unitary]) -> Unitary | type[Unitary]:
     """What Inverse(op) returns."""
-    if isinstance(op, Unitary) and (closed_form := op.inverse()) is not None:
-        return closed_form  # Inverse(T) is Tdag
-    if isinstance(op, type) and issubclass(op, Inverse) and op is not Inverse:
-        return op.target  # Inverse(Inverse(QFT)) is QFT
+    family = op if isinstance(op, type) else type(op)
+
+    if issubclass(family, Inverse) and family is not Inverse:
+        # Inverse(Inverse(QFT)) is QFT, and the same for a value.
+        return op.target if op is family else op.inverse()
+
+    if issubclass(family, Unitary) and family.self_inverse is True:
+        return op
+
+    if isinstance(op, Unitary) and not op.params:
+        if (closed_form := op.inverse()) is not None:
+            return closed_form  # Inverse(T) is Tdag
     return _make_inverse(op)
 
 

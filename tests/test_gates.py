@@ -533,6 +533,13 @@ class TestControlled:
         )
         assert pickle.loads(pickle.dumps(Controlled(gates.RX)(0.5))) == gates.CRX(0.5)
 
+    def test_inverse_family_as_target(self):
+        # Inverse(RX)(0.5) is RX(-0.5), so both spellings must land on CRX.
+        by_family = Controlled(Inverse(gates.RX))(0.5)
+        by_value = Controlled(Inverse(gates.RX(0.5)))
+        assert by_family == by_value == gates.CRX(-0.5)
+        assert type(by_family) is type(by_value) is gates.CRX
+
     def test_nested_controls_flatten(self):
         assert Controlled(gates.CX) == Controlled(gates.X, 2) == gates.TOFFOLI
         assert Controlled(gates.CX).target is gates.X

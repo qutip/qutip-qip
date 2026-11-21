@@ -158,6 +158,14 @@ class Controlled(Unitary):
     def __new__(cls, *args, **kwargs):
         if cls is Controlled:
             return _controlled(*args, **kwargs)
+
+        # The target could be another or same Unitary. Example Inverse(RX)(0.5) is RX(-0.5).
+        if cls.is_parametric:
+            target = cls.target(*args, **kwargs)
+            if type(target) is not cls.target:
+                return Controlled(
+                    target, cls.num_ctrl_qreg, cls.ctrl_value, cls.ctrl_dim
+                )
         return super().__new__(cls)
 
     def validate_params(self) -> None:
