@@ -18,7 +18,6 @@ from qutip_qip.operations import (
     qubit_clifford_group,
 )
 import qutip_qip.operations.gates as gates
-from qutip_qip.operations.unitary import Inverse
 
 rng = np.random.default_rng(seed=101)
 

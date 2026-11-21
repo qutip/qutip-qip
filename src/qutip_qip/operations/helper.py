@@ -3,7 +3,8 @@ from qutip import Qobj
 from qutip_qip.operations.bloq import Bloq, BloqBuilder
 from qutip_qip.operations.bloq_repository import register_op
 from qutip_qip.operations.controlled import Controlled
-from qutip_qip.operations.unitary import Inverse, Unitary
+from qutip_qip.operations.inverse import Inverse
+from qutip_qip.operations.unitary import Unitary
 from qutip_qip.operations.gates import PHASE, TOFFOLI, X
 from qutip_qip.typing import Int
 
