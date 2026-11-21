@@ -566,7 +566,7 @@ class TestControlled:
 
     def test_target_parameters_and_control_value(self):
         assert gates.CRX(0.5).params == (0.5,)
-        assert gates.CRX(0.5).target_unitary == gates.RX(0.5)
+        assert gates.CRX(0.5).target == gates.RX(0.5)
         with pytest.raises(TypeError):
             gates.CRX(True)  # the target validates its own parameters
 

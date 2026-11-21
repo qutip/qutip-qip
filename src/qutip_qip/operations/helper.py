@@ -4,7 +4,7 @@ from qutip_qip.operations.bloq import Bloq, BloqBuilder
 from qutip_qip.operations.bloq_repository import register_op
 from qutip_qip.operations.controlled import Controlled
 from qutip_qip.operations.inverse import Inverse
-from qutip_qip.operations.unitary import Unitary
+from qutip_qip.operations.unitary import Modifier, Unitary
 from qutip_qip.operations.gates import PHASE, TOFFOLI, X
 from qutip_qip.typing import Int
 
@@ -20,9 +20,11 @@ def _reserve_aux(builder: BloqBuilder, bloq: Bloq) -> None:
         builder.add_aux_creg(bloq.num_aux_creg)
 
 
-class Power(Unitary):
+class Power(Modifier):
     op: Unitary
     k: int
+
+    target = property(lambda self: self.op)
 
     locals().update(
         {
@@ -32,7 +34,6 @@ class Power(Unitary):
                 "qreg_dim",
                 "self_inverse",
                 "is_clifford",
-                "has_matrix",
             )
         }
     )
@@ -66,7 +67,7 @@ def _power(p, bloq):
 
 @register_op(Inverse, resolve=True)
 def _inverse(op, bloq, resolve):
-    inner = resolve(op.target_unitary)
+    inner = resolve(op.target)
     _reserve_aux(bloq, inner)
 
     bloq.add_global_phase(-inner.global_phase)
@@ -83,7 +84,7 @@ def _controlled(op, bloq, resolve):
     if any(dim != 2 for dim in op.ctrl_dim):
         raise NotImplementedError(f"{op!r}: no generic rule for qudit controls.")
 
-    num_ctrl, target = op.num_ctrl_qreg, op.target_unitary
+    num_ctrl, target = op.num_ctrl_qreg, op.target
     zeros = [c for c in range(num_ctrl) if not op.ctrl_value >> (num_ctrl - 1 - c) & 1]
 
     if zeros:

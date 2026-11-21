@@ -1,10 +1,5 @@
-import copy
 import inspect
-import weakref
 from abc import abstractmethod
-from dataclasses import fields
-from functools import cached_property
-from operator import attrgetter
 from typing import ClassVar
 
 from qutip import Qobj
@@ -98,9 +93,8 @@ def get_unitary_gate(name: str, U: Qobj) -> Unitary:
 class Modifier(Unitary):
     @property
     @abstractmethod
-    def target_unitary(self) -> Unitary:
-        """The op being modified; rules read it by this one name."""
+    def target(self) -> Unitary | type[Unitary]: ...
 
     @property
     def has_matrix(self) -> bool:
-        return self.target_unitary.has_matrix
+        return self.target.has_matrix

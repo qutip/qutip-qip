@@ -3,9 +3,7 @@ import inspect
 import math
 import warnings
 import weakref
-from abc import abstractmethod
 from dataclasses import fields
-from functools import cached_property
 from typing import ClassVar
 
 import numpy as np
@@ -14,11 +12,11 @@ from scipy.linalg import block_diag
 from qutip import Qobj
 from qutip_qip.operations.inverse import Inverse
 from qutip_qip.operations.op import op_factory
-from qutip_qip.operations.unitary import Unitary
+from qutip_qip.operations.unitary import Modifier, Unitary
 from qutip_qip.typing import Int
 
 
-class Controlled(Unitary):
+class Controlled(Modifier):
     r"""
     Abstract class for defining a Controlled Unitaries.
 
@@ -46,12 +44,8 @@ class Controlled(Unitary):
         None  # None: all controls in |1> (|d-1> for control on a qudit)
     )
     ctrl_dim: ClassVar[tuple[int, ...] | None] = None  # None: qubits
-    _families: ClassVar[weakref.WeakValueDictionary] = weakref.WeakValueDictionary()
 
-    @property
-    @abstractmethod
-    def target(self) -> type[Unitary]: ...
-
+    _cache: ClassVar[weakref.WeakValueDictionary] = weakref.WeakValueDictionary()
     _derived = {
         "num_qreg": lambda c, t: c.num_ctrl_qreg + t.num_qreg,
         "qreg_dim": lambda c, t: c.ctrl_dim + t.qreg_dim,
@@ -73,7 +67,7 @@ class Controlled(Unitary):
 
         cls._configure(target)
         super().__init_subclass__()
-        cls._families.setdefault(
+        cls._cache.setdefault(
             (cls.target, cls.num_ctrl_qreg, cls.ctrl_value, cls.ctrl_dim), cls
         )
 
@@ -116,16 +110,14 @@ class Controlled(Unitary):
             ctrl_value = ctrl_value * math.prod(target.ctrl_dim) + target.ctrl_value
             ctrl_dim = ctrl_dim + target.ctrl_dim
             num_ctrl_qreg = len(ctrl_dim)
-            target = (
-                target.target_unitary if isinstance(target, Unitary) else target.target
-            )
+            target = target.target
 
         return target, num_ctrl_qreg, ctrl_value, ctrl_dim
 
     @classmethod
     def _family(cls, controls):
         """The family already made with these controls"""
-        family = cls._families.get(controls)
+        family = cls._cache.get(controls)
         if family is None:
             return None
         return family if family.is_parametric else family._value
@@ -143,7 +135,7 @@ class Controlled(Unitary):
                 setattr(
                     cls,
                     attr,
-                    property(lambda self, rule=rule: rule(self, self.target_unitary)),
+                    property(lambda self, rule=rule: rule(self, self.target)),
                 )
             else:
                 setattr(cls, attr, rule(cls, target))
@@ -161,31 +153,19 @@ class Controlled(Unitary):
             return _controlled(*args, **kwargs)
 
         # The target could be another or same Unitary. Example Inverse(RX)(0.5) is RX(-0.5).
+        self = super().__new__(cls)
         if cls.is_parametric:
             target = cls.target(*args, **kwargs)
             if type(target) is not cls.target:
                 return Controlled(
                     target, cls.num_ctrl_qreg, cls.ctrl_value, cls.ctrl_dim
                 )
-        return super().__new__(cls)
-
-    def validate_params(self) -> None:
-        # Run the validate_params method by building the target
-        # For non-parametric target Op like X, validate_params is just pass be default, so it passes
-        # For Parametric target Op (say RX), when we call CRX(theta), RX(theta) gets constructed which validates the params
-        self.target_unitary
-
-    @cached_property
-    def target_unitary(self) -> Unitary:
-        return self.target(*self.params) if self.params else self.target
+            object.__setattr__(self, "target", target)
+        return self
 
     @property
     def _key(self):
-        return (self.target_unitary, self.num_ctrl_qreg, self.ctrl_value, self.ctrl_dim)
-
-    @property
-    def has_matrix(self) -> bool:
-        return self.target_unitary.has_matrix
+        return (self.target, self.num_ctrl_qreg, self.ctrl_value, self.ctrl_dim)
 
     def compute_qobj(self, dtype: str = "dense") -> Qobj:
         """
@@ -196,7 +176,7 @@ class Controlled(Unitary):
         qobj : qutip.Qobj
             The unitary matrix representing the controlled operation.
         """
-        U = self.target_unitary.get_qobj(dtype)
+        U = self.target.get_qobj(dtype)
         blocks = [np.eye(U.shape[0]) for _ in range(math.prod(self.ctrl_dim))]
         blocks[self.ctrl_value] = U.full()
         return Qobj(
@@ -206,15 +186,19 @@ class Controlled(Unitary):
         )
 
     def inverse(self) -> Unitary:
+        """
+        The inverse of a controlled op keeps the same controls and inverts
+        only the target. For example, the inverse of CRX(0.5) is CRX(-0.5).
+        """
         return Controlled(
-            Inverse(self.target_unitary),
+            Inverse(self.target),
             self.num_ctrl_qreg,
             self.ctrl_value,
             self.ctrl_dim,
         )
 
     def __repr__(self) -> str:
-        return f"{'C' * self.num_ctrl_qreg}{self.target_unitary!r}"
+        return f"{'C' * self.num_ctrl_qreg}{self.target!r}"
 
 
 @op_factory
@@ -238,7 +222,7 @@ def _controlled(
     _name = name or (
         prefix + op.name
         if isinstance(op.name, str)
-        else property(lambda self: prefix + self.target_unitary.name)
+        else property(lambda self: prefix + self.target.name)
     )
 
     class _Controlled(Controlled):

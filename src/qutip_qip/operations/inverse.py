@@ -2,50 +2,42 @@ import copy
 import inspect
 import weakref
 from dataclasses import fields
-from functools import cached_property
 from operator import attrgetter
 from typing import ClassVar
 
 from qutip import Qobj
 from qutip_qip.operations.op import op_factory
 from qutip_qip.operations.unitary import Modifier, Unitary
-from qutip_qip.operations.utils import cached_method
 
 
-class Inverse(Unitary):
+class Inverse(Modifier):
     """
     Inverse() gives the inverse of a value like U or of a family like QFT.
     It is also the base class of every inverse that has no closed form.
     """
 
-    target: ClassVar[Unitary | type[Unitary]]
     _cache: ClassVar[weakref.WeakValueDictionary] = weakref.WeakValueDictionary()
 
     def __new__(cls, *args, **kwargs):
         if cls is Inverse:
             return _invert(*args, **kwargs)
 
-        # It must be instantiated with its parameters e.g. Inverse(RX)(0.5) is RX(-0.5) i.e. its the closed form.
-        closed = cls.target(*args, **kwargs).inverse() if cls.is_parametric else None
-        return super().__new__(cls) if closed is None else closed
-
-    @cached_property
-    def target_unitary(self):
-        return self.target(*self.params) if self.params else self.target
-
-    @property
-    def has_matrix(self) -> bool:
-        return self.target_unitary.has_matrix
+        self = super().__new__(cls)
+        if cls.is_parametric:
+            target = cls.target(*args, **kwargs)
+            if (closed_form := target.inverse()) is not None:
+                return closed_form  # Inverse(RX)(0.5) is RX(-0.5)
+            object.__setattr__(self, "target", target)  # the dataclass is frozen
+        return self
 
     def compute_qobj(self, dtype: str = "dense") -> Qobj:
-        return self.target_unitary.get_qobj(dtype).dag()
+        return self.target.get_qobj(dtype).dag()
 
-    @cached_method
     def inverse(self) -> Unitary:
-        return self.target_unitary
+        return self.target
 
     def __repr__(self) -> str:
-        return f"{self.target_unitary!r}dag"
+        return f"{self.target!r}dag"
 
 
 def _invert(op: Unitary | type[Unitary]) -> Unitary | type[Unitary]:
@@ -80,7 +72,7 @@ def _make_inverse(op: Unitary | type[Unitary]) -> Inverse | type[Inverse]:
         # A config value, such as num_qreg, that the inverse takes from its target.
         # E.g. For QFT, it depends on the parameters so each instance has to look it up.
         if is_family and op.is_derived:
-            return property(lambda self: getter(self.target_unitary))
+            return property(lambda self: getter(self.target))
         return getter(op)
 
     class _Inverse(Inverse):
