@@ -45,7 +45,6 @@ class Controlled(Modifier):
     """
 
     _settings = ("num_ctrl_qreg", "ctrl_value", "ctrl_dim")
-    config = Modifier.config | set(_settings)
 
     is_controlled: ClassVar[bool] = True
     num_ctrl_qreg: ClassVar[int] = 1

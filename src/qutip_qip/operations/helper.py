@@ -15,7 +15,6 @@ from qutip_qip.typing import Int
 
 class Power(Modifier):
     _settings = ("exponent",)
-    config = Modifier.config | set(_settings)
     exponent: ClassVar[int]
 
     @classmethod

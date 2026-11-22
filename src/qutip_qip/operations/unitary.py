@@ -186,22 +186,13 @@ class Modifier(Unitary):
     def __init_subclass__(cls) -> None:
         if Modifier in cls.__bases__:
             cls._modifier = cls
+            cls.config = frozenset(cls._settings)
             cls._cache = weakref.WeakValueDictionary()
 
         target = cls.target
         if isinstance(target, property):
             super().__init_subclass__()
             return
-
-        if isinstance(target, type):
-            # A family takes the same parameters as its target,
-            # e.g. Controlled(RX) takes theta because RX does.
-            parameters = fields(target)
-            cls.__annotations__ = {
-                parameter.name: parameter.type for parameter in parameters
-            } | cls.__annotations__
-            for parameter in parameters:
-                setattr(cls, parameter.name, copy.copy(parameter))
 
         # If the config of the target is fixed (RX always acts on 1 qubit), the property can
         # be run on the class itself, so we can work the value out of that property once and store
@@ -214,6 +205,16 @@ class Modifier(Unitary):
                 if not needs_parameters:
                     config_value = config_value.fget(cls)
                 setattr(cls, config_name, config_value)
+
+        if isinstance(target, type):
+            # A family takes the same parameters as its target,
+            # e.g. Controlled(RX) takes theta because RX does.
+            parameters = fields(target)
+            cls.__annotations__ = {
+                parameter.name: parameter.type for parameter in parameters
+            } | cls.__annotations__
+            for parameter in parameters:
+                setattr(cls, parameter.name, copy.copy(parameter))
 
         super().__init_subclass__()
 
@@ -294,6 +295,7 @@ class Modifier(Unitary):
             return family._value  # e.g. CX
         if isinstance(op, type):
             return family
+
         return family(*op.params)
 
     @property
