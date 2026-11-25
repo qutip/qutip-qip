@@ -4,7 +4,7 @@ import scipy.sparse as sp
 import numpy as np
 from qutip import Qobj
 
-from qutip_qip.operations import ControlledUnitary, Unitary, AngleUnitary
+from qutip_qip.operations import Controlled, Unitary, AngleUnitary
 from qutip_qip.operations.gates import X, SWAP
 
 
@@ -91,11 +91,11 @@ class GLOBALPHASE(AngleUnitary):
             dtype=dtype,
         )
 
-    def compute_inverse(self):
+    def inverse(self):
         return GLOBALPHASE(-self.phi)
 
 
-class TOFFOLI(ControlledUnitary):
+class TOFFOLI(Controlled):
     """
     TOFFOLI gate (CCX).
 
@@ -139,7 +139,7 @@ class TOFFOLI(ControlledUnitary):
         )
 
 
-class FREDKIN(ControlledUnitary):
+class FREDKIN(Controlled):
     """
     FREDKIN gate (C-SWAP).
 

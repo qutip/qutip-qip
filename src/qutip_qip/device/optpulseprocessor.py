@@ -6,7 +6,7 @@ import numpy as np
 from qutip import Qobj, identity
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.device import Processor
-from qutip_qip.operations import Unitary, gate_sequence_product, expand_operator
+from qutip_qip.operations import gate_sequence_product, expand_operator, get_op_class
 from qutip_qip.typing import Real
 
 
@@ -185,7 +185,7 @@ class OptPulseProcessor(Processor):
             if gates is not None and setting_args:
                 gate = gates[prop_ind]
                 gate_setting = None
-                gateclass = type(gate) if gate.is_parametric else gate
+                gateclass = get_op_class(gate)
 
                 if gateclass in setting_args:
                     gate_setting = setting_args[gateclass]

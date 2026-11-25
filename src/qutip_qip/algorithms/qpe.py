@@ -1,85 +1,40 @@
-import numpy as np
-from qutip import Qobj
-from qutip_qip.typing import IntSequence
-from qutip_qip.algorithms import qft_gate_sequence
-from qutip_qip.circuit import QubitCircuit
-from qutip_qip.operations import get_unitary_gate, controlled
+from qutip_qip.algorithms.qft import QFT
+from qutip_qip.operations import Inverse, Power, Unitary, Controlled, register_op
 from qutip_qip.operations.gates import H
+from qutip_qip.typing import Int
 
 
-def qpe(
-    U: Qobj,
-    num_counting_qubits: int,
-    target_qubits: int | IntSequence | None = None,
-    to_cnot: bool = False,
-) -> QubitCircuit:
-    """
-    Quantum Phase Estimation circuit implementation for QuTiP.
+class QPE(Unitary):
+    unitary: Unitary
+    num_counting_qreg: int
 
-    Parameters
-    ----------
-    U : Qobj
-        Unitary operator whose eigenvalue we want to estimate.
-        Should be a unitary quantum operator.
-    num_counting_qubits : int
-        Number of counting qubits to use for the phase estimation.
-        More qubits provide higher precision.
-    target_qubits : int or sequence of int, optional
-        Index or indices of the target qubit(s) where the eigenstate is prepared.
-        If None, target_qubits is set automatically based on U's dimension.
-    to_cnot : bool, optional
-        Flag to decompose controlled phase gates to CNOT gates (default: False)
+    @property
+    def num_qreg(self) -> int:
+        return self.num_counting_qreg + self.unitary.num_qreg
 
-    Returns
-    -------
-    qc : :class:`.QubitCircuit`
-        Gate sequence implementing Quantum Phase Estimation.
-    """
-    if num_counting_qubits < 1:
-        raise ValueError("Minimum value of counting qubits must be 1")
+    @property
+    def qreg_dim(self) -> tuple[int, ...]:
+        return (2,) * self.num_counting_qreg + self.unitary.qreg_dim
 
-    # Handle target qubits specification
-    if target_qubits is None:
-        dim = U.shape[0]
-        num_target_qubits = int(np.log2(dim))
-        if 1 << num_target_qubits != dim:
-            raise ValueError(f"Unitary operator dimension {dim} is not a power of 2")
-        target_qubits = list(
-            range(num_counting_qubits, num_counting_qubits + num_target_qubits)
-        )
-    elif type(target_qubits) is int:
-        target_qubits = [target_qubits]
-        num_target_qubits = 1
-    else:
-        num_target_qubits = len(target_qubits)
+    def validate_params(self) -> None:
+        if not isinstance(self.unitary, Unitary):
+            raise TypeError(f"QPE takes a unitary op, got {self.unitary!r}.")
+        t = self.num_counting_qreg
+        if isinstance(t, bool) or not isinstance(t, Int) or t < 1:
+            raise ValueError(
+                f"QPE: num_counting_qreg must be an integer >= 1, got {t!r}."
+            )
 
-    total_qubits = num_counting_qubits + num_target_qubits
-    qc = QubitCircuit(total_qubits)
 
-    # Apply Hadamard gates to all counting qubits
-    for i in range(num_counting_qubits):
-        qc.add_gate(H, targets=[i])
+@register_op(QPE)
+def _qpe(op, bloq):
+    t = op.num_counting_qreg
+    target = tuple(range(t, op.num_qreg))
 
-    # Apply controlled-U gates with increasing powers
-    for i in range(num_counting_qubits):
-        power = 2 ** (num_counting_qubits - i - 1)
-        # Create U^power
-        U_power = U if power == 1 else U**power
+    for q in range(t):
+        bloq.add(H, q)
 
-        # Add controlled-U^power gate
-        controlled_u = controlled(
-            get_unitary_gate(
-                name=f"U^{power}",
-                U=U_power,
-            ),
-        )
-        qc.add_gate(controlled_u, targets=target_qubits, controls=[i])
+    for j in range(t):
+        bloq.add(Controlled(Power(op.unitary, 2 ** (t - 1 - j))), (j, *target))
 
-    # Add inverse QFT on counting qubits
-    qc.add_circuit(
-        qft_gate_sequence(
-            num_counting_qubits, swapping=True, to_cnot=to_cnot
-        ).reverse_circuit()
-    )
-
-    return qc
+    bloq.add(Inverse(QFT(t)), tuple(range(t)))

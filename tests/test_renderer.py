@@ -3,7 +3,7 @@ import numpy as np
 from unittest.mock import patch
 from qutip_qip.circuit import QubitCircuit
 from qutip_qip.circuit.draw import TextRenderer
-from qutip_qip.operations import controlled
+from qutip_qip.operations import Controlled
 from qutip_qip.operations.gates import (
     IDENTITY,
     X,
@@ -165,9 +165,9 @@ def qc3():
 
 @pytest.fixture
 def qc4():
-    i = controlled(IDENTITY, num_ctrl_qreg=1, name="i")
-    ii = controlled(IDENTITY, num_ctrl_qreg=2, name="ii")
-    iii = controlled(IDENTITY, num_ctrl_qreg=1, ctrl_value=0, name="iii")
+    i = Controlled(IDENTITY, num_ctrl_qreg=1, name="i")
+    ii = Controlled(IDENTITY, num_ctrl_qreg=2, name="ii")
+    iii = Controlled(IDENTITY, num_ctrl_qreg=1, ctrl_value=0, name="iii")
 
     qc = QubitCircuit(5, num_cbits=2)
     qc.add_gate(X, targets=0, classical_controls=[0, 1], classical_control_value=0)

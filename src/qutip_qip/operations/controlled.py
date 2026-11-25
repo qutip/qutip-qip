@@ -1,27 +1,33 @@
-import copy
-import inspect
 import math
-import warnings
-import weakref
-from abc import abstractmethod
-from dataclasses import fields
-from functools import cached_property
-from typing import ClassVar
+from typing import ClassVar, Self
 
 import numpy as np
 from scipy.linalg import block_diag
 
 from qutip import Qobj
-from qutip_qip.operations.op import op_factory
-from qutip_qip.operations.unitary import Unitary
+from qutip_qip.operations.inverse import Inverse
+from qutip_qip.operations.op import get_op_class
+from qutip_qip.operations.unitary import (
+    Modifier,
+    Unitary,
+    UnitaryFamily,
+    get_unitary_class,
+)
 from qutip_qip.typing import Int
 
 
-class ControlledUnitary(Unitary):
+class Controlled(Modifier):
     r"""
-    Abstract class for defining a Controlled Unitary.
+    A unitary that is applied only when its controls are in a chosen state.
+    Controlled(op) takes a value like X, RX(0.5) or a classes like RX.
 
-    Attributes
+    Controlling an op that is already controlled adds to its controls, so
+    the target is not a Controlled itself.
+
+    A controlled gate can also be written as a class, with the controls as
+    class attributes.
+
+    Parameters
     ----------
     target : :class:`.Unitary`
         The Op to be applied to the target qubits.
@@ -38,55 +44,41 @@ class ControlledUnitary(Unitary):
         If the Op should execute when two control qubits are $|10\rangle$ (binary 10), set ``ctrl_value=0b10``.
     """
 
-    config = Unitary.config | {"target", "num_ctrl_qreg", "ctrl_dim", "ctrl_value"}
+    _settings = ("num_ctrl_qreg", "ctrl_value", "ctrl_dim")
+
     is_controlled: ClassVar[bool] = True
     num_ctrl_qreg: ClassVar[int] = 1
-    ctrl_value: ClassVar[int | None] = (
-        None  # None: all controls in |1> (|d-1> for control on a qudit)
-    )
-    ctrl_dim: ClassVar[tuple[int, ...] | None] = None  # None: qubits
-    _families: ClassVar[weakref.WeakValueDictionary] = weakref.WeakValueDictionary()
 
-    @property
-    @abstractmethod
-    def target(self) -> type[Unitary]: ...
+    # None means every control is in its highest state: |1> for a qubit.
+    ctrl_value: ClassVar[int | None] = None
 
-    _derived = {
-        "num_qreg": lambda c, t: c.num_ctrl_qreg + t.num_qreg,
-        "qreg_dim": lambda c, t: c.ctrl_dim + t.qreg_dim,
-        "num_creg": lambda c, t: t.num_creg,
-        "self_inverse": lambda c, t: t.self_inverse,
-    }
+    # None means every control is a qubit.
+    ctrl_dim: ClassVar[tuple[int, ...] | None] = None
+
+    # Adding a control to a Clifford gate does not always give a Clifford gate.
+    is_clifford: ClassVar[bool] = False
 
     def __init_subclass__(cls) -> None:
-        if clash := vars(cls).keys() & cls._derived.keys():
-            warnings.warn(
-                f"{cls.__name__}: cannot set {', '.join(clash)}, derived from the target.",
+        if not isinstance(cls.target, property):
+            cls.target, cls.num_ctrl_qreg, cls.ctrl_value, cls.ctrl_dim = cls._resolve(
+                cls.target, cls.num_ctrl_qreg, cls.ctrl_value, cls.ctrl_dim
             )
-
-        # We are setting num_qreg (an abstract property in Op) using the target Unitary
-        # So instead of doing inspect.isabstract, we just check on target directly
-        target = inspect.getattr_static(cls, "target")
-        if isinstance(target, property):
-            return super().__init_subclass__()
-
-        cls._configure(target)
         super().__init_subclass__()
-        cls._families.setdefault(
-            (cls.target, cls.num_ctrl_qreg, cls.ctrl_value, cls.ctrl_dim, cls.name), cls
-        )
 
     @classmethod
-    def _resolve(cls, target, num_ctrl_qreg, ctrl_value, ctrl_dim, name):
-        """Validate and fill in the controls."""
-        family = type(target) if isinstance(target, Unitary) else target
-        if not (isinstance(family, type) and issubclass(family, Unitary)):
-            raise TypeError(
-                f"{name}: target must be a unitary value like X or a family like RX, got {target!r}."
-            )
+    def _resolve(
+        cls,
+        target: UnitaryFamily,
+        num_ctrl_qreg: int,
+        ctrl_value: int | None,
+        ctrl_dim: tuple[int, ...] | None,
+    ) -> tuple[UnitaryFamily, int, int, tuple[int, ...]]:
+        """Check the target and the controls, and fill in the defaults."""
+
+        family = get_unitary_class(target)
 
         if not isinstance(num_ctrl_qreg, Int) or num_ctrl_qreg < 1:
-            raise ValueError(f"{name}: num_ctrl_qreg must be an integer >= 1.")
+            raise ValueError(f"{cls.name}: num_ctrl_qreg must be an integer >= 1.")
 
         # Default value and validation for ctrl_dim
         if ctrl_dim is None:
@@ -98,7 +90,7 @@ class ControlledUnitary(Unitary):
             or any(not isinstance(d, Int) or d < 2 for d in ctrl_dim)
         ):
             raise ValueError(
-                f"{name}: ctrl_dim={ctrl_dim} needs {num_ctrl_qreg} entries, each >= 2."
+                f"{cls.name}: ctrl_dim={ctrl_dim} needs {num_ctrl_qreg} entries, each >= 2."
             )
 
         # Default value and validation for ctrl_value
@@ -107,67 +99,64 @@ class ControlledUnitary(Unitary):
             ctrl_value = size - 1
 
         if not isinstance(ctrl_value, Int) or not 0 <= ctrl_value < size:
-            raise ValueError(f"{name}: ctrl_value must be in [0, {size}).")
+            raise ValueError(f"{cls.name}: ctrl_value must be in [0, {size}).")
 
-        # If we are controlling an already ControlledUnitary e.g. CX
+        # If we are controlling an already Controlled e.g. CX
         # we can just use X as target and increase the num_ctrl_qreg, ctrl_dim count
-        if issubclass(family, ControlledUnitary):
+        if issubclass(family, Controlled):
             ctrl_value = ctrl_value * math.prod(target.ctrl_dim) + target.ctrl_value
             ctrl_dim = ctrl_dim + target.ctrl_dim
             num_ctrl_qreg = len(ctrl_dim)
-            target = (
-                target.target_unitary if isinstance(target, Unitary) else target.target
-            )
+            target = target.target
 
-        return target, num_ctrl_qreg, ctrl_value, ctrl_dim, name
+        return target, num_ctrl_qreg, ctrl_value, ctrl_dim
 
     @classmethod
-    def _family(cls, controls):
-        """The family already made with these controls"""
-        family = cls._families.get(controls)
-        if family is None:
-            return None
-        return family if family.is_parametric else family._value
-
-    @classmethod
-    def _configure(cls, target: Unitary | type[Unitary]) -> None:
-        cls.target, cls.num_ctrl_qreg, cls.ctrl_value, cls.ctrl_dim, _ = cls._resolve(
-            target, cls.num_ctrl_qreg, cls.ctrl_value, cls.ctrl_dim, cls.name
+    def _apply_modifier(
+        cls: Self,
+        target: UnitaryFamily,
+        num_ctrl_qreg: int = 1,
+        ctrl_value: int | None = None,
+        ctrl_dim: tuple[int, ...] | None = None,
+        name: str | None = None,
+    ) -> Self | type[Self]:
+        target, num_ctrl_qreg, ctrl_value, ctrl_dim = cls._resolve(
+            target, num_ctrl_qreg, ctrl_value, ctrl_dim
         )
-        target = cls.target
 
-        # A derived target, e.g. MCX(n), only knows its registers per instance.
-        for attr, rule in cls._derived.items():
-            if isinstance(target, type) and target.is_derived:
-                setattr(
-                    cls,
-                    attr,
-                    property(lambda self, rule=rule: rule(self, self.target_unitary)),
-                )
-            else:
-                setattr(cls, attr, rule(cls, target))
+        target_family = get_unitary_class(target)
+        prefix = "C" * num_ctrl_qreg
 
-        if isinstance(target, type):
-            # The target's parameters e.g. theta in RX, become parameter in a Controlled Op
-            cls.__annotations__ = {f.name: f.type for f in fields(target)} | dict(
-                cls.__annotations__
-            )
-            for f in fields(target):
-                setattr(cls, f.name, copy.copy(f))
+        if name is not None:
+            op_name = name
+        elif isinstance(target_family.name, str):
+            op_name = prefix + target_family.name
+        else:
+            # The name of the target depends on its parameters, so ours does too.
+            op_name = property(lambda self: prefix + self.target.name)
 
-    def validate_params(self) -> None:
-        # Run the validate_params method by building the target
-        # For non-parametric target Op like X, validate_params is just pass be default, so it passes
-        # For Parametric target Op (say RX), when we call CRX(theta), RX(theta) gets constructed which validates the params
-        self.target_unitary
+        # Pickle makes the class again from this call. The name the caller
+        # chose is not a setting, so it has to be added here.
+        controls = (num_ctrl_qreg, ctrl_value, ctrl_dim)
+        recreate = (cls, (get_op_class(target), *controls, name))
 
-    @cached_property
-    def target_unitary(self) -> Unitary:
-        return self.target(*self.params) if self.params else self.target
+        return cls._make_modifier(
+            target,
+            prefix + target_family.__name__,
+            num_ctrl_qreg=num_ctrl_qreg,
+            ctrl_value=ctrl_value,
+            ctrl_dim=ctrl_dim,
+            name=op_name,
+            _factory=recreate,
+        )
 
     @property
-    def _key(self):
-        return (self.target_unitary, self.num_ctrl_qreg, self.ctrl_value, self.ctrl_dim)
+    def num_qreg(self) -> int:
+        return self.num_ctrl_qreg + self.target.num_qreg
+
+    @property
+    def qreg_dim(self) -> tuple[int, ...]:
+        return self.ctrl_dim + self.target.qreg_dim
 
     def compute_qobj(self, dtype: str = "dense") -> Qobj:
         """
@@ -178,7 +167,7 @@ class ControlledUnitary(Unitary):
         qobj : qutip.Qobj
             The unitary matrix representing the controlled operation.
         """
-        U = self.target_unitary.get_qobj(dtype)
+        U = self.target.get_qobj(dtype)
         blocks = [np.eye(U.shape[0]) for _ in range(math.prod(self.ctrl_dim))]
         blocks[self.ctrl_value] = U.full()
         return Qobj(
@@ -187,49 +176,17 @@ class ControlledUnitary(Unitary):
             dtype=dtype,
         )
 
-    def compute_inverse(self) -> Unitary:
-        return controlled(
-            self.target_unitary.inverse(),
+    def inverse(self) -> Unitary:
+        """
+        The inverse of a controlled op keeps the same controls and inverts
+        only the target. For example, the inverse of CRX(0.5) is CRX(-0.5).
+        """
+        return Controlled(
+            Inverse(self.target),
             self.num_ctrl_qreg,
             self.ctrl_value,
             self.ctrl_dim,
         )
 
     def __repr__(self) -> str:
-        return f"{'C' * self.num_ctrl_qreg}{self.target_unitary!r}"
-
-
-@op_factory
-def controlled(
-    op: Unitary | type[Unitary],
-    num_ctrl_qreg: int = 1,
-    ctrl_value: int | None = None,
-    ctrl_dim: tuple[int, ...] | None = None,
-    name: str | None = None,
-) -> ControlledUnitary | type[ControlledUnitary]:
-
-    # A class body cannot read a parameter if what it assigns has the same name, so we use aliases.
-    prefix = "C" * num_ctrl_qreg
-    label = name or prefix + (op if isinstance(op, type) else type(op)).__name__
-    _name = name or (
-        prefix + op.name
-        if isinstance(op.name, str)
-        else property(lambda self: prefix + self.target_unitary.name)
-    )
-
-    controls = ControlledUnitary._resolve(
-        op, num_ctrl_qreg, ctrl_value, ctrl_dim, _name
-    )
-    if (control_family := ControlledUnitary._family(controls)) is not None:
-        return control_family
-    _target, _num_ctrl_qreg, _ctrl_value, _ctrl_dim, _name = controls
-
-    class _Controlled(ControlledUnitary):
-        __qualname__ = label  # otherwise every factory-made class is named _Controlled
-        name = _name
-        target = _target
-        num_ctrl_qreg = _num_ctrl_qreg
-        ctrl_value = _ctrl_value
-        ctrl_dim = _ctrl_dim
-
-    return _Controlled
+        return f"{'C' * self.num_ctrl_qreg}{self.target!r}"

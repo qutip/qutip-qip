@@ -152,7 +152,7 @@ class SQRTX(Unitary):
         return Qobj([[0.5 + 0.5j, 0.5 - 0.5j], [0.5 - 0.5j, 0.5 + 0.5j]], dtype=dtype)
 
     @staticmethod
-    def compute_inverse() -> type[Unitary]:
+    def inverse() -> type[Unitary]:
         return SQRTXdag
 
 
@@ -180,7 +180,7 @@ class SQRTXdag(Unitary):
         return Qobj([[0.5 - 0.5j, 0.5 + 0.5j], [0.5 + 0.5j, 0.5 - 0.5j]], dtype=dtype)
 
     @staticmethod
-    def compute_inverse() -> type[Unitary]:
+    def inverse() -> type[Unitary]:
         return SQRTX
 
 
@@ -211,7 +211,7 @@ class S(Unitary):
         return Qobj([[1, 0], [0, 1j]], dtype=dtype)
 
     @staticmethod
-    def compute_inverse() -> type[Unitary]:
+    def inverse() -> type[Unitary]:
         return Sdag
 
 
@@ -239,7 +239,7 @@ class Sdag(Unitary):
         return Qobj([[1, 0], [0, -1j]], dtype=dtype)
 
     @staticmethod
-    def compute_inverse() -> type[Unitary]:
+    def inverse() -> type[Unitary]:
         return S
 
 
@@ -266,7 +266,7 @@ class T(Unitary):
         return Qobj([[1, 0], [0, np.exp(1j * np.pi / 4)]], dtype=dtype)
 
     @staticmethod
-    def compute_inverse() -> type[Unitary]:
+    def inverse() -> type[Unitary]:
         return Tdag
 
 
@@ -293,7 +293,7 @@ class Tdag(Unitary):
         return Qobj([[1, 0], [0, np.exp(-1j * np.pi / 4)]], dtype=dtype)
 
     @staticmethod
-    def compute_inverse() -> type[Unitary]:
+    def inverse() -> type[Unitary]:
         return T
 
 
@@ -343,7 +343,7 @@ class RX(AngleUnitary):
             dtype=dtype,
         )
 
-    def compute_inverse(self) -> Unitary:
+    def inverse(self) -> Unitary:
         return RX(-self.theta)
 
 
@@ -393,7 +393,7 @@ class RY(AngleUnitary):
             dtype=dtype,
         )
 
-    def compute_inverse(self) -> Unitary:
+    def inverse(self) -> Unitary:
         return RY(-self.theta)
 
 
@@ -440,7 +440,7 @@ class RZ(AngleUnitary):
             dtype=dtype,
         )
 
-    def compute_inverse(self) -> Unitary:
+    def inverse(self) -> Unitary:
         return RZ(-self.theta)
 
 
@@ -487,7 +487,7 @@ class PHASE(AngleUnitary):
             dtype=dtype,
         )
 
-    def compute_inverse(self) -> Unitary:
+    def inverse(self) -> Unitary:
         return PHASE(-self.theta)
 
 
@@ -547,7 +547,7 @@ class R(AngleUnitary):
             dtype=dtype,
         )
 
-    def compute_inverse(self) -> Unitary:
+    def inverse(self) -> Unitary:
         return R(self.phi, -self.theta)
 
 
@@ -609,7 +609,7 @@ class QASMU(AngleUnitary):
             dtype=dtype,
         )
 
-    def compute_inverse(self) -> Unitary:
+    def inverse(self) -> Unitary:
         return QASMU(-self.theta, -self.gamma, -self.phi)
 
 

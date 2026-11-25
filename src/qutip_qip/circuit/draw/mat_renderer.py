@@ -49,8 +49,8 @@ class MatRenderer(BaseRenderer):
         super().__init__(self.style)
         self._qc = qc
         self._ax = ax
-        self._qwires = qc.num_qubits
-        self._cwires = qc.num_cbits
+        self._qwires = qc.num_qreg
+        self._cwires = qc.num_creg
 
         # default values
         self._cwire_sep = 0.02
@@ -747,9 +747,9 @@ class MatRenderer(BaseRenderer):
         """
 
         self._add_wire_labels()
-        classical_controls = infer_classical_controls(self._qc.ops)
+        classical_controls = infer_classical_controls(self._qc.to_bloq().instructions)
 
-        for index, instruction in enumerate(self._qc.ops):
+        for index, instruction in enumerate(self._qc.to_bloq().instructions):
             op = instruction.op
             qubits = instruction.qreg
             cbits = instruction.creg

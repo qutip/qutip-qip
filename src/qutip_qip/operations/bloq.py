@@ -1,7 +1,9 @@
 import math
+from collections import defaultdict
 from contextlib import contextmanager
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from uuid import uuid4
+from typing import Self
 
 from qutip_qip.operations.conditional import Cbz, Cbnz, ClassicalControlCheck, Label
 from qutip_qip.operations.op import Op, OpInstruction
@@ -11,16 +13,15 @@ from qutip_qip.utils import check_limit
 
 @dataclass(frozen=True, slots=True)
 class Bloq:
-    uuid: str = field(default_factory=lambda: uuid4().hex)
     qreg_dim: tuple[Int, ...] = ()
     aux_qreg_dim: tuple[Int, ...] = ()
 
     @property
-    def num_qreg(self) -> int:
+    def num_qreg(self: Self) -> int:
         return len(self.qreg_dim)
 
     @property
-    def num_aux_qreg(self) -> int:
+    def num_aux_qreg(self: Self) -> int:
         return len(self.aux_qreg_dim)
 
     num_creg: Int = 0
@@ -38,12 +39,17 @@ class BloqBuilder:
         "_aux_qreg_dim",
         "_num_creg",
         "_num_aux_creg",
+        "_clean_aux_qreg",
         "_global_phase",
         "_op_instructions",
     )
 
+    # Note: We don't require an ancilla like clean mechanism for aux_creg because
+    # classical registers can be overwritten in measurement. So a creg is reusable
+    # as soon as its bloq ends.
+
     def __init__(
-        self, num_qreg: int, num_creg: int = 0, qreg_dim: tuple[int, ...] = ()
+        self: Self, num_qreg: int, num_creg: int = 0, qreg_dim: tuple[int, ...] = ()
     ) -> None:
         if num_qreg < 0:
             raise ValueError("num_qreg must be greater than or equal to 0.")
@@ -63,49 +69,63 @@ class BloqBuilder:
         self._aux_qreg_dim: list[int] = []
         self._num_creg: int = num_creg
         self._num_aux_creg: int = 0
+        self._clean_aux_qreg: defaultdict[int, list[int]] = defaultdict(list)
         self._global_phase: float = 0.0
         self._op_instructions: list[OpInstruction] = []
 
     @property
-    def num_qreg(self) -> int:
+    def qreg_dim(self: Self) -> tuple[int, ...]:
+        return self._qreg_dim
+
+    @property
+    def num_qreg(self: Self) -> int:
         return len(self._qreg_dim)
 
     @property
-    def num_aux_qreg(self) -> int:
+    def num_aux_qreg(self: Self) -> int:
         return len(self._aux_qreg_dim)
 
     @property
-    def num_creg(self) -> int:
+    def num_creg(self: Self) -> int:
         return self._num_creg
 
     @property
-    def num_aux_creg(self) -> int:
+    def num_aux_creg(self: Self) -> int:
         return self._num_aux_creg
 
     @property
-    def instructions(self) -> tuple[OpInstruction, ...]:
+    def instructions(self: Self) -> tuple[OpInstruction, ...]:
         return tuple(self._op_instructions)
 
     @property
-    def global_phase(self) -> float:
+    def global_phase(self: Self) -> float:
         return self._global_phase
 
-    def add_global_phase(self, phase: float) -> None:
+    def add_global_phase(self: Self, phase: float) -> None:
         self._global_phase += phase
         self._global_phase %= 2 * math.pi
 
-    def add_aux_qreg(self, count: Int = 1, dim: Int = 2) -> tuple[int, ...]:
+    def add_aux_qreg(self: Self, count: Int = 1, dim: Int = 2) -> tuple[int, ...]:
         if not (isinstance(count, Int) and count > 0):
             raise TypeError(f"count must be of type int, got {count}")
 
         if not (isinstance(dim, Int) and dim > 0):
             raise TypeError(f"dim must be of type int, got {dim}")
 
-        start = self.num_qreg + self.num_aux_qreg
-        self._aux_qreg_dim.extend([dim] * count)
-        return tuple(range(start, start + count))
+        clean = self._clean_aux_qreg[dim]
+        return tuple(
+            clean.pop() if clean else self._new_aux_qreg(dim) for _ in range(count)
+        )
 
-    def add_aux_creg(self, count: Int = 1) -> tuple[int, ...]:
+    def _new_aux_qreg(self: Self, dim: Int) -> int:
+        self._aux_qreg_dim.append(dim)
+        return self.aux_qreg[-1]
+
+    def release_aux_qreg(self: Self, qreg: tuple[Int, ...]) -> None:
+        for q in qreg:
+            self._clean_aux_qreg[self._aux_qreg_dim[q - self.num_qreg]].append(q)
+
+    def add_aux_creg(self: Self, count: Int = 1) -> tuple[int, ...]:
         if not (isinstance(count, Int) and count > 0):
             raise TypeError(f"count must be of type int, got {count}")
 
@@ -114,22 +134,28 @@ class BloqBuilder:
         return tuple(range(start, start + count))
 
     @property
-    def qreg(self) -> tuple[int, ...]:
+    def qreg(self: Self) -> tuple[int, ...]:
         return tuple(range(self.num_qreg))
 
     @property
-    def creg(self) -> tuple[int, ...]:
+    def creg(self: Self) -> tuple[int, ...]:
         return tuple(range(self.num_creg))
 
     @property
-    def aux_qreg(self) -> tuple[int, ...]:
+    def aux_qreg(self: Self) -> tuple[int, ...]:
         return tuple(range(self.num_qreg, self.num_qreg + self.num_aux_qreg))
 
     @property
-    def aux_creg(self) -> tuple[int, ...]:
+    def aux_creg(self: Self) -> tuple[int, ...]:
         return tuple(range(self.num_creg, self.num_creg + self.num_aux_creg))
 
-    def add(self, op: Op, qreg=(), creg=(), style: dict = None) -> None:
+    def add(
+        self: Self,
+        op: Op,
+        qreg: tuple[Int, ...] = (),
+        creg: tuple[Int, ...] = (),
+        style: dict = None,
+    ) -> None:
         # Type checking is handled internally within OpInstruction
         # We just check each element of qreg, creg are within the limit
         if isinstance(qreg, Int):
@@ -144,13 +170,18 @@ class BloqBuilder:
             OpInstruction(op=op, qreg=tuple(qreg), creg=tuple(creg), style=style)
         )
 
-    def _jump(self, label: Label):
+    def _jump(self: Self, label: Label):
         # Unconditional jump
         self.add(Cbz(label), creg=0)
         self.add(Cbnz(label), creg=0)
 
     @contextmanager
-    def if_test(self, creg, value: Int, check: ClassicalControlCheck = "EQ") -> None:
+    def if_test(
+        self: Self,
+        creg: Int | tuple[Int, ...],
+        value: Int,
+        check: ClassicalControlCheck = "EQ",
+    ):
         if isinstance(creg, Int):
             creg = [creg]
 
@@ -240,12 +271,12 @@ class BloqBuilder:
         finally:
             self.add(label)
 
-    def build(self) -> Bloq:
+    def to_bloq(self: Self) -> Bloq:
         return Bloq(
             qreg_dim=self._qreg_dim,
             aux_qreg_dim=tuple(self._aux_qreg_dim),
             num_creg=self.num_creg,
             num_aux_creg=self.num_aux_creg,
             global_phase=self.global_phase,
-            instructions=self.instructions,
+            instructions=tuple(self._op_instructions),
         )
