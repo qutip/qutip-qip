@@ -126,6 +126,16 @@ class TestNoise:
         noisy_qu, c_ops = systematic_noise.get_noisy_qobjevo(dims=dims)
         assert_(len(c_ops) == 4)
 
+        # t2 = 2 * t1: T1 decay alone gives this T2, so only the T1 operator.
+        # The second qubit is just below the limit, where the rate rounds to 0.
+        relnoise = RelaxationNoise(t1=[1.0, 0.9], t2=[2.0, np.nextafter(1.8, 0)])
+        pulses, systematic_noise = relnoise.get_noisy_pulses(dims=dims)
+        noisy_qu, c_ops = systematic_noise.get_noisy_qobjevo(dims=dims)
+        assert_(len(c_ops) == 2)
+
+        with pytest.raises(ValueError, match=r"2\*t1>=t2"):
+            RelaxationNoise(t1=1.0, t2=2.5).get_noisy_pulses(dims=dims)
+
     def test_control_amplitude_noise(self):
         """
         Test for the control amplitude noise
